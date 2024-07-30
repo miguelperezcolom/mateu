@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.util;
 
 import io.mateu.core.domain.model.util.asciiart.Painter;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
-
 import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;

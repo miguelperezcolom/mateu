@@ -165,6 +165,7 @@ export class MateuCrud extends LitElement {
     const page = this.page;
     const pageSize = this.pageSize;
     const sortOrders = this.getSortOrders()
+    const totalElements = this.page == 0?-1:this.count;
 
     await this.fetchData({
       listId: this.listId,
@@ -173,6 +174,7 @@ export class MateuCrud extends LitElement {
       sortOrders,
       // @ts-ignore
       filters: this.data,
+      totalElements
     });
 
     this.updateFiltersText()
@@ -199,6 +201,7 @@ export class MateuCrud extends LitElement {
     pageSize: number
     filters: object
     sortOrders: string
+    totalElements: number
   }) {
       this.state.uiId = this.uiId
       this.state.journeyTypeId = this.journeyTypeId
@@ -225,7 +228,9 @@ export class MateuCrud extends LitElement {
     if (this.journeyId == state.journeyId && this.listId == state.listId) {
       this.state = state
       this.items = state.items
-      this.count = state.count
+      if (state.count > -1) {
+        this.count = state.count
+      }
       this.message = state.message
     }
   }

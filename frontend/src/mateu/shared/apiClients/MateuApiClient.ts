@@ -247,7 +247,8 @@ export default class MateuApiClient {
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
-            "&ordering=" + sortOrders, data)
+            "&ordering=" + sortOrders
+            , data)
             .then((response) => response.data))
     }
 

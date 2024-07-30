@@ -1,10 +1,10 @@
 package ${pkgName};
 
 import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
-import io.mateu.core.domain.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import io.mateu.core.domain.util.Helper;
+import io.mateu.core.domain.model.util.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

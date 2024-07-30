@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicStep;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;

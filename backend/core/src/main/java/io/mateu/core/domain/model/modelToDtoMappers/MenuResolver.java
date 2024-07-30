@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.core.app.*;
 import io.mateu.core.domain.uidefinition.core.app.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -9,7 +10,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.util.Helper;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -152,7 +152,6 @@ public class MenuResolver {
       if (actionId.equals(journeyTypeId)) {
         return buildMenuEntry(caption, m, getValue(uiInstance, m)).setIcon(icon);
       }
-
     }
     return null;
   }

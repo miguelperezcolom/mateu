@@ -2,10 +2,10 @@ package io.mateu.core.domain.model.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.dtos.Menu;
 import io.mateu.dtos.MenuType;
 import java.lang.reflect.AnnotatedElement;

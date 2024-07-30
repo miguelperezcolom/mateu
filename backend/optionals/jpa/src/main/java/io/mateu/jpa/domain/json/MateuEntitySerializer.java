@@ -1,9 +1,9 @@
 package io.mateu.jpa.domain.json;
 
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;

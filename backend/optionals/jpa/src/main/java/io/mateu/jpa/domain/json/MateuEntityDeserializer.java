@@ -1,9 +1,9 @@
 package io.mateu.jpa.domain.json;
 
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.persistence.EntityDeserializer;
+import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
