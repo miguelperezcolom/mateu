@@ -103,8 +103,7 @@ public class FieldAttributeBuilder {
         Method m =
             reflectionHelper.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
-        List<io.mateu.core.domain.uidefinition.shared.data.Value> choices =
-            (List<io.mateu.core.domain.uidefinition.shared.data.Value>) m.invoke(view);
+        List<Value> choices = (List<Value>) m.invoke(view);
         choices.forEach(
             v -> {
               attributes.add(

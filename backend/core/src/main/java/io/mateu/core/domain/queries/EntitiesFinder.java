@@ -2,8 +2,8 @@ package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
 import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.dtos.Value;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -39,7 +39,12 @@ public class EntitiesFinder {
     }
     return (List<Value>)
         query.getResultList().stream()
-            .map(m -> new Value((String) ((Object[]) m)[1], ((Object[]) m)[0]))
+            .map(
+                m ->
+                    Value.builder()
+                        .key((String) ((Object[]) m)[1])
+                        .value(((Object[]) m)[0])
+                        .build())
             .collect(Collectors.toList());
   }
 

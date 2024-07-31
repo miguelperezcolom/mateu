@@ -1,12 +1,12 @@
 package io.mateu.core.application;
 
 import com.opencsv.CSVWriter;
-import io.mateu.core.application.dtos.Items;
-import io.mateu.core.application.dtos.Page;
 import io.mateu.core.application.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
+import io.mateu.dtos.Items;
 import io.mateu.dtos.JourneyCreationRq;
+import io.mateu.dtos.Page;
 import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.StepWrapper;
 import io.mateu.dtos.UI;

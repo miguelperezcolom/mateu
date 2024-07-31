@@ -1,5 +1,6 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
+import io.mateu.dtos.Value;
 import java.util.List;
 
 public interface ItemsListProvider {

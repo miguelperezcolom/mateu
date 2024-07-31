@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.dtos.Value;
 import lombok.Data;
 
 import java.util.List;
@@ -39,10 +39,16 @@ public class NestedDropdownsForm {
       return List.of();
     }
     if (countryAgain.equals(Country.Spain)) {
-      return List.of(new Value("Madrid", "mad"), new Value("Palma de Mallorca", "pmi"));
+      return List.of(
+              Value.builder().key("Madrid").value("mad").build(),
+              Value.builder().key("Palma de Mallorca").value("pmi").build()
+      );
     }
     if (countryAgain.equals(Country.France)) {
-      return List.of(new Value("Paris", "par"), new Value("Marsella", "mrs"));
+      return List.of(
+              Value.builder().key("Paris").value("par").build(),
+              Value.builder().key("Marsella").value("mrs").build()
+      );
     }
     return List.of();
   }

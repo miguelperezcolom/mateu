@@ -2,7 +2,7 @@ package com.example.demo.domain.nfl.providers;
 
 import com.example.demo.domain.nfl.entities.TeamRepository;
 import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.dtos.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +21,10 @@ public class TeamsProvider implements ItemsListProvider {
   public List find(String search_text, int page, int page_size) {
     return repo.findAll().stream()
         .filter(t -> t.getName().toLowerCase().contains(search_text.toLowerCase()))
-        .map(t -> new Value(t.getName(), t.getId()))
+        .map(t -> Value.builder()
+                .key(t.getName())
+                .value(t.getId())
+                .build())
         .skip(page)
         .limit(page_size)
         .collect(Collectors.toList());

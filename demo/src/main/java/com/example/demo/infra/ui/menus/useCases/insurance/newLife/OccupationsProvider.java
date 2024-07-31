@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
 import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.dtos.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +17,10 @@ public class OccupationsProvider implements ItemsListProvider {
         .filter(s -> s.toLowerCase().contains(search_text.toLowerCase()))
         .skip(page * page_size)
         .limit(page_size)
-        .map(s -> new Value(s, s))
+        .map(s -> Value.builder()
+                .key(s)
+                .value(s)
+                .build())
         .collect(Collectors.toList());
   }
 

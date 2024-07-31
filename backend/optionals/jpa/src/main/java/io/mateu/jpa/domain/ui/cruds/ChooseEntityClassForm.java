@@ -6,7 +6,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.ValuesProviderMethod;
-import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.dtos.Value;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class ChooseEntityClassForm {
 
   public List<Value> getChoices() {
     return subclasses.entrySet().stream()
-        .map(e -> new Value(e.getValue(), e.getKey()))
+        .map(e -> Value.builder().key(e.getValue()).value(e.getKey()).build())
         .collect(Collectors.toList());
   }
 

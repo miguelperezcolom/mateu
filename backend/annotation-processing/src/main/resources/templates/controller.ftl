@@ -1,9 +1,9 @@
 package ${pkgName};
 
-import io.mateu.core.domain.uidefinition.shared.data.Value;
+import io.mateu.dtos.Value;
 import io.mateu.core.application.MateuService;
-import io.mateu.core.application.dtos.Page;
-import io.mateu.core.application.dtos.Items;
+import io.mateu.dtos.Page;
+import io.mateu.dtos.Items;
 import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
