@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 /** Class for writing the banner. */
-public class Painter {
+public class AsciiPainter {
 
   public void paint(String message) {
 

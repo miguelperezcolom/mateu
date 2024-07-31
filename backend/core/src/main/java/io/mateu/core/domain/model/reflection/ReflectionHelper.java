@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
+import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -21,10 +22,12 @@ import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Parameter;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.BooleanConverter;
 import org.apache.commons.beanutils.converters.DoubleConverter;
 import org.apache.commons.beanutils.converters.IntegerConverter;
@@ -58,11 +61,11 @@ public class ReflectionHelper extends BaseReflectionHelper {
     this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;
     this.humanizer = humanizer;
-    BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
-    beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
-    beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
-    beanUtilsBean.getConvertUtils().register(new DoubleConverter(null), Double.class);
-    beanUtilsBean.getConvertUtils().register(new BooleanConverter(null), Boolean.class);
+    ConvertUtils.register(new IntegerConverter(null), Integer.class);
+    ConvertUtils.register(new LongConverter(null), Long.class);
+    ConvertUtils.register(new DoubleConverter(null), Double.class);
+    ConvertUtils.register(new BooleanConverter(null), Boolean.class);
+    ConvertUtils.register(new MiURLConverter(), URL.class);
   }
 
   public Object getValue(Field f, Object o) {
