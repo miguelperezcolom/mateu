@@ -46,9 +46,10 @@ export class FieldClosedList extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         if (!value) {
             this.value = undefined
@@ -57,7 +58,6 @@ export class FieldClosedList extends LitElement implements Component {
         const raw = value as [];
         // @ts-ignore
         this.value = raw.map(v => v.value?v.value:v);
-        console.log('value', value, this.value)
     }
 
     setBaseUrl(value: string): void {

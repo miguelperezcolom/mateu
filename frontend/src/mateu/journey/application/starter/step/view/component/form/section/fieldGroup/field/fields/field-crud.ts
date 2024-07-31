@@ -49,9 +49,10 @@ export class FieldCrud extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as [];
     }
@@ -266,7 +267,6 @@ export class FieldCrud extends LitElement implements Component {
     }
 
     private save() {
-        console.log('save', this.value, this.selectedItem)
         if (this.selectedIndex >= 0) {
             // @ts-ignore
             this.value = this.value?.map((e, i) => i == this.selectedIndex?this.selectedItem:e)

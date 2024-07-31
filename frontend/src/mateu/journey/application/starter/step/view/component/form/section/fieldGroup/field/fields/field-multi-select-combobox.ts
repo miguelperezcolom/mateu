@@ -44,9 +44,10 @@ export class FieldMultiSelectCombobox extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as any[];
     }
@@ -96,7 +97,6 @@ export class FieldMultiSelectCombobox extends LitElement implements Component {
     protected firstUpdated(_changedProperties: PropertyValues) {
         const comboBox = this.shadowRoot?.querySelector('vaadin-multi-select-combo-box') as MultiSelectComboBox<Value>;
         comboBox.selectedItems = this.value?this.value:[];
-        //console.log('selectedItems', comboBox.selectedItems)
     }
 
 

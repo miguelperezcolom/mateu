@@ -72,9 +72,10 @@ export class FieldComplexKeyChoice extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as Choice;
     }
@@ -97,8 +98,8 @@ export class FieldComplexKeyChoice extends LitElement implements Component {
     name = '';
 
     @property()
+        // @ts-ignore
     onChange = (e:Event) => {
-        console.log(e)
     }
 
     @property()
@@ -128,7 +129,6 @@ export class FieldComplexKeyChoice extends LitElement implements Component {
     async select(event: Event) {
         const value = (event.target as HTMLElement).getAttribute('value');
         this.value!.value = value;
-        console.log('selected value', this.value!.value);
     }
 
     render() {

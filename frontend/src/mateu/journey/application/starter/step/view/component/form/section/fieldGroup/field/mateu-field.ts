@@ -102,7 +102,6 @@ export class MateuField extends LitElement {
 
   setupElement() {
     if (this.element) {
-      console.log('value', this.value)
       for (const a in this.value) {
         // @ts-ignore
         this.element.setAttribute(a, this.value[a])

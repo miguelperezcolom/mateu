@@ -20,7 +20,6 @@ export class Service {
     }
 
     async startJourney(baseUrl: string, uiId: string, journeyTypeId: string) {
-        console.log('start journey', baseUrl, journeyTypeId)
         await wrapperStartJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId}, this.state)
         this.upstream.next({...this.state})
     }

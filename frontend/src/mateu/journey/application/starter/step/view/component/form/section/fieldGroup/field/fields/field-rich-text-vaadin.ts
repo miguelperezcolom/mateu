@@ -46,9 +46,10 @@ export class RichTextVaadin extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as string;
         this.json = JSON.stringify([
@@ -103,15 +104,6 @@ export class RichTextVaadin extends LitElement implements Component {
 
     @property()
     field: Field | undefined;
-
-    protected firstUpdated(_changedProperties: PropertyValues) {
-        //super.firstUpdated(_changedProperties);
-
-        const container = this.renderRoot.querySelector( '.editor' ) as HTMLElement
-        console.log('container', container);
-    }
-
-
 
     render() {
 

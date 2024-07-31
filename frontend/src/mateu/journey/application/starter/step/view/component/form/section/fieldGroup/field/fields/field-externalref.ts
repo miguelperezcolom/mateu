@@ -110,7 +110,6 @@ export class FieldExternalRef extends LitElement implements Component {
         // @ts-ignore
         comboBox.value = this.value?.value;
         comboBox.invalid = false
-        console.log('again combo value when first updated', comboBox.value, this.value);
     }
 
 

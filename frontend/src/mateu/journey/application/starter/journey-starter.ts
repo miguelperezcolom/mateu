@@ -154,22 +154,18 @@ export class JourneyStarter extends LitElement {
             || changedProperties.has("journeyTypeId")
             || changedProperties.has("instant")
         ) {
-            console.log('changedProperties', changedProperties)
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
                         mateuApiClient.baseUrl = this.baseUrl
                         mateuApiClient.element = this
                         if (this.actionId) {
-                            console.log('running action as prop is set', this.baseUrl, this.journeyTypeId, this.journeyId, this.stepId, this.actionId, this.actionData, changedProperties)
                             this.service.state.uiId = this.uiId
                             this.service.state.journeyTypeId = this.journeyTypeId
                             this.service.state.journeyId = this.journeyId
                             this.service.state.baseUrl = this.baseUrl
                             this.service.state.stepId = this.initialStepId
-                            console.log('this.service.state', this.service.state, this, this.initialStepId)
                             await this.service.runAction(this.actionId, this.actionData)
                         } else {
-                            console.log('starting journey due to props change', this.baseUrl, this.journeyTypeId, changedProperties)
                             mateuApiClient.abortAll();
                             document.title = this.label??''
                             var url = '#' + this.journeyTypeId

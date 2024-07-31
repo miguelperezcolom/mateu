@@ -41,9 +41,10 @@ export class FieldObject extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as string;
     }
@@ -66,8 +67,8 @@ export class FieldObject extends LitElement implements Component {
     name = '';
 
     @property()
+        // @ts-ignore
     onChange = (e:Event) => {
-        console.log(e)
     }
 
     @property()

@@ -69,8 +69,6 @@ export class MateuForm extends LitElement implements FormElement {
 
   getValue(key: string): object | undefined {
     // @ts-ignore
-    //console.log('getValue', key, this.data[key], this.data)
-    // @ts-ignore
     return this.data[key];
   }
 
@@ -354,7 +352,6 @@ export class MateuForm extends LitElement implements FormElement {
 
   getSelectedTabIndex = () => {
     const i = this.metadata.tabs.findIndex(t => t.active)
-    console.log('selected tab index', i)
     return i
   }
 

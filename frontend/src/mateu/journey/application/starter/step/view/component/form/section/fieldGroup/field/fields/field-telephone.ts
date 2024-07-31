@@ -50,9 +50,10 @@ export class FieldTelephone extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as TelephoneNumber;
         this.telprefix = this.value?.prefix
@@ -79,7 +80,6 @@ export class FieldTelephone extends LitElement implements Component {
     @property()
     onPrefixChange = (e:CustomEvent) => {
         this.telprefix = e.detail.value
-        console.log('prefix', e.detail.value)
         this.onValueChanged({
             fieldId: this.field!.id,
             value: {prefix: this.telprefix, number: this.number}})

@@ -212,7 +212,6 @@ export class MateuCrud extends LitElement {
   }
 
   connectedCallback() {
-    console.log('connected')
     super.connectedCallback();
     this.data0 = this.data
     this.addEventListener('keydown', this.handleKey);
@@ -231,7 +230,6 @@ export class MateuCrud extends LitElement {
   }
 
   disconnectedCallback() {
-    console.log('disconnected')
     this.removeEventListener('keydown', this.handleKey)
     super.disconnectedCallback();
     this.upstreamSubscription?.unsubscribe();
@@ -462,7 +460,6 @@ export class MateuCrud extends LitElement {
 
   pageChanged(e: CustomEvent) {
     this.page = e.detail.page;
-    console.log('page changed to ' + this.page)
     this.doSearch().then()
   }
 

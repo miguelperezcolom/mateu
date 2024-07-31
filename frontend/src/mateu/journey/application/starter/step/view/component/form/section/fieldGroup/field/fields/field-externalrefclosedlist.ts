@@ -46,9 +46,10 @@ export class FieldExternalRefClosedList extends LitElement implements Component 
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value as Value;
     }
@@ -100,7 +101,6 @@ export class FieldExternalRefClosedList extends LitElement implements Component 
         // @ts-ignore
         comboBox.value = this.value?.value;
         comboBox.invalid = false
-        console.log('again combo value when first updated', comboBox.value, this.value);
     }
 
     render() {

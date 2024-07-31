@@ -39,9 +39,10 @@ export class FieldReadonly extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
     }
+
     setValue(value: unknown): void {
         this.value = value;
         if (this.field?.type == 'ExternalReference') {

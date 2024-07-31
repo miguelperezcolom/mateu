@@ -44,8 +44,9 @@ export class FieldBooleanArray extends LitElement implements Component {
         this.enabled = enabled;
     }
 
+    // @ts-ignore
     onValueChanged(event: ValueChangedEvent): void {
-        console.log(event)
+
     }
     setValue(value: unknown): void {
         const array = value as boolean[]

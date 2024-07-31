@@ -61,7 +61,6 @@ export class MateuSection extends LitElement {
   }
 
     onValueChange(e: CustomEvent) {
-      console.log('onValueChange', e);
         this.formElement.valueChanged(e.detail.key, e.detail.value)
     }
 
