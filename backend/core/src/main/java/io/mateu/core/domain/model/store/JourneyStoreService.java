@@ -252,10 +252,6 @@ public class JourneyStoreService {
     backToStep(journeyContainer, previousStepId);
   }
 
-  public boolean isCrud(JourneyContainer journeyContainer) throws Exception {
-    return "list".equals(journeyContainer.getInitialStep());
-  }
-
   public Step getStep(JourneyContainer journeyContainer, String stepId) throws Exception {
     Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {

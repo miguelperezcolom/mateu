@@ -1509,25 +1509,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
     return newInstance(c, parent);
   }
 
-  public void addToMap(FieldInterfaced field, Object bean, Object k, Object v)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    Map m = (Map) getValue(field, bean);
-
-    if (m == null) {
-      if (ImmutableMap.class.isAssignableFrom(field.getType())) v = ImmutableMap.of(k, v);
-      else m = Map.of(k, v);
-      setValue(field, bean, m);
-    } else setValue(field, bean, extend(m, k, v));
-  }
-
-  public void removeFromMap(FieldInterfaced field, Object bean, Set l)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-    final Object v = getValue(field, bean);
-
-    if (v != null) l.forEach(e -> ((Map) v).remove(((MapEntry) e).getKey()));
-  }
-
   public Class<?> getGenericClass(Class type) {
     Class<?> gc = null;
     if (type.getGenericInterfaces() != null)
