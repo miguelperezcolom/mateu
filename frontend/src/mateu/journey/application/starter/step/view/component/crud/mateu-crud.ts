@@ -155,17 +155,15 @@ export class MateuCrud extends LitElement {
         || changedProperties.has('stepId')
         || changedProperties.has('listId')
     ) {
+      this.page = 0
       this.doSearch().then()
     }
   }
 
   async doSearch() {
-    console.log('do search!!!!')
-
     const page = this.page;
     const pageSize = this.pageSize;
     const sortOrders = this.getSortOrders()
-    const totalElements = this.page == 0?-1:this.count;
 
     await this.fetchData({
       listId: this.listId,
@@ -173,8 +171,7 @@ export class MateuCrud extends LitElement {
       pageSize,
       sortOrders,
       // @ts-ignore
-      filters: this.data,
-      totalElements
+      filters: this.data
     });
 
     this.updateFiltersText()
@@ -201,7 +198,6 @@ export class MateuCrud extends LitElement {
     pageSize: number
     filters: object
     sortOrders: string
-    totalElements: number
   }) {
       this.state.uiId = this.uiId
       this.state.journeyTypeId = this.journeyTypeId
@@ -210,7 +206,6 @@ export class MateuCrud extends LitElement {
       this.state.listId = this.listId
       const journey = JSON.parse(sessionStorage.getItem(this.journeyId)!)
       journey.lastUsedFilters[this.stepId + "#" + this.listId] = params.filters
-      console.log('sortorders', params.sortOrders);
       journey.lastUsedSorting[this.stepId + "#" + this.listId] = JSON.parse(Base64.decode(params.sortOrders))
       sessionStorage.setItem(this.journeyId, JSON.stringify(journey))
       await this.crudService.fetch(this.state, this.crudUpstream, params)

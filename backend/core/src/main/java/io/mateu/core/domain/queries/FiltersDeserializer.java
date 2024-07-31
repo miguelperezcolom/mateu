@@ -2,7 +2,7 @@ package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -44,7 +44,7 @@ public class FiltersDeserializer {
     this.serializer = serializer;
   }
 
-  public Object deserialize(JourneyStoreService store) throws Exception {
+  public Object deserialize(JourneyContainerService store) throws Exception {
     Listing rpcView = store.getRpcViewInstance(journeyContainer, stepId, listId, serverHttpRequest);
     if (rpcView == null) {
       return null;

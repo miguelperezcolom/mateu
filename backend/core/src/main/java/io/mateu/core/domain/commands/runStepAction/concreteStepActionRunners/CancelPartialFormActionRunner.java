@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
   public static final String EDIT_PARTIAL_FORM_IDENTIFIER = "editPartialForm__";
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
 
   @Override
   public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {

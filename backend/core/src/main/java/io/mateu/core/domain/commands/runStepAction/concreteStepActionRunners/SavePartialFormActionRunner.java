@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.ActionType;
@@ -26,7 +26,7 @@ public class SavePartialFormActionRunner implements ActionRunner {
 
   public static final String EDIT_PARTIAL_FORM_IDENTIFIER = "editPartialForm__";
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
   final ReflectionHelper reflectionHelper;
 
   @Override

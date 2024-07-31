@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
@@ -14,7 +14,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class EntityEditorEditActionRunner implements ActionRunner {
 
-  @Autowired JourneyStoreService store;
+  @Autowired
+  JourneyContainerService store;
   @Autowired Serializer serializer;
 
   @Override

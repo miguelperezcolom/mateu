@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
@@ -37,7 +37,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
   final Merger merger;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;

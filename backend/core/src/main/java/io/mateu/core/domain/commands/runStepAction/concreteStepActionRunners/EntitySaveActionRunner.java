@@ -3,7 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class EntitySaveActionRunner implements ActionRunner {
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
   final ReflectionHelper reflectionHelper;
   final ValidationService validationService;
 

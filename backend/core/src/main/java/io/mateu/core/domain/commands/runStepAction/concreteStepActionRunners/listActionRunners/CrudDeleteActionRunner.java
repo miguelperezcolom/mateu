@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
@@ -19,7 +19,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class CrudDeleteActionRunner implements ListActionRunner {
 
-  @Autowired JourneyStoreService store;
+  @Autowired
+  JourneyContainerService store;
   @Autowired Serializer serializer;
 
   @Override

@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ObjectEditorSaveActionRunner implements ActionRunner {
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;

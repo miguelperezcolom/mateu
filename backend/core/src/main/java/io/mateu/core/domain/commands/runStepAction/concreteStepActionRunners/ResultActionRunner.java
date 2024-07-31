@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
@@ -14,7 +14,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class ResultActionRunner implements ActionRunner {
 
-  @Autowired JourneyStoreService store;
+  @Autowired
+  JourneyContainerService store;
 
   @Override
   public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {

@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.JourneyContainer;
@@ -15,7 +15,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class MainListActionRunnner implements ActionRunner {
 
-  @Autowired JourneyStoreService store;
+  @Autowired
+  JourneyContainerService store;
 
   @Autowired List<ListActionRunner> listActionRunners;
 

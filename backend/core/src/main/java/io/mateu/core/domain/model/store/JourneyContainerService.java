@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class JourneyStoreService {
+public class JourneyContainerService {
 
   private final StepMapper stepMapper;
   private final ActualValueExtractor actualValueExtractor;
@@ -263,18 +263,6 @@ public class JourneyStoreService {
     return step;
   }
 
-  public Step getStepAndSetAsCurrent(JourneyContainer journeyContainer, String stepId)
-      throws Exception {
-    Step step = journeyContainer.getSteps().get(stepId);
-    if (step == null) {
-      throw new Exception(
-          "No step with id " + stepId + " found for journey " + journeyContainer.getJourneyId());
-    }
-    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
-    journeyContainer.getJourney().setCurrentStepId(stepId);
-    return step;
-  }
-
   public Step readStep(JourneyContainer journeyContainer, String stepId) throws Exception {
     Step step = journeyContainer.getSteps().get(stepId);
     if (step == null) {
@@ -291,10 +279,6 @@ public class JourneyStoreService {
   public Step getCurrentStep(JourneyContainer journeyContainer) throws Exception {
     String currentStepId = journeyContainer.getJourney().getCurrentStepId();
     return journeyContainer.getSteps().get(currentStepId);
-  }
-
-  public StepMapper getStepMapper() {
-    return stepMapper;
   }
 
   public ApplicationContext getApplicationContext() {

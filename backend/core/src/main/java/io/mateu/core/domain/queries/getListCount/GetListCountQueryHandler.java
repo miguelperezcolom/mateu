@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries.getListCount;
 
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -14,7 +14,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetListCountQueryHandler {
 
-  @Autowired JourneyStoreService store;
+  @Autowired
+  JourneyContainerService store;
 
   @Autowired ReflectionHelper reflectionHelper;
 

@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Lis
 import io.mateu.core.domain.model.editors.EntityEditorFactory;
 import io.mateu.core.domain.model.editors.ObjectEditorFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CrudEditActionRunner implements ListActionRunner {
 
-  final JourneyStoreService store;
+  final JourneyContainerService store;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
 

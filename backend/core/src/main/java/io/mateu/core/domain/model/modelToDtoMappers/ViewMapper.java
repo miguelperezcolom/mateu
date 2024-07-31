@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.editors.ObjectEditor;
 import io.mateu.core.domain.model.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyStoreService;
+import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
@@ -210,7 +210,7 @@ public class ViewMapper {
       RpcCrudViewExtended rpcCrudView =
           (RpcCrudViewExtended)
               applicationContext
-                  .getBean(JourneyStoreService.class)
+                  .getBean(JourneyContainerService.class)
                   .getViewInstance(
                       journeyContainer,
                       journeyContainer.getInitialStep().getId(),
