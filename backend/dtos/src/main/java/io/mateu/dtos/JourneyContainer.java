@@ -1,9 +1,5 @@
-package io.mateu.core.domain.model.store;
+package io.mateu.dtos;
 
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
-import io.mateu.dtos.Journey;
-import io.mateu.dtos.Step;
-import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class JourneyContainer implements Serializable {
 
-  @Id private String journeyId;
+  private String journeyId;
 
   private String journeyTypeId;
 

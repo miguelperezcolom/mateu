@@ -1,4 +1,4 @@
-package io.mateu.core.domain.uidefinition.shared.interfaces;
+package io.mateu.dtos;
 
 import lombok.*;
 

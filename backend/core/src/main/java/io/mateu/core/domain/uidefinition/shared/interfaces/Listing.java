@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.SlimHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
+import io.mateu.dtos.SortCriteria;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import reactor.core.publisher.Flux;

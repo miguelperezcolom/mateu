@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.dtos.JourneyContainer;
+import io.mateu.dtos.SortCriteria;
 import java.util.List;
 import java.util.Map;
 import lombok.*;

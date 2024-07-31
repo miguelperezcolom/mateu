@@ -1,7 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
@@ -9,6 +8,7 @@ import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.ResultType;
+import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
 import java.util.ArrayList;
 import java.util.List;

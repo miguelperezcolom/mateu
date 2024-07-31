@@ -1,9 +1,9 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.dtos.*;
+import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

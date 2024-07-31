@@ -9,7 +9,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.dtos.SortCriteria;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

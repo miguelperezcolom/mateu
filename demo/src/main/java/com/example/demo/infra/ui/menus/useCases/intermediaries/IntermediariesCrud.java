@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
+import io.mateu.dtos.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

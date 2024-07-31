@@ -2,8 +2,8 @@ package io.mateu.core.application.usecases.fetchlist;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortType;
+import io.mateu.dtos.SortCriteria;
+import io.mateu.dtos.SortType;
 import java.util.*;
 import java.util.stream.Collectors;
 

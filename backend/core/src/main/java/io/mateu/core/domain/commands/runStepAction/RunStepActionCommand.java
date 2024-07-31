@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;

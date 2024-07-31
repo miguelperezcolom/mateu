@@ -1,11 +1,11 @@
 package io.mateu.core.application.usecases.fetchlist;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.getListCount.GetListCountQuery;
 import io.mateu.core.domain.queries.getListCount.GetListCountQueryHandler;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQueryHandler;
+import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Page;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;

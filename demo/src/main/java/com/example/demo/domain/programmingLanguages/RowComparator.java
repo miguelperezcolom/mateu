@@ -1,7 +1,7 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortCriteria;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SortType;
+import io.mateu.dtos.SortCriteria;
+import io.mateu.dtos.SortType;
 
 import java.util.Comparator;
 import java.util.List;

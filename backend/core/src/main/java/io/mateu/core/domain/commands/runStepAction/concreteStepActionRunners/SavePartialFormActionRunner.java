@@ -2,12 +2,12 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.ActionType;
 import io.mateu.dtos.Form;
+import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Section;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

@@ -1,10 +1,10 @@
 package io.mateu.core.domain.model.modelToDtoMappers;
 
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.core.app.*;
-import io.mateu.core.domain.model.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;

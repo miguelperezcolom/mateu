@@ -1,5 +1,6 @@
-package io.mateu.core.domain.model.files;
+package io.mateu.core.infra;
 
+import io.mateu.core.domain.model.files.StorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;

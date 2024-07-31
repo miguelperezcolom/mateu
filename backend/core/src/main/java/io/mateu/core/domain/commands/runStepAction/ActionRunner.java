@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import io.mateu.core.domain.model.store.JourneyContainer;
+import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;

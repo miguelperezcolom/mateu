@@ -1,9 +1,9 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
-import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.store.JourneyStoreService;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
