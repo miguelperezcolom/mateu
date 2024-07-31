@@ -1,6 +1,5 @@
-package io.mateu.core.application.usecases;
+package io.mateu.core.application.usecases.fetchlist;
 
-import io.mateu.core.application.util.OrderingDeserializer;
 import io.mateu.core.domain.model.store.JourneyContainer;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.getListCount.GetListCountQuery;

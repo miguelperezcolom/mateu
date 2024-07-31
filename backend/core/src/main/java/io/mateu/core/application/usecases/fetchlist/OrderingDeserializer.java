@@ -1,4 +1,4 @@
-package io.mateu.core.application.util;
+package io.mateu.core.application.usecases.fetchlist;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.util.Serializer;

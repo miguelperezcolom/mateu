@@ -2,6 +2,7 @@ package io.mateu.core.application;
 
 import com.opencsv.CSVWriter;
 import io.mateu.core.application.usecases.*;
+import io.mateu.core.application.usecases.fetchlist.FetchListUseCase;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
 import io.mateu.dtos.Items;

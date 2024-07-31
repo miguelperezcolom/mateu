@@ -1,4 +1,4 @@
-package io.mateu.core.domain.uidefinition.core.app.menuResolvers;
+package io.mateu.core.domain.model.menuResolvers;
 
 import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
 import java.lang.reflect.AnnotatedElement;
