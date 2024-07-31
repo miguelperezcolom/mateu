@@ -206,26 +206,28 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @Override
   public Mono<Long> fetchCount(Object filters) throws Throwable {
-    sums = sumFields.isEmpty()?List.of():
-        sumsQueryHandler.run(
-            new SumsQuery(
-                action,
-                filters,
-                null,
-                0,
-                0,
-                aliasedColumnNamesByColId,
-                action.getQueryFilters(),
-                action.getExtraFilters(),
-                selectColumnsForCount,
-                selectColumnsForList,
-                alias,
-                aliasedColumnNames,
-                aliasedColumnNamesList,
-                columnNames,
-                filterFields,
-                sumFields,
-                columnFields));
+    sums =
+        sumFields.isEmpty()
+            ? List.of()
+            : sumsQueryHandler.run(
+                new SumsQuery(
+                    action,
+                    filters,
+                    null,
+                    0,
+                    0,
+                    aliasedColumnNamesByColId,
+                    action.getQueryFilters(),
+                    action.getExtraFilters(),
+                    selectColumnsForCount,
+                    selectColumnsForList,
+                    alias,
+                    aliasedColumnNames,
+                    aliasedColumnNamesList,
+                    columnNames,
+                    filterFields,
+                    sumFields,
+                    columnFields));
     return countQueryHandler.run(
         new CountQuery(
             action,

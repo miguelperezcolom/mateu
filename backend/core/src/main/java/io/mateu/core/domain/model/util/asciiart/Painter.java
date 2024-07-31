@@ -2,11 +2,13 @@ package io.mateu.core.domain.model.util.asciiart;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import org.springframework.stereotype.Service;
 
+@Service
 /** Class for writing the banner. */
 public class Painter {
 
-  public static void paint(String message) {
+  public void paint(String message) {
 
     BufferedImage image = new BufferedImage(144, 32, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();

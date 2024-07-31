@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
-import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.editors.FieldEditor;
-import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.inbound.editors.EntityEditor;
+import io.mateu.core.domain.model.inbound.editors.FieldEditor;
+import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
+import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;

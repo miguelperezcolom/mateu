@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.core.domain.model.editors.MethodParametersEditor;
+import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;

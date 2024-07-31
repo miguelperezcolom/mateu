@@ -1,9 +1,9 @@
 package io.mateu.core.domain.commands.runStepAction;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.editors.FieldEditor;
-import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.inbound.editors.EntityEditor;
+import io.mateu.core.domain.model.inbound.editors.FieldEditor;
+import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.Form;

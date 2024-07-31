@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.store;
 
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
-import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.editors.FieldEditor;
-import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.inbound.editors.EntityEditor;
+import io.mateu.core.domain.model.inbound.editors.FieldEditor;
+import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.outbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;

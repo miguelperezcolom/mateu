@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.editors.FieldEditor;
+import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.store.JourneyContainerService;

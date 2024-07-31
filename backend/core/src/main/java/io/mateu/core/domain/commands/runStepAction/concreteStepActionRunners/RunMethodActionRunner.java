@@ -2,9 +2,9 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
-import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.inbound.editors.EntityEditor;
+import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
+import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.store.JourneyContainerService;

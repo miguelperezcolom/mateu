@@ -4,7 +4,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import io.mateu.core.domain.model.util.Helper;
+import io.mateu.core.domain.model.util.InputStreamReader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -31,7 +31,7 @@ public class ${simpleClassName}Controller {
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
-        String html = Helper.leerFichero(this.getClass(), "${indexHtmlPath}");
+        String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
@@ -118,7 +118,7 @@ public ResponseEntity<String> getAssets(ServerHttpRequest request) {
         if (path.startsWith("/")) {
         path = path.substring(1);
         }
-        String html = Helper.leerFichero(this.getClass(), pkg + path);
+        String html = InputStreamReader.readFromClasspath(this.getClass(), pkg + path);
         return new ResponseEntity(html, httpHeaders, HttpStatus.OK);
         }
 

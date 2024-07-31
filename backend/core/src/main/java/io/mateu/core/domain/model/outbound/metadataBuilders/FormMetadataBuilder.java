@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
-import io.mateu.core.domain.model.editors.EntityEditor;
+import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;

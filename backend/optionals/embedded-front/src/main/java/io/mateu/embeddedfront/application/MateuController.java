@@ -1,6 +1,6 @@
 package io.mateu.embeddedfront.application;
 
-import io.mateu.core.domain.model.util.Helper;
+import io.mateu.core.domain.model.util.InputStreamReader;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -35,7 +35,7 @@ public class MateuController {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    String html = Helper.leerFichero(this.getClass(), pkg + path);
+    String html = InputStreamReader.readFromClasspath(this.getClass(), pkg + path);
     return new ResponseEntity(html, httpHeaders, HttpStatus.OK);
   }
 

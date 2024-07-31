@@ -2,28 +2,28 @@ package io.mateu.core.domain.model.util;
 
 import io.mateu.core.domain.model.util.asciiart.Painter;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
+import jakarta.annotation.PostConstruct;
 import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class SharedHelper {
 
-  public static boolean propertiesLoaded = false;
+  private final Painter painter;
 
-  public static void loadProperties() {
-    if (!propertiesLoaded) {
+  public SharedHelper(Painter painter) {
+    this.painter = painter;
+  }
 
-      Painter.paint("Hello");
-      Painter.paint("MATEU");
+  @PostConstruct
+  public void loadProperties() {
+    painter.paint("Hello");
+    painter.paint("MATEU");
 
-      log.info("Registrando converters beanutils...");
-      ConvertUtils.register(new MiURLConverter(), URL.class);
-
-      propertiesLoaded = true;
-
-    } else {
-      log.info("Properties already loaded");
-    }
+    log.info("Registering converters beanutils...");
+    ConvertUtils.register(new MiURLConverter(), URL.class);
   }
 }

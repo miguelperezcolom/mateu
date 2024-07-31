@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.editors;
+package io.mateu.core.domain.model.inbound.editors;
 
 import io.mateu.core.domain.model.util.Serializer;
 import jakarta.persistence.EntityManager;

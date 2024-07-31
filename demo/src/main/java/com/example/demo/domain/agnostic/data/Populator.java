@@ -8,7 +8,7 @@ import com.example.demo.domain.nfl.entities.*;
 import com.example.demo.domain.swapi.dtos.*;
 import com.example.demo.domain.swapi.entities.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
+import io.mateu.core.domain.model.util.InputStreamReader;
 import io.mateu.core.domain.model.util.Serializer;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class Populator {
   }
 
   public void doPopulate() throws Exception {
-    String json = Helper.leerFichero(Populator.class, "/nfl.json");
+    String json = InputStreamReader.readFromClasspath(Populator.class, "/nfl.json");
     TargetPlayerDto[] players = serializer.fromJson(json, TargetPlayerDto[].class);
 
     List<String> teams =
@@ -83,7 +83,7 @@ public class Populator {
     }
 
     if (false) {
-      json = Helper.leerFichero(Populator.class, "/cities.json"); // 140k cities
+      json = InputStreamReader.readFromClasspath(Populator.class, "/cities.json"); // 140k cities
       CityDto[] cities = serializer.fromJson(json, CityDto[].class);
       for (CityDto city : cities) {
         City p = new City();
@@ -97,7 +97,7 @@ public class Populator {
       }
     }
 
-    json = Helper.leerFichero(Populator.class, "/swapi_characters.json"); // 140k cities
+    json = InputStreamReader.readFromClasspath(Populator.class, "/swapi_characters.json"); // 140k cities
     CharacterDto[] characters = serializer.fromJson(json, CharacterDto[].class);
     for (CharacterDto characterDto : characters) {
       SWCharacter p = new SWCharacter();
@@ -106,14 +106,14 @@ public class Populator {
       p.setHair_color(characterDto.getHair_color());
       p.setHomeworld(characterDto.getHomeworld());
       if (!"unknown".equals(characterDto.getMass()))
-        p.setMass(Helper.toDouble(characterDto.getMass().replaceAll(",", ".")));
+        p.setMass(toDouble(characterDto.getMass().replaceAll(",", ".")));
       if (!"unknown".equals(characterDto.getMass()))
-        p.setHeight(Helper.toInt(characterDto.getHeight()));
+        p.setHeight(toInt(characterDto.getHeight()));
       p.setId(characterDto.getUrl());
       swCharacterRepository.save(p);
     }
 
-    json = Helper.leerFichero(Populator.class, "/swapi_films.json"); // 140k cities
+    json = InputStreamReader.readFromClasspath(Populator.class, "/swapi_films.json"); // 140k cities
     FilmsDto films = serializer.fromJson(json, FilmsDto.class);
     for (FilmDto filmDto : films.getResults()) {
       SWFilm p = new SWFilm();
@@ -128,7 +128,7 @@ public class Populator {
       swFilmRepository.save(p);
     }
 
-    json = Helper.leerFichero(Populator.class, "/swapi_species.json"); // 140k cities
+    json = InputStreamReader.readFromClasspath(Populator.class, "/swapi_species.json"); // 140k cities
     SpeciesDto species = serializer.fromJson(json, SpeciesDto.class);
     for (SpecieDto specieDto : species.getResults()) {
       SWSpecie p = new SWSpecie();
@@ -141,7 +141,7 @@ public class Populator {
       swSpecieRepository.save(p);
     }
 
-    json = Helper.leerFichero(Populator.class, "/swapi_starships.json"); // 140k cities
+    json = InputStreamReader.readFromClasspath(Populator.class, "/swapi_starships.json"); // 140k cities
     StarshipsDto starships = serializer.fromJson(json, StarshipsDto.class);
     for (StarshipDto starshipDto : starships.getResults()) {
       SWStarship p = new SWStarship();
@@ -157,5 +157,25 @@ public class Populator {
       p.setStarship_class(starshipDto.getStartship_class());
       swStarshipRepository.save(p);
     }
+  }
+
+  private int toInt(String s) {
+    int v = 0;
+    try {
+      v = Integer.parseInt(s);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return v;
+  }
+
+  private double toDouble(String s) {
+    double v = 0;
+    try {
+      v = Double.parseDouble(s);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return v;
   }
 }
