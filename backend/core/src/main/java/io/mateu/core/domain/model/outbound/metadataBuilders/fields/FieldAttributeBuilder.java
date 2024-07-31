@@ -1,12 +1,13 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
+import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import io.mateu.core.domain.uidefinition.shared.data.ValuesListProvider;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.Column;
 import io.mateu.dtos.Pair;
 import io.mateu.dtos.TelephonePrefix;
@@ -28,6 +29,7 @@ public class FieldAttributeBuilder {
   final FileChecker fileChecker;
   final FieldTypeMapper fieldTypeMapper;
   final ReflectionHelper reflectionHelper;
+  final CaptionProvider captionProvider;
 
   public List<Pair> buildAttributes(Object view, FieldInterfaced field) {
     List<Pair> attributes = new ArrayList<>();
@@ -164,7 +166,7 @@ public class FieldAttributeBuilder {
                 .value(
                     Column.builder()
                         .id(columnField.getId())
-                        .caption(reflectionHelper.getCaption(columnField))
+                        .caption(captionProvider.getCaption(columnField))
                         .type(fieldTypeMapper.mapColumnType(columnField))
                         .readOnly(isReadOnly(columnField))
                         .stereotype("column")

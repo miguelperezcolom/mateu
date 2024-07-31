@@ -1,20 +1,18 @@
 package io.mateu.jpa.domain.ui.cruds.queries.sums;
 
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.outbound.Humanizer;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Sum;
 import io.mateu.core.domain.uidefinition.shared.data.SumData;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SumsQueryHandler {
 
-  @PersistenceContext private EntityManager em;
-  @Autowired ReflectionHelper reflectionHelper;
+  private final EntityManager em;
+  private final ReflectionHelper reflectionHelper;
+  private final Humanizer humanizer;
+
+  public SumsQueryHandler(
+      EntityManager em, ReflectionHelper reflectionHelper, Humanizer humanizer) {
+    this.em = em;
+    this.reflectionHelper = reflectionHelper;
+    this.humanizer = humanizer;
+  }
 
   @Transactional
   public List<SumData> run(SumsQuery query) {
@@ -53,7 +59,7 @@ public class SumsQueryHandler {
 
         int pos = 1;
         for (FieldInterfaced f : query.getSumFields()) {
-          String caption = Helper.capitalize(f.getName());
+          String caption = humanizer.capitalize(f.getName());
           if (!caption.startsWith("Total")) caption = "Total " + caption;
           if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption()))
             caption = f.getAnnotation(Sum.class).caption();

@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds;
 
+import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
@@ -27,11 +27,13 @@ public class ChooseEntityClassForm {
 
   @Ignored private Map<String, String> subclasses;
   @Ignored @Autowired ReflectionHelper reflectionHelper;
+  @Ignored @Autowired Humanizer humanizer;
 
   public ChooseEntityClassForm(Set<Class> subclasses) {
     this.subclasses =
         subclasses.stream()
-            .collect(Collectors.toMap(c -> c.getName(), c -> Helper.capitalize(c.getSimpleName())));
+            .collect(
+                Collectors.toMap(c -> c.getName(), c -> humanizer.capitalize(c.getSimpleName())));
   }
 
   @NotNull

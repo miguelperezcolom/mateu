@@ -1,4 +1,4 @@
-package io.mateu.core.domain.uidefinition.shared.reflection;
+package io.mateu.core.domain.model.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;

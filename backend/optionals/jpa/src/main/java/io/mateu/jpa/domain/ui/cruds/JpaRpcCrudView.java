@@ -3,9 +3,10 @@ package io.mateu.jpa.domain.ui.cruds;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import io.mateu.core.domain.model.outbound.Humanizer;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.FieldInterfacedFromType;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
@@ -16,7 +17,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
 import io.mateu.core.domain.uidefinition.shared.data.SumData;
 import io.mateu.core.domain.uidefinition.shared.interfaces.IResource;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommand;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommandHandler;
@@ -82,6 +82,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @JsonIgnore @Autowired SumsQueryHandler sumsQueryHandler;
   @JsonIgnore @Autowired FindByIdQueryHandler findByIdQueryHandler;
   @JsonIgnore @Autowired ReflectionHelper reflectionHelper;
+  @JsonIgnore @Autowired Humanizer humanizer;
 
   public JpaRpcCrudView() {}
 
@@ -291,7 +292,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return columnNames.stream()
         .filter(n -> n.contains("."))
         .map(n -> new Pair(n, fieldsByColumnName.get(n)))
-        .map(p -> new Pair(Helper.capitalize((String) p.getKey()), p.getValue()))
+        .map(p -> new Pair(humanizer.capitalize((String) p.getKey()), p.getValue()))
         .collect(Collectors.toMap(p -> (FieldInterfaced) p.getValue(), p -> (String) p.getKey()));
   }
 
@@ -592,8 +593,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @JsonIgnore
-  @Override
-  public String getCaption() {
+  public String getCaptionFromAction() {
     return action.getCaption();
   }
 

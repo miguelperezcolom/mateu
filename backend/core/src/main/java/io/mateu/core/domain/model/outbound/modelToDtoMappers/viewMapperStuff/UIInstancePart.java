@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;

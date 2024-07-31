@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.FormMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
@@ -10,7 +11,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

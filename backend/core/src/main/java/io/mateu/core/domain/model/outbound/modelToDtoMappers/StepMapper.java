@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
+import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicStep;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -22,6 +23,7 @@ public class StepMapper {
   private final ViewMapper viewMapper;
   private final ReflectionHelper reflectionHelper;
   private final JpaRpcCrudFactory jpaRpcCrudFactory;
+  private final CaptionProvider captionProvider;
 
   public Step map(
       JourneyContainer journeyContainer,
@@ -45,7 +47,7 @@ public class StepMapper {
     return Step.builder()
         .id(stepId)
         .type(formInstance.getClass().getName())
-        .name(reflectionHelper.getCaption(formInstance))
+        .name(captionProvider.getCaption(formInstance))
         .view(
             viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest))
         .data(data)

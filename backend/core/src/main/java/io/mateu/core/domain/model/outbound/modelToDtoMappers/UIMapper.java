@@ -1,10 +1,11 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
+import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.Menu;
 import io.mateu.dtos.UI;
 import java.util.List;
@@ -20,6 +21,7 @@ public class UIMapper {
   final ApplicationContext applicationContext;
   final ReflectionHelper reflectionHelper;
   final MenuBuilder menuCreator;
+  final CaptionProvider captionProvider;
 
   public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
 
@@ -67,6 +69,6 @@ public class UIMapper {
     if (uiInstance instanceof HasTitle) {
       return ((HasTitle) uiInstance).getTitle();
     }
-    return reflectionHelper.getCaption(uiInstance);
+    return captionProvider.getCaption(uiInstance);
   }
 }

@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.util.persistence;
 
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 

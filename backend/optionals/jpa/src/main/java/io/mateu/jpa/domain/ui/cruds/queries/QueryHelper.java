@@ -1,9 +1,9 @@
 package io.mateu.jpa.domain.ui.cruds.queries;
 
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import jakarta.persistence.*;

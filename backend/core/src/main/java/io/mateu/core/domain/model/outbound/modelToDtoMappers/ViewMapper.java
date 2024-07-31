@@ -4,8 +4,10 @@ import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.FieldEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
+import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
@@ -16,41 +18,55 @@ import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ViewMapper {
-  @PersistenceContext EntityManager em;
 
-  @Autowired ApplicationContext applicationContext;
+  private final EntityManager em;
+  private final ApplicationContext applicationContext;
+  private final FieldExtractor fieldExtractor;
+  private final ViewMetadataBuilder viewMetadataBuilder;
+  private final DataExtractor dataExtractor;
+  private final RulesBuilder rulesBuilder;
+  private final UIInstancePartsExtractor uiInstancePartsExtractor;
+  private final ReflectionHelper reflectionHelper;
+  private final Serializer serializer;
+  private final CaptionProvider captionProvider;
 
-  @Autowired FieldExtractor fieldExtractor;
-
-  @Autowired ViewMetadataBuilder viewMetadataBuilder;
-
-  @Autowired DataExtractor dataExtractor;
-
-  @Autowired RulesBuilder rulesBuilder;
-
-  @Autowired UIInstancePartsExtractor uiInstancePartsExtractor;
-
-  @Autowired ReflectionHelper reflectionHelper;
-
-  @Autowired Serializer serializer;
+  public ViewMapper(
+      EntityManager em,
+      ApplicationContext applicationContext,
+      FieldExtractor fieldExtractor,
+      ViewMetadataBuilder viewMetadataBuilder,
+      DataExtractor dataExtractor,
+      RulesBuilder rulesBuilder,
+      UIInstancePartsExtractor uiInstancePartsExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      CaptionProvider captionProvider) {
+    this.em = em;
+    this.applicationContext = applicationContext;
+    this.fieldExtractor = fieldExtractor;
+    this.viewMetadataBuilder = viewMetadataBuilder;
+    this.dataExtractor = dataExtractor;
+    this.rulesBuilder = rulesBuilder;
+    this.uiInstancePartsExtractor = uiInstancePartsExtractor;
+    this.reflectionHelper = reflectionHelper;
+    this.serializer = serializer;
+    this.captionProvider = captionProvider;
+  }
 
   public View map(
       JourneyContainer journeyContainer,
@@ -176,7 +192,7 @@ public class ViewMapper {
     if (uiInstance instanceof HasTitle) {
       return ((HasTitle) uiInstance).getTitle();
     }
-    return reflectionHelper.getCaption(uiInstance);
+    return captionProvider.getCaption(uiInstance);
   }
 
   private Object getActualUiInstance(

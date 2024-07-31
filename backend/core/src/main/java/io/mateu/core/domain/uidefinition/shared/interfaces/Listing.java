@@ -2,8 +2,6 @@ package io.mateu.core.domain.uidefinition.shared.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.SlimHelper;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.dtos.SortCriteria;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -16,19 +14,6 @@ public interface Listing<SearchForm, Row> {
       throws Throwable;
 
   Mono<Long> fetchCount(SearchForm filters) throws Throwable;
-
-  default String getCaption() {
-    if (getClass().isAnnotationPresent(Caption.class)) {
-      return getClass().getAnnotation(Caption.class).value();
-    }
-    try {
-      if (!getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
-        return toString();
-      }
-    } catch (NoSuchMethodException e) {
-    }
-    return SlimHelper.capitalize(getClass().getSimpleName());
-  }
 
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
     return false;

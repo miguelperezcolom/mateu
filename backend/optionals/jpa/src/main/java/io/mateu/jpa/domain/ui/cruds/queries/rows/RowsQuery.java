@@ -1,8 +1,8 @@
 package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.jpa.domain.ui.cruds.queries.Query;
 import java.util.List;

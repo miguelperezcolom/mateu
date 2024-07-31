@@ -1,11 +1,11 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
+import io.mateu.core.domain.model.outbound.Humanizer;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -21,6 +21,7 @@ public class MethodParametersEditorMetadataBuilder {
 
   final FieldMetadataBuilder fieldMetadataBuilder;
   final ReflectionHelper reflectionHelper;
+  final Humanizer humanizer;
 
   public Form build(String stepId, MethodParametersEditor uiInstance) {
     Form form =
@@ -145,6 +146,6 @@ public class MethodParametersEditorMetadataBuilder {
   }
 
   private String getCaption(MethodParametersEditor methodParametersEditor) {
-    return Helper.capitalize(methodParametersEditor.getMethodId());
+    return humanizer.capitalize(methodParametersEditor.getMethodId());
   }
 }

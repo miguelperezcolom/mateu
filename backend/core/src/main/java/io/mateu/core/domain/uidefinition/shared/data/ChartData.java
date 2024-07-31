@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;

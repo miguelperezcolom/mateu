@@ -1,11 +1,11 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Width;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;

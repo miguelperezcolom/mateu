@@ -2,14 +2,14 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.inbound.menuResolvers.MenuEntryFactory;
+import io.mateu.core.domain.model.outbound.Humanizer;
+import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.core.app.*;
-import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,8 +27,9 @@ public class MenuResolver {
 
   private final ReflectionHelper reflectionHelper;
   private final MateuSecurityManager mateuSecurityManager;
-  private final JpaRpcCrudFactory jpaRpcCrudFactory;
   private final MenuEntryFactory menuEntryFactory;
+  private final Humanizer humanizer;
+  private final CaptionProvider captionProvider;
 
   public Optional<MenuEntry> resolve(
       Object uiInstance, String actionId, ServerHttpRequest serverHttpRequest) {
@@ -39,7 +40,7 @@ public class MenuResolver {
   }
 
   private MenuEntry buildHomeMenuEntry(Object uiInstance) {
-    return new MDDOpenEditorAction(reflectionHelper.getCaption(uiInstance), () -> uiInstance);
+    return new MDDOpenEditorAction(captionProvider.getCaption(uiInstance), () -> uiInstance);
   }
 
   private MenuEntry resolve(
@@ -103,7 +104,7 @@ public class MenuResolver {
     if (add) {
 
       if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) {
-        String journeyTypeId = prefix + Helper.camelcasize(name);
+        String journeyTypeId = prefix + humanizer.camelcasize(name);
         return resolve(actionId, menuHolder, f, name, journeyTypeId, serverHttpRequest);
       }
     }
@@ -134,7 +135,7 @@ public class MenuResolver {
         (m.isAnnotationPresent(Submenu.class))
             ? m.getAnnotation(Submenu.class).value()
             : m.getAnnotation(MenuOption.class).value();
-    if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(name);
+    if (Strings.isNullOrEmpty(caption)) caption = humanizer.capitalize(name);
 
     String icon = null;
     if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();

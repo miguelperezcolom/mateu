@@ -1,14 +1,16 @@
-package io.mateu.core.domain.uidefinition.shared;
+package io.mateu.core.domain.model.outbound;
 
 import com.google.common.base.Strings;
+import org.springframework.stereotype.Service;
 
-public class SlimHelper {
+@Service
+public class Humanizer {
 
-  public static String capitalize(String s) {
+  public String capitalize(String s) {
     return capitalize(s, true);
   }
 
-  public static String capitalize(String s, boolean startWithUppercase) {
+  public String capitalize(String s, boolean startWithUppercase) {
     if (s == null || "".equals(s)) return s;
     s = s.replaceAll("\\.", " ");
     String c =
@@ -26,7 +28,7 @@ public class SlimHelper {
     return c;
   }
 
-  public static String camelcasize(String s) {
+  public String camelcasize(String s) {
     if (s == null || "".equals(s)) return s;
     s = s.replaceAll("\\.", " ");
     String c =
@@ -53,7 +55,7 @@ public class SlimHelper {
     return c;
   }
 
-  public static String pluralize(String s) {
+  public String pluralize(String s) {
     if (s == null || "".equals(s)) return s;
     if (s.endsWith("s")) s += "es";
     else s += "s";

@@ -1,11 +1,11 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.outbound.Humanizer;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.Menu;
 import io.mateu.dtos.MenuType;
 import java.lang.reflect.AnnotatedElement;
@@ -25,6 +25,7 @@ public class MenuBuilder {
 
   private final ReflectionHelper reflectionHelper;
   private final MateuSecurityManager mateuSecurityManager;
+  private final Humanizer humanizer;
 
   @SneakyThrows
   public List<Menu> buildMenuForUi(Object uiInstance, ServerHttpRequest serverHttpRequest) {
@@ -80,7 +81,7 @@ public class MenuBuilder {
     if (add) {
 
       if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) {
-        String journeyTypeId = prefix + Helper.camelcasize(name);
+        String journeyTypeId = prefix + humanizer.camelcasize(name);
         addMenuEntry(uiInstance, l, f, name, journeyTypeId, serverHttpRequest);
       }
     }
@@ -110,7 +111,7 @@ public class MenuBuilder {
         (m.isAnnotationPresent(Submenu.class))
             ? m.getAnnotation(Submenu.class).value()
             : m.getAnnotation(MenuOption.class).value();
-    if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(name);
+    if (Strings.isNullOrEmpty(caption)) caption = humanizer.capitalize(name);
 
     String icon = null;
     if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();

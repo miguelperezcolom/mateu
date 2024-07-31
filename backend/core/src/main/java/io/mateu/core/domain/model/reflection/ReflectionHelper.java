@@ -8,14 +8,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.model.util.data.Pair;
-import io.mateu.core.domain.uidefinition.shared.SlimHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.core.infra.MateuConfiguratorBean;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +41,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
   final Translator translator;
   final MateuConfiguratorBean beanProvider;
   final FieldInterfacedFactory fieldInterfacedFactory;
+  final Humanizer humanizer;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -54,10 +52,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
   public ReflectionHelper(
       Translator translator,
       MateuConfiguratorBean beanProvider,
-      FieldInterfacedFactory fieldInterfacedFactory) {
+      FieldInterfacedFactory fieldInterfacedFactory,
+      Humanizer humanizer) {
     this.translator = translator;
     this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;
+    this.humanizer = humanizer;
     BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
     beanUtilsBean.getConvertUtils().register(new IntegerConverter(null), Integer.class);
     beanUtilsBean.getConvertUtils().register(new LongConverter(null), Long.class);
@@ -1421,94 +1421,6 @@ public class ReflectionHelper extends BaseReflectionHelper {
     };
   }
 
-  public String getCaption(Object o) {
-    if (o.getClass().isAnnotationPresent(Caption.class)) {
-      return translator.translate(o.getClass().getAnnotation(Caption.class).value());
-    }
-    if (o instanceof Listing) {
-      return ((Listing) o).getCaption();
-    }
-    String caption = "";
-    try {
-      if (!o.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
-        caption = o.toString();
-      }
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    }
-    if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(o.getClass().getSimpleName());
-    return translator.translate(caption);
-  }
-
-  public String getCaption(FieldInterfaced f) {
-    if (f.isAnnotationPresent(Caption.class)) {
-      return translator.translate(f.getAnnotation(Caption.class).value());
-    } else {
-      String caption = "";
-      if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
-      if (f.isAnnotationPresent(Action.class)) f.getAnnotation(Action.class).value();
-      if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-      return translator.translate(caption);
-    }
-  }
-
-  public String getCaption(Method f) {
-    if (f.isAnnotationPresent(Caption.class)) {
-      return translator.translate(f.getAnnotation(Caption.class).value());
-    } else {
-      String caption = "";
-      if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
-      if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
-      if (Strings.isNullOrEmpty(caption)) caption = Helper.capitalize(f.getName());
-      return translator.translate(caption);
-    }
-  }
-
-  public Collection addToCollection(FieldInterfaced field, Object bean)
-      throws NoSuchMethodException,
-          IllegalAccessException,
-          InvocationTargetException,
-          InstantiationException {
-
-    Method m = getMethod(bean.getClass(), "create" + getFirstUpper(field.getName()) + "Instance");
-
-    Object i = null;
-
-    if (m != null) {
-      i = m.invoke(bean);
-    } else {
-      i = createChild(bean, field);
-    }
-
-    return addToCollection(field, bean, i);
-  }
-
-  public Collection addToCollection(FieldInterfaced field, Object bean, Object i)
-      throws NoSuchMethodException,
-          IllegalAccessException,
-          InvocationTargetException,
-          InstantiationException {
-    Object v = getValue(field, bean);
-    if (v != null) v = extend((Collection) v, i);
-    else if (ImmutableList.class.isAssignableFrom(field.getType())) v = ImmutableList.of(i);
-    else if (ImmutableSet.class.isAssignableFrom(field.getType())) v = ImmutableSet.of(i);
-    else if (Set.class.isAssignableFrom(field.getType())) v = Set.of(i);
-    else v = List.of(i);
-
-    setValue(field, bean, v);
-
-    return (Collection) v;
-  }
-
-  private Object createChild(Object parent, FieldInterfaced collectionField)
-      throws IllegalAccessException,
-          InstantiationException,
-          NoSuchMethodException,
-          InvocationTargetException {
-    Class c = collectionField.getGenericClass();
-    return newInstance(c, parent);
-  }
-
   public Class<?> getGenericClass(Class type) {
     Class<?> gc = null;
     if (type.getGenericInterfaces() != null)
@@ -1955,7 +1867,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
 
           pw.println(
               "<tr><td style='text-align:right; font-style:italic;'>"
-                  + SlimHelper.capitalize(f.getName())
+                  + humanizer.capitalize(f.getName())
                   + ":</td><td>");
           if (i != null) {
             if (isBasico(i)) {

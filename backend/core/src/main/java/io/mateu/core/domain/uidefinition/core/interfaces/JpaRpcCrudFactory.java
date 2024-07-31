@@ -1,8 +1,8 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 
 public interface JpaRpcCrudFactory {
 

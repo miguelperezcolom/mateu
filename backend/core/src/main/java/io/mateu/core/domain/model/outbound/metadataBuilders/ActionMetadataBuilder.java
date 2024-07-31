@@ -23,12 +23,13 @@ import org.springframework.stereotype.Service;
 public class ActionMetadataBuilder {
 
   final ReflectionHelper reflectionHelper;
+  final CaptionProvider captionProvider;
 
   protected Action getAction(Method m) {
     Action action =
         Action.builder()
             .id(m.getName())
-            .caption(reflectionHelper.getCaption(m))
+            .caption(captionProvider.getCaption(m))
             .type(getActionType(m))
             .target(getTarget(m))
             .modalStyle(getModalStyle(m))
@@ -114,7 +115,7 @@ public class ActionMetadataBuilder {
 
   private String getConfirmationAction(String action, Method m) {
     if (Strings.isNullOrEmpty(action)) {
-      return reflectionHelper.getCaption(m);
+      return captionProvider.getCaption(m);
     }
     return action;
   }

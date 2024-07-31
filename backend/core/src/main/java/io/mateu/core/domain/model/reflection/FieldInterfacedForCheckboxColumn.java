@@ -1,7 +1,5 @@
 package io.mateu.core.domain.model.reflection;
 
-import io.mateu.core.domain.uidefinition.shared.SlimHelper;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -156,7 +154,7 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
     return this == obj || (obj != null && hashCode() == obj.hashCode());
   }
 
-  public String getCaption() {
-    return SlimHelper.capitalize(value.toString());
+  public String getValueForColumn() {
+    return value.toString();
   }
 }

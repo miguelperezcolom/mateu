@@ -3,13 +3,13 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.CallActionOnChange;
 import io.mateu.core.domain.uidefinition.shared.annotations.Help;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
 import io.mateu.core.domain.uidefinition.shared.annotations.StyleClassNames;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadgesOnFields;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
@@ -26,12 +26,13 @@ public class FieldMetadataBuilder {
   final FieldTypeMapper fieldTypeMapper;
   final FieldStereotypeMapper fieldStereotypeMapper;
   final ReflectionHelper reflectionHelper;
+  final CaptionProvider captionProvider;
 
   protected Field getField(Object view, FieldInterfaced fieldInterfaced) {
     Field field =
         Field.builder()
             .id(fieldInterfaced.getId())
-            .caption(reflectionHelper.getCaption(fieldInterfaced))
+            .caption(captionProvider.getCaption(fieldInterfaced))
             .placeholder(getPlaceholder(fieldInterfaced))
             .description(getDescription(fieldInterfaced))
             .cssClasses(getCssClassNames(fieldInterfaced))

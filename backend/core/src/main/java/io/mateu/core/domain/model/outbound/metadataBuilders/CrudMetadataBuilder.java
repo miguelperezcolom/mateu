@@ -1,14 +1,13 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.Column;
 import io.mateu.dtos.Crud;
 import io.mateu.dtos.Field;
@@ -29,6 +28,7 @@ public class CrudMetadataBuilder {
   final FieldMetadataBuilder fieldMetadataBuilder;
   final FieldTypeMapper fieldTypeMapper;
   final ReflectionHelper reflectionHelper;
+  final CaptionProvider captionProvider;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -41,7 +41,7 @@ public class CrudMetadataBuilder {
     var rpcView = (Listing) crudInstance;
 
     return Crud.builder()
-        .title(getTitle(rpcView))
+        .title(captionProvider.getCaption(rpcView))
         .subtitle(getSubtitle(rpcView))
         .canEdit(reflectionHelper.isOverridden(rpcView, "getDetail"))
         .searchForm(buildSearchForm(rpcView, listId))
@@ -56,13 +56,6 @@ public class CrudMetadataBuilder {
       return ((HasSubtitle) rpcView).getSubtitle();
     }
     return null;
-  }
-
-  private String getTitle(Listing rpcView) {
-    if (rpcView instanceof HasTitle) {
-      return ((HasTitle) rpcView).getTitle();
-    }
-    return rpcView.getCaption();
   }
 
   private List<Column> buildColumns(Listing rpcView) {
@@ -85,7 +78,7 @@ public class CrudMetadataBuilder {
                 getColumn(
                     columnIdsPerField.getOrDefault(fieldInterfaced, fieldInterfaced.getId()),
                     columnCaptionsPerField.getOrDefault(
-                        fieldInterfaced, reflectionHelper.getCaption(fieldInterfaced)),
+                        fieldInterfaced, captionProvider.getCaption(fieldInterfaced)),
                     fieldInterfaced))
         .collect(Collectors.toList());
   }

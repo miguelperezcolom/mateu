@@ -2,10 +2,9 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
@@ -13,7 +12,6 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBanners;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Section;
 import jakarta.persistence.CascadeType;
@@ -41,6 +39,7 @@ public class FormMetadataBuilder {
   final FieldMetadataBuilder fieldMetadataBuilder;
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
+  final CaptionProvider captionProvider;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -51,7 +50,7 @@ public class FormMetadataBuilder {
 
     Form form =
         Form.builder()
-            .title(getCaption(uiInstance))
+            .title(captionProvider.getCaption(uiInstance))
             .subtitle(getSubtitle(uiInstance))
             .status(getStatus(uiInstance))
             .readOnly(isReadOnly(stepId, uiInstance))
@@ -317,7 +316,7 @@ public class FormMetadataBuilder {
       if (PartialForm.class.isAssignableFrom(fieldInterfaced.getType())) {
         var partialFormSection =
             Section.builder()
-                .caption(reflectionHelper.getCaption(fieldInterfaced))
+                .caption(captionProvider.getCaption(fieldInterfaced))
                 .id(fieldInterfaced.getId())
                 .tabId(tabId)
                 .readOnly(true)
@@ -479,38 +478,5 @@ public class FormMetadataBuilder {
         g.setId("fieldgroup_" + i + "_" + j++);
       }
     }
-  }
-
-  private String getCaption(Object uiInstance) {
-
-    if (uiInstance instanceof HasTitle) {
-      return ((HasTitle) uiInstance).getTitle();
-    }
-
-    Class<?> modelType = uiInstance.getClass();
-    if (modelType.isAnnotationPresent(Caption.class)) {
-      return modelType.getAnnotation(Caption.class).value();
-    }
-    String viewTitle = "";
-    if (uiInstance != null && uiInstance instanceof ReadOnlyPojo) {
-      viewTitle = ((ReadOnlyPojo) uiInstance).retrieveEntityName();
-    }
-    if (uiInstance != null && uiInstance instanceof PersistentPojo) {
-      viewTitle = ((PersistentPojo) uiInstance).retrieveEntityName();
-      if (((PersistentPojo) uiInstance).isNewRecord()) return "New " + viewTitle;
-    }
-    String prefix = "";
-    if (!"".equals(viewTitle)) {
-      prefix = viewTitle + " ";
-    }
-
-    try {
-      if (Object.class.equals(modelType.getMethod("toString").getDeclaringClass())) {
-        return Helper.capitalize(modelType.getSimpleName());
-      } else return Helper.capitalize(uiInstance.toString());
-    } catch (NoSuchMethodException e) {
-    }
-
-    return prefix + uiInstance;
   }
 }

@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.reflection;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;

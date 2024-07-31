@@ -1,6 +1,5 @@
 package io.mateu.core.domain.model.reflection;
 
-import io.mateu.core.domain.uidefinition.shared.reflection.FieldInterfaced;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;

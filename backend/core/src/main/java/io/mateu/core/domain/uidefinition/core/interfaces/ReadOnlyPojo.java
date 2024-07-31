@@ -1,7 +1,5 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.core.domain.model.util.Helper;
-
 public interface ReadOnlyPojo<Id> {
 
   default boolean hasEditor() {
@@ -10,10 +8,6 @@ public interface ReadOnlyPojo<Id> {
 
   default Object retrieveEditor() throws Throwable {
     return null;
-  }
-
-  default String retrieveEntityName() {
-    return Helper.capitalize(getClass().getSimpleName());
   }
 
   void load(Id id) throws Throwable;

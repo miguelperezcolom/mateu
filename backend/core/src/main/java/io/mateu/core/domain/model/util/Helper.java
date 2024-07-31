@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.util;
 
-import io.mateu.core.domain.uidefinition.shared.SlimHelper;
+import io.mateu.core.domain.model.outbound.Humanizer;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import org.jdom2.output.XMLOutputter;
 
 /** Created by miguel on 13/9/16. */
 @Slf4j
-public class Helper extends SlimHelper {
+public class Helper extends Humanizer {
 
   static {
     SharedHelper.loadProperties();
