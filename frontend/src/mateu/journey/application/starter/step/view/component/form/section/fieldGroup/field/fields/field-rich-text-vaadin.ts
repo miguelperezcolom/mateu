@@ -1,5 +1,5 @@
 import {customElement, property, query} from "lit/decorators.js";
-import {css, html, LitElement, PropertyValues} from "lit";
+import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/rich-text-editor'
