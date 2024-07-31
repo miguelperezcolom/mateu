@@ -9,7 +9,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyContainerService;
+import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;

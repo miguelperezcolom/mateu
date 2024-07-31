@@ -1,7 +1,7 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
-import io.mateu.core.domain.model.store.JourneyContainerService;
+import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.JourneyContainer;

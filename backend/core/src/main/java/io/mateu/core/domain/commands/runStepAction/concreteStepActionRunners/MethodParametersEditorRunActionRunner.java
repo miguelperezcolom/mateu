@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.store.JourneyContainerService;
+import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.dtos.JourneyContainer;

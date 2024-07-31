@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.store;
+package io.mateu.core.domain.model.inbound;
 
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
