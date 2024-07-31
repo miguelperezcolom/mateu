@@ -15,8 +15,7 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class GetListRowsQueryHandler {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
 
   @Autowired ReflectionHelper reflectionHelper;
 

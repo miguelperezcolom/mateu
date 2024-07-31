@@ -13,8 +13,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class EntityEditActionRunner implements ActionRunner {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
 
   @Override
   public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {

@@ -14,8 +14,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class CrudNewActionRunner implements ListActionRunner {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
 
   @Override
   public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {

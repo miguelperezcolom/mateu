@@ -15,8 +15,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class MainListActionRunnner implements ActionRunner {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
 
   @Autowired List<ListActionRunner> listActionRunners;
 

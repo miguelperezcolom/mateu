@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries.getUI;
 
-import io.mateu.core.domain.model.modelToDtoMappers.UIMapper;
-import io.mateu.core.domain.model.modelToDtoMappers.UiInstantiator;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UiInstantiator;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.UI;
 import lombok.RequiredArgsConstructor;

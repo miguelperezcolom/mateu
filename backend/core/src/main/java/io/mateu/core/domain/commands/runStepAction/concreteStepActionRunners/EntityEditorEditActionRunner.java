@@ -14,8 +14,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class EntityEditorEditActionRunner implements ActionRunner {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
   @Autowired Serializer serializer;
 
   @Override

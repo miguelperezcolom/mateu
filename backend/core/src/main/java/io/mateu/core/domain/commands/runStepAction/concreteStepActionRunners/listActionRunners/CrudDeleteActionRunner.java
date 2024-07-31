@@ -19,8 +19,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class CrudDeleteActionRunner implements ListActionRunner {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
   @Autowired Serializer serializer;
 
   @Override

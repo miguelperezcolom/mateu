@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.startJourney;
 
-import io.mateu.core.domain.model.modelToDtoMappers.*;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.exceptions.NotFoundException;

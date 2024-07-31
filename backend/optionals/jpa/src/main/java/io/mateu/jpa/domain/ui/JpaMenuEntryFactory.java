@@ -1,8 +1,8 @@
 package io.mateu.jpa.domain.ui;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.menuResolvers.DefaultMenuEntryFactory;
-import io.mateu.core.domain.model.menuResolvers.MenuEntryFactory;
+import io.mateu.core.domain.model.inbound.menuResolvers.DefaultMenuEntryFactory;
+import io.mateu.core.domain.model.inbound.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.Columns;

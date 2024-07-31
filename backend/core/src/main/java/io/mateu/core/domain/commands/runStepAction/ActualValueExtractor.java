@@ -2,7 +2,6 @@ package io.mateu.core.domain.commands.runStepAction;
 
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
-import io.mateu.core.domain.model.files.StorageServiceAccessor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
@@ -326,7 +325,7 @@ public class ActualValueExtractor {
     } else if (java.io.File.class.equals(genericType)) {
       try {
         targetValue =
-            StorageServiceAccessor.get()
+            storageService
                 .loadAsResource((String) value.get("id"), (String) value.get("name"))
                 .getFile();
       } catch (IOException e) {

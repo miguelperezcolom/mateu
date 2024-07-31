@@ -5,7 +5,7 @@ import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.editors.EntityEditor;
 import io.mateu.core.domain.model.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.editors.ObjectEditor;
-import io.mateu.core.domain.model.persistence.Merger;
+import io.mateu.core.domain.model.outbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;

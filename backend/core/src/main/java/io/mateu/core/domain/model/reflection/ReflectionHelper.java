@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import io.mateu.core.domain.model.i18n.Translator;
+import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.util.Helper;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.shared.SlimHelper;

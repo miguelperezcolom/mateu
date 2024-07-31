@@ -14,8 +14,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetListCountQueryHandler {
 
-  @Autowired
-  JourneyContainerService store;
+  @Autowired JourneyContainerService store;
 
   @Autowired ReflectionHelper reflectionHelper;
 

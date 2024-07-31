@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.editors.EntityEditor;
-import io.mateu.core.domain.model.persistence.Merger;
+import io.mateu.core.domain.model.outbound.persistence.Merger;
 import io.mateu.core.domain.model.store.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
