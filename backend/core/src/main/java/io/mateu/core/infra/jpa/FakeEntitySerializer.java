@@ -1,4 +1,4 @@
-package io.mateu.core.infra.springboot;
+package io.mateu.core.infra.jpa;
 
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import java.util.Map;

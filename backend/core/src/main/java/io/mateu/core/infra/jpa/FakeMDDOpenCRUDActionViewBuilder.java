@@ -1,4 +1,4 @@
-package io.mateu.core.infra.springboot;
+package io.mateu.core.infra.jpa;
 
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
