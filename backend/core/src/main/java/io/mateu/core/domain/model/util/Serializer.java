@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.util;
 
-import static io.mateu.core.domain.model.reflection.ReflectionHelper.isBasico;
+import static io.mateu.core.domain.model.reflection.ReflectionHelper.isBasic;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
+import io.mateu.core.domain.model.reflection.BaseReflectionHelper;
 import io.mateu.core.domain.model.reflection.FieldInterfaced;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
@@ -170,7 +171,7 @@ public class Serializer {
           Object i = reflectionHelper.getValue(f, o);
 
           if (i != null) {
-            if (isBasico(i)) {
+            if (BaseReflectionHelper.isBasic(i)) {
               e.setAttribute(f.getName(), "" + i);
             } else {
 
@@ -209,7 +210,7 @@ public class Serializer {
               String sv = root.getAttributeValue(f.getId());
 
               if (sv != null) {
-                if (isBasico(f.getType())) {
+                if (ReflectionHelper.isBasic(f.getType())) {
                   reflectionHelper.setValue(f, o, reflectionHelper.newInstance(f.getType(), sv));
                 } else {
 

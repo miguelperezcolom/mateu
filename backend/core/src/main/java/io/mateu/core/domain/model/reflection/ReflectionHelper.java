@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.BooleanConverter;
 import org.apache.commons.beanutils.converters.DoubleConverter;
@@ -1873,7 +1872,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                   + humanizer.capitalize(f.getName())
                   + ":</td><td>");
           if (i != null) {
-            if (isBasico(i)) {
+            if (isBasic(i)) {
               pw.print("" + i);
             } else {
               // todo: añadir casos collection y map

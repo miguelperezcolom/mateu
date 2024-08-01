@@ -155,7 +155,7 @@ public class FieldAttributeBuilder {
       }
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && !reflectionHelper.isBasico(field.getType())
+        && !reflectionHelper.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
       for (FieldInterfaced columnField :

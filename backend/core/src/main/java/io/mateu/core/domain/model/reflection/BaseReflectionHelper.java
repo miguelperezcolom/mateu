@@ -8,30 +8,30 @@ import java.util.List;
 
 public class BaseReflectionHelper {
 
-  static List<Class> basicos = new ArrayList<>();
+  static List<Class> basicTypes = new ArrayList<>();
 
   static {
-    basicos.add(String.class);
-    basicos.add(Integer.class);
-    basicos.add(Long.class);
-    basicos.add(Float.class);
-    basicos.add(Double.class);
-    basicos.add(Boolean.class);
-    basicos.add(LocalDate.class);
-    basicos.add(LocalDateTime.class);
-    basicos.add(LocalTime.class);
-    basicos.add(int.class);
-    basicos.add(long.class);
-    basicos.add(float.class);
-    basicos.add(double.class);
-    basicos.add(boolean.class);
+    basicTypes.add(String.class);
+    basicTypes.add(Integer.class);
+    basicTypes.add(Long.class);
+    basicTypes.add(Float.class);
+    basicTypes.add(Double.class);
+    basicTypes.add(Boolean.class);
+    basicTypes.add(LocalDate.class);
+    basicTypes.add(LocalDateTime.class);
+    basicTypes.add(LocalTime.class);
+    basicTypes.add(int.class);
+    basicTypes.add(long.class);
+    basicTypes.add(float.class);
+    basicTypes.add(double.class);
+    basicTypes.add(boolean.class);
   }
 
-  public static boolean isBasico(Class c) {
-    return basicos.contains(c);
+  public static boolean isBasic(Class c) {
+    return basicTypes.contains(c);
   }
 
-  public static boolean isBasico(Object o) {
-    return isBasico(o.getClass());
+  public static boolean isBasic(Object o) {
+    return isBasic(o.getClass());
   }
 }

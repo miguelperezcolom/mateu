@@ -49,7 +49,7 @@ public class DefaultMenuEntryFactory implements MenuEntryFactory {
       };
     } else if (URL.class.equals(app.getClass())) {
       return new MDDOpenUrlAction(caption, (URL) app);
-    } else if (reflectionHelper.isBasico(app.getClass()) || String.class.equals(app.getClass())) {
+    } else if (reflectionHelper.isBasic(app.getClass()) || String.class.equals(app.getClass())) {
       if (f.isAnnotationPresent(Home.class)
           || f.isAnnotationPresent(PublicHome.class)
           || f.isAnnotationPresent(PrivateHome.class))

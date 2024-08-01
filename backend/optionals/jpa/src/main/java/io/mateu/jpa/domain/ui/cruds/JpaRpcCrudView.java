@@ -457,7 +457,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                                   && f.getAnnotation(UseCheckboxes.class).editableInline()))
                           && !Map.class.isAssignableFrom(f.getType())
                           && !f.isAnnotationPresent(GeneratedValue.class)
-                          && (ReflectionHelper.isBasico(f.getType())
+                          && (ReflectionHelper.isBasic(f.getType())
                               || BigDecimal.class.equals(f.getType())
                               || f.getType().isEnum()
                               || f.getType().isAnnotationPresent(Entity.class)

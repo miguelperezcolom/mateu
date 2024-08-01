@@ -199,7 +199,7 @@ public class ActualValueExtractor {
               .forEach(v -> value.add(v));
           return value;
         }
-        if (!reflectionHelper.isBasico(f.getGenericClass())) {
+        if (!reflectionHelper.isBasic(f.getGenericClass())) {
           List value = new ArrayList();
           List<Map<String, Object>> in = (List<Map<String, Object>>) entry.getValue();
           in.stream()

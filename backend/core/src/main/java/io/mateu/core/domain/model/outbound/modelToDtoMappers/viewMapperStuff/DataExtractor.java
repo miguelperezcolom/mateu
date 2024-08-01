@@ -149,7 +149,7 @@ public class DataExtractor {
 
   private void addStringValueForObjects(Object uiInstance, Map<String, Object> data) {
     reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-        .filter(f -> !reflectionHelper.isBasico(f.getType()))
+        .filter(f -> !reflectionHelper.isBasic(f.getType()))
         .filter(f -> !f.getType().isArray())
         .filter(f -> !f.getType().isEnum())
         .filter(f -> !Collection.class.isAssignableFrom(f.getType()))
