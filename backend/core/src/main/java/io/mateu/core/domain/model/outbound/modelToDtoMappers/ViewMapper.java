@@ -20,7 +20,6 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
-import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,17 +45,18 @@ public class ViewMapper {
   private final CaptionProvider captionProvider;
 
   public ViewMapper(
-          EntityProvider entityProvider, ApplicationContext applicationContext,
-          FieldExtractor fieldExtractor,
-          ViewMetadataBuilder viewMetadataBuilder,
-          DataExtractor dataExtractor,
-          RulesBuilder rulesBuilder,
-          UIInstancePartsExtractor uiInstancePartsExtractor,
-          ReflectionHelper reflectionHelper,
-          Serializer serializer,
-          CaptionProvider captionProvider) {
-      this.entityProvider = entityProvider;
-      this.applicationContext = applicationContext;
+      EntityProvider entityProvider,
+      ApplicationContext applicationContext,
+      FieldExtractor fieldExtractor,
+      ViewMetadataBuilder viewMetadataBuilder,
+      DataExtractor dataExtractor,
+      RulesBuilder rulesBuilder,
+      UIInstancePartsExtractor uiInstancePartsExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      CaptionProvider captionProvider) {
+    this.entityProvider = entityProvider;
+    this.applicationContext = applicationContext;
     this.fieldExtractor = fieldExtractor;
     this.viewMetadataBuilder = viewMetadataBuilder;
     this.dataExtractor = dataExtractor;
@@ -203,7 +203,8 @@ public class ViewMapper {
     Object actualUiInstance = uiInstance;
     if (uiInstance instanceof EntityEditor) {
       EntityEditor entityEditor = (EntityEditor) uiInstance;
-      actualUiInstance = entityProvider.find(entityEditor.getEntityClass(), entityEditor.getData().get("__id"));
+      actualUiInstance =
+          entityProvider.find(entityEditor.getEntityClass(), entityEditor.getData().get("__id"));
     } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
       actualUiInstance = reflectionHelper.newInstance(objectEditor.getType());
@@ -231,7 +232,8 @@ public class ViewMapper {
                       journeyContainer.getInitialStep().getId(),
                       serverHttpRequest);
       actualUiInstance =
-          entityProvider.find(rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
+          entityProvider.find(
+              rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
     } else if (uiInstance instanceof Class
         && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {
       actualUiInstance = reflectionHelper.newInstance((Class) uiInstance);

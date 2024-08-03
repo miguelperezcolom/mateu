@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DummyEntityProvider implements EntityProvider {
-    @Override
-    public Object find(Class type, Object id) {
-        return null;
-    }
+  @Override
+  public Object find(Class type, Object id) {
+    return null;
+  }
 }

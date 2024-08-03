@@ -5,17 +5,18 @@ import jakarta.persistence.EntityManager;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-@Service@Primary
+@Service
+@Primary
 public class JpaEntityProvider implements EntityProvider {
 
-    private final EntityManager em;
+  private final EntityManager em;
 
-    public JpaEntityProvider(EntityManager em) {
-        this.em = em;
-    }
+  public JpaEntityProvider(EntityManager em) {
+    this.em = em;
+  }
 
-    @Override
-    public Object find(Class type, Object id) {
-        return em.find(type, id);
-    }
+  @Override
+  public Object find(Class type, Object id) {
+    return em.find(type, id);
+  }
 }

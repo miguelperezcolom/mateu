@@ -7,5 +7,6 @@ public enum ActionTarget {
   NewTab,
   NewWindow,
   Left,
-  Right
+  Right,
+  NewJourney
 }

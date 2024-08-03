@@ -52,6 +52,8 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
         reflectionHelper.getMethod(
             methodParametersEditor.getType(), methodParametersEditor.getMethodId());
 
+    if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+
     Object object =
         Modifier.isStatic(m.getModifiers())
             ? null

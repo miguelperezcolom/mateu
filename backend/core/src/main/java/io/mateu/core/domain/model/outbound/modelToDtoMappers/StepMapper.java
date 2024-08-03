@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicStep;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;

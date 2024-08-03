@@ -22,7 +22,7 @@ public class DemoApp implements HasLogin, HasAppTitle
 
   @Submenu private CrudsSubmenu cruds;
 
-  @Submenu private BrokenSubmenu broken;
+  @Submenu private ActionsSubmenu actions;
 
   @Submenu private UtilSubmenu util;
 

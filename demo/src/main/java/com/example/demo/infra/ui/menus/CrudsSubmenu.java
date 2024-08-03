@@ -2,6 +2,7 @@ package com.example.demo.infra.ui.menus;
 
 import com.example.demo.domain.cities.City;
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
+import com.example.demo.infra.ui.menus.errors.rpcTimeouts.BrokenCrud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
@@ -32,5 +33,7 @@ public class CrudsSubmenu {
 
     @Submenu("Star Wars")
     private SWSubmenu sw;
+
+    @MenuOption private BrokenCrud brokenCrud;
 
 }

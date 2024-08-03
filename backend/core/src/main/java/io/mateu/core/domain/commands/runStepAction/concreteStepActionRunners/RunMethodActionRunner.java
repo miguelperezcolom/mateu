@@ -145,6 +145,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
+    if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+
     resetMessages(journeyContainer);
 
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
