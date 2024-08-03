@@ -18,6 +18,33 @@ public class GenericClassProvider {
         this.typeProvider = typeProvider;
     }
 
+    public Class<?> getGenericClass(Class type) {
+        Class<?> gc = null;
+        if (type.getGenericInterfaces() != null)
+            for (Type gi : type.getGenericInterfaces()) {
+                if (gi instanceof ParameterizedType) {
+                    ParameterizedType pt = (ParameterizedType) gi;
+                    gc = (Class<?>) pt.getActualTypeArguments()[0];
+                } else {
+                    gc = (Class<?>) gi;
+                }
+                break;
+            }
+        return gc;
+    }
+
+    public Class<?> getGenericClass(Method m) {
+        Type gi = m.getGenericReturnType();
+        Class<?> gc = null;
+        if (gi instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) gi;
+            gc = (Class<?>) pt.getActualTypeArguments()[0];
+        } else {
+            gc = (Class<?>) gi;
+        }
+        return gc;
+    }
+
     public Class<?> getGenericClass(Type type) {
         Class<?> gc = null;
         if (type instanceof ParameterizedType) {

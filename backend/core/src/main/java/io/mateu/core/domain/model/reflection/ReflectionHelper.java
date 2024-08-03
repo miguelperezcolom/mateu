@@ -63,6 +63,7 @@ public class ReflectionHelper {
   private final TypeProvider typeProvider;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
   private final AllTransferrableFieldsProvider allTransferrableFieldsProvider;
+  private final SubclassProvider subclassProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -74,7 +75,7 @@ public class ReflectionHelper {
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
@@ -102,6 +103,7 @@ public class ReflectionHelper {
     this.typeProvider = typeProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
     this.allTransferrableFieldsProvider = allTransferrableFieldsProvider;
+    this.subclassProvider = subclassProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -224,25 +226,12 @@ public class ReflectionHelper {
   }
 
   public List<FieldInterfaced> getAllEditableFields(Class modelType) {
-    return getAllEditableFilteredFields(modelType, null, null);
-  }
-
-  public List<FieldInterfaced> getAllEditableFilteredFields(
-      Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
-    List<FieldInterfaced> l =
-        editableFields != null ? editableFields : getAllEditableFields(modelType, null, true);
-    if (!Strings.isNullOrEmpty(fieldsFilter)) {
-      List<FieldInterfaced> borrar = new ArrayList<>();
-      List<String> ts = Arrays.asList(fieldsFilter.replaceAll(" ", "").split(","));
-      for (FieldInterfaced f : l) if (!ts.contains(f.getName())) borrar.add(f);
-      l.removeAll(borrar);
-    }
-    return l;
+    return allEditableFieldsProvider.getAllEditableFilteredFields(modelType, null, null);
   }
 
   public List<FieldInterfaced> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers) {
-    return getAllEditableFields(modelType, superType, includeReverseMappers, null);
+    return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, null);
   }
 
   public List<FieldInterfaced> getAllEditableFields(
@@ -262,18 +251,7 @@ public class ReflectionHelper {
   }
 
   public Class<?> getGenericClass(Class type) {
-    Class<?> gc = null;
-    if (type.getGenericInterfaces() != null)
-      for (Type gi : type.getGenericInterfaces()) {
-        if (gi instanceof ParameterizedType) {
-          ParameterizedType pt = (ParameterizedType) gi;
-          gc = (Class<?>) pt.getActualTypeArguments()[0];
-        } else {
-          gc = (Class<?>) gi;
-        }
-        break;
-      }
-    return gc;
+    return genericClassProvider.getGenericClass(type);
   }
 
   public Class<?> getGenericClass(Type type) {
@@ -281,205 +259,11 @@ public class ReflectionHelper {
   }
 
   public Set<Class> getSubclasses(Class c) {
-    String pkg = c.getPackage().getName();
-    String[] ts = pkg.split("\\.");
-    if (ts.length > 3) {
-      pkg = ts[0] + "." + ts[1] + "." + ts[2];
-    }
-    Reflections reflections = new Reflections(pkg);
-
-    Set<Class> subs = reflections.getSubTypesOf(c);
-
-    Set<Class> subsFiltered =
-        new TreeSet<>((a, b) -> a.getSimpleName().compareTo(b.getSimpleName()));
-    subsFiltered.addAll(
-        subs.stream()
-            .filter(s -> !Modifier.isAbstract(s.getModifiers()))
-            .collect(Collectors.toSet()));
-
-    return subsFiltered;
+    return subclassProvider.getSubclasses(c);
   }
 
   public Class<?> getGenericClass(Method m) {
-    Type gi = m.getGenericReturnType();
-    Class<?> gc = null;
-    if (gi instanceof ParameterizedType) {
-      ParameterizedType pt = (ParameterizedType) gi;
-      gc = (Class<?>) pt.getActualTypeArguments()[0];
-    } else {
-      gc = (Class<?>) gi;
-    }
-    return gc;
-  }
-
-  public boolean isOwner(FieldInterfaced field) {
-    OneToOne oo = field.getAnnotation(OneToOne.class);
-    OneToMany aa = field.getAnnotation(OneToMany.class);
-    ManyToMany mm = field.getAnnotation(ManyToMany.class);
-
-    boolean owner = false;
-
-    if (oo != null) owner = checkCascade(oo.cascade());
-    else if (aa != null) owner = checkCascade(aa.cascade());
-    else if (mm != null) owner = checkCascade(mm.cascade());
-
-    return owner;
-  }
-
-  private boolean checkCascade(CascadeType[] cascade) {
-    boolean owned = false;
-    for (CascadeType ct : cascade) {
-      if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
-        owned = true;
-        break;
-      }
-    }
-    return owned;
-  }
-
-  public boolean puedeBorrar(FieldInterfaced field) {
-    if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
-    boolean puede = true;
-    CascadeType[] cascades = null;
-    if (field.isAnnotationPresent(OneToMany.class))
-      cascades = field.getAnnotation(OneToMany.class).cascade();
-    else if (field.isAnnotationPresent(ManyToMany.class))
-      cascades = field.getAnnotation(ManyToMany.class).cascade();
-    if (cascades != null) {
-      puede = false;
-      for (CascadeType ct : cascades) {
-        if (CascadeType.ALL.equals(ct) || CascadeType.REMOVE.equals(ct)) {
-          puede = true;
-          break;
-        }
-      }
-    }
-    return puede;
-  }
-
-  public boolean puedeAnadir(FieldInterfaced field) {
-    if (field.isAnnotationPresent(ModifyValuesOnly.class)) return false;
-    boolean puede = true;
-    CascadeType[] cascades = null;
-    if (field.isAnnotationPresent(OneToMany.class))
-      cascades = field.getAnnotation(OneToMany.class).cascade();
-    else if (field.isAnnotationPresent(ManyToMany.class))
-      cascades = field.getAnnotation(ManyToMany.class).cascade();
-    if (cascades != null) {
-      puede = false;
-      for (CascadeType ct : cascades) {
-        if (CascadeType.ALL.equals(ct) || CascadeType.PERSIST.equals(ct)) {
-          puede = true;
-          break;
-        }
-      }
-    }
-    return puede;
-  }
-
-
-
-  public Object clone(Object original)
-      throws IllegalAccessException,
-          InstantiationException,
-          NoSuchMethodException,
-          InvocationTargetException {
-    if (original == null) return null;
-    else {
-
-      Method m = getMethod(original.getClass(), "cloneAsConverted");
-      if (m != null) return m.invoke(original);
-      else {
-
-        Object copy = null;
-
-        Constructor con = getConstructor(original.getClass());
-        if (con != null && con.getParameterCount() == 0) copy = con.newInstance();
-        else {
-          con =
-              Arrays.stream(original.getClass().getDeclaredConstructors())
-                  .filter(x -> x.getParameterCount() == 0)
-                  .findFirst()
-                  .orElse(null);
-          if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
-          copy = con.newInstance();
-        }
-
-        for (FieldInterfaced f : getAllFields(original.getClass()))
-          if (!f.isAnnotationPresent(Id.class)) {
-            setValue(f, copy, getValue(f, original));
-          }
-
-        return copy;
-      }
-    }
-  }
-
-  public void delete(EntityManager em, Object o)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    if (o != null) {
-      // no quitamos las relaciones, por precaución. Así saltará a nivel de base de datos si
-      // queremos borrar un objeto que esté referenciado
-      for (FieldInterfaced f : getAllFields(o.getClass())) {
-
-        Object t = getValue(f, o);
-
-        if (t != null) {
-
-          boolean owner = false;
-
-          if (f.isAnnotationPresent(ManyToOne.class)) {
-            CascadeType[] c = f.getAnnotation(ManyToOne.class).cascade();
-            if (c != null)
-              for (CascadeType cx : c)
-                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                  owner = true;
-                  break;
-                }
-          }
-
-          if (f.isAnnotationPresent(OneToMany.class)) {
-            CascadeType[] c = f.getAnnotation(OneToMany.class).cascade();
-            if (c != null)
-              for (CascadeType cx : c)
-                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                  owner = true;
-                  break;
-                }
-          }
-
-          if (f.isAnnotationPresent(ManyToMany.class)) {
-            CascadeType[] c = f.getAnnotation(ManyToMany.class).cascade();
-            if (c != null)
-              for (CascadeType cx : c)
-                if (CascadeType.ALL.equals(cx) || CascadeType.REMOVE.equals(cx)) {
-                  owner = true;
-                  break;
-                }
-          }
-
-          if (!owner
-              && (f.isAnnotationPresent(OneToMany.class)
-                  || f.isAnnotationPresent(ManyToMany.class))) {
-
-            FieldInterfaced mbf = getMapper(f);
-
-            if (Collection.class.isAssignableFrom(t.getClass())) {
-              Collection col = (Collection) t;
-              if (col.size() > 0) {
-                t = col.iterator().next();
-              } else t = null;
-            }
-
-            if (mbf != null && t != null) {
-
-              throw new Error("" + o + " is referenced from " + t);
-            }
-          }
-        }
-      }
-      em.remove(o);
-    }
+    return genericClassProvider.getGenericClass(m);
   }
 
   public void copy(Object from, Object to) {

@@ -26,6 +26,29 @@ public class AllEditableFieldsProvider {
         this.getterProvider = getterProvider;
     }
 
+    public List<FieldInterfaced> getAllEditableFields(Class modelType) {
+        return getAllEditableFilteredFields(modelType, null, null);
+    }
+
+    public List<FieldInterfaced> getAllEditableFilteredFields(
+            Class modelType, String fieldsFilter, List<FieldInterfaced> editableFields) {
+        List<FieldInterfaced> l =
+                editableFields != null ? editableFields : getAllEditableFields(modelType, null, true);
+        if (!Strings.isNullOrEmpty(fieldsFilter)) {
+            List<FieldInterfaced> borrar = new ArrayList<>();
+            List<String> ts = Arrays.asList(fieldsFilter.replaceAll(" ", "").split(","));
+            for (FieldInterfaced f : l) if (!ts.contains(f.getName())) borrar.add(f);
+            l.removeAll(borrar);
+        }
+        return l;
+    }
+
+    public List<FieldInterfaced> getAllEditableFields(
+            Class modelType, Class superType, boolean includeReverseMappers) {
+        return getAllEditableFields(modelType, superType, includeReverseMappers, null);
+    }
+
+
     public List<FieldInterfaced> getAllEditableFields(
             Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
         List<FieldInterfaced> allFields = allFieldsProvider.getAllFields(modelType);
