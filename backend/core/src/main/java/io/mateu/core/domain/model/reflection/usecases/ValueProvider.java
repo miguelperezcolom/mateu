@@ -1,21 +1,24 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
+import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.FieldInterfacedForCheckboxColumn;
+import io.mateu.core.domain.model.reflection.FieldInterfacedFromField;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class ValueProvider {
 
     private final GetterProvider getterProvider;
+    private final FieldByNameProvider fieldByNameProvider;
 
-    public ValueProvider(GetterProvider getterProvider) {
+    public ValueProvider(GetterProvider getterProvider, FieldByNameProvider fieldByNameProvider) {
         this.getterProvider = getterProvider;
+        this.fieldByNameProvider = fieldByNameProvider;
     }
 
     public Object getValue(Field f, Object o) {
@@ -38,6 +41,130 @@ public class ValueProvider {
         } catch (IllegalAccessException | InvocationTargetException e) {
             log.error("when getting value for field " + f.getName(), e);
         }
+        return v;
+    }
+
+    public Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+        Object v = null;
+        try {
+            v = getValue(f, o);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return v != null ? v : valueIfNull;
+    }
+
+    public Object getValue(FieldInterfaced f, Object o)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (o == null) return null;
+
+        if (Map.class.isAssignableFrom(o.getClass())) {
+            return ((Map) o).get(f.getName());
+        } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+            return f.getValue(o);
+        } else {
+            return getValue(f.getId(), o);
+        }
+    }
+
+    public Object getValue(AnnotatedElement e, Object o)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+
+        if (o == null) return null;
+
+        if (e instanceof FieldInterfaced f) {
+            if (Map.class.isAssignableFrom(o.getClass())) {
+                return ((Map<?, ?>) o).get(f.getName());
+            } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+                return f.getValue(o);
+            } else {
+                return getValue(f.getId(), o);
+            }
+        } else if (e instanceof Method m) {
+            return m.invoke(o);
+        } else {
+            return null;
+        }
+    }
+
+    public Object getValue(String id, Object o)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Object v = null;
+
+        if (id.contains(".")) {
+            String firstId = id.substring(0, id.indexOf("."));
+            String path = id.substring(id.indexOf(".") + 1);
+
+            Method getter = null;
+            try {
+                FieldInterfaced f = fieldByNameProvider.getFieldByName(o.getClass(), firstId);
+
+                if (f != null) {
+
+                    try {
+                        getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), firstId));
+                    } catch (Exception e) {
+
+                    }
+
+                    if (getter != null) v = getter.invoke(o);
+                    else {
+                        try {
+                            if (f instanceof FieldInterfacedFromField) {
+                                Field field = f.getField();
+                                if (!Modifier.isPublic(field.getModifiers())) {
+                                    field.setAccessible(true);
+                                }
+                                v = field.get(o);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (v != null) {
+                        v = getValue(path, v);
+                    }
+                }
+
+            } catch (Exception e) {
+            }
+
+        } else {
+            FieldInterfaced f = fieldByNameProvider.getFieldByName(o.getClass(), id);
+
+            if (f != null) {
+
+                Method getter = null;
+                try {
+                    getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), id));
+                } catch (Exception e) {
+
+                }
+                try {
+                    if (getter != null) v = getter.invoke(o);
+                    else {
+                        try {
+                            if (f instanceof FieldInterfacedFromField) {
+                                Field field = f.getField();
+                                if (!Modifier.isPublic(field.getModifiers())) {
+                                    field.setAccessible(true);
+                                }
+                                v = field.get(o);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         return v;
     }
 

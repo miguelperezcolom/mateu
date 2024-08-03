@@ -1,22 +1,24 @@
 package io.mateu.core.domain.model.reflection;
 
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FieldInterfacedFromField implements FieldInterfaced {
 
   private final Field f;
   private final FieldInterfaced ff;
 
-  private final ReflectionHelper reflectionHelper;
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
   public FieldInterfacedFromField(
-      FieldInterfaced f, Annotation a, ReflectionHelper reflectionHelper) {
-    this(f, reflectionHelper);
+          FieldInterfaced f, Annotation a) {
+    this(f);
     extraAnnotations.add(a);
   }
 
@@ -32,16 +34,14 @@ public class FieldInterfacedFromField implements FieldInterfaced {
         : f.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromField(FieldInterfaced f, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromField(FieldInterfaced f) {
     this.ff = f;
     this.f = f.getField();
-    this.reflectionHelper = reflectionHelper;
   }
 
-  public FieldInterfacedFromField(Field f, ReflectionHelper reflectionHelper) {
+  public FieldInterfacedFromField(Field f) {
     this.ff = null;
     this.f = f;
-    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -122,13 +122,52 @@ public class FieldInterfacedFromField implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return reflectionHelper.getValue(this, o);
+    try {
+      Method getter = o.getClass().getMethod(getGetter(f), f.getType());
+      if (getter != null) {
+        return getter.invoke(o);
+      }
+    } catch (Exception ignored) {
+    }
+    if (Map.class.isAssignableFrom(o.getClass())) {
+      return ((Map<?, ?>) o).get(f.getName());
+    }
+    return f.get(o);
+  }
+
+  private String getGetter(Field f) {
+    return (boolean.class.equals(f.getType()) ? "is" : "get") + getFirstUpper(f.getName());
+  }
+
+  private String getFirstUpper(String fieldName) {
+    return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+  }
+
+  private String getSetter(Field f) {
+    return "set" + getFirstUpper(f.getName());
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    reflectionHelper.setValue(this, o, v);
+    try {
+      Method setter = o.getClass().getMethod(getSetter(f), f.getType());
+      if (setter != null) {
+        setter.invoke(o, v);
+        //                        BeanUtils.setProperty(o, fn, v);
+        return;
+      }
+    } catch (Exception ignored) {
+    }
+    if (Map.class.isAssignableFrom(o.getClass())) {
+      ((Map) o).put(f.getName(), v);
+      return;
+    }
+    try {
+      if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+      f.set(o, v);
+    } catch (Exception ignored) {
+    }
   }
 
   @Override

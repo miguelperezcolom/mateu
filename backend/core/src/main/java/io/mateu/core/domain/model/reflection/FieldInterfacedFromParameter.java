@@ -1,5 +1,7 @@
 package io.mateu.core.domain.model.reflection;
 
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -14,13 +16,11 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   private final Executable m;
   private final FieldInterfacedFromParameter ff;
 
-  private final ReflectionHelper reflectionHelper;
-
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
   public FieldInterfacedFromParameter(
-      FieldInterfacedFromParameter f, Annotation a, ReflectionHelper reflectionHelper) {
-    this(f, reflectionHelper);
+          FieldInterfacedFromParameter f, Annotation a) {
+    this(f);
     extraAnnotations.add(a);
   }
 
@@ -33,8 +33,8 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   }
 
   public FieldInterfacedFromParameter(
-      FieldInterfacedFromParameter f, ReflectionHelper reflectionHelper) {
-    this(f.getMethod(), f.getParameter(), reflectionHelper);
+      FieldInterfacedFromParameter f) {
+    this(f.getMethod(), f.getParameter());
   }
 
   @Override
@@ -50,11 +50,10 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   }
 
   public FieldInterfacedFromParameter(
-      Executable m, Parameter f, ReflectionHelper reflectionHelper) {
+      Executable m, Parameter f) {
     this.ff = null;
     this.p = f;
     this.m = m;
-    this.reflectionHelper = reflectionHelper;
   }
 
   @Override
@@ -135,13 +134,13 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return reflectionHelper.getValue(this, o);
+    throw new NoSuchMethodException("We cannot get values for parameter fields");
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    reflectionHelper.setValue(this, o, v);
+    throw new NoSuchMethodException("We cannot set values for parameter fields");
   }
 
   @Override

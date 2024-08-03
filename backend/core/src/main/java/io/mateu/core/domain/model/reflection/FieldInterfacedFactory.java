@@ -3,6 +3,9 @@ package io.mateu.core.domain.model.reflection;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Parameter;
+
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +14,12 @@ import org.springframework.stereotype.Service;
 public class FieldInterfacedFactory {
 
   public FieldInterfacedFromField getFieldInterfacedFromField(
-      Field f, ReflectionHelper reflectionHelper) {
-    return new FieldInterfacedFromField(f, reflectionHelper);
+          Field f) {
+    return new FieldInterfacedFromField(f);
   }
 
   public FieldInterfacedFromParameter getFieldInterfacedFromParameter(
-      Executable m, Parameter f, ReflectionHelper reflectionHelper) {
-    return new FieldInterfacedFromParameter(m, f, reflectionHelper);
+      Executable m, Parameter f) {
+    return new FieldInterfacedFromParameter(m, f);
   }
 }

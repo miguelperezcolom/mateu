@@ -10,10 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
-import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
-import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
-import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
+import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -52,6 +49,9 @@ public class ReflectionHelper {
   final Humanizer humanizer;
   private final GetterProvider getterProvider;
   private final SetterProvider setterProvider;
+  private final ValueWriter valueWriter;
+  private final FieldByNameProvider fieldByNameProvider;
+  private final AllFieldsProvider allFieldsProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -63,7 +63,7 @@ public class ReflectionHelper {
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
@@ -77,6 +77,9 @@ public class ReflectionHelper {
     ConvertUtils.register(new MiURLConverter(), URL.class);
     this.getterProvider = getterProvider;
     this.setterProvider = setterProvider;
+    this.valueWriter = valueWriter;
+    this.fieldByNameProvider = fieldByNameProvider;
+    this.allFieldsProvider = allFieldsProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -94,193 +97,34 @@ public class ReflectionHelper {
 
   public void setValue(FieldInterfaced f, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-    if (f == null) {
-      return;
-    }
-    if (f instanceof FieldInterfacedForCheckboxColumn) {
-      f.setValue(o, v);
-    } else if (f instanceof FieldInterfacedFromField) {
-      Method setter = null;
-      try {
-        setter = o.getClass().getMethod(getSetter(f), f.getType());
-      } catch (Exception ignored) {
-      }
-      try {
-        if (setter != null) {
-          setter.invoke(o, v);
-          //                        BeanUtils.setProperty(o, fn, v);
-        } else {
-          if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
-          f.getField().set(o, v);
-        }
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        log.error("when setting value for field " + f.getName(), e);
-      }
-    } else setValue(f.getId(), o, v);
+    valueWriter.setValue(f, o, v);
   }
 
   public void setValue(String fn, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-    if (Map.class.isAssignableFrom(o.getClass())) {
-      ((Map) o).put(fn, v);
-    } else {
-      if (fn.contains(".")) {
-        o = getInstance(o, fn.substring(0, fn.indexOf(".")));
-        setValue(fn.substring(fn.indexOf(".") + 1), o, v);
-      } else {
-        if (v instanceof Collection) {
-          if (v instanceof List) v = new ArrayList((Collection) v);
-          else if (v instanceof Set) v = new HashSet((Collection) v);
-        }
-
-        FieldInterfaced f = getFieldByName(o.getClass(), fn);
-
-        setValue(f, o, v);
-      }
-    }
+    valueWriter.setValue(fn, o, v);
   }
 
   public Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
-    Object v = null;
-    try {
-      v = getValue(f, o);
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-    }
-    return v != null ? v : valueIfNull;
+    return valueProvider.getValue(f, o, valueIfNull);
   }
 
   public Object getValue(FieldInterfaced f, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-    if (o == null) return null;
-
-    if (Map.class.isAssignableFrom(o.getClass())) {
-      return ((Map) o).get(f.getName());
-    } else if (f instanceof FieldInterfacedForCheckboxColumn) {
-      return f.getValue(o);
-    } else {
-      return getValue(f.getId(), o);
-    }
+    return valueProvider.getValue(f, o);
   }
 
   public Object getValue(AnnotatedElement e, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-
-    if (o == null) return null;
-
-    if (e instanceof FieldInterfaced f) {
-      if (Map.class.isAssignableFrom(o.getClass())) {
-        return ((Map<?, ?>) o).get(f.getName());
-      } else if (f instanceof FieldInterfacedForCheckboxColumn) {
-        return f.getValue(o);
-      } else {
-        return getValue(f.getId(), o);
-      }
-    } else if (e instanceof Method m) {
-      return m.invoke(o);
-    } else {
-      return null;
-    }
+    return valueProvider.getValue(e, o);
   }
 
   public Object getValue(String id, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    Object v = null;
-
-    if (id.contains(".")) {
-      String firstId = id.substring(0, id.indexOf("."));
-      String path = id.substring(id.indexOf(".") + 1);
-
-      Method getter = null;
-      try {
-        FieldInterfaced f = getFieldByName(o.getClass(), firstId);
-
-        if (f != null) {
-
-          try {
-            getter = o.getClass().getMethod(getGetter(f.getType(), firstId));
-          } catch (Exception e) {
-
-          }
-
-          if (getter != null) v = getter.invoke(o);
-          else {
-            try {
-              if (f instanceof FieldInterfacedFromField) {
-                Field field = f.getField();
-                if (!Modifier.isPublic(field.getModifiers())) {
-                  field.setAccessible(true);
-                }
-                v = field.get(o);
-              }
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          }
-
-          if (v != null) {
-            v = getValue(path, v);
-          }
-        }
-
-      } catch (Exception e) {
-      }
-
-    } else {
-      FieldInterfaced f = getFieldByName(o.getClass(), id);
-
-      if (f != null) {
-
-        Method getter = null;
-        try {
-          getter = o.getClass().getMethod(getGetter(f.getType(), id));
-        } catch (Exception e) {
-
-        }
-        try {
-          if (getter != null) v = getter.invoke(o);
-          else {
-            try {
-              if (f instanceof FieldInterfacedFromField) {
-                Field field = f.getField();
-                if (!Modifier.isPublic(field.getModifiers())) {
-                  field.setAccessible(true);
-                }
-                v = field.get(o);
-              }
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          }
-        } catch (IllegalAccessException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    return v;
+    return valueProvider.getValue(id, o);
   }
 
-  private Object getInstance(Object o, String fn)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    Object x = null;
-    if (o != null) {
-      if (fn.contains(".")) {
-        o = getInstance(o, fn.substring(0, fn.indexOf(".")));
-        x = getInstance(o, fn.substring(fn.indexOf(".") + 1));
-      } else {
-        x = o.getClass().getMethod(getGetter(fn)).invoke(o);
-      }
-    }
-    return x;
-  }
+
 
   public Method getMethod(Class<?> c, String methodName) {
     if (c == null) {
@@ -395,58 +239,7 @@ public class ReflectionHelper {
   }
 
   public List<FieldInterfaced> getAllFields(Class c) {
-    List<FieldInterfaced> l = allFieldsCache.get(c);
-
-    if (l == null) {
-      l = buildAllFields(c);
-      allFieldsCache.put(c, l);
-    }
-
-    return new ArrayList<>(l);
-  }
-
-  private List<FieldInterfaced> buildAllFields(Class c) {
-    List<String> vistos = new ArrayList<>();
-    Map<String, Field> originales = new HashMap<>();
-    for (Field f : c.getDeclaredFields())
-      if (!Logger.class.isAssignableFrom(f.getType())) {
-        if (!f.getName().contains("$")
-            && !"_proxied".equalsIgnoreCase(f.getName())
-            && !"_possibleValues".equalsIgnoreCase(f.getName())
-            && !"_binder".equalsIgnoreCase(f.getName())
-            && !"_field".equalsIgnoreCase(f.getName())) originales.put(f.getName(), f);
-      }
-
-    List<FieldInterfaced> l = new ArrayList<>();
-
-    if (c.getSuperclass() != null
-        && (!c.isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
-      for (FieldInterfaced f : getAllFields(c.getSuperclass())) {
-        if (!originales.containsKey(f.getId())) l.add(f);
-        else
-          l.add(
-              fieldInterfacedFactory.getFieldInterfacedFromField(
-                  originales.get(f.getName()), this));
-        vistos.add(f.getName());
-      }
-    }
-
-    for (Field f : c.getDeclaredFields())
-      if (!Modifier.isStatic(f.getModifiers()))
-        if (!f.isAnnotationPresent(Version.class))
-          if (!Logger.class.isAssignableFrom(f.getType()))
-            if (!vistos.contains(f.getName()))
-              if (!f.getName().contains("$")
-                  && !"_proxied".equalsIgnoreCase(f.getName())
-                  && !"_possibleValues".equalsIgnoreCase(f.getName())
-                  && !"_binder".equalsIgnoreCase(f.getName())
-                  && !"_field".equalsIgnoreCase(f.getName())) {
-                l.add(fieldInterfacedFactory.getFieldInterfacedFromField(f, this));
-              }
-
-    return l;
+    return allFieldsProvider.getAllFields(c);
   }
 
   public boolean hasGetter(FieldInterfaced f) {
@@ -458,25 +251,9 @@ public class ReflectionHelper {
   }
 
   public List<FieldInterfaced> getAllFields(Method m) {
-
-    List<FieldInterfaced> l = new ArrayList<>();
-
-    for (Parameter p : m.getParameters())
-      if (!isInjectable(m, p)) {
-        l.add(fieldInterfacedFactory.getFieldInterfacedFromParameter(m, p, this));
-      }
-
-    return l;
+    return allFieldsProvider.getAllFields(m);
   }
 
-  public boolean isInjectable(Executable m, Parameter p) {
-    boolean injectable = true;
-    if (EntityManager.class.equals(p.getType())) {
-    } else {
-      injectable = false;
-    }
-    return injectable;
-  }
 
   private Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
     return getAllFieldsMap(getAllFields(c));
@@ -598,20 +375,7 @@ public class ReflectionHelper {
   }
 
   public FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
-    FieldInterfaced field = null;
-    String fn = fieldName.split("\\.")[0];
-    for (FieldInterfaced f : getAllFields(sourceClass)) {
-      if (fn.equals(f.getName())) {
-        if (fn.equals(fieldName)) {
-          field = f;
-        } else {
-          field = getFieldByName(f.getType(), fieldName.substring(fn.length() + 1));
-        }
-        break;
-      }
-    }
-    // if (field == null) log.warn("No field " + fieldName + " at " + sourceClass);
-    return field;
+    return fieldByNameProvider.getFieldByName(sourceClass, fieldName);
   }
 
   public FieldInterfaced getMapper(FieldInterfaced field) {
