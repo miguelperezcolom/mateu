@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.SortCriteria;
@@ -176,10 +177,18 @@ public class JourneyContainerService {
   }
 
   public void setStep(
-      JourneyContainer journeyContainer,
-      String stepId,
-      Object editor,
-      ServerHttpRequest serverHttpRequest)
+          JourneyContainer journeyContainer,
+          String stepId,
+          Object editor,
+          ServerHttpRequest serverHttpRequest) throws Throwable {
+    setStep(journeyContainer, stepId, editor, serverHttpRequest, ActionTarget.SameLane);
+  }
+
+  public void setStep(
+          JourneyContainer journeyContainer,
+          String stepId,
+          Object editor,
+          ServerHttpRequest serverHttpRequest, ActionTarget actionTarget)
       throws Throwable {
     String stepIdPrefix = journeyContainer.getJourney().getCurrentStepId();
     if (stepIdPrefix == null) {
@@ -201,6 +210,9 @@ public class JourneyContainerService {
             getPreviousStepId(newStepId, journeyContainer),
             editor,
             serverHttpRequest);
+    if (actionTarget != null) {
+      step.setTarget(actionTarget.name());
+    }
     if (!journeyContainer.getSteps().containsKey(newStepId)) {
       journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), newStepId, step));
     } else {

@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +79,9 @@ public class Serializer {
     }
     if (isBasic(o)) {
       return Map.of("value", o);
+    }
+    if (o instanceof URL url) {
+      return Map.of("url", url.toString());
     }
     Map<String, Object> data = fromJson(toJson(o));
     applyAttributeNames(data, o);

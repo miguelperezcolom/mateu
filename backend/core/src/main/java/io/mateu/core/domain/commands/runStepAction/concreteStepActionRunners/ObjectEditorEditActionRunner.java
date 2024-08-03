@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
     // store.setStep(journeyId, "edit_object", getObject((ObjectEditor) viewInstance),
     // serverHttpRequest);
     store.setStep(
-        journeyContainer, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest);
+        journeyContainer, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest, ActionTarget.SameLane);
     return Mono.empty();
   }
 

@@ -32,6 +32,27 @@ export class Service {
                 throw error
             })
             .then(async (value: StepWrapper) => {
+                if (value.step?.type == 'java.net.URL') {
+                    // @ts-ignore
+                    if (value.step.target == 'SameLane') {
+                        // @ts-ignore
+                        window.location = value.step.data.url
+                        return
+                    }
+                    // @ts-ignore
+                    if (value.step.target == 'NewTab') {
+                        // @ts-ignore
+                        window.open(value.step.data.url, '_blank')
+                        return
+                    }
+                    // @ts-ignore
+                    if (value.step.target == 'NewWindow') {
+                        // @ts-ignore
+                        window.open(value.step.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                        return
+                    }
+                }
+
                 sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
                 this.state.journey = value.journey
                 this.state.stepId = this.state.journey.currentStepId

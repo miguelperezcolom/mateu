@@ -24,6 +24,8 @@ public class Step {
 
   private String previousStepId;
 
+  private String target;
+
   public void mergeData(Map<String, Object> values) {
     if (values != null) {
       data.putAll(values);

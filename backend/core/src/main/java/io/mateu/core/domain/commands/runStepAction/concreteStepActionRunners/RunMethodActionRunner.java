@@ -162,7 +162,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 m.getName(),
                 store.getCurrentStep(journeyContainer).getId(),
                 data),
-            serverHttpRequest);
+            serverHttpRequest,
+                getTarget(m));
 
       } else {
 
@@ -174,7 +175,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 m.getName(),
                 store.getCurrentStep(journeyContainer).getId(),
                 serializer),
-            serverHttpRequest);
+            serverHttpRequest,
+                getTarget(m));
       }
 
     } else {
@@ -309,8 +311,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
+      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
     }
+  }
+
+  private ActionTarget getTarget(Method m) {
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).target();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).target();
+    }
+    return null;
   }
 
   private boolean needsToBeShown(Method m, Object r) {

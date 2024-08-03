@@ -95,10 +95,10 @@ export class JourneyStarter extends LitElement {
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
-        if (action && ActionTarget.NewTab == action.target) {
+        if (false && action && ActionTarget.NewTab == action.target) {
             const newWindow = window.open();
             newWindow?.document.write('Hola!');
-        } else if (action && ActionTarget.NewWindow == action.target) {
+        } else if (false && action && ActionTarget.NewWindow == action.target) {
             const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
             newWindow?.document.write('Hola!');
         } else if (action && ActionTarget.NewModal == action.target) {
