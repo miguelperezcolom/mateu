@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;

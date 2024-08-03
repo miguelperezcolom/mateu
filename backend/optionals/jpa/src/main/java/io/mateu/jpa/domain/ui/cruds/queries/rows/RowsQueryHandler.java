@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.dtos.StatusType;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;

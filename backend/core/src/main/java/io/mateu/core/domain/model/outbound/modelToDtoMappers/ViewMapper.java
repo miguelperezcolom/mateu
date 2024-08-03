@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
+import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
@@ -7,9 +8,8 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;

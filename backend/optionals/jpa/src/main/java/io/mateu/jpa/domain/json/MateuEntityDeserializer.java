@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.json;
 
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.persistence.EntityDeserializer;
 import jakarta.persistence.*;

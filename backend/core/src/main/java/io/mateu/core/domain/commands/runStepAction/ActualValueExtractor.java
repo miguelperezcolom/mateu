@@ -2,8 +2,8 @@ package io.mateu.core.domain.commands.runStepAction;
 
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.Entity;
@@ -106,8 +106,7 @@ public class ActualValueExtractor {
       Object injectedValue = reflectionHelper.getValue(f, viewInstance);
       if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
         Map<String, Object> incomingValues = (Map<String, Object>) entry.getValue();
-        for (Field crudField :
-            reflectionHelper.getAllEditableFields(injectedValue.getClass())) {
+        for (Field crudField : reflectionHelper.getAllEditableFields(injectedValue.getClass())) {
           reflectionHelper.setValue(
               crudField, injectedValue, incomingValues.get(crudField.getId()));
         }

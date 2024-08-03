@@ -1,442 +1,438 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import com.google.common.collect.Lists;
-import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
-import org.springframework.stereotype.Service;
-
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class GenericClassProvider {
 
-    private final TypeProvider typeProvider;
+  private final TypeProvider typeProvider;
 
-    public GenericClassProvider(TypeProvider typeProvider) {
-        this.typeProvider = typeProvider;
-    }
+  public GenericClassProvider(TypeProvider typeProvider) {
+    this.typeProvider = typeProvider;
+  }
 
-    public Class<?> getGenericClass(Class type) {
-        Class<?> gc = null;
-        if (type.getGenericInterfaces() != null)
-            for (Type gi : type.getGenericInterfaces()) {
-                if (gi instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType) gi;
-                    gc = (Class<?>) pt.getActualTypeArguments()[0];
-                } else {
-                    gc = (Class<?>) gi;
-                }
-                break;
-            }
-        return gc;
-    }
-
-    public Class<?> getGenericClass(Method m) {
-        Type gi = m.getGenericReturnType();
-        Class<?> gc = null;
+  public Class<?> getGenericClass(Class type) {
+    Class<?> gc = null;
+    if (type.getGenericInterfaces() != null)
+      for (Type gi : type.getGenericInterfaces()) {
         if (gi instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) gi;
-            gc = (Class<?>) pt.getActualTypeArguments()[0];
+          ParameterizedType pt = (ParameterizedType) gi;
+          gc = (Class<?>) pt.getActualTypeArguments()[0];
         } else {
-            gc = (Class<?>) gi;
+          gc = (Class<?>) gi;
         }
-        return gc;
-    }
+        break;
+      }
+    return gc;
+  }
 
-    public Class<?> getGenericClass(Type type) {
-        Class<?> gc = null;
-        if (type instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) type;
-            gc = (Class<?>) pt.getActualTypeArguments()[0];
-        } else {
-            gc = (Class<?>) type;
+  public Class<?> getGenericClass(Method m) {
+    Type gi = m.getGenericReturnType();
+    Class<?> gc = null;
+    if (gi instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) gi;
+      gc = (Class<?>) pt.getActualTypeArguments()[0];
+    } else {
+      gc = (Class<?>) gi;
+    }
+    return gc;
+  }
+
+  public Class<?> getGenericClass(Type type) {
+    Class<?> gc = null;
+    if (type instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) type;
+      gc = (Class<?>) pt.getActualTypeArguments()[0];
+    } else {
+      gc = (Class<?>) type;
+    }
+    return gc;
+  }
+
+  public Class getGenericClass(Field field, Class asClassOrInterface, String genericArgumentName) {
+    Type t = field.getGenericType();
+    if (field.isAnnotationPresent(GenericClass.class))
+      return field.getAnnotation(GenericClass.class).clazz();
+    else
+      return getGenericClass(
+          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+          field.getType(),
+          asClassOrInterface,
+          genericArgumentName);
+  }
+
+  public Class getGenericClass(
+      AnnotatedElement field, Class asClassOrInterface, String genericArgumentName) {
+    Type t = getGenericType(field);
+    if (field.isAnnotationPresent(GenericClass.class))
+      return field.getAnnotation(GenericClass.class).clazz();
+    else
+      return getGenericClass(
+          (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
+          typeProvider.getType(field),
+          asClassOrInterface,
+          genericArgumentName);
+  }
+
+  public Class getGenericClass(
+      ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
+    return getGenericClass(
+        parameterizedType,
+        (Class) parameterizedType.getRawType(),
+        asClassOrInterface,
+        genericArgumentName);
+  }
+
+  public Class getGenericClass(
+      Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
+    return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
+  }
+
+  public Class getGenericClass(
+      ParameterizedType parameterizedType,
+      Class sourceClass,
+      Class asClassOrInterface,
+      String genericArgumentName) {
+    Class c = null;
+
+    if (asClassOrInterface.isInterface()) {
+
+      // buscamos la clase (entre ella misma y las superclases) que implementa la interfaz o un
+      // derivado
+      // vamos bajando por las interfaces hasta encontrar una clase
+      // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
+
+      Class baseInterface = null;
+
+      if (sourceClass.isInterface()) {
+        baseInterface = sourceClass;
+
+        List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
+        if (asClassOrInterface.equals(sourceClass))
+          jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);
+
+        boolean laImplementa = jerarquiaInterfaces != null;
+
+        if (laImplementa) {
+
+          jerarquiaInterfaces.add((parameterizedType != null) ? parameterizedType : sourceClass);
+
+          // localizamos el parámetro y bajamos por las interfaces
+          c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquiaInterfaces);
         }
-        return gc;
-    }
 
+      } else {
 
-    public Class getGenericClass(
-            Field field, Class asClassOrInterface, String genericArgumentName) {
-        Type t = field.getGenericType();
-        if (field.isAnnotationPresent(GenericClass.class))
-            return field.getAnnotation(GenericClass.class).clazz();
-        else
-            return getGenericClass(
-                    (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
-                    field.getType(),
-                    asClassOrInterface,
-                    genericArgumentName);
-    }
+        // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
 
-    public Class getGenericClass(
-            AnnotatedElement field, Class asClassOrInterface, String genericArgumentName) {
-        Type t = getGenericType(field);
-        if (field.isAnnotationPresent(GenericClass.class))
-            return field.getAnnotation(GenericClass.class).clazz();
-        else
-            return getGenericClass(
-                    (t instanceof ParameterizedType) ? (ParameterizedType) t : null,
-                    typeProvider.getType(field),
-                    asClassOrInterface,
-                    genericArgumentName);
-    }
+        boolean laImplementa = false;
 
-    public Class getGenericClass(
-            ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
-        return getGenericClass(
-                parameterizedType,
-                (Class) parameterizedType.getRawType(),
-                asClassOrInterface,
-                genericArgumentName);
-    }
+        List<Type> jerarquia = new ArrayList<>();
+        List<Type> jerarquiaInterfaces = null;
 
-    public Class getGenericClass(
-            Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
-        return getGenericClass(null, sourceClass, asClassOrInterface, genericArgumentName);
-    }
+        Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
+        while (tipoEnCurso != null && !laImplementa) {
 
-    public Class getGenericClass(
-            ParameterizedType parameterizedType,
-            Class sourceClass,
-            Class asClassOrInterface,
-            String genericArgumentName) {
-        Class c = null;
+          jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
 
-        if (asClassOrInterface.isInterface()) {
+          laImplementa = jerarquiaInterfaces != null;
 
-            // buscamos la clase (entre ella misma y las superclases) que implementa la interfaz o un
-            // derivado
-            // vamos bajando por las interfaces hasta encontrar una clase
-            // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
+          if (!laImplementa) { // si no la implementa subimos por las superclases
 
-            Class baseInterface = null;
+            Type genericSuperclass = getSuper(tipoEnCurso);
 
-            if (sourceClass.isInterface()) {
-                baseInterface = sourceClass;
+            if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+              ParameterizedType pt = (ParameterizedType) genericSuperclass;
+              if (pt.getRawType() instanceof Class) {
 
-                List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
-                if (asClassOrInterface.equals(sourceClass))
-                    jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);
+                genericSuperclass = pt.getRawType();
 
-                boolean laImplementa = jerarquiaInterfaces != null;
-
-                if (laImplementa) {
-
-                    jerarquiaInterfaces.add((parameterizedType != null) ? parameterizedType : sourceClass);
-
-                    // localizamos el parámetro y bajamos por las interfaces
-                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquiaInterfaces);
-                }
-
-            } else {
-
-                // buscamos hasta la clase que implemente la interfaz o una subclase de la misma
-
-                boolean laImplementa = false;
-
-                List<Type> jerarquia = new ArrayList<>();
-                List<Type> jerarquiaInterfaces = null;
-
-                Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
-                while (tipoEnCurso != null && !laImplementa) {
-
-                    jerarquiaInterfaces = buscarInterfaz(tipoEnCurso, asClassOrInterface);
-
-                    laImplementa = jerarquiaInterfaces != null;
-
-                    if (!laImplementa) { // si no la implementa subimos por las superclases
-
-                        Type genericSuperclass = getSuper(tipoEnCurso);
-
-                        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                            ParameterizedType pt = (ParameterizedType) genericSuperclass;
-                            if (pt.getRawType() instanceof Class) {
-
-                                genericSuperclass = pt.getRawType();
-
-                                if (Object.class.equals(genericSuperclass)) {
-                                    // hemos llegado a Object. sourceClass no extiende asClassOrInterface.
-                                    // Devolveremos null
-                                    tipoEnCurso = null;
-                                } else {
-                                    jerarquia.add(tipoEnCurso);
-                                    tipoEnCurso = pt;
-                                }
-                            }
-                        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
-
-                            if (Object.class.equals(genericSuperclass)) {
-                                // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
-                                // null
-                                tipoEnCurso = null;
-                            } else {
-                                jerarquia.add(tipoEnCurso);
-                                tipoEnCurso = (Class) genericSuperclass;
-                            }
-
-                        } else {
-                            // todo: puede no ser una clase?
-                            tipoEnCurso = null;
-                        }
-                    }
-                }
-
-                if (laImplementa) {
-
-                    // añadimos la clase en cuestión
-                    jerarquia.add(tipoEnCurso);
-
-                    // localizamos el parámetro y bajamos por las interfaces
-                    jerarquia.addAll(jerarquiaInterfaces);
-                    c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
-                }
-            }
-
-        } else {
-
-            // una interfaz no puede extender una clase
-            if (sourceClass.isInterface()) return null;
-
-            // buscamos la clase (entre ella misma y las superclases)
-            // localizamos la posición del argumento
-            // vamos bajando hasta que encontramos una clase
-
-            List<Type> jerarquia = new ArrayList<>();
-
-            Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
-            while (tipoEnCurso != null
-                    && !(asClassOrInterface.equals(tipoEnCurso)
-                    || (tipoEnCurso instanceof ParameterizedType
-                    && asClassOrInterface.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
-                Type genericSuperclass = getSuper(tipoEnCurso);
-
-                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType) genericSuperclass;
-                    if (pt.getRawType() instanceof Class) {
-
-                        genericSuperclass = pt.getRawType();
-
-                        if (Object.class.equals(genericSuperclass)) {
-                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
-                            // null
-                            tipoEnCurso = null;
-                        } else {
-                            jerarquia.add(tipoEnCurso);
-                            tipoEnCurso = pt;
-                        }
-                    }
-                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
-
-                    if (Object.class.equals(genericSuperclass)) {
-                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                        tipoEnCurso = null;
-                    } else {
-                        jerarquia.add(tipoEnCurso);
-                        tipoEnCurso = (Class) genericSuperclass;
-                    }
-
+                if (Object.class.equals(genericSuperclass)) {
+                  // hemos llegado a Object. sourceClass no extiende asClassOrInterface.
+                  // Devolveremos null
+                  tipoEnCurso = null;
                 } else {
-                    // todo: puede no ser una clase?
-                    tipoEnCurso = null;
+                  jerarquia.add(tipoEnCurso);
+                  tipoEnCurso = pt;
                 }
-            }
+              }
+            } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
 
-            if (tipoEnCurso != null) {
-
-                // añadimos la clase en cuestión
+              if (Object.class.equals(genericSuperclass)) {
+                // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+                // null
+                tipoEnCurso = null;
+              } else {
                 jerarquia.add(tipoEnCurso);
-
-                c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+                tipoEnCurso = (Class) genericSuperclass;
+              }
 
             } else {
-
-                // no hemos encontrado la clase entre las superclases. devolveremos null
-
+              // todo: puede no ser una clase?
+              tipoEnCurso = null;
             }
+          }
         }
 
-        return c;
-    }
+        if (laImplementa) {
 
-    private Class buscarHaciaAbajo(
-            Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
+          // añadimos la clase en cuestión
+          jerarquia.add(tipoEnCurso);
 
-        Class c = null;
+          // localizamos el parámetro y bajamos por las interfaces
+          jerarquia.addAll(jerarquiaInterfaces);
+          c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+        }
+      }
 
-        // localizamos la posición del argumento
-        int argPos = getArgPos(asClassOrInterface, genericArgumentName);
+    } else {
 
-        // vamos bajando hasta que encontremos una clase en la posición indicada (y vamos actualizando
-        // la posición en cada escalón)
-        int escalon = jerarquia.size() - 1;
-        while (escalon >= 0 && c == null) {
+      // una interfaz no puede extender una clase
+      if (sourceClass.isInterface()) return null;
 
-            Type tipoEnCurso = jerarquia.get(escalon);
+      // buscamos la clase (entre ella misma y las superclases)
+      // localizamos la posición del argumento
+      // vamos bajando hasta que encontramos una clase
 
-            if (tipoEnCurso instanceof Class) {
+      List<Type> jerarquia = new ArrayList<>();
 
-                if (((Class) tipoEnCurso).getTypeParameters().length > argPos) {
-                    TypeVariable t = ((Class) tipoEnCurso).getTypeParameters()[argPos];
+      Type tipoEnCurso = (parameterizedType != null) ? parameterizedType : sourceClass;
+      while (tipoEnCurso != null
+          && !(asClassOrInterface.equals(tipoEnCurso)
+              || (tipoEnCurso instanceof ParameterizedType
+                  && asClassOrInterface.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
+        Type genericSuperclass = getSuper(tipoEnCurso);
 
-                    genericArgumentName = t.getName();
-                    asClassOrInterface = (Class) tipoEnCurso;
+        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+          ParameterizedType pt = (ParameterizedType) genericSuperclass;
+          if (pt.getRawType() instanceof Class) {
 
-                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
-                } else {
-                    c = Object.class;
-                }
+            genericSuperclass = pt.getRawType();
 
-            } else if (tipoEnCurso instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) tipoEnCurso;
-                Type t = pt.getActualTypeArguments()[argPos];
-
-                if (t instanceof Class) { // lo hemos encontrado
-                    c = (Class) t;
-                } else if (t instanceof TypeVariable) {
-                    genericArgumentName = ((TypeVariable) t).getName();
-                    asClassOrInterface = tipoEnCurso;
-
-                    argPos = getArgPos(asClassOrInterface, genericArgumentName);
-                }
+            if (Object.class.equals(genericSuperclass)) {
+              // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+              // null
+              tipoEnCurso = null;
+            } else {
+              jerarquia.add(tipoEnCurso);
+              tipoEnCurso = pt;
             }
+          }
+        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
 
-            escalon--;
-        }
+          if (Object.class.equals(genericSuperclass)) {
+            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+            tipoEnCurso = null;
+          } else {
+            jerarquia.add(tipoEnCurso);
+            tipoEnCurso = (Class) genericSuperclass;
+          }
 
-        return c;
-    }
-
-    private List<Type> buscarInterfaz(Type tipo, Class interfaz) {
-        List<Type> jerarquia = null;
-
-        Class clase = null;
-        if (tipo instanceof Class) clase = (Class) tipo;
-        else if (tipo instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) tipo;
-            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
-        }
-
-        if (clase != null)
-            for (Type t : clase.getGenericInterfaces()) {
-                jerarquia = buscarSuperInterfaz(t, interfaz);
-                if (jerarquia != null) break;
-            }
-
-        return jerarquia;
-    }
-
-    private List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
-        List<Type> jerarquia = null;
-
-        Class clase = null;
-        if (tipo instanceof Class) clase = (Class) tipo;
-        else if (tipo instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) tipo;
-            if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
-        }
-
-        if (clase != null) {
-
-            // buscar en superclases y rellenar jerarquía
-            Type tipoEnCurso = clase;
-
-            List<Type> tempJerarquia = new ArrayList<>();
-            tempJerarquia.add(tipo);
-
-            while (tipoEnCurso != null
-                    && !(interfaz.equals(tipoEnCurso)
-                    || (tipoEnCurso instanceof ParameterizedType
-                    && interfaz.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
-                Type genericSuperclass = getSuper(tipoEnCurso);
-                if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType) genericSuperclass;
-                    if (pt.getRawType() instanceof Class) {
-
-                        genericSuperclass = pt.getRawType();
-
-                        if (Object.class.equals(genericSuperclass)) {
-                            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
-                            // null
-                            tipoEnCurso = null;
-                        } else {
-                            tempJerarquia.add(tipoEnCurso);
-                            tipoEnCurso = pt;
-                        }
-                    }
-                } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
-
-                    if (Object.class.equals(genericSuperclass)) {
-                        // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
-                        tipoEnCurso = null;
-                    } else {
-                        tempJerarquia.add(tipoEnCurso);
-                        tipoEnCurso = (Class) genericSuperclass;
-                    }
-
-                } else {
-                    // todo: puede no ser una clase?
-                    tipoEnCurso = null;
-                }
-            }
-
-            if (tipoEnCurso != null) {
-                jerarquia = tempJerarquia;
-            }
-        }
-
-        return jerarquia;
-    }
-
-    private Type getSuper(Type tipoEnCurso) {
-        Type genericSuperclass = null;
-        if (tipoEnCurso instanceof Class) {
-            if (((Class) tipoEnCurso).isInterface()) {
-                Class[] is = ((Class) tipoEnCurso).getInterfaces();
-                if (is != null && is.length > 0) genericSuperclass = is[0];
-            } else genericSuperclass = ((Class) tipoEnCurso).getGenericSuperclass();
-        } else if (tipoEnCurso instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) tipoEnCurso;
-            if (pt.getRawType() instanceof Class)
-                genericSuperclass = ((Class) pt.getRawType()).getGenericSuperclass();
-        }
-        return genericSuperclass;
-    }
-
-    private int getArgPos(Type asClassOrInterface, String genericArgumentName) {
-        int argPos = 0;
-
-        Type[] types = null;
-        if (asClassOrInterface instanceof Class) {
-            types = ((Class) asClassOrInterface).getTypeParameters();
-        } else if (asClassOrInterface instanceof ParameterizedType) {
-            types = ((ParameterizedType) asClassOrInterface).getActualTypeArguments();
-        }
-
-        int argPosAux = 0;
-        if (types != null)
-            for (int pos = 0; pos < types.length; pos++) {
-                if (types[pos] instanceof TypeVariable) {
-                    TypeVariable t = (TypeVariable) types[pos];
-                    if (t.getName().equals(genericArgumentName)) {
-                        argPos = argPosAux;
-                        break;
-                    }
-                    argPosAux++;
-                }
-            }
-        return argPos;
-    }
-
-    private Type getGenericType(AnnotatedElement f) {
-        if (f instanceof Field) {
-            return ((Field) f).getGenericType();
-        } else if (f instanceof Method) {
-            return ((Method) f).getGenericReturnType();
         } else {
-            return Object.class;
+          // todo: puede no ser una clase?
+          tipoEnCurso = null;
         }
+      }
+
+      if (tipoEnCurso != null) {
+
+        // añadimos la clase en cuestión
+        jerarquia.add(tipoEnCurso);
+
+        c = buscarHaciaAbajo(asClassOrInterface, genericArgumentName, jerarquia);
+
+      } else {
+
+        // no hemos encontrado la clase entre las superclases. devolveremos null
+
+      }
     }
 
+    return c;
+  }
+
+  private Class buscarHaciaAbajo(
+      Type asClassOrInterface, String genericArgumentName, List<Type> jerarquia) {
+
+    Class c = null;
+
+    // localizamos la posición del argumento
+    int argPos = getArgPos(asClassOrInterface, genericArgumentName);
+
+    // vamos bajando hasta que encontremos una clase en la posición indicada (y vamos actualizando
+    // la posición en cada escalón)
+    int escalon = jerarquia.size() - 1;
+    while (escalon >= 0 && c == null) {
+
+      Type tipoEnCurso = jerarquia.get(escalon);
+
+      if (tipoEnCurso instanceof Class) {
+
+        if (((Class) tipoEnCurso).getTypeParameters().length > argPos) {
+          TypeVariable t = ((Class) tipoEnCurso).getTypeParameters()[argPos];
+
+          genericArgumentName = t.getName();
+          asClassOrInterface = (Class) tipoEnCurso;
+
+          argPos = getArgPos(asClassOrInterface, genericArgumentName);
+        } else {
+          c = Object.class;
+        }
+
+      } else if (tipoEnCurso instanceof ParameterizedType) {
+        ParameterizedType pt = (ParameterizedType) tipoEnCurso;
+        Type t = pt.getActualTypeArguments()[argPos];
+
+        if (t instanceof Class) { // lo hemos encontrado
+          c = (Class) t;
+        } else if (t instanceof TypeVariable) {
+          genericArgumentName = ((TypeVariable) t).getName();
+          asClassOrInterface = tipoEnCurso;
+
+          argPos = getArgPos(asClassOrInterface, genericArgumentName);
+        }
+      }
+
+      escalon--;
+    }
+
+    return c;
+  }
+
+  private List<Type> buscarInterfaz(Type tipo, Class interfaz) {
+    List<Type> jerarquia = null;
+
+    Class clase = null;
+    if (tipo instanceof Class) clase = (Class) tipo;
+    else if (tipo instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipo;
+      if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+    }
+
+    if (clase != null)
+      for (Type t : clase.getGenericInterfaces()) {
+        jerarquia = buscarSuperInterfaz(t, interfaz);
+        if (jerarquia != null) break;
+      }
+
+    return jerarquia;
+  }
+
+  private List<Type> buscarSuperInterfaz(Type tipo, Class interfaz) {
+    List<Type> jerarquia = null;
+
+    Class clase = null;
+    if (tipo instanceof Class) clase = (Class) tipo;
+    else if (tipo instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipo;
+      if (pt.getRawType() instanceof Class) clase = (Class) pt.getRawType();
+    }
+
+    if (clase != null) {
+
+      // buscar en superclases y rellenar jerarquía
+      Type tipoEnCurso = clase;
+
+      List<Type> tempJerarquia = new ArrayList<>();
+      tempJerarquia.add(tipo);
+
+      while (tipoEnCurso != null
+          && !(interfaz.equals(tipoEnCurso)
+              || (tipoEnCurso instanceof ParameterizedType
+                  && interfaz.equals(((ParameterizedType) tipoEnCurso).getRawType())))) {
+        Type genericSuperclass = getSuper(tipoEnCurso);
+        if (genericSuperclass != null && genericSuperclass instanceof ParameterizedType) {
+          ParameterizedType pt = (ParameterizedType) genericSuperclass;
+          if (pt.getRawType() instanceof Class) {
+
+            genericSuperclass = pt.getRawType();
+
+            if (Object.class.equals(genericSuperclass)) {
+              // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos
+              // null
+              tipoEnCurso = null;
+            } else {
+              tempJerarquia.add(tipoEnCurso);
+              tipoEnCurso = pt;
+            }
+          }
+        } else if (genericSuperclass != null && genericSuperclass instanceof Class) {
+
+          if (Object.class.equals(genericSuperclass)) {
+            // hemos llegado a Object. sourceClass no extiende asClassOrInterface. Devolveremos null
+            tipoEnCurso = null;
+          } else {
+            tempJerarquia.add(tipoEnCurso);
+            tipoEnCurso = (Class) genericSuperclass;
+          }
+
+        } else {
+          // todo: puede no ser una clase?
+          tipoEnCurso = null;
+        }
+      }
+
+      if (tipoEnCurso != null) {
+        jerarquia = tempJerarquia;
+      }
+    }
+
+    return jerarquia;
+  }
+
+  private Type getSuper(Type tipoEnCurso) {
+    Type genericSuperclass = null;
+    if (tipoEnCurso instanceof Class) {
+      if (((Class) tipoEnCurso).isInterface()) {
+        Class[] is = ((Class) tipoEnCurso).getInterfaces();
+        if (is != null && is.length > 0) genericSuperclass = is[0];
+      } else genericSuperclass = ((Class) tipoEnCurso).getGenericSuperclass();
+    } else if (tipoEnCurso instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) tipoEnCurso;
+      if (pt.getRawType() instanceof Class)
+        genericSuperclass = ((Class) pt.getRawType()).getGenericSuperclass();
+    }
+    return genericSuperclass;
+  }
+
+  private int getArgPos(Type asClassOrInterface, String genericArgumentName) {
+    int argPos = 0;
+
+    Type[] types = null;
+    if (asClassOrInterface instanceof Class) {
+      types = ((Class) asClassOrInterface).getTypeParameters();
+    } else if (asClassOrInterface instanceof ParameterizedType) {
+      types = ((ParameterizedType) asClassOrInterface).getActualTypeArguments();
+    }
+
+    int argPosAux = 0;
+    if (types != null)
+      for (int pos = 0; pos < types.length; pos++) {
+        if (types[pos] instanceof TypeVariable) {
+          TypeVariable t = (TypeVariable) types[pos];
+          if (t.getName().equals(genericArgumentName)) {
+            argPos = argPosAux;
+            break;
+          }
+          argPosAux++;
+        }
+      }
+    return argPos;
+  }
+
+  private Type getGenericType(AnnotatedElement f) {
+    if (f instanceof Field) {
+      return ((Field) f).getGenericType();
+    } else if (f instanceof Method) {
+      return ((Method) f).getGenericReturnType();
+    } else {
+      return Object.class;
+    }
+  }
 }

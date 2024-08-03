@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
@@ -289,8 +289,7 @@ public class FormMetadataBuilder {
     return "Edit";
   }
 
-  private List<Section> getSections(
-      String stepId, Object uiInstance, List<Field> slotFields)
+  private List<Section> getSections(String stepId, Object uiInstance, List<Field> slotFields)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
@@ -321,8 +320,7 @@ public class FormMetadataBuilder {
                 .tabId(tabId)
                 .readOnly(true)
                 .description("This is a section of the partial form read only yes")
-                .fieldGroups(
-                    createFieldGroups(field.getType(), uiInstance, field))
+                .fieldGroups(createFieldGroups(field.getType(), uiInstance, field))
                 .type(SectionType.PartialForm)
                 .actions(
                     List.of(
@@ -455,9 +453,7 @@ public class FormMetadataBuilder {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }
-      fieldGroupLine
-          .getFields()
-          .add(fieldMetadataBuilder.getField(partialFormInstance, field));
+      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(partialFormInstance, field));
     }
     for (FieldGroup group : fieldGroups) {
       for (FieldGroupLine line : group.getLines()) {

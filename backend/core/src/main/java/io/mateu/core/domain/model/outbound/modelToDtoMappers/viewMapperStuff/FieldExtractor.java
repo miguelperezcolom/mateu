@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import java.util.List;
 import java.util.stream.Collectors;

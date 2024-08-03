@@ -3,8 +3,8 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
@@ -111,8 +111,7 @@ public class ViewMetadataBuilder {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private io.mateu.dtos.Card getCard(
-      String stepId, Object uiInstance, List<Field> slotFields) {
+  private io.mateu.dtos.Card getCard(String stepId, Object uiInstance, List<Field> slotFields) {
     return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 

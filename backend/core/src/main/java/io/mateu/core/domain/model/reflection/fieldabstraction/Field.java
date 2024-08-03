@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.reflection;
+package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;

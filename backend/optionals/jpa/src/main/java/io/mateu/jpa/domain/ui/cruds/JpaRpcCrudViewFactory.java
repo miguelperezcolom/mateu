@@ -1,8 +1,8 @@
 package io.mateu.jpa.domain.ui.cruds;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;

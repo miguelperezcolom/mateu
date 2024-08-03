@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.dtos.*;
@@ -118,9 +118,7 @@ public class MethodParametersEditorMetadataBuilder {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }
-      fieldGroupLine
-          .getFields()
-          .add(fieldMetadataBuilder.getField(methodParametersEditor, field));
+      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(methodParametersEditor, field));
     }
 
     fillSectionIds(sections);

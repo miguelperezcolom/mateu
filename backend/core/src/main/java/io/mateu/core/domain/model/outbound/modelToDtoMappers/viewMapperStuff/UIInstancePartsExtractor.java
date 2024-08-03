@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.FormMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasStepper;
@@ -24,8 +24,8 @@ public class UIInstancePartsExtractor {
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
 
-  public List<UIInstancePart> getUiParts(
-          Object uiInstance, List<Field> fields, SlotName slot) throws Exception {
+  public List<UIInstancePart> getUiParts(Object uiInstance, List<Field> fields, SlotName slot)
+      throws Exception {
     List<UIInstancePart> parts = new ArrayList<>();
 
     List<Field> partCandidates = new ArrayList<>();

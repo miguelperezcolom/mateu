@@ -1,5 +1,6 @@
-package io.mateu.core.domain.model.reflection;
+package io.mateu.core.domain.model.reflection.fieldabstraction;
 
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;

@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.json;
 
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.CascadeType;
@@ -28,8 +28,7 @@ public class MateuEntitySerializer implements EntitySerializer {
     return data;
   }
 
-  private void addToData(Map<String, Object> data, Field field, Object entity)
-      throws Exception {
+  private void addToData(Map<String, Object> data, Field field, Object entity) throws Exception {
     if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
       addXToMany(data, field, entity);
       return;
@@ -41,8 +40,7 @@ public class MateuEntitySerializer implements EntitySerializer {
     data.put(field.getId(), reflectionHelper.getValue(field, entity));
   }
 
-  private void addManyToOne(Map<String, Object> data, Field field, Object entity)
-      throws Exception {
+  private void addManyToOne(Map<String, Object> data, Field field, Object entity) throws Exception {
     Object value = reflectionHelper.getValue(field, entity);
     if (value == null) {
       return;
@@ -50,8 +48,7 @@ public class MateuEntitySerializer implements EntitySerializer {
     data.put(field.getId(), new ExternalReference(reflectionHelper.getId(value), value.toString()));
   }
 
-  private void addXToMany(Map<String, Object> data, Field field, Object entity)
-      throws Exception {
+  private void addXToMany(Map<String, Object> data, Field field, Object entity) throws Exception {
     Collection list = (Collection) reflectionHelper.getValue(field, entity);
     if (list == null) {
       return;

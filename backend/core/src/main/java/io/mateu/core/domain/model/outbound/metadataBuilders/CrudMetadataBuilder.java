@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
@@ -99,8 +99,7 @@ public class CrudMetadataBuilder {
 
   private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {
     Class searchFormClass = rpcView.getSearchFormClass();
-    List<Field> allEditableFields =
-        reflectionHelper.getAllEditableFields(searchFormClass);
+    List<Field> allEditableFields = reflectionHelper.getAllEditableFields(searchFormClass);
     if (rpcView instanceof RpcCrudViewExtended) {
       List<String> validFieldIds =
           ((RpcCrudViewExtended) rpcView)

@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
@@ -158,8 +158,7 @@ public class FieldAttributeBuilder {
         && !reflectionHelper.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
-      for (Field columnField :
-          reflectionHelper.getAllEditableFields(field.getGenericClass())) {
+      for (Field columnField : reflectionHelper.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
             Pair.builder()
                 .key("column")

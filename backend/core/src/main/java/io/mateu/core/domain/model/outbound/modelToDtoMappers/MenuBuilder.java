@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
 import io.mateu.dtos.Menu;

@@ -4,10 +4,10 @@ import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
-import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -96,8 +96,7 @@ public class JourneyContainerService {
       if (actualInstance instanceof EntityEditor) {
         EntityEditor entityEditor = (EntityEditor) actualInstance;
         actualInstance = merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
-        Field listField =
-            reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
+        Field listField = reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
         if (listField != null) {
           return jpaRpcCrudFactory.create(actualInstance, listField);
         }
@@ -115,8 +114,7 @@ public class JourneyContainerService {
       } else {
         return (Listing) reflectionHelper.getValue(listId, actualInstance);
       }
-      Field listField =
-          reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
+      Field listField = reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
       if (listField != null) {
         rpcView = (Listing) reflectionHelper.newInstance(listField.getType());
         reflectionHelper.setValue(listId, actualInstance, rpcView);

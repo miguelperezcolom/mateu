@@ -1,5 +1,6 @@
-package io.mateu.core.domain.model.reflection;
+package io.mateu.core.domain.model.reflection.fieldabstraction;
 
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -18,10 +19,7 @@ public class FieldForCheckboxColumn implements Field {
   private final ReflectionHelper reflectionHelper;
 
   public FieldForCheckboxColumn(
-      String name,
-      Field collectionField,
-      Object value,
-      ReflectionHelper reflectionHelper) {
+      String name, Field collectionField, Object value, ReflectionHelper reflectionHelper) {
     this.type = boolean.class;
     this.name = name;
     this.collectionField = collectionField;

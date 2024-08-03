@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.dtos.*;

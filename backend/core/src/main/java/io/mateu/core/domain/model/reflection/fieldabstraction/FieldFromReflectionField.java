@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.reflection;
+package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.annotation.Annotation;
@@ -14,8 +14,7 @@ public class FieldFromReflectionField implements Field {
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldFromReflectionField(
-          Field f, Annotation a) {
+  public FieldFromReflectionField(Field f, Annotation a) {
     this(f);
     extraAnnotations.add(a);
   }

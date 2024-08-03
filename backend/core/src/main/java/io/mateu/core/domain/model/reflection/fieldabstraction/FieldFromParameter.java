@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.reflection;
+package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -16,8 +16,7 @@ public class FieldFromParameter implements Field {
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldFromParameter(
-          FieldFromParameter f, Annotation a) {
+  public FieldFromParameter(FieldFromParameter f, Annotation a) {
     this(f);
     extraAnnotations.add(a);
   }
@@ -30,8 +29,7 @@ public class FieldFromParameter implements Field {
     return m;
   }
 
-  public FieldFromParameter(
-      FieldFromParameter f) {
+  public FieldFromParameter(FieldFromParameter f) {
     this(f.getMethod(), f.getParameter());
   }
 
@@ -47,8 +45,7 @@ public class FieldFromParameter implements Field {
         : p.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldFromParameter(
-      Executable m, Parameter f) {
+  public FieldFromParameter(Executable m, Parameter f) {
     this.ff = null;
     this.p = f;
     this.m = m;

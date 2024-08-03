@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.Field;
-import io.mateu.core.domain.model.reflection.FieldFromType;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromType;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
@@ -531,8 +531,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 .collect(Collectors.toList());
       }
 
-      var searchTextField =
-          new FieldFromType(String.class, "_search-text", reflectionHelper);
+      var searchTextField = new FieldFromType(String.class, "_search-text", reflectionHelper);
       filterFields.add(0, searchTextField);
 
       filterFields.forEach(
@@ -561,8 +560,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               .filter(f -> f != null)
               .collect(Collectors.toList());
 
-      var searchTextField =
-          new FieldFromType(String.class, "_search-text", reflectionHelper);
+      var searchTextField = new FieldFromType(String.class, "_search-text", reflectionHelper);
       filterFields.add(0, searchTextField);
 
       filterFields.forEach(

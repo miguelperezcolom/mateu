@@ -1,9 +1,9 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.Field;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -54,8 +54,7 @@ public class FiltersDeserializer {
     rawMap.entrySet().stream()
         .filter(e -> e.getKey().startsWith(listId + "-"))
         .forEach(e -> map.put(e.getKey().substring((listId + "-").length()), e.getValue()));
-    for (Field field :
-        reflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
+    for (Field field : reflectionHelper.getAllEditableFields(rpcView.getSearchFormClass())) {
       if (DatesRange.class.equals(field.getType())) {
         String rawDatesRangeValue = "";
         if (map.containsKey(field.getId() + "_from") && map.get(field.getId() + "_from") != null) {

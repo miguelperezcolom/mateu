@@ -3,13 +3,12 @@ package io.mateu.core.domain.model.reflection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
+import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFactory;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
-
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.*;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -47,18 +46,40 @@ public class ReflectionHelper {
   private final ObjectCopier objectCopier;
   private final InstanceProvider instanceProvider;
 
-  Map<Class, List<Field>> allFieldsCache = new HashMap<>();
+  Map<Class, List<io.mateu.core.domain.model.reflection.fieldabstraction.Field>> allFieldsCache =
+      new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
   Map<String, Method> methodCache = new HashMap<>();
   private ObjectMapper mapper = new ObjectMapper();
 
   public ReflectionHelper(
-          ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
-          FieldFactory fieldFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider, ObjectCopier objectCopier, InstanceProvider instanceProvider) {
-      this.valueProvider = valueProvider;
-      this.basicTypeChecker = basicTypeChecker;
-      this.translator = translator;
+      ValueProvider valueProvider,
+      BasicTypeChecker basicTypeChecker,
+      Translator translator,
+      FieldFactory fieldFactory,
+      Humanizer humanizer,
+      GetterProvider getterProvider,
+      SetterProvider setterProvider,
+      ValueWriter valueWriter,
+      FieldByNameProvider fieldByNameProvider,
+      AllFieldsProvider allFieldsProvider,
+      MethodProvider methodProvider,
+      AllMethodsProvider allMethodsProvider,
+      IdFieldProvider idFieldProvider,
+      IdProvider idProvider,
+      VersionFieldProvider versionFieldProvider,
+      NameFieldProvider nameFieldProvider,
+      MapperFieldProvider mapperFieldProvider,
+      GenericClassProvider genericClassProvider,
+      TypeProvider typeProvider,
+      AllEditableFieldsProvider allEditableFieldsProvider,
+      AllTransferrableFieldsProvider allTransferrableFieldsProvider,
+      SubclassProvider subclassProvider,
+      ObjectCopier objectCopier,
+      InstanceProvider instanceProvider) {
+    this.valueProvider = valueProvider;
+    this.basicTypeChecker = basicTypeChecker;
+    this.translator = translator;
     this.fieldFactory = fieldFactory;
     this.humanizer = humanizer;
     ConvertUtils.register(new IntegerConverter(null), Integer.class);
@@ -95,12 +116,12 @@ public class ReflectionHelper {
     return basicTypeChecker.isBasic(o);
   }
 
-
   public Object getValue(java.lang.reflect.Field f, Object o) {
     return valueProvider.getValue(f, o);
   }
 
-  public void setValue(Field f, Object o, Object v)
+  public void setValue(
+      io.mateu.core.domain.model.reflection.fieldabstraction.Field f, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     valueWriter.setValue(f, o, v);
   }
@@ -110,11 +131,14 @@ public class ReflectionHelper {
     valueWriter.setValue(fn, o, v);
   }
 
-  public Object getValue(Field f, Object o, Object valueIfNull) {
+  public Object getValue(
+      io.mateu.core.domain.model.reflection.fieldabstraction.Field f,
+      Object o,
+      Object valueIfNull) {
     return valueProvider.getValue(f, o, valueIfNull);
   }
 
-  public Object getValue(Field f, Object o)
+  public Object getValue(io.mateu.core.domain.model.reflection.fieldabstraction.Field f, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     return valueProvider.getValue(f, o);
   }
@@ -129,8 +153,6 @@ public class ReflectionHelper {
     return valueProvider.getValue(id, o);
   }
 
-
-
   public Method getMethod(Class<?> c, String methodName) {
     return methodProvider.getMethod(c, methodName);
   }
@@ -139,22 +161,19 @@ public class ReflectionHelper {
     return allMethodsProvider.getAllMethods(c);
   }
 
-
-
-  public List<Field> getAllFields(Class c) {
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field> getAllFields(Class c) {
     return allFieldsProvider.getAllFields(c);
   }
 
-  public List<Field> getAllFields(Method m) {
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field> getAllFields(Method m) {
     return allFieldsProvider.getAllFields(m);
   }
-
 
   public Object getId(Object model) {
     return idProvider.getId(model);
   }
 
-  public Field getIdField(Class type) {
+  public io.mateu.core.domain.model.reflection.fieldabstraction.Field getIdField(Class type) {
     return idFieldProvider.getIdField(type);
   }
 
@@ -162,20 +181,25 @@ public class ReflectionHelper {
     return versionFieldProvider.getVersionField(c);
   }
 
-  public Field getNameField(Class entityClass, boolean toStringPreferred) {
+  public io.mateu.core.domain.model.reflection.fieldabstraction.Field getNameField(
+      Class entityClass, boolean toStringPreferred) {
     return nameFieldProvider.getNameField(entityClass, toStringPreferred);
   }
 
-  public Field getFieldByName(Class sourceClass, String fieldName) {
+  public io.mateu.core.domain.model.reflection.fieldabstraction.Field getFieldByName(
+      Class sourceClass, String fieldName) {
     return fieldByNameProvider.getFieldByName(sourceClass, fieldName);
   }
 
-  public Field getMapper(Field field) {
+  public io.mateu.core.domain.model.reflection.fieldabstraction.Field getMapper(
+      io.mateu.core.domain.model.reflection.fieldabstraction.Field field) {
     return mapperFieldProvider.getMapper(field);
   }
 
   public Class getGenericClass(
-          Field field, Class asClassOrInterface, String genericArgumentName) {
+      io.mateu.core.domain.model.reflection.fieldabstraction.Field field,
+      Class asClassOrInterface,
+      String genericArgumentName) {
     return genericClassProvider.getGenericClass(field, asClassOrInterface, genericArgumentName);
   }
 
@@ -186,12 +210,14 @@ public class ReflectionHelper {
 
   public Class getGenericClass(
       ParameterizedType parameterizedType, Class asClassOrInterface, String genericArgumentName) {
-    return genericClassProvider.getGenericClass(parameterizedType, asClassOrInterface, genericArgumentName);
+    return genericClassProvider.getGenericClass(
+        parameterizedType, asClassOrInterface, genericArgumentName);
   }
 
   public Class getGenericClass(
       Class sourceClass, Class asClassOrInterface, String genericArgumentName) {
-    return genericClassProvider.getGenericClass(sourceClass, asClassOrInterface, genericArgumentName);
+    return genericClassProvider.getGenericClass(
+        sourceClass, asClassOrInterface, genericArgumentName);
   }
 
   public Class getGenericClass(
@@ -199,25 +225,33 @@ public class ReflectionHelper {
       Class sourceClass,
       Class asClassOrInterface,
       String genericArgumentName) {
-    return genericClassProvider.getGenericClass(parameterizedType, sourceClass, asClassOrInterface, genericArgumentName);
+    return genericClassProvider.getGenericClass(
+        parameterizedType, sourceClass, asClassOrInterface, genericArgumentName);
   }
 
-  public List<Field> getAllTransferrableFields(Class modelType) {
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field>
+      getAllTransferrableFields(Class modelType) {
     return allTransferrableFieldsProvider.getAllTransferrableFields(modelType);
   }
 
-  public List<Field> getAllEditableFields(Class modelType) {
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field> getAllEditableFields(
+      Class modelType) {
     return allEditableFieldsProvider.getAllEditableFilteredFields(modelType, null, null);
   }
 
-  public List<Field> getAllEditableFields(
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers) {
-    return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, null);
+    return allEditableFieldsProvider.getAllEditableFields(
+        modelType, superType, includeReverseMappers, null);
   }
 
-  public List<Field> getAllEditableFields(
-      Class modelType, Class superType, boolean includeReverseMappers, Field field) {
-    return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, field);
+  public List<io.mateu.core.domain.model.reflection.fieldabstraction.Field> getAllEditableFields(
+      Class modelType,
+      Class superType,
+      boolean includeReverseMappers,
+      io.mateu.core.domain.model.reflection.fieldabstraction.Field field) {
+    return allEditableFieldsProvider.getAllEditableFields(
+        modelType, superType, includeReverseMappers, field);
   }
 
   public Class<?> getGenericClass(Class type) {
@@ -270,5 +304,4 @@ public class ReflectionHelper {
   public Class getType(AnnotatedElement f) {
     return typeProvider.getType(f);
   }
-
 }

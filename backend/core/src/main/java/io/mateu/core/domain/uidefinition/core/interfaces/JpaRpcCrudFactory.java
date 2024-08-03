@@ -1,6 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 
