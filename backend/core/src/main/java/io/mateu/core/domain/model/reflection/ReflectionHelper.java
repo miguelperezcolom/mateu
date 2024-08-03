@@ -52,6 +52,12 @@ public class ReflectionHelper {
   private final ValueWriter valueWriter;
   private final FieldByNameProvider fieldByNameProvider;
   private final AllFieldsProvider allFieldsProvider;
+  private final MethodProvider methodProvider;
+  private final AllMethodsProvider allMethodsProvider;
+  private final IdFieldProvider idFieldProvider;
+  private final IdProvider idProvider;
+  private final VersionFieldProvider versionFieldProvider;
+  private final NameFieldProvider nameFieldProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -63,7 +69,7 @@ public class ReflectionHelper {
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
@@ -80,6 +86,12 @@ public class ReflectionHelper {
     this.valueWriter = valueWriter;
     this.fieldByNameProvider = fieldByNameProvider;
     this.allFieldsProvider = allFieldsProvider;
+    this.methodProvider = methodProvider;
+    this.allMethodsProvider = allMethodsProvider;
+    this.idFieldProvider = idFieldProvider;
+    this.idProvider = idProvider;
+    this.versionFieldProvider = versionFieldProvider;
+    this.nameFieldProvider = nameFieldProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -127,27 +139,7 @@ public class ReflectionHelper {
 
 
   public Method getMethod(Class<?> c, String methodName) {
-    if (c == null) {
-      log.debug("getMethod(" + null + ", " + methodName + ") devolverá null!");
-      return null;
-    }
-    Method l = methodCache.get(c.getName() + "-" + methodName);
-    if (l == null) {
-      methodCache.put(c.getName() + "-" + methodName, l = buildMethod(c, methodName));
-    }
-    return l;
-  }
-
-  public Method buildMethod(Class<?> c, String methodName) {
-    Method m = null;
-    if (c != null)
-      for (Method q : getAllMethods(c)) {
-        if (methodName.equals(q.getName())) {
-          m = q;
-          break;
-        }
-      }
-    return m;
+    return methodProvider.getMethod(c, methodName);
   }
 
   public String getGetter(FieldInterfaced f) {
@@ -167,76 +159,10 @@ public class ReflectionHelper {
   }
 
   public List<Method> getAllMethods(Class c) {
-    List<Method> l = _getAllMethods(c);
-
-    List<Method> r = new ArrayList<>();
-
-    for (Method m : l) {
-      if (check(m)) r.add(m);
-    }
-
-    return r;
+    return allMethodsProvider.getAllMethods(c);
   }
 
-  public List<Method> _getAllMethods(Class c) {
-    List<Method> l = allMethodsCache.get(c);
 
-    if (l == null) {
-      allMethodsCache.put(c, l = buildAllMethods(c));
-    }
-
-    return l;
-  }
-
-  public List<Method> buildAllMethods(Class c) {
-    List<Method> l = new ArrayList<>();
-
-    if (c.getSuperclass() != null
-        && (!c.isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
-      l.addAll(getAllMethods(c.getSuperclass()));
-
-    for (Method f : c.getDeclaredMethods()) {
-      l.removeIf(m -> getSignature(m).equals(getSignature(f)));
-      l.add(f);
-    }
-
-    return l;
-  }
-
-  private String getSignature(Method m) {
-    return m.getGenericReturnType().getTypeName()
-        + " "
-        + m.getName()
-        + "("
-        + getSignature(m.getParameters())
-        + ")";
-  }
-
-  private String getSignature(Parameter[] parameters) {
-    String s = "";
-    if (parameters != null)
-      for (Parameter p : parameters) {
-        if (!"".equals(s)) s += ", ";
-        s += p.getType().getName();
-      }
-    return s;
-  }
-
-  private Method getMethod(Class c, String methodName, Class<?>... parameterTypes)
-      throws NoSuchMethodException {
-    Method m = c.getClass().getDeclaredMethod(methodName, parameterTypes);
-
-    if (m == null
-        && c.getSuperclass() != null
-        && (!c.isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(Entity.class)
-            || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
-      m = getMethod(c.getSuperclass(), methodName, parameterTypes);
-
-    return m;
-  }
 
   public List<FieldInterfaced> getAllFields(Class c) {
     return allFieldsProvider.getAllFields(c);
@@ -255,123 +181,20 @@ public class ReflectionHelper {
   }
 
 
-  private Map<String, FieldInterfaced> getAllFieldsMap(Class c) {
-    return getAllFieldsMap(getAllFields(c));
-  }
-
-  private Map<String, FieldInterfaced> getAllFieldsMap(List<FieldInterfaced> l) {
-
-    Map<String, FieldInterfaced> m = new HashMap<>();
-
-    for (FieldInterfaced f : l) m.put(f.getName(), f);
-
-    return m;
-  }
-
   public Object getId(Object model) {
-    if (model instanceof Object[]) return ((Object[]) model)[0];
-    if (model instanceof Pair) return ((Pair) model).getKey();
-    if (model.getClass().isAnnotationPresent(Entity.class)) {
-      Object id = null;
-      try {
-        FieldInterfaced idField = getIdField(model.getClass());
-        id = getValue(idField, model);
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
-      return id;
-    } else if (model.getClass().isEnum()) {
-      return ((Enum) model).ordinal();
-    } else return model;
+    return idProvider.getId(model);
   }
 
   public FieldInterfaced getIdField(Class type) {
-    if (type.isAnnotationPresent(Entity.class)) {
-      FieldInterfaced idField = null;
-
-      for (FieldInterfaced f : getAllFields(type)) {
-        if (f.isAnnotationPresent(Id.class)) {
-          idField = f;
-          break;
-        }
-      }
-
-      return idField;
-    } else return null;
+    return idFieldProvider.getIdField(type);
   }
 
   public Field getVersionField(Class c) {
-    if (c.isAnnotationPresent(Entity.class)) {
-      Field idField = null;
-
-      if (c.getSuperclass() != null
-          && (!c.isAnnotationPresent(Entity.class)
-              || c.getSuperclass().isAnnotationPresent(Entity.class)
-              || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {
-        idField = getVersionField(c.getSuperclass());
-      }
-
-      if (idField == null) {
-        for (Field f : c.getDeclaredFields())
-          if (f.isAnnotationPresent(Version.class)) {
-            idField = f;
-          }
-      }
-
-      return idField;
-    } else return null;
+    return versionFieldProvider.getVersionField(c);
   }
 
   public FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
-    FieldInterfaced fName = null;
-    Method toStringMethod = getMethod(entityClass, "toString");
-    boolean toStringIsOverriden =
-        toStringMethod != null && toStringMethod.getDeclaringClass().equals(entityClass);
-    if (!toStringPreferred || !toStringIsOverriden) {
-      boolean hayName = false;
-      for (FieldInterfaced ff : getAllFields(entityClass))
-        if (ff.isAnnotationPresent(LabelFieldForLists.class)) {
-          fName = ff;
-          hayName = true;
-        }
-      if (!hayName) {
-        for (FieldInterfaced ff : getAllFields(entityClass))
-          if ("name".equalsIgnoreCase(ff.getName()) || "nombre".equalsIgnoreCase(ff.getName())) {
-            fName = ff;
-            hayName = true;
-          }
-      }
-      if (!hayName) {
-        for (FieldInterfaced ff : getAllFields(entityClass))
-          if ("value".equalsIgnoreCase(ff.getName())
-              || "title".equalsIgnoreCase(ff.getName())
-              || "titulo".equalsIgnoreCase(ff.getName())
-              || "description".equalsIgnoreCase(ff.getName())
-              || "descripcion".equalsIgnoreCase(ff.getName())) {
-            fName = ff;
-            hayName = true;
-          }
-      }
-      if (!hayName) {
-        for (FieldInterfaced ff : getAllFields(entityClass))
-          if ("description".equalsIgnoreCase(ff.getName())
-              || "descripcion".equalsIgnoreCase(ff.getName())) {
-            fName = ff;
-            hayName = true;
-          }
-      }
-      if (!hayName) {
-        for (FieldInterfaced ff : getAllFields(entityClass))
-          if (ff.isAnnotationPresent(Id.class)) {
-            fName = ff;
-          }
-      }
-    }
-    return fName;
+    return nameFieldProvider.getNameField(entityClass, toStringPreferred);
   }
 
   public FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
@@ -935,8 +758,6 @@ public class ReflectionHelper {
 
     allFields = filterMenuFields(allFields);
 
-    allFields = filterAuthorized(allFields);
-
     allFields = filterInjected(allFields);
 
     // todo: ver como resolvemos esto
@@ -1033,148 +854,6 @@ public class ReflectionHelper {
       if (hasGetter(f)) r.add(f);
     }
     return r;
-  }
-
-  private List<FieldInterfaced> filterAuthorized(List<FieldInterfaced> allFields) {
-    List<FieldInterfaced> r = new ArrayList<>();
-    for (FieldInterfaced f : allFields) {
-      if (check(f)) r.add(f);
-    }
-    return r;
-  }
-
-  private boolean check(FieldInterfaced f) {
-    boolean r = false;
-    boolean annotated = false;
-    if (f.isAnnotationPresent(ReadOnly.class)) {
-      annotated = true;
-      ReadOnly a = f.getAnnotation(ReadOnly.class);
-      r |= check(a);
-    }
-    if (f.isAnnotationPresent(ReadWrite.class)) {
-      annotated = true;
-      ReadWrite a = f.getAnnotation(ReadWrite.class);
-      r |= check(a);
-    }
-    if (f.isAnnotationPresent(Forbidden.class)) {
-      annotated = true;
-      Forbidden a = f.getAnnotation(Forbidden.class);
-      r &= !check(a);
-    }
-    return !annotated || r;
-  }
-
-  private boolean check(Annotation a) {
-    return true;
-  }
-
-  private boolean check(Method m) {
-    boolean r = false;
-    boolean annotated = false;
-    if (m.isAnnotationPresent(ReadOnly.class)) {
-      annotated = true;
-      ReadOnly a = m.getAnnotation(ReadOnly.class);
-      r |= check(a);
-    }
-    if (m.isAnnotationPresent(ReadWrite.class)) {
-      annotated = true;
-      ReadWrite a = m.getAnnotation(ReadWrite.class);
-      r |= check(a);
-    }
-    if (m.isAnnotationPresent(Forbidden.class)) {
-      annotated = true;
-      Forbidden a = m.getAnnotation(Forbidden.class);
-      r &= !check(a);
-    }
-    return !annotated || r;
-  }
-
-  private FieldInterfaced getInterfaced(Parameter p) {
-    return new FieldInterfaced() {
-      @Override
-      public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return p.isAnnotationPresent(annotationClass);
-      }
-
-      @Override
-      public Class<?> getType() {
-        return p.getType();
-      }
-
-      @Override
-      public AnnotatedType getAnnotatedType() {
-        return p.getAnnotatedType();
-      }
-
-      @Override
-      public Class<?> getGenericClass() {
-        if (p.getParameterizedType() instanceof ParameterizedType) {
-          ParameterizedType genericType = (ParameterizedType) p.getParameterizedType();
-          Class<?> genericClass = (Class<?>) genericType.getActualTypeArguments()[0];
-          return genericClass;
-        } else return null;
-      }
-
-      @Override
-      public Class<?> getDeclaringClass() {
-        return null;
-      }
-
-      @Override
-      public Type getGenericType() {
-        return p.getParameterizedType();
-      }
-
-      @Override
-      public String getName() {
-        return p.getName();
-      }
-
-      @Override
-      public String getId() {
-        return p.getName();
-      }
-
-      @Override
-      public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-        return p.getAnnotation(annotationClass);
-      }
-
-      @Override
-      public Annotation[] getAnnotations() {
-        return p.getAnnotations();
-      }
-
-      @Override
-      public Object getValue(Object o)
-          throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return null;
-      }
-
-      @Override
-      public Field getField() {
-        return null;
-      }
-
-      @Override
-      public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
-        return getDeclaredAnnotationsByType(annotationClass);
-      }
-
-      @Override
-      public void setValue(Object o, Object v)
-          throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {}
-
-      @Override
-      public int getModifiers() {
-        return p.getModifiers();
-      }
-
-      @Override
-      public Annotation[] getDeclaredAnnotations() {
-        return p.getDeclaredAnnotations();
-      }
-    };
   }
 
   public Class<?> getGenericClass(Class type) {
