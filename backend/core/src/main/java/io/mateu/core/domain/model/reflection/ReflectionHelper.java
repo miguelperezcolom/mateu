@@ -11,6 +11,9 @@ import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
+import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -41,11 +44,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ReflectionHelper {
 
+  final ValueProvider valueProvider;
   final BasicTypeChecker basicTypeChecker;
   final Translator translator;
   final MateuConfiguratorBean beanProvider;
   final FieldInterfacedFactory fieldInterfacedFactory;
   final Humanizer humanizer;
+  private final GetterProvider getterProvider;
+  private final SetterProvider setterProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -54,10 +60,11 @@ public class ReflectionHelper {
   private ObjectMapper mapper = new ObjectMapper();
 
   public ReflectionHelper(
-          BasicTypeChecker basicTypeChecker, Translator translator,
+          ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider) {
+      this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
     this.beanProvider = beanProvider;
@@ -68,6 +75,8 @@ public class ReflectionHelper {
     ConvertUtils.register(new DoubleConverter(null), Double.class);
     ConvertUtils.register(new BooleanConverter(null), Boolean.class);
     ConvertUtils.register(new MiURLConverter(), URL.class);
+    this.getterProvider = getterProvider;
+    this.setterProvider = setterProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -80,26 +89,7 @@ public class ReflectionHelper {
 
 
   public Object getValue(Field f, Object o) {
-    if (f == null) {
-      return null;
-    }
-    Method getter = null;
-    try {
-      getter = o.getClass().getMethod(getGetter(f));
-    } catch (Exception ignored) {
-
-    }
-    Object v = null;
-    try {
-      if (getter != null) v = getter.invoke(o);
-      else {
-        if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
-        v = f.get(o);
-      }
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      log.error("when getting value for field " + f.getName(), e);
-    }
-    return v;
+    return valueProvider.getValue(f, o);
   }
 
   public void setValue(FieldInterfaced f, Object o, Object v)
@@ -316,32 +306,20 @@ public class ReflectionHelper {
     return m;
   }
 
-  public String getGetter(Field f) {
-    return getGetter(f.getType(), f.getName());
-  }
-
   public String getGetter(FieldInterfaced f) {
-    return getGetter(f.getType(), f.getName());
+    return getterProvider.getGetter(f);
   }
 
   public String getGetter(Class c, String fieldName) {
-    return (boolean.class.equals(c) ? "is" : "get") + getFirstUpper(fieldName);
+    return getterProvider.getGetter(c, fieldName);
   }
 
   public String getGetter(String fn) {
-    return "get" + getFirstUpper(fn);
-  }
-
-  public String getSetter(Field f) {
-    return getSetter(f.getType(), f.getName());
+    return getterProvider.getGetter(fn);
   }
 
   public String getSetter(FieldInterfaced f) {
-    return getSetter(f.getType(), f.getName());
-  }
-
-  public String getSetter(Class c, String fieldName) {
-    return "set" + getFirstUpper(fieldName);
+    return setterProvider.getSetter(f);
   }
 
   public List<Method> getAllMethods(Class c) {
@@ -1595,9 +1573,6 @@ public class ReflectionHelper {
 
   }
 
-  public String getFirstUpper(String fieldName) {
-    return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-  }
 
   public Object clone(Object original)
       throws IllegalAccessException,
