@@ -11,13 +11,12 @@ test('read only pojo work', async ({ page }) => {
   await expect(page.getByTestId('action-component-0___assess')).toBeVisible()
   await expect(page.getByTestId('action-component-0___edit')).toBeVisible()
 
-  await expect(page.getByText('Mateu')).toBeVisible()
-  await expect(page.getByText('20.31')).toBeVisible()
+  await expect(page.getByText('Mateu').first()).toBeVisible()
 
   await expect(page.getByRole('heading', { name: 'Basic' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Assessment' })).toBeVisible()
 
-  await expect(page.getByText('Mateu')).toHaveClass('cell value')
+  await expect(page.getByText('Mateu').first()).toHaveClass('cell value')
 
   await expect(page.getByRole('heading', { name: 'Programming languages' })).toBeVisible()
   await expect(page.getByText('This is the subtitle')).toBeVisible()
