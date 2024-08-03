@@ -163,7 +163,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 store.getCurrentStep(journeyContainer).getId(),
                 data),
             serverHttpRequest,
-                getTarget(m));
+            getTarget(m));
 
       } else {
 
@@ -176,7 +176,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 store.getCurrentStep(journeyContainer).getId(),
                 serializer),
             serverHttpRequest,
-                getTarget(m));
+            getTarget(m));
       }
 
     } else {

@@ -39,7 +39,11 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
     // store.setStep(journeyId, "edit_object", getObject((ObjectEditor) viewInstance),
     // serverHttpRequest);
     store.setStep(
-        journeyContainer, "edit", getEditor((ObjectEditor) viewInstance), serverHttpRequest, ActionTarget.SameLane);
+        journeyContainer,
+        "edit",
+        getEditor((ObjectEditor) viewInstance),
+        serverHttpRequest,
+        ActionTarget.SameLane);
     return Mono.empty();
   }
 

@@ -1,7 +1,5 @@
 import {State} from "./state";
 import {callActionCommandHandler} from "./commands/callAction/CallActionCommandHandler";
-import {getJourneyQueryHandler} from "./queries/getJourney/GetJourneyQueryHandler";
-import {getStepQueryHandler} from "./queries/getStep/GetStepQueryHandler";
 import {goBackCommandHandler} from "./commands/goBack/GoBackCommandHandler";
 import {goToIndexCommandHandler} from "./commands/goToIndex/GoToIndexCommandHandler";
 import {Subject} from "rxjs";
@@ -74,25 +72,6 @@ export class Service {
             })
     }
 
-    private async reloadJourney() {
-        this.state.journey = await getJourneyQueryHandler.handle({
-            uiId: this.state.uiId!,
-            journeyTypeId: this.state.journeyTypeId!,
-            journeyId: this.state.journeyId!
-        })
-        this.state.stepId = this.state.journey.currentStepId
-        if (this.state.journey.status != 'Finished') {
-            this.state.step = await getStepQueryHandler.handle({
-                uiId: this.state.uiId!,
-                journeyTypeId: this.state.journeyTypeId!,
-                journeyId: this.state.journeyId!,
-                stepId: this.state.stepId
-            })
-            this.state.previousStepId = this.state.step.previousStepId
-        }
-        console.log('journey reloaded', this.state)
-    }
-
     async goBack(journeyId: string) {
         await goBackCommandHandler.handle({
             journey: JSON.parse(sessionStorage.getItem(journeyId)!)
@@ -127,7 +106,6 @@ export class Service {
         await goToStepCommandHandler.handle({
             __stepId: stepId
         }, this.state)
-        await this.reloadJourney()
         this.upstream.next({...this.state})
     }
 

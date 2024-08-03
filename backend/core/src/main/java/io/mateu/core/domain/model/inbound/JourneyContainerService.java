@@ -177,18 +177,20 @@ public class JourneyContainerService {
   }
 
   public void setStep(
-          JourneyContainer journeyContainer,
-          String stepId,
-          Object editor,
-          ServerHttpRequest serverHttpRequest) throws Throwable {
+      JourneyContainer journeyContainer,
+      String stepId,
+      Object editor,
+      ServerHttpRequest serverHttpRequest)
+      throws Throwable {
     setStep(journeyContainer, stepId, editor, serverHttpRequest, ActionTarget.SameLane);
   }
 
   public void setStep(
-          JourneyContainer journeyContainer,
-          String stepId,
-          Object editor,
-          ServerHttpRequest serverHttpRequest, ActionTarget actionTarget)
+      JourneyContainer journeyContainer,
+      String stepId,
+      Object editor,
+      ServerHttpRequest serverHttpRequest,
+      ActionTarget actionTarget)
       throws Throwable {
     String stepIdPrefix = journeyContainer.getJourney().getCurrentStepId();
     if (stepIdPrefix == null) {
