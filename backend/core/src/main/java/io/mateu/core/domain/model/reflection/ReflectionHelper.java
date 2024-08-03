@@ -64,6 +64,7 @@ public class ReflectionHelper {
   private final AllEditableFieldsProvider allEditableFieldsProvider;
   private final AllTransferrableFieldsProvider allTransferrableFieldsProvider;
   private final SubclassProvider subclassProvider;
+  private final ObjectCopier objectCopier;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -75,7 +76,7 @@ public class ReflectionHelper {
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider, ObjectCopier objectCopier) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
@@ -104,6 +105,7 @@ public class ReflectionHelper {
     this.allEditableFieldsProvider = allEditableFieldsProvider;
     this.allTransferrableFieldsProvider = allTransferrableFieldsProvider;
     this.subclassProvider = subclassProvider;
+    this.objectCopier = objectCopier;
   }
 
   public boolean isBasic(Class c) {
@@ -239,17 +241,6 @@ public class ReflectionHelper {
     return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, field);
   }
 
-
-
-  private List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
-    List<FieldInterfaced> r = new ArrayList<>();
-    var allFields = getAllFields(type);
-    for (FieldInterfaced f : allFields) {
-      if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
-    }
-    return r;
-  }
-
   public Class<?> getGenericClass(Class type) {
     return genericClassProvider.getGenericClass(type);
   }
@@ -267,34 +258,7 @@ public class ReflectionHelper {
   }
 
   public void copy(Object from, Object to) {
-    if (from != null && to != null) {
-      if (from.getClass().equals(to.getClass())) {
-        for (FieldInterfaced f : getAllTransferrableFields(to.getClass())) {
-          try {
-            setValue(f, to, getValue(f, from));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-        for (FieldInterfaced f : getAllInjectedFields(to.getClass())) {
-          try {
-            copy(getValue(f, from), getValue(f, to));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      } else {
-        for (FieldInterfaced f2 : getAllTransferrableFields(to.getClass())) {
-          try {
-            FieldInterfaced f1 = getFieldByName(from.getClass(), f2.getName());
-            if (f1 != null && f1.getType().equals(f2.getType()))
-              setValue(f2, to, getValue(f1, from));
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }
+    objectCopier.copy(from, to);
   }
 
   public Object newInstance(Constructor c, Object params) throws Throwable {
@@ -425,45 +389,6 @@ public class ReflectionHelper {
     return con;
   }
 
-  public String toHtml(Object o) {
-    StringWriter sw;
-    PrintWriter pw = new PrintWriter(sw = new StringWriter());
-    toHtml(pw, o, new ArrayList<>());
-    return sw.toString();
-  }
-
-  public void toHtml(PrintWriter pw, Object o, List visited) {
-    if (o == null) {
-    } else {
-      if (!visited.contains(o)) {
-        visited.add(o);
-      }
-      pw.println("<table>");
-      for (FieldInterfaced f : getAllFields(o.getClass())) {
-        try {
-          Object i = getValue(f, o);
-
-          pw.println(
-              "<tr><td style='text-align:right; font-style:italic;'>"
-                  + humanizer.capitalize(f.getName())
-                  + ":</td><td>");
-          if (i != null) {
-            if (basicTypeChecker.isBasic(i)) {
-              pw.print("" + i);
-            } else {
-              // todo: añadir casos collection y map
-              toHtml(pw, i, visited);
-            }
-          }
-          pw.println("</td></tr>");
-
-        } catch (Exception e1) {
-          e1.printStackTrace();
-        }
-      }
-      pw.println("</table>");
-    }
-  }
 
   public String toJson(Object o) {
     if (o == null) return null;
@@ -486,205 +411,11 @@ public class ReflectionHelper {
     }
   }
 
-  public <T> Collection<T> extend(Collection<T> list, T o) {
-    if (list == null) return null;
-    if (list instanceof ImmutableList) {
-      return extend((ImmutableList<T>) list, o);
-    } else if (list instanceof ImmutableSet) {
-      return extend((ImmutableSet<T>) list, o);
-    } else if (Set.class.isAssignableFrom(list.getClass())) {
-      return extend((Set) list, o);
-    } else {
-      return extend((List) list, o);
-    }
-  }
-
-  public <T> List<T> extend(List<T> list, T o) {
-    List<T> l = new ArrayList<T>(list);
-    l.add(o);
-    return l;
-  }
-
-  public <T> ImmutableList<T> extend(ImmutableList<T> list, T o) {
-    List<T> l = new ArrayList<>(list);
-    l.add(o);
-    return ImmutableList.copyOf(l);
-  }
-
-  public <T> Set<T> extend(Set<T> list, T o) {
-    Set<T> l = new HashSet<>(list);
-    l.add(o);
-    return l;
-  }
-
-  public <T> ImmutableSet<T> extend(ImmutableSet<T> list, T o) {
-    Set<T> l = new HashSet<>(list);
-    l.add(o);
-    return ImmutableSet.copyOf(l);
-  }
-
-  public <K, V> Map<K, V> extend(Map<K, V> list, K k, V v) {
-    Map<K, V> l = new HashMap<>(list);
-    l.put(k, v);
-    return l;
-  }
-
-  public <K, V> ImmutableMap<K, V> extend(ImmutableMap<K, V> list, K k, V v) {
-    Map<K, V> l = new HashMap<>(list);
-    l.put(k, v);
-    return ImmutableMap.copyOf(l);
-  }
-
-  public <T> Collection<T> remove(Collection<T> list, T o) {
-    if (list == null) return null;
-    if (list instanceof ImmutableList) {
-      return remove((ImmutableList<T>) list, o);
-    } else if (list instanceof ImmutableSet) {
-      return remove((ImmutableSet<T>) list, o);
-    } else if (Set.class.isAssignableFrom(list.getClass())) {
-      return remove((Set) list, o);
-    } else {
-      return remove((List) list, o);
-    }
-  }
-
-  public <T> List<T> remove(List<T> list, T o) {
-    if (list == null) return null;
-    List<T> l = new ArrayList<T>(list);
-    l.remove(o);
-    return l;
-  }
-
-  public <T> Set<T> remove(Set<T> list, T o) {
-    if (list == null) return null;
-    Set<T> l = new HashSet<>(list);
-    l.remove(o);
-    return l;
-  }
-
-  public <T> ImmutableList<T> remove(ImmutableList<T> list, T o) {
-    if (list == null) return null;
-    List<T> l = new ArrayList<>(list);
-    l.remove(o);
-    return ImmutableList.copyOf(l);
-  }
-
-  public <T> ImmutableSet<T> remove(ImmutableSet<T> list, T o) {
-    if (list == null) return null;
-    Set<T> l = new HashSet<>(list);
-    l.remove(o);
-    return ImmutableSet.copyOf(l);
-  }
-
-  public <K, V> ImmutableMap<K, V> remove(ImmutableMap<K, V> list, K o) {
-    if (list == null) return null;
-    Map<K, V> l = new HashMap<>(list);
-    l.remove(o);
-    return ImmutableMap.copyOf(l);
-  }
-
-  public <T> Collection<T> removeAll(Collection<T> list, Collection o) {
-    if (list == null) return null;
-    if (list instanceof ImmutableList) {
-      return removeAll((ImmutableList<T>) list, o);
-    } else if (list instanceof ImmutableSet) {
-      return removeAll((ImmutableSet<T>) list, o);
-    } else if (Set.class.isAssignableFrom(list.getClass())) {
-      return removeAll((Set) list, o);
-    } else {
-      return removeAll((List) list, o);
-    }
-  }
-
-  public <T> List<T> removeAll(List<T> list, Collection o) {
-    if (list == null) return null;
-    List<T> l = new ArrayList<T>(list);
-    l.removeAll(o);
-    return l;
-  }
-
-  public <T> Set<T> removeAll(Set<T> list, Collection o) {
-    if (list == null) return null;
-    Set<T> l = new HashSet<>(list);
-    l.removeAll(o);
-    return l;
-  }
-
-  public <T> ImmutableList<T> removeAll(ImmutableList<T> list, Collection o) {
-    if (list == null) return null;
-    List<T> l = new ArrayList<>(list);
-    l.removeAll(o);
-    return ImmutableList.copyOf(l);
-  }
-
-  public <T> ImmutableSet<T> removeAll(ImmutableSet<T> list, Collection o) {
-    if (list == null) return null;
-    Set<T> l = new HashSet<>(list);
-    l.removeAll(o);
-    return ImmutableSet.copyOf(l);
-  }
-
   public boolean isOverridden(Object instance, String methodName) {
     Method m = getMethod(instance.getClass(), methodName);
     return m != null
         && !m.getDeclaringClass().equals(Object.class)
         && !m.getDeclaringClass().isInterface();
-  }
-
-  public Object invokeInjectableParametersOnly(Method method, Object instance) throws Throwable {
-    return execute(method, new Object(), instance, null);
-  }
-
-  public Object execute(Method m, Object parameters, Object instance, Set pendingSelection)
-      throws Throwable {
-    Object o = parameters;
-    Map<String, Object> params = null;
-    if (o != null && Map.class.isAssignableFrom(o.getClass())) {
-      params = (Map<String, Object>) o;
-    } else if (o != null) {
-      params = new HashMap<>();
-      for (FieldInterfaced f : getAllEditableFields(o.getClass())) {
-        params.put(f.getName(), getValue(f, o));
-      }
-    }
-
-    List<Object> vs = new ArrayList<>();
-    int pos = 0;
-    for (Parameter p : m.getParameters()) {
-      Class<?> pgc = getGenericClass(p.getParameterizedType());
-
-      if (((instance instanceof Listing || Modifier.isStatic(m.getModifiers()))
-              && Set.class.isAssignableFrom(p.getType())
-              && (m.getDeclaringClass().equals(pgc)
-                  || (instance instanceof Listing
-                      && getGenericClass(instance.getClass(), Listing.class, "C").equals(pgc))))
-          || (pendingSelection != null && Set.class.isAssignableFrom(p.getType()))) {
-        vs.add(pendingSelection);
-      } else if (params != null && params.containsKey(p.getName())) {
-        vs.add(params.get(p.getName()));
-      } else if (o != null && getFieldByName(o.getClass(), p.getName()) != null) {
-        vs.add(getValue(getFieldByName(o.getClass(), p.getName()), o));
-      } else {
-        Object v = null;
-        if (int.class.equals(p.getType())) v = 0;
-        if (long.class.equals(p.getType())) v = 0l;
-        if (float.class.equals(p.getType())) v = 0f;
-        if (double.class.equals(p.getType())) v = 0d;
-        if (boolean.class.equals(p.getType())) v = false;
-        vs.add(v);
-      }
-      pos++;
-    }
-
-    {
-      Object[] args = vs.toArray();
-      if (!Modifier.isStatic(m.getModifiers()) && instance == null)
-        instance = newInstance(m.getDeclaringClass());
-      if (instance != null && !Modifier.isPublic(instance.getClass().getModifiers()))
-        m.setAccessible(true);
-      else if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-      return m.invoke(instance, args);
-    }
   }
 
   public Class getType(AnnotatedElement f) {
