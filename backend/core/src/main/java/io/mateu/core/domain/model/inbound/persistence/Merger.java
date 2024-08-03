@@ -1,4 +1,4 @@
-package io.mateu.core.domain.model.outbound.persistence;
+package io.mateu.core.domain.model.inbound.persistence;
 
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.persistence.EntityDeserializer;
