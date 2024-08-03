@@ -44,7 +44,6 @@ public class ReflectionHelper {
   final ValueProvider valueProvider;
   final BasicTypeChecker basicTypeChecker;
   final Translator translator;
-  final MateuConfiguratorBean beanProvider;
   final FieldInterfacedFactory fieldInterfacedFactory;
   final Humanizer humanizer;
   private final GetterProvider getterProvider;
@@ -65,22 +64,20 @@ public class ReflectionHelper {
   private final AllTransferrableFieldsProvider allTransferrableFieldsProvider;
   private final SubclassProvider subclassProvider;
   private final ObjectCopier objectCopier;
+  private final InstanceProvider instanceProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
   Map<String, Method> methodCache = new HashMap<>();
-  List<Class> notFromString = new ArrayList<>();
   private ObjectMapper mapper = new ObjectMapper();
 
   public ReflectionHelper(
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
-          MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider, ObjectCopier objectCopier) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider, ObjectCopier objectCopier, InstanceProvider instanceProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
-    this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;
     this.humanizer = humanizer;
     ConvertUtils.register(new IntegerConverter(null), Integer.class);
@@ -106,6 +103,7 @@ public class ReflectionHelper {
     this.allTransferrableFieldsProvider = allTransferrableFieldsProvider;
     this.subclassProvider = subclassProvider;
     this.objectCopier = objectCopier;
+    this.instanceProvider = instanceProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -262,22 +260,7 @@ public class ReflectionHelper {
   }
 
   public Object newInstance(Constructor c, Object params) throws Throwable {
-    List<Object> vs = new ArrayList<>();
-    for (Parameter p : c.getParameters()) {
-      if (params != null && getFieldByName(params.getClass(), p.getName()) != null) {
-        vs.add(getValue(getFieldByName(params.getClass(), p.getName()), params));
-      } else {
-        Object v = null;
-        if (int.class.equals(p.getType())) v = 0;
-        if (long.class.equals(p.getType())) v = 0l;
-        if (float.class.equals(p.getType())) v = 0f;
-        if (double.class.equals(p.getType())) v = 0d;
-        if (boolean.class.equals(p.getType())) v = false;
-        vs.add(v);
-      }
-    }
-    Object[] args = vs.toArray();
-    return c.newInstance(args);
+    return instanceProvider.newInstance(c, params);
   }
 
   public <T> T newInstance(Class<T> c)
@@ -285,46 +268,7 @@ public class ReflectionHelper {
           IllegalAccessException,
           InvocationTargetException,
           InstantiationException {
-    Object o = null;
-    if (!notFromString.contains(c)) {
-      // intentar recuperar del contexto
-      o = beanProvider.getBean(c);
-    }
-    if (o == null) { // no viene de spring
-      if (c.getDeclaringClass() != null) { // caso inner class
-        Object p = newInstance(c.getDeclaringClass());
-        Constructor<?> cons =
-            Arrays.stream(c.getDeclaredConstructors())
-                .filter(constructor -> constructor.getParameterCount() == 1)
-                .findFirst()
-                .get();
-        cons.setAccessible(true);
-        o = cons.newInstance(p);
-      } else {
-        Constructor con = getConstructor(c);
-        if (con != null) {
-          o = con.newInstance();
-        } else {
-          Method builderMethod = null;
-          try {
-            builderMethod = c.getMethod("builder");
-          } catch (Exception ignored) {
-
-          }
-          if (builderMethod != null) {
-            Object builder = c.getMethod("builder").invoke(null);
-            o = builder.getClass().getMethod("build").invoke(builder);
-          } else {
-            if (c.getDeclaredConstructors().length == 1) {
-              Constructor constructor = c.getDeclaredConstructors()[0];
-              o = constructor.newInstance(newInstance(constructor.getParameterTypes()[0]));
-            }
-          }
-        }
-      }
-      notFromString.add(c);
-    }
-    return (T) o;
+    return instanceProvider.newInstance(c);
   }
 
   public Object newInstance(Class c, Object parent)
@@ -332,62 +276,9 @@ public class ReflectionHelper {
           InstantiationException,
           InvocationTargetException,
           NoSuchMethodException {
-    Object i = null;
-    if (parent != null) {
-      Constructor con = getConstructor(c, parent.getClass());
-      if (con != null) i = con.newInstance(parent);
-      else {
-        con =
-            Arrays.stream(c.getDeclaredConstructors())
-                .filter(x -> x.getParameterCount() == 0)
-                .findFirst()
-                .orElse(null);
-        if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
-        i = con.newInstance();
-        for (FieldInterfaced f : getAllFields(c))
-          if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
-            setValue(f, i, parent);
-            break;
-          }
-      }
-    } else {
-      Constructor con = getConstructor(c);
-      if (con != null) {
-        i = con.newInstance();
-      } else if (c.getMethod("builder") != null) {
-        Object builder = c.getMethod("builder").invoke(null);
-        i = builder.getClass().getMethod("build").invoke(builder);
-      }
-    }
-    return i;
+    return instanceProvider.newInstance(c, parent);
   }
 
-  public Constructor getConstructor(Class type) {
-    Constructor con = null;
-    int minParams = Integer.MAX_VALUE;
-    for (Constructor x : type.getConstructors())
-      if (Modifier.isPublic(x.getModifiers())) {
-        if (x.getParameterCount() < minParams) {
-          con = x;
-          minParams = con.getParameterCount();
-        }
-      }
-    return con;
-  }
-
-  public Constructor getConstructor(Class c, Class parameterClass) {
-    Constructor con = null;
-    while (con == null && !Object.class.equals(parameterClass)) {
-      try {
-        con = c.getConstructor(parameterClass);
-      } catch (NoSuchMethodException e) {
-      }
-      if (con == null) {
-        parameterClass = parameterClass.getSuperclass();
-      }
-    }
-    return con;
-  }
 
 
   public String toJson(Object o) {
