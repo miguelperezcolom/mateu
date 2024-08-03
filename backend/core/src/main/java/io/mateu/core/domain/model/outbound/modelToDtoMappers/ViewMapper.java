@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ViewMapper {
 
-  private final EntityManager em;
+  private final EntityProvider entityProvider;
   private final ApplicationContext applicationContext;
   private final FieldExtractor fieldExtractor;
   private final ViewMetadataBuilder viewMetadataBuilder;
@@ -46,18 +46,17 @@ public class ViewMapper {
   private final CaptionProvider captionProvider;
 
   public ViewMapper(
-      EntityManager em,
-      ApplicationContext applicationContext,
-      FieldExtractor fieldExtractor,
-      ViewMetadataBuilder viewMetadataBuilder,
-      DataExtractor dataExtractor,
-      RulesBuilder rulesBuilder,
-      UIInstancePartsExtractor uiInstancePartsExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
-      CaptionProvider captionProvider) {
-    this.em = em;
-    this.applicationContext = applicationContext;
+          EntityProvider entityProvider, ApplicationContext applicationContext,
+          FieldExtractor fieldExtractor,
+          ViewMetadataBuilder viewMetadataBuilder,
+          DataExtractor dataExtractor,
+          RulesBuilder rulesBuilder,
+          UIInstancePartsExtractor uiInstancePartsExtractor,
+          ReflectionHelper reflectionHelper,
+          Serializer serializer,
+          CaptionProvider captionProvider) {
+      this.entityProvider = entityProvider;
+      this.applicationContext = applicationContext;
     this.fieldExtractor = fieldExtractor;
     this.viewMetadataBuilder = viewMetadataBuilder;
     this.dataExtractor = dataExtractor;
@@ -204,7 +203,7 @@ public class ViewMapper {
     Object actualUiInstance = uiInstance;
     if (uiInstance instanceof EntityEditor) {
       EntityEditor entityEditor = (EntityEditor) uiInstance;
-      actualUiInstance = em.find(entityEditor.getEntityClass(), entityEditor.getData().get("__id"));
+      actualUiInstance = entityProvider.find(entityEditor.getEntityClass(), entityEditor.getData().get("__id"));
     } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
       actualUiInstance = reflectionHelper.newInstance(objectEditor.getType());
@@ -232,7 +231,7 @@ public class ViewMapper {
                       journeyContainer.getInitialStep().getId(),
                       serverHttpRequest);
       actualUiInstance =
-          em.find(rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
+          entityProvider.find(rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
     } else if (uiInstance instanceof Class
         && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {
       actualUiInstance = reflectionHelper.newInstance((Class) uiInstance);

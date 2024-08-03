@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 public class StepMapper {
 
   private final ViewMapper viewMapper;
-  private final ReflectionHelper reflectionHelper;
   private final JpaRpcCrudFactory jpaRpcCrudFactory;
   private final CaptionProvider captionProvider;
 
