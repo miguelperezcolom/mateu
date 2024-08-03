@@ -151,10 +151,8 @@ export default class MateuApiClient {
     }
 
     async abortAll() {
-        console.log('aborting api calls', abortControllers)
         abortControllers.forEach(c => c.abort());
         abortControllers = []
-        console.log('api calls cancelled')
     }
 
     async fetchUi(uiId: string): Promise<UI> {

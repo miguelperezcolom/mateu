@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 public class StartJourneyCommandHandler {
 
   private final ReflectionHelper reflectionHelper;
-  private final UIMapper uiMapper;
   private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
   private final StepMapper stepMapper;
   private final Serializer serializer;
@@ -36,14 +35,12 @@ public class StartJourneyCommandHandler {
 
   public StartJourneyCommandHandler(
       ReflectionHelper reflectionHelper,
-      UIMapper uiMapper,
       MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
       StepMapper stepMapper,
       Serializer serializer,
       MenuResolver menuResolver,
       UiInstantiator uiInstantiator) {
     this.reflectionHelper = reflectionHelper;
-    this.uiMapper = uiMapper;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.stepMapper = stepMapper;
     this.serializer = serializer;
@@ -123,18 +120,15 @@ public class StartJourneyCommandHandler {
 
   @SneakyThrows
   private Object createInstanceFromMenuMapping(Object menuEntry) {
-    if (menuEntry instanceof MDDOpenEditorAction) {
-      MDDOpenEditorAction action = (MDDOpenEditorAction) menuEntry;
-      if (action.getSupplier() != null) {
+    if (menuEntry instanceof MDDOpenEditorAction action) {
+        if (action.getSupplier() != null) {
         return action.getSupplier().get();
       }
       return reflectionHelper.newInstance(action.getViewClass());
-    } else if (menuEntry instanceof MDDOpenCRUDAction) {
-      MDDOpenCRUDAction action = (MDDOpenCRUDAction) menuEntry;
-      return mddOpenCRUDActionViewBuilder.buildView(action);
-    } else if (menuEntry instanceof MDDOpenListViewAction) {
-      MDDOpenListViewAction action = (MDDOpenListViewAction) menuEntry;
-      if (action.getSupplier() != null) {
+    } else if (menuEntry instanceof MDDOpenCRUDAction action) {
+        return mddOpenCRUDActionViewBuilder.buildView(action);
+    } else if (menuEntry instanceof MDDOpenListViewAction action) {
+        if (action.getSupplier() != null) {
         return action.getSupplier().get();
       }
       return reflectionHelper.newInstance(action.getListViewClass());

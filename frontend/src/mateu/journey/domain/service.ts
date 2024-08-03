@@ -39,7 +39,6 @@ export class Service {
                     this.state.step = value.step
                     this.state.previousStepId = this.state.step.previousStepId
                 }
-                console.log('journey reloaded from response', this.state)
                 this.upstream.next({...this.state})
             })
     }
@@ -84,7 +83,6 @@ export class Service {
                 this.state.step = value.step
                 this.state.previousStepId = this.state.step.previousStepId
             }
-            console.log('journey reloaded from response', this.state)
             this.upstream.next({...this.state})
         })
         this.upstream.next({...this.state})
@@ -99,7 +97,6 @@ export class Service {
                 this.state.step = value.step
                 this.state.previousStepId = this.state.step.previousStepId
             }
-            console.log('journey reloaded from response', this.state)
             this.upstream.next({...this.state})
         })
         this.upstream.next({...this.state})
