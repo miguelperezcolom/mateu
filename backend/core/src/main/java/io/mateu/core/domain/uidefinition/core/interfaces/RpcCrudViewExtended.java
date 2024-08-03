@@ -1,14 +1,14 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import java.util.List;
 import java.util.Map;
 
 public interface RpcCrudViewExtended {
 
-  List<FieldInterfaced> getColumnFieldNames();
+  List<Field> getColumnFieldNames();
 
-  List<FieldInterfaced> getFilterFields();
+  List<Field> getFilterFields();
 
   Class getEntityClass();
 
@@ -18,7 +18,7 @@ public interface RpcCrudViewExtended {
 
   boolean isEditHandled();
 
-  Map<FieldInterfaced, String> getColumnIdsPerField();
+  Map<Field, String> getColumnIdsPerField();
 
-  Map<FieldInterfaced, String> getColumnCaptionsPerField();
+  Map<Field, String> getColumnCaptionsPerField();
 }

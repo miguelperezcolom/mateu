@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 
 /** Created by miguel on 22/2/17. */
-public interface FieldInterfaced extends AnnotatedElement {
+public interface Field extends AnnotatedElement {
   boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
   Class<?> getType();
@@ -28,7 +28,7 @@ public interface FieldInterfaced extends AnnotatedElement {
 
   String toString();
 
-  Field getField();
+  java.lang.reflect.Field getField();
 
   <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass);
 

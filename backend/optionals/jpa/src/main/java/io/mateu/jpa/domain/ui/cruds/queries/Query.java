@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
 import io.mateu.dtos.SortCriteria;
@@ -27,6 +27,6 @@ public abstract class Query {
   private Map<String, String> aliasedColumnNames;
   private List<String> columnNames;
   private List<String> aliasedColumnNamesList;
-  private List<FieldInterfaced> filterFields;
-  private List<FieldInterfaced> columnFields;
+  private List<Field> filterFields;
+  private List<Field> columnFields;
 }

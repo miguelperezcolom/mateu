@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
@@ -26,7 +26,7 @@ public class FieldStereotypeMapper {
   final FileChecker fileChecker;
   final ReflectionHelper reflectionHelper;
 
-  public String mapStereotype(Object view, FieldInterfaced field) {
+  public String mapStereotype(Object view, Field field) {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
       return field.getAnnotation(CustomFieldStereotype.class).value();
     }

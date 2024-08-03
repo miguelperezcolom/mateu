@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.reflection.FieldInterfacedForCheckboxColumn;
-import io.mateu.core.domain.model.reflection.FieldInterfacedFromField;
+import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.FieldForCheckboxColumn;
+import io.mateu.core.domain.model.reflection.FieldFromReflectionField;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +25,14 @@ public class ValueWriter {
         this.fieldByNameProvider = fieldByNameProvider;
     }
 
-    public void setValue(FieldInterfaced f, Object o, Object v)
+    public void setValue(Field f, Object o, Object v)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         if (f == null) {
             return;
         }
-        if (f instanceof FieldInterfacedForCheckboxColumn) {
+        if (f instanceof FieldForCheckboxColumn) {
             f.setValue(o, v);
-        } else if (f instanceof FieldInterfacedFromField) {
+        } else if (f instanceof FieldFromReflectionField) {
             Method setter = null;
             try {
                 setter = o.getClass().getMethod(setterProvider.getSetter(f), f.getType());
@@ -66,7 +66,7 @@ public class ValueWriter {
                     else if (v instanceof Set) v = new HashSet((Collection) v);
                 }
 
-                FieldInterfaced f = fieldByNameProvider.getFieldByName(o.getClass(), fn);
+                Field f = fieldByNameProvider.getFieldByName(o.getClass(), fn);
 
                 setValue(f, o, v);
             }

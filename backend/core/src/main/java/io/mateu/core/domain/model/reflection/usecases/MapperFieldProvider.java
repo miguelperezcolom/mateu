@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import jakarta.persistence.*;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +22,12 @@ public class MapperFieldProvider {
         this.genericClassProvider = genericClassProvider;
     }
 
-    public FieldInterfaced getMapper(FieldInterfaced field) {
+    public Field getMapper(Field field) {
 
         // field es el campo original
 
         // mapper será la contraparte en el destino
-        FieldInterfaced mapper = null;
+        Field mapper = null;
 
         // buscamos el nombre del campo mapper en el campo original
         String mfn = null;
@@ -42,7 +42,7 @@ public class MapperFieldProvider {
             // si es un campo many to one, entonces no tenemos atributo mappedBy en el origen y debemos
             // buscar un campo en la contraparte con el atributo mappedBy
 
-            for (FieldInterfaced f : allFieldsProvider.getAllFields(field.getType())) {
+            for (Field f : allFieldsProvider.getAllFields(field.getType())) {
                 String z = null;
                 if (f.isAnnotationPresent(OneToOne.class)) z = f.getAnnotation(OneToOne.class).mappedBy();
                 else if (f.isAnnotationPresent(OneToMany.class))
@@ -75,7 +75,7 @@ public class MapperFieldProvider {
         } else {
 
             if (targetClass.isAnnotationPresent(Entity.class))
-                for (FieldInterfaced f : allFieldsProvider.getAllFields(targetClass)) {
+                for (Field f : allFieldsProvider.getAllFields(targetClass)) {
                     mfn = null;
                     if (f.isAnnotationPresent(OneToOne.class))
                         mfn = f.getAnnotation(OneToOne.class).mappedBy();

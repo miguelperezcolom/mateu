@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.reflection.FieldInterfacedForCheckboxColumn;
-import io.mateu.core.domain.model.reflection.FieldInterfacedFromField;
+import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.FieldForCheckboxColumn;
+import io.mateu.core.domain.model.reflection.FieldFromReflectionField;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class ValueProvider {
         this.fieldByNameProvider = fieldByNameProvider;
     }
 
-    public Object getValue(Field f, Object o) {
+    public Object getValue(java.lang.reflect.Field f, Object o) {
         if (f == null) {
             return null;
         }
@@ -44,7 +44,7 @@ public class ValueProvider {
         return v;
     }
 
-    public Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+    public Object getValue(Field f, Object o, Object valueIfNull) {
         Object v = null;
         try {
             v = getValue(f, o);
@@ -54,14 +54,14 @@ public class ValueProvider {
         return v != null ? v : valueIfNull;
     }
 
-    public Object getValue(FieldInterfaced f, Object o)
+    public Object getValue(Field f, Object o)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
         if (o == null) return null;
 
         if (Map.class.isAssignableFrom(o.getClass())) {
             return ((Map) o).get(f.getName());
-        } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+        } else if (f instanceof FieldForCheckboxColumn) {
             return f.getValue(o);
         } else {
             return getValue(f.getId(), o);
@@ -73,10 +73,10 @@ public class ValueProvider {
 
         if (o == null) return null;
 
-        if (e instanceof FieldInterfaced f) {
+        if (e instanceof Field f) {
             if (Map.class.isAssignableFrom(o.getClass())) {
                 return ((Map<?, ?>) o).get(f.getName());
-            } else if (f instanceof FieldInterfacedForCheckboxColumn) {
+            } else if (f instanceof FieldForCheckboxColumn) {
                 return f.getValue(o);
             } else {
                 return getValue(f.getId(), o);
@@ -98,7 +98,7 @@ public class ValueProvider {
 
             Method getter = null;
             try {
-                FieldInterfaced f = fieldByNameProvider.getFieldByName(o.getClass(), firstId);
+                Field f = fieldByNameProvider.getFieldByName(o.getClass(), firstId);
 
                 if (f != null) {
 
@@ -111,8 +111,8 @@ public class ValueProvider {
                     if (getter != null) v = getter.invoke(o);
                     else {
                         try {
-                            if (f instanceof FieldInterfacedFromField) {
-                                Field field = f.getField();
+                            if (f instanceof FieldFromReflectionField) {
+                                java.lang.reflect.Field field = f.getField();
                                 if (!Modifier.isPublic(field.getModifiers())) {
                                     field.setAccessible(true);
                                 }
@@ -132,7 +132,7 @@ public class ValueProvider {
             }
 
         } else {
-            FieldInterfaced f = fieldByNameProvider.getFieldByName(o.getClass(), id);
+            Field f = fieldByNameProvider.getFieldByName(o.getClass(), id);
 
             if (f != null) {
 
@@ -146,8 +146,8 @@ public class ValueProvider {
                     if (getter != null) v = getter.invoke(o);
                     else {
                         try {
-                            if (f instanceof FieldInterfacedFromField) {
-                                Field field = f.getField();
+                            if (f instanceof FieldFromReflectionField) {
+                                java.lang.reflect.Field field = f.getField();
                                 if (!Modifier.isPublic(field.getModifiers())) {
                                     field.setAccessible(true);
                                 }

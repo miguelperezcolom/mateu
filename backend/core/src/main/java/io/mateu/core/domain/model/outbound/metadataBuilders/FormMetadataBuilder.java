@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
@@ -43,7 +43,7 @@ public class FormMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Form build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+  public Form build(String stepId, Object uiInstance, List<Field> slotFields) {
     if (uiInstance instanceof DynamicForm) {
       return ((DynamicForm) uiInstance).build().toFuture().get();
     }
@@ -143,7 +143,7 @@ public class FormMetadataBuilder {
         > 0;
   }
 
-  public boolean isOwner(FieldInterfaced f) {
+  public boolean isOwner(Field f) {
     return (f.isAnnotationPresent(OneToMany.class)
             && Arrays.stream(f.getAnnotation(OneToMany.class).cascade())
                     .filter(c -> CascadeType.ALL.equals(c) || CascadeType.PERSIST.equals(c))
@@ -290,7 +290,7 @@ public class FormMetadataBuilder {
   }
 
   private List<Section> getSections(
-      String stepId, Object uiInstance, List<FieldInterfaced> slotFields)
+      String stepId, Object uiInstance, List<Field> slotFields)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
@@ -301,35 +301,35 @@ public class FormMetadataBuilder {
     FieldGroupLine fieldGroupLine = null;
     String tabId = "";
 
-    List<FieldInterfaced> allEditableFields =
+    List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.contains(f))
             .toList();
     var contador = 0;
-    for (FieldInterfaced fieldInterfaced : allEditableFields) {
-      if (fieldInterfaced.isAnnotationPresent(
+    for (Field field : allEditableFields) {
+      if (field.isAnnotationPresent(
           io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)) {
-        tabId = "tab_" + fieldInterfaced.getId();
+        tabId = "tab_" + field.getId();
         section = null;
       }
-      if (PartialForm.class.isAssignableFrom(fieldInterfaced.getType())) {
+      if (PartialForm.class.isAssignableFrom(field.getType())) {
         var partialFormSection =
             Section.builder()
-                .caption(captionProvider.getCaption(fieldInterfaced))
-                .id(fieldInterfaced.getId())
+                .caption(captionProvider.getCaption(field))
+                .id(field.getId())
                 .tabId(tabId)
                 .readOnly(true)
                 .description("This is a section of the partial form read only yes")
                 .fieldGroups(
-                    createFieldGroups(fieldInterfaced.getType(), uiInstance, fieldInterfaced))
+                    createFieldGroups(field.getType(), uiInstance, field))
                 .type(SectionType.PartialForm)
                 .actions(
                     List.of(
                         Action.builder()
                             .id(
                                 EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER
-                                    + fieldInterfaced.getId())
+                                    + field.getId())
                             .caption(getCaptionForEdit(uiInstance))
                             .type(ActionType.Secondary)
                             .validationRequired(false)
@@ -340,17 +340,17 @@ public class FormMetadataBuilder {
       } else {
 
         if (section == null
-            || fieldInterfaced.isAnnotationPresent(
+            || field.isAnnotationPresent(
                 io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
           String caption = "";
           String description = "";
           String leftSideImageUrl = "";
           String topImageUrl = "";
           boolean card = true;
-          if (fieldInterfaced.isAnnotationPresent(
+          if (field.isAnnotationPresent(
               io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
             io.mateu.core.domain.uidefinition.shared.annotations.Section annotation =
-                fieldInterfaced.getAnnotation(
+                field.getAnnotation(
                     io.mateu.core.domain.uidefinition.shared.annotations.Section.class);
             caption = annotation.value();
             card = annotation.card();
@@ -377,13 +377,13 @@ public class FormMetadataBuilder {
           fieldGroup = null;
         }
         if (fieldGroup == null
-            || fieldInterfaced.isAnnotationPresent(
+            || field.isAnnotationPresent(
                 io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
           String caption = "";
-          if (fieldInterfaced.isAnnotationPresent(
+          if (field.isAnnotationPresent(
               io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
             caption =
-                fieldInterfaced
+                field
                     .getAnnotation(
                         io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                     .value();
@@ -391,11 +391,11 @@ public class FormMetadataBuilder {
           fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
           section.getFieldGroups().add(fieldGroup);
         }
-        if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
+        if (fieldGroupLine == null || !field.isAnnotationPresent(SameLine.class)) {
           fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
           fieldGroup.getLines().add(fieldGroupLine);
         }
-        fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
+        fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, field));
       }
     }
 
@@ -416,7 +416,7 @@ public class FormMetadataBuilder {
   }
 
   private List<FieldGroup> createFieldGroups(
-      Class<?> partialFormType, Object formInstance, FieldInterfaced partialFormField)
+      Class<?> partialFormType, Object formInstance, Field partialFormField)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
@@ -430,20 +430,20 @@ public class FormMetadataBuilder {
 
     List<FieldGroup> fieldGroups = new ArrayList<>();
 
-    List<FieldInterfaced> allEditableFields =
+    List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(partialFormType).stream()
             .filter(f -> !isOwner(f))
             .toList();
-    for (FieldInterfaced fieldInterfaced : allEditableFields) {
+    for (Field field : allEditableFields) {
 
       if (fieldGroup == null
-          || fieldInterfaced.isAnnotationPresent(
+          || field.isAnnotationPresent(
               io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
         String caption = "";
-        if (fieldInterfaced.isAnnotationPresent(
+        if (field.isAnnotationPresent(
             io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
           caption =
-              fieldInterfaced
+              field
                   .getAnnotation(
                       io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                   .value();
@@ -451,17 +451,17 @@ public class FormMetadataBuilder {
         fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
         fieldGroups.add(fieldGroup);
       }
-      if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
+      if (fieldGroupLine == null || !field.isAnnotationPresent(SameLine.class)) {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }
       fieldGroupLine
           .getFields()
-          .add(fieldMetadataBuilder.getField(partialFormInstance, fieldInterfaced));
+          .add(fieldMetadataBuilder.getField(partialFormInstance, field));
     }
     for (FieldGroup group : fieldGroups) {
       for (FieldGroupLine line : group.getLines()) {
-        for (Field field : line.getFields()) {
+        for (io.mateu.dtos.Field field : line.getFields()) {
           field.setId("__nestedData__" + partialFormField.getId() + "__" + field.getId());
         }
       }

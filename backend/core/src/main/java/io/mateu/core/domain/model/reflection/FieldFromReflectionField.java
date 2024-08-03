@@ -1,7 +1,5 @@
 package io.mateu.core.domain.model.reflection;
 
-import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
-import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -9,21 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FieldInterfacedFromField implements FieldInterfaced {
+public class FieldFromReflectionField implements Field {
 
-  private final Field f;
-  private final FieldInterfaced ff;
+  private final java.lang.reflect.Field f;
+  private final Field ff;
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromField(
-          FieldInterfaced f, Annotation a) {
+  public FieldFromReflectionField(
+          Field f, Annotation a) {
     this(f);
     extraAnnotations.add(a);
   }
 
   @Override
-  public Field getField() {
+  public java.lang.reflect.Field getField() {
     return f;
   }
 
@@ -34,12 +32,12 @@ public class FieldInterfacedFromField implements FieldInterfaced {
         : f.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromField(FieldInterfaced f) {
+  public FieldFromReflectionField(Field f) {
     this.ff = f;
     this.f = f.getField();
   }
 
-  public FieldInterfacedFromField(Field f) {
+  public FieldFromReflectionField(java.lang.reflect.Field f) {
     this.ff = null;
     this.f = f;
   }
@@ -135,7 +133,7 @@ public class FieldInterfacedFromField implements FieldInterfaced {
     return f.get(o);
   }
 
-  private String getGetter(Field f) {
+  private String getGetter(java.lang.reflect.Field f) {
     return (boolean.class.equals(f.getType()) ? "is" : "get") + getFirstUpper(f.getName());
   }
 
@@ -143,7 +141,7 @@ public class FieldInterfacedFromField implements FieldInterfaced {
     return fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
   }
 
-  private String getSetter(Field f) {
+  private String getSetter(java.lang.reflect.Field f) {
     return "set" + getFirstUpper(f.getName());
   }
 

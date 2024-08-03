@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Width;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FieldTypeMapper {
 
-  public String mapFieldType(FieldInterfaced field) {
+  public String mapFieldType(Field field) {
     Class<?> type = field.getType();
     if (type.isEnum()) {
       return "enum";
@@ -89,16 +89,16 @@ public class FieldTypeMapper {
     return type.getSimpleName();
   }
 
-  public String mapColumnType(FieldInterfaced field) {
+  public String mapColumnType(Field field) {
     if (field.isAnnotationPresent(Status.class)) {
       return io.mateu.dtos.Status.class.getSimpleName();
     }
     return mapFieldType(field);
   }
 
-  public String getWidth(FieldInterfaced fieldInterfaced) {
-    if (fieldInterfaced.isAnnotationPresent(Width.class)) {
-      return fieldInterfaced.getAnnotation(Width.class).value();
+  public String getWidth(Field field) {
+    if (field.isAnnotationPresent(Width.class)) {
+      return field.getAnnotation(Width.class).value();
     }
     return "150px";
   }

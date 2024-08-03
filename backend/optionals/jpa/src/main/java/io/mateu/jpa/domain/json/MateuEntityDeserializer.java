@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.json;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.persistence.EntityDeserializer;
@@ -81,7 +81,7 @@ public class MateuEntityDeserializer implements EntityDeserializer {
     return instance;
   }
 
-  private Object buildElementList(FieldInterfaced f, Map<String, Object> map) {
+  private Object buildElementList(Field f, Map<String, Object> map) {
     List<Object> data = (List<Object>) map.get(f.getId());
     List value = new ArrayList();
     if (data != null) {
@@ -100,7 +100,7 @@ public class MateuEntityDeserializer implements EntityDeserializer {
     return value;
   }
 
-  private Object buildList(FieldInterfaced f, EntityManager em, Map<String, Object> map) {
+  private Object buildList(Field f, EntityManager em, Map<String, Object> map) {
     List<Map<String, Object>> data = (List<Map<String, Object>>) map.get(f.getId());
     List value = new ArrayList();
     if (data != null) {

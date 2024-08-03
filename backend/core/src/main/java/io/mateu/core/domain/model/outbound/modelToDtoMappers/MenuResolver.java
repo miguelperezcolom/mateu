@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import io.mateu.core.domain.model.inbound.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -46,7 +46,7 @@ public class MenuResolver {
   private MenuEntry resolve(
       Object menuHolder, String prefix, String actionId, ServerHttpRequest serverHttpRequest) {
 
-    for (FieldInterfaced f : reflectionHelper.getAllFields(menuHolder.getClass())) {
+    for (Field f : reflectionHelper.getAllFields(menuHolder.getClass())) {
 
       if (actionId.startsWith(prefix + f.getName())) {
 
@@ -175,8 +175,8 @@ public class MenuResolver {
 
   @SneakyThrows
   private Object getValue(Object object, AnnotatedElement e) {
-    if (e instanceof FieldInterfaced) {
-      var field = (FieldInterfaced) e;
+    if (e instanceof Field) {
+      var field = (Field) e;
       Object value = reflectionHelper.getValue(field, object);
       if (value == null) {
         value = reflectionHelper.newInstance(field.getType());

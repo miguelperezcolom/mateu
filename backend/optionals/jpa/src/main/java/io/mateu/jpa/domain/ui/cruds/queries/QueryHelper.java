@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.dtos.SortCriteria;
@@ -68,13 +68,13 @@ public class QueryHelper {
             }
           }
         }
-      List<FieldInterfaced> orderCols = new ArrayList<>();
-      for (FieldInterfaced f : reflectionHelper.getAllFields(entityClass)) {
+      List<Field> orderCols = new ArrayList<>();
+      for (Field f : reflectionHelper.getAllFields(entityClass)) {
         if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
       }
       Collections.sort(
           orderCols, Comparator.comparingInt(f -> f.getAnnotation(Order.class).priority()));
-      for (FieldInterfaced f : orderCols) {
+      for (Field f : orderCols) {
         if (query.getAliasedColumnNames().get(f.getName()) != null) {
           if (!"".equals(oc)) oc += ", ";
           oc +=
@@ -135,7 +135,7 @@ public class QueryHelper {
 
     if (filters == null) return ql;
 
-    List<FieldInterfaced> allFields = query.getFilterFields();
+    List<Field> allFields = query.getFilterFields();
 
     allFields =
         allFields.stream()
@@ -151,13 +151,13 @@ public class QueryHelper {
 
     // todo: contemplar caso varias anotaciones @SearchFilter para un mismo campo
 
-    for (FieldInterfaced f : allFields) {
+    for (Field f : allFields) {
 
       Object v = reflectionHelper.getValue(f, filters);
 
       if (v != null) {
 
-        FieldInterfaced ef = reflectionHelper.getFieldByName(entityClass, f.getName());
+        Field ef = reflectionHelper.getFieldByName(entityClass, f.getName());
 
         if (ef == null && "_search-text".equals(f.getId())) {
 
@@ -171,7 +171,7 @@ public class QueryHelper {
             if (stringFields.size() > 0) {
               if (!"".equals(ql)) ql += " and ";
               String or = "";
-              for (FieldInterfaced stringField : stringFields) {
+              for (Field stringField : stringFields) {
                 if (!"".equals(or)) {
                   or += " or ";
                 }
@@ -193,7 +193,7 @@ public class QueryHelper {
           boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 
           if (anadir) {
-            FieldInterfaced idf = reflectionHelper.getIdField(entityClass);
+            Field idf = reflectionHelper.getIdField(entityClass);
 
             if (!"".equals(ql)) ql += " and ";
             ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
@@ -273,7 +273,7 @@ public class QueryHelper {
 
         } else if (v instanceof Map && f.isAnnotationPresent(ManyToOne.class)) {
           v = ((Map) v).get("value");
-          FieldInterfaced idField = reflectionHelper.getIdField(f.getType());
+          Field idField = reflectionHelper.getIdField(f.getType());
 
           if (!"".equals(ql)) ql += " and ";
           ql +=

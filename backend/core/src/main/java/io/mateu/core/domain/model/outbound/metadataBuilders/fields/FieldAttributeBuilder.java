@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
@@ -31,7 +31,7 @@ public class FieldAttributeBuilder {
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
 
-  public List<Pair> buildAttributes(Object view, FieldInterfaced field) {
+  public List<Pair> buildAttributes(Object view, Field field) {
     List<Pair> attributes = new ArrayList<>();
     if (TelephoneNumber.class.equals(field.getType())) {
       List<TelephonePrefix> prefixes =
@@ -158,7 +158,7 @@ public class FieldAttributeBuilder {
         && !reflectionHelper.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
-      for (FieldInterfaced columnField :
+      for (Field columnField :
           reflectionHelper.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
             Pair.builder()
@@ -179,7 +179,7 @@ public class FieldAttributeBuilder {
     return attributes;
   }
 
-  private boolean isReadOnly(FieldInterfaced field) {
+  private boolean isReadOnly(Field field) {
     return field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class);
   }
 }

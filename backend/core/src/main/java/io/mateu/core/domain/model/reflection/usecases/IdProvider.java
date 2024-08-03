@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.util.data.Pair;
 import jakarta.persistence.Entity;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class IdProvider {
         if (model.getClass().isAnnotationPresent(Entity.class)) {
             Object id = null;
             try {
-                FieldInterfaced idField = idFieldProvider.getIdField(model.getClass());
+                Field idField = idFieldProvider.getIdField(model.getClass());
                 id = valueProvider.getValue(idField, model);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();

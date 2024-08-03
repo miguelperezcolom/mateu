@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.infra.MateuConfiguratorBean;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
@@ -93,7 +93,7 @@ public class InstanceProvider {
                                 .orElse(null);
                 if (!Modifier.isPublic(con.getModifiers())) con.setAccessible(true);
                 i = con.newInstance();
-                for (FieldInterfaced f : allFieldsProvider.getAllFields(c))
+                for (Field f : allFieldsProvider.getAllFields(c))
                     if (f.getType().equals(parent.getClass()) && f.isAnnotationPresent(NotNull.class)) {
                         valueWriter.setValue(f, i, parent);
                         break;

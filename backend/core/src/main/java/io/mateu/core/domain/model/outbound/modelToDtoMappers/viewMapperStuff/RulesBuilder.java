@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -58,7 +58,7 @@ public class RulesBuilder {
   }
 
   private void addRulesForFields(Object actualUiInstance, List<Rule> rules) {
-    List<FieldInterfaced> allEditableFields =
+    List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(actualUiInstance.getClass());
     allEditableFields.stream()
         .filter(f -> f.isAnnotationPresent(VisibleIf.class))

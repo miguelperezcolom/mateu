@@ -3,8 +3,8 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.reflection.FieldInterfacedForCheckboxColumn;
+import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.FieldForCheckboxColumn;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -51,7 +51,7 @@ public class CaptionProvider {
     return humanizer.capitalize(object.getClass().getSimpleName());
   }
 
-  public String getCaption(FieldInterfaced f) {
+  public String getCaption(Field f) {
     if (f.isAnnotationPresent(Caption.class)) {
       return translator.translate(f.getAnnotation(Caption.class).value());
     } else {
@@ -59,7 +59,7 @@ public class CaptionProvider {
       if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
       if (f.isAnnotationPresent(Action.class)) caption = f.getAnnotation(Action.class).value();
       if (Strings.isNullOrEmpty(caption)) caption = humanizer.capitalize(f.getName());
-      if (f instanceof FieldInterfacedForCheckboxColumn fieldInterfacedForCheckboxColumn) {
+      if (f instanceof FieldForCheckboxColumn fieldInterfacedForCheckboxColumn) {
         caption = fieldInterfacedForCheckboxColumn.getValueForColumn();
       }
       return translator.translate(caption);

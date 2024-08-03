@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.CallActionOnChange;
 import io.mateu.core.domain.uidefinition.shared.annotations.Help;
@@ -28,9 +28,9 @@ public class FieldMetadataBuilder {
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
 
-  protected Field getField(Object view, FieldInterfaced fieldInterfaced) {
-    Field field =
-        Field.builder()
+  protected io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
+    io.mateu.dtos.Field field =
+        io.mateu.dtos.Field.builder()
             .id(fieldInterfaced.getId())
             .caption(captionProvider.getCaption(fieldInterfaced))
             .placeholder(getPlaceholder(fieldInterfaced))
@@ -46,12 +46,12 @@ public class FieldMetadataBuilder {
     return field;
   }
 
-  private List<Badge> getBadges(Object view, FieldInterfaced fieldInterfaced) {
+  private List<Badge> getBadges(Object view, Field field) {
     if (!(view instanceof HasBadgesOnFields)) {
       return List.of();
     }
     return ((HasBadgesOnFields) view)
-        .getBadgesOnField(fieldInterfaced.getId()).stream()
+        .getBadgesOnField(field.getId()).stream()
             .map(
                 b ->
                     new Badge(
@@ -77,25 +77,25 @@ public class FieldMetadataBuilder {
     return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 
-  private boolean isObserved(FieldInterfaced fieldInterfaced) {
-    return fieldInterfaced.isAnnotationPresent(CallActionOnChange.class);
+  private boolean isObserved(Field field) {
+    return field.isAnnotationPresent(CallActionOnChange.class);
   }
 
-  private String getCssClassNames(FieldInterfaced fieldInterfaced) {
-    if (fieldInterfaced.isAnnotationPresent(StyleClassNames.class)) {
-      return String.join(" ", fieldInterfaced.getAnnotation(StyleClassNames.class).value());
+  private String getCssClassNames(Field field) {
+    if (field.isAnnotationPresent(StyleClassNames.class)) {
+      return String.join(" ", field.getAnnotation(StyleClassNames.class).value());
     }
     return null;
   }
 
-  private String getPlaceholder(FieldInterfaced fieldInterfaced) {
-    if (fieldInterfaced.isAnnotationPresent(Placeholder.class)) {
-      return fieldInterfaced.getAnnotation(Placeholder.class).value();
+  private String getPlaceholder(Field field) {
+    if (field.isAnnotationPresent(Placeholder.class)) {
+      return field.getAnnotation(Placeholder.class).value();
     }
     return null;
   }
 
-  private void addValidations(Field field, FieldInterfaced fieldInterfaced) {
+  private void addValidations(io.mateu.dtos.Field field, Field fieldInterfaced) {
     List<Validation> validations = new ArrayList<>();
     // todo: añadir otros tipos de validación, y mensaje de error
     addRequiredValidation(fieldInterfaced, validations);
@@ -106,7 +106,7 @@ public class FieldMetadataBuilder {
     field.setValidations(validations);
   }
 
-  private void addMinValidation(FieldInterfaced field, List<Validation> validations) {
+  private void addMinValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Min.class)) {
       validations.add(
           Validation.builder()
@@ -117,7 +117,7 @@ public class FieldMetadataBuilder {
     }
   }
 
-  private void addMaxValidation(FieldInterfaced field, List<Validation> validations) {
+  private void addMaxValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Max.class)) {
       validations.add(
           Validation.builder()
@@ -128,7 +128,7 @@ public class FieldMetadataBuilder {
     }
   }
 
-  private void addRequiredValidation(FieldInterfaced field, List<Validation> validations) {
+  private void addRequiredValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(NotEmpty.class)
         || field.isAnnotationPresent(NotNull.class)
         || field.isAnnotationPresent(NotBlank.class)) {
@@ -141,7 +141,7 @@ public class FieldMetadataBuilder {
     }
   }
 
-  private void addPatternValidation(FieldInterfaced field, List<Validation> validations) {
+  private void addPatternValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Pattern.class)) {
       validations.add(
           Validation.builder()
@@ -152,10 +152,10 @@ public class FieldMetadataBuilder {
     }
   }
 
-  private String getDescription(FieldInterfaced fieldInterfaced) {
+  private String getDescription(Field field) {
     String description = null;
-    if (fieldInterfaced.isAnnotationPresent(Help.class)) {
-      description = fieldInterfaced.getAnnotation(Help.class).value();
+    if (field.isAnnotationPresent(Help.class)) {
+      description = field.getAnnotation(Help.class).value();
     }
     return description;
   }

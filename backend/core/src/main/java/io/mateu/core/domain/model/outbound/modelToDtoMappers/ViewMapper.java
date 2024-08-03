@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ViewMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
@@ -103,7 +103,7 @@ public class ViewMapper {
     for (SlotName slot :
         List.of(SlotName.main, SlotName.left, SlotName.right, SlotName.header, SlotName.footer)) {
 
-      List<FieldInterfaced> slotFields = fieldExtractor.getFields(actualUiInstance, slot);
+      List<Field> slotFields = fieldExtractor.getFields(actualUiInstance, slot);
 
       List<UIInstancePart> uiInstanceParts =
           uiInstancePartsExtractor.getUiParts(actualUiInstance, slotFields, slot);
@@ -148,7 +148,7 @@ public class ViewMapper {
       return;
     }
 
-    for (FieldInterfaced field : reflectionHelper.getAllEditableFields(form.getClass())) {
+    for (Field field : reflectionHelper.getAllEditableFields(form.getClass())) {
       if (PartialForm.class.isAssignableFrom(field.getType())) {
         var nestedData = data.get(field.getId());
         if (nestedData != null && nestedData instanceof Map) {

@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.count;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
 import io.mateu.dtos.SortCriteria;
@@ -27,8 +27,8 @@ public class CountQuery extends Query {
       Map<String, String> aliasedColumnNames,
       List<String> columnNames,
       List<String> aliasedColumnNamesList,
-      List<FieldInterfaced> filterFields,
-      List<FieldInterfaced> columnFields) {
+      List<Field> filterFields,
+      List<Field> columnFields) {
     super(
         action,
         filters,

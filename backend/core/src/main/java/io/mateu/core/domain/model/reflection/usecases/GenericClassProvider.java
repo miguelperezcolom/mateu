@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import com.google.common.collect.Lists;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +58,7 @@ public class GenericClassProvider {
 
 
     public Class getGenericClass(
-            FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
+            Field field, Class asClassOrInterface, String genericArgumentName) {
         Type t = field.getGenericType();
         if (field.isAnnotationPresent(GenericClass.class))
             return field.getAnnotation(GenericClass.class).clazz();
@@ -430,8 +430,8 @@ public class GenericClassProvider {
     }
 
     private Type getGenericType(AnnotatedElement f) {
-        if (f instanceof FieldInterfaced) {
-            return ((FieldInterfaced) f).getGenericType();
+        if (f instanceof Field) {
+            return ((Field) f).getGenericType();
         } else if (f instanceof Method) {
             return ((Method) f).getGenericReturnType();
         } else {

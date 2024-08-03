@@ -1,40 +1,21 @@
 package io.mateu.core.domain.model.reflection;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
-import io.mateu.core.domain.model.util.data.Pair;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.infra.MateuConfiguratorBean;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
+
 import java.lang.reflect.*;
-import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.BooleanConverter;
 import org.apache.commons.beanutils.converters.DoubleConverter;
 import org.apache.commons.beanutils.converters.IntegerConverter;
 import org.apache.commons.beanutils.converters.LongConverter;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -44,7 +25,7 @@ public class ReflectionHelper {
   final ValueProvider valueProvider;
   final BasicTypeChecker basicTypeChecker;
   final Translator translator;
-  final FieldInterfacedFactory fieldInterfacedFactory;
+  final FieldFactory fieldFactory;
   final Humanizer humanizer;
   private final GetterProvider getterProvider;
   private final SetterProvider setterProvider;
@@ -66,19 +47,19 @@ public class ReflectionHelper {
   private final ObjectCopier objectCopier;
   private final InstanceProvider instanceProvider;
 
-  Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
+  Map<Class, List<Field>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
   Map<String, Method> methodCache = new HashMap<>();
   private ObjectMapper mapper = new ObjectMapper();
 
   public ReflectionHelper(
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
-          FieldInterfacedFactory fieldInterfacedFactory,
+          FieldFactory fieldFactory,
           Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider, SubclassProvider subclassProvider, ObjectCopier objectCopier, InstanceProvider instanceProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
-    this.fieldInterfacedFactory = fieldInterfacedFactory;
+    this.fieldFactory = fieldFactory;
     this.humanizer = humanizer;
     ConvertUtils.register(new IntegerConverter(null), Integer.class);
     ConvertUtils.register(new LongConverter(null), Long.class);
@@ -115,11 +96,11 @@ public class ReflectionHelper {
   }
 
 
-  public Object getValue(Field f, Object o) {
+  public Object getValue(java.lang.reflect.Field f, Object o) {
     return valueProvider.getValue(f, o);
   }
 
-  public void setValue(FieldInterfaced f, Object o, Object v)
+  public void setValue(Field f, Object o, Object v)
       throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
     valueWriter.setValue(f, o, v);
   }
@@ -129,11 +110,11 @@ public class ReflectionHelper {
     valueWriter.setValue(fn, o, v);
   }
 
-  public Object getValue(FieldInterfaced f, Object o, Object valueIfNull) {
+  public Object getValue(Field f, Object o, Object valueIfNull) {
     return valueProvider.getValue(f, o, valueIfNull);
   }
 
-  public Object getValue(FieldInterfaced f, Object o)
+  public Object getValue(Field f, Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     return valueProvider.getValue(f, o);
   }
@@ -160,11 +141,11 @@ public class ReflectionHelper {
 
 
 
-  public List<FieldInterfaced> getAllFields(Class c) {
+  public List<Field> getAllFields(Class c) {
     return allFieldsProvider.getAllFields(c);
   }
 
-  public List<FieldInterfaced> getAllFields(Method m) {
+  public List<Field> getAllFields(Method m) {
     return allFieldsProvider.getAllFields(m);
   }
 
@@ -173,28 +154,28 @@ public class ReflectionHelper {
     return idProvider.getId(model);
   }
 
-  public FieldInterfaced getIdField(Class type) {
+  public Field getIdField(Class type) {
     return idFieldProvider.getIdField(type);
   }
 
-  public Field getVersionField(Class c) {
+  public java.lang.reflect.Field getVersionField(Class c) {
     return versionFieldProvider.getVersionField(c);
   }
 
-  public FieldInterfaced getNameField(Class entityClass, boolean toStringPreferred) {
+  public Field getNameField(Class entityClass, boolean toStringPreferred) {
     return nameFieldProvider.getNameField(entityClass, toStringPreferred);
   }
 
-  public FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
+  public Field getFieldByName(Class sourceClass, String fieldName) {
     return fieldByNameProvider.getFieldByName(sourceClass, fieldName);
   }
 
-  public FieldInterfaced getMapper(FieldInterfaced field) {
+  public Field getMapper(Field field) {
     return mapperFieldProvider.getMapper(field);
   }
 
   public Class getGenericClass(
-      FieldInterfaced field, Class asClassOrInterface, String genericArgumentName) {
+          Field field, Class asClassOrInterface, String genericArgumentName) {
     return genericClassProvider.getGenericClass(field, asClassOrInterface, genericArgumentName);
   }
 
@@ -221,21 +202,21 @@ public class ReflectionHelper {
     return genericClassProvider.getGenericClass(parameterizedType, sourceClass, asClassOrInterface, genericArgumentName);
   }
 
-  public List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
+  public List<Field> getAllTransferrableFields(Class modelType) {
     return allTransferrableFieldsProvider.getAllTransferrableFields(modelType);
   }
 
-  public List<FieldInterfaced> getAllEditableFields(Class modelType) {
+  public List<Field> getAllEditableFields(Class modelType) {
     return allEditableFieldsProvider.getAllEditableFilteredFields(modelType, null, null);
   }
 
-  public List<FieldInterfaced> getAllEditableFields(
+  public List<Field> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers) {
     return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, null);
   }
 
-  public List<FieldInterfaced> getAllEditableFields(
-      Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
+  public List<Field> getAllEditableFields(
+      Class modelType, Class superType, boolean includeReverseMappers, Field field) {
     return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, field);
   }
 
@@ -277,29 +258,6 @@ public class ReflectionHelper {
           InvocationTargetException,
           NoSuchMethodException {
     return instanceProvider.newInstance(c, parent);
-  }
-
-
-
-  public String toJson(Object o) {
-    if (o == null) return null;
-    ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
-    try {
-      String json = ow.writeValueAsString(o);
-      return json;
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-
-  public Object fromJson(String json) {
-    try {
-      return mapper.reader().readValue(json);
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-      return null;
-    }
   }
 
   public boolean isOverridden(Object instance, String methodName) {

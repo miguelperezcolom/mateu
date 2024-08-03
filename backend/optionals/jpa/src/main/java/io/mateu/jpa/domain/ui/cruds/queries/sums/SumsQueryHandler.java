@@ -2,7 +2,7 @@ package io.mateu.jpa.domain.ui.cruds.queries.sums;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Sum;
 import io.mateu.core.domain.uidefinition.shared.data.SumData;
@@ -58,7 +58,7 @@ public class SumsQueryHandler {
         NumberFormat nf = new DecimalFormat("#,###,###,###,###,###,###.00");
 
         int pos = 1;
-        for (FieldInterfaced f : query.getSumFields()) {
+        for (Field f : query.getSumFields()) {
           String caption = humanizer.capitalize(f.getName());
           if (!caption.startsWith("Total")) caption = "Total " + caption;
           if (!Strings.isNullOrEmpty(f.getAnnotation(Sum.class).caption()))

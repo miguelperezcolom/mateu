@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.dtos.StatusType;
@@ -50,7 +50,7 @@ public class RowsQueryHandler {
     }
   }
 
-  private Map toMap(RowsQuery query, Object[] values, List<FieldInterfaced> columnFields) {
+  private Map toMap(RowsQuery query, Object[] values, List<Field> columnFields) {
     Map map = new HashMap();
     if (values != null) {
       for (int i = 0; i < values.length && i < columnFields.size() + 1; i++) {
@@ -60,7 +60,7 @@ public class RowsQueryHandler {
     return map;
   }
 
-  private Object toValue(Object value, FieldInterfaced field) {
+  private Object toValue(Object value, Field field) {
     if (value == null) {
       return null;
     }

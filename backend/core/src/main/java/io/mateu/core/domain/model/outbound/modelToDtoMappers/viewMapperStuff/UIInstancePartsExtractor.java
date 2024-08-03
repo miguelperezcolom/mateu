@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.FormMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
@@ -25,11 +25,11 @@ public class UIInstancePartsExtractor {
   final ReflectionHelper reflectionHelper;
 
   public List<UIInstancePart> getUiParts(
-      Object uiInstance, List<FieldInterfaced> fields, SlotName slot) throws Exception {
+          Object uiInstance, List<Field> fields, SlotName slot) throws Exception {
     List<UIInstancePart> parts = new ArrayList<>();
 
-    List<FieldInterfaced> partCandidates = new ArrayList<>();
-    List<FieldInterfaced> leftFields = new ArrayList<>();
+    List<Field> partCandidates = new ArrayList<>();
+    List<Field> leftFields = new ArrayList<>();
     fields.forEach(
         f -> {
           if (Crud.class.isAssignableFrom(f.getType())
@@ -42,7 +42,7 @@ public class UIInstancePartsExtractor {
           }
         });
 
-    for (FieldInterfaced f : partCandidates) {
+    for (Field f : partCandidates) {
       parts.add(buildPart(f, uiInstance));
     }
     if (leftFields.size() > 0) {
@@ -56,7 +56,7 @@ public class UIInstancePartsExtractor {
     return parts;
   }
 
-  private UIInstancePart buildPart(FieldInterfaced f, Object uiInstance) throws Exception {
+  private UIInstancePart buildPart(Field f, Object uiInstance) throws Exception {
     Object partInstance = reflectionHelper.getValue(f, uiInstance);
     if (formMetadataBuilder.isOwner(f)) {
       partInstance = jpaRpcCrudFactory.create(uiInstance, f);

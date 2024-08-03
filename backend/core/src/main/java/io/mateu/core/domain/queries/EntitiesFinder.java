@@ -1,7 +1,7 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.Value;
 import jakarta.persistence.EntityManager;
@@ -19,8 +19,8 @@ public class EntitiesFinder {
   @Autowired ReflectionHelper reflectionHelper;
 
   public List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize) {
-    FieldInterfaced idField = reflectionHelper.getIdField(entityClass);
-    FieldInterfaced nameField = reflectionHelper.getNameField(entityClass, false);
+    Field idField = reflectionHelper.getIdField(entityClass);
+    Field nameField = reflectionHelper.getNameField(entityClass, false);
     String jpql =
         "select x."
             + idField.getId()
@@ -49,7 +49,7 @@ public class EntitiesFinder {
   }
 
   public int countEntities(Class entityClass, String searchText) {
-    FieldInterfaced nameField = reflectionHelper.getNameField(entityClass, false);
+    Field nameField = reflectionHelper.getNameField(entityClass, false);
     String jpql = "select count(x) from " + entityClass.getName() + " x ";
     if (!Strings.isNullOrEmpty(searchText)) {
       jpql += " where lower(x." + nameField.getId() + ") like :s ";

@@ -1,7 +1,5 @@
 package io.mateu.core.domain.model.reflection;
 
-import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
-import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -10,16 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FieldInterfacedFromParameter implements FieldInterfaced {
+public class FieldFromParameter implements Field {
 
   private final Parameter p;
   private final Executable m;
-  private final FieldInterfacedFromParameter ff;
+  private final FieldFromParameter ff;
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
-  public FieldInterfacedFromParameter(
-          FieldInterfacedFromParameter f, Annotation a) {
+  public FieldFromParameter(
+          FieldFromParameter f, Annotation a) {
     this(f);
     extraAnnotations.add(a);
   }
@@ -32,13 +30,13 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
     return m;
   }
 
-  public FieldInterfacedFromParameter(
-      FieldInterfacedFromParameter f) {
+  public FieldFromParameter(
+      FieldFromParameter f) {
     this(f.getMethod(), f.getParameter());
   }
 
   @Override
-  public Field getField() {
+  public java.lang.reflect.Field getField() {
     return null;
   }
 
@@ -49,7 +47,7 @@ public class FieldInterfacedFromParameter implements FieldInterfaced {
         : p.getDeclaredAnnotationsByType(annotationClass);
   }
 
-  public FieldInterfacedFromParameter(
+  public FieldFromParameter(
       Executable m, Parameter f) {
     this.ff = null;
     this.p = f;

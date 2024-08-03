@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -37,7 +37,7 @@ public class ViewMetadataBuilder {
   @Autowired ReflectionHelper reflectionHelper;
 
   public ViewMetadata getMetadata(
-      String stepId, Object uiInstance, Object model, List<FieldInterfaced> slotFields) {
+      String stepId, Object uiInstance, Object model, List<Field> slotFields) {
     ViewMetadata metadata;
 
     if (uiInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
@@ -107,16 +107,16 @@ public class ViewMetadataBuilder {
   }
 
   private io.mateu.dtos.Stepper getStepper(
-      String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+      String stepId, Object uiInstance, List<Field> slotFields) {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
   private io.mateu.dtos.Card getCard(
-      String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+      String stepId, Object uiInstance, List<Field> slotFields) {
     return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private Form getForm(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+  private Form getForm(String stepId, Object uiInstance, List<Field> slotFields) {
     return formMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
@@ -125,7 +125,7 @@ public class ViewMetadataBuilder {
   }
 
   private void setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
-    FieldInterfaced idField = reflectionHelper.getIdField(uiInstance.getEntityClass());
+    Field idField = reflectionHelper.getIdField(uiInstance.getEntityClass());
     if (idField != null) {
       if (uiInstance.getData().containsKey(idField.getId())) {
         metadata

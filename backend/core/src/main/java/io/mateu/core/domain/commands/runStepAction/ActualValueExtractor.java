@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction;
 
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
@@ -90,7 +90,7 @@ public class ActualValueExtractor {
   }
 
   private boolean checkInjected(Object viewInstance, String fieldName) {
-    FieldInterfaced field = reflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
+    Field field = reflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
     return field != null
         && (field.isAnnotationPresent(Autowired.class) || Modifier.isFinal(field.getModifiers()));
   }
@@ -98,7 +98,7 @@ public class ActualValueExtractor {
   public Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance)
       throws Exception {
     Object targetValue = entry.getValue();
-    FieldInterfaced f = reflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
+    Field f = reflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
     if (f == null) {
       return targetValue;
     }
@@ -106,7 +106,7 @@ public class ActualValueExtractor {
       Object injectedValue = reflectionHelper.getValue(f, viewInstance);
       if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
         Map<String, Object> incomingValues = (Map<String, Object>) entry.getValue();
-        for (FieldInterfaced crudField :
+        for (Field crudField :
             reflectionHelper.getAllEditableFields(injectedValue.getClass())) {
           reflectionHelper.setValue(
               crudField, injectedValue, incomingValues.get(crudField.getId()));
@@ -313,7 +313,7 @@ public class ActualValueExtractor {
     return null;
   }
 
-  private Object toFile(FieldInterfaced f, Class<?> genericType, Map<String, Object> value) {
+  private Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
     Object targetValue = null;
     if (String.class.equals(genericType)) {
       try {

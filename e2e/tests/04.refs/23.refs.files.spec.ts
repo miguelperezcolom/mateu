@@ -12,9 +12,12 @@ test('file upload works', async ({ page }) => {
 
   await page.getByTestId('singleFileAsString').locator('#fileInput').setInputFiles('./tests/files/mateu1.jpg')
   await page.getByTestId('singleFileAsString').locator('#fileInput').blur()
+  await expect(page.getByTestId('singleFileAsString')).toContainText('mateu1.jpg')
 
   await page.getByTestId('filesAsStrings').locator('#fileInput').setInputFiles(['./tests/files/mateu2.jpg', './tests/files/mateu3.jpg'])
   await page.getByTestId('filesAsStrings').locator('#fileInput').blur()
+  await expect(page.getByTestId('filesAsStrings')).toContainText('mateu2.jpg')
+  await expect(page.getByTestId('filesAsStrings')).toContainText('mateu3.jpg')
 
   await page.getByTestId('action-component-0___assess').click()
 

@@ -1,12 +1,12 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SetterProvider {
 
-    public String getSetter(FieldInterfaced f) {
+    public String getSetter(Field f) {
         return getSetter(f.getType(), f.getName());
     }
 

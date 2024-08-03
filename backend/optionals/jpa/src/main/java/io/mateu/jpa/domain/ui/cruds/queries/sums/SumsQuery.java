@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.sums;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
 import io.mateu.dtos.SortCriteria;
@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SumsQuery extends Query {
 
-  private List<FieldInterfaced> sumFields;
+  private List<Field> sumFields;
 
   public SumsQuery(
       MDDOpenCRUDAction action,
@@ -29,9 +29,9 @@ public class SumsQuery extends Query {
       Map<String, String> aliasedColumnNames,
       List<String> columnNames,
       List<String> aliasedColumnNamesList,
-      List<FieldInterfaced> filterFields,
-      List<FieldInterfaced> sumFields,
-      List<FieldInterfaced> columnFields) {
+      List<Field> filterFields,
+      List<Field> sumFields,
+      List<Field> columnFields) {
     super(
         action,
         filters,
@@ -52,7 +52,7 @@ public class SumsQuery extends Query {
     this.sumFields = sumFields;
   }
 
-  public List<FieldInterfaced> getSumFields() {
+  public List<Field> getSumFields() {
     return sumFields;
   }
 }

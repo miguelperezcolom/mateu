@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
@@ -10,7 +10,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Column;
 import io.mateu.dtos.Crud;
-import io.mateu.dtos.Field;
 import io.mateu.dtos.SearchForm;
 import java.util.HashMap;
 import java.util.List;
@@ -60,9 +59,9 @@ public class CrudMetadataBuilder {
 
   private List<Column> buildColumns(Listing rpcView) {
     Class rowClass = rpcView.getRowClass();
-    Map<FieldInterfaced, String> columnIdsPerField = new HashMap<>();
-    Map<FieldInterfaced, String> columnCaptionsPerField = new HashMap<>();
-    List<FieldInterfaced> allRowFields = null;
+    Map<Field, String> columnIdsPerField = new HashMap<>();
+    Map<Field, String> columnCaptionsPerField = new HashMap<>();
+    List<Field> allRowFields = null;
     if (rpcView instanceof RpcCrudViewExtended) {
       allRowFields = ((RpcCrudViewExtended) rpcView).getColumnFieldNames();
       columnIdsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnIdsPerField());
@@ -83,14 +82,14 @@ public class CrudMetadataBuilder {
         .collect(Collectors.toList());
   }
 
-  private Column getColumn(String columnId, String columnCaption, FieldInterfaced fieldInterfaced) {
+  private Column getColumn(String columnId, String columnCaption, Field field) {
     return Column.builder()
         .id(columnId)
         .caption(columnCaption)
-        .type(fieldTypeMapper.mapColumnType(fieldInterfaced))
+        .type(fieldTypeMapper.mapColumnType(field))
         .stereotype("column")
         .attributes(List.of())
-        .width(fieldTypeMapper.getWidth(fieldInterfaced))
+        .width(fieldTypeMapper.getWidth(field))
         .build();
   }
 
@@ -98,16 +97,16 @@ public class CrudMetadataBuilder {
     return SearchForm.builder().fields(buildSearchFields(rpcView, listId)).build();
   }
 
-  private List<Field> buildSearchFields(Listing rpcView, String listId) {
+  private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {
     Class searchFormClass = rpcView.getSearchFormClass();
-    List<FieldInterfaced> allEditableFields =
+    List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(searchFormClass);
     if (rpcView instanceof RpcCrudViewExtended) {
       List<String> validFieldIds =
           ((RpcCrudViewExtended) rpcView)
               .getFilterFields().stream().map(f -> f.getId()).collect(Collectors.toList());
       if (validFieldIds.size() > 0) {
-        List<FieldInterfaced> finalAllEditableFields = allEditableFields;
+        List<Field> finalAllEditableFields = allEditableFields;
         allEditableFields =
             validFieldIds.stream()
                 .map(
@@ -121,7 +120,7 @@ public class CrudMetadataBuilder {
       }
     }
 
-    List<Field> filterFields =
+    List<io.mateu.dtos.Field> filterFields =
         allEditableFields.stream()
             .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
             .map(
@@ -134,7 +133,7 @@ public class CrudMetadataBuilder {
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
       filterFields.add(
           0,
-          Field.builder()
+          io.mateu.dtos.Field.builder()
               .id(listId + "-" + "_search-text")
               .placeholder("Search")
               .caption("Search")

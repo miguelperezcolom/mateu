@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +22,8 @@ public class AllTransferrableFieldsProvider {
         this.getterProvider = getterProvider;
     }
 
-    public List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
-        List<FieldInterfaced> allFields = allFieldsProvider.getAllFields(modelType);
+    public List<Field> getAllTransferrableFields(Class modelType) {
+        List<Field> allFields = allFieldsProvider.getAllFields(modelType);
 
         allFields = filterAccesible(allFields);
 
@@ -32,23 +32,23 @@ public class AllTransferrableFieldsProvider {
         return allFields;
     }
 
-    private List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
+    private List<Field> filterAccesible(List<Field> allFields) {
+        List<Field> r = new ArrayList<>();
+        for (Field f : allFields) {
             if (hasGetter(f)) r.add(f);
         }
         return r;
     }
 
-    private List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
-        List<FieldInterfaced> r = new ArrayList<>();
-        for (FieldInterfaced f : allFields) {
+    private List<Field> filterInjected(List<Field> allFields) {
+        List<Field> r = new ArrayList<>();
+        for (Field f : allFields) {
             if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
         }
         return r;
     }
 
-    public boolean hasGetter(FieldInterfaced f) {
+    public boolean hasGetter(Field f) {
         return methodProvider.getMethod(f.getDeclaringClass(), getterProvider.getGetter(f)) != null;
     }
 

@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.outbound.persistence.Merger;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -96,7 +96,7 @@ public class JourneyContainerService {
       if (actualInstance instanceof EntityEditor) {
         EntityEditor entityEditor = (EntityEditor) actualInstance;
         actualInstance = merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
-        FieldInterfaced listField =
+        Field listField =
             reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
         if (listField != null) {
           return jpaRpcCrudFactory.create(actualInstance, listField);
@@ -107,7 +107,7 @@ public class JourneyContainerService {
         Object instanceWithDeserializedValues =
             serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
         reflectionHelper.copy(instanceWithDeserializedValues, instanceFromSpringContext);
-        FieldInterfaced listField =
+        Field listField =
             reflectionHelper.getFieldByName(instanceFromSpringContext.getClass(), listId);
         if (listField != null) {
           return (Listing) reflectionHelper.getValue(listField, instanceFromSpringContext);
@@ -115,7 +115,7 @@ public class JourneyContainerService {
       } else {
         return (Listing) reflectionHelper.getValue(listId, actualInstance);
       }
-      FieldInterfaced listField =
+      Field listField =
           reflectionHelper.getFieldByName(actualInstance.getClass(), listId);
       if (listField != null) {
         rpcView = (Listing) reflectionHelper.newInstance(listField.getType());

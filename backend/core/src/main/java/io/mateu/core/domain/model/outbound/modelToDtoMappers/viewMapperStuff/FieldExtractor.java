@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import java.util.List;
@@ -14,7 +14,7 @@ public class FieldExtractor {
 
   final ReflectionHelper reflectionHelper;
 
-  public List<FieldInterfaced> getFields(Object uiInstance, SlotName slot) {
+  public List<Field> getFields(Object uiInstance, SlotName slot) {
     return reflectionHelper.getAllFields(uiInstance.getClass()).stream()
         .filter(f -> !f.isAnnotationPresent(Ignored.class))
         .filter(f -> !f.isAnnotationPresent(MenuOption.class))
@@ -23,7 +23,7 @@ public class FieldExtractor {
         .collect(Collectors.toList());
   }
 
-  private boolean checkField(FieldInterfaced field, SlotName slot) {
+  private boolean checkField(Field field, SlotName slot) {
     if (SlotName.left.equals(slot)
         || SlotName.right.equals(slot)
         || SlotName.header.equals(slot)

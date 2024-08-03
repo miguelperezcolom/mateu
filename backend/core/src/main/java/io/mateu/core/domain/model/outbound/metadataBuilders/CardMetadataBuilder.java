@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
@@ -25,7 +25,7 @@ public class CardMetadataBuilder {
   final CaptionProvider captionProvider;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+  public Card build(String stepId, Object uiInstance, List<Field> slotFields) {
     Card card =
         Card.builder()
             .title(captionProvider.getCaption(uiInstance))
@@ -81,12 +81,12 @@ public class CardMetadataBuilder {
   }
 
   private List<FieldGroup> getFieldGroups(
-      String stepId, Object uiInstance, List<FieldInterfaced> slotFields) {
+      String stepId, Object uiInstance, List<Field> slotFields) {
     List<FieldGroup> fieldGroups = new ArrayList<>();
     FieldGroup fieldGroup = null;
     FieldGroupLine fieldGroupLine = null;
 
-    List<FieldInterfaced> allEditableFields =
+    List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(
                 f ->
@@ -96,15 +96,15 @@ public class CardMetadataBuilder {
             .filter(f -> slotFields.contains(f))
             .filter(f -> !(uiInstance instanceof HasTotal) || !f.getName().equals("total"))
             .collect(Collectors.toList());
-    for (FieldInterfaced fieldInterfaced : allEditableFields) {
+    for (Field field : allEditableFields) {
       if (fieldGroup == null
-          || fieldInterfaced.isAnnotationPresent(
+          || field.isAnnotationPresent(
               io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
         String caption = "";
-        if (fieldInterfaced.isAnnotationPresent(
+        if (field.isAnnotationPresent(
             io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
           caption =
-              fieldInterfaced
+              field
                   .getAnnotation(
                       io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                   .value();
@@ -112,11 +112,11 @@ public class CardMetadataBuilder {
         fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
         fieldGroups.add(fieldGroup);
       }
-      if (fieldGroupLine == null || !fieldInterfaced.isAnnotationPresent(SameLine.class)) {
+      if (fieldGroupLine == null || !field.isAnnotationPresent(SameLine.class)) {
         fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
         fieldGroup.getLines().add(fieldGroupLine);
       }
-      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, fieldInterfaced));
+      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, field));
     }
 
     fillGroupIds(fieldGroups);

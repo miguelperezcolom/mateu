@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
@@ -36,7 +36,7 @@ public class MenuBuilder {
       Object menuHolder, String prefix, ServerHttpRequest serverHttpRequest) {
     List<Menu> l = new ArrayList<>();
 
-    for (FieldInterfaced f : reflectionHelper.getAllFields(menuHolder.getClass())) {
+    for (Field f : reflectionHelper.getAllFields(menuHolder.getClass())) {
 
       if (!Modifier.isPublic(f.getModifiers())) {
         f.getField().setAccessible(true);
@@ -157,8 +157,8 @@ public class MenuBuilder {
 
   @SneakyThrows
   private Object getValue(Object object, AnnotatedElement e) {
-    if (e instanceof FieldInterfaced) {
-      var field = (FieldInterfaced) e;
+    if (e instanceof Field) {
+      var field = (Field) e;
       Object value = reflectionHelper.getValue(field, object);
       if (value == null) {
         value = reflectionHelper.newInstance(field.getType());

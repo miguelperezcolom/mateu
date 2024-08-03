@@ -1,7 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -22,7 +22,7 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
   final ReflectionHelper reflectionHelper;
 
   @Override
-  public Listing create(Object parentEntity, FieldInterfaced field) throws Exception {
+  public Listing create(Object parentEntity, Field field) throws Exception {
     MDDOpenCRUDAction action = new MDDOpenCRUDAction(field.getGenericClass());
     if (field.isAnnotationPresent(OneToMany.class)
         && !Strings.isNullOrEmpty(field.getAnnotation(OneToMany.class).mappedBy())) {

@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
@@ -47,7 +47,7 @@ public class UIMapper {
   }
 
   public boolean isForm(Object uiInstance) {
-    for (FieldInterfaced field : reflectionHelper.getAllFields(uiInstance.getClass())) {
+    for (Field field : reflectionHelper.getAllFields(uiInstance.getClass())) {
       if (field.isAnnotationPresent(MenuOption.class) || field.isAnnotationPresent(Submenu.class)) {
         return false;
       }

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
-import io.mateu.core.domain.model.reflection.FieldInterfacedFromType;
+import io.mateu.core.domain.model.reflection.Field;
+import io.mateu.core.domain.model.reflection.FieldFromType;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.data.Pair;
@@ -58,20 +58,20 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   private MDDOpenCRUDAction action;
   @JsonIgnore private Map<String, String> aliasedColumnNamesByColId = new HashMap<>();
   @JsonIgnore private List<String> columnNames = new ArrayList<>();
-  @JsonIgnore private Map<String, FieldInterfaced> fieldsByColumnName = new HashMap<>();
+  @JsonIgnore private Map<String, Field> fieldsByColumnName = new HashMap<>();
   @JsonIgnore private List<String> filterNames = new ArrayList<>();
-  @JsonIgnore private Map<String, FieldInterfaced> fieldsByFilterName = new HashMap<>();
+  @JsonIgnore private Map<String, Field> fieldsByFilterName = new HashMap<>();
   @JsonIgnore private List<String> columnFieldNames = new ArrayList<>();
   @JsonIgnore private List<String> visibleColumns = new ArrayList<>();
-  @JsonIgnore private List<FieldInterfaced> filterFields = new ArrayList<>();
+  @JsonIgnore private List<Field> filterFields = new ArrayList<>();
   @JsonIgnore private List<String> aliasedColumnNamesList = new ArrayList<>();
   @JsonIgnore private List<String> columnIds = new ArrayList<>();
-  @JsonIgnore private Map<String, FieldInterfaced> fieldsByAliasedColumnName = new HashMap<>();
-  @JsonIgnore private Map<String, FieldInterfaced> fieldsByColId = new HashMap<>();
+  @JsonIgnore private Map<String, Field> fieldsByAliasedColumnName = new HashMap<>();
+  @JsonIgnore private Map<String, Field> fieldsByColId = new HashMap<>();
   @JsonIgnore private Map<String, String> alias = new HashMap<>();
   @JsonIgnore private Map<String, String> aliasedColumnNames = new HashMap<>();
-  @JsonIgnore private List<FieldInterfaced> sumFields = new ArrayList<>();
-  @JsonIgnore private List<FieldInterfaced> columnFields = new ArrayList<>();
+  @JsonIgnore private List<Field> sumFields = new ArrayList<>();
+  @JsonIgnore private List<Field> columnFields = new ArrayList<>();
   @JsonIgnore private List<SumData> sums = new ArrayList<>();
 
   @JsonIgnore String selectColumnsForCount;
@@ -128,7 +128,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             .collect(Collectors.toList());
 
     String ql = "count(x)";
-    for (FieldInterfaced f : sumFields) {
+    for (Field f : sumFields) {
       if (!"".equals(ql)) ql += ", ";
       ql += " sum(x." + f.getName() + ") ";
     }
@@ -280,8 +280,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore
   @Override
-  public Map<FieldInterfaced, String> getColumnIdsPerField() {
-    Map<FieldInterfaced, String> map = new HashMap<>();
+  public Map<Field, String> getColumnIdsPerField() {
+    Map<Field, String> map = new HashMap<>();
     fieldsByColId.entrySet().stream()
         .filter(f -> !map.containsKey(f.getValue()))
         .forEach(e -> map.put(e.getValue(), e.getKey()));
@@ -290,12 +290,12 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore
   @Override
-  public Map<FieldInterfaced, String> getColumnCaptionsPerField() {
+  public Map<Field, String> getColumnCaptionsPerField() {
     return columnNames.stream()
         .filter(n -> n.contains("."))
         .map(n -> new Pair(n, fieldsByColumnName.get(n)))
         .map(p -> new Pair(humanizer.capitalize((String) p.getKey()), p.getValue()))
-        .collect(Collectors.toMap(p -> (FieldInterfaced) p.getValue(), p -> (String) p.getKey()));
+        .collect(Collectors.toMap(p -> (Field) p.getValue(), p -> (String) p.getKey()));
   }
 
   @JsonIgnore
@@ -317,16 +317,16 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   private void createAliases(
       Class sourceType,
       List<String> paths,
-      Map<String, FieldInterfaced> fieldsByPath,
+      Map<String, Field> fieldsByPath,
       Map<String, String> alias,
       Map<String, String> aliasedColumnNames,
       List<String> aliasedColumnNamesList) {
     for (String path : paths) {
-      FieldInterfaced f = fieldsByPath.get(path);
+      Field f = fieldsByPath.get(path);
       String p = path;
-      FieldInterfaced fx = f;
+      Field fx = f;
       Class type = sourceType;
-      FieldInterfaced f0 = null;
+      Field f0 = null;
       String pathAcumulado = "x";
       while (!Strings.isNullOrEmpty(p)) {
         String s = p;
@@ -361,9 +361,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       Class targetType,
       String useColumns,
       List<String> columnNames,
-      Map<String, FieldInterfaced> fieldsByColumnName) {
-    FieldInterfaced idField = null;
-    for (FieldInterfaced f : reflectionHelper.getAllFields(targetType)) {
+      Map<String, Field> fieldsByColumnName) {
+    Field idField = null;
+    for (Field f : reflectionHelper.getAllFields(targetType)) {
       if (f.isAnnotationPresent(Id.class)) idField = f;
     }
     if (idField != null) columnNames.add(0, idField.getName());
@@ -372,14 +372,14 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @JsonIgnore
-  public List<FieldInterfaced> getColumnFields(
+  public List<Field> getColumnFields(
       Class objectType,
       boolean forGrid,
       String fieldsFilter,
       List<String> columNames,
-      Map<String, FieldInterfaced> fieldsByColumnName) {
+      Map<String, Field> fieldsByColumnName) {
 
-    List<FieldInterfaced> explicitColumns = null;
+    List<Field> explicitColumns = null;
 
     if (Strings.isNullOrEmpty(fieldsFilter)) {
 
@@ -419,7 +419,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           fns.stream()
               .map(
                   n -> {
-                    FieldInterfaced f = reflectionHelper.getFieldByName(objectType, n);
+                    Field f = reflectionHelper.getFieldByName(objectType, n);
                     if (columNames != null && fieldsByColumnName != null) {
                       columNames.add(n);
                       fieldsByColumnName.put(n, f);
@@ -434,7 +434,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       return explicitColumns;
     } else {
 
-      List<FieldInterfaced> cols =
+      List<Field> cols =
           reflectionHelper.getAllFields(objectType).stream()
               .filter(
                   (f) ->
@@ -484,7 +484,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore
   @Override
-  public List<FieldInterfaced> getFilterFields() {
+  public List<Field> getFilterFields() {
     return getFilterFields(action.getEntityClass());
   }
 
@@ -495,10 +495,10 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @JsonIgnore
-  public List<FieldInterfaced> getFilterFields(Class filtersType) {
+  public List<Field> getFilterFields(Class filtersType) {
     if (Strings.isNullOrEmpty(action.getFilters())) {
 
-      List<FieldInterfaced> filterFields =
+      List<Field> filterFields =
           reflectionHelper.getAllFields(filtersType).stream()
               .filter(
                   (f) ->
@@ -532,7 +532,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       }
 
       var searchTextField =
-          new FieldInterfacedFromType(String.class, "_search-text", reflectionHelper);
+          new FieldFromType(String.class, "_search-text", reflectionHelper);
       filterFields.add(0, searchTextField);
 
       filterFields.forEach(
@@ -547,11 +547,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
       List<String> fns = Lists.newArrayList(action.getFilters().replaceAll(" ", "").split(","));
 
-      List<FieldInterfaced> filterFields =
+      List<Field> filterFields =
           fns.stream()
               .map(
                   n -> {
-                    FieldInterfaced f = reflectionHelper.getFieldByName(filtersType, n);
+                    Field f = reflectionHelper.getFieldByName(filtersType, n);
                     if (f != null) {
                       filterNames.add(n);
                       fieldsByFilterName.put(n, f);
@@ -562,7 +562,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               .collect(Collectors.toList());
 
       var searchTextField =
-          new FieldInterfacedFromType(String.class, "_search-text", reflectionHelper);
+          new FieldFromType(String.class, "_search-text", reflectionHelper);
       filterFields.add(0, searchTextField);
 
       filterFields.forEach(
@@ -588,7 +588,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @JsonIgnore
-  public List<FieldInterfaced> getColumnFieldNames() {
+  public List<Field> getColumnFieldNames() {
     return visibleColumns.stream()
         .map(fn -> fieldsByColumnName.get(fn))
         .collect(Collectors.toList());

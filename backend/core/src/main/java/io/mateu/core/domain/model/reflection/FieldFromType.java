@@ -4,34 +4,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
-import java.util.Collection;
 
-public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
+public class FieldFromType implements Field {
 
   @ManyToOne private final Class type;
   private final String name;
-  private final FieldInterfaced collectionField;
-  private final Object value;
-
   private final ReflectionHelper reflectionHelper;
 
-  public FieldInterfacedForCheckboxColumn(
-      String name,
-      FieldInterfaced collectionField,
-      Object value,
-      ReflectionHelper reflectionHelper) {
-    this.type = boolean.class;
+  public FieldFromType(Class type, String name, ReflectionHelper reflectionHelper) {
+    this.type = type;
     this.name = name;
-    this.collectionField = collectionField;
-    this.value = value;
     this.reflectionHelper = reflectionHelper;
   }
 
   @Override
-  public Field getField() {
+  public java.lang.reflect.Field getField() {
     return null;
   }
 
@@ -115,18 +104,25 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   }
 
   @Override
+  public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+    return Field.super.getAnnotationsByType(annotationClass);
+  }
+
+  @Override
+  public <T extends Annotation> T getDeclaredAnnotation(Class<T> annotationClass) {
+    return Field.super.getDeclaredAnnotation(annotationClass);
+  }
+
+  @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ((Collection) reflectionHelper.getValue(collectionField, o)).contains(value);
+    return reflectionHelper.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    Collection col = (Collection) reflectionHelper.getValue(collectionField, o);
-    if (((Boolean) v)) {
-      if (!col.contains(value)) col.add(value);
-    }
+    reflectionHelper.setValue(this, o, v);
   }
 
   @Override
@@ -152,9 +148,5 @@ public class FieldInterfacedForCheckboxColumn implements FieldInterfaced {
   @Override
   public boolean equals(Object obj) {
     return this == obj || (obj != null && hashCode() == obj.hashCode());
-  }
-
-  public String getValueForColumn() {
-    return value.toString();
   }
 }

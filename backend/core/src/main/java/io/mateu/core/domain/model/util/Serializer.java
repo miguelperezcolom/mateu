@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
@@ -94,7 +94,7 @@ public class Serializer {
             (Map<String, Object>) e.getValue(), reflectionHelper.getValue(e.getKey(), o));
       }
     }
-    for (FieldInterfaced f : reflectionHelper.getAllFields(o.getClass())) {
+    for (Field f : reflectionHelper.getAllFields(o.getClass())) {
       if (data.containsKey(f.getName())
           && f.isAnnotationPresent(Attribute.class)
           && !Strings.isNullOrEmpty(f.getAnnotation(Attribute.class).value())) {
@@ -163,7 +163,7 @@ public class Serializer {
       }
       Element e = new Element(o.getClass().getSimpleName());
       e.setAttribute("className", o.getClass().getName());
-      for (FieldInterfaced f : reflectionHelper.getAllFields(o.getClass())) {
+      for (Field f : reflectionHelper.getAllFields(o.getClass())) {
         try {
           Object i = reflectionHelper.getValue(f, o);
 
@@ -202,7 +202,7 @@ public class Serializer {
             && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
           o = reflectionHelper.newInstance(Class.forName(root.getAttributeValue("className")));
 
-          for (FieldInterfaced f : reflectionHelper.getAllFields(o.getClass())) {
+          for (Field f : reflectionHelper.getAllFields(o.getClass())) {
             try {
               String sv = root.getAttributeValue(f.getId());
 

@@ -2,7 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.util.Serializer;
@@ -41,7 +41,7 @@ public class FieldEditorActionRunner implements ActionRunner {
     }
     String fieldId = actionId.substring("__editfield__".length());
 
-    FieldInterfaced field = reflectionHelper.getFieldByName(viewInstance.getClass(), fieldId);
+    Field field = reflectionHelper.getFieldByName(viewInstance.getClass(), fieldId);
 
     Object targetValue = reflectionHelper.getValue(field, viewInstance);
 

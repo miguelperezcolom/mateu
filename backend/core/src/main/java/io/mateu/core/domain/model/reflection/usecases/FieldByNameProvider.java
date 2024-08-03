@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,10 +12,10 @@ public class FieldByNameProvider {
         this.allFieldsProvider = allFieldsProvider;
     }
 
-    public FieldInterfaced getFieldByName(Class sourceClass, String fieldName) {
-        FieldInterfaced field = null;
+    public Field getFieldByName(Class sourceClass, String fieldName) {
+        Field field = null;
         String fn = fieldName.split("\\.")[0];
-        for (FieldInterfaced f : allFieldsProvider.getAllFields(sourceClass)) {
+        for (Field f : allFieldsProvider.getAllFields(sourceClass)) {
             if (fn.equals(f.getName())) {
                 if (fn.equals(fieldName)) {
                     field = f;

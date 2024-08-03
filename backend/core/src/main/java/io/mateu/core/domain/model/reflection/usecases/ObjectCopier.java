@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
-import io.mateu.core.domain.model.reflection.FieldInterfaced;
+import io.mateu.core.domain.model.reflection.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,14 +29,14 @@ public class ObjectCopier {
     public void copy(Object from, Object to) {
         if (from != null && to != null) {
             if (from.getClass().equals(to.getClass())) {
-                for (FieldInterfaced f : allTransferrableFieldsProvider.getAllTransferrableFields(to.getClass())) {
+                for (Field f : allTransferrableFieldsProvider.getAllTransferrableFields(to.getClass())) {
                     try {
                         valueWriter.setValue(f, to, valueProvider.getValue(f, from));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-                for (FieldInterfaced f : getAllInjectedFields(to.getClass())) {
+                for (Field f : getAllInjectedFields(to.getClass())) {
                     try {
                         copy(valueProvider.getValue(f, from), valueProvider.getValue(f, to));
                     } catch (Exception e) {
@@ -44,9 +44,9 @@ public class ObjectCopier {
                     }
                 }
             } else {
-                for (FieldInterfaced f2 : allTransferrableFieldsProvider.getAllTransferrableFields(to.getClass())) {
+                for (Field f2 : allTransferrableFieldsProvider.getAllTransferrableFields(to.getClass())) {
                     try {
-                        FieldInterfaced f1 = fieldByNameProvider.getFieldByName(from.getClass(), f2.getName());
+                        Field f1 = fieldByNameProvider.getFieldByName(from.getClass(), f2.getName());
                         if (f1 != null && f1.getType().equals(f2.getType()))
                             valueWriter.setValue(f2, to, valueProvider.getValue(f1, from));
                     } catch (Exception e) {
@@ -58,10 +58,10 @@ public class ObjectCopier {
     }
 
 
-    private List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
-        List<FieldInterfaced> r = new ArrayList<>();
+    private List<Field> getAllInjectedFields(Class<?> type) {
+        List<Field> r = new ArrayList<>();
         var allFields = allFieldsProvider.getAllFields(type);
-        for (FieldInterfaced f : allFields) {
+        for (Field f : allFields) {
             if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
         }
         return r;
