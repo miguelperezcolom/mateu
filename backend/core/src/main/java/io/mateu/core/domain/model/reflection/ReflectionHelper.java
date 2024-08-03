@@ -61,6 +61,8 @@ public class ReflectionHelper {
   private final MapperFieldProvider mapperFieldProvider;
   private final GenericClassProvider genericClassProvider;
   private final TypeProvider typeProvider;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final AllTransferrableFieldsProvider allTransferrableFieldsProvider;
 
   Map<Class, List<FieldInterfaced>> allFieldsCache = new HashMap<>();
   Map<Class, List<Method>> allMethodsCache = new HashMap<>();
@@ -72,7 +74,7 @@ public class ReflectionHelper {
           ValueProvider valueProvider, BasicTypeChecker basicTypeChecker, Translator translator,
           MateuConfiguratorBean beanProvider,
           FieldInterfacedFactory fieldInterfacedFactory,
-          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider) {
+          Humanizer humanizer, GetterProvider getterProvider, SetterProvider setterProvider, ValueWriter valueWriter, FieldByNameProvider fieldByNameProvider, AllFieldsProvider allFieldsProvider, MethodProvider methodProvider, AllMethodsProvider allMethodsProvider, IdFieldProvider idFieldProvider, IdProvider idProvider, VersionFieldProvider versionFieldProvider, NameFieldProvider nameFieldProvider, MapperFieldProvider mapperFieldProvider, GenericClassProvider genericClassProvider, TypeProvider typeProvider, AllEditableFieldsProvider allEditableFieldsProvider, AllTransferrableFieldsProvider allTransferrableFieldsProvider) {
       this.valueProvider = valueProvider;
       this.basicTypeChecker = basicTypeChecker;
       this.translator = translator;
@@ -98,6 +100,8 @@ public class ReflectionHelper {
     this.mapperFieldProvider = mapperFieldProvider;
     this.genericClassProvider = genericClassProvider;
     this.typeProvider = typeProvider;
+    this.allEditableFieldsProvider = allEditableFieldsProvider;
+    this.allTransferrableFieldsProvider = allTransferrableFieldsProvider;
   }
 
   public boolean isBasic(Class c) {
@@ -148,22 +152,6 @@ public class ReflectionHelper {
     return methodProvider.getMethod(c, methodName);
   }
 
-  public String getGetter(FieldInterfaced f) {
-    return getterProvider.getGetter(f);
-  }
-
-  public String getGetter(Class c, String fieldName) {
-    return getterProvider.getGetter(c, fieldName);
-  }
-
-  public String getGetter(String fn) {
-    return getterProvider.getGetter(fn);
-  }
-
-  public String getSetter(FieldInterfaced f) {
-    return setterProvider.getSetter(f);
-  }
-
   public List<Method> getAllMethods(Class c) {
     return allMethodsProvider.getAllMethods(c);
   }
@@ -172,14 +160,6 @@ public class ReflectionHelper {
 
   public List<FieldInterfaced> getAllFields(Class c) {
     return allFieldsProvider.getAllFields(c);
-  }
-
-  public boolean hasGetter(FieldInterfaced f) {
-    return getMethod(f.getDeclaringClass(), getGetter(f)) != null;
-  }
-
-  public boolean hasSetter(FieldInterfaced f) {
-    return getMethod(f.getDeclaringClass(), getSetter(f)) != null;
   }
 
   public List<FieldInterfaced> getAllFields(Method m) {
@@ -239,61 +219,8 @@ public class ReflectionHelper {
     return genericClassProvider.getGenericClass(parameterizedType, sourceClass, asClassOrInterface, genericArgumentName);
   }
 
-  public <T> T fillQueryResult(List<FieldInterfaced> fields, Object[] o, T t)
-      throws IllegalAccessException,
-          InstantiationException,
-          NoSuchMethodException,
-          InvocationTargetException {
-    int pos = 0;
-    for (FieldInterfaced f : fields) {
-      if (pos < o.length) {
-        if (o[pos] != null) {
-          if (f instanceof FieldInterfacedFromField) f.getField().set(t, o[pos]);
-          else set(t, f, o[pos]);
-        }
-      } else break;
-      pos++;
-    }
-    return t;
-  }
-
-  private void set(Object o, FieldInterfaced f, Object v)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    Method m = null;
-    try {
-      m = o.getClass().getMethod(getSetter(f), v.getClass());
-    } catch (Exception e) {
-    }
-    if (m == null) m = getMethod(o.getClass(), getSetter(f));
-    if (m != null) {
-      try {
-        m.invoke(o, v);
-      } catch (Exception e) {
-        log.error("Exception when setting value " + v + " for field " + f.getName());
-        throw e;
-      }
-    }
-  }
-
-  public List<FieldInterfaced> getKpiFields(Class modelType) {
-    List<FieldInterfaced> allFields = getAllFields(modelType);
-
-    allFields =
-        allFields.stream()
-            .filter((f) -> f.isAnnotationPresent(KPI.class))
-            .collect(Collectors.toList());
-
-    return allFields;
-  }
-
   public List<FieldInterfaced> getAllTransferrableFields(Class modelType) {
-    List<FieldInterfaced> allFields = getAllFields(modelType);
-
-    allFields = filterAccesible(allFields);
-
-    allFields = filterInjected(allFields);
-
-    return allFields;
+    return allTransferrableFieldsProvider.getAllTransferrableFields(modelType);
   }
 
   public List<FieldInterfaced> getAllEditableFields(Class modelType) {
@@ -320,119 +247,16 @@ public class ReflectionHelper {
 
   public List<FieldInterfaced> getAllEditableFields(
       Class modelType, Class superType, boolean includeReverseMappers, FieldInterfaced field) {
-    List<FieldInterfaced> allFields = getAllFields(modelType);
-
-    if (field != null && field.isAnnotationPresent(FieldsFilter.class)) {
-
-      List<String> fns = Arrays.asList(field.getAnnotation(FieldsFilter.class).value().split(","));
-
-      List<FieldInterfaced> borrar = new ArrayList<>();
-      for (FieldInterfaced f : allFields) {
-        if (!fns.contains(f.getName())) {
-          borrar.add(f);
-        }
-      }
-      allFields.removeAll(borrar);
-    }
-
-    allFields = filterAccesible(allFields);
-
-    allFields = filterMenuFields(allFields);
-
-    allFields = filterInjected(allFields);
-
-    // todo: ver como resolvemos esto
-    boolean isEditingNewRecord = false;
-
-    allFields =
-        allFields.stream()
-            .filter(
-                (f) ->
-                    !(f.isAnnotationPresent(Version.class)
-                        || f.isAnnotationPresent(Ignored.class)
-                        || f.isAnnotationPresent(KPI.class)
-                        || f.isAnnotationPresent(NotInEditor.class)
-                        || (f.isAnnotationPresent(Id.class)
-                            && f.isAnnotationPresent(GeneratedValue.class))
-                        || (f.isAnnotationPresent(NotWhenCreating.class) && isEditingNewRecord)
-                        || (f.isAnnotationPresent(NotWhenEditing.class) && !isEditingNewRecord)))
-            .collect(Collectors.toList());
-
-    if (superType != null && !includeReverseMappers) {
-
-      List<FieldInterfaced> manytoones =
-          allFields.stream()
-              .filter(f -> f.isAnnotationPresent(ManyToOne.class))
-              .collect(Collectors.toList());
-
-      for (FieldInterfaced manytoonefield : manytoones)
-        if (superType.equals(manytoonefield.getType())) {
-
-          for (FieldInterfaced parentField : getAllFields(manytoonefield.getType())) {
-            // quitamos el campo mappedBy de las columnas, ya que se supone que siempre seremos
-            // nosotros
-            OneToMany aa;
-            if ((aa = parentField.getAnnotation(OneToMany.class)) != null) {
-
-              String mb = parentField.getAnnotation(OneToMany.class).mappedBy();
-
-              if (!Strings.isNullOrEmpty(mb)) {
-                FieldInterfaced mbf = null;
-                for (FieldInterfaced f : allFields) {
-                  if (f.getName().equals(mb)) {
-                    mbf = f;
-                    break;
-                  }
-                }
-                if (mbf != null) {
-                  allFields.remove(mbf);
-                  break;
-                }
-              }
-            }
-          }
-        }
-    }
-
-    for (FieldInterfaced f : new ArrayList<>(allFields))
-      if (f.isAnnotationPresent(Position.class)) {
-        allFields.remove(f);
-        allFields.add(f.getAnnotation(Position.class).value(), f);
-      }
-
-    return allFields;
+    return allEditableFieldsProvider.getAllEditableFields(modelType, superType, includeReverseMappers, field);
   }
 
-  private List<FieldInterfaced> filterMenuFields(List<FieldInterfaced> allFields) {
-    List<FieldInterfaced> r = new ArrayList<>();
-    for (FieldInterfaced f : allFields) {
-      if (!f.isAnnotationPresent(MenuOption.class) && !f.isAnnotationPresent(Submenu.class))
-        r.add(f);
-    }
-    return r;
-  }
 
-  private List<FieldInterfaced> filterInjected(List<FieldInterfaced> allFields) {
-    List<FieldInterfaced> r = new ArrayList<>();
-    for (FieldInterfaced f : allFields) {
-      if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
-    }
-    return r;
-  }
 
   private List<FieldInterfaced> getAllInjectedFields(Class<?> type) {
     List<FieldInterfaced> r = new ArrayList<>();
     var allFields = getAllFields(type);
     for (FieldInterfaced f : allFields) {
       if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
-    }
-    return r;
-  }
-
-  private List<FieldInterfaced> filterAccesible(List<FieldInterfaced> allFields) {
-    List<FieldInterfaced> r = new ArrayList<>();
-    for (FieldInterfaced f : allFields) {
-      if (hasGetter(f)) r.add(f);
     }
     return r;
   }
