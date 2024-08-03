@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
+import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -38,8 +39,9 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class ReflectionHelper extends BaseReflectionHelper {
+public class ReflectionHelper {
 
+  final BasicTypeChecker basicTypeChecker;
   final Translator translator;
   final MateuConfiguratorBean beanProvider;
   final FieldInterfacedFactory fieldInterfacedFactory;
@@ -52,11 +54,12 @@ public class ReflectionHelper extends BaseReflectionHelper {
   private ObjectMapper mapper = new ObjectMapper();
 
   public ReflectionHelper(
-      Translator translator,
-      MateuConfiguratorBean beanProvider,
-      FieldInterfacedFactory fieldInterfacedFactory,
-      Humanizer humanizer) {
-    this.translator = translator;
+          BasicTypeChecker basicTypeChecker, Translator translator,
+          MateuConfiguratorBean beanProvider,
+          FieldInterfacedFactory fieldInterfacedFactory,
+          Humanizer humanizer) {
+      this.basicTypeChecker = basicTypeChecker;
+      this.translator = translator;
     this.beanProvider = beanProvider;
     this.fieldInterfacedFactory = fieldInterfacedFactory;
     this.humanizer = humanizer;
@@ -66,6 +69,15 @@ public class ReflectionHelper extends BaseReflectionHelper {
     ConvertUtils.register(new BooleanConverter(null), Boolean.class);
     ConvertUtils.register(new MiURLConverter(), URL.class);
   }
+
+  public boolean isBasic(Class c) {
+    return basicTypeChecker.isBasic(c);
+  }
+
+  public boolean isBasic(Object o) {
+    return basicTypeChecker.isBasic(o);
+  }
+
 
   public Object getValue(Field f, Object o) {
     if (f == null) {
@@ -1872,7 +1884,7 @@ public class ReflectionHelper extends BaseReflectionHelper {
                   + humanizer.capitalize(f.getName())
                   + ":</td><td>");
           if (i != null) {
-            if (isBasic(i)) {
+            if (basicTypeChecker.isBasic(i)) {
               pw.print("" + i);
             } else {
               // todo: añadir casos collection y map

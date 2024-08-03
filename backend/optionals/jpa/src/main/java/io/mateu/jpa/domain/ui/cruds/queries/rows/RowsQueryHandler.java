@@ -68,7 +68,7 @@ public class RowsQueryHandler {
       Status statusAnnotation = field.getAnnotation(Status.class);
       return new io.mateu.dtos.Status(getStatusType(statusAnnotation, "" + value), "" + value);
     }
-    if (ReflectionHelper.isBasic(value.getClass())) {
+    if (reflectionHelper.isBasic(value.getClass())) {
       return value;
     }
     return "" + value;

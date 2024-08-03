@@ -22,7 +22,7 @@ test('wizard work', async ({ page }) => {
   await page.getByRole('button', { name: 'Go to next page' }).click()
   await expect(page.locator('h2', { hasText: 'Wizard page 3' })).toBeVisible()
   await page.getByRole('button', { name: 'End' }).click()
-  await expect(page.getByRole('heading', { name: 'Null , student , mateu , 15' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'null, Student, Mateu, 15' })).toBeVisible()
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page.locator('h2', { hasText: 'Wizard page 3' })).toBeVisible()
 

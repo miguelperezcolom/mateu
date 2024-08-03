@@ -4,9 +4,11 @@ import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
-@Data
+@Getter@Setter
 public class HasInitMethodForm implements HasInitMethod {
 
   private String someText;
@@ -32,12 +34,6 @@ public class HasInitMethodForm implements HasInitMethod {
     }
     txt += serverHttpRequest.getPath();
     return txt;
-  }
-
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName();
   }
 
   @Override

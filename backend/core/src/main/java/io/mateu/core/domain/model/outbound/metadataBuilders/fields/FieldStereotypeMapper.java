@@ -103,7 +103,7 @@ public class FieldStereotypeMapper {
       return "element:" + field.getType().getAnnotation(Element.class).value();
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && !ReflectionHelper.isBasic(field.getGenericClass())
+        && !reflectionHelper.isBasic(field.getGenericClass())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
       return "crud";

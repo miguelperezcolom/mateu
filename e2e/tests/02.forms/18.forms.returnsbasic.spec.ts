@@ -13,7 +13,7 @@ test('returns basic work', async ({ page }) => {
   await page.getByLabel('Age').fill('15')
   await page.getByLabel('Other save options').locator('svg').hover()
   await page.getByRole('option', { name: 'Say hello' }).locator('div').click()
-  await expect(page.getByText('Hello mateu , aged 15')).toBeVisible()
+  await expect(page.getByText('Hello mateu, aged 15')).toBeVisible()
   await page.getByRole('button', { name: 'Back' }).click()
 
 

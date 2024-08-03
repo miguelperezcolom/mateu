@@ -3,9 +3,11 @@ package com.example.demo.infra.ui.menus.forms;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
-@Data
+@Getter@Setter
 public class ActionsWithParametersForm {
 
   private String someText;
@@ -48,8 +50,4 @@ public class ActionsWithParametersForm {
     this.someValue = age;
   }
 
-  @Override
-  public String toString() {
-    return getClass().getSimpleName();
-  }
 }

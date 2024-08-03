@@ -12,6 +12,7 @@ test('action is called on file upload', async ({ page }) => {
 
   await page.getByTestId('uploadFile').locator('#fileInput').setInputFiles('./tests/files/mateu.jpg')
   await page.getByTestId('uploadFile').locator('#fileInput').blur()
+  await expect(page.getByTestId('uploadFile')).toContainText('mateu.jpg')
 
   await expect(page.getByLabel('Assessment')).toContainText('mateu.jpg')
 

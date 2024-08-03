@@ -54,8 +54,6 @@ public class DemoFileStorageService implements StorageService {
               log.info("receiving file " + part.filename());
               try {
                 Files.createDirectories(this.root.resolve(cleanFileId));
-                // Files.copy(part.getInputStream(), this.root.resolve(fileId + File.separator +
-                // part.getOriginalFilename()));
               } catch (Exception e) {
                 if (e instanceof FileAlreadyExistsException) {
                   throw new RuntimeException("A file of that name already exists.");
