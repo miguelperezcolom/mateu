@@ -189,8 +189,7 @@ export class JourneyStarter extends LitElement {
 
     async closeModal() {
         this.modalOpened = false
-        await this.service.goToStep(this.stepId!)
-    }
+        }
 
 
     async _goBack() {

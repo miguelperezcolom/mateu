@@ -66,7 +66,6 @@ public class ActionTargetForm {
     @SneakyThrows
     @MainAction(target = ActionTarget.NewWindow, order = 5)
     URL window() {
-        exit(0);
         return new URL("https://www.google.es");
     }
 
