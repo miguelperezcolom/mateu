@@ -4,6 +4,8 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.LabelFieldForLists;
 import jakarta.persistence.Id;
 import java.lang.reflect.Method;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +19,7 @@ public class NameFieldProvider {
     this.allFieldsProvider = allFieldsProvider;
   }
 
+  @Cacheable(value = "name-field-in-class")
   public Field getNameField(Class entityClass, boolean toStringPreferred) {
     Field fName = null;
     Method toStringMethod = methodProvider.getMethod(entityClass, "toString");

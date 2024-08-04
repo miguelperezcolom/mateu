@@ -6,6 +6,8 @@ import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +19,7 @@ public class GenericClassProvider {
     this.typeProvider = typeProvider;
   }
 
+  @Cacheable(value = "generic-class-per-class")
   public Class<?> getGenericClass(Class type) {
     Class<?> gc = null;
     if (type.getGenericInterfaces() != null)
@@ -32,6 +35,7 @@ public class GenericClassProvider {
     return gc;
   }
 
+  @Cacheable(value = "generic-class-per-method")
   public Class<?> getGenericClass(Method m) {
     Type gi = m.getGenericReturnType();
     Class<?> gc = null;
@@ -44,6 +48,7 @@ public class GenericClassProvider {
     return gc;
   }
 
+  @Cacheable(value = "generic-class-per-type")
   public Class<?> getGenericClass(Type type) {
     Class<?> gc = null;
     if (type instanceof ParameterizedType) {
@@ -55,6 +60,7 @@ public class GenericClassProvider {
     return gc;
   }
 
+  @Cacheable(value = "generic-class-per-field")
   public Class getGenericClass(Field field, Class asClassOrInterface, String genericArgumentName) {
     Type t = field.getGenericType();
     if (field.isAnnotationPresent(GenericClass.class))

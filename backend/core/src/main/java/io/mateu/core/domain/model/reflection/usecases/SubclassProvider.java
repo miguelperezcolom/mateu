@@ -5,11 +5,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.reflections.Reflections;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SubclassProvider {
 
+  @Cacheable(value = "subclasses-per-class")
   public Set<Class> getSubclasses(Class c) {
     String pkg = c.getPackage().getName();
     String[] ts = pkg.split("\\.");

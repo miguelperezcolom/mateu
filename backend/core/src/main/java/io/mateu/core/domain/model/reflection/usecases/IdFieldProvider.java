@@ -3,6 +3,7 @@ package io.mateu.core.domain.model.reflection.usecases;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ public class IdFieldProvider {
     this.allFieldsProvider = allFieldsProvider;
   }
 
+  @Cacheable(value = "id-field-at-class")
   public Field getIdField(Class type) {
     if (type.isAnnotationPresent(Entity.class)) {
       Field idField = null;

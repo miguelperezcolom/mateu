@@ -1,6 +1,8 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import java.lang.reflect.Method;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +14,7 @@ public class MethodProvider {
     this.allMethodsProvider = allMethodsProvider;
   }
 
-  // todo: cache
+  @Cacheable(value = "method-per-class-and-name")
   public Method getMethod(Class<?> c, String methodName) {
     Method m = null;
     if (c != null)
