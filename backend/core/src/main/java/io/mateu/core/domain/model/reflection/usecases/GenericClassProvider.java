@@ -6,7 +6,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 

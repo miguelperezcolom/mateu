@@ -4,7 +4,6 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.LabelFieldForLists;
 import jakarta.persistence.Id;
 import java.lang.reflect.Method;
-
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
