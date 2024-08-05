@@ -57,7 +57,7 @@
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.5</version>
+        <version>3.3.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -149,13 +149,25 @@
         </executions>
       </plugin>
 
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M2</version>
+        <version>3.5.0</version>
         <configuration>
-          <rules><dependencyConvergence/></rules>
+          <rules>
+            <bannedDependencies>
+            </bannedDependencies>
+            <dependencyConvergence/>
+          </rules>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
 
@@ -187,6 +199,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -200,6 +213,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.6.3</version>
         <configuration>
           <sourcepath>src/main/java</sourcepath>
           <source>17</source>
@@ -261,6 +275,43 @@
           </execution>
         </executions>
       </plugin>
+
+      <!--
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.8.6.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+-->
+
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>7.1.1</version>
+        <configuration>
+          <suppressionFiles>
+            <suppressionFile>${project.basedir}/owasp-suppressions.xml</suppressionFile>
+          </suppressionFiles>
+          <failBuildOnCVSS>8</failBuildOnCVSS>
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+          <failOnError>true</failOnError>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
 
     </plugins>
   </build>

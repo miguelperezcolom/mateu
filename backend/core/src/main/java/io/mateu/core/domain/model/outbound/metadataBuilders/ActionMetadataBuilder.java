@@ -12,6 +12,7 @@ import io.mateu.dtos.ConfirmationTexts;
 import jakarta.persistence.Entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,16 +59,32 @@ public class ActionMetadataBuilder {
   }
 
   private ActionTarget getTarget(Method m) {
+    return ActionTarget.valueOf(getRealTarget(m).name());
+  }
+
+  private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(
+      Method m) {
+    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
-      return ActionTarget.valueOf(action.target().name());
+      target =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+              .target();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
-      MainAction action = m.getAnnotation(MainAction.class);
-      return ActionTarget.valueOf(action.target().name());
+      target = m.getAnnotation(MainAction.class).target();
     }
-    return ActionTarget.SameLane;
+    if (URL.class.equals(m.getReturnType())) {
+      if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewWindow.equals(
+          target)) {
+        target =
+            io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewWindow;
+      } else {
+        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.Deferred;
+      }
+    }
+    return target;
   }
 
   private boolean isVisible(Method m) {

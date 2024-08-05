@@ -26,13 +26,13 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>dtos</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processing</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -114,31 +114,11 @@
             <artifactId>reactor-core</artifactId>
             <version>3.6.8</version>
         </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-            <version>3.6.8</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>dtos</artifactId>
-            <version>${version}</version>
-        </dependency>
-
 
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
             <version>3.2.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.13</version>
         </dependency>
 
         <dependency>

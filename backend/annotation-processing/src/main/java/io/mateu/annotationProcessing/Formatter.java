@@ -6,6 +6,7 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Formatter {
@@ -29,7 +30,7 @@ public class Formatter {
 
   public Formatter(String template, Map<String, Object> model) {
     this.templateName = template;
-    this.model = model;
+    this.model = new HashMap<>(model);
   }
 
   public String apply() throws TemplateException, IOException {
