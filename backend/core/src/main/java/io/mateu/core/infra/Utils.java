@@ -31,7 +31,7 @@ public class Utils {
     } else {
       Runtime runtime = Runtime.getRuntime();
       try {
-        runtime.exec("open " + url);
+        runtime.exec("open %s".formatted(url));
       } catch (IOException e) {
         e.printStackTrace();
       }

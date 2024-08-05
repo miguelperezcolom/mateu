@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,7 +24,7 @@ public class AllFieldsProvider {
     this.fieldFactory = fieldFactory;
   }
 
-  // todo: cache!
+  @Cacheable(value = "all-fields-per-class")
   public List<Field> getAllFields(Class c) {
     List<String> vistos = new ArrayList<>();
     Map<String, java.lang.reflect.Field> originales = new HashMap<>();
@@ -65,6 +66,7 @@ public class AllFieldsProvider {
     return l;
   }
 
+  @Cacheable(value = "all-fields-per-method")
   public List<Field> getAllFields(Method m) {
 
     List<Field> l = new ArrayList<>();

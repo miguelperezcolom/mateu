@@ -8,5 +8,8 @@ public enum ActionTarget {
   NewWindow,
   Right,
   Left,
-  NewJourney
+  NewJourney,
+  Deferred,
+  DeferredNewTab,
+  DeferredNewWindow
 }

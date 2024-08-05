@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -313,16 +314,29 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       String newStepId = "result_" + UUID.randomUUID().toString();
       store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
     }
+    if (ActionTarget.NewJourney.equals(getTarget(m))) {
+      store.deleteHistory(journeyContainer);
+    }
   }
 
   private ActionTarget getTarget(Method m) {
+    var target = ActionTarget.SameLane;
     if (m.isAnnotationPresent(Action.class)) {
-      return m.getAnnotation(Action.class).target();
+      target = m.getAnnotation(Action.class).target();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
-      return m.getAnnotation(MainAction.class).target();
+      target = m.getAnnotation(MainAction.class).target();
     }
-    return null;
+    if (URL.class.equals(m.getReturnType())) {
+      if (ActionTarget.NewTab.equals(target)) {
+        target = ActionTarget.DeferredNewTab;
+      } else if (ActionTarget.NewWindow.equals(target)) {
+        target = ActionTarget.DeferredNewWindow;
+      } else {
+        target = ActionTarget.Deferred;
+      }
+    }
+    return target;
   }
 
   private boolean needsToBeShown(Method m, Object r) {

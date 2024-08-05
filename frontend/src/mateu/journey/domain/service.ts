@@ -32,19 +32,26 @@ export class Service {
             .then(async (value: StepWrapper) => {
                 if (value.step?.type == 'java.net.URL') {
                     // @ts-ignore
-                    if (value.step.target == 'SameLane') {
+                    if (value.step.target == 'Deferred') {
                         // @ts-ignore
                         window.location = value.step.data.url
                         return
                     }
                     // @ts-ignore
-                    if (value.step.target == 'NewTab') {
+                    if (value.step.target == 'DeferredNewTab') {
                         // @ts-ignore
                         window.open(value.step.data.url, '_blank')
                         return
                     }
                     // @ts-ignore
-                    if (value.step.target == 'NewWindow') {
+                    if (value.step.target == 'DeferredNewWindow') {
+                        // @ts-ignore
+                        window.open(value.step.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                        return
+                    }
+                    // @ts-ignore
+                    if (value.step.target == 'DeferredReplace') {
+                        window.close()
                         // @ts-ignore
                         window.open(value.step.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
                         return

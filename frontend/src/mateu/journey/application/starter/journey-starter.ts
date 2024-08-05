@@ -95,12 +95,12 @@ export class JourneyStarter extends LitElement {
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
-        if (false && action && ActionTarget.NewTab == action.target) {
+        if (action && ActionTarget.NewTab == action.target) {
             const newWindow = window.open();
-            newWindow?.document.write('Hola!');
-        } else if (false && action && ActionTarget.NewWindow == action.target) {
+            newWindow?.document.write(`${this.renderModal()}`);
+        } else if (action && ActionTarget.NewWindow == action.target) {
             const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
-            newWindow?.document.write('Hola!');
+            newWindow?.document.write(`${this.renderModal()}`);
         } else if (action && ActionTarget.NewModal == action.target) {
             // crear modal y meter un journey-starter dentro
             this.modalOpened = true

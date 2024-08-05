@@ -316,4 +316,13 @@ public class JourneyContainerService {
       JourneyContainer journeyContainer, String stepId, String listId, List<SortCriteria> sorting) {
     journeyContainer.getLastUsedSorting().put(stepId + "#" + listId, sorting);
   }
+
+  public void deleteHistory(JourneyContainer journeyContainer) {
+    Map<String, Step> steps = new HashMap<>();
+    var step = journeyContainer.getSteps().get(journeyContainer.getJourney().getCurrentStepId());
+    step.setPreviousStepId(null);
+    steps.put(journeyContainer.getJourney().getCurrentStepId(), step);
+    journeyContainer.setSteps(steps);
+    journeyContainer.setInitialStep(step);
+  }
 }

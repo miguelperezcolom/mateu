@@ -1,4 +1,5 @@
 export enum ActionTarget {
     SameLane = "SameLane", NewModal = "NewModal",
-        NewTab = "NewTab", NewWindow = "NewWindow"
+        NewTab = "NewTab", NewWindow = "NewWindow",
+    Deferred = "Deferred", DeferredNewTab = "DeferredNewTab", DeferredNewWindow = "DeferredNewWindow",
 }

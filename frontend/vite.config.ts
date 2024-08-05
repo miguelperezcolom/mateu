@@ -16,12 +16,6 @@ export default defineConfig({
       }
     },
   },
-  test: {
-    browser: {
-      enabled: true,
-      name: 'chrome',
-    },
-  },
   server: {
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
