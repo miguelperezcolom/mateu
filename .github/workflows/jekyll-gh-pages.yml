@@ -46,14 +46,18 @@ jobs:
         run: mvn -B install --file backend/pom.xml
       - name: Build javadoc Maven
         run: mvn javadoc:javadoc --file backend/pom.xml
-
+      - name: Copy core javadocs
+        run: cp -r backend/core/target/site/apidocs* docs/core
+      - name: Copy dtos javadocs
+        run: cp -r backend/dtos/target/site/apidocs* docs/dtos
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: backend/core/target/site/apidocs
+          source: docs
           destination: ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
