@@ -314,6 +314,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       String newStepId = "result_" + UUID.randomUUID().toString();
       store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
     }
+    if (ActionTarget.NewJourney.equals(getTarget(m))) {
+      store.deleteHistory(journeyContainer);
+    }
   }
 
   private ActionTarget getTarget(Method m) {
