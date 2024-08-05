@@ -321,10 +321,7 @@ public class JourneyContainerService {
     Map<String, Step> steps = new HashMap<>();
     var step = journeyContainer.getSteps().get(journeyContainer.getJourney().getCurrentStepId());
     step.setPreviousStepId(null);
-    steps.put(
-        journeyContainer.getJourney().getCurrentStepId(),
-            step
-        );
+    steps.put(journeyContainer.getJourney().getCurrentStepId(), step);
     journeyContainer.setSteps(steps);
     journeyContainer.setInitialStep(step);
   }

@@ -97,15 +97,15 @@ public class RunStepActionCommandHandler {
                         var stepAfterRun = journeyContainer.getSteps().get(stepId);
                         if (stepAfterRun != null) { // it can be null if we started a new journey
                           stepAfterRun.getView().getMain().getComponents().stream()
-                                  .map(c -> c.getMetadata())
-                                  .filter(m -> m instanceof Form)
-                                  .map(m -> (Form) m)
-                                  .flatMap(f -> f.getTabs().stream())
-                                  .forEach(
-                                          t ->
-                                                  t.setActive(
-                                                          !Strings.isNullOrEmpty(activeTabId)
-                                                                  && activeTabId.equals(t.getId())));
+                              .map(c -> c.getMetadata())
+                              .filter(m -> m instanceof Form)
+                              .map(m -> (Form) m)
+                              .flatMap(f -> f.getTabs().stream())
+                              .forEach(
+                                  t ->
+                                      t.setActive(
+                                          !Strings.isNullOrEmpty(activeTabId)
+                                              && activeTabId.equals(t.getId())));
                         }
                       } catch (Throwable e) {
                         throw new RuntimeException(e);
