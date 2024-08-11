@@ -1,7 +1,6 @@
 package io.mateu.dtos;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.*;
@@ -30,5 +29,4 @@ public record Step(
   public List<Rule> rules() {
     return Collections.unmodifiableList(rules);
   }
-
 }

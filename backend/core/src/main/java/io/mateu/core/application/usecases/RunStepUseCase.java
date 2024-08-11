@@ -5,6 +5,7 @@ import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.RunActionRq;
+import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -49,14 +50,13 @@ public class RunStepUseCase {
                 .serverHttpRequest(serverHttpRequest)
                 .build())
         .thenReturn(
-            StepWrapper.builder()
-                .journey(journeyContainer.getJourney())
-                .store(toMap(journeyContainer))
-                .step(
-                    journeyContainer
-                        .getSteps()
-                        .get(journeyContainer.getJourney().getCurrentStepId()))
-                .build())
+                new StepWrapper(
+                        journeyContainer.getJourney(),
+                        journeyContainer
+                                .getSteps()
+                                .get(journeyContainer.getJourney().getCurrentStepId()),
+                        toMap(journeyContainer)
+                ))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

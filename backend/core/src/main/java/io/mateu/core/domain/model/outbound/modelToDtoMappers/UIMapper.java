@@ -29,21 +29,32 @@ public class UIMapper {
       return ((DynamicUI) uiInstance).build().toFuture().get();
     }
 
-    UI ui = UI.builder().build();
-
-    ui.setTitle(getTitle(uiInstance));
-    ui.setSubtitle(getSubtitle(uiInstance));
-    ui.setHomeJourneyTypeId("____home____");
-    List<Menu> menuOptions = menuCreator.buildMenuForUi(uiInstance, serverHttpRequest);
-    ui.setMenu(menuOptions);
-    if (uiInstance instanceof HasLogin) {
-      ui.setLoginUrl(((HasLogin) uiInstance).getLoginUrl());
-    }
-    if (uiInstance instanceof HasLogout) {
-      ui.setLogoutUrl(((HasLogout) uiInstance).getLogoutUrl());
-    }
+    UI ui = new UI(
+            null,
+            null,
+            getTitle(uiInstance),
+            getSubtitle(uiInstance),
+            menuCreator.buildMenuForUi(uiInstance, serverHttpRequest),
+            "____home____",
+            getLoginUrl(uiInstance),
+            getLogoutUrl(uiInstance)
+    );
 
     return ui;
+  }
+
+  private String getLogoutUrl(Object uiInstance) {
+    if (uiInstance instanceof HasLogout hasLogout) {
+      return hasLogout.getLogoutUrl();
+    }
+    return null;
+  }
+
+  private String getLoginUrl(Object uiInstance) {
+    if (uiInstance instanceof HasLogin hasLogin) {
+      return hasLogin.getLoginUrl();
+    }
+    return null;
   }
 
   public boolean isForm(Object uiInstance) {

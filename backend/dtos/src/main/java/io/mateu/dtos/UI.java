@@ -1,27 +1,25 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.List;
 import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class UI {
+public record UI(
+    String favIcon,
+    String logo,
+    String title,
+    String subtitle,
+    List<Menu> menu,
+    String homeJourneyTypeId,
+    String loginUrl,
+    String logoutUrl) {
 
-  private String favIcon;
+  public UI {
+    menu = Collections.unmodifiableList(menu);
+  }
 
-  private String logo;
-
-  private String title;
-
-  private String subtitle;
-
-  private List<Menu> menu;
-
-  private String homeJourneyTypeId;
-
-  private String loginUrl;
-
-  private String logoutUrl;
+  @Override
+  public List<Menu> menu() {
+    return Collections.unmodifiableList(menu);
+  }
 }

@@ -1,17 +1,20 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.Map;
 import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class StepWrapper {
+public record StepWrapper(
+        Journey journey,
+        Step step,
+        Map<String, Object> store) {
 
-  Journey journey;
+  public StepWrapper {
+    store = Collections.unmodifiableMap(store);
+  }
 
-  Step step;
-
-  Map<String, Object> store;
+  @Override
+  public Map<String, Object> store() {
+    return Collections.unmodifiableMap(store);
+  }
 }

@@ -100,7 +100,11 @@ public class StartJourneyCommandHandler {
     journeyContainer.setSteps(Map.of(step.id(), step));
 
     return Mono.just(
-        StepWrapper.builder().journey(journey).step(step).store(toMap(journeyContainer)).build());
+            new StepWrapper(
+                    journey,
+                    step,
+                    toMap(journeyContainer)
+            ));
   }
 
   private String getStepId(Object formInstance) {
