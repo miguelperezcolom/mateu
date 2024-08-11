@@ -13,6 +13,8 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import java.util.List;
+import java.util.stream.Stream;
+
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +39,7 @@ public class ViewMetadataBuilder {
   @Autowired ReflectionHelper reflectionHelper;
 
   public ViewMetadata getMetadata(
-      String stepId, Object uiInstance, Object model, List<Field> slotFields) {
+      String dataPrefix, String stepId, Object uiInstance, Object model, List<Field> slotFields) {
     ViewMetadata metadata;
 
     if (uiInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
@@ -61,7 +63,7 @@ public class ViewMetadataBuilder {
     } else if (model instanceof Stepper) {
       metadata = getStepper(stepId, model, slotFields);
     } else if (model instanceof Card) {
-      metadata = getCard(stepId, model, slotFields);
+      metadata = getCard(dataPrefix, stepId, model, slotFields);
     } else if (model instanceof JpaCrud) {
       metadata = getCrud(stepId, "main", (JpaCrud) model);
     } else {
@@ -111,8 +113,8 @@ public class ViewMetadataBuilder {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private io.mateu.dtos.Card getCard(String stepId, Object uiInstance, List<Field> slotFields) {
-    return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
+  private io.mateu.dtos.Card getCard(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
+    return cardMetadataBuilder.build(dataPrefix, stepId, uiInstance, slotFields);
   }
 
   private Form getForm(String stepId, Object uiInstance, List<Field> slotFields) {
@@ -123,41 +125,86 @@ public class ViewMetadataBuilder {
     return crudMetadataBuilder.build(stepId, listId, rpcView);
   }
 
-  private void setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
+  private Form setIdAsReadOnlyIfEditing(Form metadata, EntityEditor uiInstance) {
     Field idField = reflectionHelper.getIdField(uiInstance.getEntityClass());
     if (idField != null) {
       if (uiInstance.getData().containsKey(idField.getId())) {
-        metadata
-            .getSections()
-            .forEach(
-                s ->
-                    s.getFieldGroups()
-                        .forEach(
-                            g ->
-                                g.getLines()
-                                    .forEach(
-                                        l ->
-                                            l.getFields()
-                                                .forEach(
-                                                    f -> {
-                                                      if (f.getId().equals(idField.getId())) {
-                                                        f.setStereotype("readonly");
-                                                      }
-                                                    }))));
+        return new Form(metadata.dataPrefix(),
+                metadata.icon(),
+                metadata.title(),
+                metadata.readOnly(),
+                metadata.subtitle(),
+                metadata.status(),
+                metadata.badges(),
+                metadata.tabs(),
+                metadata.banners(),
+                metadata.sections().stream().map(s -> new Section(
+                        s.id(),
+                        s.tabId(),
+                        s.caption(),
+                        s.description(),
+                        s.readOnly(),
+                        s.type(),
+                        s.leftSideImageUrl(),
+                        s.topImageUrl(),
+                        s.actions(),
+                        s.fieldGroups().stream().map(g -> new FieldGroup(
+                                g.id(),
+                                g.caption(),
+                                g.lines().stream().map(l -> new FieldGroupLine(
+                                        l.fields().stream().map(f -> new io.mateu.dtos.Field(
+                                                f.id(),
+                                                f.type(),
+                                                f.id().equals(idField.getId())?
+                                                        "readonly":
+                                                        f.stereotype(),
+                                                f.observed(),
+                                                f.caption(),
+                                                f.placeholder(),
+                                                f.cssClasses(),
+                                                f.description(),
+                                                f.badges(),
+                                                f.validations(),
+                                                f.attributes()
+                                        )).toList()
+                                )).toList()
+                        )).toList()
+                )).toList(),
+                metadata.actions(),
+                metadata.mainActions(),
+                metadata.validations());
       }
     }
+    return metadata;
   }
 
-  private void addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
-    metadata
-        .getMainActions()
-        .add(
-            Action.builder()
-                .id("save")
-                .caption("Save")
-                .type(ActionType.Primary)
-                .validationRequired(true)
-                .visible(true)
-                .build());
+  private Form addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
+    return new Form(
+            metadata.dataPrefix(),
+            metadata.icon(),
+            metadata.title(),
+            metadata.readOnly(),
+            metadata.subtitle(),
+            metadata.status(),
+            metadata.badges(),
+            metadata.tabs(),
+            metadata.banners(),
+            metadata.sections(),
+            metadata.actions(),
+            Stream.concat(metadata.mainActions().stream(), Stream.of(new Action(
+                    "save",
+                    "Save",
+                    ActionType.Primary,
+                    true,
+                    true,
+                    false,
+                    false,
+                    null,
+                    ActionTarget.SameLane,
+                    null,
+                    null,
+                    null))).toList(),
+            metadata.validations()
+    );
   }
 }

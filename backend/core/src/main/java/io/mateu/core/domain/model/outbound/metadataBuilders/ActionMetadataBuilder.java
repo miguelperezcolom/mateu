@@ -10,14 +10,16 @@ import io.mateu.dtos.ActionTarget;
 import io.mateu.dtos.ActionType;
 import io.mateu.dtos.ConfirmationTexts;
 import jakarta.persistence.Entity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -28,20 +30,20 @@ public class ActionMetadataBuilder {
 
   protected Action getAction(Method m) {
     Action action =
-        Action.builder()
-            .id(m.getName())
-            .caption(captionProvider.getCaption(m))
-            .type(getActionType(m))
-            .target(getTarget(m))
-            .modalStyle(getModalStyle(m))
-            .visible(isVisible(m))
-            .validationRequired(getValidationRequired(m))
-            .confirmationRequired(getConfirmationRequired(m))
-            .rowsSelectedRequired(getRowsSelectedRequired(m))
-            .customEvent(getCustomEvent(m))
-            .href(getHref(m))
-            .confirmationTexts(getConfirmationTexts(m))
-            .build();
+            new Action(
+                    m.getName(),
+                    captionProvider.getCaption(m),
+                    getActionType(m),
+                    isVisible(m),
+                    getValidationRequired(m),
+                    getConfirmationRequired(m),
+                    getRowsSelectedRequired(m),
+                    getConfirmationTexts(m),
+                    getTarget(m),
+                    getModalStyle(m),
+                    getCustomEvent(m),
+                    getHref(m)
+            );
     return action;
   }
 
@@ -113,19 +115,19 @@ public class ActionMetadataBuilder {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
-      return ConfirmationTexts.builder()
-          .title(getConfirmationTitle(action.confirmationTitle(), m))
-          .message(action.confirmationMessage())
-          .action(getConfirmationAction(action.confirmationAction(), m))
-          .build();
+      return new ConfirmationTexts(
+              getConfirmationTitle(action.confirmationTitle(), m),
+              action.confirmationMessage(),
+              getConfirmationAction(action.confirmationAction(), m)
+      );
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
-      return ConfirmationTexts.builder()
-          .title(getConfirmationTitle(action.confirmationTitle(), m))
-          .message(action.confirmationMessage())
-          .action(getConfirmationAction(action.confirmationAction(), m))
-          .build();
+      return new ConfirmationTexts(
+          getConfirmationTitle(action.confirmationTitle(), m),
+          action.confirmationMessage(),
+          getConfirmationAction(action.confirmationAction(), m)
+          );
     }
     return null;
   }
@@ -226,45 +228,77 @@ public class ActionMetadataBuilder {
               .getActionMethods().stream().map(m -> getAction(m)).collect(Collectors.toList()));
     }
     if (!Strings.isNullOrEmpty(listId))
-      actions.forEach(a -> a.setId("__list__" + listId + "__" + a.getId()));
+      actions = actions.stream().map(a -> new Action(
+              "__list__" + listId + "__" + a.id(),
+              a.caption(),
+              a.type(),
+              a.visible(),
+              a.validationRequired(),
+              a.confirmationRequired(),
+              a.rowsSelectedRequired(),
+              a.confirmationTexts(),
+              a.target(),
+              a.modalStyle(),
+              a.customEvent(),
+              a.href()
+      )).toList();
     if (canAdd(uiInstance)) {
       Action action =
-          Action.builder()
-              .id("__list__" + listId + "__new")
-              .caption(getCaptionForNew(uiInstance))
-              .type(ActionType.Primary)
-              .visible(true)
-              .build();
-      actions.add(action);
+          new Action(
+              "__list__" + listId + "__new",
+              getCaptionForNew(uiInstance),
+              ActionType.Primary,
+              true,
+              false,
+              false,
+              false,
+              null,
+              ActionTarget.SameLane,
+              null,
+              null,
+              null
+          );
+      actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
-      Action action =
-          Action.builder()
-              .id("__list__" + listId + "__delete")
-              .caption(getCaptionForDelete(uiInstance))
-              .type(ActionType.Primary)
-              .confirmationRequired(true)
-              .confirmationTexts(
-                  ConfirmationTexts.builder()
-                      .title("Please confirm")
-                      .message("Are you sure you want to delete the selected rows")
-                      .action("Yes, delete them")
-                      .build())
-              .visible(true)
-              .build();
-      actions.add(action);
+      Action action = new Action(
+              "__list__" + listId + "__delete",
+              getCaptionForDelete(uiInstance),
+              ActionType.Primary,
+              true,
+              false,
+              true,
+              false,
+              new ConfirmationTexts(
+                      "Please confirm",
+                      "Are you sure you want to delete the selected rows",
+                      "Yes, delete them"
+              ),
+              ActionTarget.SameLane,
+              null,
+              null,
+              null
+      );
+      actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
         || ((uiInstance instanceof ReadOnlyPojo && ((ReadOnlyPojo<?>) uiInstance).hasEditor())
             && !(uiInstance instanceof PersistentPojo))) {
-      Action action =
-          Action.builder()
-              .id("edit")
-              .caption(getCaptionForEdit(uiInstance))
-              .type(ActionType.Primary)
-              .visible(true)
-              .build();
-      actions.add(action);
+      Action action = new Action(
+              "edit",
+              getCaptionForEdit(uiInstance),
+              ActionType.Primary,
+              true,
+              false,
+              false,
+              false,
+              null,
+              ActionTarget.SameLane,
+              null,
+              null,
+              null
+      );
+      actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;
   }

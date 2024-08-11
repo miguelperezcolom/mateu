@@ -29,20 +29,19 @@ public class FieldMetadataBuilder {
   final CaptionProvider captionProvider;
 
   protected io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
-    io.mateu.dtos.Field field =
-        io.mateu.dtos.Field.builder()
-            .id(fieldInterfaced.getId())
-            .caption(captionProvider.getCaption(fieldInterfaced))
-            .placeholder(getPlaceholder(fieldInterfaced))
-            .description(getDescription(fieldInterfaced))
-            .cssClasses(getCssClassNames(fieldInterfaced))
-            .type(fieldTypeMapper.mapFieldType(fieldInterfaced))
-            .stereotype(fieldStereotypeMapper.mapStereotype(view, fieldInterfaced))
-            .observed(isObserved(fieldInterfaced))
-            .attributes(fieldAttributeBuilder.buildAttributes(view, fieldInterfaced))
-            .badges(getBadges(view, fieldInterfaced))
-            .build();
-    addValidations(field, fieldInterfaced);
+    io.mateu.dtos.Field field = new io.mateu.dtos.Field(
+            fieldInterfaced.getId(),
+            fieldTypeMapper.mapFieldType(fieldInterfaced),
+            fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
+            isObserved(fieldInterfaced),
+            captionProvider.getCaption(fieldInterfaced),
+            getPlaceholder(fieldInterfaced),
+            getCssClassNames(fieldInterfaced),
+            getDescription(fieldInterfaced),
+            getBadges(view, fieldInterfaced),
+            getValidations(fieldInterfaced),
+            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)
+    );
     return field;
   }
 
@@ -95,7 +94,7 @@ public class FieldMetadataBuilder {
     return null;
   }
 
-  private void addValidations(io.mateu.dtos.Field field, Field fieldInterfaced) {
+  private List<Validation> getValidations(Field fieldInterfaced) {
     List<Validation> validations = new ArrayList<>();
     // todo: añadir otros tipos de validación, y mensaje de error
     addRequiredValidation(fieldInterfaced, validations);
@@ -103,7 +102,7 @@ public class FieldMetadataBuilder {
     addMinValidation(fieldInterfaced, validations);
     addMaxValidation(fieldInterfaced, validations);
 
-    field.setValidations(validations);
+    return validations;
   }
 
   private void addMinValidation(Field field, List<Validation> validations) {

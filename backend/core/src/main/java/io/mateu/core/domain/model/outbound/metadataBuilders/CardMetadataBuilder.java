@@ -12,6 +12,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,16 +27,16 @@ public class CardMetadataBuilder {
   final CaptionProvider captionProvider;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(String stepId, Object uiInstance, List<Field> slotFields) {
-    Card card =
-        Card.builder()
-            .title(captionProvider.getCaption(uiInstance))
-            .subtitle(getSubtitle(uiInstance))
-            .fieldGroups(getFieldGroups(stepId, uiInstance, slotFields))
-            .icon(getIcon(uiInstance))
-            .info(getInfo(uiInstance))
-            .total(getTotal(uiInstance))
-            .build();
+  public Card build(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
+    Card card = new Card(
+            dataPrefix,
+            captionProvider.getCaption(uiInstance),
+            getSubtitle(uiInstance),
+            getInfo(uiInstance),
+            getIcon(uiInstance),
+            getTotal(uiInstance),
+            getFieldGroups(stepId, uiInstance, slotFields)
+    );
     return card;
   }
 
@@ -82,9 +84,10 @@ public class CardMetadataBuilder {
 
   private List<FieldGroup> getFieldGroups(
       String stepId, Object uiInstance, List<Field> slotFields) {
+    List<io.mateu.dtos.Field> fields = new ArrayList<>();
     List<FieldGroup> fieldGroups = new ArrayList<>();
-    FieldGroup fieldGroup = null;
-    FieldGroupLine fieldGroupLine = null;
+    List<FieldGroupLine> fieldGroupLines = new ArrayList<>();
+    String currentFieldGroupCaption = "";
 
     List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
@@ -96,27 +99,27 @@ public class CardMetadataBuilder {
             .filter(f -> slotFields.contains(f))
             .filter(f -> !(uiInstance instanceof HasTotal) || !f.getName().equals("total"))
             .collect(Collectors.toList());
+
     for (Field field : allEditableFields) {
-      if (fieldGroup == null
-          || field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
-        String caption = "";
-        if (field.isAnnotationPresent(
-            io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
-          caption =
+      if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+        String caption =
               field
-                  .getAnnotation(
-                      io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                  .getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                   .value();
+        if (fieldGroupLines.size() > 0) {
+          fieldGroups.add(new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
         }
-        fieldGroup = FieldGroup.builder().caption(caption).lines(new ArrayList<>()).build();
-        fieldGroups.add(fieldGroup);
+        currentFieldGroupCaption = caption;
       }
-      if (fieldGroupLine == null || !field.isAnnotationPresent(SameLine.class)) {
-        fieldGroupLine = FieldGroupLine.builder().fields(new ArrayList<>()).build();
-        fieldGroup.getLines().add(fieldGroupLine);
+      fields.add(fieldMetadataBuilder.getField(uiInstance, field));
+      if (!field.isAnnotationPresent(SameLine.class)) {
+        if (fields.size() > 0) {
+          fieldGroupLines.add(new FieldGroupLine(fields));
+        }
       }
-      fieldGroupLine.getFields().add(fieldMetadataBuilder.getField(uiInstance, field));
+    }
+    if (fieldGroupLines.size() > 0) {
+      fieldGroups.add(new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
     }
 
     fillGroupIds(fieldGroups);
@@ -125,9 +128,10 @@ public class CardMetadataBuilder {
   }
 
   private void fillGroupIds(List<FieldGroup> fieldGroups) {
-    int j = 0;
-    for (FieldGroup g : fieldGroups) {
-      g.setId("fieldgroup_" + j++);
-    }
+    AtomicInteger j = new AtomicInteger();
+    fieldGroups.stream().map(g -> new FieldGroup(
+            "fieldgroup_" + j.getAndIncrement(),
+            g.caption(),
+            g.lines())).toList();
   }
 }

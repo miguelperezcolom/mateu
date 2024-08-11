@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -123,23 +125,36 @@ public class CrudMetadataBuilder {
         allEditableFields.stream()
             .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
             .map(
-                f -> {
-                  f.setId(listId + "-" + f.getId());
-                  return f;
-                })
-            .collect(Collectors.toList());
+                f -> new io.mateu.dtos.Field(
+                        listId + "-" + f.id(),
+                        f.type(),
+                        f.stereotype(),
+                        f.observed(),
+                        f.caption(),
+                        f.placeholder(),
+                        f.cssClasses(),
+                        f.description(),
+                        f.badges(),
+                        f.validations(),
+                        f.attributes()
+                ))
+            .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
-      filterFields.add(
-          0,
-          io.mateu.dtos.Field.builder()
-              .id(listId + "-" + "_search-text")
-              .placeholder("Search")
-              .caption("Search")
-              .type("string")
-              .stereotype("input")
-              .build());
-
+      filterFields = Stream.concat(Stream.of(
+          new io.mateu.dtos.Field(
+                  listId + "-" + "_search-text",
+                  "string",
+                  "input",
+                  false,
+                  "Search",
+                  "Search",
+                  null,
+                  null,
+                  List.of(),
+                  List.of(),
+                  List.of()
+          )), filterFields.stream()).toList();
     return filterFields;
   }
 }

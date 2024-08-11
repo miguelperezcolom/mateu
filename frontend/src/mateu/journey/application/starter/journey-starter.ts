@@ -305,7 +305,7 @@ export class JourneyStarter extends LitElement {
                         </journey-step>
 
                     `:html`
-                <p>No step</p>
+                <!--<p>No step</p>-->
             `}
             `}
                 

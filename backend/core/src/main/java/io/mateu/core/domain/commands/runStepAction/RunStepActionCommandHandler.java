@@ -12,6 +12,8 @@ import io.mateu.dtos.Step;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.mateu.dtos.Tab;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -96,16 +98,29 @@ public class RunStepActionCommandHandler {
                       try {
                         var stepAfterRun = journeyContainer.getSteps().get(stepId);
                         if (stepAfterRun != null) { // it can be null if we started a new journey
-                          stepAfterRun.getView().getMain().getComponents().stream()
-                              .map(c -> c.getMetadata())
-                              .filter(m -> m instanceof Form)
-                              .map(m -> (Form) m)
-                              .flatMap(f -> f.getTabs().stream())
-                              .forEach(
-                                  t ->
-                                      t.setActive(
-                                          !Strings.isNullOrEmpty(activeTabId)
-                                              && activeTabId.equals(t.getId())));
+                          stepAfterRun.getView().getMain().getComponents().stream().filter(c -> c.getMetadata() instanceof Form).forEach(c -> {
+                            Form m = (Form) c.getMetadata();
+                            c.setMetadata(new Form(
+                                    m.dataPrefix(),
+                                    m.icon(),
+                                    m.title(),
+                                    m.readOnly(),
+                                    m.subtitle(),
+                                    m.status(),
+                                    m.badges(),
+                                    m.tabs().stream().map(t -> new Tab(
+                                            t.id(),
+                                            !Strings.isNullOrEmpty(activeTabId)
+                                                    && activeTabId.equals(t.id()),
+                                            t.caption()
+                                    )).toList(),
+                                    m.banners(),
+                                    m.sections(),
+                                    m.actions(),
+                                    m.mainActions(),
+                                    m.validations()
+                            ));
+                          });
                         }
                       } catch (Throwable e) {
                         throw new RuntimeException(e);

@@ -114,8 +114,8 @@ public class ViewMapper {
           p -> {
             ViewMetadata metadata =
                 viewMetadataBuilder.getMetadata(
+                        p.getDataPrefix(),
                     stepId, uiInstance, p.getUiInstance(), p.getFields());
-            metadata.setDataPrefix(p.getDataPrefix());
             rules.addAll(rulesBuilder.buildRules(metadata, p.getUiInstance()));
             componentsPerSlot
                 .get(slot)
@@ -124,12 +124,9 @@ public class ViewMapper {
     }
 
     addComponentIds(left, main, right, rules);
-    // removeTitleForFirstComponent(main);
 
     View view =
         View.builder()
-            // .title(getTitle(actualUiInstance))
-            // .subtitle(getSubtitle(actualUiInstance))
             .messages(List.of())
             .left(ViewPart.builder().components(left).build())
             .main(ViewPart.builder().components(main).build())
@@ -159,39 +156,6 @@ public class ViewMapper {
         data.remove(field.getId());
       }
     }
-  }
-
-  private void removeTitleForFirstComponent(List<Component> slot) {
-    if (slot.size() > 0) {
-      ViewMetadata metadata = slot.get(0).getMetadata();
-      if (metadata instanceof Form) {
-        ((Form) metadata).setTitle(null);
-        ((Form) metadata).setSubtitle(null);
-      } else if (metadata instanceof Crud) {
-        ((Crud) metadata).setTitle(null);
-        ((Crud) metadata).setSubtitle(null);
-      }
-    }
-  }
-
-  private String getSubtitle(Object uiInstance) {
-    if (uiInstance instanceof Result) {
-      return null;
-    }
-    if (uiInstance instanceof HasSubtitle) {
-      return ((HasSubtitle) uiInstance).getSubtitle();
-    }
-    return "";
-  }
-
-  private String getTitle(Object uiInstance) {
-    if (uiInstance instanceof Result) {
-      return null;
-    }
-    if (uiInstance instanceof HasTitle) {
-      return ((HasTitle) uiInstance).getTitle();
-    }
-    return captionProvider.getCaption(uiInstance);
   }
 
   private Object getActualUiInstance(
@@ -249,29 +213,81 @@ public class ViewMapper {
       component.setId("component-" + i++);
       if (component.getMetadata() instanceof Crud) {
         Crud crud = (Crud) component.getMetadata();
-        crud.getActions()
-            .forEach(action -> action.setId(component.getId() + "___" + action.getId()));
+        crud.setActions(crud.getActions().stream().map(a -> new Action(
+                component.getId() + "___" + a.id(),
+                a.caption(),
+                a.type(),
+                a.visible(),
+                a.validationRequired(),
+                a.confirmationRequired(),
+                a.rowsSelectedRequired(),
+                a.confirmationTexts(),
+                a.target(),
+                a.modalStyle(),
+                a.customEvent(),
+                a.href()
+        )).toList());
       }
-      if (component.getMetadata() instanceof Form) {
-        Form form = (Form) component.getMetadata();
-        Stream.concat(form.getActions().stream(), form.getMainActions().stream())
-            .forEach(
-                action -> {
-                  rules.stream()
-                      .filter(
-                          r ->
-                              RuleAction.HideAction.equals(r.getAction())
-                                  || RuleAction.ShowAction.equals(r.getAction())
-                                  || RuleAction.EnableAction.equals(r.getAction())
-                                  || RuleAction.DisableAction.equals(r.getAction()))
-                      .filter(r -> action.getId().equals(((String[]) r.getData())[0]))
-                      .forEach(
-                          r -> {
-                            r.setData(new String[] {component.getId() + "___" + action.getId()});
-                          });
-                  action.setId(component.getId() + "___" + action.getId());
-                });
+
+      if (component.getMetadata() instanceof Form form) {
+          component.setMetadata(new Form(
+                form.dataPrefix(),
+                form.icon(),
+                form.title(),
+                form.readOnly(),
+                form.subtitle(),
+                form.status(),
+                form.badges(),
+                form.tabs(),
+                form.banners(),
+                form.sections(),
+                setIdAndAddRuleForActions(form.actions(), component.getId(), rules),
+                setIdAndAddRuleForActions(form.mainActions(), component.getId(), rules),
+                form.validations()
+        ));
       }
+
     }
   }
+
+  private List<Action> setIdAndAddRuleForActions(List<Action> actions, String componentId, List<Rule> rules) {
+    addRuleForActions(actions, componentId, rules);
+    return setIdForActions(actions, componentId, rules);
+  }
+
+  private List<Action> setIdForActions(List<Action> actions, String componentId, List<Rule> rules) {
+    return actions.stream().map(a -> new Action(
+            componentId + "___" + a.id(),
+            a.caption(),
+            a.type(),
+            a.visible(),
+            a.validationRequired(),
+            a.confirmationRequired(),
+            a.rowsSelectedRequired(),
+            a.confirmationTexts(),
+            a.target(),
+            a.modalStyle(),
+            a.customEvent(),
+            a.href()
+    )).toList();
+  }
+
+  private void addRuleForActions(List<Action> actions, String componentId, List<Rule> rules) {
+    actions.forEach(
+            action -> {
+              rules.stream()
+                      .filter(
+                              r ->
+                                      RuleAction.HideAction.equals(r.getAction())
+                                              || RuleAction.ShowAction.equals(r.getAction())
+                                              || RuleAction.EnableAction.equals(r.getAction())
+                                              || RuleAction.DisableAction.equals(r.getAction()))
+                      .filter(r -> action.id().equals(((String[]) r.getData())[0]))
+                      .forEach(
+                              r -> {
+                                r.setData(new String[] {componentId + "___" + action.id()});
+                              });
+            });
+  }
+
 }

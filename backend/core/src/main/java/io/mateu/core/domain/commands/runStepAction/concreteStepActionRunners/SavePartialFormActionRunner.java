@@ -4,11 +4,8 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.ActionType;
-import io.mateu.dtos.Form;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.Section;
+import io.mateu.dtos.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +20,6 @@ import reactor.core.publisher.Mono;
 public class SavePartialFormActionRunner implements ActionRunner {
 
   public static final String SAVE_PARTIAL_FORM_IDENTIFIER = "savePartialForm__";
-
   public static final String EDIT_PARTIAL_FORM_IDENTIFIER = "editPartialForm__";
 
   final JourneyContainerService store;
@@ -46,21 +42,37 @@ public class SavePartialFormActionRunner implements ActionRunner {
 
     var step = store.getStep(journeyContainer, stepId);
 
-    var metadata = step.getView().getMain().getComponents().get(0).getMetadata();
-
-    var sections = ((Form) metadata).getSections();
+    var mainComponent = step.getView().getMain().getComponents().get(0);
 
     var sectionId = actionId.substring(SAVE_PARTIAL_FORM_IDENTIFIER.length());
 
-    var partialForm = getOrInitializeIfNotPresent(form, sectionId);
+    mainComponent.setMetadata(updateMetadata((Form) mainComponent.getMetadata(), sectionId));
 
-    updateSectionToReadOnly(sections, sectionId);
+    var partialForm = getOrInitializeIfNotPresent(form, sectionId);
 
     partialForm.save();
 
     store.updateStep(journeyContainer, stepId, step);
 
     return Mono.empty();
+  }
+
+  private ViewMetadata updateMetadata(Form form, String sectionId) {
+    return new Form(
+            form.dataPrefix(),
+            form.icon(),
+            form.title(),
+            form.readOnly(),
+            form.subtitle(),
+            form.status(),
+            form.badges(),
+            form.tabs(),
+            form.banners(),
+            updatePartialFormSectionToReadOnly(form.sections(), sectionId),
+            form.actions(),
+            form.mainActions(),
+            form.validations()
+    );
   }
 
   private PartialForm getOrInitializeIfNotPresent(Object form, String sectionId)
@@ -77,25 +89,31 @@ public class SavePartialFormActionRunner implements ActionRunner {
     return partialForm;
   }
 
-  private void updateSectionToReadOnly(List<Section> sections, String sectionId) {
-
-    var actions = new ArrayList<>();
-
-    var actionEdit =
-        Action.builder()
-            .id(EDIT_PARTIAL_FORM_IDENTIFIER + sectionId)
-            .caption("Edit")
-            .type(ActionType.Secondary)
-            .validationRequired(false)
-            .visible(true)
-            .build();
-    actions.add(actionEdit);
-
-    for (var section : sections) {
-      if (section.getId().equals(sectionId) && !section.isReadOnly()) {
-        section.setReadOnly(true);
-        section.setActions(List.of(actionEdit));
-      }
-    }
+  private List<Section> updatePartialFormSectionToReadOnly(List<Section> sections, String sectionId) {
+    return sections.stream().map(s -> (sectionId.equals(s.id()) && !s.readOnly())?new Section(
+            s.id(),
+            s.tabId(),
+            s.caption(),
+            s.description(),
+            true,
+            s.type(),
+            s.leftSideImageUrl(),
+            s.topImageUrl(),
+            List.of(new Action(
+                    EDIT_PARTIAL_FORM_IDENTIFIER + sectionId,
+                    "Edit",
+                    ActionType.Secondary,
+                    true,
+                    false,
+                    false,
+                    false,
+                    null,
+                    ActionTarget.SameLane,
+                    null,
+                    null,
+                    null
+            )),
+            s.fieldGroups()
+    ):s).toList();
   }
 }

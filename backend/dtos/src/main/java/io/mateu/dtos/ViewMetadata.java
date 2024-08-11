@@ -12,7 +12,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = JourneyStarter.class, name = "JourneyStarter"),
   @JsonSubTypes.Type(value = JourneyRunner.class, name = "JourneyRunner")
 })
-public interface ViewMetadata {
-
-  void setDataPrefix(String dataPrefix);
-}
+public interface ViewMetadata {}
