@@ -74,7 +74,19 @@ public class RunStepActionCommandHandler {
     }
 
     var step = journeyContainer.getSteps().get(stepId);
-    step.mergeData(data);
+    var newData = new HashMap<>(step.data());
+    newData.putAll(data);
+    step = new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            newData,
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    );
+    journeyContainer.getSteps().put(stepId, step);
     viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
     // todo: look for the target object

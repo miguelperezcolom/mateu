@@ -1,13 +1,16 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.List;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class SearchForm {
+public record SearchForm(List<Field> fields) {
 
-  private List<Field> fields;
+  public SearchForm {
+    fields = Collections.unmodifiableList(fields);
+  }
+
+  @Override
+  public List<Field> fields() {
+    return Collections.unmodifiableList(fields);
+  }
 }

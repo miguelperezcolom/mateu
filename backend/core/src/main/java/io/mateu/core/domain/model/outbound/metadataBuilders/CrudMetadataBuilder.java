@@ -99,7 +99,7 @@ public class CrudMetadataBuilder {
   }
 
   private SearchForm buildSearchForm(Listing rpcView, String listId) {
-    return SearchForm.builder().fields(buildSearchFields(rpcView, listId)).build();
+    return new SearchForm(buildSearchFields(rpcView, listId));
   }
 
   private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {

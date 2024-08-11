@@ -1,5 +1,7 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.*;
@@ -14,9 +16,19 @@ public record Step(
     String previousStepId,
     String target) {
 
-  public void mergeData(Map<String, Object> values) {
-    if (values != null) {
-      data.putAll(values);
-    }
+  public Step {
+    data = Collections.unmodifiableMap(data);
+    rules = Collections.unmodifiableList(rules);
   }
+
+  @Override
+  public Map<String, Object> data() {
+    return Collections.unmodifiableMap(data);
+  }
+
+  @Override
+  public List<Rule> rules() {
+    return Collections.unmodifiableList(rules);
+  }
+
 }

@@ -6,6 +6,8 @@ import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
+
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -45,7 +47,19 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     data = serializer.toMap(object);
     data.put("__toString", "" + object);
 
-    initialStep.data().put(fieldEditor.getFieldId(), data);
+    var newData = new HashMap<>(initialStep.data());
+    newData.put(fieldEditor.getFieldId(), data);
+
+    journeyContainer.getSteps().put(initialStep.id(), new Step(
+            initialStep.id(),
+            initialStep.name(),
+            initialStep.type(),
+            initialStep.view(),
+            newData,
+            initialStep.rules(),
+            initialStep.previousStepId(),
+            initialStep.target()
+    ));
 
     store.backToStep(journeyContainer, initialStep.id()); // will save the step
 

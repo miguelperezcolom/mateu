@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.List;
 
 public record View(
@@ -10,4 +11,14 @@ public record View(
     ViewPart left,
     ViewPart main,
     ViewPart right,
-    ViewPart footer) {}
+    ViewPart footer) {
+
+  public View {
+    messages = Collections.unmodifiableList(messages);
+  }
+
+  @Override
+  public List<Message> messages() {
+    return Collections.unmodifiableList(messages);
+  }
+}
