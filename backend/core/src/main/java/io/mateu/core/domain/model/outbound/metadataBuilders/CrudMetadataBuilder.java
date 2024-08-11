@@ -41,15 +41,16 @@ public class CrudMetadataBuilder {
 
     var rpcView = (Listing) crudInstance;
 
-    return Crud.builder()
-        .title(captionProvider.getCaption(rpcView))
-        .subtitle(getSubtitle(rpcView))
-        .canEdit(reflectionHelper.isOverridden(rpcView, "getDetail"))
-        .searchForm(buildSearchForm(rpcView, listId))
-        .columns(buildColumns(rpcView))
-        .actions(actionMetadataBuilder.getActions(stepId, listId, rpcView))
-        .listId(listId)
-        .build();
+    return new Crud(
+      "",
+      listId,
+            captionProvider.getCaption(rpcView),
+            getSubtitle(rpcView),
+            reflectionHelper.isOverridden(rpcView, "getDetail"),
+            buildSearchForm(rpcView, listId),
+            buildColumns(rpcView),
+            actionMetadataBuilder.getActions(stepId, listId, rpcView)
+    );
   }
 
   private String getSubtitle(Listing rpcView) {
@@ -85,14 +86,16 @@ public class CrudMetadataBuilder {
   }
 
   private Column getColumn(String columnId, String columnCaption, Field field) {
-    return Column.builder()
-        .id(columnId)
-        .caption(columnCaption)
-        .type(fieldTypeMapper.mapColumnType(field))
-        .stereotype("column")
-        .attributes(List.of())
-        .width(fieldTypeMapper.getWidth(field))
-        .build();
+    return new Column(
+            columnId,
+            fieldTypeMapper.mapColumnType(field),
+            "column",
+            columnCaption,
+            "",
+            fieldTypeMapper.getWidth(field),
+            false,
+            List.of()
+    );
   }
 
   private SearchForm buildSearchForm(Listing rpcView, String listId) {

@@ -49,13 +49,13 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
     Step currentStep = store.readStep(journeyContainer, stepId);
 
     List<Destination> youMayBeInterestedIn = new ArrayList<>();
-    Step detail = store.readStep(journeyContainer, currentStep.getPreviousStepId());
+    Step detail = store.readStep(journeyContainer, currentStep.previousStepId());
     if (detail != null) {
       youMayBeInterestedIn.add(
           new Destination(
               DestinationType.ActionId,
-              "Return to " + detail.getName() + " detail",
-              detail.getId()));
+              "Return to " + detail.name() + " detail",
+              detail.id()));
     }
 
     Result whatToShow =
@@ -65,8 +65,8 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
             youMayBeInterestedIn,
             new Destination(
                 DestinationType.ActionId,
-                "Return to " + initialStep.getName(),
-                initialStep.getId()),
+                "Return to " + initialStep.name(),
+                initialStep.id()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);

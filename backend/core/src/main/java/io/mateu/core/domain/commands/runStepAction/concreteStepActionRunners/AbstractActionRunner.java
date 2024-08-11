@@ -13,6 +13,6 @@ public class AbstractActionRunner {
     }
     result.setNowTo(
         new Destination(
-            DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()));
+            DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()));
   }
 }

@@ -51,13 +51,42 @@ public class EditPartialFormActionRunner implements ActionRunner {
 
     var step = store.getStep(journeyContainer, stepId);
 
-    var mainComponent = step.getView().getMain().getComponents().get(0);
+    var view = step.view();
 
-    mainComponent.setMetadata(updateMetadata(viewInstance, sectionId, (Form) mainComponent.getMetadata()));
+    var main = view.main();
+
+    var mainComponent = main.components().get(0);
+
+    var newStep = new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                    view.title(),
+                    view.subtitle(),
+                    view.messages(),
+                    view.header(),
+                    view.left(),
+                    new ViewPart(
+                            main.classes(),
+                            Stream.concat(Stream.of(new Component(
+                                    updateMetadata(viewInstance, sectionId, (Form) mainComponent.metadata()),
+                                    mainComponent.id(),
+                                    mainComponent.attributes()
+                            )), main.components().stream().skip(1)).toList()
+                    ),
+                    view.right(),
+                    view.footer()
+            ),
+            storeDataReminder(step, sectionId),
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    );
 
     storeDataReminder(step, sectionId);
 
-    store.updateStep(journeyContainer, stepId, step);
+    store.updateStep(journeyContainer, stepId, newStep);
 
     return Mono.empty();
   }
@@ -144,13 +173,14 @@ public class EditPartialFormActionRunner implements ActionRunner {
     );
   }
 
-  private void storeDataReminder(Step step, String sectionId) {
-    var data = step.getData();
+  private Map<String, Object> storeDataReminder(Step step, String sectionId) {
+    var data = new HashMap<>(step.data());
     Map<String, Object> currentData = new HashMap<>();
     data.keySet().stream()
         .filter(k -> k.startsWith("__nestedData__" + sectionId + "__"))
         .forEach(k -> currentData.put(k, data.get(k)));
     data.put("__partialFormDataReminder__" + sectionId, currentData);
+    return data;
   }
 
   private String getSectionIdFromActionId(String actionId) {

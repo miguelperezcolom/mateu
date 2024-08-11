@@ -53,7 +53,7 @@ public class FieldEditorActionRunner implements ActionRunner {
         journeyContainer,
         actionId,
         new FieldEditor(
-            targetValue, fieldId, store.getCurrentStep(journeyContainer).getId(), serializer),
+            targetValue, fieldId, store.getCurrentStep(journeyContainer).id(), serializer),
         serverHttpRequest);
 
     return Mono.empty();

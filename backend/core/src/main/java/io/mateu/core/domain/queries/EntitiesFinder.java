@@ -41,10 +41,7 @@ public class EntitiesFinder {
         query.getResultList().stream()
             .map(
                 m ->
-                    Value.builder()
-                        .key((String) ((Object[]) m)[1])
-                        .value(((Object[]) m)[0])
-                        .build())
+                    new Value((String) ((Object[]) m)[1], ((Object[]) m)[0]))
             .collect(Collectors.toList());
   }
 

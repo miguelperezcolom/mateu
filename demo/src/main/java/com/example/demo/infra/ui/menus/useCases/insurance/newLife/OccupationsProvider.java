@@ -17,10 +17,7 @@ public class OccupationsProvider implements ItemsListProvider {
         .filter(s -> s.toLowerCase().contains(search_text.toLowerCase()))
         .skip(page * page_size)
         .limit(page_size)
-        .map(s -> Value.builder()
-                .key(s)
-                .value(s)
-                .build())
+        .map(s -> new Value(s, s))
         .collect(Collectors.toList());
   }
 

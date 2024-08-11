@@ -50,8 +50,8 @@ public class JourneyContainerService {
               + journeyContainer.getJourneyId()
               + " found");
     }
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
-    Map<String, Object> data = step.getData();
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
+    Map<String, Object> data = step.data();
     if (viewInstance instanceof EntityEditor) {
       ((EntityEditor) viewInstance)
           .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
@@ -143,12 +143,7 @@ public class JourneyContainerService {
     Step oldStep = journeyContainer.getSteps().get(stepId);
     Step step =
         stepMapper.map(
-            journeyContainer, stepId, oldStep.getPreviousStepId(), editor, serverHttpRequest);
-    if (oldStep != null) {
-      var data = oldStep.getData();
-      data.putAll(step.getData());
-      step.setData(data);
-    }
+            journeyContainer, stepId, oldStep.previousStepId(), editor, serverHttpRequest, oldStep != null?oldStep.data():null);
     if (!journeyContainer.getSteps().containsKey(stepId)) {
       journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), stepId, step));
     } else {
@@ -211,9 +206,18 @@ public class JourneyContainerService {
             newStepId,
             getPreviousStepId(newStepId, journeyContainer),
             editor,
-            serverHttpRequest);
+            serverHttpRequest, null);
     if (actionTarget != null) {
-      step.setTarget(actionTarget.name());
+      step = new Step(
+              step.id(),
+              step.name(),
+              step.type(),
+              step.view(),
+              step.data(),
+              step.rules(),
+              step.previousStepId(),
+              actionTarget.name()
+      );
     }
     if (!journeyContainer.getSteps().containsKey(newStepId)) {
       journeyContainer.setSteps(extendMap(journeyContainer.getSteps(), newStepId, step));
@@ -229,7 +233,7 @@ public class JourneyContainerService {
   private String getPreviousStepId(String targetStepId, JourneyContainer journeyContainer) {
     String currentStepId = journeyContainer.getJourney().getCurrentStepId();
     if (targetStepId.equals(currentStepId)) {
-      return journeyContainer.getSteps().get(currentStepId).getPreviousStepId();
+      return journeyContainer.getSteps().get(currentStepId).previousStepId();
     }
     return currentStepId;
   }
@@ -256,7 +260,7 @@ public class JourneyContainerService {
               + " found");
     }
     journeyContainer.getJourney().setCurrentStepId(stepId);
-    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.type());
   }
 
   public void back(JourneyContainer journeyContainer) throws Exception {
@@ -270,7 +274,7 @@ public class JourneyContainerService {
       throw new Exception(
           "No step with id " + stepId + " found for journey " + journeyContainer.getJourneyId());
     }
-    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.type());
     journeyContainer.getJourney().setCurrentStepId(stepId);
     return step;
   }
@@ -320,8 +324,16 @@ public class JourneyContainerService {
   public void deleteHistory(JourneyContainer journeyContainer) {
     Map<String, Step> steps = new HashMap<>();
     var step = journeyContainer.getSteps().get(journeyContainer.getJourney().getCurrentStepId());
-    step.setPreviousStepId(null);
-    steps.put(journeyContainer.getJourney().getCurrentStepId(), step);
+    steps.put(journeyContainer.getJourney().getCurrentStepId(), new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            step.data(),
+            step.rules(),
+            null,
+            step.target()
+    ));
     journeyContainer.setSteps(steps);
     journeyContainer.setInitialStep(step);
   }

@@ -54,7 +54,7 @@ public class EntitySaveActionRunner implements ActionRunner {
             "" + viewInstance.toString() + " has been saved",
             List.of(),
             new Destination(
-                DestinationType.ActionId, "Back to " + initialStep.getName(), initialStep.getId()),
+                DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);

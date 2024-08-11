@@ -21,9 +21,7 @@ public class PlayersProvider implements ItemsListProvider {
   public List find(String search_text, int page, int page_size) {
     return repo.findAll().stream()
         .filter(t -> t.getName().toLowerCase().contains(search_text.toLowerCase()))
-        .map(t -> Value.builder()
-                .key(t.getName()).value(t.getId())
-                .build())
+        .map(t -> new Value(t.getName(), t.getId()))
         .skip(page)
         .limit(page_size)
         .collect(Collectors.toList());

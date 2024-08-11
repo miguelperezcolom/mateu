@@ -31,8 +31,8 @@ public class ResultActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Step step = store.readStep(journeyContainer, actionId);
-    journeyContainer.getJourney().setCurrentStepId(step.getId());
-    journeyContainer.getJourney().setCurrentStepDefinitionId(step.getType());
+    journeyContainer.getJourney().setCurrentStepId(step.id());
+    journeyContainer.getJourney().setCurrentStepDefinitionId(step.type());
     return Mono.empty();
   }
 }

@@ -58,27 +58,21 @@ public class FieldAttributeBuilder {
                   .build());
       prefixes.forEach(
           v -> {
-            attributes.add(Pair.builder().key("prefix").value(v).build());
+            attributes.add(new Pair("prefix", v));
           });
     }
     if (field.isAnnotationPresent(Width.class)) {
-      attributes.add(
-          Pair.builder().key("width").value(field.getAnnotation(Width.class).value()).build());
+      attributes.add(new Pair("width", field.getAnnotation(Width.class).value()));
     }
     if (field.isAnnotationPresent(ItemsProvider.class)) {
-      attributes.add(
-          Pair.builder()
-              .key("itemprovider")
-              .value(field.getAnnotation(ItemsProvider.class).value().getName())
-              .build());
+      attributes.add(new Pair("itemprovider", field.getAnnotation(ItemsProvider.class).value().getName()));
     }
     if (field.isAnnotationPresent(ManyToOne.class)) {
-      attributes.add(Pair.builder().key("itemprovider").value(field.getType().getName()).build());
+      attributes.add(new Pair("itemprovider", field.getType().getName()));
     }
     if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
       if (!field.isAnnotationPresent(UseCrud.class)) {
-        attributes.add(
-            Pair.builder().key("itemprovider").value(field.getGenericClass().getName()).build());
+        attributes.add(new Pair("itemprovider", field.getGenericClass().getName()));
       }
     }
     if (field.isAnnotationPresent(ValuesProvider.class)) {
@@ -90,11 +84,7 @@ public class FieldAttributeBuilder {
             .getAll()
             .forEach(
                 v -> {
-                  attributes.add(
-                      Pair.builder()
-                          .key("choice")
-                          .value(Value.builder().key("" + v).value(v).build())
-                          .build());
+                  attributes.add(new Pair("choice", new Value("" + v, v)));
                 });
       } catch (Exception e) {
         e.printStackTrace();
@@ -108,23 +98,18 @@ public class FieldAttributeBuilder {
         List<Value> choices = (List<Value>) m.invoke(view);
         choices.forEach(
             v -> {
-              attributes.add(
-                  Pair.builder()
-                      .key("choice")
-                      .value(Value.builder().key(v.getKey()).value(v.getValue()).build())
-                      .build());
+              attributes.add(new Pair("choice", new Value(v.key(), v.value())));
             });
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
     if (fileChecker.isFile(field)) {
-      attributes.add(
-          Pair.builder().key("fileidprefix").value("mateuremoteistheremoteflavourofmateu").build());
+      attributes.add(new Pair("fileidprefix", "mateuremoteistheremoteflavourofmateu"));
       if (List.class.isAssignableFrom(field.getType()) || field.getType().isArray()) {
-        attributes.add(Pair.builder().key("maxfiles").value(3).build());
+        attributes.add(new Pair("maxfiles", 3));
       } else {
-        attributes.add(Pair.builder().key("maxfiles").value(1).build());
+        attributes.add(new Pair("maxfiles", 1));
       }
     }
     if (field.getType().isEnum()
@@ -138,19 +123,12 @@ public class FieldAttributeBuilder {
         m = enumType.getMethod("valueOf", (Class<?>[]) null);
         for (Object enumConstant : enumType.getEnumConstants()) {
           Object value = m.invoke(enumConstant, (Object[]) null);
-          attributes.add(
-              Pair.builder()
-                  .key("choice")
-                  .value(Value.builder().key(enumConstant.toString()).value(value).build())
-                  .build());
+          attributes.add(new Pair("choice", new Value(enumConstant.toString(), value)));
         }
       } catch (Exception e) {
         for (Object enumConstant : enumType.getEnumConstants()) {
           attributes.add(
-              Pair.builder()
-                  .key("choice")
-                  .value(Value.builder().key(enumConstant.toString()).value(enumConstant).build())
-                  .build());
+                  new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
         }
       }
     }
@@ -160,19 +138,16 @@ public class FieldAttributeBuilder {
         && !field.getGenericClass().isEnum()) {
       for (Field columnField : reflectionHelper.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
-            Pair.builder()
-                .key("column")
-                .value(
-                    Column.builder()
-                        .id(columnField.getId())
-                        .caption(captionProvider.getCaption(columnField))
-                        .type(fieldTypeMapper.mapColumnType(columnField))
-                        .readOnly(isReadOnly(columnField))
-                        .stereotype("column")
-                        .attributes(List.of())
-                        .width(fieldTypeMapper.getWidth(columnField))
-                        .build())
-                .build());
+                new Pair("column", new Column(
+                        columnField.getId(),
+                        "column",
+                        fieldTypeMapper.mapColumnType(columnField),
+                        captionProvider.getCaption(columnField),
+                        "",
+                        fieldTypeMapper.getWidth(columnField),
+                        isReadOnly(columnField),
+                        List.of()
+                )));
       }
     }
     return attributes;

@@ -45,9 +45,9 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     data = serializer.toMap(object);
     data.put("__toString", "" + object);
 
-    initialStep.getData().put(fieldEditor.getFieldId(), data);
+    initialStep.data().put(fieldEditor.getFieldId(), data);
 
-    store.backToStep(journeyContainer, initialStep.getId()); // will save the step
+    store.backToStep(journeyContainer, initialStep.id()); // will save the step
 
     return Mono.empty();
   }

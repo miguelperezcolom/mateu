@@ -40,14 +40,14 @@ public class NestedDropdownsForm {
     }
     if (countryAgain.equals(Country.Spain)) {
       return List.of(
-              Value.builder().key("Madrid").value("mad").build(),
-              Value.builder().key("Palma de Mallorca").value("pmi").build()
+              new Value("Madrid", "mad"),
+              new Value("Palma de Mallorca", "pmi")
       );
     }
     if (countryAgain.equals(Country.France)) {
       return List.of(
-              Value.builder().key("Paris").value("par").build(),
-              Value.builder().key("Marsella").value("mrs").build()
+              new Value("Paris", "par"),
+              new Value("Marsella", "mrs")
       );
     }
     return List.of();

@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -42,17 +44,46 @@ public class SavePartialFormActionRunner implements ActionRunner {
 
     var step = store.getStep(journeyContainer, stepId);
 
-    var mainComponent = step.getView().getMain().getComponents().get(0);
+    var view = step.view();
+
+    var main = view.main();
+
+    var mainComponent = main.components().get(0);
 
     var sectionId = actionId.substring(SAVE_PARTIAL_FORM_IDENTIFIER.length());
-
-    mainComponent.setMetadata(updateMetadata((Form) mainComponent.getMetadata(), sectionId));
 
     var partialForm = getOrInitializeIfNotPresent(form, sectionId);
 
     partialForm.save();
 
-    store.updateStep(journeyContainer, stepId, step);
+    var newStep = new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                    view.title(),
+                    view.subtitle(),
+                    view.messages(),
+                    view.header(),
+                    view.left(),
+                    new ViewPart(
+                            main.classes(),
+                            Stream.concat(Stream.of(new Component(
+                                    updateMetadata((Form) mainComponent.metadata(), sectionId),
+                                    mainComponent.id(),
+                                    mainComponent.attributes()
+                            )), main.components().stream().skip(1)).toList()
+                    ),
+                    view.right(),
+                    view.footer()
+            ),
+            step.data(),
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    );
+
+    store.updateStep(journeyContainer, stepId, newStep);
 
     return Mono.empty();
   }

@@ -8,6 +8,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -46,12 +47,40 @@ public class CancelPartialFormActionRunner implements ActionRunner {
     var sectionId = getSectionIdFromActionId(actionId);
 
     var step = store.getStep(journeyContainer, stepId);
+    var view = step.view();
+    var main = view.main();
+    var mainComponent = step.view().main().components().get(0);
 
-    var mainComponent = step.getView().getMain().getComponents().get(0);
+    step = new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                    view.title(),
+                    view.subtitle(),
+                    view.messages(),
+                    view.header(),
+                    view.left(),
+                    new ViewPart(
+                            main.classes(),
+                            Stream.concat(
+                                    Stream.of(new Component(
+                                            updateMetadata(viewInstance, sectionId, (Form) mainComponent.metadata()),
+                                            mainComponent.id(),
+                                            mainComponent.attributes()
+                                    )),
+                                    main.components().stream().skip(1)).toList()
+                    ),
+                    view.right(),
+                    view.footer()
+            ),
+            step.data(),
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    );
 
-    mainComponent.setMetadata(updateMetadata(viewInstance, sectionId, (Form) mainComponent.getMetadata()));
-
-    restoreOldData(step, sectionId);
+    step = restoreOldData(step, sectionId);
 
     store.updateStep(journeyContainer, stepId, step);
 
@@ -116,11 +145,21 @@ public class CancelPartialFormActionRunner implements ActionRunner {
     );
   }
 
-  private void restoreOldData(Step step, String sectionId) {
-    var data = step.getData();
+  private Step restoreOldData(Step step, String sectionId) {
+    var data = new HashMap<>(step.data());
     Map<String, Object> oldData =
         (Map<String, Object>) data.get("__partialFormDataReminder__" + sectionId);
     data.putAll(oldData);
+    return new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            data,
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    );
   }
 
   private String getSectionIdFromActionId(String actionId) {

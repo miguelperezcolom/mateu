@@ -42,7 +42,7 @@ public class ChooseEntityClassForm {
 
   public List<Value> getChoices() {
     return subclasses.entrySet().stream()
-        .map(e -> Value.builder().key(e.getValue()).value(e.getKey()).build())
+        .map(e -> new Value(e.getValue(), e.getKey()))
         .collect(Collectors.toList());
   }
 

@@ -6,14 +6,13 @@ import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.dtos.Form;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.Step;
+import io.mateu.dtos.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import io.mateu.dtos.Tab;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -76,7 +75,7 @@ public class RunStepActionCommandHandler {
 
     var step = journeyContainer.getSteps().get(stepId);
     step.mergeData(data);
-    viewMapper.unnestPartialFormData(step.getData(), viewInstance);
+    viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
     // todo: look for the target object
     String componentId = "component-0";
@@ -98,29 +97,55 @@ public class RunStepActionCommandHandler {
                       try {
                         var stepAfterRun = journeyContainer.getSteps().get(stepId);
                         if (stepAfterRun != null) { // it can be null if we started a new journey
-                          stepAfterRun.getView().getMain().getComponents().stream().filter(c -> c.getMetadata() instanceof Form).forEach(c -> {
-                            Form m = (Form) c.getMetadata();
-                            c.setMetadata(new Form(
-                                    m.dataPrefix(),
-                                    m.icon(),
-                                    m.title(),
-                                    m.readOnly(),
-                                    m.subtitle(),
-                                    m.status(),
-                                    m.badges(),
-                                    m.tabs().stream().map(t -> new Tab(
-                                            t.id(),
-                                            !Strings.isNullOrEmpty(activeTabId)
-                                                    && activeTabId.equals(t.id()),
-                                            t.caption()
-                                    )).toList(),
-                                    m.banners(),
-                                    m.sections(),
-                                    m.actions(),
-                                    m.mainActions(),
-                                    m.validations()
-                            ));
-                          });
+
+                          var view = stepAfterRun.view();
+                          var main = view.main();
+
+                          journeyContainer.getSteps().put(stepId, new Step(
+                                  stepAfterRun.id(),
+                                  stepAfterRun.name(),
+                                  stepAfterRun.type(),
+                                  new View(
+                                          view.title(),
+                                          view.subtitle(),
+                                          view.messages(),
+                                          view.header(),
+                                          view.left(),
+                                          new ViewPart(
+                                                  main.classes(),
+                                                  main.components().stream().map(c -> new Component(
+                                                          c.metadata() instanceof Form f?new Form(
+                                                                  f.dataPrefix(),
+                                                                  f.icon(),
+                                                                  f.title(),
+                                                                  f.readOnly(),
+                                                                  f.subtitle(),
+                                                                  f.status(),
+                                                                  f.badges(),
+                                                                  f.tabs().stream().map(t -> new Tab(
+                                                                          t.id(),
+                                                                          !Strings.isNullOrEmpty(activeTabId)
+                                                                                  && activeTabId.equals(t.id()),
+                                                                          t.caption()
+                                                                  )).toList(),
+                                                                  f.banners(),
+                                                                  f.sections(),
+                                                                  f.actions(),
+                                                                  f.mainActions(),
+                                                                  f.validations()
+                                                          ):c.metadata(),
+                                                          c.id(),
+                                                          c.attributes()
+                                                  )).toList()
+                                          ),
+                                          view.right(),
+                                          view.footer()
+                                  ),
+                                  stepAfterRun.data(),
+                                  stepAfterRun.rules(),
+                                  stepAfterRun.previousStepId(),
+                                  stepAfterRun.target()
+                          ));
                         }
                       } catch (Throwable e) {
                         throw new RuntimeException(e);
@@ -137,7 +162,26 @@ public class RunStepActionCommandHandler {
   private void resetMessages(JourneyContainer journeyContainer) {
     var currentStepId = journeyContainer.getJourney().getCurrentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
-    step.getView().setMessages(List.of());
+    var view = step.view();
+    journeyContainer.getSteps().put(currentStepId, new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                    view.title(),
+                    view.subtitle(),
+                    List.of(),
+                    view.header(),
+                    view.left(),
+                    view.main(),
+                    view.right(),
+                    view.footer()
+            ),
+            step.data(),
+            step.rules(),
+            step.previousStepId(),
+            step.target()
+    ));
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {
@@ -186,8 +230,8 @@ public class RunStepActionCommandHandler {
       throw new Exception(
           "No step with id " + stepId + " for journey with id " + journeyId + " found");
     }
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.getType()));
-    Map<String, Object> data = step.getData();
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
+    Map<String, Object> data = step.data();
     if (viewInstance instanceof EntityEditor) {
       ((EntityEditor) viewInstance)
           .setEntityClass(Class.forName((String) data.get("__entityClassName__")));

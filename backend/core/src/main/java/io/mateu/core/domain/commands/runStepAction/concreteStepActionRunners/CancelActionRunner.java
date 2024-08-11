@@ -38,7 +38,7 @@ public class CancelActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Exception {
-    String targetStepId = store.getInitialStep(journeyContainer).getId();
+    String targetStepId = store.getInitialStep(journeyContainer).id();
     if (stepId.endsWith("_edit")) {
       targetStepId = stepId.substring(0, stepId.length() - "_edit".length());
     }

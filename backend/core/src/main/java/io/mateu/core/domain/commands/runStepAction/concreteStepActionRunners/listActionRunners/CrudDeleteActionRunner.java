@@ -67,8 +67,8 @@ public class CrudDeleteActionRunner implements ListActionRunner {
               List.of(),
               new Destination(
                   DestinationType.ActionId,
-                  "Back to " + store.getInitialStep(journeyContainer).getName(),
-                  store.getInitialStep(journeyContainer).getId()),
+                  "Back to " + store.getInitialStep(journeyContainer).name(),
+                  store.getInitialStep(journeyContainer).id()),
               null);
       String newStepId = "result_" + UUID.randomUUID().toString();
       store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);

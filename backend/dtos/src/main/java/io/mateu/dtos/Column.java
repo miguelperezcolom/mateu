@@ -1,28 +1,24 @@
 package io.mateu.dtos;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Column {
+public record Column(
+    String id,
+    String type,
+    String stereotype,
+    String caption,
+    String description,
+    String width,
+    boolean readOnly,
+    List<Pair> attributes) {
 
-  private String id;
+  public Column {
+    attributes = Collections.unmodifiableList(attributes);
+  }
 
-  private String type;
-
-  private String stereotype;
-
-  private String caption;
-
-  private String description;
-
-  private String width;
-
-  private boolean readOnly;
-
-  private List<Pair> attributes = new ArrayList<>();
+  @Override
+  public List<Pair> attributes() {
+    return Collections.unmodifiableList(attributes);
+  }
 }

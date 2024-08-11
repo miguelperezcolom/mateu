@@ -28,7 +28,8 @@ public class StepMapper {
       String stepId,
       String previousStepId,
       Object formInstance,
-      ServerHttpRequest serverHttpRequest)
+      ServerHttpRequest serverHttpRequest,
+      Map<String, Object> oldData)
       throws Throwable {
 
     if (formInstance instanceof JpaCrud) {
@@ -36,21 +37,25 @@ public class StepMapper {
     }
 
     Map<String, Object> data = new HashMap<>();
+    if (oldData != null) {
+      data.putAll(oldData);
+   }
+
     List<Rule> rules = new ArrayList<>();
 
     if (formInstance instanceof DynamicStep) {
       return ((DynamicStep) formInstance).build().toFuture().get();
     }
 
-    return Step.builder()
-        .id(stepId)
-        .type(formInstance.getClass().getName())
-        .name(captionProvider.getCaption(formInstance))
-        .view(
-            viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest))
-        .data(data)
-        .rules(rules)
-        .previousStepId(previousStepId)
-        .build();
+    return new Step(
+            stepId,
+            captionProvider.getCaption(formInstance),
+            formInstance.getClass().getName(),
+            viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest),
+            data,
+            rules,
+            previousStepId,
+            null
+    );
   }
 }

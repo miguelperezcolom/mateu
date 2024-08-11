@@ -72,7 +72,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     Object result = m.invoke(object, values.toArray());
 
     if (object != null) {
-      store.updateStep(journeyContainer, initialStep.getId(), object, serverHttpRequest);
+      store.updateStep(journeyContainer, initialStep.id(), object, serverHttpRequest);
     }
 
     Object whatToShow = result;
@@ -83,7 +83,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
       String newStepId = "result_" + UUID.randomUUID().toString();
       store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
     } else {
-      store.backToStep(journeyContainer, initialStep.getId()); // will save the step
+      store.backToStep(journeyContainer, initialStep.id()); // will save the step
     }
 
     return Mono.empty();
