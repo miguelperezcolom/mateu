@@ -1,6 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds.queries;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class QueryHelper {
 
   final ReflectionHelper reflectionHelper;
@@ -96,7 +98,7 @@ public class QueryHelper {
 
     log.info(jpql);
     jakarta.persistence.Query q = em.createQuery(jpql).setFirstResult(offset).setMaxResults(limit);
-    for (String k : parameterValues.keySet()) q.setParameter(k, parameterValues.get(k));
+    parameterValues.forEach(q::setParameter);
     return q;
   }
 

@@ -1,5 +1,6 @@
 package io.mateu.jpa.domain.json;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MateuEntityDeserializer implements EntityDeserializer {
 
   final Serializer serializer;
@@ -39,7 +41,7 @@ public class MateuEntityDeserializer implements EntityDeserializer {
                     f,
                     instance,
                     serializer.fromJson(serializer.toJson(map.get(f.getId())), f.getType()));
-              } catch (Exception ignored) {
+              } catch (Throwable ignored) {
               }
             });
 

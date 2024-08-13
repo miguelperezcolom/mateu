@@ -1,5 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 @NoArgsConstructor
 @Caption("What do you want to create?")
 @Service
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ChooseEntityClassForm {
 
   @Ignored private Map<String, String> subclasses;

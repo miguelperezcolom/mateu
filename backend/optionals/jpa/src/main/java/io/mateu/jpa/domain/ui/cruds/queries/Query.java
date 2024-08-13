@@ -1,5 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
@@ -11,6 +12,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public abstract class Query {
 
   private MDDOpenCRUDAction action;

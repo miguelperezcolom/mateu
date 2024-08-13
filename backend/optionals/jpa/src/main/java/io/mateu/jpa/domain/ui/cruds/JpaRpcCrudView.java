@@ -3,6 +3,7 @@ package io.mateu.jpa.domain.ui.cruds;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
@@ -39,7 +40,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
@@ -47,10 +49,12 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Data
+@Getter
+@Setter
 @Component
 @Scope("prototype")
 @Primary
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 // @JsonSerialize(using = JpaRpcCrudViewSerializer.class)
 // @JsonDeserialize(using = JpaRpcCrudViewDeserializer.class)
 public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended, HasActions {
@@ -127,12 +131,12 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             .filter(f -> f.isAnnotationPresent(Sum.class))
             .collect(Collectors.toList());
 
-    String ql = "count(x)";
+    StringBuilder ql = new StringBuilder("count(x)");
     for (Field f : sumFields) {
-      if (!"".equals(ql)) ql += ", ";
-      ql += " sum(x." + f.getName() + ") ";
+      if (!ql.isEmpty()) ql.append(", ");
+      ql.append(" sum(x." + f.getName() + ") ");
     }
-    selectColumnsForCount = ql;
+    selectColumnsForCount = ql.toString();
 
     selectColumnsForList = buildFieldsPart(columnFieldNames);
 
@@ -341,13 +345,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           type = fx.getType();
           if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
             // referencia y no obligatorio --> left outer join
-            if (!fx.isAnnotationPresent(NotNull.class)) {
-              if (!alias.containsKey(pathAcumulado)) {
-                alias.put(pathAcumulado, "x" + alias.size());
-              }
-              pathAcumulado = alias.get(pathAcumulado);
-              f0 = fx;
+            if (!alias.containsKey(pathAcumulado)) {
+              alias.put(pathAcumulado, "x" + alias.size());
             }
+            pathAcumulado = alias.get(pathAcumulado);
+            f0 = fx;
           }
         }
       }

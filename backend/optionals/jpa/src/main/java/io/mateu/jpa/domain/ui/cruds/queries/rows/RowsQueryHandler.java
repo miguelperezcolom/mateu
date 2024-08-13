@@ -1,5 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
@@ -16,12 +17,13 @@ import reactor.core.publisher.Flux;
 
 @Service
 @Slf4j
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class RowsQueryHandler {
 
-  private final String successStatuses = "active,on,true,success";
-  private final String infoStatuses = "info";
-  private final String warningStatuses = "warning";
-  private final String dangerStatuses = "inactive,off,false,danger,fail";
+  private static final String successStatuses = "active,on,true,success";
+  private static final String infoStatuses = "info";
+  private static final String warningStatuses = "warning";
+  private static final String dangerStatuses = "inactive,off,false,danger,fail";
 
   @PersistenceContext private EntityManager em;
   @Autowired ReflectionHelper reflectionHelper;

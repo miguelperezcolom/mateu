@@ -1,6 +1,7 @@
 package io.mateu.jpa.domain.ui.cruds;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Primary
 @RequiredArgsConstructor
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
 
   final ReflectionHelper reflectionHelper;
@@ -48,19 +50,15 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
   @Override
   public Listing create(JpaCrud v) throws Exception {
     MDDOpenCRUDAction a = new MDDOpenCRUDAction(v.getEntityClass());
-    if (v != null && v.getColumnFields() != null)
-      a.setColumns(String.join(",", v.getColumnFields()));
-    if (v != null && v.getVisibleFields() != null)
-      a.setFields(String.join(",", v.getVisibleFields()));
-    if (v != null && v.getSearchFilterFields() != null)
+    if (v.getColumnFields() != null) a.setColumns(String.join(",", v.getColumnFields()));
+    if (v.getVisibleFields() != null) a.setFields(String.join(",", v.getVisibleFields()));
+    if (v.getSearchFilterFields() != null)
       a.setFilters(String.join(",", v.getSearchFilterFields()));
-    if (v != null && v.getReadOnlyFields() != null)
-      a.setReadOnlyFields(String.join(",", v.getReadOnlyFields()));
-    if (v != null) a.setCanAdd(v.canAdd());
-    if (v != null) a.setCanDelete(v.canDelete());
-    if (v != null) a.setReadOnly(v.isReadOnly());
-    if (v != null && !Strings.isNullOrEmpty(v.getExtraWhereFilter()))
-      a.setQueryFilters(v.getExtraWhereFilter());
+    if (v.getReadOnlyFields() != null) a.setReadOnlyFields(String.join(",", v.getReadOnlyFields()));
+    a.setCanAdd(v.canAdd());
+    a.setCanDelete(v.canDelete());
+    a.setReadOnly(v.isReadOnly());
+    if (!Strings.isNullOrEmpty(v.getExtraWhereFilter())) a.setQueryFilters(v.getExtraWhereFilter());
     var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
     jpaRpcCrudView.setAction(a);
     return jpaRpcCrudView;
