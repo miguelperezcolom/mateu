@@ -19,6 +19,8 @@ import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.ResultType;
+import io.mateu.dtos.Step;
+import io.mateu.dtos.View;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -29,9 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import io.mateu.dtos.Step;
-import io.mateu.dtos.View;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -237,11 +236,15 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     var currentStepId = journeyContainer.getJourney().currentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
     var view = step.view();
-    journeyContainer.getSteps().put(currentStepId, new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            new View(
+    journeyContainer
+        .getSteps()
+        .put(
+            currentStepId,
+            new Step(
+                step.id(),
+                step.name(),
+                step.type(),
+                new View(
                     view.title(),
                     view.subtitle(),
                     List.of(),
@@ -249,13 +252,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                     view.left(),
                     view.main(),
                     view.right(),
-                    view.footer()
-            ),
-            step.data(),
-            step.rules(),
-            step.previousStepId(),
-            step.target()
-    ));
+                    view.footer()),
+                step.data(),
+                step.rules(),
+                step.previousStepId(),
+                step.target()));
   }
 
   private void addMessages(JourneyContainer journeyContainer, Object response, Method method) {
@@ -264,11 +265,15 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       var currentStepId = journeyContainer.getJourney().currentStepId();
       var step = journeyContainer.getSteps().get(currentStepId);
       var view = step.view();
-      journeyContainer.getSteps().put(currentStepId, new Step(
-              step.id(),
-              step.name(),
-              step.type(),
-              new View(
+      journeyContainer
+          .getSteps()
+          .put(
+              currentStepId,
+              new Step(
+                  step.id(),
+                  step.name(),
+                  step.type(),
+                  new View(
                       view.title(),
                       view.subtitle(),
                       mapMessages(messages),
@@ -276,13 +281,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       view.left(),
                       view.main(),
                       view.right(),
-                      view.footer()
-              ),
-              step.data(),
-              step.rules(),
-              step.previousStepId(),
-              step.target()
-      ));
+                      view.footer()),
+                  step.data(),
+                  step.rules(),
+                  step.previousStepId(),
+                  step.target()));
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }

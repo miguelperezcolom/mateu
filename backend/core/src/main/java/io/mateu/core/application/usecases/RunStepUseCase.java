@@ -5,7 +5,6 @@ import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ public class RunStepUseCase {
       throws Throwable {
     log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
     JourneyContainer journeyContainer =
-        serializer.fromJson(serializer.toJson(rq.getJourney()), JourneyContainer.class);
+        serializer.fromJson(serializer.toJson(rq.journey()), JourneyContainer.class);
     return runStepActionCommandHandler
         .handle(
             RunStepActionCommand.builder()
@@ -45,18 +44,15 @@ public class RunStepUseCase {
                 .journeyId(journeyId)
                 .stepId(stepId)
                 .actionId(actionId)
-                .data(rq.getData())
+                .data(rq.data())
                 .journeyContainer(journeyContainer)
                 .serverHttpRequest(serverHttpRequest)
                 .build())
         .thenReturn(
-                new StepWrapper(
-                        journeyContainer.getJourney(),
-                        journeyContainer
-                                .getSteps()
-                                .get(journeyContainer.getJourney().currentStepId()),
-                        toMap(journeyContainer)
-                ))
+            new StepWrapper(
+                journeyContainer.getJourney(),
+                journeyContainer.getSteps().get(journeyContainer.getJourney().currentStepId()),
+                toMap(journeyContainer)))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

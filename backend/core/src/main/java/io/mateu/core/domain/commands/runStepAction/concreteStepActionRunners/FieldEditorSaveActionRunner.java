@@ -6,7 +6,6 @@ import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
-
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -50,16 +49,19 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     var newData = new HashMap<>(initialStep.data());
     newData.put(fieldEditor.getFieldId(), data);
 
-    journeyContainer.getSteps().put(initialStep.id(), new Step(
+    journeyContainer
+        .getSteps()
+        .put(
             initialStep.id(),
-            initialStep.name(),
-            initialStep.type(),
-            initialStep.view(),
-            newData,
-            initialStep.rules(),
-            initialStep.previousStepId(),
-            initialStep.target()
-    ));
+            new Step(
+                initialStep.id(),
+                initialStep.name(),
+                initialStep.type(),
+                initialStep.view(),
+                newData,
+                initialStep.rules(),
+                initialStep.previousStepId(),
+                initialStep.target()));
 
     store.backToStep(journeyContainer, initialStep.id()); // will save the step
 

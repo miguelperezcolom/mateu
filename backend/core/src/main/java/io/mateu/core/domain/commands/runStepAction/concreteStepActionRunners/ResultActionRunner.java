@@ -33,13 +33,9 @@ public class ResultActionRunner implements ActionRunner {
       throws Throwable {
     Step step = store.readStep(journeyContainer, actionId);
     var journey = journeyContainer.getJourney();
-    journeyContainer.setJourney(new Journey(
-            journey.type(),
-            journey.status(),
-            journey.statusMessage(),
-            step.id(),
-            step.type()
-    ));
+    journeyContainer.setJourney(
+        new Journey(
+            journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()));
     return Mono.empty();
   }
 }

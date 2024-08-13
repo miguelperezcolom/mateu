@@ -4,7 +4,6 @@ import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.dtos.*;
 import java.lang.reflect.Method;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -28,21 +26,20 @@ public class MethodParametersEditorMetadataBuilder {
   final Humanizer humanizer;
 
   public Form build(String stepId, MethodParametersEditor uiInstance) {
-      return new Form(
-            "",
-            null,
-            getCaption(uiInstance),
-            false,
-            getSubtitle(uiInstance),
-            null,
-            List.of(),
-            List.of(),
-            List.of(),
-            getSections(stepId, uiInstance),
-            List.of(),
-            getMainActions(stepId, uiInstance),
-            List.of()
-    );
+    return new Form(
+        "",
+        null,
+        getCaption(uiInstance),
+        false,
+        getSubtitle(uiInstance),
+        null,
+        List.of(),
+        List.of(),
+        List.of(),
+        getSections(stepId, uiInstance),
+        List.of(),
+        getMainActions(stepId, uiInstance),
+        List.of());
   }
 
   private String getSubtitle(Object uiInstance) {
@@ -51,22 +48,21 @@ public class MethodParametersEditorMetadataBuilder {
 
   private List<Action> getMainActions(String stepId, Object uiInstance) {
     List<Action> actions = new ArrayList<>();
-      Action action =
-              new Action(
-                      "run",
-                      "Run",
-                      ActionType.Primary,
-                      true,
-                      true,
-                      false,
-                      false,
-                      null,
-                      ActionTarget.SameLane,
-                      null,
-                      null,
-                      null
-              );
-      actions.add(action);
+    Action action =
+        new Action(
+            "run",
+            "Run",
+            ActionType.Primary,
+            true,
+            true,
+            false,
+            false,
+            null,
+            ActionTarget.SameLane,
+            null,
+            null,
+            null);
+    actions.add(action);
     return actions;
   }
 
@@ -91,35 +87,50 @@ public class MethodParametersEditorMetadataBuilder {
   private List<Section> fillSectionIds(List<Section> sections) {
     AtomicInteger i = new AtomicInteger();
     AtomicInteger fieldPos = new AtomicInteger();
-    return sections.stream().map(s -> new Section(
-            "section_" + i.getAndIncrement(),
-            s.tabId(),
-            s.caption(),
-            s.description(),
-            s.readOnly(),
-            s.type(),
-            s.leftSideImageUrl(),
-            s.topImageUrl(),
-            s.actions(),
-            IntStream.range(0, s.fieldGroups().size())
-                    .mapToObj(j -> new FieldGroup(
-                            "fieldgroup_" + i + "_" + j,
-                            s.fieldGroups().get(j).caption(),
-                            s.fieldGroups().get(j).lines().stream().map(l -> new FieldGroupLine(l.fields().stream().map(f -> new io.mateu.dtos.Field(
-                                    "param_" + fieldPos.getAndIncrement(),
-                                    f.type(),
-                                    f.stereotype(),
-                                    f.observed(),
-                                    f.caption(),
-                                    f.placeholder(),
-                                    f.cssClasses(),
-                                    f.description(),
-                                    f.badges(),
-                                    f.validations(),
-                                    f.attributes()
-                            )).toList())).toList()
-                    )).toList()
-    )).toList();
+    return sections.stream()
+        .map(
+            s ->
+                new Section(
+                    "section_" + i.getAndIncrement(),
+                    s.tabId(),
+                    s.caption(),
+                    s.description(),
+                    s.readOnly(),
+                    s.type(),
+                    s.leftSideImageUrl(),
+                    s.topImageUrl(),
+                    s.actions(),
+                    IntStream.range(0, s.fieldGroups().size())
+                        .mapToObj(
+                            j ->
+                                new FieldGroup(
+                                    "fieldgroup_" + i + "_" + j,
+                                    s.fieldGroups().get(j).caption(),
+                                    s.fieldGroups().get(j).lines().stream()
+                                        .map(
+                                            l ->
+                                                new FieldGroupLine(
+                                                    l.fields().stream()
+                                                        .map(
+                                                            f ->
+                                                                new io.mateu.dtos.Field(
+                                                                    "param_"
+                                                                        + fieldPos
+                                                                            .getAndIncrement(),
+                                                                    f.type(),
+                                                                    f.stereotype(),
+                                                                    f.observed(),
+                                                                    f.caption(),
+                                                                    f.placeholder(),
+                                                                    f.cssClasses(),
+                                                                    f.description(),
+                                                                    f.badges(),
+                                                                    f.validations(),
+                                                                    f.attributes()))
+                                                        .toList()))
+                                        .toList()))
+                        .toList()))
+        .toList();
   }
 
   private String getCaption(MethodParametersEditor methodParametersEditor) {

@@ -65,7 +65,8 @@ public class FieldAttributeBuilder {
       attributes.add(new Pair("width", field.getAnnotation(Width.class).value()));
     }
     if (field.isAnnotationPresent(ItemsProvider.class)) {
-      attributes.add(new Pair("itemprovider", field.getAnnotation(ItemsProvider.class).value().getName()));
+      attributes.add(
+          new Pair("itemprovider", field.getAnnotation(ItemsProvider.class).value().getName()));
     }
     if (field.isAnnotationPresent(ManyToOne.class)) {
       attributes.add(new Pair("itemprovider", field.getType().getName()));
@@ -127,8 +128,7 @@ public class FieldAttributeBuilder {
         }
       } catch (Exception e) {
         for (Object enumConstant : enumType.getEnumConstants()) {
-          attributes.add(
-                  new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
+          attributes.add(new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
         }
       }
     }
@@ -138,16 +138,17 @@ public class FieldAttributeBuilder {
         && !field.getGenericClass().isEnum()) {
       for (Field columnField : reflectionHelper.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
-                new Pair("column", new Column(
-                        columnField.getId(),
-                        "column",
-                        fieldTypeMapper.mapColumnType(columnField),
-                        captionProvider.getCaption(columnField),
-                        "",
-                        fieldTypeMapper.getWidth(columnField),
-                        isReadOnly(columnField),
-                        List.of()
-                )));
+            new Pair(
+                "column",
+                new Column(
+                    columnField.getId(),
+                    "column",
+                    fieldTypeMapper.mapColumnType(columnField),
+                    captionProvider.getCaption(columnField),
+                    "",
+                    fieldTypeMapper.getWidth(columnField),
+                    isReadOnly(columnField),
+                    List.of())));
       }
     }
     return attributes;

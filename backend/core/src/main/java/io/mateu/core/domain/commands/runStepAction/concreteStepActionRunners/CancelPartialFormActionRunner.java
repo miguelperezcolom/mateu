@@ -1,20 +1,14 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
-import com.google.common.base.Strings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -51,34 +45,34 @@ public class CancelPartialFormActionRunner implements ActionRunner {
     var main = view.main();
     var mainComponent = step.view().main().components().get(0);
 
-    step = new Step(
+    step =
+        new Step(
             step.id(),
             step.name(),
             step.type(),
             new View(
-                    view.title(),
-                    view.subtitle(),
-                    view.messages(),
-                    view.header(),
-                    view.left(),
-                    new ViewPart(
-                            main.classes(),
-                            Stream.concat(
-                                    Stream.of(new Component(
-                                            updateMetadata(viewInstance, sectionId, (Form) mainComponent.metadata()),
-                                            mainComponent.id(),
-                                            mainComponent.attributes()
-                                    )),
-                                    main.components().stream().skip(1)).toList()
-                    ),
-                    view.right(),
-                    view.footer()
-            ),
+                view.title(),
+                view.subtitle(),
+                view.messages(),
+                view.header(),
+                view.left(),
+                new ViewPart(
+                    main.classes(),
+                    Stream.concat(
+                            Stream.of(
+                                new Component(
+                                    updateMetadata(
+                                        viewInstance, sectionId, (Form) mainComponent.metadata()),
+                                    mainComponent.id(),
+                                    mainComponent.attributes())),
+                            main.components().stream().skip(1))
+                        .toList()),
+                view.right(),
+                view.footer()),
             step.data(),
             step.rules(),
             step.previousStepId(),
-            step.target()
-    );
+            step.target());
 
     step = restoreOldData(step, sectionId);
 
@@ -89,60 +83,59 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
   private ViewMetadata updateMetadata(Object viewInstance, String sectionId, Form metadata) {
     return new Form(
-            metadata.dataPrefix(),
-            metadata.icon(),
-            metadata.title(),
-            metadata.readOnly(),
-            metadata.subtitle(),
-            metadata.status(),
-            metadata.badges(),
-            metadata.tabs(),
-            metadata.banners(),
-            updatedSections(viewInstance, sectionId, metadata.sections()),
-            metadata.actions(),
-            metadata.mainActions(),
-            metadata.validations()
-    );
+        metadata.dataPrefix(),
+        metadata.icon(),
+        metadata.title(),
+        metadata.readOnly(),
+        metadata.subtitle(),
+        metadata.status(),
+        metadata.badges(),
+        metadata.tabs(),
+        metadata.banners(),
+        updatedSections(viewInstance, sectionId, metadata.sections()),
+        metadata.actions(),
+        metadata.mainActions(),
+        metadata.validations());
   }
 
-  private List<Section> updatedSections(Object viewInstance, String sectionId, List<Section> sections) {
+  private List<Section> updatedSections(
+      Object viewInstance, String sectionId, List<Section> sections) {
     return sections.stream()
-            .map(s -> {
+        .map(
+            s -> {
               if (sectionId.equals(s.id()) && !s.readOnly()) {
                 return updatedSectionToReadOnly(s);
               }
               return s;
             })
-            .toList();
+        .toList();
   }
 
-  private Section updatedSectionToReadOnly(
-      Section s) {
+  private Section updatedSectionToReadOnly(Section s) {
     return new Section(
-            s.id(),
-            s.tabId(),
-            s.caption(),
-            s.description(),
-            true,
-            s.type(),
-            s.leftSideImageUrl(),
-            s.topImageUrl(),
-            List.of(new Action(
-                    EDIT_PARTIAL_FORM_IDENTIFIER + s.id(),
-                    "Edit",
-                    ActionType.Secondary,
-                    true,
-                    false,
-                    false,
-                    false,
-                    null,
-                    ActionTarget.SameLane,
-                    null,
-                    null,
-                    null
-            )),
-            s.fieldGroups()
-    );
+        s.id(),
+        s.tabId(),
+        s.caption(),
+        s.description(),
+        true,
+        s.type(),
+        s.leftSideImageUrl(),
+        s.topImageUrl(),
+        List.of(
+            new Action(
+                EDIT_PARTIAL_FORM_IDENTIFIER + s.id(),
+                "Edit",
+                ActionType.Secondary,
+                true,
+                false,
+                false,
+                false,
+                null,
+                ActionTarget.SameLane,
+                null,
+                null,
+                null)),
+        s.fieldGroups());
   }
 
   private Step restoreOldData(Step step, String sectionId) {
@@ -151,15 +144,14 @@ public class CancelPartialFormActionRunner implements ActionRunner {
         (Map<String, Object>) data.get("__partialFormDataReminder__" + sectionId);
     data.putAll(oldData);
     return new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            step.view(),
-            data,
-            step.rules(),
-            step.previousStepId(),
-            step.target()
-    );
+        step.id(),
+        step.name(),
+        step.type(),
+        step.view(),
+        data,
+        step.rules(),
+        step.previousStepId(),
+        step.target());
   }
 
   private String getSectionIdFromActionId(String actionId) {

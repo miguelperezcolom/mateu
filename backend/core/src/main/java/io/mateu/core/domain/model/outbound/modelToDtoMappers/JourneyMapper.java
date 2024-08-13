@@ -9,12 +9,11 @@ public class JourneyMapper {
   public Journey map(Object formInstance) {
 
     return new Journey(
-            formInstance.getClass().getName(),
-            JourneyStatus.Pending,
-            "Please fill the form",
-            getStepId(formInstance),
-            getStepId(formInstance)
-    );
+        formInstance.getClass().getName(),
+        JourneyStatus.Pending,
+        "Please fill the form",
+        getStepId(formInstance),
+        getStepId(formInstance));
   }
 
   private String getStepId(Object formInstance) {

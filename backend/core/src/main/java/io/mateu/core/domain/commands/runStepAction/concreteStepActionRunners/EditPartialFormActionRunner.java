@@ -6,18 +6,15 @@ import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -57,32 +54,34 @@ public class EditPartialFormActionRunner implements ActionRunner {
 
     var mainComponent = main.components().get(0);
 
-    var newStep = new Step(
+    var newStep =
+        new Step(
             step.id(),
             step.name(),
             step.type(),
             new View(
-                    view.title(),
-                    view.subtitle(),
-                    view.messages(),
-                    view.header(),
-                    view.left(),
-                    new ViewPart(
-                            main.classes(),
-                            Stream.concat(Stream.of(new Component(
-                                    updateMetadata(viewInstance, sectionId, (Form) mainComponent.metadata()),
+                view.title(),
+                view.subtitle(),
+                view.messages(),
+                view.header(),
+                view.left(),
+                new ViewPart(
+                    main.classes(),
+                    Stream.concat(
+                            Stream.of(
+                                new Component(
+                                    updateMetadata(
+                                        viewInstance, sectionId, (Form) mainComponent.metadata()),
                                     mainComponent.id(),
-                                    mainComponent.attributes()
-                            )), main.components().stream().skip(1)).toList()
-                    ),
-                    view.right(),
-                    view.footer()
-            ),
+                                    mainComponent.attributes())),
+                            main.components().stream().skip(1))
+                        .toList()),
+                view.right(),
+                view.footer()),
             storeDataReminder(step, sectionId),
             step.rules(),
             step.previousStepId(),
-            step.target()
-    );
+            step.target());
 
     storeDataReminder(step, sectionId);
 
@@ -93,32 +92,33 @@ public class EditPartialFormActionRunner implements ActionRunner {
 
   private ViewMetadata updateMetadata(Object viewInstance, String sectionId, Form metadata) {
     return new Form(
-            metadata.dataPrefix(),
-            metadata.icon(),
-            metadata.title(),
-            metadata.readOnly(),
-            metadata.subtitle(),
-            metadata.status(),
-            metadata.badges(),
-            metadata.tabs(),
-            metadata.banners(),
-            updateSection(viewInstance, sectionId, metadata.sections()),
-            metadata.actions(),
-            metadata.mainActions(),
-            metadata.validations()
-    );
+        metadata.dataPrefix(),
+        metadata.icon(),
+        metadata.title(),
+        metadata.readOnly(),
+        metadata.subtitle(),
+        metadata.status(),
+        metadata.badges(),
+        metadata.tabs(),
+        metadata.banners(),
+        updateSection(viewInstance, sectionId, metadata.sections()),
+        metadata.actions(),
+        metadata.mainActions(),
+        metadata.validations());
   }
 
-  private List<Section> updateSection(Object viewInstance, String sectionId, List<Section> sections) {
+  private List<Section> updateSection(
+      Object viewInstance, String sectionId, List<Section> sections) {
     return sections.stream()
-            .map(s -> {
+        .map(
+            s -> {
               if (sectionId.equals(s.id())) {
                 var partialForm = getOrInitializeIfNotPresent(viewInstance, sectionId);
                 return updatedSectionToReadOnlyFalse(s, partialForm);
               }
               return s;
             })
-            .toList();
+        .toList();
   }
 
   @SneakyThrows
@@ -132,45 +132,51 @@ public class EditPartialFormActionRunner implements ActionRunner {
     return partialForm;
   }
 
-  private Section updatedSectionToReadOnlyFalse(
-      Section s,
-      PartialForm partialForm) {
+  private Section updatedSectionToReadOnlyFalse(Section s, PartialForm partialForm) {
 
     return new Section(
-            s.id(),
-            s.tabId(),
-            s.caption(),
-            s.description(),
-            false,
-            s.type(),
-            s.leftSideImageUrl(),
-            s.topImageUrl(),
-            Stream.concat(s.actions().stream(), Stream.of(new Action(
-                    CANCEL_PARTIAL_FORM_IDENTIFIER + s.id(),
-                    "Discard",
-                    ActionType.Secondary,
-                    true,
-                    false,
-                    false,
-                    false,
-                    null,
-                    ActionTarget.SameLane,
-                    null,
-                    null,
-                    null),
+        s.id(),
+        s.tabId(),
+        s.caption(),
+        s.description(),
+        false,
+        s.type(),
+        s.leftSideImageUrl(),
+        s.topImageUrl(),
+        Stream.concat(
+                s.actions().stream(),
+                Stream.of(
                     new Action(
-                            SAVE_PARTIAL_FORM_IDENTIFIER + s.id(), "Save", ActionType.Primary,
-                            true,
-                            true,
-                            !Strings.isNullOrEmpty(partialForm.confirmationMessage()),
-                            false,
-                            new ConfirmationTexts(partialForm.confirmationTitle(), partialForm.confirmationMessage(), "Save"),
-                            ActionTarget.SameLane,
-                            null,
-                            null,
-                            null))).toList(),
-            s.fieldGroups()
-    );
+                        CANCEL_PARTIAL_FORM_IDENTIFIER + s.id(),
+                        "Discard",
+                        ActionType.Secondary,
+                        true,
+                        false,
+                        false,
+                        false,
+                        null,
+                        ActionTarget.SameLane,
+                        null,
+                        null,
+                        null),
+                    new Action(
+                        SAVE_PARTIAL_FORM_IDENTIFIER + s.id(),
+                        "Save",
+                        ActionType.Primary,
+                        true,
+                        true,
+                        !Strings.isNullOrEmpty(partialForm.confirmationMessage()),
+                        false,
+                        new ConfirmationTexts(
+                            partialForm.confirmationTitle(),
+                            partialForm.confirmationMessage(),
+                            "Save"),
+                        ActionTarget.SameLane,
+                        null,
+                        null,
+                        null)))
+            .toList(),
+        s.fieldGroups());
   }
 
   private Map<String, Object> storeDataReminder(Step step, String sectionId) {

@@ -6,9 +6,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
-import io.mateu.dtos.Menu;
 import io.mateu.dtos.UI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -29,7 +27,8 @@ public class UIMapper {
       return ((DynamicUI) uiInstance).build().toFuture().get();
     }
 
-    UI ui = new UI(
+    UI ui =
+        new UI(
             null,
             null,
             getTitle(uiInstance),
@@ -37,8 +36,7 @@ public class UIMapper {
             menuCreator.buildMenuForUi(uiInstance, serverHttpRequest),
             "____home____",
             getLoginUrl(uiInstance),
-            getLogoutUrl(uiInstance)
-    );
+            getLogoutUrl(uiInstance));
 
     return ui;
   }

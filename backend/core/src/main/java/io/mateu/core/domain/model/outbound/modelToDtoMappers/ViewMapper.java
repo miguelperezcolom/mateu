@@ -11,22 +11,16 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -115,12 +109,9 @@ public class ViewMapper {
           p -> {
             ViewMetadata metadata =
                 viewMetadataBuilder.getMetadata(
-                        p.getDataPrefix(),
-                    stepId, uiInstance, p.getUiInstance(), p.getFields());
+                    p.getDataPrefix(), stepId, uiInstance, p.getUiInstance(), p.getFields());
             rules.addAll(rulesBuilder.buildRules(metadata, p.getUiInstance()));
-            componentsPerSlot
-                .get(slot)
-                .add(new Component(metadata, "", Map.of()));
+            componentsPerSlot.get(slot).add(new Component(metadata, "", Map.of()));
           });
     }
 
@@ -129,16 +120,15 @@ public class ViewMapper {
     main = addComponentIds(componentCounter, main, rules);
     right = addComponentIds(componentCounter, right, rules);
 
-      return new View(
-            null,
-            null,
-            List.of(),
-            new ViewPart(null, header),
-            new ViewPart(null, left),
-            new ViewPart(null, main),
-            new ViewPart(null, right),
-            new ViewPart(null, footer)
-    );
+    return new View(
+        null,
+        null,
+        List.of(),
+        new ViewPart(null, header),
+        new ViewPart(null, left),
+        new ViewPart(null, main),
+        new ViewPart(null, right),
+        new ViewPart(null, footer));
   }
 
   public void unnestPartialFormData(Map<String, Object> data, Object form) {
@@ -195,9 +185,7 @@ public class ViewMapper {
               applicationContext
                   .getBean(JourneyContainerService.class)
                   .getViewInstance(
-                      journeyContainer,
-                      journeyContainer.getInitialStep().id(),
-                      serverHttpRequest);
+                      journeyContainer, journeyContainer.getInitialStep().id(), serverHttpRequest);
       actualUiInstance =
           entityProvider.find(
               rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
@@ -209,104 +197,109 @@ public class ViewMapper {
   }
 
   private List<Component> addComponentIds(
-          AtomicInteger componentCounter, List<Component> components, List<Rule> rules) {
+      AtomicInteger componentCounter, List<Component> components, List<Rule> rules) {
 
-    return components.stream().map(c -> new Component(
-            c.metadata(),
-            "component-" + componentCounter.getAndIncrement(),
-            c.attributes()
-    )).map(c -> new Component(
-            updateMetadata(c.id(), c.metadata(), rules),
-            c.id(),
-            c.attributes()
-    )).toList();
+    return components.stream()
+        .map(
+            c ->
+                new Component(
+                    c.metadata(),
+                    "component-" + componentCounter.getAndIncrement(),
+                    c.attributes()))
+        .map(
+            c -> new Component(updateMetadata(c.id(), c.metadata(), rules), c.id(), c.attributes()))
+        .toList();
   }
 
   private ViewMetadata updateMetadata(String componentId, ViewMetadata metadata, List<Rule> rules) {
     if (metadata instanceof Crud crud) {
       return new Crud(
-              crud.dataPrefix(),
-              crud.listId(),
-              crud.title(),
-              crud.subtitle(),
-              crud.canEdit(),
-              crud.searchForm(),
-              crud.columns(),
-              crud.actions().stream().map(a -> new Action(
-                      componentId + "___" + a.id(),
-                      a.caption(),
-                      a.type(),
-                      a.visible(),
-                      a.validationRequired(),
-                      a.confirmationRequired(),
-                      a.rowsSelectedRequired(),
-                      a.confirmationTexts(),
-                      a.target(),
-                      a.modalStyle(),
-                      a.customEvent(),
-                      a.href()
-              )).toList()
-      );
+          crud.dataPrefix(),
+          crud.listId(),
+          crud.title(),
+          crud.subtitle(),
+          crud.canEdit(),
+          crud.searchForm(),
+          crud.columns(),
+          crud.actions().stream()
+              .map(
+                  a ->
+                      new Action(
+                          componentId + "___" + a.id(),
+                          a.caption(),
+                          a.type(),
+                          a.visible(),
+                          a.validationRequired(),
+                          a.confirmationRequired(),
+                          a.rowsSelectedRequired(),
+                          a.confirmationTexts(),
+                          a.target(),
+                          a.modalStyle(),
+                          a.customEvent(),
+                          a.href()))
+              .toList());
     }
 
     if (metadata instanceof Form form) {
       return new Form(
-              form.dataPrefix(),
-              form.icon(),
-              form.title(),
-              form.readOnly(),
-              form.subtitle(),
-              form.status(),
-              form.badges(),
-              form.tabs(),
-              form.banners(),
-              form.sections(),
-              setIdAndAddRuleForActions(form.actions(), componentId, rules),
-              setIdAndAddRuleForActions(form.mainActions(), componentId, rules),
-              form.validations()
-      );
+          form.dataPrefix(),
+          form.icon(),
+          form.title(),
+          form.readOnly(),
+          form.subtitle(),
+          form.status(),
+          form.badges(),
+          form.tabs(),
+          form.banners(),
+          form.sections(),
+          setIdAndAddRuleForActions(form.actions(), componentId, rules),
+          setIdAndAddRuleForActions(form.mainActions(), componentId, rules),
+          form.validations());
     }
     return metadata;
   }
 
-  private List<Action> setIdAndAddRuleForActions(List<Action> actions, String componentId, List<Rule> rules) {
+  private List<Action> setIdAndAddRuleForActions(
+      List<Action> actions, String componentId, List<Rule> rules) {
     addRuleForActions(actions, componentId, rules);
     return setIdForActions(actions, componentId, rules);
   }
 
   private List<Action> setIdForActions(List<Action> actions, String componentId, List<Rule> rules) {
-    return actions.stream().map(a -> new Action(
-            componentId + "___" + a.id(),
-            a.caption(),
-            a.type(),
-            a.visible(),
-            a.validationRequired(),
-            a.confirmationRequired(),
-            a.rowsSelectedRequired(),
-            a.confirmationTexts(),
-            a.target(),
-            a.modalStyle(),
-            a.customEvent(),
-            a.href()
-    )).toList();
+    return actions.stream()
+        .map(
+            a ->
+                new Action(
+                    componentId + "___" + a.id(),
+                    a.caption(),
+                    a.type(),
+                    a.visible(),
+                    a.validationRequired(),
+                    a.confirmationRequired(),
+                    a.rowsSelectedRequired(),
+                    a.confirmationTexts(),
+                    a.target(),
+                    a.modalStyle(),
+                    a.customEvent(),
+                    a.href()))
+        .toList();
   }
 
   private void addRuleForActions(List<Action> actions, String componentId, List<Rule> rules) {
     actions.forEach(
-            action -> {
-              rules.stream()
-                      .filter(
-                              r ->
-                                      RuleAction.HideAction.equals(r.getAction())
-                                              || RuleAction.ShowAction.equals(r.getAction())
-                                              || RuleAction.EnableAction.equals(r.getAction())
-                                              || RuleAction.DisableAction.equals(r.getAction()))
-                      .filter(r -> action.id().equals(((String[]) r.getData())[0]))
-                      .forEach(
-                              r -> {
-                                r.setData(new String[] {componentId + "___" + action.id()});
-                              });
-            });
+        action -> {
+          rules.stream()
+              .filter(
+                  r ->
+                      RuleAction.HideAction.equals(r.getAction())
+                          || RuleAction.ShowAction.equals(r.getAction())
+                          || RuleAction.EnableAction.equals(r.getAction())
+                          || RuleAction.DisableAction.equals(r.getAction()))
+              .filter(r -> action.id().equals(((String[]) r.getData())[0]))
+              .forEach(
+                  r -> {
+                    r.setData(new String[] {componentId + "___" + action.id()});
+                  });
+        });
   }
-
 }

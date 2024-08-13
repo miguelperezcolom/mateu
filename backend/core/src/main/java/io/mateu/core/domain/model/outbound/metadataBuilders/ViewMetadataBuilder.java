@@ -14,7 +14,6 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import java.util.List;
 import java.util.stream.Stream;
-
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -113,7 +112,8 @@ public class ViewMetadataBuilder {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private io.mateu.dtos.Card getCard(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
+  private io.mateu.dtos.Card getCard(
+      String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
     return cardMetadataBuilder.build(dataPrefix, stepId, uiInstance, slotFields);
   }
 
@@ -129,57 +129,7 @@ public class ViewMetadataBuilder {
     Field idField = reflectionHelper.getIdField(uiInstance.getEntityClass());
     if (idField != null) {
       if (uiInstance.getData().containsKey(idField.getId())) {
-        return new Form(metadata.dataPrefix(),
-                metadata.icon(),
-                metadata.title(),
-                metadata.readOnly(),
-                metadata.subtitle(),
-                metadata.status(),
-                metadata.badges(),
-                metadata.tabs(),
-                metadata.banners(),
-                metadata.sections().stream().map(s -> new Section(
-                        s.id(),
-                        s.tabId(),
-                        s.caption(),
-                        s.description(),
-                        s.readOnly(),
-                        s.type(),
-                        s.leftSideImageUrl(),
-                        s.topImageUrl(),
-                        s.actions(),
-                        s.fieldGroups().stream().map(g -> new FieldGroup(
-                                g.id(),
-                                g.caption(),
-                                g.lines().stream().map(l -> new FieldGroupLine(
-                                        l.fields().stream().map(f -> new io.mateu.dtos.Field(
-                                                f.id(),
-                                                f.type(),
-                                                f.id().equals(idField.getId())?
-                                                        "readonly":
-                                                        f.stereotype(),
-                                                f.observed(),
-                                                f.caption(),
-                                                f.placeholder(),
-                                                f.cssClasses(),
-                                                f.description(),
-                                                f.badges(),
-                                                f.validations(),
-                                                f.attributes()
-                                        )).toList()
-                                )).toList()
-                        )).toList()
-                )).toList(),
-                metadata.actions(),
-                metadata.mainActions(),
-                metadata.validations());
-      }
-    }
-    return metadata;
-  }
-
-  private Form addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
-    return new Form(
+        return new Form(
             metadata.dataPrefix(),
             metadata.icon(),
             metadata.title(),
@@ -189,22 +139,91 @@ public class ViewMetadataBuilder {
             metadata.badges(),
             metadata.tabs(),
             metadata.banners(),
-            metadata.sections(),
+            metadata.sections().stream()
+                .map(
+                    s ->
+                        new Section(
+                            s.id(),
+                            s.tabId(),
+                            s.caption(),
+                            s.description(),
+                            s.readOnly(),
+                            s.type(),
+                            s.leftSideImageUrl(),
+                            s.topImageUrl(),
+                            s.actions(),
+                            s.fieldGroups().stream()
+                                .map(
+                                    g ->
+                                        new FieldGroup(
+                                            g.id(),
+                                            g.caption(),
+                                            g.lines().stream()
+                                                .map(
+                                                    l ->
+                                                        new FieldGroupLine(
+                                                            l.fields().stream()
+                                                                .map(
+                                                                    f ->
+                                                                        new io.mateu.dtos.Field(
+                                                                            f.id(),
+                                                                            f.type(),
+                                                                            f.id()
+                                                                                    .equals(
+                                                                                        idField
+                                                                                            .getId())
+                                                                                ? "readonly"
+                                                                                : f.stereotype(),
+                                                                            f.observed(),
+                                                                            f.caption(),
+                                                                            f.placeholder(),
+                                                                            f.cssClasses(),
+                                                                            f.description(),
+                                                                            f.badges(),
+                                                                            f.validations(),
+                                                                            f.attributes()))
+                                                                .toList()))
+                                                .toList()))
+                                .toList()))
+                .toList(),
             metadata.actions(),
-            Stream.concat(metadata.mainActions().stream(), Stream.of(new Action(
-                    "save",
-                    "Save",
-                    ActionType.Primary,
-                    true,
-                    true,
-                    false,
-                    false,
-                    null,
-                    ActionTarget.SameLane,
-                    null,
-                    null,
-                    null))).toList(),
-            metadata.validations()
-    );
+            metadata.mainActions(),
+            metadata.validations());
+      }
+    }
+    return metadata;
+  }
+
+  private Form addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
+    return new Form(
+        metadata.dataPrefix(),
+        metadata.icon(),
+        metadata.title(),
+        metadata.readOnly(),
+        metadata.subtitle(),
+        metadata.status(),
+        metadata.badges(),
+        metadata.tabs(),
+        metadata.banners(),
+        metadata.sections(),
+        metadata.actions(),
+        Stream.concat(
+                metadata.mainActions().stream(),
+                Stream.of(
+                    new Action(
+                        "save",
+                        "Save",
+                        ActionType.Primary,
+                        true,
+                        true,
+                        false,
+                        false,
+                        null,
+                        ActionTarget.SameLane,
+                        null,
+                        null,
+                        null)))
+            .toList(),
+        metadata.validations());
   }
 }

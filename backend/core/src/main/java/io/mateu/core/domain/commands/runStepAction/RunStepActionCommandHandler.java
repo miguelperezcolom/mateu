@@ -7,12 +7,9 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -46,13 +43,8 @@ public class RunStepActionCommandHandler {
 
     if ("xxxbacktostep".equals(actionId)) {
       var journey = journeyContainer.getJourney();
-      journeyContainer.setJourney(new Journey(
-              journey.type(),
-              journey.status(),
-              journey.statusMessage(),
-              stepId,
-              "xxx"
-      ));
+      journeyContainer.setJourney(
+          new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"));
       resetMessages(journeyContainer);
 
       return Mono.empty().then();
@@ -82,7 +74,8 @@ public class RunStepActionCommandHandler {
     var step = journeyContainer.getSteps().get(stepId);
     var newData = new HashMap<>(step.data());
     newData.putAll(data);
-    step = new Step(
+    step =
+        new Step(
             step.id(),
             step.name(),
             step.type(),
@@ -90,8 +83,7 @@ public class RunStepActionCommandHandler {
             newData,
             step.rules(),
             step.previousStepId(),
-            step.target()
-    );
+            step.target());
     journeyContainer.getSteps().put(stepId, step);
     viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
@@ -119,51 +111,64 @@ public class RunStepActionCommandHandler {
                           var view = stepAfterRun.view();
                           var main = view.main();
 
-                          journeyContainer.getSteps().put(stepId, new Step(
-                                  stepAfterRun.id(),
-                                  stepAfterRun.name(),
-                                  stepAfterRun.type(),
-                                  new View(
+                          journeyContainer
+                              .getSteps()
+                              .put(
+                                  stepId,
+                                  new Step(
+                                      stepAfterRun.id(),
+                                      stepAfterRun.name(),
+                                      stepAfterRun.type(),
+                                      new View(
                                           view.title(),
                                           view.subtitle(),
                                           view.messages(),
                                           view.header(),
                                           view.left(),
                                           new ViewPart(
-                                                  main.classes(),
-                                                  main.components().stream().map(c -> new Component(
-                                                          c.metadata() instanceof Form f?new Form(
-                                                                  f.dataPrefix(),
-                                                                  f.icon(),
-                                                                  f.title(),
-                                                                  f.readOnly(),
-                                                                  f.subtitle(),
-                                                                  f.status(),
-                                                                  f.badges(),
-                                                                  f.tabs().stream().map(t -> new Tab(
-                                                                          t.id(),
-                                                                          !Strings.isNullOrEmpty(activeTabId)
-                                                                                  && activeTabId.equals(t.id()),
-                                                                          t.caption()
-                                                                  )).toList(),
-                                                                  f.banners(),
-                                                                  f.sections(),
-                                                                  f.actions(),
-                                                                  f.mainActions(),
-                                                                  f.validations()
-                                                          ):c.metadata(),
-                                                          c.id(),
-                                                          c.attributes()
-                                                  )).toList()
-                                          ),
+                                              main.classes(),
+                                              main.components().stream()
+                                                  .map(
+                                                      c ->
+                                                          new Component(
+                                                              c.metadata() instanceof Form f
+                                                                  ? new Form(
+                                                                      f.dataPrefix(),
+                                                                      f.icon(),
+                                                                      f.title(),
+                                                                      f.readOnly(),
+                                                                      f.subtitle(),
+                                                                      f.status(),
+                                                                      f.badges(),
+                                                                      f.tabs().stream()
+                                                                          .map(
+                                                                              t ->
+                                                                                  new Tab(
+                                                                                      t.id(),
+                                                                                      !Strings
+                                                                                              .isNullOrEmpty(
+                                                                                                  activeTabId)
+                                                                                          && activeTabId
+                                                                                              .equals(
+                                                                                                  t
+                                                                                                      .id()),
+                                                                                      t.caption()))
+                                                                          .toList(),
+                                                                      f.banners(),
+                                                                      f.sections(),
+                                                                      f.actions(),
+                                                                      f.mainActions(),
+                                                                      f.validations())
+                                                                  : c.metadata(),
+                                                              c.id(),
+                                                              c.attributes()))
+                                                  .toList()),
                                           view.right(),
-                                          view.footer()
-                                  ),
-                                  stepAfterRun.data(),
-                                  stepAfterRun.rules(),
-                                  stepAfterRun.previousStepId(),
-                                  stepAfterRun.target()
-                          ));
+                                          view.footer()),
+                                      stepAfterRun.data(),
+                                      stepAfterRun.rules(),
+                                      stepAfterRun.previousStepId(),
+                                      stepAfterRun.target()));
                         }
                       } catch (Throwable e) {
                         throw new RuntimeException(e);
@@ -181,11 +186,15 @@ public class RunStepActionCommandHandler {
     var currentStepId = journeyContainer.getJourney().currentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
     var view = step.view();
-    journeyContainer.getSteps().put(currentStepId, new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            new View(
+    journeyContainer
+        .getSteps()
+        .put(
+            currentStepId,
+            new Step(
+                step.id(),
+                step.name(),
+                step.type(),
+                new View(
                     view.title(),
                     view.subtitle(),
                     List.of(),
@@ -193,13 +202,11 @@ public class RunStepActionCommandHandler {
                     view.left(),
                     view.main(),
                     view.right(),
-                    view.footer()
-            ),
-            step.data(),
-            step.rules(),
-            step.previousStepId(),
-            step.target()
-    ));
+                    view.footer()),
+                step.data(),
+                step.rules(),
+                step.previousStepId(),
+                step.target()));
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {

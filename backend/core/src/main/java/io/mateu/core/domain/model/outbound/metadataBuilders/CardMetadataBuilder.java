@@ -28,15 +28,15 @@ public class CardMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
-    Card card = new Card(
+    Card card =
+        new Card(
             dataPrefix,
             captionProvider.getCaption(uiInstance),
             getSubtitle(uiInstance),
             getInfo(uiInstance),
             getIcon(uiInstance),
             getTotal(uiInstance),
-            getFieldGroups(stepId, uiInstance, slotFields)
-    );
+            getFieldGroups(stepId, uiInstance, slotFields));
     return card;
   }
 
@@ -101,13 +101,17 @@ public class CardMetadataBuilder {
             .collect(Collectors.toList());
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+      if (field.isAnnotationPresent(
+          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
         String caption =
-              field
-                  .getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
-                  .value();
+            field
+                .getAnnotation(
+                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                .value();
         if (fieldGroupLines.size() > 0) {
-          fieldGroups.add(new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
+          fieldGroups.add(
+              new FieldGroup(
+                  UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
         }
         currentFieldGroupCaption = caption;
       }
@@ -119,7 +123,8 @@ public class CardMetadataBuilder {
       }
     }
     if (fieldGroupLines.size() > 0) {
-      fieldGroups.add(new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
+      fieldGroups.add(
+          new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines));
     }
 
     fillGroupIds(fieldGroups);
@@ -129,9 +134,8 @@ public class CardMetadataBuilder {
 
   private void fillGroupIds(List<FieldGroup> fieldGroups) {
     AtomicInteger j = new AtomicInteger();
-    fieldGroups.stream().map(g -> new FieldGroup(
-            "fieldgroup_" + j.getAndIncrement(),
-            g.caption(),
-            g.lines())).toList();
+    fieldGroups.stream()
+        .map(g -> new FieldGroup("fieldgroup_" + j.getAndIncrement(), g.caption(), g.lines()))
+        .toList();
   }
 }

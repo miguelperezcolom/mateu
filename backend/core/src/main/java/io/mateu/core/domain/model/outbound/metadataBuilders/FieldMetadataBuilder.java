@@ -29,7 +29,8 @@ public class FieldMetadataBuilder {
   final CaptionProvider captionProvider;
 
   protected io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
-    io.mateu.dtos.Field field = new io.mateu.dtos.Field(
+    io.mateu.dtos.Field field =
+        new io.mateu.dtos.Field(
             fieldInterfaced.getId(),
             fieldTypeMapper.mapFieldType(fieldInterfaced),
             fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
@@ -40,8 +41,7 @@ public class FieldMetadataBuilder {
             getDescription(fieldInterfaced),
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
-            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)
-    );
+            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced));
     return field;
   }
 

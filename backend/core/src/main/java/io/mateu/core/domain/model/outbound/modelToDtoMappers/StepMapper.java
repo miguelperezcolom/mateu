@@ -39,7 +39,7 @@ public class StepMapper {
     Map<String, Object> data = new HashMap<>();
     if (oldData != null) {
       data.putAll(oldData);
-   }
+    }
 
     List<Rule> rules = new ArrayList<>();
 
@@ -48,14 +48,13 @@ public class StepMapper {
     }
 
     return new Step(
-            stepId,
-            captionProvider.getCaption(formInstance),
-            formInstance.getClass().getName(),
-            viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest),
-            data,
-            rules,
-            previousStepId,
-            null
-    );
+        stepId,
+        captionProvider.getCaption(formInstance),
+        formInstance.getClass().getName(),
+        viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest),
+        data,
+        rules,
+        previousStepId,
+        null);
   }
 }

@@ -10,9 +10,6 @@ import io.mateu.dtos.ActionTarget;
 import io.mateu.dtos.ActionType;
 import io.mateu.dtos.ConfirmationTexts;
 import jakarta.persistence.Entity;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -20,6 +17,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -30,20 +29,19 @@ public class ActionMetadataBuilder {
 
   protected Action getAction(Method m) {
     Action action =
-            new Action(
-                    m.getName(),
-                    captionProvider.getCaption(m),
-                    getActionType(m),
-                    isVisible(m),
-                    getValidationRequired(m),
-                    getConfirmationRequired(m),
-                    getRowsSelectedRequired(m),
-                    getConfirmationTexts(m),
-                    getTarget(m),
-                    getModalStyle(m),
-                    getCustomEvent(m),
-                    getHref(m)
-            );
+        new Action(
+            m.getName(),
+            captionProvider.getCaption(m),
+            getActionType(m),
+            isVisible(m),
+            getValidationRequired(m),
+            getConfirmationRequired(m),
+            getRowsSelectedRequired(m),
+            getConfirmationTexts(m),
+            getTarget(m),
+            getModalStyle(m),
+            getCustomEvent(m),
+            getHref(m));
     return action;
   }
 
@@ -116,18 +114,16 @@ public class ActionMetadataBuilder {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
       return new ConfirmationTexts(
-              getConfirmationTitle(action.confirmationTitle(), m),
-              action.confirmationMessage(),
-              getConfirmationAction(action.confirmationAction(), m)
-      );
+          getConfirmationTitle(action.confirmationTitle(), m),
+          action.confirmationMessage(),
+          getConfirmationAction(action.confirmationAction(), m));
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
       return new ConfirmationTexts(
           getConfirmationTitle(action.confirmationTitle(), m),
           action.confirmationMessage(),
-          getConfirmationAction(action.confirmationAction(), m)
-          );
+          getConfirmationAction(action.confirmationAction(), m));
     }
     return null;
   }
@@ -228,20 +224,24 @@ public class ActionMetadataBuilder {
               .getActionMethods().stream().map(m -> getAction(m)).collect(Collectors.toList()));
     }
     if (!Strings.isNullOrEmpty(listId))
-      actions = actions.stream().map(a -> new Action(
-              "__list__" + listId + "__" + a.id(),
-              a.caption(),
-              a.type(),
-              a.visible(),
-              a.validationRequired(),
-              a.confirmationRequired(),
-              a.rowsSelectedRequired(),
-              a.confirmationTexts(),
-              a.target(),
-              a.modalStyle(),
-              a.customEvent(),
-              a.href()
-      )).toList();
+      actions =
+          actions.stream()
+              .map(
+                  a ->
+                      new Action(
+                          "__list__" + listId + "__" + a.id(),
+                          a.caption(),
+                          a.type(),
+                          a.visible(),
+                          a.validationRequired(),
+                          a.confirmationRequired(),
+                          a.rowsSelectedRequired(),
+                          a.confirmationTexts(),
+                          a.target(),
+                          a.modalStyle(),
+                          a.customEvent(),
+                          a.href()))
+              .toList();
     if (canAdd(uiInstance)) {
       Action action =
           new Action(
@@ -256,12 +256,12 @@ public class ActionMetadataBuilder {
               ActionTarget.SameLane,
               null,
               null,
-              null
-          );
+              null);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
-      Action action = new Action(
+      Action action =
+          new Action(
               "__list__" + listId + "__delete",
               getCaptionForDelete(uiInstance),
               ActionType.Primary,
@@ -270,21 +270,20 @@ public class ActionMetadataBuilder {
               true,
               false,
               new ConfirmationTexts(
-                      "Please confirm",
-                      "Are you sure you want to delete the selected rows",
-                      "Yes, delete them"
-              ),
+                  "Please confirm",
+                  "Are you sure you want to delete the selected rows",
+                  "Yes, delete them"),
               ActionTarget.SameLane,
               null,
               null,
-              null
-      );
+              null);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
         || ((uiInstance instanceof ReadOnlyPojo && ((ReadOnlyPojo<?>) uiInstance).hasEditor())
             && !(uiInstance instanceof PersistentPojo))) {
-      Action action = new Action(
+      Action action =
+          new Action(
               "edit",
               getCaptionForEdit(uiInstance),
               ActionType.Primary,
@@ -296,8 +295,7 @@ public class ActionMetadataBuilder {
               ActionTarget.SameLane,
               null,
               null,
-              null
-      );
+              null);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

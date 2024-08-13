@@ -53,9 +53,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
     if (detail != null) {
       youMayBeInterestedIn.add(
           new Destination(
-              DestinationType.ActionId,
-              "Return to " + detail.name() + " detail",
-              detail.id()));
+              DestinationType.ActionId, "Return to " + detail.name() + " detail", detail.id()));
     }
 
     Result whatToShow =
@@ -64,9 +62,7 @@ public class PersistentPojoSaveActionRunner implements ActionRunner {
             "" + viewInstance.toString() + " has been saved",
             youMayBeInterestedIn,
             new Destination(
-                DestinationType.ActionId,
-                "Return to " + initialStep.name(),
-                initialStep.id()),
+                DestinationType.ActionId, "Return to " + initialStep.name(), initialStep.id()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
     store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);

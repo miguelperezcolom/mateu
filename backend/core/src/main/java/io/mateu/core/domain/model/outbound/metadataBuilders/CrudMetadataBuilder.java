@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -42,15 +41,14 @@ public class CrudMetadataBuilder {
     var rpcView = (Listing) crudInstance;
 
     return new Crud(
-      "",
-      listId,
-            captionProvider.getCaption(rpcView),
-            getSubtitle(rpcView),
-            reflectionHelper.isOverridden(rpcView, "getDetail"),
-            buildSearchForm(rpcView, listId),
-            buildColumns(rpcView),
-            actionMetadataBuilder.getActions(stepId, listId, rpcView)
-    );
+        "",
+        listId,
+        captionProvider.getCaption(rpcView),
+        getSubtitle(rpcView),
+        reflectionHelper.isOverridden(rpcView, "getDetail"),
+        buildSearchForm(rpcView, listId),
+        buildColumns(rpcView),
+        actionMetadataBuilder.getActions(stepId, listId, rpcView));
   }
 
   private String getSubtitle(Listing rpcView) {
@@ -87,15 +85,14 @@ public class CrudMetadataBuilder {
 
   private Column getColumn(String columnId, String columnCaption, Field field) {
     return new Column(
-            columnId,
-            fieldTypeMapper.mapColumnType(field),
-            "column",
-            columnCaption,
-            "",
-            fieldTypeMapper.getWidth(field),
-            false,
-            List.of()
-    );
+        columnId,
+        fieldTypeMapper.mapColumnType(field),
+        "column",
+        columnCaption,
+        "",
+        fieldTypeMapper.getWidth(field),
+        false,
+        List.of());
   }
 
   private SearchForm buildSearchForm(Listing rpcView, String listId) {
@@ -128,7 +125,8 @@ public class CrudMetadataBuilder {
         allEditableFields.stream()
             .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
             .map(
-                f -> new io.mateu.dtos.Field(
+                f ->
+                    new io.mateu.dtos.Field(
                         listId + "-" + f.id(),
                         f.type(),
                         f.stereotype(),
@@ -139,25 +137,27 @@ public class CrudMetadataBuilder {
                         f.description(),
                         f.badges(),
                         f.validations(),
-                        f.attributes()
-                ))
+                        f.attributes()))
             .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
-      filterFields = Stream.concat(Stream.of(
-          new io.mateu.dtos.Field(
-                  listId + "-" + "_search-text",
-                  "string",
-                  "input",
-                  false,
-                  "Search",
-                  "Search",
-                  null,
-                  null,
-                  List.of(),
-                  List.of(),
-                  List.of()
-          )), filterFields.stream()).toList();
+      filterFields =
+          Stream.concat(
+                  Stream.of(
+                      new io.mateu.dtos.Field(
+                          listId + "-" + "_search-text",
+                          "string",
+                          "input",
+                          false,
+                          "Search",
+                          "Search",
+                          null,
+                          null,
+                          List.of(),
+                          List.of(),
+                          List.of())),
+                  filterFields.stream())
+              .toList();
     return filterFields;
   }
 }

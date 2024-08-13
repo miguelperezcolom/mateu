@@ -93,23 +93,15 @@ public class StartJourneyCommandHandler {
     Step step =
         stepMapper.map(
             journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest, null);
-    journeyContainer.setJourney(journey = new Journey(
-            journey.type(),
-            journey.status(),
-            journey.statusMessage(),
-            step.id(),
-            step.type()
-    ));
+    journeyContainer.setJourney(
+        journey =
+            new Journey(
+                journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()));
 
     journeyContainer.setInitialStep(step);
     journeyContainer.setSteps(Map.of(step.id(), step));
 
-    return Mono.just(
-            new StepWrapper(
-                    journey,
-                    step,
-                    toMap(journeyContainer)
-            ));
+    return Mono.just(new StepWrapper(journey, step, toMap(journeyContainer)));
   }
 
   private String getStepId(Object formInstance) {

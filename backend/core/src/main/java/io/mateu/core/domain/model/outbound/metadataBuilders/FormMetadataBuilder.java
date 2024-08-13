@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -52,20 +50,19 @@ public class FormMetadataBuilder {
     }
 
     return new Form(
-          "",
-          getIcon(uiInstance),
-          captionProvider.getCaption(uiInstance),
-          isReadOnly(stepId, uiInstance),
-          getSubtitle(uiInstance),
-          getStatus(uiInstance),
-          getBadges(uiInstance),
-          getTabs(uiInstance),
-          getBanners(uiInstance),
-          getSections(stepId, uiInstance, slotFields),
-          actionMetadataBuilder.getActions(stepId, "", uiInstance),
-          getMainActions(stepId, uiInstance),
-          List.of()
-    );
+        "",
+        getIcon(uiInstance),
+        captionProvider.getCaption(uiInstance),
+        isReadOnly(stepId, uiInstance),
+        getSubtitle(uiInstance),
+        getStatus(uiInstance),
+        getBadges(uiInstance),
+        getTabs(uiInstance),
+        getBanners(uiInstance),
+        getSections(stepId, uiInstance, slotFields),
+        actionMetadataBuilder.getActions(stepId, "", uiInstance),
+        getMainActions(stepId, uiInstance),
+        List.of());
   }
 
   private String getIcon(Object uiInstance) {
@@ -245,39 +242,38 @@ public class FormMetadataBuilder {
             .map(m -> actionMetadataBuilder.getAction(m))
             .collect(Collectors.toList());
     if (!"view".equals(stepId)
-        && (stepId.contains("__editfield__") || uiInstance instanceof PersistentPojo
+        && (stepId.contains("__editfield__")
+            || uiInstance instanceof PersistentPojo
             || uiInstance.getClass().isAnnotationPresent(Entity.class))) {
       Action action =
-              new Action(
-                      "cancel",
-                      getCaptionForCancel(uiInstance),
-                      ActionType.Secondary,
-                      true,
-                      false,
-                      false,
-                      false,
-                      null,
-                      ActionTarget.SameLane,
-                      null,
-                      null,
-                      null
-              );
+          new Action(
+              "cancel",
+              getCaptionForCancel(uiInstance),
+              ActionType.Secondary,
+              true,
+              false,
+              false,
+              false,
+              null,
+              ActionTarget.SameLane,
+              null,
+              null,
+              null);
       actions.add(action);
       action =
-              new Action(
-                      "save",
-                      getCaptionForSave(uiInstance),
-                      ActionType.Primary,
-                      true,
-                      true,
-                      false,
-                      false,
-                      null,
-                      ActionTarget.SameLane,
-                      null,
-                      null,
-                      null
-              );
+          new Action(
+              "save",
+              getCaptionForSave(uiInstance),
+              ActionType.Primary,
+              true,
+              true,
+              false,
+              false,
+              null,
+              ActionTarget.SameLane,
+              null,
+              null,
+              null);
       actions.add(action);
     }
     return actions;
@@ -323,81 +319,93 @@ public class FormMetadataBuilder {
     return sections;
   }
 
-  public List<Section> createSections(String stepId, Object uiInstance, List<Field> allEditableFields) {
+  public List<Section> createSections(
+      String stepId, Object uiInstance, List<Field> allEditableFields) {
     Map<String, List<Field>> fieldsByTabId = groupFieldsByTabId(allEditableFields);
 
     List<Section> sections = new ArrayList<>();
-    fieldsByTabId.keySet().forEach(tabId -> {
-      var fieldsInTab = fieldsByTabId.get(tabId);
-      List<List<Field>> fieldsBySection = groupFieldsBySection(fieldsInTab);
-      fieldsBySection.forEach(fields -> {
-        if (!fields.isEmpty()) {
-          var firstField = fields.get(0);
-          if (PartialForm.class.isAssignableFrom(firstField.getType())) {
-            addPartialForm(uiInstance, firstField, tabId, sections);
-          } else {
-            addSection(stepId, fields, uiInstance, firstField, tabId, sections);
-          }
-        }
-      });
-    });
+    fieldsByTabId
+        .keySet()
+        .forEach(
+            tabId -> {
+              var fieldsInTab = fieldsByTabId.get(tabId);
+              List<List<Field>> fieldsBySection = groupFieldsBySection(fieldsInTab);
+              fieldsBySection.forEach(
+                  fields -> {
+                    if (!fields.isEmpty()) {
+                      var firstField = fields.get(0);
+                      if (PartialForm.class.isAssignableFrom(firstField.getType())) {
+                        addPartialForm(uiInstance, firstField, tabId, sections);
+                      } else {
+                        addSection(stepId, fields, uiInstance, firstField, tabId, sections);
+                      }
+                    }
+                  });
+            });
     return sections;
   }
 
-  private void addSection(String stepId, List<Field> fields, Object uiInstance, Field firstField, String tabId, List<Section> sections) {
+  private void addSection(
+      String stepId,
+      List<Field> fields,
+      Object uiInstance,
+      Field firstField,
+      String tabId,
+      List<Section> sections) {
     String caption = "";
     String description = "";
     String leftSideImageUrl = "";
     String topImageUrl = "";
     boolean card = true;
     if (firstField.isAnnotationPresent(
-            io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
+        io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Section annotation =
-              firstField.getAnnotation(
-                      io.mateu.core.domain.uidefinition.shared.annotations.Section.class);
+          firstField.getAnnotation(
+              io.mateu.core.domain.uidefinition.shared.annotations.Section.class);
       caption = annotation.value();
       card = annotation.card();
       description = annotation.description();
       leftSideImageUrl = annotation.leftSideImageUrl();
       topImageUrl = annotation.topImageUrl();
     }
-    var section = new Section(
+    var section =
+        new Section(
             "" + sections.size(),
             tabId,
             caption,
             description,
             "view".equals(stepId)
-                    || (uiInstance instanceof ReadOnlyPojo
-                    && !(uiInstance instanceof PersistentPojo)),
+                || (uiInstance instanceof ReadOnlyPojo && !(uiInstance instanceof PersistentPojo)),
             card ? SectionType.Card : SectionType.Transparent,
             leftSideImageUrl,
             topImageUrl,
             List.of(),
-            createFieldGroups(uiInstance, fields)
-    );
+            createFieldGroups(uiInstance, fields));
     sections.add(section);
   }
 
   private List<List<Field>> groupFieldsBySection(List<Field> fieldsInTab) {
     List<List<Field>> fieldsBySection = new ArrayList<>();
     List<Field> fieldsInSection = new ArrayList<>();
-    fieldsInTab.forEach(field -> {
-      if (PartialForm.class.isAssignableFrom(field.getType())) {
-        if (!fieldsBySection.isEmpty()) {
-          fieldsBySection.add(new ArrayList<>(fieldsInSection));
-          fieldsInSection.clear();
-        }
-        fieldsBySection.add(List.of(field));
-      } else {
-        if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
-          if (!fieldsInSection.isEmpty()) {
-            fieldsBySection.add(new ArrayList<>(fieldsInSection));
-            fieldsInSection.clear();
+    fieldsInTab.forEach(
+        field -> {
+          if (PartialForm.class.isAssignableFrom(field.getType())) {
+            if (!fieldsBySection.isEmpty()) {
+              fieldsBySection.add(new ArrayList<>(fieldsInSection));
+              fieldsInSection.clear();
+            }
+            fieldsBySection.add(List.of(field));
+          } else {
+            if (field.isAnnotationPresent(
+                io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
+              if (!fieldsInSection.isEmpty()) {
+                fieldsBySection.add(new ArrayList<>(fieldsInSection));
+                fieldsInSection.clear();
+              }
+            }
+            fieldsInSection.add(field);
           }
-        }
-        fieldsInSection.add(field);
-      }
-    });
+        });
     if (!fieldsInSection.isEmpty()) {
       fieldsBySection.add(fieldsInSection);
     }
@@ -410,7 +418,7 @@ public class FormMetadataBuilder {
 
     for (Field field : allEditableFields) {
       if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)) {
+          io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)) {
         tabId = "tab_" + field.getId();
       }
       fieldsByTabId.putIfAbsent(tabId, new ArrayList<>());
@@ -419,8 +427,10 @@ public class FormMetadataBuilder {
     return fieldsByTabId;
   }
 
-  private void addPartialForm(Object uiInstance, Field field, String tabId, List<Section> sections) {
-    var partialFormSection = new Section(
+  private void addPartialForm(
+      Object uiInstance, Field field, String tabId, List<Section> sections) {
+    var partialFormSection =
+        new Section(
             field.getId(),
             tabId,
             captionProvider.getCaption(field),
@@ -430,85 +440,109 @@ public class FormMetadataBuilder {
             null,
             null,
             List.of(
-                    new Action(
-                            EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER
-                                    + field.getId(),
-                            getCaptionForEdit(uiInstance),
-                            ActionType.Secondary,
-                            true,
-                            false,
-                            false,
-                            false,
-                            null,
-                            ActionTarget.SameLane,
-                            null,
-                            null,
-                            null
-                    )),
-            createFieldGroups(field.getType(), uiInstance, field)
-    );
+                new Action(
+                    EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER + field.getId(),
+                    getCaptionForEdit(uiInstance),
+                    ActionType.Secondary,
+                    true,
+                    false,
+                    false,
+                    false,
+                    null,
+                    ActionTarget.SameLane,
+                    null,
+                    null,
+                    null)),
+            createFieldGroups(field.getType(), uiInstance, field));
     sections.add(partialFormSection);
   }
 
   private List<Section> fillActionIdsForPartialForm(List<Section> sections) {
-    return sections.stream().map(s -> new Section(
-            s.id(),
-            s.tabId(),
-            s.caption(),
-            s.description(),
-            s.readOnly(),
-            s.type(),
-            s.leftSideImageUrl(),
-            s.topImageUrl(),
-                    s.actions().stream().map(a -> new Action(
-                            a.id().contains(EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER)?
-                                    EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER + s.id():
-                                    a.id(),
-                            a.caption(),
-                            a.type(),
-                            a.visible(),
-                            a.validationRequired(),
-                            a.confirmationRequired(),
-                            a.rowsSelectedRequired(),
-                            a.confirmationTexts(),
-                            a.target(),
-                            a.modalStyle(),
-                            a.customEvent(),
-                            a.href()
-                    )).toList(),
-            s.fieldGroups()
-    )).toList();
+    return sections.stream()
+        .map(
+            s ->
+                new Section(
+                    s.id(),
+                    s.tabId(),
+                    s.caption(),
+                    s.description(),
+                    s.readOnly(),
+                    s.type(),
+                    s.leftSideImageUrl(),
+                    s.topImageUrl(),
+                    s.actions().stream()
+                        .map(
+                            a ->
+                                new Action(
+                                    a.id()
+                                            .contains(
+                                                EditPartialFormActionRunner
+                                                    .EDIT_PARTIAL_FORM_IDENTIFIER)
+                                        ? EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER
+                                            + s.id()
+                                        : a.id(),
+                                    a.caption(),
+                                    a.type(),
+                                    a.visible(),
+                                    a.validationRequired(),
+                                    a.confirmationRequired(),
+                                    a.rowsSelectedRequired(),
+                                    a.confirmationTexts(),
+                                    a.target(),
+                                    a.modalStyle(),
+                                    a.customEvent(),
+                                    a.href()))
+                        .toList(),
+                    s.fieldGroups()))
+        .toList();
   }
 
   private List<FieldGroup> createFieldGroups(
       Class<?> partialFormType, Object formInstance, Field partialFormField) {
 
     List<Field> allEditableFields =
-            reflectionHelper.getAllEditableFields(partialFormType).stream()
-                    .filter(f -> !isOwner(f))
-                    .toList();
+        reflectionHelper.getAllEditableFields(partialFormType).stream()
+            .filter(f -> !isOwner(f))
+            .toList();
 
     return createFieldGroups(formInstance, partialFormField, allEditableFields);
   }
 
-  private List<FieldGroup> createFieldGroups(Object formInstance, Field partialFormField, List<Field> allEditableFields) {
+  private List<FieldGroup> createFieldGroups(
+      Object formInstance, Field partialFormField, List<Field> allEditableFields) {
     var groups = createFieldGroups(formInstance, allEditableFields);
 
-    return groups.stream().map(g -> new FieldGroup(g.id(), g.caption(),
-            g.lines().stream().map(l -> new FieldGroupLine(
-                            l.fields().stream().map(f -> new io.mateu.dtos.Field(
-                                    "__nestedData__" + partialFormField.getId() + "__" + f.id(),
-                                    f.type(),
-                                    f.stereotype(),
-                                    f.observed(),
-                                    f.caption(),
-                                    f.placeholder(),
-                                    f.cssClasses(),
-                                    f.description(),
-                                    f.badges(),
-                                    f.validations(),
-                                    f.attributes()
-                            )).toList())).toList())).toList();
+    return groups.stream()
+        .map(
+            g ->
+                new FieldGroup(
+                    g.id(),
+                    g.caption(),
+                    g.lines().stream()
+                        .map(
+                            l ->
+                                new FieldGroupLine(
+                                    l.fields().stream()
+                                        .map(
+                                            f ->
+                                                new io.mateu.dtos.Field(
+                                                    "__nestedData__"
+                                                        + partialFormField.getId()
+                                                        + "__"
+                                                        + f.id(),
+                                                    f.type(),
+                                                    f.stereotype(),
+                                                    f.observed(),
+                                                    f.caption(),
+                                                    f.placeholder(),
+                                                    f.cssClasses(),
+                                                    f.description(),
+                                                    f.badges(),
+                                                    f.validations(),
+                                                    f.attributes()))
+                                        .toList()))
+                        .toList()))
+        .toList();
   }
 
   private List<FieldGroup> createFieldGroups(Object formInstance, List<Field> allEditableFields) {
@@ -522,10 +556,12 @@ public class FormMetadataBuilder {
         if (!fields.isEmpty()) {
           lines.add(new FieldGroupLine(fields));
           fields = new ArrayList<>();
-          if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
-            String caption = field
+          if (field.isAnnotationPresent(
+              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+            String caption =
+                field
                     .getAnnotation(
-                            io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                        io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                     .value();
             groups.add(new FieldGroup("" + groups.size(), currentGroupCaption, lines));
             currentGroupCaption = caption;
@@ -546,22 +582,27 @@ public class FormMetadataBuilder {
 
   private List<Section> fillSectionIds(List<Section> sections) {
     AtomicInteger i = new AtomicInteger();
-    return sections.stream().map(s -> new Section(
-            "section_" + i.getAndIncrement(),
-            s.tabId(),
-            s.caption(),
-            s.description(),
-            s.readOnly(),
-            s.type(),
-            s.leftSideImageUrl(),
-            s.topImageUrl(),
-            s.actions(),
-            IntStream.range(0, s.fieldGroups().size())
-                    .mapToObj(j -> new FieldGroup(
-                    "fieldgroup_" + i + "_" + j,
-                    s.fieldGroups().get(j).caption(),
-                            s.fieldGroups().get(j).lines()
-            )).toList()
-    )).toList();
+    return sections.stream()
+        .map(
+            s ->
+                new Section(
+                    "section_" + i.getAndIncrement(),
+                    s.tabId(),
+                    s.caption(),
+                    s.description(),
+                    s.readOnly(),
+                    s.type(),
+                    s.leftSideImageUrl(),
+                    s.topImageUrl(),
+                    s.actions(),
+                    IntStream.range(0, s.fieldGroups().size())
+                        .mapToObj(
+                            j ->
+                                new FieldGroup(
+                                    "fieldgroup_" + i + "_" + j,
+                                    s.fieldGroups().get(j).caption(),
+                                    s.fieldGroups().get(j).lines()))
+                        .toList()))
+        .toList();
   }
 }
