@@ -1,24 +1,25 @@
 package io.mateu.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collections;
 import java.util.List;
 import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Menu {
+public record Menu(
+        MenuType type,
+        String icon,
+        String caption,
+        String journeyTypeId,
+        List<Menu> submenus,
+        @JsonIgnore int order) {
 
-  private MenuType type;
+  public Menu {
+    submenus = Collections.unmodifiableList(submenus);
+  }
 
-  private String icon;
-
-  private String caption;
-
-  private String journeyTypeId;
-
-  private List<Menu> submenus;
-
-  @JsonIgnore private int order;
+  @Override
+  public List<Menu> submenus() {
+    return Collections.unmodifiableList(submenus);
+  }
 }

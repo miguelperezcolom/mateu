@@ -54,7 +54,7 @@ public class MenuBuilder {
       addIfAuthorised(menuHolder, l, m, prefix, m.getName(), serverHttpRequest);
     }
 
-    l.sort(Comparator.comparingInt(Menu::getOrder));
+    l.sort(Comparator.comparingInt(Menu::order));
 
     return l;
   }
@@ -126,32 +126,34 @@ public class MenuBuilder {
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
       l.add(
-          Menu.builder()
-              .journeyTypeId("")
-              .type(MenuType.Submenu)
-              .icon("home")
-              .caption("Home")
-              .order(order)
-              .build());
+              new Menu(
+                      MenuType.Submenu,
+                      "home",
+                      "Home",
+                      "",
+                      List.of(),
+                      order
+              ));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
-          Menu.builder()
-              .journeyTypeId(journeyTypeId)
-              .type(MenuType.Submenu)
-              .icon(icon)
-              .caption(caption)
-              .submenus(buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest))
-              .order(order)
-              .build());
+              new Menu(
+                      MenuType.Submenu,
+                      icon,
+                      caption,
+                      journeyTypeId,
+                      buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
+                      order
+              ));
     } else {
       l.add(
-          Menu.builder()
-              .journeyTypeId(journeyTypeId)
-              .type(MenuType.MenuOption)
-              .icon(icon)
-              .caption(caption)
-              .order(order)
-              .build());
+              new Menu(
+                      MenuType.MenuOption,
+                      icon,
+                      caption,
+                      journeyTypeId,
+                      List.of(),
+                      order
+              ));
     }
   }
 
