@@ -45,8 +45,14 @@ public class RunStepActionCommandHandler {
     data = nestPartialFormData(data);
 
     if ("xxxbacktostep".equals(actionId)) {
-      journeyContainer.getJourney().setCurrentStepId(stepId);
-      journeyContainer.getJourney().setCurrentStepDefinitionId("xxx");
+      var journey = journeyContainer.getJourney();
+      journeyContainer.setJourney(new Journey(
+              journey.type(),
+              journey.status(),
+              journey.statusMessage(),
+              stepId,
+              "xxx"
+      ));
       resetMessages(journeyContainer);
 
       return Mono.empty().then();
@@ -172,7 +178,7 @@ public class RunStepActionCommandHandler {
   }
 
   private void resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.getJourney().getCurrentStepId();
+    var currentStepId = journeyContainer.getJourney().currentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
     var view = step.view();
     journeyContainer.getSteps().put(currentStepId, new Step(

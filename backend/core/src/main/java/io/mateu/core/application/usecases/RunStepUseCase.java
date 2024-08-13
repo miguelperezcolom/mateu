@@ -54,7 +54,7 @@ public class RunStepUseCase {
                         journeyContainer.getJourney(),
                         journeyContainer
                                 .getSteps()
-                                .get(journeyContainer.getJourney().getCurrentStepId()),
+                                .get(journeyContainer.getJourney().currentStepId()),
                         toMap(journeyContainer)
                 ))
         .subscribeOn(Schedulers.boundedElastic());

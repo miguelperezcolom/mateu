@@ -234,7 +234,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private void resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.getJourney().getCurrentStepId();
+    var currentStepId = journeyContainer.getJourney().currentStepId();
     var step = journeyContainer.getSteps().get(currentStepId);
     var view = step.view();
     journeyContainer.getSteps().put(currentStepId, new Step(
@@ -261,7 +261,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private void addMessages(JourneyContainer journeyContainer, Object response, Method method) {
     List<Message> messages = extractMessages(response, method);
     try {
-      var currentStepId = journeyContainer.getJourney().getCurrentStepId();
+      var currentStepId = journeyContainer.getJourney().currentStepId();
       var step = journeyContainer.getSteps().get(currentStepId);
       var view = step.view();
       journeyContainer.getSteps().put(currentStepId, new Step(

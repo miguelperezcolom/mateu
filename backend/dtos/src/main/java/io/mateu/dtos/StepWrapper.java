@@ -4,10 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 import lombok.*;
 
-public record StepWrapper(
-        Journey journey,
-        Step step,
-        Map<String, Object> store) {
+public record StepWrapper(Journey journey, Step step, Map<String, Object> store) {
 
   public StepWrapper {
     store = Collections.unmodifiableMap(store);

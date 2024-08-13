@@ -8,13 +8,13 @@ public class JourneyMapper {
 
   public Journey map(Object formInstance) {
 
-    return Journey.builder()
-        .type(formInstance.getClass().getName())
-        .currentStepId(getStepId(formInstance))
-        .currentStepDefinitionId(getStepId(formInstance))
-        .status(JourneyStatus.Pending)
-        .statusMessage("Please fill the form")
-        .build();
+    return new Journey(
+            formInstance.getClass().getName(),
+            JourneyStatus.Pending,
+            "Please fill the form",
+            getStepId(formInstance),
+            getStepId(formInstance)
+    );
   }
 
   private String getStepId(Object formInstance) {

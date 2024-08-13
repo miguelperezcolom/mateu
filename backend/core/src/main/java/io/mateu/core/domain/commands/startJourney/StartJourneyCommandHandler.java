@@ -93,8 +93,13 @@ public class StartJourneyCommandHandler {
     Step step =
         stepMapper.map(
             journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest, null);
-    journey.setCurrentStepId(step.id());
-    journey.setCurrentStepDefinitionId(step.type());
+    journeyContainer.setJourney(journey = new Journey(
+            journey.type(),
+            journey.status(),
+            journey.statusMessage(),
+            step.id(),
+            step.type()
+    ));
 
     journeyContainer.setInitialStep(step);
     journeyContainer.setSteps(Map.of(step.id(), step));

@@ -3,6 +3,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.dtos.Journey;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
 import java.util.Map;
@@ -31,8 +32,14 @@ public class ResultActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Step step = store.readStep(journeyContainer, actionId);
-    journeyContainer.getJourney().setCurrentStepId(step.id());
-    journeyContainer.getJourney().setCurrentStepDefinitionId(step.type());
+    var journey = journeyContainer.getJourney();
+    journeyContainer.setJourney(new Journey(
+            journey.type(),
+            journey.status(),
+            journey.statusMessage(),
+            step.id(),
+            step.type()
+    ));
     return Mono.empty();
   }
 }
