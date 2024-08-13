@@ -20,20 +20,19 @@ public class ResultMetadataBuilder {
                     ? result.getInterestingLinks().stream()
                     .map(
                             l ->
-                                    Destination.builder()
-                                            .type(DestinationType.valueOf(l.getType().toString()))
-                                            .description(l.getDescription())
-                                            .value(l.getValue())
-                                            .build())
+                                    new Destination(
+                                            DestinationType.valueOf(l.getType().toString()),
+                                            l.getDescription(),
+                                            l.getValue()
+                                    ))
                     .toList()
                     : List.of(),
             result.getNowTo() != null
-                    ? Destination.builder()
-                    .type(DestinationType.valueOf(result.getNowTo().getType().toString()))
-                    .description(result.getNowTo().getDescription())
-                    .value(result.getNowTo().getValue())
-                    .build()
-                    : null,
+                    ? new Destination(
+                    DestinationType.valueOf(result.getNowTo().getType().toString()),
+                    result.getNowTo().getDescription(),
+                    result.getNowTo().getValue()
+            ): null,
             result.getLeftSideImageUrl()
     );
   }
