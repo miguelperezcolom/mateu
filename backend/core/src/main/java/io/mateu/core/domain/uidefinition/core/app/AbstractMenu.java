@@ -1,10 +1,12 @@
 package io.mateu.core.domain.uidefinition.core.app;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.uidefinition.shared.interfaces.MenuEntry;
 import java.util.List;
 import java.util.UUID;
 
 /** Created by miguel on 9/8/16. */
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public abstract class AbstractMenu implements MenuEntry {
 
   private String id = UUID.randomUUID().toString();

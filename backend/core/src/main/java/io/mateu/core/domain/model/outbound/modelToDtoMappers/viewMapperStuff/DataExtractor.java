@@ -7,7 +7,6 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -62,11 +61,6 @@ public class DataExtractor {
       data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
       data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
       data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
-    }
-    Class dataContainerClass = uiInstance.getClass();
-    Object dataContainer = uiInstance;
-    if (false && uiInstance instanceof Listing) {
-      return Map.of();
     }
     data.putAll(serializer.toMap(uiInstance));
     convertStringsToFiles(uiInstance, data);

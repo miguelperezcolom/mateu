@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldFromReflectionField implements Field {
 
   private final java.lang.reflect.Field f;
@@ -124,7 +126,7 @@ public class FieldFromReflectionField implements Field {
       if (getter != null) {
         return getter.invoke(o);
       }
-    } catch (Exception ignored) {
+    } catch (Throwable ignored) {
     }
     if (Map.class.isAssignableFrom(o.getClass())) {
       return ((Map<?, ?>) o).get(f.getName());
@@ -154,17 +156,14 @@ public class FieldFromReflectionField implements Field {
         //                        BeanUtils.setProperty(o, fn, v);
         return;
       }
-    } catch (Exception ignored) {
+    } catch (Throwable ignored) {
     }
     if (Map.class.isAssignableFrom(o.getClass())) {
       ((Map) o).put(f.getName(), v);
       return;
     }
-    try {
-      if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
-      f.set(o, v);
-    } catch (Exception ignored) {
-    }
+    if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+    f.set(o, v);
   }
 
   @Override
@@ -190,6 +189,7 @@ public class FieldFromReflectionField implements Field {
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || (obj != null && hashCode() == obj.hashCode());
+    return this == obj
+        || (obj != null && getClass().equals(obj.getClass()) && hashCode() == obj.hashCode());
   }
 }

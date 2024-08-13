@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldFromParameter implements Field {
 
   private final Parameter p;
@@ -161,6 +163,7 @@ public class FieldFromParameter implements Field {
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || (obj != null && hashCode() == obj.hashCode());
+    return this == obj
+        || (obj != null && getClass().equals(obj.getClass()) && hashCode() == obj.hashCode());
   }
 }

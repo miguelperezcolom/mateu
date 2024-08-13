@@ -142,7 +142,7 @@ public class ViewMapper {
     for (Field field : reflectionHelper.getAllEditableFields(form.getClass())) {
       if (PartialForm.class.isAssignableFrom(field.getType())) {
         var nestedData = data.get(field.getId());
-        if (nestedData != null && nestedData instanceof Map) {
+        if (nestedData instanceof Map) {
           Map<String, Object> nestedMap = (Map<String, Object>) nestedData;
           for (String key : nestedMap.keySet()) {
             data.put("__nestedData__" + field.getId() + "__" + key, nestedMap.get(key));

@@ -40,12 +40,12 @@ public class AllMethodsProvider {
   }
 
   private String getSignature(Parameter[] parameters) {
-    String s = "";
+    StringBuilder s = new StringBuilder();
     if (parameters != null)
       for (Parameter p : parameters) {
-        if (!"".equals(s)) s += ", ";
-        s += p.getType().getName();
+        if (!s.isEmpty()) s.append(", ");
+        s.append(p.getType().getName());
       }
-    return s;
+    return s.toString();
   }
 }

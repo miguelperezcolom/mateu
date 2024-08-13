@@ -74,10 +74,6 @@ public class UIInstancePartsExtractor {
   }
 
   private UIInstancePart buildPart(Stepper stepper, Object uiInstance) throws Exception {
-    Object partInstance = stepper;
-    if (partInstance instanceof Crud) {
-      partInstance = new RpcViewWrapper((Listing) partInstance, "stepper");
-    }
-    return new UIInstancePart("stepper", partInstance, List.of());
+    return new UIInstancePart("stepper", stepper, List.of());
   }
 }

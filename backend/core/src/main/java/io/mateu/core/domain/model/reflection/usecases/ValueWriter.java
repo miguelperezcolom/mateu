@@ -5,7 +5,6 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.FieldForCheckboxCo
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectionField;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,19 +34,10 @@ public class ValueWriter {
     if (f instanceof FieldForCheckboxColumn) {
       f.setValue(o, v);
     } else if (f instanceof FieldFromReflectionField) {
-      Method setter = null;
+      Method setter = o.getClass().getMethod(setterProvider.getSetter(f), f.getType());
       try {
-        setter = o.getClass().getMethod(setterProvider.getSetter(f), f.getType());
-      } catch (Exception ignored) {
-      }
-      try {
-        if (setter != null) {
-          setter.invoke(o, v);
-          //                        BeanUtils.setProperty(o, fn, v);
-        } else {
-          if (!Modifier.isPublic(f.getField().getModifiers())) f.getField().setAccessible(true);
-          f.getField().set(o, v);
-        }
+        setter.invoke(o, v);
+        //                        BeanUtils.setProperty(o, fn, v);
       } catch (IllegalAccessException | InvocationTargetException e) {
         log.error("when setting value for field " + f.getName(), e);
       }

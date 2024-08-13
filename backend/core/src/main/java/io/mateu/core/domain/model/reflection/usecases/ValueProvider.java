@@ -96,38 +96,34 @@ public class ValueProvider {
       String path = id.substring(id.indexOf(".") + 1);
 
       Method getter = null;
-      try {
-        Field f = fieldByNameProvider.getFieldByName(o.getClass(), firstId);
+      Field f = fieldByNameProvider.getFieldByName(o.getClass(), firstId);
 
-        if (f != null) {
+      if (f != null) {
 
+        try {
+          getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), firstId));
+        } catch (Exception e) {
+
+        }
+
+        if (getter != null) v = getter.invoke(o);
+        else {
           try {
-            getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), firstId));
-          } catch (Exception e) {
-
-          }
-
-          if (getter != null) v = getter.invoke(o);
-          else {
-            try {
-              if (f instanceof FieldFromReflectionField) {
-                java.lang.reflect.Field field = f.getField();
-                if (!Modifier.isPublic(field.getModifiers())) {
-                  field.setAccessible(true);
-                }
-                v = field.get(o);
+            if (f instanceof FieldFromReflectionField) {
+              java.lang.reflect.Field field = f.getField();
+              if (!Modifier.isPublic(field.getModifiers())) {
+                field.setAccessible(true);
               }
-            } catch (Exception e) {
-              e.printStackTrace();
+              v = field.get(o);
             }
-          }
-
-          if (v != null) {
-            v = getValue(path, v);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
         }
 
-      } catch (Exception e) {
+        if (v != null) {
+          v = getValue(path, v);
+        }
       }
 
     } else {

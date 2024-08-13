@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getListRows;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.SortCriteria;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class GetListRowsQuery {
 
   private JourneyContainer journeyContainer;

@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Getter;
 
 @Getter
-@SuppressFBWarnings("EI_EXPOSE_REP2")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MDDOpenCRUDAction extends AbstractAction {
 
   private Class entityClass;

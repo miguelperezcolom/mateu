@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +29,7 @@ public class InputStreamReader {
     dest.flush();
     dest.close();
 
-    return new String(dest.toByteArray());
+    return new String(dest.toByteArray(), Charset.defaultCharset());
   }
 
   private static final int BUFFER = 2048;

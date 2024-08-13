@@ -1,8 +1,10 @@
 package io.mateu.core.domain.model.inbound.editors;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class EntityEditor {
 
   private Class entityClass;

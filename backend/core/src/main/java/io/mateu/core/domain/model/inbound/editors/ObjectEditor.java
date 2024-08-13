@@ -1,16 +1,19 @@
 package io.mateu.core.domain.model.inbound.editors;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.util.Serializer;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.SneakyThrows;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ObjectEditor {
 
   private Class type;
   private Map<String, Object> data = new HashMap<>();
 
-  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer)
-      throws Exception {
+  @SneakyThrows
+  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer) {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
     if (__index >= 0) {

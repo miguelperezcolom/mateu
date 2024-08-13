@@ -113,11 +113,7 @@ public class GenericClassProvider {
       // vamos bajando por las interfaces hasta encontrar una clase
       // si no tenemos la clase, vamos bajando por las subclases hasta encontrarla
 
-      Class baseInterface = null;
-
       if (sourceClass.isInterface()) {
-        baseInterface = sourceClass;
-
         List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
         if (asClassOrInterface.equals(sourceClass))
           jerarquiaInterfaces = Lists.newArrayList(asClassOrInterface);

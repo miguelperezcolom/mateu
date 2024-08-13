@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -9,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldForCheckboxColumn implements Field {
 
   @ManyToOne private final Class type;
@@ -148,7 +150,8 @@ public class FieldForCheckboxColumn implements Field {
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || (obj != null && hashCode() == obj.hashCode());
+    return this == obj
+        || (obj != null && getClass().equals(obj.getClass()) && hashCode() == obj.hashCode());
   }
 
   public String getValueForColumn() {

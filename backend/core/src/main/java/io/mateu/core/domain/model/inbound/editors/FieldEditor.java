@@ -1,8 +1,11 @@
 package io.mateu.core.domain.model.inbound.editors;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.util.Serializer;
 import java.util.Map;
+import lombok.SneakyThrows;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldEditor {
 
   private String initialStep;
@@ -10,8 +13,8 @@ public class FieldEditor {
   private Class type;
   private Map<String, Object> data;
 
-  public FieldEditor(Object entity, String fieldId, String initialStep, Serializer serializer)
-      throws Exception {
+  @SneakyThrows
+  public FieldEditor(Object entity, String fieldId, String initialStep, Serializer serializer) {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
     this.initialStep = initialStep;

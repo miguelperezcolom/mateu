@@ -128,7 +128,7 @@ public class FieldAttributeBuilder {
           Object value = m.invoke(enumConstant, (Object[]) null);
           attributes.add(new Pair("choice", new Value(enumConstant.toString(), value)));
         }
-      } catch (Exception ignored) {
+      } catch (Throwable ignored) {
         for (Object enumConstant : enumType.getEnumConstants()) {
           attributes.add(new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
         }

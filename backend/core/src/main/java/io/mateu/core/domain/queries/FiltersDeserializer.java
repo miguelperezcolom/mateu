@@ -10,6 +10,7 @@ import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.JourneyContainer;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -98,6 +99,7 @@ public class FiltersDeserializer {
   }
 
   protected Map<String, Object> decodeAndParse(String raw) throws IOException {
-    return serializer.fromJson(new String(Base64.getDecoder().decode(raw)));
+    return serializer.fromJson(
+        new String(Base64.getDecoder().decode(raw), Charset.defaultCharset()));
   }
 }

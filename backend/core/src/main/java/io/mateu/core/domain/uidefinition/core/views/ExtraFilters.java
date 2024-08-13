@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@SuppressFBWarnings("EI_EXPOSE_REP2")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class ExtraFilters {
 
   private String ql;

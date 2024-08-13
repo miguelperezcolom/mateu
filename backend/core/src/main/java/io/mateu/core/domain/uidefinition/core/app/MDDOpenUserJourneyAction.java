@@ -3,7 +3,7 @@ package io.mateu.core.domain.uidefinition.core.app;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner;
 
-@SuppressFBWarnings("EI_EXPOSE_REP2")
+@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MDDOpenUserJourneyAction extends AbstractAction {
 
   private final JourneyRunner userJourney;
