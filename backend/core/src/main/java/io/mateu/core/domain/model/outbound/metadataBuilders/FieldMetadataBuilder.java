@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FieldMetadataBuilder {
 
   final FieldAttributeBuilder fieldAttributeBuilder;

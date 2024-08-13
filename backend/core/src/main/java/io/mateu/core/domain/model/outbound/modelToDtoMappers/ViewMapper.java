@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
@@ -26,6 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ViewMapper {
 
   private final EntityProvider entityProvider;
@@ -177,15 +179,15 @@ public class ViewMapper {
       // actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()),
       // fieldEditor.getType());
     } else if (("view".equals(stepId) || "edit".equals(stepId))
-        && journeyContainer.getInitialStep() != null
+        && journeyContainer.initialStep() != null
         && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView"
-            .equals(journeyContainer.getInitialStep().type())) { // todo: check si es un crud jpa
+            .equals(journeyContainer.initialStep().type())) { // todo: check si es un crud jpa
       RpcCrudViewExtended rpcCrudView =
           (RpcCrudViewExtended)
               applicationContext
                   .getBean(JourneyContainerService.class)
                   .getViewInstance(
-                      journeyContainer, journeyContainer.getInitialStep().id(), serverHttpRequest);
+                      journeyContainer, journeyContainer.initialStep().id(), serverHttpRequest);
       actualUiInstance =
           entityProvider.find(
               rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));

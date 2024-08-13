@@ -1,11 +1,16 @@
 package io.mateu.core.domain.commands.runStepAction;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.uidefinition.shared.data.Destination;
+import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinition.shared.data.Result;
+import io.mateu.core.domain.uidefinition.shared.data.ResultType;
 import io.mateu.dtos.*;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +25,7 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class RunStepActionCommandHandler {
 
   final List<ActionRunner> actionRunners;
@@ -28,26 +34,33 @@ public class RunStepActionCommandHandler {
   final ViewMapper viewMapper;
 
   @Transactional
-  public Mono<Void> handle(RunStepActionCommand command) throws Throwable {
-    String journeyId = command.getJourneyId();
-    String stepId = command.getStepId();
-    String actionId = command.getActionId();
-    Map<String, Object> data = command.getData();
-    if (data == null) {
-      data = new HashMap<>();
-    }
-    JourneyContainer journeyContainer = command.getJourneyContainer();
-    ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
+  public Mono<JourneyContainer> handle(RunStepActionCommand command) throws Throwable {
+    String journeyId = command.journeyId();
+    String stepId = command.stepId();
+    String actionId = command.actionId();
+    Map<String, Object> data = command.data();
+    JourneyContainer journeyContainer = command.journeyContainer();
+    ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
     data = nestPartialFormData(data);
 
     if ("xxxbacktostep".equals(actionId)) {
-      var journey = journeyContainer.getJourney();
-      journeyContainer.setJourney(
-          new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"));
-      resetMessages(journeyContainer);
+      var journey = journeyContainer.journey();
+      journeyContainer =
+          new JourneyContainer(
+              journeyContainer.journeyId(),
+              journeyContainer.journeyTypeId(),
+              journeyContainer.remoteBaseUrl(),
+              journeyContainer.journeyClass(),
+              journeyContainer.journeyData(),
+              new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
+              journeyContainer.steps(),
+              journeyContainer.initialStep(),
+              journeyContainer.lastUsedFilters(),
+              journeyContainer.lastUsedSorting());
+      journeyContainer = resetMessages(journeyContainer);
 
-      return Mono.empty().then();
+      return Mono.just(journeyContainer);
     }
 
     Object viewInstance = getViewInstance(journeyId, stepId, journeyContainer, serverHttpRequest);
@@ -71,7 +84,7 @@ public class RunStepActionCommandHandler {
               });
     }
 
-    var step = journeyContainer.getSteps().get(stepId);
+    var step = journeyContainer.steps().get(stepId);
     var newData = new HashMap<>(step.data());
     newData.putAll(data);
     step =
@@ -84,129 +97,152 @@ public class RunStepActionCommandHandler {
             step.rules(),
             step.previousStepId(),
             step.target());
-    journeyContainer.getSteps().put(stepId, step);
+    var steps = new HashMap<>(journeyContainer.steps());
+    steps.put(stepId, step);
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            journeyContainer.journey(),
+            steps,
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting());
     viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
     // todo: look for the target object
     String componentId = "component-0";
     if (actionId.contains("___")) {
       componentId = actionId.substring(0, actionId.indexOf("___"));
-      actionId = actionId.substring(actionId.indexOf("___") + "___".length());
+      actionId = actionId.substring(componentId.length() + "___".length());
     }
-
-    if (!"component-0".equals(componentId)) {}
 
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(journeyContainer, viewInstance, actionId)) {
         return actionRunner
             .run(journeyContainer, viewInstance, stepId, actionId, data, serverHttpRequest)
-            .then(
-                Mono.deferContextual(
-                    contextView -> {
-                      String activeTabId = (String) command.getData().get("__activeTabId");
-                      try {
-                        var stepAfterRun = journeyContainer.getSteps().get(stepId);
-                        if (stepAfterRun != null) { // it can be null if we started a new journey
+            .map(
+                jc -> {
+                  String activeTabId = (String) command.data().get("__activeTabId");
 
-                          var view = stepAfterRun.view();
-                          var main = view.main();
+                  var stepAfterRun = jc.steps().get(stepId);
+                  if (stepAfterRun != null) { // it can be null if we started a new journey
 
-                          journeyContainer
-                              .getSteps()
-                              .put(
-                                  stepId,
-                                  new Step(
-                                      stepAfterRun.id(),
-                                      stepAfterRun.name(),
-                                      stepAfterRun.type(),
-                                      new View(
-                                          view.title(),
-                                          view.subtitle(),
-                                          view.messages(),
-                                          view.header(),
-                                          view.left(),
-                                          new ViewPart(
-                                              main.classes(),
-                                              main.components().stream()
-                                                  .map(
-                                                      c ->
-                                                          new Component(
-                                                              c.metadata() instanceof Form f
-                                                                  ? new Form(
-                                                                      f.dataPrefix(),
-                                                                      f.icon(),
-                                                                      f.title(),
-                                                                      f.readOnly(),
-                                                                      f.subtitle(),
-                                                                      f.status(),
-                                                                      f.badges(),
-                                                                      f.tabs().stream()
-                                                                          .map(
-                                                                              t ->
-                                                                                  new Tab(
-                                                                                      t.id(),
-                                                                                      !Strings
-                                                                                              .isNullOrEmpty(
-                                                                                                  activeTabId)
-                                                                                          && activeTabId
-                                                                                              .equals(
-                                                                                                  t
-                                                                                                      .id()),
-                                                                                      t.caption()))
-                                                                          .toList(),
-                                                                      f.banners(),
-                                                                      f.sections(),
-                                                                      f.actions(),
-                                                                      f.mainActions(),
-                                                                      f.validations())
-                                                                  : c.metadata(),
-                                                              c.id(),
-                                                              c.attributes()))
-                                                  .toList()),
-                                          view.right(),
-                                          view.footer()),
-                                      stepAfterRun.data(),
-                                      stepAfterRun.rules(),
-                                      stepAfterRun.previousStepId(),
-                                      stepAfterRun.target()));
-                        }
-                      } catch (Throwable e) {
-                        throw new RuntimeException(e);
-                      }
+                    var view = stepAfterRun.view();
+                    var main = view.main();
 
-                      return Mono.empty();
-                    }));
+                    var newSteps = new HashMap<>(jc.steps());
+                    newSteps.put(
+                        stepId,
+                        new Step(
+                            stepAfterRun.id(),
+                            stepAfterRun.name(),
+                            stepAfterRun.type(),
+                            new View(
+                                view.title(),
+                                view.subtitle(),
+                                view.messages(),
+                                view.header(),
+                                view.left(),
+                                new ViewPart(
+                                    main.classes(),
+                                    main.components().stream()
+                                        .map(
+                                            c ->
+                                                new Component(
+                                                    c.metadata() instanceof Form f
+                                                        ? new Form(
+                                                            f.dataPrefix(),
+                                                            f.icon(),
+                                                            f.title(),
+                                                            f.readOnly(),
+                                                            f.subtitle(),
+                                                            f.status(),
+                                                            f.badges(),
+                                                            f.tabs().stream()
+                                                                .map(
+                                                                    t ->
+                                                                        new Tab(
+                                                                            t.id(),
+                                                                            !Strings.isNullOrEmpty(
+                                                                                    activeTabId)
+                                                                                && activeTabId
+                                                                                    .equals(t.id()),
+                                                                            t.caption()))
+                                                                .toList(),
+                                                            f.banners(),
+                                                            f.sections(),
+                                                            f.actions(),
+                                                            f.mainActions(),
+                                                            f.validations())
+                                                        : c.metadata(),
+                                                    c.id(),
+                                                    c.attributes()))
+                                        .toList()),
+                                view.right(),
+                                view.footer()),
+                            stepAfterRun.data(),
+                            stepAfterRun.rules(),
+                            stepAfterRun.previousStepId(),
+                            stepAfterRun.target()));
+                    return new JourneyContainer(
+                        jc.journeyId(),
+                        jc.journeyTypeId(),
+                        jc.remoteBaseUrl(),
+                        jc.journeyClass(),
+                        jc.journeyData(),
+                        jc.journey(),
+                        newSteps,
+                        jc.initialStep(),
+                        jc.lastUsedFilters(),
+                        jc.lastUsedSorting());
+                  }
+                  return jc;
+                });
       }
     }
 
     throw new Exception("Unknown action " + actionId);
   }
 
-  private void resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.getJourney().currentStepId();
-    var step = journeyContainer.getSteps().get(currentStepId);
+  private JourneyContainer resetMessages(JourneyContainer journeyContainer) {
+    var currentStepId = journeyContainer.journey().currentStepId();
+    var step = journeyContainer.steps().get(currentStepId);
     var view = step.view();
-    journeyContainer
-        .getSteps()
-        .put(
-            currentStepId,
-            new Step(
-                step.id(),
-                step.name(),
-                step.type(),
-                new View(
-                    view.title(),
-                    view.subtitle(),
-                    List.of(),
-                    view.header(),
-                    view.left(),
-                    view.main(),
-                    view.right(),
-                    view.footer()),
-                step.data(),
-                step.rules(),
-                step.previousStepId(),
-                step.target()));
+    var steps = new HashMap<>(journeyContainer.steps());
+    steps.put(
+        currentStepId,
+        new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                view.title(),
+                view.subtitle(),
+                List.of(),
+                view.header(),
+                view.left(),
+                view.main(),
+                view.right(),
+                view.footer()),
+            step.data(),
+            step.rules(),
+            step.previousStepId(),
+            step.target()));
+    return new JourneyContainer(
+        journeyContainer.journeyId(),
+        journeyContainer.journeyTypeId(),
+        journeyContainer.remoteBaseUrl(),
+        journeyContainer.journeyClass(),
+        journeyContainer.journeyData(),
+        journeyContainer.journey(),
+        steps,
+        journeyContainer.initialStep(),
+        journeyContainer.lastUsedFilters(),
+        journeyContainer.lastUsedSorting());
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {
@@ -250,13 +286,34 @@ public class RunStepActionCommandHandler {
       JourneyContainer journeyContainer,
       ServerHttpRequest serverHttpRequest)
       throws Exception {
-    Step step = journeyContainer.getSteps().get(stepId);
+    Step step = journeyContainer.steps().get(stepId);
     if (step == null) {
       throw new Exception(
           "No step with id " + stepId + " for journey with id " + journeyId + " found");
     }
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
+
     Map<String, Object> data = step.data();
+
+    if (Result.class.equals(Class.forName(step.type()))) {
+      Result result = new Result(
+              ResultType.valueOf((String) data.get("type")),
+              (String) data.get("message"),
+              ((List<Map<String, Object>>) data.get("interestingLinks")).stream().map(m -> new Destination(
+                      DestinationType.valueOf((String) m.get("type")),
+                      (String) m.get("description"),
+                      (String) m.get("value")
+              )).toList(),
+              data.get("nowTo") != null ? new Destination(
+                      DestinationType.valueOf((String) ((Map<String, Object>) data.get("nowTo")).get("type")),
+                      (String) ((Map<String, Object>) data.get("nowTo")).get("description"),
+                      (String) ((Map<String, Object>) data.get("nowTo")).get("value")
+              ) : null,
+              (String) data.get("leftSideImageUrl")
+      );
+      return result;
+    }
+    
+    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
     if (viewInstance instanceof EntityEditor) {
       ((EntityEditor) viewInstance)
           .setEntityClass(Class.forName((String) data.get("__entityClassName__")));

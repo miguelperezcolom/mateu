@@ -27,40 +27,39 @@ public class PriceSelectionForm {
 
   @Slot(SlotName.header)
   Stepper stepper =
-      Stepper.builder()
-          .value(0.25)
-          .text("Price Selection (Step 2 of 4)")
-          .steps(
+      new Stepper(
+              0.25,
+              "Price Selection (Step 2 of 4)",
               List.of(
-                  StepperStep.builder()
-                      .id("calculation")
-                      .caption("STEP 1")
-                      .description("Insured Information")
-                      .done(true)
-                      .current(false)
-                      .build(),
-                  StepperStep.builder()
-                      .id("priceSelection")
-                      .caption("STEP 2")
-                      .description("Price Selection")
-                      .done(false)
-                      .current(true)
-                      .build(),
-                  StepperStep.builder()
-                      .id("contract")
-                      .caption("STEP 3")
-                      .description("Contract")
-                      .done(false)
-                      .current(false)
-                      .build(),
-                  StepperStep.builder()
-                      .id("summary")
-                      .caption("STEP 4")
-                      .description("Summary")
-                      .done(false)
-                      .current(false)
-                      .build()))
-          .build();
+                  new StepperStep(
+                          "calculation",
+                          "STEP 1",
+                          "Insured Information",
+                          true,
+                          false
+                  ),
+                  new StepperStep(
+                          "priceSelection",
+                          "STEP 2",
+                          "Price Selection",
+                          false,
+                          true
+                  ),
+                  new StepperStep(
+                          "contract",
+                          "STEP 3",
+                          "Contract",
+                          false,
+                          false
+                  ),
+                  new StepperStep(
+                          "summary",
+                          "STEP 4",
+                          "Summary",
+                          false,
+                          false
+                  )
+                      ));
 
   @Section(value = "", card = false)
   @NotNull
@@ -69,64 +68,56 @@ public class PriceSelectionForm {
         @Override
         public List<ComplexKeyOption> getOptions() {
           return List.of(
-              ComplexKeyOption.builder()
-                  .key(
-                      ComplexKey.builder()
-                          .title("Carrier 1")
-                          .text(
-                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
-                                  + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
-                                  + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
-                                  + "commodo consequat")
-                          .note("Payment end date 24.02.2023")
-                          .summary("<b>12,20€</b> / Month")
-                          .build())
-                  .value("1")
-                  .build(),
-              ComplexKeyOption.builder()
-                  .key(
-                      ComplexKey.builder()
-                          .title("Carrier 2")
-                          .text(
-                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
-                                  + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
-                                  + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
-                                  + "commodo consequat")
-                          .note("Payment end date 24.02.2023")
-                          .summary("<b>19,10€</b> / Month")
-                          .build())
-                  .value("2")
-                  .build(),
-              ComplexKeyOption.builder()
-                  .key(
-                      ComplexKey.builder()
-                          .title("Carrier 3")
-                          .text(
-                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
-                                  + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
-                                  + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
-                                  + "commodo consequat")
-                          .note("Payment end date 24.02.2023")
-                          .summary("<b>24,12€</b> / Month")
-                          .build())
-                  .value("3")
-                  .build(),
-              ComplexKeyOption.builder()
-                  .key(
-                      ComplexKey.builder()
-                          .title("Carrier 4")
-                          .text(
-                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
-                                  + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
-                                  + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
-                                  + "commodo consequat")
-                          .note("Payment end date 24.02.2023")
-                          .summary("<b>36,00€</b> / Month")
-                          .build())
-                  .value("4")
-                  .build());
+                  new ComplexKeyOption(
+                          new ComplexKey(
+                                  "Carrier 1",
+                                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                                          + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
+                                          + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
+                                          + "commodo consequat",
+                                  "Payment end date 24.02.2023",
+                                  "<b>12,20€</b> / Month"
+                          ),
+                          "1"
+                  ),
+                  new ComplexKeyOption(
+                          new ComplexKey(
+                                  "Carrier 2",
+                                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                                          + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
+                                          + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
+                                          + "commodo consequat",
+                                  "Payment end date 24.02.2023",
+                                  "<b>19,10€</b> / Month"
+                          ),
+                          "2"
+                  ),
+                  new ComplexKeyOption(
+                          new ComplexKey(
+                                  "Carrier 3",
+                                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                                          + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
+                                          + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
+                                          + "commodo consequat",
+                                  "Payment end date 24.02.2023",
+                                  "<b>24,12€</b> / Month"
+                          ),
+                          "3"
+                  ),
+                  new ComplexKeyOption(
+                          new ComplexKey(
+                                  "Carrier 4",
+                                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                                          + "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
+                                          + "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
+                                          + "commodo consequat",
+                                  "Payment end date 24.02.2023",
+                                  "<b>36,00€</b> / Month"
+                          ),
+                          "4"
+                  ));
         }
-      }.setValue("2");
+      };
 
   @Slot(SlotName.right)
   PriceSelectionSummary summary = new PriceSelectionSummary();

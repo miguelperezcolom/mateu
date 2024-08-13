@@ -21,7 +21,7 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -37,8 +37,8 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
               + viewInstance.getClass().getSimpleName());
     }
 
-    store.setStep(journeyContainer, "edit", editor, serverHttpRequest);
+    journeyContainer = store.setStep(journeyContainer, "edit", editor, serverHttpRequest);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FieldEditorActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -27,7 +29,7 @@ public class FieldEditorActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -36,8 +38,8 @@ public class FieldEditorActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     if (viewInstance instanceof FieldEditor) {
-      store.setStep(journeyContainer, actionId, viewInstance, serverHttpRequest);
-      return Mono.empty();
+      journeyContainer = store.setStep(journeyContainer, actionId, viewInstance, serverHttpRequest);
+      return Mono.just(journeyContainer);
     }
     String fieldId = actionId.substring("__editfield__".length());
 
@@ -49,13 +51,14 @@ public class FieldEditorActionRunner implements ActionRunner {
       targetValue = reflectionHelper.newInstance(field.getType());
     }
 
-    store.setStep(
-        journeyContainer,
-        actionId,
-        new FieldEditor(
-            targetValue, fieldId, store.getCurrentStep(journeyContainer).id(), serializer),
-        serverHttpRequest);
+    journeyContainer =
+        store.setStep(
+            journeyContainer,
+            actionId,
+            new FieldEditor(
+                targetValue, fieldId, store.getCurrentStep(journeyContainer).id(), serializer),
+            serverHttpRequest);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

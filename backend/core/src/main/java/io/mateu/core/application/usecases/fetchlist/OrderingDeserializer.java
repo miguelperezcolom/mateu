@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,9 @@ public class OrderingDeserializer {
     try {
       List<Map<String, Object>> data =
           (List<Map<String, Object>>)
-              serializer.fromJson(new String(Base64.getDecoder().decode(raw)), ArrayList.class);
+              serializer.fromJson(
+                  new String(Base64.getDecoder().decode(raw), Charset.defaultCharset()),
+                  ArrayList.class);
       return data.stream()
           .map(
               m ->

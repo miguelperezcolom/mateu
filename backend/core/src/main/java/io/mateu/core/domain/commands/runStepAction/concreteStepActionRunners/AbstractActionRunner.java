@@ -7,12 +7,16 @@ import io.mateu.dtos.Step;
 
 public class AbstractActionRunner {
 
-  protected void addBackDestination(Result result, Step initialStep) {
-    if (result.getNowTo() != null) {
-      return;
+  protected Result addBackDestination(Result result, Step initialStep) {
+    if (result.nowTo() != null) {
+      return result;
     }
-    result.setNowTo(
+    return new Result(
+        result.type(),
+        result.message(),
+        result.interestingLinks(),
         new Destination(
-            DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()));
+            DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()),
+        result.leftSideImageUrl());
   }
 }

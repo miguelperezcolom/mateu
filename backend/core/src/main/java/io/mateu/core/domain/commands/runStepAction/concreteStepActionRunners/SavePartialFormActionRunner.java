@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class SavePartialFormActionRunner implements ActionRunner {
 
   public static final String SAVE_PARTIAL_FORM_IDENTIFIER = "savePartialForm__";
@@ -30,7 +32,7 @@ public class SavePartialFormActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object form,
       String stepId,
@@ -39,7 +41,9 @@ public class SavePartialFormActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    var step = store.getStep(journeyContainer, stepId);
+    journeyContainer = store.setAsCurrentStep(journeyContainer, stepId);
+
+    var step = journeyContainer.steps().get(stepId);
 
     var view = step.view();
 
@@ -81,9 +85,9 @@ public class SavePartialFormActionRunner implements ActionRunner {
             step.previousStepId(),
             step.target());
 
-    store.updateStep(journeyContainer, stepId, newStep);
+    journeyContainer = store.updateStep(journeyContainer, stepId, newStep);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 
   private ViewMetadata updateMetadata(Form form, String sectionId) {

@@ -28,7 +28,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,
@@ -71,13 +71,13 @@ public class CrudDeleteActionRunner implements ListActionRunner {
                   store.getInitialStep(journeyContainer).id()),
               null);
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
+      journeyContainer = store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(
           "Crud delete thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

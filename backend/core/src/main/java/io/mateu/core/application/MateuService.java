@@ -14,6 +14,7 @@ import io.mateu.dtos.UI;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -185,7 +186,8 @@ public class MateuService {
             list -> {
               try {
                 ByteArrayInOutStream stream = new ByteArrayInOutStream();
-                OutputStreamWriter streamWriter = new OutputStreamWriter(stream);
+                OutputStreamWriter streamWriter =
+                    new OutputStreamWriter(stream, Charset.defaultCharset());
                 CSVWriter writer = new CSVWriter(streamWriter);
 
                 writer.writeAll(
@@ -261,7 +263,8 @@ public class MateuService {
                 Sheet sheet = workbook.createSheet("All");
 
                 ByteArrayInOutStream stream = new ByteArrayInOutStream();
-                OutputStreamWriter streamWriter = new OutputStreamWriter(stream);
+                OutputStreamWriter streamWriter =
+                    new OutputStreamWriter(stream, Charset.defaultCharset());
 
                 CellStyle style = workbook.createCellStyle();
                 style.setWrapText(true);

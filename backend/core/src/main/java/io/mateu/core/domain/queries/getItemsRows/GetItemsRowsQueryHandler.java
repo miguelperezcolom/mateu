@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getItemsRows;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.queries.EntitiesFinder;
 import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetItemsRowsQueryHandler {
 
   final ReflectionHelper reflectionHelper;

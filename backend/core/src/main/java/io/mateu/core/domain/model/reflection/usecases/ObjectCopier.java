@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ObjectCopier {
 
   private final FieldByNameProvider fieldByNameProvider;

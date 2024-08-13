@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ActualValueExtractor {
 
   final FileChecker fileChecker;

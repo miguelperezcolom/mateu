@@ -1,18 +1,21 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
+import java.util.Collections;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Result {
+public record Result(
+    ResultType type,
+    String message,
+    List<Destination> interestingLinks,
+    Destination nowTo,
+    String leftSideImageUrl) {
 
-  private ResultType type;
-  private String message;
-  private List<Destination> interestingLinks;
-  private Destination nowTo;
-  private String leftSideImageUrl;
+  public Result {
+    interestingLinks = interestingLinks != null?Collections.unmodifiableList(interestingLinks):List.of();
+  }
+
+  @Override
+  public List<Destination> interestingLinks() {
+    return Collections.unmodifiableList(interestingLinks);
+  }
 }

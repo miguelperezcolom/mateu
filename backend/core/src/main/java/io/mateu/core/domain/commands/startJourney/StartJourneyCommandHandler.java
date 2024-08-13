@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.startJourney;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
@@ -24,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class StartJourneyCommandHandler {
 
   private final ReflectionHelper reflectionHelper;
@@ -79,27 +81,37 @@ public class StartJourneyCommandHandler {
     }
 
     JourneyContainer journeyContainer =
-        JourneyContainer.builder()
-            .journeyTypeId(journeyTypeId)
-            .journeyId(journeyId)
-            .journeyClass(formInstance.getClass())
-            .journeyData(journeyCreationRq.getContextData())
-            .steps(Map.of())
-            .journey(journey)
-            .lastUsedSorting(Map.of())
-            .lastUsedFilters(Map.of())
-            .build();
+        new JourneyContainer(
+            journeyId,
+            journeyTypeId,
+            null,
+            formInstance.getClass(),
+            journeyCreationRq.contextData(),
+            journey,
+            Map.of(),
+            null,
+            Map.of(),
+            Map.of());
 
     Step step =
         stepMapper.map(
             journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest, null);
-    journeyContainer.setJourney(
-        journey =
-            new Journey(
-                journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()));
+    journey =
+        new Journey(
+            journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type());
 
-    journeyContainer.setInitialStep(step);
-    journeyContainer.setSteps(Map.of(step.id(), step));
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            journey,
+            Map.of(step.id(), step),
+            step,
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting());
 
     return Mono.just(new StepWrapper(journey, step, toMap(journeyContainer)));
   }

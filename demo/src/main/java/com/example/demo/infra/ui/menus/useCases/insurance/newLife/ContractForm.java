@@ -26,40 +26,40 @@ public class ContractForm {
 
   @Slot(SlotName.header)
   Stepper stepper =
-      Stepper.builder()
-          .value(0.5)
-          .text("Contract (Step 3 of 4)")
-          .steps(
+      new Stepper(
+              0.5,
+              "Contract (Step 3 of 4)",
               List.of(
-                  StepperStep.builder()
-                      .id("calculation")
-                      .caption("STEP 1")
-                      .description("Insured Information")
-                      .done(true)
-                      .current(false)
-                      .build(),
-                  StepperStep.builder()
-                      .id("priceSelection")
-                      .caption("STEP 2")
-                      .description("Price Selection")
-                      .done(true)
-                      .current(false)
-                      .build(),
-                  StepperStep.builder()
-                      .id("contract")
-                      .caption("STEP 3")
-                      .description("Contract")
-                      .done(false)
-                      .current(true)
-                      .build(),
-                  StepperStep.builder()
-                      .id("summary")
-                      .caption("STEP 4")
-                      .description("Summary")
-                      .done(false)
-                      .current(false)
-                      .build()))
-          .build();
+                  new StepperStep(
+                          "calculation",
+                          "STEP 1",
+                          "Insured Information",
+                          true,
+                          false
+                  ),
+                  new StepperStep(
+                          "priceSelection",
+                          "STEP 2",
+                          "Price Selection",
+                          true,
+                          false
+                  ),
+                  new StepperStep(
+                          "contract",
+                          "STEP 3",
+                          "Contract",
+                          false,
+                          true
+                  ),
+                  new StepperStep(
+                          "summary",
+                          "STEP 4",
+                          "Summary",
+                          false,
+                          false
+                  )
+              )
+      );
 
   @Section("Bookingholders")
   @Caption("Is the bad person the bookingholder?")

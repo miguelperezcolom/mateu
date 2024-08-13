@@ -1,7 +1,5 @@
 package io.mateu.core.domain.model.inbound.editors;
 
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,16 +8,11 @@ public class EntityEditor {
   private Class entityClass;
   private Map<String, Object> data = new HashMap<>();
 
-  public EntityEditor(
-      Object entity,
-      int __index,
-      int __count,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer)
+  public EntityEditor(Object entity, int __index, int __count, Object id, Map<String, Object> data)
       throws Exception {
     this.entityClass = entity.getClass();
-    this.data = serializer.toMap(entity);
-    this.data.put("__id", reflectionHelper.getId(entity));
+    this.data = data;
+    this.data.put("__id", id);
     if (__index >= 0) {
       this.data.put("__index", __index);
     }

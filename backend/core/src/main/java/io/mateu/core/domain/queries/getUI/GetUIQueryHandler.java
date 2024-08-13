@@ -1,5 +1,6 @@
 package io.mateu.core.domain.queries.getUI;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UiInstantiator;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetUIQueryHandler {
 
   final UIMapper uiMapper;

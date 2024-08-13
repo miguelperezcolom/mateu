@@ -21,7 +21,7 @@ public class EntityEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -29,7 +29,7 @@ public class EntityEditActionRunner implements ActionRunner {
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    store.setStep(journeyContainer, "edit", viewInstance, serverHttpRequest);
-    return Mono.empty();
+    journeyContainer = store.setStep(journeyContainer, "edit", viewInstance, serverHttpRequest);
+    return Mono.just(journeyContainer);
   }
 }

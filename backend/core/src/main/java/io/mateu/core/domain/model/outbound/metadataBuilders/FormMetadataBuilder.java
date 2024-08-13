@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FormMetadataBuilder {
 
   final ActionMetadataBuilder actionMetadataBuilder;

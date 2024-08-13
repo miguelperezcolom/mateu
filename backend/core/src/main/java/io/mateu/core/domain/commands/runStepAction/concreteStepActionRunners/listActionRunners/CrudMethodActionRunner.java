@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.RunMethodActionRunner;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CrudMethodActionRunner implements ListActionRunner {
 
   final ReflectionHelper reflectionHelper;
@@ -45,7 +47,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,
@@ -71,6 +73,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
                         })
                     .collect(Collectors.toList()));
 
+    // uses thread local to make it available to the crud
     new SelectedRowsContext(targetSet);
 
     try {
@@ -85,7 +88,7 @@ public class CrudMethodActionRunner implements ListActionRunner {
 
       Method method = allMethods.stream().filter(m -> actionId.equals(m.getName())).findAny().get();
 
-      runMethodActionRunner.runMethod(
+      return runMethodActionRunner.runMethod(
           journeyContainer,
           getInstance(crud, method),
           method,
@@ -98,8 +101,6 @@ public class CrudMethodActionRunner implements ListActionRunner {
       throw new Exception(
           "Crud " + actionId + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
-
-    return Mono.empty();
   }
 
   private Object getInstance(Crud crud, Method method) {

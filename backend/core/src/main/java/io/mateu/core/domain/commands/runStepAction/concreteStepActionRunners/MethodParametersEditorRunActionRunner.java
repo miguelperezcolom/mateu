@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     implements ActionRunner {
 
@@ -36,7 +38,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -72,20 +74,22 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     Object result = m.invoke(object, values.toArray());
 
     if (object != null) {
-      store.updateStep(journeyContainer, initialStep.id(), object, serverHttpRequest);
+      journeyContainer =
+          store.updateStep(journeyContainer, initialStep.id(), object, serverHttpRequest);
     }
 
     Object whatToShow = result;
     if (!void.class.equals(m.getReturnType())) {
       if (whatToShow instanceof Result) {
-        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
+        whatToShow =
+            addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
+      journeyContainer = store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
     } else {
-      store.backToStep(journeyContainer, initialStep.id()); // will save the step
+      journeyContainer = store.backToStep(journeyContainer, initialStep.id()); // will save the step
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

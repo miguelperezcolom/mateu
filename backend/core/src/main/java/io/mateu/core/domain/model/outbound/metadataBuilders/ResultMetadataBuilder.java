@@ -6,34 +6,28 @@ import io.mateu.dtos.Result;
 import io.mateu.dtos.ResultType;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class ResultMetadataBuilder {
 
   public Result build(io.mateu.core.domain.uidefinition.shared.data.Result result) {
     return new Result(
-            "",
-            ResultType.valueOf(result.getType().toString()),
-            result.getMessage(),
-            result.getInterestingLinks() != null
-                    ? result.getInterestingLinks().stream()
-                    .map(
-                            l ->
-                                    new Destination(
-                                            DestinationType.valueOf(l.getType().toString()),
-                                            l.getDescription(),
-                                            l.getValue()
-                                    ))
-                    .toList()
-                    : List.of(),
-            result.getNowTo() != null
-                    ? new Destination(
-                    DestinationType.valueOf(result.getNowTo().getType().toString()),
-                    result.getNowTo().getDescription(),
-                    result.getNowTo().getValue()
-            ): null,
-            result.getLeftSideImageUrl()
-    );
+        "",
+        ResultType.valueOf(result.type().toString()),
+        result.message(),
+        result.interestingLinks().stream()
+            .map(
+                l ->
+                    new Destination(
+                        DestinationType.valueOf(l.type().toString()),
+                        l.description(),
+                        l.value()))
+            .toList(),
+        result.nowTo() != null
+            ? new Destination(
+                DestinationType.valueOf(result.nowTo().type().toString()),
+                result.nowTo().description(),
+                result.nowTo().value())
+            : null,
+        result.leftSideImageUrl());
   }
 }

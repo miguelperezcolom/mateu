@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.dtos.*;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CancelPartialFormActionRunner implements ActionRunner {
 
   public static final String CANCEL_PARTIAL_FORM_IDENTIFIER = "cancelPartialForm__";
@@ -29,7 +31,7 @@ public class CancelPartialFormActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -40,7 +42,8 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
     var sectionId = getSectionIdFromActionId(actionId);
 
-    var step = store.getStep(journeyContainer, stepId);
+    journeyContainer = store.setAsCurrentStep(journeyContainer, stepId);
+    var step = journeyContainer.steps().get(stepId);
     var view = step.view();
     var main = view.main();
     var mainComponent = step.view().main().components().get(0);
@@ -76,9 +79,9 @@ public class CancelPartialFormActionRunner implements ActionRunner {
 
     step = restoreOldData(step, sectionId);
 
-    store.updateStep(journeyContainer, stepId, step);
+    journeyContainer = store.updateStep(journeyContainer, stepId, step);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 
   private ViewMetadata updateMetadata(Object viewInstance, String sectionId, Form metadata) {

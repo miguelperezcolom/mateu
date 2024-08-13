@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MenuBuilder {
 
   private final ReflectionHelper reflectionHelper;
@@ -125,35 +127,18 @@ public class MenuBuilder {
     if (m.isAnnotationPresent(Home.class)
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
-      l.add(
-              new Menu(
-                      MenuType.Submenu,
-                      "home",
-                      "Home",
-                      "",
-                      List.of(),
-                      order
-              ));
+      l.add(new Menu(MenuType.Submenu, "home", "Home", "", List.of(), order));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
-              new Menu(
-                      MenuType.Submenu,
-                      icon,
-                      caption,
-                      journeyTypeId,
-                      buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
-                      order
-              ));
+          new Menu(
+              MenuType.Submenu,
+              icon,
+              caption,
+              journeyTypeId,
+              buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
+              order));
     } else {
-      l.add(
-              new Menu(
-                      MenuType.MenuOption,
-                      icon,
-                      caption,
-                      journeyTypeId,
-                      List.of(),
-                      order
-              ));
+      l.add(new Menu(MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order));
     }
   }
 

@@ -21,7 +21,7 @@ public class FieldEditorCancelActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -30,7 +30,7 @@ public class FieldEditorCancelActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     FieldEditor fieldEditor = (FieldEditor) viewInstance;
-    store.backToStep(journeyContainer, fieldEditor.getInitialStep());
-    return Mono.empty();
+    journeyContainer = store.backToStep(journeyContainer, fieldEditor.getInitialStep());
+    return Mono.just(journeyContainer);
   }
 }

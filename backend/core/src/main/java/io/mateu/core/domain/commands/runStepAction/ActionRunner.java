@@ -9,7 +9,7 @@ public interface ActionRunner {
 
   boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId);
 
-  Mono<Void> run(
+  Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,

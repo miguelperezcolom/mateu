@@ -22,7 +22,7 @@ public class CrudNewActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,
@@ -41,13 +41,13 @@ public class CrudNewActionRunner implements ListActionRunner {
       }
 
       String newStepId = "new_" + UUID.randomUUID().toString();
-      store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
+      journeyContainer = store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
 
     } catch (Throwable e) {
       throw new Exception(
           "Crud onNew thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

@@ -1,35 +1,49 @@
 package io.mateu.dtos;
 
-import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class JourneyContainer implements Serializable {
+public record JourneyContainer(
+    String journeyId,
+    String journeyTypeId,
+    String remoteBaseUrl,
+    Class journeyClass,
+    Map<String, Object> journeyData,
+    Journey journey,
+    Map<String, Step> steps,
+    Step initialStep,
+    Map<String, Object> lastUsedFilters,
+    Map<String, List<SortCriteria>> lastUsedSorting) {
 
-  private String journeyId;
+  public JourneyContainer {
+    journeyData = journeyData != null ? Collections.unmodifiableMap(journeyData) : Map.of();
+    steps = steps != null ? Collections.unmodifiableMap(steps) : Map.of();
+    lastUsedFilters =
+        lastUsedFilters != null ? Collections.unmodifiableMap(lastUsedFilters) : Map.of();
+    lastUsedSorting =
+        lastUsedSorting != null ? Collections.unmodifiableMap(lastUsedSorting) : Map.of();
+  }
 
-  private String journeyTypeId;
+  @Override
+  public Map<String, Object> journeyData() {
+    return Collections.unmodifiableMap(journeyData);
+  }
 
-  private String remoteBaseUrl;
+  @Override
+  public Map<String, Step> steps() {
+    return Collections.unmodifiableMap(steps);
+  }
 
-  private Class journeyClass;
+  @Override
+  public Map<String, Object> lastUsedFilters() {
+    return Collections.unmodifiableMap(lastUsedFilters);
+  }
 
-  private Map<String, Object> journeyData;
-
-  private Journey journey;
-
-  private Map<String, Step> steps;
-
-  private Step initialStep;
-
-  private Map<String, Object> lastUsedFilters;
-
-  private Map<String, List<SortCriteria>> lastUsedSorting;
+  @Override
+  public Map<String, List<SortCriteria>> lastUsedSorting() {
+    return Collections.unmodifiableMap(lastUsedSorting);
+  }
 
   @Override
   public String toString() {

@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.reflection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFactory;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ReflectionHelper {
 
   final ValueProvider valueProvider;

@@ -1,13 +1,16 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.Map;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class JourneyCreationRq {
+public record JourneyCreationRq(Map<String, Object> contextData) {
 
-  private Map<String, Object> contextData;
+  public JourneyCreationRq {
+    contextData = contextData != null ? Collections.unmodifiableMap(contextData) : Map.of();
+  }
+
+  @Override
+  public Map<String, Object> contextData() {
+    return Collections.unmodifiableMap(contextData);
+  }
 }

@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ObjectEditorEditActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -28,7 +30,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -38,13 +40,14 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
       throws Throwable {
     // store.setStep(journeyId, "edit_object", getObject((ObjectEditor) viewInstance),
     // serverHttpRequest);
-    store.setStep(
-        journeyContainer,
-        "edit",
-        getEditor((ObjectEditor) viewInstance),
-        serverHttpRequest,
-        ActionTarget.SameLane);
-    return Mono.empty();
+    journeyContainer =
+        store.setStep(
+            journeyContainer,
+            "edit",
+            getEditor((ObjectEditor) viewInstance),
+            serverHttpRequest,
+            ActionTarget.SameLane);
+    return Mono.just(journeyContainer);
   }
 
   private Object getEditor(ObjectEditor objectEditor) throws Throwable {

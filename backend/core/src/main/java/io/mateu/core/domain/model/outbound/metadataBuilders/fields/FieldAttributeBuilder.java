@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FieldAttributeBuilder {
 
   final FileChecker fileChecker;
@@ -126,7 +128,7 @@ public class FieldAttributeBuilder {
           Object value = m.invoke(enumConstant, (Object[]) null);
           attributes.add(new Pair("choice", new Value(enumConstant.toString(), value)));
         }
-      } catch (Exception e) {
+      } catch (Exception ignored) {
         for (Object enumConstant : enumType.getEnumConstants()) {
           attributes.add(new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
         }

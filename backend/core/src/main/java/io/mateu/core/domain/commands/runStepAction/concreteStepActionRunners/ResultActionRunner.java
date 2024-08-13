@@ -23,7 +23,7 @@ public class ResultActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -32,10 +32,20 @@ public class ResultActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Step step = store.readStep(journeyContainer, actionId);
-    var journey = journeyContainer.getJourney();
-    journeyContainer.setJourney(
-        new Journey(
-            journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()));
-    return Mono.empty();
+    var journey = journeyContainer.journey();
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            new Journey(
+                journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()),
+            journeyContainer.steps(),
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting());
+    return Mono.just(journeyContainer);
   }
 }

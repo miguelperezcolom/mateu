@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MenuResolver {
 
   private final ReflectionHelper reflectionHelper;

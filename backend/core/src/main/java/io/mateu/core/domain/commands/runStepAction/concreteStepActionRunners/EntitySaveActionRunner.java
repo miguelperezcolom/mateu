@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class EntitySaveActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -33,7 +35,7 @@ public class EntitySaveActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -57,8 +59,8 @@ public class EntitySaveActionRunner implements ActionRunner {
                 DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
+    journeyContainer = store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

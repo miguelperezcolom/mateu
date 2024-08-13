@@ -39,20 +39,16 @@ public class RunStepUseCase {
         serializer.fromJson(serializer.toJson(rq.journey()), JourneyContainer.class);
     return runStepActionCommandHandler
         .handle(
-            RunStepActionCommand.builder()
-                .journeyTypeId(journeyTypeId)
-                .journeyId(journeyId)
-                .stepId(stepId)
-                .actionId(actionId)
-                .data(rq.data())
-                .journeyContainer(journeyContainer)
-                .serverHttpRequest(serverHttpRequest)
-                .build())
-        .thenReturn(
-            new StepWrapper(
-                journeyContainer.getJourney(),
-                journeyContainer.getSteps().get(journeyContainer.getJourney().currentStepId()),
-                toMap(journeyContainer)))
+            new RunStepActionCommand(
+                journeyTypeId,
+                journeyId,
+                stepId,
+                actionId,
+                rq.data(),
+                journeyContainer,
+                serverHttpRequest))
+        .map(
+            c -> new StepWrapper(c.journey(), c.steps().get(c.journey().currentStepId()), toMap(c)))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

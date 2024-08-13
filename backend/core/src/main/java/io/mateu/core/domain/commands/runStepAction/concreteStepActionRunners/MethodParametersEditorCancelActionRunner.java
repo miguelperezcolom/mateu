@@ -21,7 +21,7 @@ public class MethodParametersEditorCancelActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -30,7 +30,7 @@ public class MethodParametersEditorCancelActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     MethodParametersEditor methodParametersEditor = (MethodParametersEditor) viewInstance;
-    store.backToStep(journeyContainer, methodParametersEditor.getInitialStep());
-    return Mono.empty();
+    journeyContainer = store.backToStep(journeyContainer, methodParametersEditor.getInitialStep());
+    return Mono.just(journeyContainer);
   }
 }

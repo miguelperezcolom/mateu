@@ -1,6 +1,7 @@
 package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FiltersDeserializer {
 
   private final JourneyContainer journeyContainer;

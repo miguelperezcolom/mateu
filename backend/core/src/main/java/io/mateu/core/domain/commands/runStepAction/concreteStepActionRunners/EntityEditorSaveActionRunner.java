@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class EntityEditorSaveActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -31,7 +33,7 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -46,7 +48,7 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
     merger.mergeAndCommit(data, entityEditor.getEntityClass());
     data.remove("__entityClassName__");
     entityEditor.setData(data);
-    store.setStep(journeyContainer, stepId, entityEditor, serverHttpRequest);
+    journeyContainer = store.setStep(journeyContainer, stepId, entityEditor, serverHttpRequest);
 
     Step initialStep = store.getInitialStep(journeyContainer);
 
@@ -59,8 +61,8 @@ public class EntityEditorSaveActionRunner implements ActionRunner {
                 DestinationType.ActionId, "Back to " + initialStep.name(), initialStep.id()),
             null);
     String newStepId = "result_" + UUID.randomUUID().toString();
-    store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
+    journeyContainer = store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

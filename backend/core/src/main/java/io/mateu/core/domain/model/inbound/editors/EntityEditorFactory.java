@@ -17,7 +17,8 @@ public class EntityEditorFactory {
 
   @Transactional
   public EntityEditor create(Object entity, int __index, int __count) throws Exception {
-    entity = em.find(entity.getClass(), reflectionHelper.getId(entity));
-    return new EntityEditor(entity, __index, __count, reflectionHelper, serializer);
+    Object id = reflectionHelper.getId(entity);
+    entity = em.find(entity.getClass(), id);
+    return new EntityEditor(entity, __index, __count, id, serializer.toMap(entity));
   }
 }

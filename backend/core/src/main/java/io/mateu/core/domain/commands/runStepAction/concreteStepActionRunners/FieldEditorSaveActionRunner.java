@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FieldEditorSaveActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -27,7 +29,7 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -49,22 +51,35 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     var newData = new HashMap<>(initialStep.data());
     newData.put(fieldEditor.getFieldId(), data);
 
-    journeyContainer
-        .getSteps()
-        .put(
+    var steps = new HashMap<>(journeyContainer.steps());
+
+    steps.put(
+        initialStep.id(),
+        new Step(
             initialStep.id(),
-            new Step(
-                initialStep.id(),
-                initialStep.name(),
-                initialStep.type(),
-                initialStep.view(),
-                newData,
-                initialStep.rules(),
-                initialStep.previousStepId(),
-                initialStep.target()));
+            initialStep.name(),
+            initialStep.type(),
+            initialStep.view(),
+            newData,
+            initialStep.rules(),
+            initialStep.previousStepId(),
+            initialStep.target()));
 
-    store.backToStep(journeyContainer, initialStep.id()); // will save the step
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            journeyContainer.journey(),
+            steps,
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting());
 
-    return Mono.empty();
+    journeyContainer = store.backToStep(journeyContainer, initialStep.id()); // will save the step
+
+    return Mono.just(journeyContainer);
   }
 }

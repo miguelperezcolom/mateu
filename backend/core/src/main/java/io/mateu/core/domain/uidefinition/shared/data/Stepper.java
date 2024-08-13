@@ -1,17 +1,16 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
+import java.util.Collections;
 import java.util.List;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Stepper {
+public record Stepper(double value, String text, List<StepperStep> steps) {
 
-  double value;
+  public Stepper {
+    steps = Collections.unmodifiableList(steps);
+  }
 
-  String text;
-
-  List<StepperStep> steps;
+  @Override
+  public List<StepperStep> steps() {
+    return Collections.unmodifiableList(steps);
+  }
 }

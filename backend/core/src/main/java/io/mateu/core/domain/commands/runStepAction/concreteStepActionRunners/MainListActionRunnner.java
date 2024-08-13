@@ -25,7 +25,7 @@ public class MainListActionRunnner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -52,13 +52,12 @@ public class MainListActionRunnner implements ActionRunner {
 
       for (ListActionRunner listActionRunner : listActionRunners) {
         if (listActionRunner.applies(journeyContainer, crud, actionId)) {
-          listActionRunner.run(
+          return listActionRunner.run(
               journeyContainer, crud, stepId, listId, actionId, data, serverHttpRequest);
-          break;
         }
       }
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

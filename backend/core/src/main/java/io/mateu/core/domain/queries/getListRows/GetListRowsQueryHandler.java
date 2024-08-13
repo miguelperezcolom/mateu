@@ -43,11 +43,6 @@ public class GetListRowsQueryHandler {
                 query.getListId(),
                 query.getServerHttpRequest());
 
-    store.saveFilters(
-        query.getJourneyContainer(), query.getStepId(), query.getListId(), filtersDeserialized);
-    store.saveOrders(
-        query.getJourneyContainer(), query.getStepId(), query.getListId(), query.getOrdering());
-
     if (rpcView == null) {
       return Flux.empty();
     }

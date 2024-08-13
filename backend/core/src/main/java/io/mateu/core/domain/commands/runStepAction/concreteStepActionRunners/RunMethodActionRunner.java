@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
@@ -26,10 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -38,6 +36,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
 
   final JourneyContainerService store;
@@ -115,7 +114,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -125,9 +124,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       throws Throwable {
 
     if ("xxxbacktostep".equals(actionId)) {
-      store.backToStep(journeyContainer, stepId);
-
-      return Mono.empty().then();
+      return Mono.just(store.backToStep(journeyContainer, stepId));
     }
 
     Object actualViewInstance = getActualInstance(journeyContainer, viewInstance, data);
@@ -138,7 +135,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         journeyContainer, actualViewInstance, m, stepId, actionId, data, serverHttpRequest);
   }
 
-  public Mono<Void> runMethod(
+  public Mono<JourneyContainer> runMethod(
       JourneyContainer journeyContainer,
       Object actualViewInstance,
       Method m,
@@ -150,36 +147,38 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
-    resetMessages(journeyContainer);
+    journeyContainer = resetMessages(journeyContainer);
 
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
     if (needsParameters(m)) {
 
       if (Modifier.isStatic(m.getModifiers())) {
 
-        store.setStep(
-            journeyContainer,
-            actionId,
-            new MethodParametersEditor(
-                m.getDeclaringClass(),
-                m.getName(),
-                store.getCurrentStep(journeyContainer).id(),
-                data),
-            serverHttpRequest,
-            getTarget(m));
+        journeyContainer =
+            store.setStep(
+                journeyContainer,
+                actionId,
+                new MethodParametersEditor(
+                    m.getDeclaringClass(),
+                    m.getName(),
+                    store.getCurrentStep(journeyContainer).id(),
+                    data),
+                serverHttpRequest,
+                getTarget(m));
 
       } else {
 
-        store.setStep(
-            journeyContainer,
-            actionId,
-            new MethodParametersEditor(
-                actualViewInstance,
-                m.getName(),
-                store.getCurrentStep(journeyContainer).id(),
-                serializer),
-            serverHttpRequest,
-            getTarget(m));
+        journeyContainer =
+            store.setStep(
+                journeyContainer,
+                actionId,
+                new MethodParametersEditor(
+                    actualViewInstance,
+                    m.getName(),
+                    store.getCurrentStep(journeyContainer).id(),
+                    serializer),
+                serverHttpRequest,
+                getTarget(m));
       }
 
     } else {
@@ -192,33 +191,34 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        List<Message> messages = new ArrayList<>();
-
         if (result != null && Mono.class.isAssignableFrom(result.getClass())) {
 
           var mono = (Mono) result;
 
+          JourneyContainer finalJourneyContainer = journeyContainer;
           return mono.map(
               r -> {
+                var jc = finalJourneyContainer;
                 try {
                   // update the ui instance after running the method, as something has possibly
                   // changed
-                  updateStep(journeyContainer, actualViewInstance, serverHttpRequest, r);
+                  jc = updateStep(jc, actualViewInstance, serverHttpRequest, r);
                   // add a new step with the result
-                  processResponse(journeyContainer, m, r, serverHttpRequest);
-                  addMessages(journeyContainer, r, m);
+                  jc = processResponse(jc, m, r, serverHttpRequest);
+                  jc = addMessages(jc, r, m);
                 } catch (Throwable e) {
                   return Mono.error(new RuntimeException(e));
                 }
-                return r;
+                return Mono.just(jc);
               });
         } else {
 
           // update the ui instance after running the method, as something has possibly changed
-          updateStep(journeyContainer, actualViewInstance, serverHttpRequest, result);
+          journeyContainer =
+              updateStep(journeyContainer, actualViewInstance, serverHttpRequest, result);
           // add a new step with the result
-          processResponse(journeyContainer, m, result, serverHttpRequest);
-          addMessages(journeyContainer, result, m);
+          journeyContainer = processResponse(journeyContainer, m, result, serverHttpRequest);
+          journeyContainer = addMessages(journeyContainer, result, m);
         }
 
       } catch (InvocationTargetException ex) {
@@ -229,63 +229,86 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       }
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 
-  private void resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.getJourney().currentStepId();
-    var step = journeyContainer.getSteps().get(currentStepId);
+  private JourneyContainer resetMessages(JourneyContainer journeyContainer) {
+    var currentStepId = journeyContainer.journey().currentStepId();
+    var step = journeyContainer.steps().get(currentStepId);
     var view = step.view();
-    journeyContainer
-        .getSteps()
-        .put(
-            currentStepId,
-            new Step(
-                step.id(),
-                step.name(),
-                step.type(),
-                new View(
-                    view.title(),
-                    view.subtitle(),
-                    List.of(),
-                    view.header(),
-                    view.left(),
-                    view.main(),
-                    view.right(),
-                    view.footer()),
-                step.data(),
-                step.rules(),
-                step.previousStepId(),
-                step.target()));
+    var steps = new HashMap<>(journeyContainer.steps());
+    steps.put(
+        currentStepId,
+        new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            new View(
+                view.title(),
+                view.subtitle(),
+                List.of(),
+                view.header(),
+                view.left(),
+                view.main(),
+                view.right(),
+                view.footer()),
+            step.data(),
+            step.rules(),
+            step.previousStepId(),
+            step.target()));
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            journeyContainer.journey(),
+            steps,
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting());
+    return journeyContainer;
   }
 
-  private void addMessages(JourneyContainer journeyContainer, Object response, Method method) {
+  private JourneyContainer addMessages(
+      JourneyContainer journeyContainer, Object response, Method method) {
     List<Message> messages = extractMessages(response, method);
     try {
-      var currentStepId = journeyContainer.getJourney().currentStepId();
-      var step = journeyContainer.getSteps().get(currentStepId);
+      var currentStepId = journeyContainer.journey().currentStepId();
+      var step = journeyContainer.steps().get(currentStepId);
       var view = step.view();
-      journeyContainer
-          .getSteps()
-          .put(
-              currentStepId,
-              new Step(
-                  step.id(),
-                  step.name(),
-                  step.type(),
-                  new View(
-                      view.title(),
-                      view.subtitle(),
-                      mapMessages(messages),
-                      view.header(),
-                      view.left(),
-                      view.main(),
-                      view.right(),
-                      view.footer()),
-                  step.data(),
-                  step.rules(),
-                  step.previousStepId(),
-                  step.target()));
+      var steps = new HashMap<>(journeyContainer.steps());
+      steps.put(
+          currentStepId,
+          new Step(
+              step.id(),
+              step.name(),
+              step.type(),
+              new View(
+                  view.title(),
+                  view.subtitle(),
+                  mapMessages(messages),
+                  view.header(),
+                  view.left(),
+                  view.main(),
+                  view.right(),
+                  view.footer()),
+              step.data(),
+              step.rules(),
+              step.previousStepId(),
+              step.target()));
+      return new JourneyContainer(
+          journeyContainer.journeyId(),
+          journeyContainer.journeyTypeId(),
+          journeyContainer.remoteBaseUrl(),
+          journeyContainer.journeyClass(),
+          journeyContainer.journeyData(),
+          journeyContainer.journey(),
+          steps,
+          journeyContainer.initialStep(),
+          journeyContainer.lastUsedFilters(),
+          journeyContainer.lastUsedSorting());
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -331,21 +354,23 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return List.of();
   }
 
-  private void updateStep(
+  private JourneyContainer updateStep(
       JourneyContainer journeyContainer,
       Object actualViewInstance,
       ServerHttpRequest serverHttpRequest,
       Object r) {
     if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
       try {
-        store.updateStep(journeyContainer, actualViewInstance, serverHttpRequest);
+        journeyContainer =
+            store.updateStep(journeyContainer, actualViewInstance, serverHttpRequest);
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
     }
+    return journeyContainer;
   }
 
-  private void processResponse(
+  private JourneyContainer processResponse(
       JourneyContainer journeyContainer, Method m, Object r, ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Object whatToShow = getActualResponse(r, m);
@@ -353,14 +378,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       store.back(journeyContainer);
     } else if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {
-        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
+        whatToShow =
+            addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
-      store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
+      journeyContainer =
+          store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
     }
     if (ActionTarget.NewJourney.equals(getTarget(m))) {
-      store.deleteHistory(journeyContainer);
+      journeyContainer = store.deleteHistory(journeyContainer);
     }
+    return journeyContainer;
   }
 
   private ActionTarget getTarget(Method m) {

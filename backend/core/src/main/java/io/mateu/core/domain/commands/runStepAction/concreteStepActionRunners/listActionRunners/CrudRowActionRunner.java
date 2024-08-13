@@ -24,7 +24,7 @@ public class CrudRowActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,
@@ -51,6 +51,6 @@ public class CrudRowActionRunner implements ListActionRunner {
           "Crud " + methodName + " thrown " + e.getClass().getSimpleName() + ": " + e.getMessage());
     }
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 }

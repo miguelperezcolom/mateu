@@ -43,13 +43,14 @@ public class Humanizer {
     c = c.replaceAll("[ ]+", " ");
     if (c.length() > 1) {
       String aux = c;
-      c = "";
+      var sb = new StringBuilder();
       int pos = 0;
       for (String z : aux.split(" ")) {
         if (pos++ > 0 && !Strings.isNullOrEmpty(z))
-          c += z.substring(0, 1).toUpperCase() + z.substring(1);
-        else c += z;
+          sb.append(z.substring(0, 1).toUpperCase()).append(z.substring(1));
+        else sb.append(z);
       }
+      c = sb.toString();
     }
 
     return c;

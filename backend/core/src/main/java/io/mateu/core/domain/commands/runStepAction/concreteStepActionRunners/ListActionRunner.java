@@ -10,7 +10,7 @@ public interface ListActionRunner {
 
   boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId);
 
-  Mono<Void> run(
+  Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,

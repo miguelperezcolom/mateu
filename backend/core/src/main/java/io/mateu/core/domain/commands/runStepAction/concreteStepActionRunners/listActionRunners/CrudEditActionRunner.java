@@ -1,5 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.listActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.EntityEditorFactory;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CrudEditActionRunner implements ListActionRunner {
 
   final JourneyContainerService store;
@@ -32,7 +34,7 @@ public class CrudEditActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Crud crud,
       String stepId,
@@ -103,9 +105,9 @@ public class CrudEditActionRunner implements ListActionRunner {
           reflectionHelper.newInstance(ObjectEditorFactory.class).create(editor, __index, __count);
     }
 
-    store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
+    journeyContainer = store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
 
-    return Mono.empty();
+    return Mono.just(journeyContainer);
   }
 
   @SneakyThrows

@@ -30,7 +30,7 @@ public class CancelActionRunner implements ActionRunner {
   }
 
   @Override
-  public Mono<Void> run(
+  public Mono<JourneyContainer> run(
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
@@ -42,7 +42,7 @@ public class CancelActionRunner implements ActionRunner {
     if (stepId.endsWith("_edit")) {
       targetStepId = stepId.substring(0, stepId.length() - "_edit".length());
     }
-    store.backToStep(journeyContainer, targetStepId);
-    return Mono.empty();
+    journeyContainer = store.backToStep(journeyContainer, targetStepId);
+    return Mono.just(journeyContainer);
   }
 }
