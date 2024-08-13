@@ -19,6 +19,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -139,14 +140,12 @@ public class ViewMapper {
       return;
     }
 
+    var copyOfData = new HashMap<>(data);
     for (Field field : reflectionHelper.getAllEditableFields(form.getClass())) {
       if (PartialForm.class.isAssignableFrom(field.getType())) {
-        var nestedData = data.get(field.getId());
-        if (nestedData instanceof Map) {
-          Map<String, Object> nestedMap = (Map<String, Object>) nestedData;
-          for (String key : nestedMap.keySet()) {
-            data.put("__nestedData__" + field.getId() + "__" + key, nestedMap.get(key));
-          }
+        var nestedData = copyOfData.get(field.getId());
+        if (nestedData instanceof Map nestedMap) {
+          nestedMap.forEach((k, v) -> data.put("__nestedData__" + field.getId() + "__" + k, v));
         }
         data.remove(field.getId());
       }

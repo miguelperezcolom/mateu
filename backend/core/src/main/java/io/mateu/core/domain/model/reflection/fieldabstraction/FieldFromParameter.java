@@ -14,7 +14,6 @@ public class FieldFromParameter implements Field {
 
   private final Parameter p;
   private final Executable m;
-  private final FieldFromParameter ff;
 
   private List<Annotation> extraAnnotations = new ArrayList<>();
 
@@ -42,13 +41,10 @@ public class FieldFromParameter implements Field {
 
   @Override
   public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
-    return (ff != null)
-        ? ff.getDeclaredAnnotationsByType(annotationClass)
-        : p.getDeclaredAnnotationsByType(annotationClass);
+    return p.getDeclaredAnnotationsByType(annotationClass);
   }
 
   public FieldFromParameter(Executable m, Parameter f) {
-    this.ff = null;
     this.p = f;
     this.m = m;
   }
@@ -60,25 +56,22 @@ public class FieldFromParameter implements Field {
     }
     if (ManyToOne.class.equals(annotationClass) && p.getType().isAnnotationPresent(Entity.class))
       return true;
-    return (ff != null)
-        ? ff.isAnnotationPresent(annotationClass)
-        : p.isAnnotationPresent(annotationClass);
+    return p.isAnnotationPresent(annotationClass);
   }
 
   @Override
   public Class<?> getType() {
-    return (ff != null) ? ff.getType() : p.getType();
+    return p.getType();
   }
 
   @Override
   public AnnotatedType getAnnotatedType() {
-    return (ff != null) ? ff.getAnnotatedType() : p.getAnnotatedType();
+    return p.getAnnotatedType();
   }
 
   @Override
   public Class<?> getGenericClass() {
-    if (ff != null) return ff.getGenericClass();
-    else if (p.getType().isAnnotationPresent(Entity.class)) {
+    if (p.getType().isAnnotationPresent(Entity.class)) {
       return p.getType();
     } else if (p.getParameterizedType() != null) {
       ParameterizedType genericType = null;
@@ -97,22 +90,22 @@ public class FieldFromParameter implements Field {
 
   @Override
   public Class<?> getDeclaringClass() {
-    return (ff != null) ? ff.getDeclaringClass() : Map.class;
+    return Map.class;
   }
 
   @Override
   public Type getGenericType() {
-    return (ff != null) ? ff.getGenericType() : getGenericClass();
+    return getGenericClass();
   }
 
   @Override
   public String getName() {
-    return (ff != null) ? ff.getName() : p.getName();
+    return p.getName();
   }
 
   @Override
   public String getId() {
-    return (ff != null) ? ff.getId() : p.getName();
+    return p.getName();
   }
 
   @Override
@@ -120,12 +113,12 @@ public class FieldFromParameter implements Field {
     if (extraAnnotations.size() > 0) {
       for (Annotation a : extraAnnotations) if (a.getClass().equals(annotationClass)) return (T) a;
     }
-    return (ff != null) ? ff.getAnnotation(annotationClass) : p.getAnnotation(annotationClass);
+    return p.getAnnotation(annotationClass);
   }
 
   @Override
   public Annotation[] getAnnotations() {
-    return ff.getAnnotations();
+    return p.getAnnotations();
   }
 
   @Override
@@ -147,7 +140,7 @@ public class FieldFromParameter implements Field {
 
   @Override
   public Annotation[] getDeclaredAnnotations() {
-    return (ff != null) ? ff.getDeclaredAnnotations() : p.getDeclaredAnnotations();
+    return p.getDeclaredAnnotations();
   }
 
   @Override
