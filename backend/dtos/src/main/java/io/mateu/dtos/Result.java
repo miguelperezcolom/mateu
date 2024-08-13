@@ -1,20 +1,23 @@
 package io.mateu.dtos;
 
+import java.util.Collections;
 import java.util.List;
-import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Result implements ViewMetadata {
+public record Result(
+        String dataPrefix,
+        ResultType resultType,
+        String message,
+        List<Destination> interestingLinks,
+        Destination nowTo,
+        String leftSideImageUrl
+) implements ViewMetadata {
 
-  private final ViewMetadataType type = ViewMetadataType.Result;
+  public Result {
+    interestingLinks = Collections.unmodifiableList(interestingLinks);
+  }
 
-  private String dataPrefix;
-  private ResultType resultType;
-  private String message;
-  private List<Destination> interestingLinks;
-  private Destination nowTo;
-  private String leftSideImageUrl;
+  @Override
+  public List<Destination> interestingLinks() {
+    return Collections.unmodifiableList(interestingLinks);
+  }
 }

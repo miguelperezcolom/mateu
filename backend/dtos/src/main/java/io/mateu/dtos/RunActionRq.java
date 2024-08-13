@@ -8,9 +8,9 @@ public record RunActionRq(
     Map<String, Object> data, Map<String, Object> journey, Map<String, Object> contextData) {
 
   public RunActionRq {
-    data = data != null?Collections.unmodifiableMap(data):Map.of();
-    journey = journey != null?Collections.unmodifiableMap(journey):Map.of();
-    contextData = contextData != null?Collections.unmodifiableMap(contextData):Map.of();
+    data = data != null ? Collections.unmodifiableMap(data) : Map.of();
+    journey = journey != null ? Collections.unmodifiableMap(journey) : Map.of();
+    contextData = contextData != null ? Collections.unmodifiableMap(contextData) : Map.of();
   }
 
   @Override
