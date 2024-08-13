@@ -1,5 +1,6 @@
 package io.mateu.core.domain.uidefinition.core.views;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ExtraFilters {
 
   private String ql;

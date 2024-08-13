@@ -294,25 +294,6 @@ public class RunStepActionCommandHandler {
 
     Map<String, Object> data = step.data();
 
-    if (Result.class.equals(Class.forName(step.type()))) {
-      Result result = new Result(
-              ResultType.valueOf((String) data.get("type")),
-              (String) data.get("message"),
-              ((List<Map<String, Object>>) data.get("interestingLinks")).stream().map(m -> new Destination(
-                      DestinationType.valueOf((String) m.get("type")),
-                      (String) m.get("description"),
-                      (String) m.get("value")
-              )).toList(),
-              data.get("nowTo") != null ? new Destination(
-                      DestinationType.valueOf((String) ((Map<String, Object>) data.get("nowTo")).get("type")),
-                      (String) ((Map<String, Object>) data.get("nowTo")).get("description"),
-                      (String) ((Map<String, Object>) data.get("nowTo")).get("value")
-              ) : null,
-              (String) data.get("leftSideImageUrl")
-      );
-      return result;
-    }
-    
     Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
     if (viewInstance instanceof EntityEditor) {
       ((EntityEditor) viewInstance)

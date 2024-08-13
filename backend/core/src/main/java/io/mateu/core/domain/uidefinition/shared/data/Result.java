@@ -1,21 +1,21 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
-import java.util.Collections;
 import java.util.List;
 
-public record Result(
-    ResultType type,
-    String message,
-    List<Destination> interestingLinks,
-    Destination nowTo,
-    String leftSideImageUrl) {
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-  public Result {
-    interestingLinks = interestingLinks != null?Collections.unmodifiableList(interestingLinks):List.of();
-  }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@SuppressFBWarnings("EI_EXPOSE_REP2")
+public class Result {
 
-  @Override
-  public List<Destination> interestingLinks() {
-    return Collections.unmodifiableList(interestingLinks);
-  }
+  private ResultType type;
+  private String message;
+  private List<Destination> interestingLinks;
+  private Destination nowTo;
+  private String leftSideImageUrl;
 }

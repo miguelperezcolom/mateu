@@ -378,8 +378,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       store.back(journeyContainer);
     } else if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {
-        whatToShow =
-            addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
+        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
       journeyContainer =

@@ -1,10 +1,12 @@
 package io.mateu.core.domain.uidefinition.core.app;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
 import java.util.Map;
 import lombok.Getter;
 
 @Getter
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MDDOpenCRUDAction extends AbstractAction {
 
   private Class entityClass;

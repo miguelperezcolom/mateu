@@ -46,14 +46,16 @@ public class DataHelper {
 
   public static void write(File f, byte[] bytes) {
     log.info("writing " + f.getAbsolutePath());
-    FileOutputStream w;
-    try {
-      if (!f.getParentFile().exists()) f.getParentFile().mkdirs();
-      w = new FileOutputStream(f);
+    try (FileOutputStream w = new FileOutputStream(f)) {
+      if (!f.getParentFile().exists()) {
+        boolean dirsCreated = f.getParentFile().mkdirs();
+        if (!dirsCreated) {
+          throw new IOException("could not create directory " + f.getParentFile());
+        }
+      }
       w.write(bytes);
-      w.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error("When writing file", e);
     }
   }
 

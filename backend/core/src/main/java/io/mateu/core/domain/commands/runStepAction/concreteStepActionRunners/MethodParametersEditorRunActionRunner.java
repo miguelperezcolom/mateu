@@ -81,8 +81,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
     Object whatToShow = result;
     if (!void.class.equals(m.getReturnType())) {
       if (whatToShow instanceof Result) {
-        whatToShow =
-            addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
+        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
       }
       String newStepId = "result_" + UUID.randomUUID().toString();
       journeyContainer = store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest);
