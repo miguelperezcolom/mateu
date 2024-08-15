@@ -265,6 +265,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
+            journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting());
@@ -306,6 +307,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           journeyContainer.journeyData(),
           journeyContainer.journey(),
           steps,
+          journeyContainer.stepHistory(),
           journeyContainer.initialStep(),
           journeyContainer.lastUsedFilters(),
           journeyContainer.lastUsedSorting());

@@ -12,6 +12,7 @@ public record JourneyContainer(
     Map<String, Object> journeyData,
     Journey journey,
     Map<String, Step> steps,
+    List<String> stepHistory,
     Step initialStep,
     Map<String, Object> lastUsedFilters,
     Map<String, List<SortCriteria>> lastUsedSorting) {
@@ -19,6 +20,7 @@ public record JourneyContainer(
   public JourneyContainer {
     journeyData = journeyData != null ? Collections.unmodifiableMap(journeyData) : Map.of();
     steps = steps != null ? Collections.unmodifiableMap(steps) : Map.of();
+    stepHistory = stepHistory != null ? Collections.unmodifiableList(stepHistory) : List.of();
     lastUsedFilters =
         lastUsedFilters != null ? Collections.unmodifiableMap(lastUsedFilters) : Map.of();
     lastUsedSorting =
@@ -33,6 +35,11 @@ public record JourneyContainer(
   @Override
   public Map<String, Step> steps() {
     return Collections.unmodifiableMap(steps);
+  }
+
+  @Override
+  public List<String> stepHistory() {
+    return Collections.unmodifiableList(stepHistory);
   }
 
   @Override
