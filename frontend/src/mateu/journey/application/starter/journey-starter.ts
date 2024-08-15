@@ -57,6 +57,8 @@ export class JourneyStarter extends LitElement {
     @state()
     modalStyle: string | undefined = undefined;
     @state()
+    modalClass: string | undefined = undefined;
+    @state()
     loading: boolean = false;
     @state()
     error: boolean | undefined = undefined;
@@ -109,6 +111,43 @@ export class JourneyStarter extends LitElement {
             this.modalActionData = event.detail.data
             this.modalInstant = nanoid()
             this.modalStyle = action.modalStyle
+            this.modalClass = ''
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                console.log(overlay)
+                overlay?.setAttribute('class', '')
+                overlay?.setAttribute('style', '')
+            });
+        } else if (action && ActionTarget.Left == action.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+            this.modalStepId = this.stepId
+            this.modalActionId = event.detail.actionId
+            this.modalActionData = event.detail.data
+            this.modalInstant = nanoid()
+            this.modalStyle = action.modalStyle
+            this.modalClass = 'modal-left'
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                console.log(overlay)
+                overlay?.setAttribute('class', 'modal-left')
+                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;')
+            });
+        } else if (action && ActionTarget.Right == action.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+            this.modalStepId = this.stepId
+            this.modalActionId = event.detail.actionId
+            this.modalActionData = event.detail.data
+            this.modalInstant = nanoid()
+            this.modalStyle = action.modalStyle
+            this.modalClass = 'modal-right'
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                console.log(overlay)
+                overlay?.setAttribute('class', 'modal-right')
+                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;')
+            });
         } else {
             this.service.runAction(event.detail.actionId, event.detail.data).then()
         }
@@ -321,6 +360,7 @@ export class JourneyStarter extends LitElement {
             <vaadin-dialog
                     header-title="User details"
                     .opened="${this.modalOpened}"
+                    class="${this.modalClass}"
                     resizable
                     draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
@@ -337,7 +377,8 @@ export class JourneyStarter extends LitElement {
                             []
                     )}
                     ${dialogRenderer(this.renderModal, [])}
-            ></vaadin-dialog>
+            >
+            </vaadin-dialog>
             
         <slot></slot>`
     }
@@ -346,7 +387,7 @@ export class JourneyStarter extends LitElement {
     :host {
         width: clamp(45ch, 100%, 1400px);
     }
-    
+
     .card-journey-type {
         padding-left: 20px;
         padding-right: 20px;
