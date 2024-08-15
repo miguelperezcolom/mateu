@@ -43,6 +43,7 @@ public class ResultActionRunner implements ActionRunner {
             new Journey(
                 journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()),
             journeyContainer.steps(),
+            journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting());

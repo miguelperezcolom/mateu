@@ -20,6 +20,8 @@ import io.mateu.dtos.Step;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -157,6 +159,7 @@ public class JourneyContainerService {
         journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
+        steps.keySet().stream().toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());
@@ -181,6 +184,7 @@ public class JourneyContainerService {
         journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
+        journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());
@@ -251,6 +255,9 @@ public class JourneyContainerService {
             newStepId,
             editor.getClass().getName()),
         steps,
+        Stream.concat(journeyContainer.stepHistory().stream(), Stream.of(newStepId))
+            .distinct()
+            .toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());
@@ -287,6 +294,10 @@ public class JourneyContainerService {
               + " found");
     }
     var journey = journeyContainer.journey();
+    var stepsToRemove =
+        journeyContainer.stepHistory().stream()
+            .skip(journeyContainer.stepHistory().indexOf(stepId) + 1)
+            .toList();
 
     return new JourneyContainer(
         journeyContainer.journeyId(),
@@ -295,7 +306,10 @@ public class JourneyContainerService {
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
-        journeyContainer.steps(),
+        journeyContainer.steps().entrySet().stream()
+            .filter(e -> !stepsToRemove.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
+        journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());
@@ -314,6 +328,11 @@ public class JourneyContainerService {
           "No step with id " + stepId + " found for journey " + journeyContainer.journeyId());
     }
     var journey = journeyContainer.journey();
+    var stepsToRemove =
+        journeyContainer.stepHistory().stream()
+            .skip(journeyContainer.stepHistory().indexOf(stepId) + 1)
+            .toList();
+
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
@@ -321,7 +340,10 @@ public class JourneyContainerService {
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
-        journeyContainer.steps(),
+        journeyContainer.steps().entrySet().stream()
+            .filter(e -> !stepsToRemove.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
+        journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());
@@ -381,6 +403,7 @@ public class JourneyContainerService {
         journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
+        List.of(step.id()),
         step,
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());

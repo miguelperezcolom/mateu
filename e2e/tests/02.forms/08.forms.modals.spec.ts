@@ -17,4 +17,8 @@ test('modals show up', async ({ page }) => {
   await page.getByRole('option', { name: 'Open modal 2', exact: true }).locator('div').click()
   await expect(page.getByText('User details')).toBeVisible()
 
+  await page.getByLabel('Other save options').locator('svg').hover()
+  await page.getByRole('option', { name: 'Open modal 2', exact: true }).locator('div').click()
+  await expect(page.getByText('User details')).toBeVisible()
+
 });

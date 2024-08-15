@@ -16,6 +16,7 @@ import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
+import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +90,7 @@ public class StartJourneyCommandHandler {
             journeyCreationRq.contextData(),
             journey,
             Map.of(),
+            List.of(),
             null,
             Map.of(),
             Map.of());
@@ -109,6 +111,7 @@ public class StartJourneyCommandHandler {
             journeyContainer.journeyData(),
             journey,
             Map.of(step.id(), step),
+            List.of(step.id()),
             step,
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting());

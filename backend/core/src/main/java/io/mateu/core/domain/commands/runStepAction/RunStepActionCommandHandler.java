@@ -11,6 +11,8 @@ import io.mateu.dtos.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -42,6 +44,10 @@ public class RunStepActionCommandHandler {
 
     if ("xxxbacktostep".equals(actionId)) {
       var journey = journeyContainer.journey();
+      var stepsToRemove =
+          journeyContainer.stepHistory().stream()
+              .skip(journeyContainer.stepHistory().indexOf(stepId) + 1)
+              .toList();
       journeyContainer =
           new JourneyContainer(
               journeyContainer.journeyId(),
@@ -50,7 +56,12 @@ public class RunStepActionCommandHandler {
               journeyContainer.journeyClass(),
               journeyContainer.journeyData(),
               new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
-              journeyContainer.steps(),
+              journeyContainer.steps().entrySet().stream()
+                  .filter(e -> !stepsToRemove.contains(e.getKey()))
+                  .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
+              journeyContainer.stepHistory().stream()
+                  .filter(v -> !stepsToRemove.contains(v))
+                  .toList(),
               journeyContainer.initialStep(),
               journeyContainer.lastUsedFilters(),
               journeyContainer.lastUsedSorting());
@@ -104,6 +115,9 @@ public class RunStepActionCommandHandler {
             journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
+            Stream.concat(journeyContainer.stepHistory().stream(), Stream.of(stepId))
+                .distinct()
+                .toList(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting());
@@ -192,6 +206,9 @@ public class RunStepActionCommandHandler {
                         jc.journeyData(),
                         jc.journey(),
                         newSteps,
+                        Stream.concat(jc.stepHistory().stream(), Stream.of(stepId))
+                            .distinct()
+                            .toList(),
                         jc.initialStep(),
                         jc.lastUsedFilters(),
                         jc.lastUsedSorting());
@@ -236,6 +253,7 @@ public class RunStepActionCommandHandler {
         journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
+        journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting());

@@ -74,6 +74,7 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
             journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
+            journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting());

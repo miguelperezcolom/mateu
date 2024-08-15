@@ -1,5 +1,4 @@
 import {State} from "./state";
-import {callActionCommandHandler} from "./commands/callAction/CallActionCommandHandler";
 import {goBackCommandHandler} from "./commands/goBack/GoBackCommandHandler";
 import {goToIndexCommandHandler} from "./commands/goToIndex/GoToIndexCommandHandler";
 import {Subject} from "rxjs";
@@ -69,15 +68,6 @@ export class Service {
             })
     }
 
-    async silentRunAction(actionId: string, data: unknown) {
-        await callActionCommandHandler
-            .handle({actionId, data}, this.state)
-            .catch((error) => {
-                console.log('error', error)
-                throw error
-            }).then(async () => {
-            })
-    }
 
     async goBack(journeyId: string) {
         await goBackCommandHandler.handle({
@@ -92,7 +82,6 @@ export class Service {
             }
             this.upstream.next({...this.state})
         })
-        this.upstream.next({...this.state})
     }
 
     async goToIndex(data: { __listId: string; __index: number; __count: number }) {
@@ -106,14 +95,21 @@ export class Service {
             }
             this.upstream.next({...this.state})
         })
-        this.upstream.next({...this.state})
     }
 
     async goToStep(stepId: string) {
         await goToStepCommandHandler.handle({
             __stepId: stepId
-        }, this.state)
-        this.upstream.next({...this.state})
+        }, this.state).then(async (value: StepWrapper) => {
+            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
+            this.state.journey = value.journey
+            this.state.stepId = this.state.journey.currentStepId
+            if (this.state.journey.status != 'Finished') {
+                this.state.step = value.step
+                this.state.previousStepId = this.state.step.previousStepId
+            }
+            this.upstream.next({...this.state})
+        })
     }
 
 }
