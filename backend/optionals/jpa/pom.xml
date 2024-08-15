@@ -58,6 +58,12 @@
       <groupId>io.mateu</groupId>
       <artifactId>core</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -66,7 +72,12 @@
       <scope>provided</scope>
     </dependency>
 
-
+    <!-- fix CVE-2024-38809(8.7) -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>6.1.12</version>
+    </dependency>
   </dependencies>
 
 
