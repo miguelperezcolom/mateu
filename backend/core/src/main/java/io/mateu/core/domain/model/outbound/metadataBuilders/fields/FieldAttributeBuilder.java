@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
+import io.mateu.core.domain.model.outbound.metadataBuilders.ButtonMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
@@ -32,6 +33,7 @@ public class FieldAttributeBuilder {
   final FieldTypeMapper fieldTypeMapper;
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
+  final ButtonMetadataBuilder buttonMetadataBuilder;
 
   public List<Pair> buildAttributes(Object view, Field field) {
     List<Pair> attributes = new ArrayList<>();
@@ -62,6 +64,9 @@ public class FieldAttributeBuilder {
           v -> {
             attributes.add(new Pair("prefix", v));
           });
+    }
+    if (field.isAnnotationPresent(Button.class)) {
+      attributes.add(new Pair("buttonMetadata", buttonMetadataBuilder.getAction(field)));
     }
     if (field.isAnnotationPresent(Width.class)) {
       attributes.add(new Pair("width", field.getAnnotation(Width.class).value()));

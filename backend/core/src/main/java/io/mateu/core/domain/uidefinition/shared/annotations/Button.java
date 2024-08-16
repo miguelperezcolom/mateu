@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface MainAction {
+@Target({ElementType.FIELD})
+public @interface Button {
 
   String value() default "";
 
@@ -27,6 +27,8 @@ public @interface MainAction {
   int order() default 100;
 
   ActionType type() default ActionType.Primary;
+
+  boolean visible() default true;
 
   ActionTarget target() default ActionTarget.SameLane;
 

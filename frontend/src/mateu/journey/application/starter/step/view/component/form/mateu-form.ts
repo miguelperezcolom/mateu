@@ -299,6 +299,11 @@ export class MateuForm extends LitElement implements FormElement {
     })
   }
 
+  async captureRunActionEvent(event: CustomEvent) {
+    console.log('run action event captured', event)
+    await this.doRunAction(event.detail.actionId)
+  }
+
   async doRunAction(actionId: string) {
     const action = this.findAction(actionId!)
     if (action?.validationRequired) {
@@ -432,6 +437,7 @@ export class MateuForm extends LitElement implements FormElement {
             .map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
                                                               baseUrl="${this.baseUrl}"
                                                               .formElement=${this}
+                                          @run-action="${this.captureRunActionEvent}"
                                           style="display: ${!this.activeTab || this.activeTab == s.tabId?'unset':'none'};"
             ></mateu-section>`)}
 
