@@ -26,6 +26,7 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
         case 'crud': return 'field-crud';
     }
     switch (type) {
+        case 'button': return 'field-button';
         case 'telephone': return 'field-telephone';
         case 'string': return 'field-text';
         case 'long': return 'field-number';
