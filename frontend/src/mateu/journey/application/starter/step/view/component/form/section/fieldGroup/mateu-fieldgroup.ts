@@ -38,6 +38,10 @@ export class MateuFieldGroup extends LitElement {
     if (width) {
       return 'width: ' + width + ';'
     }
+    const flexGrow = f.attributes.find(a => a.key == 'flex-grow')?.value;
+    if (flexGrow) {
+      return 'flex-grow: ' + flexGrow + ';'
+    }
     return 'flex-grow: 1;'
   }
 
@@ -60,7 +64,7 @@ export class MateuFieldGroup extends LitElement {
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(s.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(s)}
-            style="${this.getStyle(s)}">
+            style="${this.getStyle(s)};align-self: end;">
             </mateu-field>
         `)}
 

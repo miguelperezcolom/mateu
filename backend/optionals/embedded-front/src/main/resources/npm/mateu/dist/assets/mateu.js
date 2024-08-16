@@ -13712,7 +13712,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       text-align: center;
     }
 */
-  `;__decorateClass$d([n$2()],MateuField.prototype,"baseUrl",2);__decorateClass$d([n$2()],MateuField.prototype,"field",2);__decorateClass$d([n$2()],MateuField.prototype,"value",2);__decorateClass$d([n$2()],MateuField.prototype,"visible",2);__decorateClass$d([n$2()],MateuField.prototype,"enabled",2);MateuField=__decorateClass$d([e$1("mateu-field")],MateuField);var __defProp$c=Object.defineProperty,__getOwnPropDesc$c=Object.getOwnPropertyDescriptor,__decorateClass$c=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$c(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$c(O,F,q),q};let MateuFieldGroup=class extends s$1{connectedCallback(){super.connectedCallback()}onValueChange(j){this.formElement.valueChanged(j.detail.key,j.detail.value)}getStyle(j){var F;const O=(F=j.attributes.find(U=>U.key=="width"))==null?void 0:F.value;return O?"width: "+O+";":"flex-grow: 1;"}render(){return x`
+  `;__decorateClass$d([n$2()],MateuField.prototype,"baseUrl",2);__decorateClass$d([n$2()],MateuField.prototype,"field",2);__decorateClass$d([n$2()],MateuField.prototype,"value",2);__decorateClass$d([n$2()],MateuField.prototype,"visible",2);__decorateClass$d([n$2()],MateuField.prototype,"enabled",2);MateuField=__decorateClass$d([e$1("mateu-field")],MateuField);var __defProp$c=Object.defineProperty,__getOwnPropDesc$c=Object.getOwnPropertyDescriptor,__decorateClass$c=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$c(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$c(O,F,q),q};let MateuFieldGroup=class extends s$1{connectedCallback(){super.connectedCallback()}onValueChange(j){this.formElement.valueChanged(j.detail.key,j.detail.value)}getStyle(j){var U,q;const O=(U=j.attributes.find(W=>W.key=="width"))==null?void 0:U.value;if(O)return"width: "+O+";";const F=(q=j.attributes.find(W=>W.key=="flex-grow"))==null?void 0:q.value;return F?"flex-grow: "+F+";":"flex-grow: 1;"}render(){return x`
       <div>
 
         ${this.fieldGroup.caption?x`<h3>${this.fieldGroup.caption}</h3>`:""}
@@ -13729,7 +13729,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(O.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(O)}
-            style="${this.getStyle(O)}">
+            style="${this.getStyle(O)};align-self: end;">
             </mateu-field>
         `)}
 
