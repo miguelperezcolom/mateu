@@ -10,6 +10,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER}) // can use in method only.
 public @interface FlexGrow {
 
-    String value();
-
+  String value();
 }
