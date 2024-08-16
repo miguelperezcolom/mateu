@@ -2,6 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import io.mateu.dtos.JourneyContainer;
 import java.util.Map;
@@ -30,6 +31,10 @@ public class ReadOnlyPojoEditActionRunner implements ActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Object editor = ((ReadOnlyPojo) viewInstance).retrieveEditor();
+
+    if (editor instanceof HasInitMethod hasInitMethod) {
+      hasInitMethod.init(serverHttpRequest);
+    }
 
     if (editor == null) {
       throw new Exception(

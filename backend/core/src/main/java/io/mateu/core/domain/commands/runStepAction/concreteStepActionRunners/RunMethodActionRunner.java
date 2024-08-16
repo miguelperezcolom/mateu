@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -377,7 +378,12 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       throws Throwable {
     Object whatToShow = getActualResponse(r, m);
     if (whatToShow instanceof GoBack) {
-      store.back(journeyContainer);
+      journeyContainer = store.back(journeyContainer);
+      Object whereIGoBack = store.getViewInstance(journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
+      if (whereIGoBack instanceof HasInitMethod hasInitMethod) {
+        hasInitMethod.init(serverHttpRequest);
+        journeyContainer = store.updateStep(journeyContainer, hasInitMethod, serverHttpRequest);
+      }
     } else if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {
         addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));

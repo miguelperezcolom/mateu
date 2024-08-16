@@ -1,6 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
@@ -10,11 +12,9 @@ import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
-import io.mateu.dtos.ResultType;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,32 +23,15 @@ import java.util.List;
 @Caption("Read only pojo with crud")
 @Component
 public class MyReadOnlyPojoWithCrud
-    implements ReadOnlyPojo, HasBadges, HasStatus {
+    implements ReadOnlyPojo, HasBadges, HasStatus, HasInitMethod {
 
-  @Getter@Setter
-  public class MyEditor {
-
-    String id;
-    String name;
-
-    public MyEditor(String id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-    public MyEditor() {
-    }
-
-    @Action(value = "Save")
-    public GoBack save() {
-      System.out.println("saved");
-      return new GoBack(ResultType.Success, "Saved");
-    }
-
-  }
+  @JsonIgnore
+  private final MyReadOnlyPojoData data;
+  @JsonIgnore
+  private final MyReadOnlyPojoWithCrudEditor editor;
 
   @Section("Basic")
-  private String name = "Mateu";
+  private String name;
 
   @Placeholder("This should appear as the placeholder")
   private String withPlaceholder;
@@ -98,6 +81,12 @@ public class MyReadOnlyPojoWithCrud
 
   @Override
   public Object retrieveEditor() throws Throwable {
-    return new MyEditor(retrieveId().toString(), name);
+    editor.setId(retrieveId().toString());
+    return editor;
+  }
+
+  @Override
+  public void init(ServerHttpRequest serverHttpRequest) {
+    name = data.getName();
   }
 }

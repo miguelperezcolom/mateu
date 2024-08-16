@@ -315,9 +315,9 @@ public class JourneyContainerService {
         journeyContainer.lastUsedSorting());
   }
 
-  public void back(JourneyContainer journeyContainer) throws Exception {
+  public JourneyContainer back(JourneyContainer journeyContainer) throws Exception {
     var previousStepId = getPreviousStepId(getCurrentStepId(journeyContainer), journeyContainer);
-    backToStep(journeyContainer, previousStepId);
+    return backToStep(journeyContainer, previousStepId);
   }
 
   public JourneyContainer setAsCurrentStep(JourneyContainer journeyContainer, String stepId)
