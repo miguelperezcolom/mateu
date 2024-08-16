@@ -163,7 +163,7 @@ public class JourneyContainerService {
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer updateStep(
@@ -189,7 +189,7 @@ public class JourneyContainerService {
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer setStep(
@@ -263,7 +263,7 @@ public class JourneyContainerService {
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 
   private String getPreviousStepId(String targetStepId, JourneyContainer journeyContainer) {
@@ -316,7 +316,7 @@ public class JourneyContainerService {
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer back(JourneyContainer journeyContainer) throws Exception {
@@ -351,7 +351,7 @@ public class JourneyContainerService {
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 
   public Step readStep(JourneyContainer journeyContainer, String stepId) throws Exception {
@@ -412,6 +412,6 @@ public class JourneyContainerService {
         step,
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
+        journeyContainer.modalMustBeClosed());
   }
 }

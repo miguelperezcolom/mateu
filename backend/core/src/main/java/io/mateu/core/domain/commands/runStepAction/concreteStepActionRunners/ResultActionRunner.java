@@ -47,7 +47,7 @@ public class ResultActionRunner implements ActionRunner {
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting(),
-                journeyContainer.modalMustBeClosed());
+            journeyContainer.modalMustBeClosed());
     return Mono.just(journeyContainer);
   }
 }

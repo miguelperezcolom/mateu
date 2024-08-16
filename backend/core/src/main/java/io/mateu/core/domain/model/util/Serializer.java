@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
@@ -23,10 +24,10 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class Serializer {
 
   private final ReflectionHelper reflectionHelper;
@@ -36,9 +37,9 @@ public class Serializer {
   private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
   public Serializer(ReflectionHelper reflectionHelper, EntitySerializer entitySerializer) {
-      this.reflectionHelper = reflectionHelper;
-      this.entitySerializer = entitySerializer;
-      mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    this.reflectionHelper = reflectionHelper;
+    this.entitySerializer = entitySerializer;
+    mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.registerModule(new JavaTimeModule());
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

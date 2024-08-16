@@ -6,5 +6,4 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public interface HasCallback<T> {
 
   void callback(GoBack<T> data, ServerHttpRequest serverHttpRequest);
-
 }

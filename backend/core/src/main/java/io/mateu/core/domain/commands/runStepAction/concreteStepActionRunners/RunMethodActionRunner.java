@@ -11,7 +11,6 @@ import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -271,7 +270,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting(),
-                journeyContainer.modalMustBeClosed());
+            journeyContainer.modalMustBeClosed());
     return journeyContainer;
   }
 
@@ -384,7 +383,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     Object whatToShow = getActualResponse(r, m);
     if (whatToShow instanceof GoBack goBack) {
       journeyContainer = store.back(journeyContainer);
-      Object whereIGoBack = store.getViewInstance(journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
+      Object whereIGoBack =
+          store.getViewInstance(
+              journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
       if (whereIGoBack instanceof HasCallback hasCallback) {
         hasCallback.callback(goBack, serverHttpRequest);
         journeyContainer = store.updateStep(journeyContainer, hasCallback, serverHttpRequest);
