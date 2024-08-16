@@ -6,6 +6,7 @@ import '@vaadin/text-area'
 import Field from "../../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../../shared/apiClients/dtos/Value";
 import Action from "../../../../../../../../../../../shared/apiClients/dtos/Action";
+import {ActionType} from "../../../../../../../../../../../shared/apiClients/dtos/ActionType";
 
 
 @customElement('field-button')
@@ -101,8 +102,7 @@ export class FieldButton extends LitElement implements Component {
             bubbles: true,
             composed: true,
             detail: {
-                actionId: this.buttonMetadata?.id,
-                metadata: this.buttonMetadata
+                action: this.buttonMetadata
             }
         }))
 
@@ -119,6 +119,8 @@ export class FieldButton extends LitElement implements Component {
             <vaadin-button
                    ?disabled=${!this.enabled}
                    @click=${this.runAction}
+                   theme="${ActionType.Primary == this.buttonMetadata?.type?'primary':'secondary'}"
+                   data-testid="action-${this.buttonMetadata?.id}"
             >${this.buttonMetadata?.caption}</vaadin-button>
             `
     }
