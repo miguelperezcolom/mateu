@@ -29,14 +29,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class Serializer {
 
-  @Autowired private ReflectionHelper reflectionHelper;
-  @Autowired private EntitySerializer entitySerializer;
+  private final ReflectionHelper reflectionHelper;
+  private final EntitySerializer entitySerializer;
 
   private ObjectMapper mapper = new ObjectMapper();
   private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-  public Serializer() {
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
+  public Serializer(ReflectionHelper reflectionHelper, EntitySerializer entitySerializer) {
+      this.reflectionHelper = reflectionHelper;
+      this.entitySerializer = entitySerializer;
+      mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.registerModule(new JavaTimeModule());
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
