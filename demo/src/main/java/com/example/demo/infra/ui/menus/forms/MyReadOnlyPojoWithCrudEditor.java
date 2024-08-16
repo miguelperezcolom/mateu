@@ -31,7 +31,7 @@ public class MyReadOnlyPojoWithCrudEditor implements HasInitMethod {
     public GoBack save() {
         System.out.println("saved");
         data.setName(name);
-        return new GoBack(ResultType.Success, "Saved");
+        return new GoBack(ResultType.Success, "Saved", this);
     }
 
     @Override

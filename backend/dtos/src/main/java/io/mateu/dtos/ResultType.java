@@ -4,5 +4,6 @@ public enum ResultType {
   Success,
   Info,
   Warning,
-  Error
+  Error,
+  Ignored
 }
