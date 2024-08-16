@@ -2,10 +2,7 @@ package com.example.demo.infra.ui.menus.actions;
 
 import com.example.demo.infra.ui.menus.forms.ChangeNameForm;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionType;
-import io.mateu.core.domain.uidefinition.shared.annotations.Attached;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +19,8 @@ public class ActionsAsButtonsForm implements HasCallback<String> {
     String name = "Mateu";
 
     @Button(target = ActionTarget.NewModal)
-            @Attached
+            @SameLine
+    @FlexGrow("0")
     Callable<ChangeNameForm> changeName = () -> new ChangeNameForm(name);
 
     @Button(type = ActionType.Secondary)

@@ -65,6 +65,9 @@ public class FieldAttributeBuilder {
             attributes.add(new Pair("prefix", v));
           });
     }
+    if (field.isAnnotationPresent(FlexGrow.class)) {
+      attributes.add(new Pair("flex-grow", field.getAnnotation(FlexGrow.class).value()));
+    }
     if (field.isAnnotationPresent(Button.class)) {
       attributes.add(new Pair("buttonMetadata", buttonMetadataBuilder.getAction(field)));
     }
