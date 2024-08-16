@@ -93,7 +93,22 @@ export class JourneyStarter extends LitElement {
         this.previousAndNextController = new PreviousAndNextController(this, this.service);
     }
 
-    renderNotification = () => html`${this.notificationMessage}`;
+    backMustBeShown() {
+        if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
+            if (this.step?.data?.__index) {
+                return false
+            }
+            // @ts-ignore
+            if (!this.step.view.main.components[0].metadata.nowTo
+                // @ts-ignore
+                || this.step?.previousStepId != this.step.view.main.components[0].metadata.nowTo.value) {
+                return true
+            }
+        }
+        return false
+    }
+
+renderNotification = () => html`${this.notificationMessage}`;
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
@@ -328,11 +343,10 @@ export class JourneyStarter extends LitElement {
                         >
                             ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
                 <vaadin-horizontal-layout theme="spacing">
-                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
-                          ${this.step?.data?.__index?html``:html`
-                              <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
-                          `}
-                      `:''}
+                      ${this.backMustBeShown()?html`
+                                  <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
+                              `:''
+                          }
                       ${this.step?.id != 'list' && this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
 
                           <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}>Previous</vaadin-button>
@@ -506,9 +520,8 @@ export class JourneyStarter extends LitElement {
   }
 }
 
-
-
   `
+
 }
 
 declare global {
