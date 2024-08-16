@@ -135,7 +135,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', '')
-                overlay?.setAttribute('style', '')
+                overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
             });
         } else if (action && ActionTarget.Left == action.target) {
             // crear modal y meter un journey-starter dentro
@@ -150,7 +150,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', 'modal-left')
-                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;')
+                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else if (action && ActionTarget.Right == action.target) {
             // crear modal y meter un journey-starter dentro
@@ -165,7 +165,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', 'modal-right')
-                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;')
+                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else {
             this.service.runAction(event.detail.actionId, event.detail.data).then()
@@ -302,7 +302,6 @@ renderNotification = () => html`${this.notificationMessage}`;
 
     renderModal() {
         return html`
-            <div style="${this.modalStyle}">
             <journey-starter
                     uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
@@ -320,8 +319,6 @@ renderNotification = () => html`${this.notificationMessage}`;
                         await this.service.goToStep(this.stepId!)
                     }}"
             >
-            </div>
-   
         `
     }
 

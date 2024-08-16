@@ -53,7 +53,7 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
     return new TextFieldsForm();
   }
 
-  @Action(order = 10, target = ActionTarget.NewModal, modalStyle = "width: 800px; height: 300px;")
+  @Action(order = 10, target = ActionTarget.NewModal)
   public ChangeNameForm changeNameInModal() throws Exception {
     return new ChangeNameForm(name);
   }
