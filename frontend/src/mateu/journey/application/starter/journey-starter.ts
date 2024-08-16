@@ -45,6 +45,8 @@ export class JourneyStarter extends LitElement {
     parentStepId: string | undefined = undefined;
     @property()
     initialStepId: string | undefined = undefined;
+    @property()
+    inModal: boolean | undefined = undefined;
 
     //reactive state
     @state()
@@ -193,7 +195,7 @@ renderNotification = () => html`${this.notificationMessage}`;
 
     // write state to reactive properties
     stampState(state: State) {
-        if (state.modalMustBeClosed) {
+        if (state.modalMustBeClosed && this.inModal) {
             console.log('closing modal')
             this.closeModalAndStay()
         } else {
@@ -313,10 +315,16 @@ renderNotification = () => html`${this.notificationMessage}`;
                     .actionData=${this.modalActionData}
                     parentStepId="${this.stepId}"
                     initialStepId="${this.stepId}"
+                    inModal="true"
                     @close-modal="${async (event: any) => {
-                        console.log('close-modal', event)
-                        this.modalOpened = false
-                        await this.service.goToStep(this.stepId!)
+                        console.log('close-modal', event, this.modalOpened)
+                        if (this.modalOpened) {
+                            console.log('closing modal')
+                            this.modalOpened = false
+                            await this.service.goToStep(this.stepId!)
+                        } else {
+                            console.log('NOT closing modal')
+                        }
                     }}"
             >
         `
