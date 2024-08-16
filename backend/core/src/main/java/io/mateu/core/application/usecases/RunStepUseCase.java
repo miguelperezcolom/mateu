@@ -48,7 +48,7 @@ public class RunStepUseCase {
                 journeyContainer,
                 serverHttpRequest))
         .map(
-            c -> new StepWrapper(c.journey(), c.steps().get(c.journey().currentStepId()), toMap(c)))
+            c -> new StepWrapper(c.journey(), c.steps().get(c.journey().currentStepId()), toMap(c), c.modalMustBeClosed()))
         .subscribeOn(Schedulers.boundedElastic());
   }
 

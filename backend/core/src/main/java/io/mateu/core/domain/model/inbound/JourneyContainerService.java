@@ -162,7 +162,8 @@ public class JourneyContainerService {
         steps.keySet().stream().toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer updateStep(
@@ -187,7 +188,8 @@ public class JourneyContainerService {
         journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer setStep(
@@ -260,7 +262,8 @@ public class JourneyContainerService {
             .toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   private String getPreviousStepId(String targetStepId, JourneyContainer journeyContainer) {
@@ -312,7 +315,8 @@ public class JourneyContainerService {
         journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   public JourneyContainer back(JourneyContainer journeyContainer) throws Exception {
@@ -346,7 +350,8 @@ public class JourneyContainerService {
         journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   public Step readStep(JourneyContainer journeyContainer, String stepId) throws Exception {
@@ -406,6 +411,7 @@ public class JourneyContainerService {
         List.of(step.id()),
         step,
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 }

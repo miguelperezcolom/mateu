@@ -57,6 +57,8 @@ export class Service {
                     }
                 }
 
+                this.state.modalMustBeClosed = value.modalMustBeClosed
+                value.store.modalMustBeClosed = false
                 sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
                 this.state.journey = value.journey
                 this.state.stepId = this.state.journey.currentStepId

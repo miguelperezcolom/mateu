@@ -193,18 +193,23 @@ renderNotification = () => html`${this.notificationMessage}`;
 
     // write state to reactive properties
     stampState(state: State) {
-        this.error = state.error
-        this.journeyId = state.journeyId
-        this.journey = state.journey
-        this.step = state.step
-        this.stepId = state.stepId
-        this.previousStepId = state.previousStepId
-        this.completed = state.completed
-        this.version = state.version
-        this.notificationOpened = state.notificationOpened
-        this.notificationMessage = state.notificationMessage
-        this.uiId = state.uiId
-        this.journeyTypeId = state.journeyTypeId
+        if (state.modalMustBeClosed) {
+            console.log('closing modal')
+            this.closeModalAndStay()
+        } else {
+            this.error = state.error
+            this.journeyId = state.journeyId
+            this.journey = state.journey
+            this.step = state.step
+            this.stepId = state.stepId
+            this.previousStepId = state.previousStepId
+            this.completed = state.completed
+            this.version = state.version
+            this.notificationOpened = state.notificationOpened
+            this.notificationMessage = state.notificationMessage
+            this.uiId = state.uiId
+            this.journeyTypeId = state.journeyTypeId
+        }
     }
 
     async updated(changedProperties: Map<string, unknown>) {
@@ -248,6 +253,14 @@ renderNotification = () => html`${this.notificationMessage}`;
     async closeModal() {
         this.modalOpened = false
         await this.service.goToStep(this.stepId!)
+    }
+
+    closeModalAndStay() {
+        this.dispatchEvent(new CustomEvent('close-modal', {
+            bubbles: true,
+            composed: true,
+            detail: {
+            }}))
     }
 
 
@@ -301,6 +314,11 @@ renderNotification = () => html`${this.notificationMessage}`;
                     .actionData=${this.modalActionData}
                     parentStepId="${this.stepId}"
                     initialStepId="${this.stepId}"
+                    @close-modal="${async (event: any) => {
+                        console.log('close-modal', event)
+                        this.modalOpened = false
+                        await this.service.goToStep(this.stepId!)
+                    }}"
             >
             </div>
    
@@ -376,12 +394,13 @@ renderNotification = () => html`${this.notificationMessage}`;
 
 
             <vaadin-dialog
-                    header-title="User details"
+                    header-title=" "
                     .opened="${this.modalOpened}"
                     class="${this.modalClass}"
                     resizable
                     draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
+                        console.log('opened-changed', event)
                         if (!event.detail.value && this.modalOpened && this.stepId) {
                             this.closeModal()
                         }

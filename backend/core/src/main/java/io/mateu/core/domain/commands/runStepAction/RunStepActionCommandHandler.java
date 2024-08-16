@@ -64,7 +64,8 @@ public class RunStepActionCommandHandler {
                   .toList(),
               journeyContainer.initialStep(),
               journeyContainer.lastUsedFilters(),
-              journeyContainer.lastUsedSorting());
+              journeyContainer.lastUsedSorting(),
+                  true);
       journeyContainer = resetMessages(journeyContainer);
 
       return Mono.just(journeyContainer);
@@ -120,7 +121,8 @@ public class RunStepActionCommandHandler {
                 .toList(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting());
+            journeyContainer.lastUsedSorting(),
+                journeyContainer.modalMustBeClosed());
     viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
     // todo: look for the target object
@@ -211,7 +213,8 @@ public class RunStepActionCommandHandler {
                             .toList(),
                         jc.initialStep(),
                         jc.lastUsedFilters(),
-                        jc.lastUsedSorting());
+                        jc.lastUsedSorting(),
+                            jc.modalMustBeClosed());
                   }
                   return jc;
                 });
@@ -256,7 +259,8 @@ public class RunStepActionCommandHandler {
         journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
         journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting());
+        journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
   }
 
   private Map<String, Object> nestPartialFormData(Map<String, Object> data) {

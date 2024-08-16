@@ -270,7 +270,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting());
+            journeyContainer.lastUsedSorting(),
+                journeyContainer.modalMustBeClosed());
     return journeyContainer;
   }
 
@@ -312,7 +313,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           journeyContainer.stepHistory(),
           journeyContainer.initialStep(),
           journeyContainer.lastUsedFilters(),
-          journeyContainer.lastUsedSorting());
+          journeyContainer.lastUsedSorting(),
+          journeyContainer.modalMustBeClosed() || response instanceof GoBack);
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
