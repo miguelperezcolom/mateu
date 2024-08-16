@@ -6,24 +6,14 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.ActionTarget;
 import io.mateu.dtos.ActionType;
 import io.mateu.dtos.ConfirmationTexts;
-import jakarta.persistence.Entity;
+import java.net.URL;
+import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -62,15 +52,13 @@ public class ButtonMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(
-          Field m) {
+  private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(Field m) {
     var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
     if (m.isAnnotationPresent(Button.class)) {
-      target =
-          m.getAnnotation(Button.class)
-              .target();
+      target = m.getAnnotation(Button.class).target();
     }
-    if (Callable.class.isAssignableFrom(m.getType()) && URL.class.equals(reflectionHelper.getGenericClass(m, Callable.class, "V"))) {
+    if (Callable.class.isAssignableFrom(m.getType())
+        && URL.class.equals(reflectionHelper.getGenericClass(m, Callable.class, "V"))) {
       if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewTab.equals(target)) {
         target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewTab;
       } else if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewWindow.equals(
@@ -125,43 +113,36 @@ public class ButtonMetadataBuilder {
 
   private boolean getConfirmationRequired(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return !Strings.isNullOrEmpty(
-          m.getAnnotation(Button.class)
-              .confirmationMessage());
+      return !Strings.isNullOrEmpty(m.getAnnotation(Button.class).confirmationMessage());
     }
     return false;
   }
 
   private boolean getRowsSelectedRequired(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class)
-          .rowsSelectedRequired();
+      return m.getAnnotation(Button.class).rowsSelectedRequired();
     }
     return true;
   }
 
   private boolean getValidationRequired(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class)
-          .validateBefore();
+      return m.getAnnotation(Button.class).validateBefore();
     }
     return true;
   }
 
   private String getCustomEvent(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class)
-          .customEvent();
+      return m.getAnnotation(Button.class).customEvent();
     }
     return "";
   }
 
   private String getHref(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class)
-          .href();
+      return m.getAnnotation(Button.class).href();
     }
     return "";
   }
-
 }

@@ -5,7 +5,6 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -25,11 +24,6 @@ import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.ResultType;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.View;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -41,6 +35,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -146,8 +144,7 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    if (m.getField() != null
-            && !Modifier.isPublic(m.getField().getModifiers()))
+    if (m.getField() != null && !Modifier.isPublic(m.getField().getModifiers()))
       m.getField().setAccessible(true);
 
     journeyContainer = resetMessages(journeyContainer);
@@ -415,7 +412,7 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
     return !void.class.equals(returnType)
         && !Message.class.equals(returnType)
         && (!(m.isAnnotationPresent(Button.class)
-                && ActionTarget.Message.equals(m.getAnnotation(Button.class).target())))
+            && ActionTarget.Message.equals(m.getAnnotation(Button.class).target())))
         && (!List.class.isAssignableFrom(returnType)
             || !Message.class.equals(reflectionHelper.getGenericClass(returnType)));
   }
