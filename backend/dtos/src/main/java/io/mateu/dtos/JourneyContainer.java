@@ -15,7 +15,8 @@ public record JourneyContainer(
     List<String> stepHistory,
     Step initialStep,
     Map<String, Object> lastUsedFilters,
-    Map<String, List<SortCriteria>> lastUsedSorting) {
+    Map<String, List<SortCriteria>> lastUsedSorting,
+    boolean modalMustBeClosed) {
 
   public JourneyContainer {
     journeyData = journeyData != null ? Collections.unmodifiableMap(journeyData) : Map.of();

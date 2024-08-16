@@ -93,7 +93,8 @@ public class StartJourneyCommandHandler {
             List.of(),
             null,
             Map.of(),
-            Map.of());
+            Map.of(),
+            false);
 
     Step step =
         stepMapper.map(
@@ -114,9 +115,12 @@ public class StartJourneyCommandHandler {
             List.of(step.id()),
             step,
             journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting());
+            journeyContainer.lastUsedSorting(),
+            false);
 
-    return Mono.just(new StepWrapper(journey, step, toMap(journeyContainer)));
+    return Mono.just(
+        new StepWrapper(
+            journey, step, toMap(journeyContainer), journeyContainer.modalMustBeClosed()));
   }
 
   private String getStepId(Object formInstance) {

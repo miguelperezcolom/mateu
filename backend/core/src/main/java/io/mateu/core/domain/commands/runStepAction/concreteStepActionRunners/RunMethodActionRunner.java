@@ -10,7 +10,7 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -269,7 +269,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting());
+            journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
     return journeyContainer;
   }
 
@@ -311,7 +312,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           journeyContainer.stepHistory(),
           journeyContainer.initialStep(),
           journeyContainer.lastUsedFilters(),
-          journeyContainer.lastUsedSorting());
+          journeyContainer.lastUsedSorting(),
+          journeyContainer.modalMustBeClosed() || response instanceof GoBack);
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
@@ -348,8 +350,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return List.of(
           new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
     }
-    if (response instanceof GoBack) {
-      var goBack = (GoBack) response;
+    if (response instanceof GoBack goBack) {
+      if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
+        return List.of();
+      }
       return List.of(
           new Message(
               UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
@@ -377,12 +381,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       JourneyContainer journeyContainer, Method m, Object r, ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Object whatToShow = getActualResponse(r, m);
-    if (whatToShow instanceof GoBack) {
+    if (whatToShow instanceof GoBack goBack) {
       journeyContainer = store.back(journeyContainer);
-      Object whereIGoBack = store.getViewInstance(journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
-      if (whereIGoBack instanceof HasInitMethod hasInitMethod) {
-        hasInitMethod.init(serverHttpRequest);
-        journeyContainer = store.updateStep(journeyContainer, hasInitMethod, serverHttpRequest);
+      Object whereIGoBack =
+          store.getViewInstance(
+              journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
+      if (whereIGoBack instanceof HasCallback hasCallback) {
+        hasCallback.callback(goBack, serverHttpRequest);
+        journeyContainer = store.updateStep(journeyContainer, hasCallback, serverHttpRequest);
       }
     } else if (needsToBeShown(m, r)) {
       if (whatToShow instanceof Result) {

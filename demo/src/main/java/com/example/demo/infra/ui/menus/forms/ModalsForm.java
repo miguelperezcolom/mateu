@@ -1,14 +1,11 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.Message;
-import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.Badge;
-import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.dtos.ResultType;
@@ -17,6 +14,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +24,7 @@ import java.util.UUID;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
+public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, HasCallback<String> {
 
   @Tab("Tab 1")
   @Section("Basic")
@@ -54,6 +52,12 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
   public TextFieldsForm openModal2() throws Exception {
     return new TextFieldsForm();
   }
+
+  @Action(order = 10, target = ActionTarget.NewModal)
+  public ChangeNameForm changeNameInModal() throws Exception {
+    return new ChangeNameForm(name);
+  }
+
 
   @Action(order = 20, target = ActionTarget.Left)
   public WizardPage1 openOnLeft() throws Exception {
@@ -113,5 +117,10 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
   @Override
   public String getTitle() {
     return "This is the title";
+  }
+
+  @Override
+  public void callback(GoBack<String> data, ServerHttpRequest serverHttpRequest) {
+    name = data.getData();
   }
 }
