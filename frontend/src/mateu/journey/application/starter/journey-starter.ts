@@ -17,6 +17,7 @@ import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Service} from "../../domain/service";
 import {nanoid} from "nanoid";
+import Form from "../../../shared/apiClients/dtos/Form";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -96,6 +97,9 @@ export class JourneyStarter extends LitElement {
     backMustBeShown() {
         if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
             if (this.step?.data?.__index) {
+                return false
+            }
+            if ((this.step.view.main.components[0].metadata as Form).mainActions.find(a => a.id.endsWith('___cancel'))) {
                 return false
             }
             // @ts-ignore
