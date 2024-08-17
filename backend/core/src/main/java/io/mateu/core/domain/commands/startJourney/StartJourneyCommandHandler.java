@@ -9,6 +9,7 @@ import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Journey;
@@ -70,8 +71,13 @@ public class StartJourneyCommandHandler {
         throw new Exception();
       }
 
-      if (formInstance instanceof HasInitMethod) {
-        ((HasInitMethod) formInstance).init(serverHttpRequest);
+      if (formInstance instanceof HasInitMethod hasInitMethod) {
+        hasInitMethod.init(serverHttpRequest);
+      }
+
+      if (formInstance instanceof ConsumesContextData consumesContextData) {
+        consumesContextData.consume(
+            command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
       journey = new JourneyMapper().map(formInstance);

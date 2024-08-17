@@ -4,6 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
+import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.*;
@@ -27,6 +29,8 @@ public class FieldStereotypeMapper {
 
   final FileChecker fileChecker;
   final ReflectionHelper reflectionHelper;
+  final SetterProvider setterProvider;
+  final MethodProvider methodProvider;
 
   public String mapStereotype(Object view, Field field) {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
@@ -34,6 +38,11 @@ public class FieldStereotypeMapper {
     }
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";
+    }
+    if (methodProvider.getMethod(
+            view.getClass(), setterProvider.getSetter(view.getClass(), field.getName()))
+        == null) {
+      return "readonly";
     }
     if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
       return "readonly";
