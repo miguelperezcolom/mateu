@@ -16,6 +16,7 @@ export default class MateuApiClient {
 
     baseUrl: string = ''
     element: HTMLElement = document.body;
+    contextData: unknown = {}
 
     constructor() {
         this.axiosInstance.interceptors.request.use(config => {
@@ -163,7 +164,7 @@ export default class MateuApiClient {
         return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId  + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                    "context-data": {}
+                    "context-data": this.contextData
                 }
             ))
     }
@@ -188,7 +189,7 @@ export default class MateuApiClient {
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                "context-data": {}
+                "context-data": this.contextData
             }
         ).then((response) => response.data))
     }

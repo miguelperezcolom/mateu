@@ -9,6 +9,7 @@ import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
+import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Journey;
@@ -16,8 +17,12 @@ import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
+
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -70,8 +75,12 @@ public class StartJourneyCommandHandler {
         throw new Exception();
       }
 
-      if (formInstance instanceof HasInitMethod) {
-        ((HasInitMethod) formInstance).init(serverHttpRequest);
+      if (formInstance instanceof HasInitMethod hasInitMethod) {
+        hasInitMethod.init(serverHttpRequest);
+      }
+
+      if (formInstance instanceof ConsumesContextData consumesContextData) {
+        consumesContextData.consume(command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
       journey = new JourneyMapper().map(formInstance);

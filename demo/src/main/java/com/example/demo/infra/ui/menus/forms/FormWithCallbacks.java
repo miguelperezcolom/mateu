@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Getter
-@Setter
-@Scope("stereotype")
+@Scope("prototype")
 public class FormWithCallbacks implements HasCallback<Object> {
 
     String name = "Mateu";

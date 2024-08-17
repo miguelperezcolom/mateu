@@ -47,6 +47,8 @@ export class JourneyStarter extends LitElement {
     initialStepId: string | undefined = undefined;
     @property()
     inModal: boolean | undefined = undefined;
+    @property()
+    contextData: string | undefined = undefined;
 
     //reactive state
     @state()
@@ -222,6 +224,11 @@ renderNotification = () => html`${this.notificationMessage}`;
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
                         mateuApiClient.baseUrl = this.baseUrl
+                        try {
+                            mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
+                        } catch (e) {
+                            console.log('error when parsing context data', e)
+                        }
                         mateuApiClient.element = this
                         if (this.actionId) {
                             this.service.state.uiId = this.uiId

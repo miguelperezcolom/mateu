@@ -2,14 +2,20 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.*;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
+import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasAppTitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasLogin;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Private;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+
+import java.util.Map;
 
 @Getter
+@Slf4j
 public class DemoApp implements HasLogin, HasAppTitle
 // , IncludesRemoteUIs
 {
@@ -51,4 +57,5 @@ public class DemoApp implements HasLogin, HasAppTitle
   public String getAppTitle() {
     return "Demo";
   }
+
 }
