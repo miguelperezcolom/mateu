@@ -17,12 +17,8 @@ import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
-
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -80,7 +76,8 @@ public class StartJourneyCommandHandler {
       }
 
       if (formInstance instanceof ConsumesContextData consumesContextData) {
-        consumesContextData.consume(command.getJourneyCreationRq().contextData(), serverHttpRequest);
+        consumesContextData.consume(
+            command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
       journey = new JourneyMapper().map(formInstance);
