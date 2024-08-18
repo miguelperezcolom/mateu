@@ -412,7 +412,6 @@ renderNotification = () => html`${this.notificationMessage}`;
                     resizable
                     draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
-                        console.log('opened-changed', event)
                         if (!event.detail.value && this.modalOpened && this.stepId) {
                             this.closeModal()
                         }
