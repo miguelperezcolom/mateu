@@ -300,7 +300,6 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   async captureRunActionEvent(event: CustomEvent) {
-    console.log('run action event captured', event)
     await this.doRunAction(event.detail.action)
   }
 
@@ -350,8 +349,8 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private findAction(actionId: string) {
-    let action = this.metadata.actions.find(a => a.id == actionId);
-    if (!action) action = this.metadata.mainActions.find(a => a.id == actionId);
+    let action = this.metadata.actions.find(a => a.id.endsWith('___' + actionId));
+    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('___' + actionId));
     return action
   }
 
