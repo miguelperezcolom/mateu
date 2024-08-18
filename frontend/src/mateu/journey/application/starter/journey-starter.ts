@@ -103,7 +103,7 @@ export class JourneyStarter extends LitElement {
             if (this.step?.data?.__index) {
                 return false
             }
-            if ((this.step.view.main.components[0].metadata as Form).mainActions.find(a => a.id.endsWith('___cancel'))) {
+            if ((this.step.view.main.components[0].metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
                 return false
             }
             // @ts-ignore
