@@ -17,6 +17,7 @@ import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Service} from "../../domain/service";
 import {nanoid} from "nanoid";
+import Form from "../../../shared/apiClients/dtos/Form";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -44,6 +45,10 @@ export class JourneyStarter extends LitElement {
     parentStepId: string | undefined = undefined;
     @property()
     initialStepId: string | undefined = undefined;
+    @property()
+    inModal: boolean | undefined = undefined;
+    @property()
+    contextData: string | undefined = undefined;
 
     //reactive state
     @state()
@@ -93,7 +98,25 @@ export class JourneyStarter extends LitElement {
         this.previousAndNextController = new PreviousAndNextController(this, this.service);
     }
 
-    renderNotification = () => html`${this.notificationMessage}`;
+    backMustBeShown() {
+        if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
+            if ((this.step.view.main.components[0].metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
+                return false
+            }
+            if (this.step?.data?.__index) {
+                return true
+            }
+            // @ts-ignore
+            if (!this.step.view.main.components[0].metadata.nowTo
+                // @ts-ignore
+                || this.step?.previousStepId != this.step.view.main.components[0].metadata.nowTo.value) {
+                return true
+            }
+        }
+        return false
+    }
+
+renderNotification = () => html`${this.notificationMessage}`;
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
@@ -116,7 +139,7 @@ export class JourneyStarter extends LitElement {
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', '')
-                overlay?.setAttribute('style', '')
+                overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
             });
         } else if (action && ActionTarget.Left == action.target) {
             // crear modal y meter un journey-starter dentro
@@ -131,7 +154,7 @@ export class JourneyStarter extends LitElement {
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', 'modal-left')
-                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;')
+                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else if (action && ActionTarget.Right == action.target) {
             // crear modal y meter un journey-starter dentro
@@ -146,7 +169,7 @@ export class JourneyStarter extends LitElement {
                 const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
                 console.log(overlay)
                 overlay?.setAttribute('class', 'modal-right')
-                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;')
+                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else {
             this.service.runAction(event.detail.actionId, event.detail.data).then()
@@ -174,18 +197,23 @@ export class JourneyStarter extends LitElement {
 
     // write state to reactive properties
     stampState(state: State) {
-        this.error = state.error
-        this.journeyId = state.journeyId
-        this.journey = state.journey
-        this.step = state.step
-        this.stepId = state.stepId
-        this.previousStepId = state.previousStepId
-        this.completed = state.completed
-        this.version = state.version
-        this.notificationOpened = state.notificationOpened
-        this.notificationMessage = state.notificationMessage
-        this.uiId = state.uiId
-        this.journeyTypeId = state.journeyTypeId
+        if (state.modalMustBeClosed && this.inModal) {
+            console.log('closing modal')
+            this.closeModalAndStay()
+        } else {
+            this.error = state.error
+            this.journeyId = state.journeyId
+            this.journey = state.journey
+            this.step = state.step
+            this.stepId = state.stepId
+            this.previousStepId = state.previousStepId
+            this.completed = state.completed
+            this.version = state.version
+            this.notificationOpened = state.notificationOpened
+            this.notificationMessage = state.notificationMessage
+            this.uiId = state.uiId
+            this.journeyTypeId = state.journeyTypeId
+        }
     }
 
     async updated(changedProperties: Map<string, unknown>) {
@@ -196,6 +224,11 @@ export class JourneyStarter extends LitElement {
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
                         mateuApiClient.baseUrl = this.baseUrl
+                        try {
+                            mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
+                        } catch (e) {
+                            console.log('error when parsing context data', e)
+                        }
                         mateuApiClient.element = this
                         if (this.actionId) {
                             this.service.state.uiId = this.uiId
@@ -231,6 +264,14 @@ export class JourneyStarter extends LitElement {
         await this.service.goToStep(this.stepId!)
     }
 
+    closeModalAndStay() {
+        this.dispatchEvent(new CustomEvent('close-modal', {
+            bubbles: true,
+            composed: true,
+            detail: {
+            }}))
+    }
+
 
     async _goBack() {
         this.dispatchEvent(new CustomEvent('back-requested', {
@@ -246,7 +287,7 @@ export class JourneyStarter extends LitElement {
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! + 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
@@ -261,7 +302,7 @@ export class JourneyStarter extends LitElement {
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! - 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
@@ -270,7 +311,6 @@ export class JourneyStarter extends LitElement {
 
     renderModal() {
         return html`
-            <div style="${this.modalStyle}">
             <journey-starter
                     uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
@@ -282,9 +322,18 @@ export class JourneyStarter extends LitElement {
                     .actionData=${this.modalActionData}
                     parentStepId="${this.stepId}"
                     initialStepId="${this.stepId}"
+                    inModal="true"
+                    @close-modal="${async (event: any) => {
+                        console.log('close-modal', event, this.modalOpened)
+                        if (this.modalOpened) {
+                            console.log('closing modal')
+                            this.modalOpened = false
+                            await this.service.goToStep(this.stepId!)
+                        } else {
+                            console.log('NOT closing modal')
+                        }
+                    }}"
             >
-            </div>
-   
         `
     }
 
@@ -328,11 +377,10 @@ export class JourneyStarter extends LitElement {
                         >
                             ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
                 <vaadin-horizontal-layout theme="spacing">
-                      ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
-                          ${this.step?.data?.__index?html``:html`
-                              <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
-                          `}
-                      `:''}
+                      ${this.backMustBeShown()?html`
+                                  <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
+                              `:''
+                          }
                       ${this.step?.id != 'list' && this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
 
                           <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}>Previous</vaadin-button>
@@ -358,7 +406,7 @@ export class JourneyStarter extends LitElement {
 
 
             <vaadin-dialog
-                    header-title="User details"
+                    header-title=" "
                     .opened="${this.modalOpened}"
                     class="${this.modalClass}"
                     resizable
@@ -506,9 +554,8 @@ export class JourneyStarter extends LitElement {
   }
 }
 
-
-
   `
+
 }
 
 declare global {

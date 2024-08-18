@@ -2,9 +2,10 @@ import FieldGroupLine from "./FieldGroupLine";
 
 export default interface FieldGroup {
 
-    id: string;
+    id: string
 
-    caption: string;
+    caption: string
 
-    lines: FieldGroupLine[];
+    lines: FieldGroupLine[]
+
 }

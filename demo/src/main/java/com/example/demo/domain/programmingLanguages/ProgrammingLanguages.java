@@ -113,6 +113,11 @@ public class ProgrammingLanguages
     System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
   }
 
+  @Action()
+  public void resetList() {
+    repo.reset();
+  }
+
   public void unblockRow(LanguageRow row) {
     System.out.println("unblocking " + row);
   }

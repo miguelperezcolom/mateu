@@ -15,10 +15,14 @@ test('modals show up', async ({ page }) => {
 
   await page.getByLabel('Other save options').locator('svg').hover()
   await page.getByRole('option', { name: 'Open modal 2', exact: true }).locator('div').click()
-  await expect(page.getByText('User details')).toBeVisible()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('button').first().click()
 
   await page.getByLabel('Other save options').locator('svg').hover()
   await page.getByRole('option', { name: 'Open modal 2', exact: true }).locator('div').click()
-  await expect(page.getByText('User details')).toBeVisible()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').locator('#backdrop').first().click({position: {x: 10, y: 10}})
+  await expect(page.getByRole('dialog')).toBeVisible({visible: false})
+
 
 });

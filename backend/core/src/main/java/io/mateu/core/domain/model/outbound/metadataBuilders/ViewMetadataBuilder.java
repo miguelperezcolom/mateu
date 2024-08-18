@@ -60,7 +60,7 @@ public class ViewMetadataBuilder {
       metadata =
           getCrud(stepId, ((RpcViewWrapper) model).getId(), ((RpcViewWrapper) model).getRpcView());
     } else if (model instanceof Stepper) {
-      metadata = getStepper(stepId, model, slotFields);
+      metadata = getStepper(dataPrefix, stepId, model, slotFields);
     } else if (model instanceof Card) {
       metadata = getCard(dataPrefix, stepId, model, slotFields);
     } else if (model instanceof JpaCrud) {
@@ -108,8 +108,8 @@ public class ViewMetadataBuilder {
   }
 
   private io.mateu.dtos.Stepper getStepper(
-      String stepId, Object uiInstance, List<Field> slotFields) {
-    return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
+      String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
+    return stepperMetadataBuilder.build(dataPrefix, stepId, uiInstance, slotFields);
   }
 
   private io.mateu.dtos.Card getCard(

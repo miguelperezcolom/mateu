@@ -13,7 +13,8 @@ public record Result(
     implements ViewMetadata {
 
   public Result {
-    interestingLinks = Collections.unmodifiableList(interestingLinks);
+    interestingLinks =
+        interestingLinks != null ? Collections.unmodifiableList(interestingLinks) : List.of();
   }
 
   @Override

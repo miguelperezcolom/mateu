@@ -140,7 +140,7 @@ export class MateuForm extends LitElement implements FormElement {
         }
         if ("RunAction" == r.action) {
           const actionId = r.data as string;
-          this.doRunAction(actionId)
+          this.doRunActionId(actionId)
         }
         if ("HideAction" == r.action) {
           const actionIds = r.data as string[];
@@ -273,7 +273,7 @@ export class MateuForm extends LitElement implements FormElement {
   editFieldListener = async (event: Event) => {
     const customEvent = event as CustomEvent
     const fieldId = customEvent.detail.fieldId;
-    await this.doRunAction('__editfield__' + fieldId)
+    await this.doRunActionId('__editfield__' + fieldId)
   }
 
   connectedCallback() {
@@ -295,12 +295,32 @@ export class MateuForm extends LitElement implements FormElement {
       return
     }
     setTimeout(async () => {
-      await this.doRunAction(actionId);
+      await this.doRunActionId(actionId);
     })
   }
 
-  async doRunAction(actionId: string) {
+  async captureRunActionEvent(event: CustomEvent) {
+    await this.doRunAction(event.detail.action)
+  }
+
+  async doRunActionId(actionId: string) {
     const action = this.findAction(actionId!)
+    if (action) {
+      await this.doRunAction(action)
+    } else {
+      this.dispatchEvent(new CustomEvent('runaction', {
+        detail: {
+          actionId: actionId,
+          action: undefined,
+          data: {...this.data, __activeTabId: this.activeTab}
+        },
+        bubbles: true,
+        composed: true
+      }))
+    }
+}
+
+    async doRunAction(action: Action | undefined) {
     if (action?.validationRequired) {
       const fields = this.metadata.sections
           .flatMap(s => s.fieldGroups
@@ -319,20 +339,20 @@ export class MateuForm extends LitElement implements FormElement {
     }
     if (action?.confirmationRequired) {
       this.confirmationAction = async () => {
-        this.askForActionRun(actionId)
+        this.askForActionRun(action)
       }
       this.confirmationTexts = action.confirmationTexts
       this.confirmationOpened = true;
     } else {
-      this.askForActionRun(actionId)
+      this.askForActionRun(action!)
     }
   }
 
-  private askForActionRun(actionId: string) {
+  private askForActionRun(action: Action) {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
-        actionId: actionId,
-        action: this.findAction(actionId!),
+        actionId: action.id,
+        action: action,
         data: {...this.data, __activeTabId: this.activeTab}
       },
       bubbles: true,
@@ -341,8 +361,10 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private findAction(actionId: string) {
-    let action = this.metadata.actions.find(a => a.id == actionId);
-    if (!action) action = this.metadata.mainActions.find(a => a.id == actionId);
+    console.log('search for action', actionId, this.metadata.actions, this.metadata.mainActions)
+    let action = this.metadata.actions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
+    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
+    console.log('found', action)
     return action
   }
 
@@ -366,7 +388,7 @@ export class MateuForm extends LitElement implements FormElement {
   actionItemSelected(event: MenuBarItemSelectedEvent) {
     setTimeout(async () => {
       // @ts-ignore
-      await this.doRunAction(event.detail.value.action.id);
+      await this.doRunActionId(event.detail.value.action.id);
     })
   }
 
@@ -432,6 +454,7 @@ export class MateuForm extends LitElement implements FormElement {
             .map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
                                                               baseUrl="${this.baseUrl}"
                                                               .formElement=${this}
+                                          @run-action="${this.captureRunActionEvent}"
                                           style="display: ${!this.activeTab || this.activeTab == s.tabId?'unset':'none'};"
             ></mateu-section>`)}
 

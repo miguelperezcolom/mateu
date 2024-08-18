@@ -1,6 +1,5 @@
 import UI from "./dtos/UI";
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios";
-import JourneyType from "./dtos/JourneyType";
 import Journey from "./dtos/Journey";
 import Step from "./dtos/Step";
 import {nanoid} from "nanoid";
@@ -17,6 +16,7 @@ export default class MateuApiClient {
 
     baseUrl: string = ''
     element: HTMLElement = document.body;
+    contextData: unknown = {}
 
     constructor() {
         this.axiosInstance.interceptors.request.use(config => {
@@ -160,16 +160,11 @@ export default class MateuApiClient {
             .then((response) => response.data))
     }
 
-    async fetchJourneyTypes(): Promise<JourneyType[]> {
-        return await this.wrap<JourneyType[]>(this.get(this.baseUrl + '/journey-types')
-            .then((response) => response.data))
-    }
-
     async createJourney(uiId: string, journeyType: string, journeyId: string): Promise<void> {
         return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId  + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                    "context-data": {}
+                    "context-data": this.contextData
                 }
             ))
     }
@@ -190,35 +185,23 @@ export default class MateuApiClient {
                 }))
     }
 
-    async runStepAction(uiId: string, journeyType: string, journeyId: string, stepId: string, actionId: string,
-                        data: unknown): Promise<void> {
-        return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId + '/journeys/' +
-            journeyType + '/' + journeyId + '/steps/' + stepId
-                + '/' + actionId, {
-                    data: data,
-                    journey: JSON.parse(sessionStorage.getItem(journeyId)!)
-                }
-            ).catch((error) => {
-                console.log('error en post', error)
-            throw  error
-        }))
-    }
-
     async createJourneyAndReturn(uiId: string, journeyType: string, journeyId: string): Promise<StepWrapper> {
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                "context-data": {}
+                "context-data": this.contextData
             }
         ).then((response) => response.data))
     }
     async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, actionId: string,
                         data: unknown): Promise<StepWrapper> {
+        const journey = JSON.parse(sessionStorage.getItem(journeyId)!)
+        journey.modalMustBeClosed = false
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + actionId, {
                 data: data,
-                journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+                journey: journey
             }
         ).then((response) => response.data).catch((error) => {
             console.log('error en post', error)

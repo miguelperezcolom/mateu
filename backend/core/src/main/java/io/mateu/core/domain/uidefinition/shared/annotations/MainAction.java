@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD}) // can use in method only.
+@Target({ElementType.METHOD})
 public @interface MainAction {
 
   String value() default "";

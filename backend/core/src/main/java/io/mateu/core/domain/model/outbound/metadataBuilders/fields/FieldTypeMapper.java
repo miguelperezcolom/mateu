@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.uidefinition.shared.annotations.Button;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Width;
@@ -20,6 +21,9 @@ public class FieldTypeMapper {
 
   public String mapFieldType(Field field) {
     Class<?> type = field.getType();
+    if (field.isAnnotationPresent(Button.class)) {
+      return "button";
+    }
     if (type.isEnum()) {
       return "enum";
     }

@@ -1,6 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
@@ -10,11 +13,10 @@ import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
 import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
-import io.mateu.dtos.ResultType;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,30 +24,14 @@ import java.util.List;
 @Data
 @Caption("Read only pojo with crud")
 @Component
+@Scope("prototype")
 public class MyReadOnlyPojoWithCrud
-    implements ReadOnlyPojo, HasBadges, HasStatus {
+    implements ReadOnlyPojo, HasBadges, HasStatus, HasCallback<MyReadOnlyPojoWithCrudEditor> {
 
-  @Getter@Setter
-  public class MyEditor {
-
-    String id;
-    String name;
-
-    public MyEditor(String id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-    public MyEditor() {
-    }
-
-    @Action(value = "Save")
-    public GoBack save() {
-      System.out.println("saved");
-      return new GoBack(ResultType.Success, "Saved");
-    }
-
-  }
+  @JsonIgnore
+  private final MyReadOnlyPojoData data;
+  @JsonIgnore
+  private final MyReadOnlyPojoWithCrudEditor editor;
 
   @Section("Basic")
   private String name = "Mateu";
@@ -98,6 +84,12 @@ public class MyReadOnlyPojoWithCrud
 
   @Override
   public Object retrieveEditor() throws Throwable {
-    return new MyEditor(retrieveId().toString(), name);
+    editor.setId(retrieveId().toString());
+    return editor;
+  }
+
+  @Override
+  public void callback(GoBack<MyReadOnlyPojoWithCrudEditor> data, ServerHttpRequest serverHttpRequest) {
+    name = data.getData().getName();
   }
 }

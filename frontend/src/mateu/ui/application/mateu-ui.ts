@@ -33,7 +33,8 @@ export class MateuUi extends LitElement {
     baseUrl = ''
     @property()
     uiId = '';
-
+    @property()
+    contextData: string | undefined = undefined;
 
     // state
     @state()
@@ -87,6 +88,12 @@ export class MateuUi extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+
+        try {
+            mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
+        } catch (e) {
+            console.log('error when parsing context data', e)
+        }
 
         if (_changedProperties.has('baseUrl') || _changedProperties.has('uiId')) {
 
@@ -182,13 +189,13 @@ export class MateuUi extends LitElement {
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
 
-                    <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}"></journey-starter>
+                    <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
                     
                 `:''}
 
                     ${this.journeyTypeId?html`
 
-                    <journey-starter uiId="${this.uiId}" journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}"></journey-starter>
+                    <journey-starter uiId="${this.uiId}" journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
                     
                 `:''}
 
