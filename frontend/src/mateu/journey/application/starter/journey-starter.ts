@@ -100,11 +100,11 @@ export class JourneyStarter extends LitElement {
 
     backMustBeShown() {
         if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
-            if (this.step?.data?.__index) {
-                return false
-            }
             if ((this.step.view.main.components[0].metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
                 return false
+            }
+            if (this.step?.data?.__index) {
+                return true
             }
             // @ts-ignore
             if (!this.step.view.main.components[0].metadata.nowTo

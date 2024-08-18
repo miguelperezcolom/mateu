@@ -13,12 +13,8 @@ import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
 import jakarta.persistence.Entity;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -62,25 +58,26 @@ public class CrudEditActionRunner implements ListActionRunner {
     var step = journeyContainer.steps().get(stepId);
 
     steps.put(
-            stepId,
-            new Step(
-                    step.id(),
-                    step.name(),
-                    step.type(),
-                    step.view(),
-                    newData,
-                    step.rules(),
-                    step.previousStepId(),
-                    step.target()));
+        stepId,
+        new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            newData,
+            step.rules(),
+            step.previousStepId(),
+            step.target()));
 
-    journeyContainer = new JourneyContainer(
+    journeyContainer =
+        new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
             journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journeyContainer.journey(),
-            journeyContainer.steps(),
+            steps,
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
             journeyContainer.lastUsedFilters(),
@@ -137,10 +134,14 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (editor.getClass().isAnnotationPresent(Entity.class)) {
       editor =
-          reflectionHelper.newInstance(EntityEditorFactory.class).create(editor, __index, __count, listId);
+          reflectionHelper
+              .newInstance(EntityEditorFactory.class)
+              .create(editor, __index, __count, listId);
     } else {
       editor =
-          reflectionHelper.newInstance(ObjectEditorFactory.class).create(editor, __index, __count, listId);
+          reflectionHelper
+              .newInstance(ObjectEditorFactory.class)
+              .create(editor, __index, __count, listId);
     }
 
     journeyContainer = store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);

@@ -16,7 +16,8 @@ public class EntityEditorFactory {
   @Autowired Serializer serializer;
 
   @Transactional
-  public EntityEditor create(Object entity, int __index, int __count, String listId) throws Exception {
+  public EntityEditor create(Object entity, int __index, int __count, String listId)
+      throws Exception {
     Object id = reflectionHelper.getId(entity);
     entity = em.find(entity.getClass(), id);
     return new EntityEditor(entity, __index, __count, id, serializer.toMap(entity), listId);
