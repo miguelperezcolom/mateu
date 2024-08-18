@@ -100,11 +100,11 @@ export class JourneyStarter extends LitElement {
 
     backMustBeShown() {
         if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
-            if (this.step?.data?.__index) {
-                return false
-            }
             if ((this.step.view.main.components[0].metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
                 return false
+            }
+            if (this.step?.data?.__index) {
+                return true
             }
             // @ts-ignore
             if (!this.step.view.main.components[0].metadata.nowTo
@@ -287,7 +287,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! + 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
@@ -302,7 +302,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! - 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
@@ -412,7 +412,6 @@ renderNotification = () => html`${this.notificationMessage}`;
                     resizable
                     draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
-                        console.log('opened-changed', event)
                         if (!event.detail.value && this.modalOpened && this.stepId) {
                             this.closeModal()
                         }

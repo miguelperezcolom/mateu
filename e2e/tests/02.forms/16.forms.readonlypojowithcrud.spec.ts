@@ -43,6 +43,11 @@ test('read only pojo work', async ({ page }) => {
   await expect(page.getByRole('option', { name: 'Remove selected' })).toBeVisible()
   await page.getByLabel('Other save options').locator('svg').click()
 
+  await page.getByLabel('Other save options').locator('svg').click()
+  await page.getByRole('option', { name: 'Reset list' }).click()
+  await expect(page.locator('.lds-roller')).toBeVisible({visible: false})
+
+
   await expect(page.getByText('This is the subtitle')).toBeVisible()
   await expect(page.getByTestId('filter-programmingLanguages-name').getByPlaceholder('Name')).toBeVisible()
   await expect(page.getByTestId('search')).toBeVisible()

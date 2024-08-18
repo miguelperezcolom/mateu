@@ -3,15 +3,16 @@ import Rule from "./Rule";
 
 export default interface Step {
 
-    id: string;
-    name: string;
-    view: View;
+    id: string
+    name: string
+    view: View
     data: {
-        __index: number | undefined;
-        __count: number | undefined;
+        __index: number | undefined
+        __count: number | undefined
+        __listId: string | undefined
     };
-    rules: Rule[];
-    previousStepId: string;
+    rules: Rule[]
+    previousStepId: string
     timestamp: string
     type: string
 }

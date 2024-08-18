@@ -15,7 +15,8 @@ public class ObjectEditorFactory {
   @Autowired Serializer serializer;
 
   @Transactional
-  public ObjectEditor create(Object pojo, int __index, int __count) throws Exception {
-    return new ObjectEditor(pojo, __index, __count, serializer);
+  public ObjectEditor create(Object pojo, int __index, int __count, String listId)
+      throws Exception {
+    return new ObjectEditor(pojo, __index, __count, serializer, listId);
   }
 }
