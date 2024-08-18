@@ -18,6 +18,6 @@ test('no redundant back and cancel buttons for delete row', async ({ page }) => 
 
   await page.getByTestId('dialog-confirm').click()
 
-  await expect(page.getByRole('button', { name: 'Back' })).toBeVisible({visible: false})
+  await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible({visible: false})
 
 });

@@ -24,7 +24,7 @@ test('objects work', async ({ page }) => {
 
   await page.getByLabel('Name').clear()
   await page.getByLabel('Name').fill('Antonia')
-  await page.getByRole('button', { name: 'Back' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
   await expect(page.locator('h2', { hasText: 'Objects' })).toBeVisible()
   await expect(page.getByTestId('profile')).toBeVisible()
   await expect(page.getByTestId('profile').getByText('Profile(name=Mateu, age=14, favouriteMovie=JohnWick)'))
@@ -36,7 +36,7 @@ test('objects work', async ({ page }) => {
   await page.getByLabel('Name').fill('Antonia')
   await page.getByLabel('Age').clear()
   await page.getByLabel('Age').fill('48')
-  await page.getByRole('button', { name: 'Back' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
   await expect(page.getByTestId('profile').getByText('Profile(name=Mateu, age=14, favouriteMovie=JohnWick)'))
       .toBeVisible()
   await page.getByTestId('profile').getByRole('button', { name: 'Edit' }).click()
