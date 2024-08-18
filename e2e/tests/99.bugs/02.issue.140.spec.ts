@@ -11,7 +11,7 @@ test('navigation in modals works as expected', async ({ page }) => {
   await page.getByLabel('Other save options').locator('svg').hover()
   await page.getByRole('option', { name: 'Open modal', exact: true }).locator('div').click()
   await expect(page.getByText('Wizard page 1')).toBeVisible()
-  await expect(page.getByText('Back')).toBeVisible({visible: false})
+  await expect(page.getByRole('button', {name: 'Back'})).toBeVisible({visible: false})
   await page.getByRole('button', { name: 'Go to next page' }).click()
   await expect(page.getByText('Wizard page 2')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Back' })).toBeVisible()

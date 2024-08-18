@@ -9,7 +9,7 @@ test('text fields work', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Form with callbacks' })).toBeVisible()
 
   await expect(page.getByLabel('Name')).toBeVisible()
-  await expect(page.getByLabel('Name')).toHaveValue('Mateu')
+  await expect(page.getByLabel('Name')).toHaveText('Mateu')
 
   await page.getByRole('button' , { name: 'Change name' }).click()
   await expect(page.getByRole('heading', { name: 'Change name form' })).toBeVisible()
@@ -22,10 +22,10 @@ test('text fields work', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Form with callbacks' })).toBeVisible()
 
   await expect(page.getByLabel('Name')).toBeVisible()
-  await expect(page.getByLabel('Name')).toHaveValue('Antonia')
+  await expect(page.getByLabel('Name')).toHaveText('Antonia')
 
   await expect(page.getByLabel('Age')).toBeVisible()
-  await expect(page.getByLabel('Age')).toHaveValue('16')
+  await expect(page.getByLabel('Age')).toHaveText('16')
 
   await page.getByRole('button' , { name: 'Change age' }).click()
   await expect(page.getByRole('heading', { name: 'Change age form' })).toBeVisible()
@@ -38,5 +38,5 @@ test('text fields work', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Form with callbacks' })).toBeVisible()
 
   await expect(page.getByLabel('Age')).toBeVisible()
-  await expect(page.getByLabel('Age')).toHaveValue('17')
+  await expect(page.getByLabel('Age')).toHaveText('17')
 });

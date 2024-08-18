@@ -305,7 +305,19 @@ export class MateuForm extends LitElement implements FormElement {
 
   async doRunActionId(actionId: string) {
     const action = this.findAction(actionId!)
-    await this.doRunAction(action)
+    if (action) {
+      await this.doRunAction(action)
+    } else {
+      this.dispatchEvent(new CustomEvent('runaction', {
+        detail: {
+          actionId: actionId,
+          action: undefined,
+          data: {...this.data, __activeTabId: this.activeTab}
+        },
+        bubbles: true,
+        composed: true
+      }))
+    }
 }
 
     async doRunAction(action: Action | undefined) {
@@ -349,8 +361,10 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private findAction(actionId: string) {
-    let action = this.metadata.actions.find(a => a.id.endsWith('___' + actionId) || a.id == actionId);
-    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('___' + actionId) || a.id == actionId);
+    console.log('search for action', actionId, this.metadata.actions, this.metadata.mainActions)
+    let action = this.metadata.actions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
+    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
+    console.log('found', action)
     return action
   }
 

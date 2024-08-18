@@ -15,6 +15,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.util.List;
 @Data
 @Caption("Read only pojo with crud")
 @Component
+@Scope("prototype")
 public class MyReadOnlyPojoWithCrud
     implements ReadOnlyPojo, HasBadges, HasStatus, HasCallback<MyReadOnlyPojoWithCrudEditor> {
 
@@ -32,7 +34,7 @@ public class MyReadOnlyPojoWithCrud
   private final MyReadOnlyPojoWithCrudEditor editor;
 
   @Section("Basic")
-  private String name;
+  private String name = "Mateu";
 
   @Placeholder("This should appear as the placeholder")
   private String withPlaceholder;
