@@ -349,8 +349,8 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private findAction(actionId: string) {
-    let action = this.metadata.actions.find(a => a.id.endsWith('___' + actionId));
-    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('___' + actionId));
+    let action = this.metadata.actions.find(a => a.id.endsWith('___' + actionId) || a.id == actionId);
+    if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('___' + actionId) || a.id == actionId);
     return action
   }
 
