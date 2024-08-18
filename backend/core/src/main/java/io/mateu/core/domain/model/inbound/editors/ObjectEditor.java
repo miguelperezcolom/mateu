@@ -13,7 +13,7 @@ public class ObjectEditor {
   private Map<String, Object> data = new HashMap<>();
 
   @SneakyThrows
-  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer) {
+  public ObjectEditor(Object entity, int __index, int __count, Serializer serializer, String listId) {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
     if (__index >= 0) {
@@ -21,6 +21,9 @@ public class ObjectEditor {
     }
     if (__count >= 0) {
       this.data.put("__count", __count);
+    }
+    if (listId != null) {
+      this.data.put("__listId", listId);
     }
   }
 

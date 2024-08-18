@@ -10,7 +10,7 @@ public class EntityEditor {
   private Class entityClass;
   private Map<String, Object> data = new HashMap<>();
 
-  public EntityEditor(Object entity, int __index, int __count, Object id, Map<String, Object> data)
+  public EntityEditor(Object entity, int __index, int __count, Object id, Map<String, Object> data, String listId)
       throws Exception {
     this.entityClass = entity.getClass();
     this.data = data;
@@ -20,6 +20,9 @@ public class EntityEditor {
     }
     if (__count >= 0) {
       this.data.put("__count", __count);
+    }
+    if (listId != null) {
+      this.data.put("__listId", listId);
     }
   }
 

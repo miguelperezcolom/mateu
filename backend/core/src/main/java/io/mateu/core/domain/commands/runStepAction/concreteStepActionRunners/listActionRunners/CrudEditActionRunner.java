@@ -11,8 +11,14 @@ import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.dtos.JourneyContainer;
+import io.mateu.dtos.Step;
 import jakarta.persistence.Entity;
+
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -48,6 +54,38 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     int __index = (Integer) data.getOrDefault("__index", -1);
     int __count = (Integer) data.getOrDefault("__count", -1);
+
+    var newData = new HashMap<>(journeyContainer.steps().get(stepId).data());
+    newData.put("__listId", listId);
+
+    var steps = new HashMap<>(journeyContainer.steps());
+    var step = journeyContainer.steps().get(stepId);
+
+    steps.put(
+            stepId,
+            new Step(
+                    step.id(),
+                    step.name(),
+                    step.type(),
+                    step.view(),
+                    newData,
+                    step.rules(),
+                    step.previousStepId(),
+                    step.target()));
+
+    journeyContainer = new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.remoteBaseUrl(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            journeyContainer.journey(),
+            journeyContainer.steps(),
+            journeyContainer.stepHistory(),
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting(),
+            journeyContainer.modalMustBeClosed());
 
     if (row == null && (__index == -1 && __count == -1)) {
       throw new Exception("No row selected");
@@ -99,10 +137,10 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (editor.getClass().isAnnotationPresent(Entity.class)) {
       editor =
-          reflectionHelper.newInstance(EntityEditorFactory.class).create(editor, __index, __count);
+          reflectionHelper.newInstance(EntityEditorFactory.class).create(editor, __index, __count, listId);
     } else {
       editor =
-          reflectionHelper.newInstance(ObjectEditorFactory.class).create(editor, __index, __count);
+          reflectionHelper.newInstance(ObjectEditorFactory.class).create(editor, __index, __count, listId);
     }
 
     journeyContainer = store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);

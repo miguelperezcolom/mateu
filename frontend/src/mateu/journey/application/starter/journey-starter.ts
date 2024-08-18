@@ -287,7 +287,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! + 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
@@ -302,7 +302,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__main__edit',
+                __listId: '__list__' + this.step?.data.__listId+ '__edit',
                 __index: this.step?.data.__index! - 1,
                 __count: this.step?.data.__count,
                 previousStepId: this.previousStepId
