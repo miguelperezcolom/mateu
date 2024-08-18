@@ -39,9 +39,10 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";
     }
-    if (view != null && methodProvider.getMethod(
-            view.getClass(), setterProvider.getSetter(view.getClass(), field.getName()))
-        == null) {
+    if (view != null
+        && methodProvider.getMethod(
+                view.getClass(), setterProvider.getSetter(view.getClass(), field.getName()))
+            == null) {
       return "readonly";
     }
     if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
