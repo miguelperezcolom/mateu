@@ -76,7 +76,7 @@ public class CreateSimpleFormHomeJourneyTest {
                 .replaceAll("\"----herethejourneyid----\"", journeyId)
                 .replaceAll("\"----heretheview----\"", viewJson);
         JSONAssert.assertEquals(
-                json, serializer.toJson(store), JSONCompareMode.LENIENT);
+                json, serializer.toJson(store), JSONCompareMode.STRICT);
     }
 
     @SneakyThrows
@@ -92,7 +92,7 @@ public class CreateSimpleFormHomeJourneyTest {
         var viewJson = new String(getClass().getResourceAsStream("simpleform-view.json").readAllBytes(),
                 StandardCharsets.UTF_8);
         JSONAssert.assertEquals(
-                viewJson, serializer.toJson(step.view()), JSONCompareMode.LENIENT);
+                viewJson, serializer.toJson(step.view()), JSONCompareMode.STRICT);
     }
 
 }

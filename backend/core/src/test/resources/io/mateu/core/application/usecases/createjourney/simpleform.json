@@ -15,7 +15,11 @@
       "id": "form",
       "name": "Simple form",
       "type": "io.mateu.demo.SimpleForm",
-      "view": "----heretheview----"
+      "view": "----heretheview----",
+      "data" : { },
+      "rules" : [ ],
+      "previousStepId" : null,
+      "target" : null
     }
   },
   "stepHistory" : [ "form" ],
