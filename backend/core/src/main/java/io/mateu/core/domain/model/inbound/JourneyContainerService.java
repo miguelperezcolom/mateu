@@ -154,7 +154,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         journeyContainer.journey(),
@@ -180,7 +179,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         journeyContainer.journey(),
@@ -247,7 +245,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         new Journey(
@@ -305,7 +302,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
@@ -340,7 +336,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
@@ -364,7 +359,7 @@ public class JourneyContainerService {
   }
 
   public Step getInitialStep(JourneyContainer journeyContainer) throws Exception {
-    return journeyContainer.initialStep();
+    return journeyContainer.steps().get(journeyContainer.initialStep());
   }
 
   public Step getCurrentStep(JourneyContainer journeyContainer) throws Exception {
@@ -403,13 +398,12 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
         List.of(step.id()),
-        step,
+        step.id(),
         journeyContainer.lastUsedFilters(),
         journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());

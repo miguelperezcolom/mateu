@@ -37,7 +37,6 @@ public class ResultActionRunner implements ActionRunner {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             new Journey(

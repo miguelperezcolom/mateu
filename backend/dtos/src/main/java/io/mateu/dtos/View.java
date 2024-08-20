@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.List;
 
 public record View(
-    String title,
-    String subtitle,
     List<Message> messages,
     ViewPart header,
     ViewPart left,

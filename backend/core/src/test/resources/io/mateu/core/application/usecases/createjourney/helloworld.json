@@ -1,0 +1,30 @@
+{
+  "journeyId" : "42c01927-0574-40ed-9f98-d50a425dc488",
+  "journeyTypeId" : "____home____",
+  "journeyClass" : "io.mateu.demo.HelloWorld",
+  "journeyData" : { },
+  "journey" : {
+    "type" : "io.mateu.demo.HelloWorld",
+    "status" : "Pending",
+    "statusMessage" : "Please fill the form",
+    "currentStepId" : "form",
+    "currentStepDefinitionId" : "io.mateu.demo.HelloWorld"
+  },
+  "steps" : {
+    "form" : {
+      "id" : "form",
+      "name" : "Hello world",
+      "type" : "io.mateu.demo.HelloWorld",
+      "view" : "----heretheview----",
+      "data" : { },
+      "rules" : [ ],
+      "previousStepId" : null,
+      "target" : null
+    }
+  },
+  "stepHistory" : [ "form" ],
+  "initialStep" : "form",
+  "lastUsedFilters" : { },
+  "lastUsedSorting" : { },
+  "modalMustBeClosed" : false
+}

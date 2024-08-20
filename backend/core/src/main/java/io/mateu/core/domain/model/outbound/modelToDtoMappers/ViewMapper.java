@@ -124,8 +124,6 @@ public class ViewMapper {
     right = addComponentIds(componentCounter, right, rules);
 
     return new View(
-        null,
-        null,
         List.of(),
         new ViewPart(null, header),
         new ViewPart(null, left),
@@ -180,13 +178,13 @@ public class ViewMapper {
     } else if (("view".equals(stepId) || "edit".equals(stepId))
         && journeyContainer.initialStep() != null
         && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView"
-            .equals(journeyContainer.initialStep().type())) { // todo: check si es un crud jpa
+            .equals(journeyContainer.steps().get(journeyContainer.initialStep()).type())) { // todo: check si es un crud jpa
       RpcCrudViewExtended rpcCrudView =
           (RpcCrudViewExtended)
               applicationContext
                   .getBean(JourneyContainerService.class)
                   .getViewInstance(
-                      journeyContainer, journeyContainer.initialStep().id(), serverHttpRequest);
+                      journeyContainer, journeyContainer.steps().get(journeyContainer.initialStep()).id(), serverHttpRequest);
       actualUiInstance =
           entityProvider.find(
               rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));

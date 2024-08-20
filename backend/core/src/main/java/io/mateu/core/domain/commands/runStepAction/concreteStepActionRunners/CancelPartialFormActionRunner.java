@@ -54,8 +54,6 @@ public class CancelPartialFormActionRunner implements ActionRunner {
             step.name(),
             step.type(),
             new View(
-                view.title(),
-                view.subtitle(),
                 view.messages(),
                 view.header(),
                 view.left(),

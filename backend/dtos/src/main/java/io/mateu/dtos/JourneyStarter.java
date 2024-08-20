@@ -12,4 +12,6 @@ public class JourneyStarter implements ViewMetadata {
 
   private String dataPrefix;
   private String baseUrl;
+  private String journeyType;
+
 }

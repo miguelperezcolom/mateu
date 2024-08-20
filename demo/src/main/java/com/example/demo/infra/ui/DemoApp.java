@@ -30,6 +30,8 @@ public class DemoApp implements HasLogin, HasAppTitle
 
   @Submenu private ActionsSubmenu actions;
 
+  @Submenu private LayoutsSubmenu layouts;
+
   @Submenu private UtilSubmenu util;
 
   @Submenu private UseCasesSubmenu useCases;

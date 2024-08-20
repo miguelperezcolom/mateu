@@ -45,7 +45,7 @@ public class FieldStereotypeMapper {
             == null) {
       return "readonly";
     }
-    if (field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class)) {
+    if (field.isAnnotationPresent(ReadOnly.class)) {
       return "readonly";
     }
     if (field.isAnnotationPresent(UseRadioButtons.class)) {

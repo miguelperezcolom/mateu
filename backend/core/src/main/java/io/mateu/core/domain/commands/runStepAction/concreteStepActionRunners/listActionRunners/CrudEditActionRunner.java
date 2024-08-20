@@ -73,7 +73,6 @@ public class CrudEditActionRunner implements ListActionRunner {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journeyContainer.journey(),

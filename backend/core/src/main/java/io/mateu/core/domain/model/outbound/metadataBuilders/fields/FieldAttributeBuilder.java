@@ -165,6 +165,6 @@ public class FieldAttributeBuilder {
   }
 
   private boolean isReadOnly(Field field) {
-    return field.isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(Output.class);
+    return field.isAnnotationPresent(ReadOnly.class);
   }
 }

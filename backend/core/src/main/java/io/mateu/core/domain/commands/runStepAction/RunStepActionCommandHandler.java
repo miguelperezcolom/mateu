@@ -52,7 +52,6 @@ public class RunStepActionCommandHandler {
           new JourneyContainer(
               journeyContainer.journeyId(),
               journeyContainer.journeyTypeId(),
-              journeyContainer.remoteBaseUrl(),
               journeyContainer.journeyClass(),
               journeyContainer.journeyData(),
               new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
@@ -111,7 +110,6 @@ public class RunStepActionCommandHandler {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journeyContainer.journey(),
@@ -154,8 +152,6 @@ public class RunStepActionCommandHandler {
                             stepAfterRun.name(),
                             stepAfterRun.type(),
                             new View(
-                                view.title(),
-                                view.subtitle(),
                                 view.messages(),
                                 view.header(),
                                 view.left(),
@@ -203,7 +199,6 @@ public class RunStepActionCommandHandler {
                     return new JourneyContainer(
                         jc.journeyId(),
                         jc.journeyTypeId(),
-                        jc.remoteBaseUrl(),
                         jc.journeyClass(),
                         jc.journeyData(),
                         jc.journey(),
@@ -236,8 +231,6 @@ public class RunStepActionCommandHandler {
             step.name(),
             step.type(),
             new View(
-                view.title(),
-                view.subtitle(),
                 List.of(),
                 view.header(),
                 view.left(),
@@ -251,7 +244,6 @@ public class RunStepActionCommandHandler {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.remoteBaseUrl(),
         journeyContainer.journeyClass(),
         journeyContainer.journeyData(),
         journeyContainer.journey(),

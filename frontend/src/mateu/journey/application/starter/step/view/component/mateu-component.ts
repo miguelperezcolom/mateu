@@ -10,7 +10,6 @@ import './result/mateu-result'
 import '../../../journey-starter'
 import '../../journey-step'
 import JourneyStarter from "../../../../../../shared/apiClients/dtos/JourneyStarter";
-import JourneyRunner from "../../../../../../shared/apiClients/dtos/JourneyRunner";
 import Crud from "../../../../../../shared/apiClients/dtos/Crud";
 import Step from "../../../../../../shared/apiClients/dtos/Step";
 import {Service} from "../../../../../domain/service";
@@ -123,18 +122,10 @@ export class MateuComponent extends LitElement {
 
             ${this.component?.metadata.type == ViewType.JourneyStarter?
                     html`<journey-starter 
-                            remoteUrl="${(this.component.metadata as JourneyStarter).baseUrl}"
-                            baseUrl="${this.baseUrl}"
+                            baseUrl="${(this.component.metadata as JourneyStarter).baseUrl?(this.component.metadata as JourneyStarter).baseUrl:this.baseUrl}"
+                            journeyType="${(this.component.metadata as JourneyStarter).journeyType}"
                     ></journey-starter>`
                     :html``}
-
-            ${this.component?.metadata.type == ViewType.JourneyRunner?
-                    html`<journey-starter 
-                            journeyType="${(this.component.metadata as JourneyRunner).journeyType}"
-                            baseUrl="${this.baseUrl}"
-                    ></journey-starter>`
-                    :html``}
-        
         `
     }
 

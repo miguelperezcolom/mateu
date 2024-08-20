@@ -7,13 +7,12 @@ import java.util.Map;
 public record JourneyContainer(
     String journeyId,
     String journeyTypeId,
-    String remoteBaseUrl,
     Class journeyClass,
     Map<String, Object> journeyData,
     Journey journey,
     Map<String, Step> steps,
     List<String> stepHistory,
-    Step initialStep,
+    String initialStep,
     Map<String, Object> lastUsedFilters,
     Map<String, List<SortCriteria>> lastUsedSorting,
     boolean modalMustBeClosed) {

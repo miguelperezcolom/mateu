@@ -1,0 +1,42 @@
+{
+  "messages" : [ ],
+  "header" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "left" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "main" : {
+    "classes" : null,
+    "components" : [ {
+      "metadata" : {
+        "type" : "Form",
+        "dataPrefix" : "",
+        "icon" : null,
+        "title" : "Hello world",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ ],
+        "actions" : [ ],
+        "mainActions" : [ ],
+        "validations" : [ ]
+      },
+      "id" : "component-0",
+      "attributes" : { }
+    } ]
+  },
+  "right" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "footer" : {
+    "classes" : null,
+    "components" : [ ]
+  }
+}

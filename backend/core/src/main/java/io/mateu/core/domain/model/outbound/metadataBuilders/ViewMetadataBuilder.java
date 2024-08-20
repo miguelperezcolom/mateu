@@ -45,11 +45,6 @@ public class ViewMetadataBuilder {
       metadata =
           getJourneyStarter(
               (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) uiInstance);
-    } else if (uiInstance
-        instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner) {
-      metadata =
-          getJourneyRunner(
-              (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner) uiInstance);
     } else if (uiInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor(stepId, (MethodParametersEditor) uiInstance);
     } else if (uiInstance instanceof Result) {
@@ -84,14 +79,6 @@ public class ViewMetadataBuilder {
   private ViewMetadata getCrud(String stepId, String listId, JpaCrud crud) {
     Listing listing = jpaRpcCrudFactory.create(crud);
     return crudMetadataBuilder.build(stepId, listId, listing);
-  }
-
-  private JourneyRunner getJourneyRunner(
-      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyRunner uiInstance) {
-    return JourneyRunner.builder()
-        .baseUrl(uiInstance.getBaseUrl())
-        .journeyType(uiInstance.getJourneyType())
-        .build();
   }
 
   private JourneyStarter getJourneyStarter(

@@ -245,8 +245,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             step.name(),
             step.type(),
             new View(
-                view.title(),
-                view.subtitle(),
                 List.of(),
                 view.header(),
                 view.left(),
@@ -261,7 +259,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journeyContainer.journey(),
@@ -289,8 +286,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               step.name(),
               step.type(),
               new View(
-                  view.title(),
-                  view.subtitle(),
                   mapMessages(messages),
                   view.header(),
                   view.left(),
@@ -304,7 +299,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return new JourneyContainer(
           journeyContainer.journeyId(),
           journeyContainer.journeyTypeId(),
-          journeyContainer.remoteBaseUrl(),
           journeyContainer.journeyClass(),
           journeyContainer.journeyData(),
           journeyContainer.journey(),

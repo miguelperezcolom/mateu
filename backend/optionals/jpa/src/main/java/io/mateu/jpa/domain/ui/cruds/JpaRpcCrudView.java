@@ -518,7 +518,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                         !f.isAnnotationPresent(Password.class)
                             && !f.isAnnotationPresent(Version.class)
                             && !f.isAnnotationPresent(Ignored.class)
-                            && !f.isAnnotationPresent(Output.class)
+                            && !f.isAnnotationPresent(ReadOnly.class)
                             && !IResource.class.isAssignableFrom(f.getType())
                             && (String.class.equals(f.getType())
                                 || LocalDate.class.equals(f.getType())

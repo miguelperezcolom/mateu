@@ -228,8 +228,6 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
             step.name(),
             step.type(),
             new View(
-                view.title(),
-                view.subtitle(),
                 List.of(),
                 view.header(),
                 view.left(),
@@ -244,7 +242,6 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journeyContainer.journey(),
@@ -272,8 +269,6 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
               step.name(),
               step.type(),
               new View(
-                  view.title(),
-                  view.subtitle(),
                   mapMessages(messages),
                   view.header(),
                   view.left(),
@@ -287,7 +282,6 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
       return new JourneyContainer(
           journeyContainer.journeyId(),
           journeyContainer.journeyTypeId(),
-          journeyContainer.remoteBaseUrl(),
           journeyContainer.journeyClass(),
           journeyContainer.journeyData(),
           journeyContainer.journey(),

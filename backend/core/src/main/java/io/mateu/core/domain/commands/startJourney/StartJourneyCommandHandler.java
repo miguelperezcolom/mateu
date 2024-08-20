@@ -91,7 +91,6 @@ public class StartJourneyCommandHandler {
         new JourneyContainer(
             journeyId,
             journeyTypeId,
-            null,
             formInstance.getClass(),
             journeyCreationRq.contextData(),
             journey,
@@ -113,13 +112,12 @@ public class StartJourneyCommandHandler {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
             journeyContainer.journeyClass(),
             journeyContainer.journeyData(),
             journey,
             Map.of(step.id(), step),
             List.of(step.id()),
-            step,
+            step.id(),
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting(),
             false);
