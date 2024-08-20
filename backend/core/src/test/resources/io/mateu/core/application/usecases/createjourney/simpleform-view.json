@@ -22,6 +22,11 @@
         "badges" : [ ],
         "tabs" : [ ],
         "banners" : [ ],
+        "data" : {
+          "name" : "Mateu",
+          "age" : 16
+        },
+        "rules" : [ ],
         "sections" : [ {
           "id" : "section_0",
           "tabId" : "",

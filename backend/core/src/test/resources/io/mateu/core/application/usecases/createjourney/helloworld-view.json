@@ -25,7 +25,9 @@
         "sections" : [ ],
         "actions" : [ ],
         "mainActions" : [ ],
-        "validations" : [ ]
+        "validations" : [ ],
+        "data" : { },
+        "rules" : [ ]
       },
       "id" : "component-0",
       "attributes" : { }

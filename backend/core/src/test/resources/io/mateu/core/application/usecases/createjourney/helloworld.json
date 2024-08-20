@@ -16,8 +16,6 @@
       "name" : "Hello world",
       "type" : "io.mateu.demo.HelloWorld",
       "view" : "----heretheview----",
-      "data" : { },
-      "rules" : [ ],
       "previousStepId" : null,
       "target" : null
     }

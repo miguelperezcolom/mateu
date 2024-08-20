@@ -16,11 +16,6 @@
       "name" : "Simple form",
       "type" : "io.mateu.demo.SimpleForm",
       "view" : "----heretheview----",
-      "data" : {
-        "name" : "Mateu",
-        "age" : 16
-      },
-      "rules" : [ ],
       "previousStepId" : null,
       "target" : null
     }
