@@ -1,0 +1,64 @@
+{
+  "messages" : [ ],
+  "header" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "left" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "main" : {
+    "classes" : null,
+    "components" : [ {
+      "metadata" : {
+        "type" : "Form",
+        "dataPrefix" : "",
+        "icon" : null,
+        "title" : "Simple form",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "component-0___submit",
+          "caption" : "Submit",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : {
+            "title" : "Please confirm",
+            "message" : "",
+            "action" : "Submit"
+          },
+          "target" : "SameLane",
+          "modalStyle" : "",
+          "customEvent" : "",
+          "href" : ""
+        } ],
+        "validations" : [ ]
+      },
+      "id" : "component-0",
+      "attributes" : { }
+    } ]
+  },
+  "right" : {
+    "classes" : null,
+    "components" : [ ]
+  },
+  "footer" : {
+    "classes" : null,
+    "components" : [ ]
+  }
+},
+"data" : { },
+"rules" : [ ],
+"previousStepId" : null,
+"target" : null
+}

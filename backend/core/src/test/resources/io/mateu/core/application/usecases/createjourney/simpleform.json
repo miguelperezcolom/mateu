@@ -1,25 +1,21 @@
 {
   "journeyId" : "----herethejourneyid----",
   "journeyTypeId" : "____home____",
-  "journeyClass" : "io.mateu.demo.HelloWorld",
+  "journeyClass" : "io.mateu.demo.SimpleForm",
   "journeyData" : { },
   "journey" : {
-    "type" : "io.mateu.demo.HelloWorld",
+    "type" : "io.mateu.demo.SimpleForm",
     "status" : "Pending",
     "statusMessage" : "Please fill the form",
     "currentStepId" : "form",
-    "currentStepDefinitionId" : "io.mateu.demo.HelloWorld"
+    "currentStepDefinitionId" : "io.mateu.demo.SimpleForm"
   },
   "steps" : {
-    "form" : {
-      "id" : "form",
-      "name" : "Hello world",
-      "type" : "io.mateu.demo.HelloWorld",
-      "view" : "----heretheview----",
-      "data" : { },
-      "rules" : [ ],
-      "previousStepId" : null,
-      "target" : null
+    "form": {
+      "id": "form",
+      "name": "Simple form",
+      "type": "io.mateu.demo.SimpleForm",
+      "view": "----heretheview----"
     }
   },
   "stepHistory" : [ "form" ],

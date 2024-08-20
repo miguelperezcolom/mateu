@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest
-public class CreateJourneyTest {
+public class CreateHelloWorldHomeJourneyTest {
 
     @Autowired
     CreateJourneyUseCase createJourneyUseCase;
@@ -73,7 +73,7 @@ public class CreateJourneyTest {
                 StandardCharsets.UTF_8);
         var json = new String(getClass().getResourceAsStream("helloworld.json").readAllBytes(),
                 StandardCharsets.UTF_8)
-                .replaceAll("42c01927-0574-40ed-9f98-d50a425dc488", journeyId)
+                .replaceAll("\"----herethejourneyid----\"", journeyId)
                 .replaceAll("\"----heretheview----\"", viewJson);
         JSONAssert.assertEquals(
                 json, serializer.toJson(store), JSONCompareMode.LENIENT);
