@@ -4,15 +4,18 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
 import io.mateu.dtos.ResultType;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @MateuUI("/simpleform")
+@Getter@Setter
 public class SimpleForm {
 
-    String name;
+    String name = "Mateu";
 
-    int age;
+    int age = 16;
 
     @MainAction
     public Message submit() {

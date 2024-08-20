@@ -87,7 +87,12 @@ public class CreateSimpleFormHomeJourneyTest {
         assertNull(step.previousStepId());
         assertEquals("Simple form", step.name());
         assertNull(step.target());
-        assertEquals(Map.of(), step.data());
+        assertEquals(serializer.fromJson("""
+                {
+                "name": "Mateu",
+                "age": 16
+                }
+                """), step.data());
         assertEquals(List.of(), step.rules());
         var viewJson = new String(getClass().getResourceAsStream("simpleform-view.json").readAllBytes(),
                 StandardCharsets.UTF_8);

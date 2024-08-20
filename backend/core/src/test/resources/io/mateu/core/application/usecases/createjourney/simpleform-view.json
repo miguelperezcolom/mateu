@@ -22,7 +22,50 @@
         "badges" : [ ],
         "tabs" : [ ],
         "banners" : [ ],
-        "sections" : [ ],
+        "sections" : [ {
+          "id" : "section_0",
+          "tabId" : "",
+          "caption" : "",
+          "description" : "",
+          "readOnly" : false,
+          "type" : "Card",
+          "leftSideImageUrl" : "",
+          "topImageUrl" : "",
+          "actions" : [ ],
+          "fieldGroups" : [ {
+            "id" : "fieldgroup_1_0",
+            "caption" : "",
+            "lines" : [ {
+              "fields" : [ {
+                "id" : "name",
+                "type" : "string",
+                "stereotype" : "input",
+                "observed" : false,
+                "caption" : "Name",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            }, {
+              "fields" : [ {
+                "id" : "age",
+                "type" : "int",
+                "stereotype" : "input",
+                "observed" : false,
+                "caption" : "Age",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            } ]
+          } ]
+        } ],
         "actions" : [ ],
         "mainActions" : [ {
           "id" : "component-0___submit",
