@@ -48,7 +48,7 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
     data = serializer.toMap(object);
     data.put("__toString", "" + object);
 
-    var newData = new HashMap<>(initialStep.data());
+    var newData = new HashMap<>(data);
     newData.put(fieldEditor.getFieldId(), data);
 
     var steps = new HashMap<>(journeyContainer.steps());
@@ -60,8 +60,6 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
             initialStep.name(),
             initialStep.type(),
             initialStep.view(),
-            newData,
-            initialStep.rules(),
             initialStep.previousStepId(),
             initialStep.target()));
 

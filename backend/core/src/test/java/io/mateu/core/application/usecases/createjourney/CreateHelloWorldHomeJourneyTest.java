@@ -87,8 +87,6 @@ public class CreateHelloWorldHomeJourneyTest {
         assertNull(step.previousStepId());
         assertEquals("Hello world", step.name());
         assertNull(step.target());
-        assertEquals(Map.of(), step.data());
-        assertEquals(List.of(), step.rules());
         var viewJson = new String(getClass().getResourceAsStream("helloworld-view.json").readAllBytes(),
                 StandardCharsets.UTF_8);
         JSONAssert.assertEquals(

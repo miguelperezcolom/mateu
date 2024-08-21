@@ -21,7 +21,6 @@ public class SimpleForm {
     public Message submit() {
         // send the email
         return new Message(
-                UUID.randomUUID().toString(),
                 ResultType.Success,
                 "Form submitted",
                 "You entered " + name + ", " + age + " before submitting.");

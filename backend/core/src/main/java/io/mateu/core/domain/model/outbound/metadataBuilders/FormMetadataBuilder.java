@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.EditPartialFormActionRunner;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.RulesBuilder;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
@@ -12,7 +12,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBanners;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
-import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Section;
 import jakarta.persistence.CascadeType;
@@ -42,6 +41,7 @@ public class FormMetadataBuilder {
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
+  final RulesBuilder rulesBuilder;
   private Section s;
 
   @SneakyThrows
@@ -64,7 +64,9 @@ public class FormMetadataBuilder {
         getSections(stepId, uiInstance, slotFields),
         actionMetadataBuilder.getActions(stepId, "", uiInstance),
         getMainActions(stepId, uiInstance),
-        List.of());
+        List.of(),
+            rulesBuilder.buildRules(uiInstance)
+    );
   }
 
   private String getIcon(Object uiInstance) {
@@ -316,7 +318,6 @@ public class FormMetadataBuilder {
     var sections = createSections(stepId, uiInstance, allEditableFields);
 
     sections = fillSectionIds(sections);
-    sections = fillActionIdsForPartialForm(sections);
 
     return sections;
   }
@@ -336,11 +337,7 @@ public class FormMetadataBuilder {
                   fields -> {
                     if (!fields.isEmpty()) {
                       var firstField = fields.get(0);
-                      if (PartialForm.class.isAssignableFrom(firstField.getType())) {
-                        addPartialForm(uiInstance, firstField, tabId, sections);
-                      } else {
-                        addSection(stepId, fields, uiInstance, firstField, tabId, sections);
-                      }
+                      addSection(stepId, fields, uiInstance, firstField, tabId, sections);
                     }
                   });
             });
@@ -391,22 +388,14 @@ public class FormMetadataBuilder {
     List<Field> fieldsInSection = new ArrayList<>();
     fieldsInTab.forEach(
         field -> {
-          if (PartialForm.class.isAssignableFrom(field.getType())) {
-            if (!fieldsBySection.isEmpty()) {
+          if (field.isAnnotationPresent(
+              io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
+            if (!fieldsInSection.isEmpty()) {
               fieldsBySection.add(new ArrayList<>(fieldsInSection));
               fieldsInSection.clear();
             }
-            fieldsBySection.add(List.of(field));
-          } else {
-            if (field.isAnnotationPresent(
-                io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
-              if (!fieldsInSection.isEmpty()) {
-                fieldsBySection.add(new ArrayList<>(fieldsInSection));
-                fieldsInSection.clear();
-              }
-            }
-            fieldsInSection.add(field);
           }
+          fieldsInSection.add(field);
         });
     if (!fieldsInSection.isEmpty()) {
       fieldsBySection.add(fieldsInSection);
@@ -427,124 +416,6 @@ public class FormMetadataBuilder {
       fieldsByTabId.get(tabId).add(field);
     }
     return fieldsByTabId;
-  }
-
-  private void addPartialForm(
-      Object uiInstance, Field field, String tabId, List<Section> sections) {
-    var partialFormSection =
-        new Section(
-            field.getId(),
-            tabId,
-            captionProvider.getCaption(field),
-            "This is a section of the partial form read only yes",
-            true,
-            SectionType.PartialForm,
-            null,
-            null,
-            List.of(
-                new Action(
-                    EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER + field.getId(),
-                    getCaptionForEdit(uiInstance),
-                    ActionType.Secondary,
-                    true,
-                    false,
-                    false,
-                    false,
-                    null,
-                    ActionTarget.SameLane,
-                    null,
-                    null,
-                    null)),
-            createFieldGroups(field.getType(), uiInstance, field));
-    sections.add(partialFormSection);
-  }
-
-  private List<Section> fillActionIdsForPartialForm(List<Section> sections) {
-    return sections.stream()
-        .map(
-            s ->
-                new Section(
-                    s.id(),
-                    s.tabId(),
-                    s.caption(),
-                    s.description(),
-                    s.readOnly(),
-                    s.type(),
-                    s.leftSideImageUrl(),
-                    s.topImageUrl(),
-                    s.actions().stream()
-                        .map(
-                            a ->
-                                new Action(
-                                    a.id()
-                                            .contains(
-                                                EditPartialFormActionRunner
-                                                    .EDIT_PARTIAL_FORM_IDENTIFIER)
-                                        ? EditPartialFormActionRunner.EDIT_PARTIAL_FORM_IDENTIFIER
-                                            + s.id()
-                                        : a.id(),
-                                    a.caption(),
-                                    a.type(),
-                                    a.visible(),
-                                    a.validationRequired(),
-                                    a.confirmationRequired(),
-                                    a.rowsSelectedRequired(),
-                                    a.confirmationTexts(),
-                                    a.target(),
-                                    a.modalStyle(),
-                                    a.customEvent(),
-                                    a.href()))
-                        .toList(),
-                    s.fieldGroups()))
-        .toList();
-  }
-
-  private List<FieldGroup> createFieldGroups(
-      Class<?> partialFormType, Object formInstance, Field partialFormField) {
-
-    List<Field> allEditableFields =
-        reflectionHelper.getAllEditableFields(partialFormType).stream()
-            .filter(f -> !isOwner(f))
-            .toList();
-
-    return createFieldGroups(formInstance, partialFormField, allEditableFields);
-  }
-
-  private List<FieldGroup> createFieldGroups(
-      Object formInstance, Field partialFormField, List<Field> allEditableFields) {
-    var groups = createFieldGroups(formInstance, allEditableFields);
-
-    return groups.stream()
-        .map(
-            g ->
-                new FieldGroup(
-                    g.id(),
-                    g.caption(),
-                    g.lines().stream()
-                        .map(
-                            l ->
-                                new FieldGroupLine(
-                                    l.fields().stream()
-                                        .map(
-                                            f ->
-                                                new io.mateu.dtos.Field(
-                                                    "__nestedData__"
-                                                        + partialFormField.getId()
-                                                        + "__"
-                                                        + f.id(),
-                                                    f.type(),
-                                                    f.stereotype(),
-                                                    f.observed(),
-                                                    f.caption(),
-                                                    f.placeholder(),
-                                                    f.cssClasses(),
-                                                    f.description(),
-                                                    f.badges(),
-                                                    f.validations(),
-                                                    f.attributes()))
-                                        .toList()))
-                        .toList()))
-        .toList();
   }
 
   private List<FieldGroup> createFieldGroups(Object formInstance, List<Field> allEditableFields) {

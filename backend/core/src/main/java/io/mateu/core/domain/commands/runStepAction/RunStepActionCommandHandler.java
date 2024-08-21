@@ -5,6 +5,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
+import io.mateu.core.domain.model.inbound.services.ViewInstanceProvider;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.*;
@@ -30,6 +31,7 @@ public class RunStepActionCommandHandler {
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final ViewMapper viewMapper;
+  final ViewInstanceProvider viewInstanceProvider;
 
   @Transactional
   public Mono<JourneyContainer> handle(RunStepActionCommand command) throws Throwable {
@@ -40,7 +42,6 @@ public class RunStepActionCommandHandler {
     JourneyContainer journeyContainer = command.journeyContainer();
     ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
-    data = nestPartialFormData(data);
 
     if ("xxxbacktostep".equals(actionId)) {
       var journey = journeyContainer.journey();
@@ -70,7 +71,7 @@ public class RunStepActionCommandHandler {
       return Mono.just(journeyContainer);
     }
 
-    Object viewInstance = getViewInstance(journeyId, stepId, journeyContainer, serverHttpRequest);
+    Object viewInstance = viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
 
     if (viewInstance instanceof FieldEditor) {
       // no need to fill the fieldEditor
@@ -92,16 +93,12 @@ public class RunStepActionCommandHandler {
     }
 
     var step = journeyContainer.steps().get(stepId);
-    var newData = new HashMap<>(step.data());
-    newData.putAll(data);
     step =
         new Step(
             step.id(),
             step.name(),
             step.type(),
             step.view(),
-            newData,
-            step.rules(),
             step.previousStepId(),
             step.target());
     var steps = new HashMap<>(journeyContainer.steps());
@@ -121,7 +118,6 @@ public class RunStepActionCommandHandler {
             journeyContainer.lastUsedFilters(),
             journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
-    viewMapper.unnestPartialFormData(step.data(), viewInstance);
 
     // todo: look for the target object
     String componentId = "component-0";
@@ -185,15 +181,15 @@ public class RunStepActionCommandHandler {
                                                             f.sections(),
                                                             f.actions(),
                                                             f.mainActions(),
-                                                            f.validations())
+                                                            f.validations(),
+                                                            f.rules())
                                                         : c.metadata(),
                                                     c.id(),
-                                                    c.attributes()))
+                                                    c.attributes(),
+                                                        c.data()))
                                         .toList()),
                                 view.right(),
                                 view.footer()),
-                            stepAfterRun.data(),
-                            stepAfterRun.rules(),
                             stepAfterRun.previousStepId(),
                             stepAfterRun.target()));
                     return new JourneyContainer(
@@ -237,8 +233,6 @@ public class RunStepActionCommandHandler {
                 view.main(),
                 view.right(),
                 view.footer()),
-            step.data(),
-            step.rules(),
             step.previousStepId(),
             step.target()));
     return new JourneyContainer(
@@ -255,81 +249,4 @@ public class RunStepActionCommandHandler {
         journeyContainer.modalMustBeClosed());
   }
 
-  private Map<String, Object> nestPartialFormData(Map<String, Object> data) {
-    var nestedData = new HashMap<String, Object>();
-
-    // first we copy all the data which is not nested
-    data.keySet().stream()
-        .filter(k -> !k.startsWith("__nestedData__"))
-        .forEach(
-            k -> {
-              nestedData.put(k, data.get(k));
-            });
-
-    // then we copy all the unnested data nesting it back
-    data.keySet().stream()
-        .filter(k -> k.startsWith("__nestedData__"))
-        .forEach(
-            k -> {
-              // __nes 0 tedData__company 1 Information__compan 2 yName
-              var tokens = k.split("__");
-              if (tokens.length >= 4) {
-                var sectionId = tokens[2];
-                var fieldId = tokens[3];
-                if (!Strings.isNullOrEmpty(sectionId) && !Strings.isNullOrEmpty(fieldId)) {
-                  Map<String, Object> nestedMap = (Map<String, Object>) nestedData.get(sectionId);
-                  if (nestedMap == null) {
-                    nestedMap = new HashMap<>();
-                    nestedData.put(sectionId, nestedMap);
-                  }
-                  nestedMap.put(fieldId, data.get(k));
-                }
-              }
-            });
-
-    return nestedData;
-  }
-
-  public Object getViewInstance(
-      String journeyId,
-      String stepId,
-      JourneyContainer journeyContainer,
-      ServerHttpRequest serverHttpRequest)
-      throws Exception {
-    Step step = journeyContainer.steps().get(stepId);
-    if (step == null) {
-      throw new Exception(
-          "No step with id " + stepId + " for journey with id " + journeyId + " found");
-    }
-
-    Map<String, Object> data = step.data();
-
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
-    if (viewInstance instanceof EntityEditor) {
-      ((EntityEditor) viewInstance)
-          .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
-      ((EntityEditor) viewInstance).setData(data);
-    } else if (viewInstance instanceof ObjectEditor) {
-      ((ObjectEditor) viewInstance)
-          .setType(Class.forName((String) data.get("__entityClassName__")));
-      ((ObjectEditor) viewInstance).setData(data);
-    } else if (viewInstance instanceof FieldEditor) {
-      ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
-      ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
-      ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
-      ((FieldEditor) viewInstance).setData(data);
-    } else {
-      data.entrySet()
-          .forEach(
-              entry -> {
-                try {
-                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                } catch (Exception ex) {
-                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                }
-              });
-    }
-    return viewInstance;
-  }
 }

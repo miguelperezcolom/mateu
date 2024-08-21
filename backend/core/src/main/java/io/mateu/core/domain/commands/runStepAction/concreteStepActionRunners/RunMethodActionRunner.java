@@ -251,8 +251,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 view.main(),
                 view.right(),
                 view.footer()),
-            step.data(),
-            step.rules(),
             step.previousStepId(),
             step.target()));
     journeyContainer =
@@ -292,8 +290,6 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                   view.main(),
                   view.right(),
                   view.footer()),
-              step.data(),
-              step.rules(),
               step.previousStepId(),
               step.target()));
       return new JourneyContainer(
@@ -316,7 +312,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private List<io.mateu.dtos.Message> mapMessages(List<Message> messages) {
     if (messages != null) {
       return messages.stream()
-          .map(m -> new io.mateu.dtos.Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
+          .map(m -> new io.mateu.dtos.Message(m.getType(), m.getTitle(), m.getText()))
           .collect(Collectors.toList());
     } else {
       return List.of();
@@ -337,20 +333,19 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (method.isAnnotationPresent(Action.class)
         && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
       return List.of(
-          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+          new Message(ResultType.Success, "", "" + response));
     }
     if (method.isAnnotationPresent(MainAction.class)
         && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
       return List.of(
-          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+          new Message(ResultType.Success, "", "" + response));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
       return List.of(
-          new Message(
-              UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
+          new Message(goBack.getResultType(), "", goBack.getMessage()));
     }
     return List.of();
   }

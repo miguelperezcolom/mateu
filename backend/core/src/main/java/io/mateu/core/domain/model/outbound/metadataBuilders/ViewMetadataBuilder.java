@@ -37,8 +37,7 @@ public class ViewMetadataBuilder {
 
   @Autowired ReflectionHelper reflectionHelper;
 
-  public ViewMetadata getMetadata(
-      String dataPrefix, String stepId, Object uiInstance, Object model, List<Field> slotFields) {
+  public ViewMetadata getMetadata(String stepId, Object uiInstance, Object model, List<Field> slotFields) {
     ViewMetadata metadata;
 
     if (uiInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
@@ -55,9 +54,9 @@ public class ViewMetadataBuilder {
       metadata =
           getCrud(stepId, ((RpcViewWrapper) model).getId(), ((RpcViewWrapper) model).getRpcView());
     } else if (model instanceof Stepper) {
-      metadata = getStepper(dataPrefix, stepId, model, slotFields);
+      metadata = getStepper(stepId, model, slotFields);
     } else if (model instanceof Card) {
-      metadata = getCard(dataPrefix, stepId, model, slotFields);
+      metadata = getCard(stepId, model, slotFields);
     } else if (model instanceof JpaCrud) {
       metadata = getCrud(stepId, "main", (JpaCrud) model);
     } else {
@@ -95,13 +94,13 @@ public class ViewMetadataBuilder {
   }
 
   private io.mateu.dtos.Stepper getStepper(
-      String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
-    return stepperMetadataBuilder.build(dataPrefix, stepId, uiInstance, slotFields);
+      String stepId, Object uiInstance, List<Field> slotFields) {
+    return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
   private io.mateu.dtos.Card getCard(
-      String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
-    return cardMetadataBuilder.build(dataPrefix, stepId, uiInstance, slotFields);
+      String stepId, Object uiInstance, List<Field> slotFields) {
+    return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
   private Form getForm(String stepId, Object uiInstance, List<Field> slotFields) {
@@ -175,7 +174,8 @@ public class ViewMetadataBuilder {
                 .toList(),
             metadata.actions(),
             metadata.mainActions(),
-            metadata.validations());
+            metadata.validations(),
+                metadata.rules());
       }
     }
     return metadata;
@@ -211,6 +211,7 @@ public class ViewMetadataBuilder {
                         null,
                         null)))
             .toList(),
-        metadata.validations());
+        metadata.validations(),
+            metadata.rules());
   }
 }

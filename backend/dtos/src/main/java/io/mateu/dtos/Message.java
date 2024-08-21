@@ -11,8 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Message {
 
-  String id;
-
   ResultType type;
 
   String title;

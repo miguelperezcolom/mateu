@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,7 +23,7 @@ public class DataExtractor {
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
 
-  public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) throws Exception {
+  public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) {
     if (uiInstance instanceof EntityEditor) {
       Map<String, Object> data = new HashMap<>();
       data.putAll(((EntityEditor) uiInstance).getData());
@@ -46,7 +47,8 @@ public class DataExtractor {
     return getData(actualUiInstance);
   }
 
-  public Map<String, Object> getData(Object uiInstance) throws Exception {
+  @SneakyThrows
+  public Map<String, Object> getData(Object uiInstance) {
     Map<String, Object> data = new HashMap<>();
     if (uiInstance instanceof EntityEditor) {
       data.putAll(((EntityEditor) uiInstance).getData());

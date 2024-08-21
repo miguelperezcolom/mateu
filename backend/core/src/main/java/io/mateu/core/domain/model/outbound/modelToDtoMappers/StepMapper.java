@@ -30,20 +30,12 @@ public class StepMapper {
       String stepId,
       String previousStepId,
       Object formInstance,
-      ServerHttpRequest serverHttpRequest,
-      Map<String, Object> oldData)
+      ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     if (formInstance instanceof JpaCrud) {
       formInstance = jpaRpcCrudFactory.create((JpaCrud) formInstance);
     }
-
-    Map<String, Object> data = new HashMap<>();
-    if (oldData != null) {
-      data.putAll(oldData);
-    }
-
-    List<Rule> rules = new ArrayList<>();
 
     if (formInstance instanceof DynamicStep) {
       return ((DynamicStep) formInstance).build().toFuture().get();
@@ -53,9 +45,7 @@ public class StepMapper {
         stepId,
         captionProvider.getCaption(formInstance),
         formInstance.getClass().getName(),
-        viewMapper.map(journeyContainer, stepId, formInstance, data, rules, serverHttpRequest),
-        data,
-        rules,
+        viewMapper.map(journeyContainer, stepId, formInstance, serverHttpRequest),
         previousStepId,
         null);
   }

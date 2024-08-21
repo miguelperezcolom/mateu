@@ -26,7 +26,7 @@ public class UIInstancePartsExtractor {
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
 
-  public List<UIInstancePart> getUiParts(Object uiInstance, List<Field> fields, SlotName slot)
+  public List<UIInstancePart> getUiParts(Object uiInstance, List<Field> fields, SlotName slotName)
       throws Exception {
     List<UIInstancePart> parts = new ArrayList<>();
 
@@ -45,20 +45,20 @@ public class UIInstancePartsExtractor {
         });
 
     for (Field f : partCandidates) {
-      parts.add(buildPart(f, uiInstance));
+      parts.add(buildPart(f, uiInstance, slotName));
     }
     if (leftFields.size() > 0) {
-      parts.add(0, new UIInstancePart("", uiInstance, leftFields));
+      parts.add(0, new UIInstancePart(slotName, "___self___", uiInstance, leftFields));
     }
 
-    if (uiInstance instanceof HasStepper && SlotName.main.equals(slot)) {
-      parts.add(0, buildPart(((HasStepper) uiInstance).getStepper(), uiInstance));
+    if (uiInstance instanceof HasStepper && SlotName.main.equals(slotName)) {
+      parts.add(0, buildPart(((HasStepper) uiInstance).getStepper(), uiInstance, slotName));
     }
 
     return parts;
   }
 
-  private UIInstancePart buildPart(Field f, Object uiInstance) throws Exception {
+  private UIInstancePart buildPart(Field f, Object uiInstance, SlotName slotName) throws Exception {
     Object partInstance = reflectionHelper.getValue(f, uiInstance);
     if (formMetadataBuilder.isOwner(f)) {
       partInstance = jpaRpcCrudFactory.create(uiInstance, f);
@@ -70,10 +70,10 @@ public class UIInstancePartsExtractor {
       partInstance = new RpcViewWrapper((Listing) partInstance, f.getId());
     }
     return new UIInstancePart(
-        f.getId(), partInstance, reflectionHelper.getAllFields(partInstance.getClass()));
+        slotName, f.getId(), partInstance, reflectionHelper.getAllFields(partInstance.getClass()));
   }
 
-  private UIInstancePart buildPart(Stepper stepper, Object uiInstance) throws Exception {
-    return new UIInstancePart("stepper", stepper, List.of());
+  private UIInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName) throws Exception {
+    return new UIInstancePart(slotName, "___stepper___", stepper, List.of());
   }
 }

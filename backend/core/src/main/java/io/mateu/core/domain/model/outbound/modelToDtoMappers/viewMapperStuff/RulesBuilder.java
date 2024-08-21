@@ -20,12 +20,10 @@ public class RulesBuilder {
 
   final ReflectionHelper reflectionHelper;
 
-  public List<Rule> buildRules(ViewMetadata metadata, Object actualUiInstance) {
+  public List<Rule> buildRules(Object form) {
     List<Rule> rules = new ArrayList<>();
-    if (metadata instanceof Form) {
-      addRulesForFields(actualUiInstance, rules);
-      addRulesForActions(actualUiInstance, rules);
-    }
+    addRulesForFields(form, rules);
+    addRulesForActions(form, rules);
     return rules;
   }
 

@@ -29,10 +29,9 @@ public class CardMetadataBuilder {
   final CaptionProvider captionProvider;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
+  public Card build(String stepId, Object uiInstance, List<Field> slotFields) {
     Card card =
         new Card(
-            dataPrefix,
             captionProvider.getCaption(uiInstance),
             getSubtitle(uiInstance),
             getInfo(uiInstance),

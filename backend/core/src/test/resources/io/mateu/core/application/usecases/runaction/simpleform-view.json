@@ -1,5 +1,9 @@
 {
-  "messages" : [ ],
+  "messages" : [ {
+    "type" : "Success",
+    "title" : "Form submitted",
+    "text" : "You entered Mateu, 16 before submitting."
+  } ],
   "header" : {
     "classes" : null,
     "components" : [ ]

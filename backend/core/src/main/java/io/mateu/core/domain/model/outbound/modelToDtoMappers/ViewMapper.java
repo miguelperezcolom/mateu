@@ -15,7 +15,6 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.interfaces.PartialForm;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
@@ -69,18 +68,12 @@ public class ViewMapper {
       JourneyContainer journeyContainer,
       String stepId,
       Object uiInstance,
-      Map<String, Object> data,
-      List<Rule> rules,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     // mddopencrudaction, crud class
 
     Object actualUiInstance =
         getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
-
-    data.putAll(dataExtractor.getData(uiInstance, actualUiInstance));
-
-    unnestPartialFormData(data, actualUiInstance);
 
     // todo: build left, main and right in a separate manner
     List<Component> left = new ArrayList<>();
@@ -105,23 +98,18 @@ public class ViewMapper {
       List<UIInstancePart> uiInstanceParts =
           uiInstancePartsExtractor.getUiParts(actualUiInstance, slotFields, slot);
       if (SlotName.main.equals(slot) && uiInstanceParts.isEmpty()) {
-        uiInstanceParts.add(new UIInstancePart("", actualUiInstance, List.of()));
+        uiInstanceParts.add(new UIInstancePart(slot, "___self___", actualUiInstance, List.of()));
       }
+
 
       uiInstanceParts.forEach(
           p -> {
             ViewMetadata metadata =
                 viewMetadataBuilder.getMetadata(
-                    p.getDataPrefix(), stepId, uiInstance, p.getUiInstance(), p.getFields());
-            rules.addAll(rulesBuilder.buildRules(metadata, p.getUiInstance()));
-            componentsPerSlot.get(slot).add(new Component(metadata, "", Map.of()));
+                    stepId, uiInstance, p.getUiInstance(), p.getFields());
+            componentsPerSlot.get(slot).add(new Component(metadata, p.getComponentId(), Map.of(), dataExtractor.getData(uiInstance, actualUiInstance)));
           });
     }
-
-    AtomicInteger componentCounter = new AtomicInteger();
-    left = addComponentIds(componentCounter, left, rules);
-    main = addComponentIds(componentCounter, main, rules);
-    right = addComponentIds(componentCounter, right, rules);
 
     return new View(
         List.of(),
@@ -130,24 +118,6 @@ public class ViewMapper {
         new ViewPart(null, main),
         new ViewPart(null, right),
         new ViewPart(null, footer));
-  }
-
-  public void unnestPartialFormData(Map<String, Object> data, Object form) {
-
-    if (form == null) {
-      return;
-    }
-
-    var copyOfData = new HashMap<>(data);
-    for (Field field : reflectionHelper.getAllEditableFields(form.getClass())) {
-      if (PartialForm.class.isAssignableFrom(field.getType())) {
-        var nestedData = copyOfData.get(field.getId());
-        if (nestedData instanceof Map nestedMap) {
-          nestedMap.forEach((k, v) -> data.put("__nestedData__" + field.getId() + "__" + k, v));
-        }
-        data.remove(field.getId());
-      }
-    }
   }
 
   private Object getActualUiInstance(
@@ -195,22 +165,7 @@ public class ViewMapper {
     return actualUiInstance;
   }
 
-  private List<Component> addComponentIds(
-      AtomicInteger componentCounter, List<Component> components, List<Rule> rules) {
-
-    return components.stream()
-        .map(
-            c ->
-                new Component(
-                    c.metadata(),
-                    "component-" + componentCounter.getAndIncrement(),
-                    c.attributes()))
-        .map(
-            c -> new Component(updateMetadata(c.id(), c.metadata(), rules), c.id(), c.attributes()))
-        .toList();
-  }
-
-  private ViewMetadata updateMetadata(String componentId, ViewMetadata metadata, List<Rule> rules) {
+  private ViewMetadata updateMetadata(String componentId, ViewMetadata metadata) {
     if (metadata instanceof Crud crud) {
       return new Crud(
           crud.dataPrefix(),
@@ -251,9 +206,10 @@ public class ViewMapper {
           form.tabs(),
           form.banners(),
           form.sections(),
-          setIdAndAddRuleForActions(form.actions(), componentId, rules),
-          setIdAndAddRuleForActions(form.mainActions(), componentId, rules),
-          form.validations());
+          setIdAndAddRuleForActions(form.actions(), componentId, form.rules()),
+          setIdAndAddRuleForActions(form.mainActions(), componentId, form.rules()),
+          form.validations(),
+              form.rules());
     }
     return metadata;
   }

@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
+import io.mateu.core.domain.model.inbound.services.ViewInstanceProvider;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.StepMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
@@ -42,47 +43,12 @@ public class JourneyContainerService {
   private final JpaRpcCrudFactory jpaRpcCrudFactory;
   private final ReflectionHelper reflectionHelper;
   private final Serializer serializer;
+  private final ViewInstanceProvider viewInstanceProvider;
 
   public Object getViewInstance(
       JourneyContainer journeyContainer, String stepId, ServerHttpRequest serverHttpRequest)
       throws Exception {
-    Step step = journeyContainer.steps().get(stepId);
-    if (step == null) {
-      throw new Exception(
-          "No step with id "
-              + stepId
-              + " for journey with id "
-              + journeyContainer.journeyId()
-              + " found");
-    }
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(step.type()));
-    Map<String, Object> data = step.data();
-    if (viewInstance instanceof EntityEditor) {
-      ((EntityEditor) viewInstance)
-          .setEntityClass(Class.forName((String) data.get("__entityClassName__")));
-      ((EntityEditor) viewInstance).setData(data);
-    } else if (viewInstance instanceof ObjectEditor) {
-      ((ObjectEditor) viewInstance)
-          .setType(Class.forName((String) data.get("__entityClassName__")));
-      ((ObjectEditor) viewInstance).setData(data);
-    } else if (viewInstance instanceof FieldEditor) {
-      ((FieldEditor) viewInstance).setType(Class.forName((String) data.get("__type__")));
-      ((FieldEditor) viewInstance).setFieldId((String) data.get("__fieldId__"));
-      ((FieldEditor) viewInstance).setInitialStep((String) data.get("__initialStep__"));
-      ((FieldEditor) viewInstance).setData(data);
-    } else {
-      data.entrySet()
-          .forEach(
-              entry -> {
-                try {
-                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                } catch (Exception ex) {
-                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                }
-              });
-    }
-    return viewInstance;
+    return viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
   }
 
   @Transactional
@@ -147,8 +113,7 @@ public class JourneyContainerService {
             stepId,
             oldStep.previousStepId(),
             editor,
-            serverHttpRequest,
-            oldStep.data());
+            serverHttpRequest);
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(stepId, step);
     return new JourneyContainer(
@@ -225,8 +190,7 @@ public class JourneyContainerService {
             newStepId,
             getPreviousStepId(newStepId, journeyContainer),
             editor,
-            serverHttpRequest,
-            null);
+            serverHttpRequest);
     if (actionTarget != null) {
       step =
           new Step(
@@ -234,8 +198,6 @@ public class JourneyContainerService {
               step.name(),
               step.type(),
               step.view(),
-              step.data(),
-              step.rules(),
               step.previousStepId(),
               actionTarget.name());
     }
@@ -391,8 +353,6 @@ public class JourneyContainerService {
             step.name(),
             step.type(),
             step.view(),
-            step.data(),
-            step.rules(),
             null,
             step.target()));
     return new JourneyContainer(

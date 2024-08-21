@@ -41,7 +41,7 @@ public class MethodParametersEditorMetadataBuilder {
         getSections(stepId, uiInstance),
         List.of(),
         getMainActions(stepId, uiInstance),
-        List.of());
+        List.of(), List.of());
   }
 
   private String getSubtitle(Object uiInstance) {

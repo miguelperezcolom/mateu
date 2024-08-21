@@ -26,9 +26,9 @@
         "actions" : [ ],
         "mainActions" : [ ],
         "validations" : [ ],
-        "data" : { },
         "rules" : [ ]
       },
+      "data" : { },
       "id" : "component-0",
       "attributes" : { }
     } ]

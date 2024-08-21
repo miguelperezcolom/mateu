@@ -13,8 +13,8 @@ public class StepperMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Stepper build(
-      String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
-    Stepper stepper = Stepper.builder().dataPrefix(dataPrefix).build();
+      String stepId, Object uiInstance, List<Field> slotFields) {
+    Stepper stepper = Stepper.builder().build();
     return stepper;
   }
 }

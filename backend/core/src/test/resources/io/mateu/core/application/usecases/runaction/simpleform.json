@@ -1,0 +1,28 @@
+{
+  "journeyId" : "----herethejourneyid----",
+  "journeyTypeId" : "____home____",
+  "journeyClass" : "io.mateu.demo.SimpleForm",
+  "journeyData" : { },
+  "journey" : {
+    "type" : "io.mateu.demo.SimpleForm",
+    "status" : "Pending",
+    "statusMessage" : "Please fill the form",
+    "currentStepId" : "form",
+    "currentStepDefinitionId" : "io.mateu.demo.SimpleForm"
+  },
+  "steps" : {
+    "form" : {
+      "id" : "form",
+      "name" : "Simple form",
+      "type" : "io.mateu.demo.SimpleForm",
+      "view" : "----heretheview----",
+      "previousStepId" : null,
+      "target" : null
+    }
+  },
+  "stepHistory" : [ "form" ],
+  "initialStep" : "form",
+  "lastUsedFilters" : { },
+  "lastUsedSorting" : { },
+  "modalMustBeClosed" : false
+}
