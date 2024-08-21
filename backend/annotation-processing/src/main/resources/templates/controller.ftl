@@ -48,15 +48,16 @@ public class ${simpleClassName}MateuController {
         return service.createJourney(uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{actionId}")
+    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
     public Mono<StepWrapper> runStep(@PathVariable String uiId,
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @PathVariable String stepId,
+            @PathVariable String componentId,
             @PathVariable String actionId,
             @RequestBody RunActionRq rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
+        return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, serverHttpRequest);
     }
 
     @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")

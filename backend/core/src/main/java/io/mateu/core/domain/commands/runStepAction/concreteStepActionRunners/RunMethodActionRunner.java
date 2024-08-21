@@ -134,7 +134,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     Method m = getActions(journeyContainer, actualViewInstance).get(actionId);
 
     return runMethod(
-        journeyContainer, actualViewInstance, m, stepId, componentId, actionId, data, serverHttpRequest);
+        journeyContainer,
+        actualViewInstance,
+        m,
+        stepId,
+        componentId,
+        actionId,
+        data,
+        serverHttpRequest);
   }
 
   public Mono<JourneyContainer> runMethod(
@@ -247,12 +254,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             step.name(),
             step.type(),
             new View(
-                List.of(),
-                view.header(),
-                view.left(),
-                view.main(),
-                view.right(),
-                view.footer()),
+                List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
             step.target()));
     journeyContainer =
@@ -334,20 +336,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (method.isAnnotationPresent(Action.class)
         && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
-      return List.of(
-          new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response));
     }
     if (method.isAnnotationPresent(MainAction.class)
         && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
-      return List.of(
-          new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
-      return List.of(
-          new Message(goBack.getResultType(), "", goBack.getMessage()));
+      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage()));
     }
     return List.of();
   }

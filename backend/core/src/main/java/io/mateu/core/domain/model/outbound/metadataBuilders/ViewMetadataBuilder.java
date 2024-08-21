@@ -37,7 +37,8 @@ public class ViewMetadataBuilder {
 
   @Autowired ReflectionHelper reflectionHelper;
 
-  public ViewMetadata getMetadata(String stepId, Object uiInstance, Object model, List<Field> slotFields) {
+  public ViewMetadata getMetadata(
+      String stepId, Object uiInstance, Object model, List<Field> slotFields) {
     ViewMetadata metadata;
 
     if (uiInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
@@ -98,8 +99,7 @@ public class ViewMetadataBuilder {
     return stepperMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
-  private io.mateu.dtos.Card getCard(
-      String stepId, Object uiInstance, List<Field> slotFields) {
+  private io.mateu.dtos.Card getCard(String stepId, Object uiInstance, List<Field> slotFields) {
     return cardMetadataBuilder.build(stepId, uiInstance, slotFields);
   }
 
@@ -175,7 +175,7 @@ public class ViewMetadataBuilder {
             metadata.actions(),
             metadata.mainActions(),
             metadata.validations(),
-                metadata.rules());
+            metadata.rules());
       }
     }
     return metadata;
@@ -212,6 +212,6 @@ public class ViewMetadataBuilder {
                         null)))
             .toList(),
         metadata.validations(),
-            metadata.rules());
+        metadata.rules());
   }
 }

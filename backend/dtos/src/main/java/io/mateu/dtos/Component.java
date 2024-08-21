@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.Map;
 import lombok.*;
 
-public record Component(ViewMetadata metadata, String id, Map<String, Object> attributes, Map<String, Object> data) {
+public record Component(
+    ViewMetadata metadata, String id, Map<String, Object> attributes, Map<String, Object> data) {
 
   public Component {
     attributes = Collections.unmodifiableMap(attributes);
@@ -15,7 +16,6 @@ public record Component(ViewMetadata metadata, String id, Map<String, Object> at
   public Map<String, Object> attributes() {
     return Collections.unmodifiableMap(attributes);
   }
-
 
   @Override
   public Map<String, Object> data() {

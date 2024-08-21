@@ -5,9 +5,7 @@ import java.util.Map;
 import lombok.*;
 
 public record RunActionRq(
-    Map<String, Object> data,
-    Map<String, Object> journey,
-    Map<String, Object> contextData) {
+    Map<String, Object> data, Map<String, Object> journey, Map<String, Object> contextData) {
 
   public RunActionRq {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();

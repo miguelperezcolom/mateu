@@ -9,20 +9,20 @@ import lombok.Getter;
 import lombok.Setter;
 
 @MateuUI("/anothersimpleform")
-@Getter@Setter
+@Getter
+@Setter
 public class AnotherSimpleForm implements Form {
 
-    String name = "Antonia";
+  String name = "Antonia";
 
-    int age = 47;
+  int age = 47;
 
-    @MainAction
-    public Message submit() {
-        // send the email
-        return new Message(
-                ResultType.Success,
-                "Form submitted",
-                "You entered " + name + ", " + age + " before submitting.");
-    }
-
+  @MainAction
+  public Message submit() {
+    // send the email
+    return new Message(
+        ResultType.Success,
+        "Form submitted",
+        "You entered " + name + ", " + age + " before submitting.");
+  }
 }

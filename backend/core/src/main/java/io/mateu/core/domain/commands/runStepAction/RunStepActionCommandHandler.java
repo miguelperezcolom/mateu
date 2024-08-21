@@ -44,7 +44,6 @@ public class RunStepActionCommandHandler {
     JourneyContainer journeyContainer = command.journeyContainer();
     ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
-
     if ("xxxbacktostep".equals(actionId)) {
       return handleBackToStep(journeyContainer, stepId);
     }
@@ -56,12 +55,7 @@ public class RunStepActionCommandHandler {
     var step = journeyContainer.steps().get(stepId);
     step =
         new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            step.view(),
-            step.previousStepId(),
-            step.target());
+            step.id(), step.name(), step.type(), step.view(), step.previousStepId(), step.target());
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(stepId, step);
     journeyContainer =
@@ -83,7 +77,14 @@ public class RunStepActionCommandHandler {
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(journeyContainer, viewInstance, actionId)) {
         return actionRunner
-            .run(journeyContainer, viewInstance, stepId, componentId, actionId, data, serverHttpRequest)
+            .run(
+                journeyContainer,
+                viewInstance,
+                stepId,
+                componentId,
+                actionId,
+                data,
+                serverHttpRequest)
             .map(
                 jc -> {
                   String activeTabId = (String) command.data().get("__activeTabId");
@@ -140,7 +141,7 @@ public class RunStepActionCommandHandler {
                                                         : c.metadata(),
                                                     c.id(),
                                                     c.attributes(),
-                                                        c.data()))
+                                                    c.data()))
                                         .toList()),
                                 view.right(),
                                 view.footer()),
@@ -190,7 +191,8 @@ public class RunStepActionCommandHandler {
     }
   }
 
-  private Mono<JourneyContainer> handleBackToStep(JourneyContainer journeyContainer, String stepId) {
+  private Mono<JourneyContainer> handleBackToStep(
+      JourneyContainer journeyContainer, String stepId) {
     var journey = journeyContainer.journey();
     var stepsToRemove =
         journeyContainer.stepHistory().stream()
@@ -219,8 +221,13 @@ public class RunStepActionCommandHandler {
   }
 
   @SneakyThrows
-  private Object getViewInstance(JourneyContainer journeyContainer, String stepId, String componentId, ServerHttpRequest serverHttpRequest) {
-    var viewInstance = viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
+  private Object getViewInstance(
+      JourneyContainer journeyContainer,
+      String stepId,
+      String componentId,
+      ServerHttpRequest serverHttpRequest) {
+    var viewInstance =
+        viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
     if (!"___self___".equals(componentId)) {
       var field = reflectionHelper.getFieldByName(viewInstance.getClass(), componentId);
       viewInstance = reflectionHelper.getValue(field, viewInstance);
@@ -243,12 +250,7 @@ public class RunStepActionCommandHandler {
             step.name(),
             step.type(),
             new View(
-                List.of(),
-                view.header(),
-                view.left(),
-                view.main(),
-                view.right(),
-                view.footer()),
+                List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
             step.target()));
     return new JourneyContainer(
@@ -264,5 +266,4 @@ public class RunStepActionCommandHandler {
         journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
-
 }

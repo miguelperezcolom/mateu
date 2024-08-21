@@ -8,5 +8,4 @@ import lombok.*;
 public class Stepper implements ViewMetadata {
 
   private final ViewMetadataType type = ViewMetadataType.Stepper;
-
 }

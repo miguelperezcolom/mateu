@@ -229,12 +229,7 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
             step.name(),
             step.type(),
             new View(
-                List.of(),
-                view.header(),
-                view.left(),
-                view.main(),
-                view.right(),
-                view.footer()),
+                List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
             step.target()));
     journeyContainer =
@@ -316,20 +311,17 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
     }
     if (method.isAnnotationPresent(Action.class)
         && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
-      return List.of(
-          new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response));
     }
     if (method.isAnnotationPresent(MainAction.class)
         && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
-      return List.of(
-          new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
-      return List.of(
-          new Message(goBack.getResultType(), "", goBack.getMessage()));
+      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage()));
     }
     return List.of();
   }

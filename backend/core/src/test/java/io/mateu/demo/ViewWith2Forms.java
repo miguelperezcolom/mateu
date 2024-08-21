@@ -9,8 +9,7 @@ import lombok.Setter;
 @Setter
 public class ViewWith2Forms {
 
-    SimpleForm simpleForm;
+  SimpleForm simpleForm;
 
-    AnotherSimpleForm anotherSimpleForm;
-
+  AnotherSimpleForm anotherSimpleForm;
 }

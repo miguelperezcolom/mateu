@@ -18,11 +18,8 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.SneakyThrows;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -103,15 +100,22 @@ public class ViewMapper {
         uiInstanceParts.add(new UIInstancePart(slot, "___self___", actualUiInstance, List.of()));
       }
 
-
       uiInstanceParts.forEach(
           p -> {
             var componentInstance = p.getUiInstance();
             ViewMetadata metadata =
                 viewMetadataBuilder.getMetadata(
                     stepId, uiInstance, componentInstance, p.getFields());
-            var actualComponentInstance = getActualUiInstance(journeyContainer, stepId, componentInstance, serverHttpRequest);
-            componentsPerSlot.get(slot).add(new Component(metadata, p.getComponentId(), Map.of(), dataExtractor.getData(componentInstance, actualComponentInstance)));
+            var actualComponentInstance =
+                getActualUiInstance(journeyContainer, stepId, componentInstance, serverHttpRequest);
+            componentsPerSlot
+                .get(slot)
+                .add(
+                    new Component(
+                        metadata,
+                        p.getComponentId(),
+                        Map.of(),
+                        dataExtractor.getData(componentInstance, actualComponentInstance)));
           });
     }
 
@@ -152,13 +156,19 @@ public class ViewMapper {
     } else if (("view".equals(stepId) || "edit".equals(stepId))
         && journeyContainer.initialStep() != null
         && "io.mateu.domain.uidefinition.ui.cruds.JpaRpcCrudView"
-            .equals(journeyContainer.steps().get(journeyContainer.initialStep()).type())) { // todo: check si es un crud jpa
+            .equals(
+                journeyContainer
+                    .steps()
+                    .get(journeyContainer.initialStep())
+                    .type())) { // todo: check si es un crud jpa
       RpcCrudViewExtended rpcCrudView =
           (RpcCrudViewExtended)
               applicationContext
                   .getBean(JourneyContainerService.class)
                   .getViewInstance(
-                      journeyContainer, journeyContainer.steps().get(journeyContainer.initialStep()).id(), serverHttpRequest);
+                      journeyContainer,
+                      journeyContainer.steps().get(journeyContainer.initialStep()).id(),
+                      serverHttpRequest);
       actualUiInstance =
           entityProvider.find(
               rpcCrudView.getEntityClass(), ((EntityEditor) uiInstance).getData().get("id"));
@@ -213,7 +223,7 @@ public class ViewMapper {
           setIdAndAddRuleForActions(form.actions(), componentId, form.rules()),
           setIdAndAddRuleForActions(form.mainActions(), componentId, form.rules()),
           form.validations(),
-              form.rules());
+          form.rules());
     }
     return metadata;
   }

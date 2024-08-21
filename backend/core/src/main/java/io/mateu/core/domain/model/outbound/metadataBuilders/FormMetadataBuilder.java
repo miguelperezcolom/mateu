@@ -65,8 +65,7 @@ public class FormMetadataBuilder {
         actionMetadataBuilder.getActions(stepId, "", uiInstance),
         getMainActions(stepId, uiInstance),
         List.of(),
-            rulesBuilder.buildRules(uiInstance)
-    );
+        rulesBuilder.buildRules(uiInstance));
   }
 
   private String getIcon(Object uiInstance) {

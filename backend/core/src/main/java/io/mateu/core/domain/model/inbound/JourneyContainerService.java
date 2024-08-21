@@ -108,11 +108,7 @@ public class JourneyContainerService {
     Step oldStep = journeyContainer.steps().get(stepId);
     Step step =
         stepMapper.map(
-            journeyContainer,
-            stepId,
-            oldStep.previousStepId(),
-            editor,
-            serverHttpRequest);
+            journeyContainer, stepId, oldStep.previousStepId(), editor, serverHttpRequest);
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(stepId, step);
     return new JourneyContainer(
@@ -347,13 +343,7 @@ public class JourneyContainerService {
     var step = journeyContainer.steps().get(journeyContainer.journey().currentStepId());
     steps.put(
         journeyContainer.journey().currentStepId(),
-        new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            step.view(),
-            null,
-            step.target()));
+        new Step(step.id(), step.name(), step.type(), step.view(), null, step.target()));
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),

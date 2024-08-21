@@ -8,23 +8,21 @@ import io.mateu.dtos.ResultType;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @MateuUI("/simpleform")
-@Getter@Setter
+@Getter
+@Setter
 public class SimpleForm implements Form {
 
-    String name = "Mateu";
+  String name = "Mateu";
 
-    int age = 16;
+  int age = 16;
 
-    @MainAction
-    public Message submit() {
-        // send the email
-        return new Message(
-                ResultType.Success,
-                "Form submitted",
-                "You entered " + name + ", " + age + " before submitting.");
-    }
-
+  @MainAction
+  public Message submit() {
+    // send the email
+    return new Message(
+        ResultType.Success,
+        "Form submitted",
+        "You entered " + name + ", " + age + " before submitting.");
+  }
 }

@@ -38,7 +38,7 @@ public class UIInstancePartsExtractor {
           if (Crud.class.isAssignableFrom(f.getType())
               || Card.class.isAssignableFrom(f.getType())
               || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
-                  || (Form.class.isAssignableFrom(f.getType()))
+              || (Form.class.isAssignableFrom(f.getType()))
               || formMetadataBuilder.isOwner(f)) {
             partCandidates.add(f);
           } else {
@@ -75,7 +75,8 @@ public class UIInstancePartsExtractor {
         slotName, f.getId(), partInstance, reflectionHelper.getAllFields(partInstance.getClass()));
   }
 
-  private UIInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName) throws Exception {
+  private UIInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName)
+      throws Exception {
     return new UIInstancePart(slotName, "___stepper___", stepper, List.of());
   }
 }

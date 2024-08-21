@@ -2,7 +2,6 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public record Form(
     String dataPrefix,
@@ -18,8 +17,7 @@ public record Form(
     List<Action> actions,
     List<Action> mainActions,
     List<Validation> validations,
-    List<Rule> rules
-    )
+    List<Rule> rules)
     implements ViewMetadata {
 
   public Form {
@@ -31,7 +29,6 @@ public record Form(
     mainActions = Collections.unmodifiableList(mainActions);
     validations = Collections.unmodifiableList(validations);
     rules = Collections.unmodifiableList(rules);
-
   }
 
   @Override
@@ -68,7 +65,6 @@ public record Form(
   public List<Validation> validations() {
     return Collections.unmodifiableList(validations);
   }
-
 
   @Override
   public List<Rule> rules() {
