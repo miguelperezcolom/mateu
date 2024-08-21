@@ -11,6 +11,7 @@ import io.mateu.core.domain.uidefinition.core.interfaces.HasStepper;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Form;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class UIInstancePartsExtractor {
           if (Crud.class.isAssignableFrom(f.getType())
               || Card.class.isAssignableFrom(f.getType())
               || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
+                  || (Form.class.isAssignableFrom(f.getType()))
               || formMetadataBuilder.isOwner(f)) {
             partCandidates.add(f);
           } else {

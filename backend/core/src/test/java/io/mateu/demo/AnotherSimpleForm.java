@@ -8,15 +8,13 @@ import io.mateu.dtos.ResultType;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
-@MateuUI("/simpleform")
+@MateuUI("/anothersimpleform")
 @Getter@Setter
-public class SimpleForm implements Form {
+public class AnotherSimpleForm implements Form {
 
-    String name = "Mateu";
+    String name = "Antonia";
 
-    int age = 16;
+    int age = 47;
 
     @MainAction
     public Message submit() {

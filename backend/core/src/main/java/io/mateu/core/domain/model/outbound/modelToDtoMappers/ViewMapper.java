@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.SneakyThrows;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -72,7 +74,7 @@ public class ViewMapper {
       throws Throwable {
     // mddopencrudaction, crud class
 
-    Object actualUiInstance =
+    var actualUiInstance =
         getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
 
     // todo: build left, main and right in a separate manner
@@ -104,10 +106,12 @@ public class ViewMapper {
 
       uiInstanceParts.forEach(
           p -> {
+            var componentInstance = p.getUiInstance();
             ViewMetadata metadata =
                 viewMetadataBuilder.getMetadata(
-                    stepId, uiInstance, p.getUiInstance(), p.getFields());
-            componentsPerSlot.get(slot).add(new Component(metadata, p.getComponentId(), Map.of(), dataExtractor.getData(uiInstance, actualUiInstance)));
+                    stepId, uiInstance, componentInstance, p.getFields());
+            var actualComponentInstance = getActualUiInstance(journeyContainer, stepId, componentInstance, serverHttpRequest);
+            componentsPerSlot.get(slot).add(new Component(metadata, p.getComponentId(), Map.of(), dataExtractor.getData(componentInstance, actualComponentInstance)));
           });
     }
 
@@ -120,12 +124,12 @@ public class ViewMapper {
         new ViewPart(null, footer));
   }
 
+  @SneakyThrows
   private Object getActualUiInstance(
       JourneyContainer journeyContainer,
       String stepId,
       Object uiInstance,
-      ServerHttpRequest serverHttpRequest)
-      throws Exception {
+      ServerHttpRequest serverHttpRequest) {
     Object actualUiInstance = uiInstance;
     if (uiInstance instanceof EntityEditor) {
       EntityEditor entityEditor = (EntityEditor) uiInstance;
