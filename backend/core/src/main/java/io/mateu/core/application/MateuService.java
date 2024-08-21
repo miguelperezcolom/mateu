@@ -93,12 +93,13 @@ public class MateuService {
       String journeyTypeId,
       String journeyId,
       String stepId,
+      String componentId,
       String actionId,
       RunActionRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return runStepUseCase.runStep(
-        journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
+        journeyTypeId, journeyId, stepId, actionId, componentId, rq, serverHttpRequest);
   }
 
   public Mono<Page> getListRows(

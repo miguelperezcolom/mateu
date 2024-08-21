@@ -33,6 +33,7 @@ public class FieldEditorActionRunner implements ActionRunner {
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)

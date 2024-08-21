@@ -1,6 +1,12 @@
 export enum ActionTarget {
-    SameLane = "SameLane", NewModal = "NewModal",
+    View = "View", NewModal = "NewModal",
         NewTab = "NewTab", NewWindow = "NewWindow",
     Deferred = "Deferred", DeferredNewTab = "DeferredNewTab", DeferredNewWindow = "DeferredNewWindow",
-    Left = "Left", Right = "Right"
+    LeftDrawer = "LeftDrawer", RightDrawer = "RightDrawer",
+    SameComponent = "SameComponent",
+    Header = "Header",
+    Footer = "Footer",
+    Main = "Main",
+    Left = "Left",
+    Right = "Right"
 }

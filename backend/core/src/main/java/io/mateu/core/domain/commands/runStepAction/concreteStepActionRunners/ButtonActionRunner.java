@@ -121,6 +121,7 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
@@ -377,7 +378,7 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
   }
 
   private ActionTarget getTarget(Field m) {
-    var target = ActionTarget.SameLane;
+    var target = ActionTarget.View;
     if (m.isAnnotationPresent(Action.class)) {
       target = m.getAnnotation(Action.class).target();
     }

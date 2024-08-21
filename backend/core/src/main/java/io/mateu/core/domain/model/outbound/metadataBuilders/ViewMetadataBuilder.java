@@ -206,7 +206,7 @@ public class ViewMetadataBuilder {
                         false,
                         false,
                         null,
-                        ActionTarget.SameLane,
+                        ActionTarget.View,
                         null,
                         null,
                         null)))

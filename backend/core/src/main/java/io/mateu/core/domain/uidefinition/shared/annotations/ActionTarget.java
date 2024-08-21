@@ -1,7 +1,7 @@
 package io.mateu.core.domain.uidefinition.shared.annotations;
 
 public enum ActionTarget {
-  SameLane,
+  View,
   Message,
   NewModal,
   NewTab,

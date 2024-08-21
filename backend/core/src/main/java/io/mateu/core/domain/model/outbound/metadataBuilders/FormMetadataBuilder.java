@@ -259,7 +259,7 @@ public class FormMetadataBuilder {
               false,
               false,
               null,
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
               null);
@@ -274,7 +274,7 @@ public class FormMetadataBuilder {
               false,
               false,
               null,
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
               null);

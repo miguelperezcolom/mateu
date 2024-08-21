@@ -3,7 +3,6 @@ package io.mateu.core.domain.model.inbound;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.inbound.services.ViewInstanceProvider;
@@ -161,7 +160,7 @@ public class JourneyContainerService {
       Object editor,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    return setStep(journeyContainer, stepId, editor, serverHttpRequest, ActionTarget.SameLane);
+    return setStep(journeyContainer, stepId, editor, serverHttpRequest, ActionTarget.View);
   }
 
   public JourneyContainer setStep(

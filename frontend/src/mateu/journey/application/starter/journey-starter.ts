@@ -141,7 +141,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 overlay?.setAttribute('class', '')
                 overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
             });
-        } else if (action && ActionTarget.Left == action.target) {
+        } else if (action && ActionTarget.LeftDrawer == action.target) {
             // crear modal y meter un journey-starter dentro
             this.modalOpened = true
             this.modalStepId = this.stepId

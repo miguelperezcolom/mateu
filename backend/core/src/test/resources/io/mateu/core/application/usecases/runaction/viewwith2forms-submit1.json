@@ -1,0 +1,28 @@
+{
+  "journeyId" : "----herethejourneyid----",
+  "journeyTypeId" : "____home____",
+  "journeyClass" : "io.mateu.demo.ViewWith2Forms",
+  "journeyData" : { },
+  "journey" : {
+    "type" : "io.mateu.demo.ViewWith2Forms",
+    "status" : "Pending",
+    "statusMessage" : "Please fill the form",
+    "currentStepId" : "form",
+    "currentStepDefinitionId" : "io.mateu.demo.ViewWith2Forms"
+  },
+  "steps" : {
+    "form" : {
+      "id" : "form",
+      "name" : "View with 2 forms",
+      "type" : "io.mateu.demo.ViewWith2Forms",
+      "view" : "----heretheview----",
+      "previousStepId" : null,
+      "target" : null
+    }
+  },
+  "stepHistory" : [ "form" ],
+  "initialStep" : "form",
+  "lastUsedFilters" : { },
+  "lastUsedSorting" : { },
+  "modalMustBeClosed" : false
+}

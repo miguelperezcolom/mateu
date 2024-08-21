@@ -81,7 +81,7 @@
             "message" : "",
             "action" : "Submit"
           },
-          "target" : "SameLane",
+          "target" : "View",
           "modalStyle" : "",
           "customEvent" : "",
           "href" : ""

@@ -30,6 +30,7 @@ public class RunStepUseCase {
       String journeyTypeId,
       String journeyId,
       String stepId,
+      String componentId,
       String actionId,
       RunActionRq rq,
       ServerHttpRequest serverHttpRequest)
@@ -43,6 +44,7 @@ public class RunStepUseCase {
                 journeyTypeId,
                 journeyId,
                 stepId,
+                componentId,
                 actionId,
                 rq.data(),
                 journeyContainer,

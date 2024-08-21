@@ -2,7 +2,7 @@
   "messages" : [ {
     "type" : "Success",
     "title" : "Form submitted",
-    "text" : "You entered Antonia, 47 before submitting."
+    "text" : "You entered Miguel, 55 before submitting."
   } ],
   "header" : {
     "classes" : null,
@@ -26,7 +26,6 @@
         "badges" : [ ],
         "tabs" : [ ],
         "banners" : [ ],
-        "rules" : [ ],
         "sections" : [ {
           "id" : "section_0",
           "tabId" : "",
@@ -90,9 +89,94 @@
           "customEvent" : "",
           "href" : ""
         } ],
-        "validations" : [ ]
+        "validations" : [ ],
+        "rules" : [ ]
       },
-      "id" : "___self___",
+      "id" : "simpleForm",
+      "attributes" : { },
+      "data" : {
+        "name" : "Mateu",
+        "age" : 16
+      }
+    }, {
+      "metadata" : {
+        "type" : "Form",
+        "dataPrefix" : "",
+        "icon" : null,
+        "title" : "Another simple form",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ {
+          "id" : "section_0",
+          "tabId" : "",
+          "caption" : "",
+          "description" : "",
+          "readOnly" : false,
+          "type" : "Card",
+          "leftSideImageUrl" : "",
+          "topImageUrl" : "",
+          "actions" : [ ],
+          "fieldGroups" : [ {
+            "id" : "fieldgroup_1_0",
+            "caption" : "",
+            "lines" : [ {
+              "fields" : [ {
+                "id" : "name",
+                "type" : "string",
+                "stereotype" : "input",
+                "observed" : false,
+                "caption" : "Name",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            }, {
+              "fields" : [ {
+                "id" : "age",
+                "type" : "int",
+                "stereotype" : "input",
+                "observed" : false,
+                "caption" : "Age",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            } ]
+          } ]
+        } ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "submit",
+          "caption" : "Submit",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : {
+            "title" : "Please confirm",
+            "message" : "",
+            "action" : "Submit"
+          },
+          "target" : "View",
+          "modalStyle" : "",
+          "customEvent" : "",
+          "href" : ""
+        } ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "anotherSimpleForm",
       "attributes" : { },
       "data" : {
         "name" : "Antonia",

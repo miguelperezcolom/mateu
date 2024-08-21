@@ -34,6 +34,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
@@ -46,7 +47,7 @@ public class ObjectEditorEditActionRunner implements ActionRunner {
             "edit",
             getEditor((ObjectEditor) viewInstance),
             serverHttpRequest,
-            ActionTarget.SameLane);
+            ActionTarget.View);
     return Mono.just(journeyContainer);
   }
 

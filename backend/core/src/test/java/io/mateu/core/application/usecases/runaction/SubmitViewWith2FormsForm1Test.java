@@ -1,11 +1,12 @@
-package io.mateu.core.application.usecases.createjourney;
+package io.mateu.core.application.usecases.runaction;
 
-import io.mateu.core.application.usecases.CreateJourneyUseCase;
+import io.mateu.core.application.usecases.RunStepUseCase;
+import io.mateu.core.application.usecases.createjourney.CreateSimpleFormHomeJourneyTest;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.demo.SimpleForm;
 import io.mateu.demo.ViewWith2Forms;
 import io.mateu.dtos.Journey;
-import io.mateu.dtos.JourneyCreationRq;
+import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.Step;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -23,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest
-public class CreateViewWith2FromsHomeJourneyTest {
+public class SubmitViewWith2FormsForm1Test {
 
     @Autowired
-    CreateJourneyUseCase createJourneyUseCase;
+    RunStepUseCase runStepUseCase;
     @Autowired
     Serializer serializer;
 
@@ -34,16 +35,20 @@ public class CreateViewWith2FromsHomeJourneyTest {
     @Test
     void journeyIsCreated() throws Throwable {
         // given
-        var uiId = ViewWith2Forms.class.getName();
+        var uiId = SimpleForm.class.getName();
         var journeyTypeId = "____home____";
         var journeyId = UUID.randomUUID().toString();
-        var journeyCreationRq = new JourneyCreationRq(Map.of());
+        var actionId = "submit";
+        var journey = createJourney(journeyId);
+        var runActionRq = new RunActionRq(Map.of("name", "Miguel", "age", 55), journey, Map.of());
         var serverHttpRequest = mock(ServerHttpRequest.class);
-        var mono = createJourneyUseCase.createJourney(
-                uiId,
+        var mono = runStepUseCase.runStep(
                 journeyTypeId,
                 journeyId,
-                journeyCreationRq,
+                "form",
+                "simpleForm",
+                actionId,
+                runActionRq,
                 serverHttpRequest
         );
 
@@ -56,6 +61,17 @@ public class CreateViewWith2FromsHomeJourneyTest {
         assertJourney(stepWrapper.journey());
         assertStore(stepWrapper.store(), journeyId);
         assertStep(stepWrapper.step());
+    }
+
+    @SneakyThrows
+    private Map<String, Object> createJourney(String journeyId) {
+        var viewJson = new String(CreateSimpleFormHomeJourneyTest.class.getResourceAsStream("viewwith2forms-view.json").readAllBytes(),
+                StandardCharsets.UTF_8);
+        var json = new String(CreateSimpleFormHomeJourneyTest.class.getResourceAsStream("viewwith2forms.json").readAllBytes(),
+                StandardCharsets.UTF_8)
+                .replaceAll("----herethejourneyid----", journeyId)
+                .replaceAll("\"----heretheview----\"", viewJson);
+        return serializer.fromJson(json);
     }
 
     private void assertJourney(Journey journey) {
@@ -86,9 +102,9 @@ public class CreateViewWith2FromsHomeJourneyTest {
         assertEquals("form", step.id());
         assertEquals(ViewWith2Forms.class.getName(), step.type());
         assertNull(step.previousStepId());
-        assertEquals("View with 2 forms", step.name());
+        assertEquals("Simple form", step.name());
         assertNull(step.target());
-        var viewJson = new String(getClass().getResourceAsStream("viewwith2forms-submit1-view.json").readAllBytes(),
+        var viewJson = new String(getClass().getResourceAsStream("simpleform-view.json").readAllBytes(),
                 StandardCharsets.UTF_8);
         JSONAssert.assertEquals(
                 viewJson, serializer.toJson(step.view()), JSONCompareMode.STRICT);

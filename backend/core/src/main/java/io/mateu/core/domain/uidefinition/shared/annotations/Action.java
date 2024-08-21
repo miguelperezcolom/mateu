@@ -30,7 +30,7 @@ public @interface Action {
 
   boolean visible() default true;
 
-  ActionTarget target() default ActionTarget.SameLane;
+  ActionTarget target() default ActionTarget.View;
 
   String modalStyle() default "";
 

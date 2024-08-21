@@ -66,7 +66,7 @@ public class ActionMetadataBuilder {
 
   private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(
       Method m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
+    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       target =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
@@ -255,7 +255,7 @@ public class ActionMetadataBuilder {
               false,
               false,
               null,
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
               null);
@@ -275,7 +275,7 @@ public class ActionMetadataBuilder {
                   "Please confirm",
                   "Are you sure you want to delete the selected rows",
                   "Yes, delete them"),
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
               null);
@@ -294,7 +294,7 @@ public class ActionMetadataBuilder {
               false,
               false,
               null,
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
               null);

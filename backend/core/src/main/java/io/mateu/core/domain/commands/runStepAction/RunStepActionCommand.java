@@ -9,6 +9,7 @@ public record RunStepActionCommand(
     String journeyTypeId,
     String journeyId,
     String stepId,
+    String componentId,
     String actionId,
     Map<String, Object> data,
     JourneyContainer journeyContainer,

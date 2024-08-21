@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class RunStepActionCommandHandler {
   public Mono<JourneyContainer> handle(RunStepActionCommand command) throws Throwable {
     String journeyId = command.journeyId();
     String stepId = command.stepId();
+    String componentId = command.componentId();
     String actionId = command.actionId();
     Map<String, Object> data = command.data();
     JourneyContainer journeyContainer = command.journeyContainer();
@@ -44,53 +46,12 @@ public class RunStepActionCommandHandler {
 
 
     if ("xxxbacktostep".equals(actionId)) {
-      var journey = journeyContainer.journey();
-      var stepsToRemove =
-          journeyContainer.stepHistory().stream()
-              .skip(journeyContainer.stepHistory().indexOf(stepId) + 1)
-              .toList();
-      journeyContainer =
-          new JourneyContainer(
-              journeyContainer.journeyId(),
-              journeyContainer.journeyTypeId(),
-              journeyContainer.journeyClass(),
-              journeyContainer.journeyData(),
-              new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
-              journeyContainer.steps().entrySet().stream()
-                  .filter(e -> !stepsToRemove.contains(e.getKey()))
-                  .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
-              journeyContainer.stepHistory().stream()
-                  .filter(v -> !stepsToRemove.contains(v))
-                  .toList(),
-              journeyContainer.initialStep(),
-              journeyContainer.lastUsedFilters(),
-              journeyContainer.lastUsedSorting(),
-              true);
-      journeyContainer = resetMessages(journeyContainer);
-
-      return Mono.just(journeyContainer);
+      return handleBackToStep(journeyContainer, stepId);
     }
 
-    Object viewInstance = viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
+    Object viewInstance = getViewInstance(journeyContainer, stepId, componentId, serverHttpRequest);
 
-    if (viewInstance instanceof FieldEditor) {
-      // no need to fill the fieldEditor
-    } else if (viewInstance instanceof ObjectEditor) {
-      // no need to fill the entityEditor
-    } else if (viewInstance instanceof EntityEditor) {
-      // no need to fill the entityEditor
-    } else {
-      data.entrySet()
-          .forEach(
-              entry -> {
-                try {
-                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
-                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
-                } catch (Exception ex) {
-                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                }
-              });
-    }
+    fillViewInstanceWithData(viewInstance, data);
 
     var step = journeyContainer.steps().get(stepId);
     step =
@@ -119,17 +80,10 @@ public class RunStepActionCommandHandler {
             journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
 
-    // todo: look for the target object
-    String componentId = "component-0";
-    if (actionId.contains("___")) {
-      componentId = actionId.substring(0, actionId.indexOf("___"));
-      actionId = actionId.substring(componentId.length() + "___".length());
-    }
-
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(journeyContainer, viewInstance, actionId)) {
         return actionRunner
-            .run(journeyContainer, viewInstance, stepId, actionId, data, serverHttpRequest)
+            .run(journeyContainer, viewInstance, stepId, componentId, actionId, data, serverHttpRequest)
             .map(
                 jc -> {
                   String activeTabId = (String) command.data().get("__activeTabId");
@@ -213,6 +167,68 @@ public class RunStepActionCommandHandler {
     }
 
     throw new Exception("Unknown action " + actionId);
+  }
+
+  private void fillViewInstanceWithData(Object viewInstance, Map<String, Object> data) {
+    if (viewInstance instanceof FieldEditor) {
+      // no need to fill the fieldEditor
+    } else if (viewInstance instanceof ObjectEditor) {
+      // no need to fill the entityEditor
+    } else if (viewInstance instanceof EntityEditor) {
+      // no need to fill the entityEditor
+    } else {
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, viewInstance);
+                  reflectionHelper.setValue(entry.getKey(), viewInstance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
+    }
+  }
+
+  private Mono<JourneyContainer> handleBackToStep(JourneyContainer journeyContainer, String stepId) {
+    var journey = journeyContainer.journey();
+    var stepsToRemove =
+        journeyContainer.stepHistory().stream()
+            .skip(journeyContainer.stepHistory().indexOf(stepId) + 1)
+            .toList();
+    journeyContainer =
+        new JourneyContainer(
+            journeyContainer.journeyId(),
+            journeyContainer.journeyTypeId(),
+            journeyContainer.journeyClass(),
+            journeyContainer.journeyData(),
+            new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
+            journeyContainer.steps().entrySet().stream()
+                .filter(e -> !stepsToRemove.contains(e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
+            journeyContainer.stepHistory().stream()
+                .filter(v -> !stepsToRemove.contains(v))
+                .toList(),
+            journeyContainer.initialStep(),
+            journeyContainer.lastUsedFilters(),
+            journeyContainer.lastUsedSorting(),
+            true);
+    journeyContainer = resetMessages(journeyContainer);
+
+    return Mono.just(journeyContainer);
+  }
+
+  @SneakyThrows
+  private Object getViewInstance(JourneyContainer journeyContainer, String stepId, String componentId, ServerHttpRequest serverHttpRequest) {
+    var viewInstance = viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
+    if (!"___self___".equals(componentId)) {
+      var field = reflectionHelper.getFieldByName(viewInstance.getClass(), componentId);
+      viewInstance = reflectionHelper.getValue(field, viewInstance);
+      if (viewInstance == null) {
+        viewInstance = reflectionHelper.newInstance(field.getType());
+      }
+    }
+    return viewInstance;
   }
 
   private JourneyContainer resetMessages(JourneyContainer journeyContainer) {

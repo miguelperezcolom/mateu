@@ -119,6 +119,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
@@ -133,7 +134,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     Method m = getActions(journeyContainer, actualViewInstance).get(actionId);
 
     return runMethod(
-        journeyContainer, actualViewInstance, m, stepId, actionId, data, serverHttpRequest);
+        journeyContainer, actualViewInstance, m, stepId, componentId, actionId, data, serverHttpRequest);
   }
 
   public Mono<JourneyContainer> runMethod(
@@ -141,6 +142,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object actualViewInstance,
       Method m,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
@@ -394,7 +396,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private ActionTarget getTarget(Method m) {
-    var target = ActionTarget.SameLane;
+    var target = ActionTarget.View;
     if (m.isAnnotationPresent(Action.class)) {
       target = m.getAnnotation(Action.class).target();
     }

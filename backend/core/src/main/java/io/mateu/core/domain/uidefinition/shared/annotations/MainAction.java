@@ -28,7 +28,7 @@ public @interface MainAction {
 
   ActionType type() default ActionType.Primary;
 
-  ActionTarget target() default ActionTarget.SameLane;
+  ActionTarget target() default ActionTarget.View;
 
   String modalStyle() default "";
 

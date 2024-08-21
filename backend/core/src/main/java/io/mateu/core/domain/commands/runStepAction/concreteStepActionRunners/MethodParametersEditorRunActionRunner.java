@@ -42,6 +42,7 @@ public class MethodParametersEditorRunActionRunner extends AbstractActionRunner
       JourneyContainer journeyContainer,
       Object viewInstance,
       String stepId,
+      String componentId,
       String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)

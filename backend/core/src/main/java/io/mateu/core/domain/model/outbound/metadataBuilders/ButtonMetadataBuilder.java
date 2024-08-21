@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.ActionTarget;
@@ -53,7 +52,7 @@ public class ButtonMetadataBuilder {
   }
 
   private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(Field m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
+    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(Button.class)) {
       target = m.getAnnotation(Button.class).target();
     }

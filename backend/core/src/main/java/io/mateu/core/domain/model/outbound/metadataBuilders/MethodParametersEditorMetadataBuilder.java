@@ -60,7 +60,7 @@ public class MethodParametersEditorMetadataBuilder {
             false,
             false,
             null,
-            ActionTarget.SameLane,
+            ActionTarget.View,
             null,
             null,
             null);
