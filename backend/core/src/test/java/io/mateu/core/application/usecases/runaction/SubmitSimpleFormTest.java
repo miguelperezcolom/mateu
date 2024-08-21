@@ -41,14 +41,14 @@ public class SubmitSimpleFormTest {
         var journeyId = UUID.randomUUID().toString();
         var actionId = "submit";
         var journey = createJourney(journeyId);
-        var journeyCreationRq = new RunActionRq(Map.of(), journey, Map.of());
+        var runActionRq = new RunActionRq(Map.of("name", "Antonia", "age", 47), journey, Map.of());
         var serverHttpRequest = mock(ServerHttpRequest.class);
         var mono = runStepUseCase.runStep(
                 journeyTypeId,
                 journeyId,
                 "form",
                 actionId,
-                journeyCreationRq,
+                runActionRq,
                 serverHttpRequest
         );
 
