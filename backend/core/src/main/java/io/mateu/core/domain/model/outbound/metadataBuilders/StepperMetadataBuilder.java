@@ -9,11 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StepperMetadataBuilder {
 
-  @Autowired FieldMetadataBuilder fieldMetadataBuilder;
-
-  // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Stepper build(String stepId, Object uiInstance, List<Field> slotFields) {
-    Stepper stepper = Stepper.builder().build();
-    return stepper;
+  public Stepper build() {
+    return new Stepper();
   }
 }

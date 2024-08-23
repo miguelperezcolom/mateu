@@ -3,14 +3,19 @@ package io.mateu.dtos;
 import java.util.Collections;
 import java.util.List;
 
-public record ViewPart(String classes, List<Component> components) {
+/**
+ * A view part. E.g. header, footer, main, and left/right asides
+ *
+ * @param classes Css classes to be applied to this view part
+ * @param componentIds List of component ids for this view part
+ */
+public record ViewPart(String classes, List<String> componentIds) {
 
   public ViewPart {
-    components = Collections.unmodifiableList(components);
+    componentIds = Collections.unmodifiableList(componentIds);
   }
 
-  @Override
-  public List<Component> components() {
-    return Collections.unmodifiableList(components);
+  public List<String> componentIds() {
+    return Collections.unmodifiableList(componentIds);
   }
 }

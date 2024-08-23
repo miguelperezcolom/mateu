@@ -26,6 +26,7 @@ public class ButtonMetadataBuilder {
     Action action =
         new Action(
             m.getName(),
+            null,
             captionProvider.getCaption(m),
             getActionType(m),
             isVisible(m),

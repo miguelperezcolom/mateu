@@ -1,24 +1,17 @@
 package io.mateu.dtos;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import lombok.*;
 
-public record Component(
-    ViewMetadata metadata, String id, Map<String, Object> attributes, Map<String, Object> data) {
+/**
+ * A common interface for componentIds
+ */
+public interface Component {
 
-  public Component {
-    attributes = Collections.unmodifiableMap(attributes);
-    data = Collections.unmodifiableMap(data);
-  }
+    ComponentMetadata metadata();
+    String id();
+    Map<String, Object> attributes();
+    Map<String, Object> data();
+    List<String> childComponentIds();
 
-  @Override
-  public Map<String, Object> attributes() {
-    return Collections.unmodifiableMap(attributes);
-  }
-
-  @Override
-  public Map<String, Object> data() {
-    return Collections.unmodifiableMap(data);
-  }
 }

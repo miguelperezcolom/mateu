@@ -10,13 +10,13 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class UIInstancePart {
+public class ViewInstancePart {
 
   private SlotName slotName;
 
-  private String componentId;
-
   private Object uiInstance;
+
+  private Field field;
 
   private List<Field> fields;
 }

@@ -9,6 +9,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Card;
+import io.mateu.dtos.CardLayout;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
@@ -32,12 +33,15 @@ public class CardMetadataBuilder {
   public Card build(String stepId, Object uiInstance, List<Field> slotFields) {
     Card card =
         new Card(
+                CardLayout.Layout1,
             captionProvider.getCaption(uiInstance),
             getSubtitle(uiInstance),
             getInfo(uiInstance),
             getIcon(uiInstance),
             getTotal(uiInstance),
-            getFieldGroups(stepId, uiInstance, slotFields));
+            List.of(), //todo: create actions
+                List.of() //todo: create actions
+        );
     return card;
   }
 

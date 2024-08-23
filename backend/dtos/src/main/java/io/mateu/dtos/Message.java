@@ -1,19 +1,15 @@
 package io.mateu.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class Message {
-
-  ResultType type;
-
-  String title;
-
-  String text;
+/**
+ * A message to be shown to the user
+ *
+ * @param type Message type: error, info, warning, ...
+ * @param title The message title
+ * @param text The message text
+ */
+public record Message(
+        ResultType type,
+        String title,
+        String text
+) {
 }

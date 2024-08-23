@@ -100,16 +100,17 @@ export class JourneyStarter extends LitElement {
 
     backMustBeShown() {
         if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
-            if ((this.step.view.main.components[0].metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
+            const form = this.step.view.main.components[0]
+            if ((form.metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
                 return false
             }
-            if (this.step?.data?.__index) {
+            if (form.data?.__index) {
                 return true
             }
             // @ts-ignore
-            if (!this.step.view.main.components[0].metadata.nowTo
+            if (!form.metadata.nowTo
                 // @ts-ignore
-                || this.step?.previousStepId != this.step.view.main.components[0].metadata.nowTo.value) {
+                || this.step?.previousStepId != form.metadata.nowTo.value) {
                 return true
             }
         }

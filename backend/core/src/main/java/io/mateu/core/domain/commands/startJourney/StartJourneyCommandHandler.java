@@ -91,14 +91,10 @@ public class StartJourneyCommandHandler {
         new JourneyContainer(
             journeyId,
             journeyTypeId,
-            formInstance.getClass(),
-            journeyCreationRq.contextData(),
             journey,
             Map.of(),
             List.of(),
             null,
-            Map.of(),
-            Map.of(),
             false);
 
     Step step =
@@ -112,14 +108,10 @@ public class StartJourneyCommandHandler {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             journey,
             Map.of(step.id(), step),
             List.of(step.id()),
             step.id(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             false);
 
     return Mono.just(

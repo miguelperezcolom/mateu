@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PriceSelectionSummary extends InsuredInformationSummary
-    implements Card, HasIcon, HasTitle, HasTotal {
+    implements HasIcon, HasTitle, HasTotal {
 
   private String carrier = "AXA";
 

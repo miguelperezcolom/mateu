@@ -21,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 @SpringBootTest
-public class CreateViewWith2FromsHomeJourneyTest {
+public class CreateViewWith2FormsHomeJourneyTest {
 
   @Autowired CreateJourneyUseCase createJourneyUseCase;
   @Autowired Serializer serializer;

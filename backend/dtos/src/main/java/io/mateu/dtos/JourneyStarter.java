@@ -1,16 +1,14 @@
 package io.mateu.dtos;
 
-import lombok.*;
+/**
+ * Metadata for building a journey starter
+ *
+ * @param baseUrl The base url for the api
+ * @param journeyTypeId The journey type id
+ */
+public record JourneyStarter(
+        String baseUrl,
+        String journeyTypeId
+) implements ComponentMetadata {
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class JourneyStarter implements ViewMetadata {
-
-  private final ViewMetadataType type = ViewMetadataType.JourneyStarter;
-
-  private String dataPrefix;
-  private String baseUrl;
-  private String journeyType;
 }

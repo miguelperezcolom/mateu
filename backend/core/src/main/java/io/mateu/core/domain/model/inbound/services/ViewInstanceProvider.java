@@ -46,13 +46,13 @@ public class ViewInstanceProvider {
     Stream.concat(
             Stream.concat(
                 Stream.concat(
-                    step.view().header().components().stream(),
-                    step.view().left().components().stream()),
+                    step.view().header().componentIds().stream(),
+                    step.view().left().componentIds().stream()),
                 Stream.concat(
-                    step.view().main().components().stream(),
-                    step.view().right().components().stream())),
-            step.view().footer().components().stream())
-        .map(c -> new Object[] {c.data(), getViewPart(viewInstance, c)})
+                    step.view().main().componentIds().stream(),
+                    step.view().right().componentIds().stream())),
+            step.view().footer().componentIds().stream())
+        .map(c -> new Object[] {step.components().get(c), getViewPart(viewInstance, step.components().get(c))})
         .forEach(p -> applyData((Map<String, Object>) p[0], p[1]));
   }
 

@@ -33,6 +33,7 @@ public class ActionMetadataBuilder {
     Action action =
         new Action(
             m.getName(),
+            null,
             captionProvider.getCaption(m),
             getActionType(m),
             isVisible(m),
@@ -232,6 +233,7 @@ public class ActionMetadataBuilder {
                   a ->
                       new Action(
                           "__list__" + listId + "__" + a.id(),
+                          null,
                           a.caption(),
                           a.type(),
                           a.visible(),
@@ -248,6 +250,7 @@ public class ActionMetadataBuilder {
       Action action =
           new Action(
               "__list__" + listId + "__new",
+              null,
               getCaptionForNew(uiInstance),
               ActionType.Primary,
               true,
@@ -265,6 +268,7 @@ public class ActionMetadataBuilder {
       Action action =
           new Action(
               "__list__" + listId + "__delete",
+              null,
               getCaptionForDelete(uiInstance),
               ActionType.Primary,
               true,
@@ -287,6 +291,7 @@ public class ActionMetadataBuilder {
       Action action =
           new Action(
               "edit",
+              null,
               getCaptionForEdit(uiInstance),
               ActionType.Primary,
               true,

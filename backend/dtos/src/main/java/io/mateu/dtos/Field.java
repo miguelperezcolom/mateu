@@ -3,6 +3,21 @@ package io.mateu.dtos;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A field in a form
+ *
+ * @param id Field id
+ * @param type Field data type
+ * @param stereotype Field stereotype (how it is painted)
+ * @param observed If a change must trigger a rules reevaluation
+ * @param caption The caption/label for this field
+ * @param placeholder A placeholder for this field
+ * @param cssClasses Css classes to be applied to this field
+ * @param description A help text to be used as tooltip
+ * @param badges Badges which must appear close to this field
+ * @param validations This fields validations
+ * @param attributes Some generic attributes
+ */
 public record Field(
     String id,
     String type,

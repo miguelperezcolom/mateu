@@ -1,7 +1,25 @@
 package io.mateu.dtos;
 
+/**
+ * A button
+ *
+ * @param id This action id
+ * @param icon Icon to be used
+ * @param caption Button text
+ * @param type Action type: primary, secondary
+ * @param visible If this button is visible
+ * @param validationRequired If validation of the form is required for firing this action
+ * @param confirmationRequired If confirmation of the form is required for firing this action
+ * @param rowsSelectedRequired If rows selected from the crud is required for firing this action
+ * @param confirmationTexts Confirmation dialog text
+ * @param target Target for this action: modal, new tab, ...
+ * @param modalStyle The value for the dialog style attribute
+ * @param customEvent In case a browser custom event is to be thrown
+ * @param href The location to go to, in case we want this to act as a link
+ */
 public record Action(
     String id,
+    String icon,
     String caption,
     ActionType type,
     boolean visible,

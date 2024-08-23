@@ -21,15 +21,15 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class UIInstancePartsExtractor {
+public class ViewInstancePartsExtractor {
 
   final FormMetadataBuilder formMetadataBuilder;
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
 
-  public List<UIInstancePart> getUiParts(Object uiInstance, List<Field> fields, SlotName slotName)
+  public List<ViewInstancePart> getUiParts(Object viewInstance, List<Field> fields, SlotName slotName)
       throws Exception {
-    List<UIInstancePart> parts = new ArrayList<>();
+    List<ViewInstancePart> parts = new ArrayList<>();
 
     List<Field> partCandidates = new ArrayList<>();
     List<Field> leftFields = new ArrayList<>();
@@ -47,20 +47,20 @@ public class UIInstancePartsExtractor {
         });
 
     for (Field f : partCandidates) {
-      parts.add(buildPart(f, uiInstance, slotName));
+      parts.add(buildPart(f, viewInstance, slotName));
     }
     if (leftFields.size() > 0) {
-      parts.add(0, new UIInstancePart(slotName, "___self___", uiInstance, leftFields));
+      parts.add(0, new ViewInstancePart(slotName, viewInstance, null, leftFields));
     }
 
-    if (uiInstance instanceof HasStepper && SlotName.main.equals(slotName)) {
-      parts.add(0, buildPart(((HasStepper) uiInstance).getStepper(), uiInstance, slotName));
+    if (viewInstance instanceof HasStepper && SlotName.main.equals(slotName)) {
+      parts.add(0, buildPart(((HasStepper) viewInstance).getStepper(), viewInstance, slotName));
     }
 
     return parts;
   }
 
-  private UIInstancePart buildPart(Field f, Object uiInstance, SlotName slotName) throws Exception {
+  private ViewInstancePart buildPart(Field f, Object uiInstance, SlotName slotName) throws Exception {
     Object partInstance = reflectionHelper.getValue(f, uiInstance);
     if (formMetadataBuilder.isOwner(f)) {
       partInstance = jpaRpcCrudFactory.create(uiInstance, f);
@@ -71,12 +71,12 @@ public class UIInstancePartsExtractor {
     if (partInstance instanceof Crud) {
       partInstance = new RpcViewWrapper((Listing) partInstance, f.getId());
     }
-    return new UIInstancePart(
-        slotName, f.getId(), partInstance, reflectionHelper.getAllFields(partInstance.getClass()));
+    return new ViewInstancePart(
+        slotName, partInstance, f, reflectionHelper.getAllFields(partInstance.getClass()));
   }
 
-  private UIInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName)
+  private ViewInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName)
       throws Exception {
-    return new UIInstancePart(slotName, "___stepper___", stepper, List.of());
+    return new ViewInstancePart(slotName, stepper, null, List.of());
   }
 }

@@ -1,9 +1,15 @@
 package io.mateu.dtos;
 
+/**
+ * Badge theme
+ */
 public enum BannerTheme {
+  NONE,
+  INFO,
   SUCCESS,
   WARNING,
-  ERROR,
-  INFO,
-  DEFAULT
+  DANGER,
+  CONTRAST,
+  SECONDARY,
+  LIGHT
 }

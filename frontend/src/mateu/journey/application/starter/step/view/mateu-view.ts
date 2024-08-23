@@ -4,7 +4,7 @@ import './component/mateu-component';
 import './component/crud/mateu-crud';
 import View from "../../../../../shared/apiClients/dtos/View";
 import Step from "../../../../../shared/apiClients/dtos/Step";
-import {ViewType} from "../../../../../shared/apiClients/dtos/ViewType";
+import {ComponentType} from "../../../../../shared/apiClients/dtos/ComponentType";
 import {Notification} from "@vaadin/vaadin-notification";
 import {Service} from "../../../../domain/service";
 
@@ -62,9 +62,9 @@ export class MateuView extends LitElement {
       if (!changedProperties.has('crud')) {
           setTimeout(() => {
               this.crud = this.view?.main?.components?.length == 1
-                  && this.view?.main?.components?.filter(c => c.metadata.type == ViewType.Crud).length > 0
+                  && this.view?.main?.components?.filter(c => c.metadata.type == ComponentType.Crud).length > 0
                   // @ts-ignore
-                  && this.view?.main?.components?.filter(c => c.metadata.type == ViewType.Crud)[0].metadata.columns.length > 2
+                  && this.view?.main?.components?.filter(c => c.metadata.type == ComponentType.Crud)[0].metadata.columns.length > 2
               ;
               if (this.crud) {
                   this.setAttribute('crud', '')
@@ -97,7 +97,9 @@ export class MateuView extends LitElement {
     render() {
     // @ts-ignore
         return html`
+            ${this.view?.header?.components?.length > 0?html`
         <header>
+            <vaadin-vertical-layout>
                 ${this.view?.header?.components.map(c => html`<mateu-component
                         .component=${c}
                         uiId="${this.uiId}"
@@ -110,8 +112,11 @@ export class MateuView extends LitElement {
                 >
                     <slot></slot></mateu-component>
                 `)}
+            </vaadin-vertical-layout>
         </header>
+        `:''}${this.view?.left?.components?.length > 0?html`
       <aside class="left">
+          <vaadin-vertical-layout>
         ${this.view?.left?.components.map(c => html`<mateu-component
             .component=${c}
             uiId="${this.uiId}"
@@ -125,7 +130,9 @@ export class MateuView extends LitElement {
         >
           <slot></slot></mateu-component>
         `)}
+          </vaadin-vertical-layout>
       </aside>
+      `:''}${this.view?.right?.components?.length > 0?html`
       <main>
 
         ${this.view?.title?html`
@@ -134,7 +141,6 @@ export class MateuView extends LitElement {
         ${this.view?.subtitle?html`
           <p>${this.view?.subtitle}</p>
         `:''}
-          
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
         ${this.view?.main?.components.map(c => html`<mateu-component 
             .component=${c}
@@ -150,7 +156,8 @@ export class MateuView extends LitElement {
         `)}
           </vaadin-vertical-layout>
           
-      </main><aside class="right">
+      </main>`:''}${this.view?.right?.components?.length > 0?html`<aside class="right">
+                <vaadin-vertical-layout>
         ${this.view?.right?.components.map(c => html`<mateu-component 
             .component=${c}
             uiId="${this.uiId}"
@@ -163,9 +170,11 @@ export class MateuView extends LitElement {
         >
           <slot></slot></mateu-component>
         `)}
-      </aside>
-        <footer>
-            ${this.view?.footer?.components.map(c => html`<mateu-component
+                </vaadin-vertical-layout>
+      </aside>`:''}${this.view?.footer?.components?.length > 0?html`
+            <footer>
+                <vaadin-vertical-layout>
+                ${this.view?.footer?.components.map(c => html`<mateu-component
             .component=${c}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
@@ -177,7 +186,10 @@ export class MateuView extends LitElement {
         >
           <slot></slot></mateu-component>
         `)}
-        </footer>
+                </vaadin-vertical-layout>
+            </footer>
+
+        `:''}
     `
   }
 

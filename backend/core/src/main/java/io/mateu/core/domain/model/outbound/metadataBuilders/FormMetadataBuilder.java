@@ -52,7 +52,6 @@ public class FormMetadataBuilder {
     }
 
     return new Form(
-        "",
         getIcon(uiInstance),
         captionProvider.getCaption(uiInstance),
         isReadOnly(stepId, uiInstance),
@@ -112,7 +111,7 @@ public class FormMetadataBuilder {
             .map(
                 banner ->
                     new Banner(
-                        mapBannerTheme(banner.getTheme()).name().toLowerCase(),
+                        mapBannerTheme(banner.getTheme()),
                         banner.getHasIcon(),
                         banner.getHasCloseButton(),
                         banner.getTitle(),
@@ -251,6 +250,7 @@ public class FormMetadataBuilder {
       Action action =
           new Action(
               "cancel",
+              null,
               getCaptionForCancel(uiInstance),
               ActionType.Secondary,
               true,
@@ -266,6 +266,7 @@ public class FormMetadataBuilder {
       action =
           new Action(
               "save",
+              null,
               getCaptionForSave(uiInstance),
               ActionType.Primary,
               true,
@@ -377,7 +378,6 @@ public class FormMetadataBuilder {
             card ? SectionType.Card : SectionType.Transparent,
             leftSideImageUrl,
             topImageUrl,
-            List.of(),
             createFieldGroups(uiInstance, fields));
     sections.add(section);
   }
@@ -466,7 +466,6 @@ public class FormMetadataBuilder {
                     s.type(),
                     s.leftSideImageUrl(),
                     s.topImageUrl(),
-                    s.actions(),
                     IntStream.range(0, s.fieldGroups().size())
                         .mapToObj(
                             j ->

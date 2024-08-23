@@ -29,7 +29,6 @@ public class MethodParametersEditorMetadataBuilder {
 
   public Form build(String stepId, MethodParametersEditor uiInstance) {
     return new Form(
-        "",
         null,
         getCaption(uiInstance),
         false,
@@ -54,6 +53,7 @@ public class MethodParametersEditorMetadataBuilder {
     Action action =
         new Action(
             "run",
+            null,
             "Run",
             ActionType.Primary,
             true,
@@ -102,7 +102,6 @@ public class MethodParametersEditorMetadataBuilder {
                     s.type(),
                     s.leftSideImageUrl(),
                     s.topImageUrl(),
-                    s.actions(),
                     IntStream.range(0, s.fieldGroups().size())
                         .mapToObj(
                             j ->

@@ -4,32 +4,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Container for a journey
+ *
+ * @param journeyId The id for this journey
+ * @param journeyTypeId The type id for this journey
+ * @param journey Some info about the journey
+ * @param steps The steps viewed in this journey
+ * @param stepHistory The step ids viewed in this journey
+ * @param initialStep The first step in his journey
+ * @param modalMustBeClosed If true then the current modal must be closed
+ */
 public record JourneyContainer(
     String journeyId,
     String journeyTypeId,
-    Class journeyClass,
-    Map<String, Object> journeyData,
     Journey journey,
     Map<String, Step> steps,
     List<String> stepHistory,
     String initialStep,
-    Map<String, Object> lastUsedFilters,
-    Map<String, List<SortCriteria>> lastUsedSorting,
     boolean modalMustBeClosed) {
 
   public JourneyContainer {
-    journeyData = journeyData != null ? Collections.unmodifiableMap(journeyData) : Map.of();
     steps = steps != null ? Collections.unmodifiableMap(steps) : Map.of();
     stepHistory = stepHistory != null ? Collections.unmodifiableList(stepHistory) : List.of();
-    lastUsedFilters =
-        lastUsedFilters != null ? Collections.unmodifiableMap(lastUsedFilters) : Map.of();
-    lastUsedSorting =
-        lastUsedSorting != null ? Collections.unmodifiableMap(lastUsedSorting) : Map.of();
-  }
-
-  @Override
-  public Map<String, Object> journeyData() {
-    return Collections.unmodifiableMap(journeyData);
   }
 
   @Override
@@ -40,16 +37,6 @@ public record JourneyContainer(
   @Override
   public List<String> stepHistory() {
     return Collections.unmodifiableList(stepHistory);
-  }
-
-  @Override
-  public Map<String, Object> lastUsedFilters() {
-    return Collections.unmodifiableMap(lastUsedFilters);
-  }
-
-  @Override
-  public Map<String, List<SortCriteria>> lastUsedSorting() {
-    return Collections.unmodifiableMap(lastUsedSorting);
   }
 
   @Override

@@ -1,16 +1,16 @@
 package io.mateu.dtos;
 
-import lombok.*;
+/**
+ * A field validation
+ *
+ * @param type Validation type: required, min, max, pattern
+ * @param message An text to show if not valid
+ * @param data Data needed to perform the validation
+ */
+public record Validation(
+        ValidationType type,
+        String message,
+        Object data
+) {
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public class Validation {
-
-  private ValidationType type;
-
-  private String message;
-
-  private Object data;
 }

@@ -8,6 +8,7 @@ import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.services.ViewInstanceProvider;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.dtos.*;
 import java.util.HashMap;
 import java.util.List;
@@ -55,23 +56,19 @@ public class RunStepActionCommandHandler {
     var step = journeyContainer.steps().get(stepId);
     step =
         new Step(
-            step.id(), step.name(), step.type(), step.view(), step.previousStepId(), step.target());
+            step.id(), step.name(), step.type(), step.view(), step.previousStepId(), step.target(), step.components());
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(stepId, step);
     journeyContainer =
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
             Stream.concat(journeyContainer.stepHistory().stream(), Stream.of(stepId))
                 .distinct()
                 .toList(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
 
     for (ActionRunner actionRunner : actionRunners) {
@@ -102,64 +99,53 @@ public class RunStepActionCommandHandler {
                             stepAfterRun.id(),
                             stepAfterRun.name(),
                             stepAfterRun.type(),
-                            new View(
-                                view.messages(),
-                                view.header(),
-                                view.left(),
-                                new ViewPart(
-                                    main.classes(),
-                                    main.components().stream()
-                                        .map(
-                                            c ->
-                                                new Component(
-                                                    c.metadata() instanceof Form f
-                                                        ? new Form(
-                                                            f.dataPrefix(),
-                                                            f.icon(),
-                                                            f.title(),
-                                                            f.readOnly(),
-                                                            f.subtitle(),
-                                                            f.status(),
-                                                            f.badges(),
-                                                            f.tabs().stream()
-                                                                .map(
-                                                                    t ->
-                                                                        new Tab(
-                                                                            t.id(),
-                                                                            !Strings.isNullOrEmpty(
-                                                                                    activeTabId)
-                                                                                && activeTabId
-                                                                                    .equals(t.id()),
-                                                                            t.caption()))
-                                                                .toList(),
-                                                            f.banners(),
-                                                            f.sections(),
-                                                            f.actions(),
-                                                            f.mainActions(),
-                                                            f.validations(),
-                                                            f.rules())
-                                                        : c.metadata(),
-                                                    c.id(),
-                                                    c.attributes(),
-                                                    c.data()))
-                                        .toList()),
-                                view.right(),
-                                view.footer()),
+                            stepAfterRun.view(),
                             stepAfterRun.previousStepId(),
-                            stepAfterRun.target()));
+                            stepAfterRun.target(),
+                                stepAfterRun.components().entrySet().stream()
+                                        .map(
+                                                c -> new Pair<String, Component>(c.getKey(),
+                                                        (Component) new GenericComponent(
+                                                                c.getValue().metadata() instanceof Form f
+                                                                        ? new Form(
+                                                                        f.icon(),
+                                                                        f.title(),
+                                                                        f.readOnly(),
+                                                                        f.subtitle(),
+                                                                        f.status(),
+                                                                        f.badges(),
+                                                                        f.tabs().stream()
+                                                                                .map(
+                                                                                        t ->
+                                                                                                new Tab(
+                                                                                                        t.id(),
+                                                                                                        !Strings.isNullOrEmpty(
+                                                                                                                activeTabId)
+                                                                                                                && activeTabId
+                                                                                                                .equals(t.id()),
+                                                                                                        t.caption()))
+                                                                                .toList(),
+                                                                        f.banners(),
+                                                                        f.sections(),
+                                                                        f.actions(),
+                                                                        f.mainActions(),
+                                                                        f.validations(),
+                                                                        f.rules())
+                                                                        : c.getValue().metadata(),
+                                                                c.getValue().id(),
+                                                                c.getValue().attributes(),
+                                                                c.getValue().data(),
+                                                                c.getValue().childComponentIds())))
+                                        .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()))));
                     return new JourneyContainer(
                         jc.journeyId(),
                         jc.journeyTypeId(),
-                        jc.journeyClass(),
-                        jc.journeyData(),
                         jc.journey(),
                         newSteps,
                         Stream.concat(jc.stepHistory().stream(), Stream.of(stepId))
                             .distinct()
                             .toList(),
                         jc.initialStep(),
-                        jc.lastUsedFilters(),
-                        jc.lastUsedSorting(),
                         jc.modalMustBeClosed());
                   }
                   return jc;
@@ -202,8 +188,6 @@ public class RunStepActionCommandHandler {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, "xxx"),
             journeyContainer.steps().entrySet().stream()
                 .filter(e -> !stepsToRemove.contains(e.getKey()))
@@ -212,8 +196,6 @@ public class RunStepActionCommandHandler {
                 .filter(v -> !stepsToRemove.contains(v))
                 .toList(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             true);
     journeyContainer = resetMessages(journeyContainer);
 
@@ -252,18 +234,15 @@ public class RunStepActionCommandHandler {
             new View(
                 List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
-            step.target()));
+            step.target(),
+                step.components()));
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
         journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 }

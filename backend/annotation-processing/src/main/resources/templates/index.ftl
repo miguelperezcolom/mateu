@@ -36,7 +36,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
-        html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v1", "${path}/mateu/v1");
+        html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v3", "${path}/mateu/v3");
         html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");
 <#if keycloak??>
         String keycloakStuff = """
@@ -79,7 +79,7 @@ public class ${simpleClassName}Controller {
 
                 const u = document.createElement('mateu-ui');
                 u.setAttribute('uiId', '${className}')
-                u.setAttribute('baseUrl', '${path}/mateu/v1')
+                u.setAttribute('baseUrl', '${path}/mateu/v3')
                 document.body.appendChild(u);
 
             }
@@ -94,7 +94,7 @@ public class ${simpleClassName}Controller {
 <#else >
     //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>");
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v1'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v3'></mateu-ui>");
 </#if>
         return html;
     }

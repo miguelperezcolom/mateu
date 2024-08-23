@@ -12,7 +12,7 @@ import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.data.StepperStep;
 import io.mateu.core.infra.MateuConfiguratorBean;
-import io.mateu.dtos.ViewMetadata;
+import io.mateu.dtos.ComponentMetadata;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +111,7 @@ class SerializerTest {
             getClass().getResourceAsStream("serializer/pojofromjson.json").readAllBytes(),
             StandardCharsets.UTF_8);
     ;
-    var destinationClass = ViewMetadata.class;
+    var destinationClass = ComponentMetadata.class;
 
     // when
     var object = serializer.pojoFromJson(json, destinationClass);

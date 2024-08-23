@@ -157,14 +157,9 @@ public class FieldAttributeBuilder {
                     captionProvider.getCaption(columnField),
                     "",
                     fieldTypeMapper.getWidth(columnField),
-                    isReadOnly(columnField),
                     List.of())));
       }
     }
     return attributes;
-  }
-
-  private boolean isReadOnly(Field field) {
-    return field.isAnnotationPresent(ReadOnly.class);
   }
 }

@@ -13,10 +13,8 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.Journey;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.SortCriteria;
-import io.mateu.dtos.Step;
+import io.mateu.dtos.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,14 +112,10 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
         steps.keySet().stream().toList(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 
@@ -139,14 +133,10 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
         journeyContainer.stepHistory(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 
@@ -194,7 +184,8 @@ public class JourneyContainerService {
               step.type(),
               step.view(),
               step.previousStepId(),
-              actionTarget.name());
+              actionTarget.name(),
+                  step.components());
     }
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(newStepId, step);
@@ -202,8 +193,6 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         new Journey(
             journey.type(),
             journey.status(),
@@ -215,8 +204,6 @@ public class JourneyContainerService {
             .distinct()
             .toList(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 
@@ -259,16 +246,12 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
         journeyContainer.steps().entrySet().stream()
             .filter(e -> !stepsToRemove.contains(e.getKey()))
             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
         journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 
@@ -293,16 +276,12 @@ public class JourneyContainerService {
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         new Journey(journey.type(), journey.status(), journey.statusMessage(), stepId, step.type()),
         journeyContainer.steps().entrySet().stream()
             .filter(e -> !stepsToRemove.contains(e.getKey()))
             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())),
         journeyContainer.stepHistory().stream().filter(v -> stepsToRemove.contains(v)).toList(),
         journeyContainer.initialStep(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 
@@ -330,12 +309,12 @@ public class JourneyContainerService {
 
   public Object getLastUsedFilters(
       JourneyContainer journeyContainer, String stepId, String listId) {
-    return journeyContainer.lastUsedFilters().get(stepId + "#" + listId);
+    return ((CrudComponent)journeyContainer.steps().get(stepId).components().get(listId)).lastUsedFilters();
   }
 
   public List<SortCriteria> getLastUsedOrders(
       JourneyContainer journeyContainer, String stepId, String listId) {
-    return journeyContainer.lastUsedSorting().get(stepId + "#" + listId);
+    return ((CrudComponent)journeyContainer.steps().get(stepId).components().get(listId)).lastUsedSorting();
   }
 
   public JourneyContainer deleteHistory(JourneyContainer journeyContainer) {
@@ -343,18 +322,14 @@ public class JourneyContainerService {
     var step = journeyContainer.steps().get(journeyContainer.journey().currentStepId());
     steps.put(
         journeyContainer.journey().currentStepId(),
-        new Step(step.id(), step.name(), step.type(), step.view(), null, step.target()));
+        new Step(step.id(), step.name(), step.type(), step.view(), null, step.target(), step.components()));
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),
-        journeyContainer.journeyClass(),
-        journeyContainer.journeyData(),
         journeyContainer.journey(),
         steps,
         List.of(step.id()),
         step.id(),
-        journeyContainer.lastUsedFilters(),
-        journeyContainer.lastUsedSorting(),
         journeyContainer.modalMustBeClosed());
   }
 }

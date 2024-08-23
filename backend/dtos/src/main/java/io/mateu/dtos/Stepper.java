@@ -1,11 +1,9 @@
 package io.mateu.dtos;
 
-import lombok.*;
+/**
+ * A stepper metadata. A stepper does not need metadata as it is built from the data
+ */
+public record Stepper(
+) implements ComponentMetadata {
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Stepper implements ViewMetadata {
-
-  private final ViewMetadataType type = ViewMetadataType.Stepper;
 }

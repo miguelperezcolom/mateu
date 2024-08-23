@@ -62,20 +62,17 @@ public class FieldEditorSaveActionRunner implements ActionRunner {
             initialStep.type(),
             initialStep.view(),
             initialStep.previousStepId(),
-            initialStep.target()));
+            initialStep.target(),
+                initialStep.components()));
 
     journeyContainer =
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
 
     journeyContainer = store.backToStep(journeyContainer, initialStep.id()); // will save the step

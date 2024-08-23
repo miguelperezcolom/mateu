@@ -231,19 +231,16 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
             new View(
                 List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
-            step.target()));
+                step.target(),
+                step.components()));
     journeyContainer =
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
     return journeyContainer;
   }
@@ -270,18 +267,15 @@ public class ButtonActionRunner extends AbstractActionRunner implements ActionRu
                   view.right(),
                   view.footer()),
               step.previousStepId(),
-              step.target()));
+              step.target(),
+                  step.components()));
       return new JourneyContainer(
           journeyContainer.journeyId(),
           journeyContainer.journeyTypeId(),
-          journeyContainer.journeyClass(),
-          journeyContainer.journeyData(),
           journeyContainer.journey(),
           steps,
           journeyContainer.stepHistory(),
           journeyContainer.initialStep(),
-          journeyContainer.lastUsedFilters(),
-          journeyContainer.lastUsedSorting(),
           journeyContainer.modalMustBeClosed() || response instanceof GoBack);
     } catch (Throwable e) {
       throw new RuntimeException(e);

@@ -65,20 +65,17 @@ public class CrudEditActionRunner implements ListActionRunner {
             step.type(),
             step.view(),
             step.previousStepId(),
-            step.target()));
+            step.target(),
+                step.components()));
 
     journeyContainer =
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             journeyContainer.journey(),
             steps,
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
 
     if (row == null && (__index == -1 && __count == -1)) {

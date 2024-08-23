@@ -38,15 +38,11 @@ public class ResultActionRunner implements ActionRunner {
         new JourneyContainer(
             journeyContainer.journeyId(),
             journeyContainer.journeyTypeId(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
             new Journey(
                 journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type()),
             journeyContainer.steps(),
             journeyContainer.stepHistory(),
             journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
             journeyContainer.modalMustBeClosed());
     return Mono.just(journeyContainer);
   }
