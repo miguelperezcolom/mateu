@@ -1,0 +1,13 @@
+{
+  "metadata" : {
+    "type" : "Element",
+    "name" : "div",
+    "attributes" : { }
+  },
+  "id" : "component-14",
+  "attributes" : { },
+  "data" : {
+    "value" : "stringField"
+  },
+  "childComponentIds" : [ ]
+}

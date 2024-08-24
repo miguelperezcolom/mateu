@@ -1,0 +1,18 @@
+{
+  "metadata" : {
+    "type" : "Card",
+    "layout" : "Layout1",
+    "thumbnail" : "",
+    "buttons" : [ ],
+    "icons" : [ ]
+  },
+  "id" : "component-13",
+  "attributes" : { },
+  "data" : {
+    "media" : "",
+    "headerText" : "Simple Card 6",
+    "supportingText" : "Content 6",
+    "subhead" : "Subtitle 6"
+  },
+  "childComponentIds" : [ ]
+}

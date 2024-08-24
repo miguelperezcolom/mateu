@@ -13,6 +13,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
@@ -40,7 +41,7 @@ public class StepMapper {
       return ((DynamicStep) formInstance).build().toFuture().get();
     }
 
-    var components = new HashMap<String, Component>();
+    var components = new LinkedHashMap<String, Component>();
     var view = viewMapper.map(journeyContainer, stepId, formInstance, serverHttpRequest, components);
 
     return new Step(

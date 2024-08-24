@@ -1,5 +1,7 @@
 package io.mateu.demo.complexview;
 
+import io.mateu.core.domain.uidefinition.core.interfaces.Card;
+import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import io.mateu.demo.AnotherSimpleForm;
@@ -13,18 +15,18 @@ import java.util.List;
 @MateuUI("/complexview")
 @Getter
 @Setter
-public class ComplexView {
+public class ComplexView implements Container {
 
   @Slot(SlotName.left)
   @VerticalLayout
-  List<Object> left = List.of(new SimpleCard(), new SimpleCard());
+  List<Object> left = List.of(new Card("Simple Card 1", "Subtitle 1", "Content 1"), new Card("Simple Card 2", "Subtitle 2", "Content 2"));
 
   @Slot(SlotName.left)
-  SimpleCard simpleCard = new SimpleCard();
+  Card simpleCard = new Card("Simple Card 3", "Subtitle 3", "Content 3");
 
   @Slot(SlotName.right)
   @VerticalLayout
-  List<Object> right = List.of(new SimpleCard(), new SimpleCard());
+  List<Object> right = List.of(new Card("Simple Card 7", "Subtitle 7", "Content 7"), new Card("Simple Card 8", "Subtitle 8", "Content 8"));
 
 
   @Slot(SlotName.header)
@@ -37,7 +39,7 @@ public class ComplexView {
   AnotherSimpleForm anotherSimpleForm;
 
   @HorizontalLayout
-  List<Object> hl = List.of(new SimpleCard(), new SimpleCard());
+  List<Object> hl = List.of(new Card("Simple Card 5", "Subtitle 5", "Content 5"), new Card("Simple Card 6", "Subtitle 6", "Content 6"));
 
   String stringField = "stringField";
 
@@ -45,8 +47,6 @@ public class ComplexView {
 
   @Slot(SlotName.footer)
   @RawContent
-  String htmlInFooter = """
-          <h2>Hola! esto es el footer</h2>
-          """;
+  String htmlInFooter = "<h2>Hola! esto es el footer</h2>";
 
 }

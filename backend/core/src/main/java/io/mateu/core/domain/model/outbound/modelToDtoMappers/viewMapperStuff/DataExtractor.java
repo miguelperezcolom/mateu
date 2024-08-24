@@ -6,11 +6,14 @@ import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+
+import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,17 @@ public class DataExtractor {
 
   @SneakyThrows
   public Map<String, Object> getData(Object uiInstance) {
+    if (uiInstance instanceof Element element) {
+      return Map.of("content", element.content());
+    }
+    if (uiInstance instanceof Card card) {
+      return Map.of(
+              "headerText", card.headerText(),
+              "subhead", card.subhead(),
+              "media", card.media(),
+              "supportingText", card.supportingText()
+      );
+    }
     Map<String, Object> data = new HashMap<>();
     if (uiInstance instanceof EntityEditor) {
       data.putAll(((EntityEditor) uiInstance).getData());

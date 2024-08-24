@@ -1,0 +1,13 @@
+{
+  "metadata" : {
+    "type" : "Element",
+    "name" : "h1",
+    "attributes" : { }
+  },
+  "id" : "component-1",
+  "attributes" : { },
+  "data" : {
+    "content" : "This is the title"
+  },
+  "childComponentIds" : [ ]
+}

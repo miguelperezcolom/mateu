@@ -8,20 +8,12 @@ import java.util.List;
  *
  * @param layout The layout to be used to paint this card
  * @param thumbnail The thumbnail for this card. An icon
- * @param headerText This card header text
- * @param subhead This card subtitle
- * @param media A media url
- * @param supportingText The card text
  * @param buttons List of buttons to show
  * @param icons List of icons to show
  */
 public record Card(
         CardLayout layout,
         String thumbnail,
-        String headerText,
-        String subhead,
-        String media,
-        String supportingText,
         List<Action> buttons,
         List<Action> icons
 )

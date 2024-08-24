@@ -3,13 +3,14 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.FormMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.FormIdentifier;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.Card;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasStepper;
-import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
+import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Form;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -26,6 +27,7 @@ public class ViewInstancePartsExtractor {
   final FormMetadataBuilder formMetadataBuilder;
   final JpaRpcCrudFactory jpaRpcCrudFactory;
   final ReflectionHelper reflectionHelper;
+  private final FormIdentifier formIdentifier;
 
   public List<ViewInstancePart> getUiParts(Object viewInstance, List<Field> fields, SlotName slotName)
       throws Exception {
@@ -39,7 +41,10 @@ public class ViewInstancePartsExtractor {
               || Card.class.isAssignableFrom(f.getType())
               || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
               || (Form.class.isAssignableFrom(f.getType()))
-              || formMetadataBuilder.isOwner(f)) {
+              || formMetadataBuilder.isOwner(f)
+                  || !SlotName.main.equals(slotName)
+                  || viewInstance instanceof Container
+          ) {
             partCandidates.add(f);
           } else {
             leftFields.add(f);
@@ -49,12 +54,12 @@ public class ViewInstancePartsExtractor {
     for (Field f : partCandidates) {
       parts.add(buildPart(f, viewInstance, slotName));
     }
-    if (leftFields.size() > 0) {
-      parts.add(0, new ViewInstancePart(slotName, viewInstance, null, leftFields));
+    if (!leftFields.isEmpty()) {
+      parts.add(0, new ViewInstancePart(slotName, true, viewInstance, null, leftFields));
     }
 
-    if (viewInstance instanceof HasStepper && SlotName.main.equals(slotName)) {
-      parts.add(0, buildPart(((HasStepper) viewInstance).getStepper(), viewInstance, slotName));
+    if (viewInstance instanceof HasStepper hasStepper && SlotName.main.equals(slotName)) {
+      parts.add(0, buildPart(hasStepper.getStepper(), slotName));
     }
 
     return parts;
@@ -62,21 +67,17 @@ public class ViewInstancePartsExtractor {
 
   private ViewInstancePart buildPart(Field f, Object uiInstance, SlotName slotName) throws Exception {
     Object partInstance = reflectionHelper.getValue(f, uiInstance);
-    if (formMetadataBuilder.isOwner(f)) {
-      partInstance = jpaRpcCrudFactory.create(uiInstance, f);
-    }
     if (partInstance == null) {
       partInstance = reflectionHelper.newInstance(f.getType());
     }
-    if (partInstance instanceof Crud) {
-      partInstance = new RpcViewWrapper((Listing) partInstance, f.getId());
+    if (partInstance instanceof Listing<?,?> listing) {
+      partInstance = new RpcViewWrapper(listing, f.getId());
     }
     return new ViewInstancePart(
-        slotName, partInstance, f, reflectionHelper.getAllFields(partInstance.getClass()));
+        slotName, formIdentifier.isForm(f, partInstance), partInstance, f, List.of());
   }
 
-  private ViewInstancePart buildPart(Stepper stepper, Object uiInstance, SlotName slotName)
-      throws Exception {
-    return new ViewInstancePart(slotName, stepper, null, List.of());
+  private ViewInstancePart buildPart(Stepper stepper, SlotName slotName) {
+    return new ViewInstancePart(slotName, false, stepper, null, List.of());
   }
 }

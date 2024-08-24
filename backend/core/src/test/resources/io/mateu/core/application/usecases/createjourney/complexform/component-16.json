@@ -1,0 +1,9 @@
+{
+  "metadata" : {
+    "type" : "VerticalLayout"
+  },
+  "id" : "component-16",
+  "attributes" : { },
+  "data" : { },
+  "childComponentIds" : [ "component-17", "component-18" ]
+}

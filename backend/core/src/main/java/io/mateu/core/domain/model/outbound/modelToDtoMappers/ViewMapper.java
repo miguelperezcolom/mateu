@@ -3,6 +3,7 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -37,13 +39,12 @@ public class ViewMapper {
   public View map(
           JourneyContainer journeyContainer,
           String stepId,
-          Object uiInstance,
+          Object object,
           ServerHttpRequest serverHttpRequest, HashMap<String, Component> allComponentsInStep)
       throws Throwable {
-    // mddopencrudaction, crud class
 
-    var actualUiInstance =
-        actualUiInstanceProvider.getActualUiInstance(journeyContainer, stepId, uiInstance, serverHttpRequest);
+    var actualObject =
+        actualUiInstanceProvider.getActualUiInstance(journeyContainer, stepId, object, serverHttpRequest);
 
     List<String> left = new ArrayList<>();
     List<String> main = new ArrayList<>();
@@ -53,28 +54,39 @@ public class ViewMapper {
 
     Map<SlotName, List<String>> componentIdsPerSlot =
         Map.of(
+            SlotName.header, header,
             SlotName.left, left,
             SlotName.main, main,
             SlotName.right, right,
-            SlotName.header, header,
             SlotName.footer, footer);
 
-    for (SlotName slot :
-        List.of(SlotName.main, SlotName.left, SlotName.right, SlotName.header, SlotName.footer)) {
+    var componentCounter = new AtomicInteger();
 
-      List<Field> slotFields = fieldExtractor.getFields(actualUiInstance, slot);
+    for (SlotName slot :
+        List.of(SlotName.header, SlotName.left, SlotName.main, SlotName.right, SlotName.footer)) {
+
+      List<Field> slotFields = fieldExtractor.getFields(actualObject, slot);
 
       List<ViewInstancePart> viewInstanceParts =
-          viewInstancePartsExtractor.getUiParts(actualUiInstance, slotFields, slot);
+          viewInstancePartsExtractor.getUiParts(actualObject, slotFields, slot);
+
       if (SlotName.main.equals(slot) && viewInstanceParts.isEmpty()) {
-        viewInstanceParts.add(new ViewInstancePart(slot, actualUiInstance, null, List.of()));
+        viewInstanceParts.add(new ViewInstancePart(slot, true, actualObject, null, List.of()));
       }
 
       viewInstanceParts.forEach(
           p -> {
             var componentInstance = p.getUiInstance();
-            var component = componentFactory.createComponent(componentInstance, stepId, uiInstance,
-                    journeyContainer, serverHttpRequest, p.getField(), p.getFields(), allComponentsInStep);
+            var component = componentFactory.createComponent(
+                    p.isForm(),
+                    componentInstance,
+                    stepId,
+                    journeyContainer,
+                    serverHttpRequest,
+                    p.getField(),
+                    p.getFields(),
+                    allComponentsInStep,
+                    componentCounter);
             componentIdsPerSlot
                 .get(slot)
                 .add(component);

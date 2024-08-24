@@ -7,6 +7,7 @@ import io.mateu.dtos.Journey;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest
+@Slf4j
 public class CreateComplexViewHomeJourneyTest {
 
   @Autowired CreateJourneyUseCase createJourneyUseCase;
@@ -61,17 +64,48 @@ public class CreateComplexViewHomeJourneyTest {
   @SneakyThrows
   private void assertStore(Map<String, Object> store, String journeyId) {
     assertNotNull(store);
-    var viewJson =
-        new String(
-            getClass().getResourceAsStream("viewwith2forms-view.json").readAllBytes(),
-            StandardCharsets.UTF_8);
+    var componentsJsons = new HashMap<String, String>();
+
+    var maxComponents = 20;
+
+    for (int i = 0; i < maxComponents; i++) {
+      var componentJson = assertComponent("component-" + i, store);
+      componentsJsons.put("component-" + i, componentJson);
+    }
+
+    var componentsJson = "{";
+    for (int i = 0; i < maxComponents; i++) {
+      if (i > 0) componentsJson += ",";
+      componentsJson += "\n    \"component-" + i + "\":" + componentsJsons.get("component-" + i);
+    }
+    componentsJson += "}";
     var json =
         new String(
-                getClass().getResourceAsStream("viewwith2forms.json").readAllBytes(),
+                getClass().getResourceAsStream("complexform.json").readAllBytes(),
                 StandardCharsets.UTF_8)
             .replaceAll("\"----herethejourneyid----\"", journeyId)
-            .replaceAll("\"----heretheview----\"", viewJson);
+                .replaceAll("\"----herethecomponents----\"", componentsJson)
+            ;
     JSONAssert.assertEquals(json, serializer.toJson(store), JSONCompareMode.STRICT);
+  }
+
+  private String assertComponent(String componentId, Map<String, Object> store) throws Exception {
+    log.info("assertComponent: {}", componentId);
+    var realJson = getJsonForComponent(store, componentId);
+    log.info("realJson: {}", realJson);
+    var componentJson =
+            new String(
+                    getClass().getResourceAsStream("complexform/" + componentId + ".json").readAllBytes(),
+                    StandardCharsets.UTF_8);
+    JSONAssert.assertEquals(componentJson, realJson, JSONCompareMode.STRICT);
+    return componentJson;
+  }
+
+  private String getJsonForComponent(Map<String, Object> store, String componentId) throws Exception {
+    Map<String, Object> steps = (Map<String, Object>) store.get("steps");
+    Map<String, Object> step = (Map<String, Object>) steps.get("form");
+    Map<String, Object> components = (Map<String, Object>) step.get("components");
+    return serializer.toJson(components.get(componentId));
   }
 
   @SneakyThrows
@@ -80,12 +114,7 @@ public class CreateComplexViewHomeJourneyTest {
     assertEquals("form", step.id());
     assertEquals(ComplexView.class.getName(), step.type());
     assertNull(step.previousStepId());
-    assertEquals("View with 2 forms", step.name());
+    assertEquals("Complex view", step.name());
     assertNull(step.target());
-    var viewJson =
-        new String(
-            getClass().getResourceAsStream("viewwith2forms-view.json").readAllBytes(),
-            StandardCharsets.UTF_8);
-    JSONAssert.assertEquals(viewJson, serializer.toJson(step.view()), JSONCompareMode.STRICT);
   }
 }

@@ -1,5 +1,5 @@
 {
-  "journeyId" : "76be3746-52fc-416d-b1a5-8bbac2e62f6f",
+  "journeyId" : "faab65d8-00aa-4b32-9040-7a3cf1072277",
   "journeyTypeId" : "____home____",
   "journey" : {
     "type" : "io.mateu.demo.complexview.ComplexView",
@@ -17,141 +17,298 @@
         "messages" : [ ],
         "header" : {
           "classes" : null,
-          "componentIds" : [ "85da99c9-1b37-4ab7-9394-f0fbe7dbee5d" ]
+          "componentIds" : [ "component-0" ]
         },
         "left" : {
           "classes" : null,
-          "componentIds" : [ "eb735961-a059-413a-8802-e7cafc6e41b2" ]
+          "componentIds" : [ "component-3", "component-6" ]
         },
         "main" : {
           "classes" : null,
-          "componentIds" : [ "717ad4bd-258d-4a0b-a76f-a0c54aa8021b", "5796902d-6367-4366-8fa4-c745aa42d9a2", "bb6eb96b-2f85-4c87-b051-6ece311a269d" ]
+          "componentIds" : [ "component-7", "component-10", "component-11", "component-14", "component-15" ]
         },
         "right" : {
           "classes" : null,
-          "componentIds" : [ "9d9fa9e4-3d63-485c-9641-8274962cf063" ]
+          "componentIds" : [ "component-16" ]
         },
         "footer" : {
           "classes" : null,
-          "componentIds" : [ "04b3ec5f-9fa3-40d1-8d6f-5b075b1ded94" ]
+          "componentIds" : [ "component-19" ]
         }
       },
       "previousStepId" : null,
       "target" : null,
       "components" : {
-        "eb735961-a059-413a-8802-e7cafc6e41b2" : {
+        "component-1" : {
+          "metadata" : {
+            "type" : "Element",
+            "name" : "h1",
+            "attributes" : { }
+          },
+          "id" : "component-1",
+          "attributes" : { },
+          "data" : {
+            "content" : "This is the title"
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-2" : {
+          "metadata" : {
+            "type" : "Element",
+            "name" : "h2",
+            "attributes" : { }
+          },
+          "id" : "component-2",
+          "attributes" : { },
+          "data" : {
+            "content" : "This is the subtitle"
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-0" : {
+          "metadata" : {
+            "type" : "VerticalLayout"
+          },
+          "id" : "component-0",
+          "attributes" : { },
+          "data" : { },
+          "childComponentIds" : [ "component-1", "component-2" ]
+        },
+        "component-4" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-4",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 1",
+            "supportingText" : "Content 1",
+            "subhead" : "Subtitle 1",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-5" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-5",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 2",
+            "supportingText" : "Content 2",
+            "subhead" : "Subtitle 2",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-3" : {
+          "metadata" : {
+            "type" : "VerticalLayout"
+          },
+          "id" : "component-3",
+          "attributes" : { },
+          "data" : { },
+          "childComponentIds" : [ "component-4", "component-5" ]
+        },
+        "component-6" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-6",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 3",
+            "supportingText" : "Content 3",
+            "subhead" : "Subtitle 3",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-8" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-8",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 4",
+            "supportingText" : "Content 4",
+            "subhead" : "Subtitle 4",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-9" : {
           "metadata" : {
             "type" : "Form",
             "icon" : null,
-            "title" : "Complex view",
+            "title" : "Simple form",
             "readOnly" : false,
             "subtitle" : null,
             "status" : null,
             "badges" : [ ],
             "tabs" : [ ],
             "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "left",
-                    "type" : "object[]",
-                    "stereotype" : "crud",
-                    "observed" : false,
-                    "caption" : "Left",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                }, {
-                  "fields" : [ {
-                    "id" : "simpleCard",
-                    "type" : "SimpleCard",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Simple card",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
+            "sections" : [ ],
             "actions" : [ ],
-            "mainActions" : [ ],
+            "mainActions" : [ {
+              "id" : "submit",
+              "icon" : null,
+              "caption" : "Submit",
+              "type" : "Primary",
+              "visible" : true,
+              "validationRequired" : true,
+              "confirmationRequired" : false,
+              "rowsSelectedRequired" : false,
+              "confirmationTexts" : {
+                "title" : "Please confirm",
+                "message" : "",
+                "action" : "Submit"
+              },
+              "target" : "View",
+              "modalStyle" : "",
+              "customEvent" : "",
+              "href" : ""
+            } ],
             "validations" : [ ],
             "rules" : [ ]
           },
-          "id" : "eb735961-a059-413a-8802-e7cafc6e41b2",
+          "id" : "component-9",
           "attributes" : { },
           "data" : {
-            "simpleCard" : {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description",
-              "__toString" : "io.mateu.demo.complexview.SimpleCard@3d98729a"
-            },
-            "hl" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "simpleCrud" : null,
-            "left" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "horizontalLayoutContainer" : null,
-            "anotherSimpleForm" : null,
-            "header" : [ {
-              "name" : "h1",
-              "content" : "This is the title",
-              "attributes" : { }
-            }, {
-              "name" : "h2",
-              "content" : "This is the subtitle",
-              "attributes" : { }
-            } ],
-            "right" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "htmlInFooter" : "<h2>Hola! esto es el footer</h2>\n",
-            "stringField" : "stringField"
+            "name" : "Mateu",
+            "age" : 16
           },
           "childComponentIds" : [ ]
         },
-        "bb6eb96b-2f85-4c87-b051-6ece311a269d" : {
+        "component-7" : {
+          "metadata" : {
+            "type" : "HorizontalLayout"
+          },
+          "id" : "component-7",
+          "attributes" : { },
+          "data" : { },
+          "childComponentIds" : [ "component-8", "component-9" ]
+        },
+        "component-10" : {
+          "metadata" : {
+            "type" : "Form",
+            "icon" : null,
+            "title" : "Another simple form",
+            "readOnly" : false,
+            "subtitle" : null,
+            "status" : null,
+            "badges" : [ ],
+            "tabs" : [ ],
+            "banners" : [ ],
+            "sections" : [ ],
+            "actions" : [ ],
+            "mainActions" : [ {
+              "id" : "submit",
+              "icon" : null,
+              "caption" : "Submit",
+              "type" : "Primary",
+              "visible" : true,
+              "validationRequired" : true,
+              "confirmationRequired" : false,
+              "rowsSelectedRequired" : false,
+              "confirmationTexts" : {
+                "title" : "Please confirm",
+                "message" : "",
+                "action" : "Submit"
+              },
+              "target" : "View",
+              "modalStyle" : "",
+              "customEvent" : "",
+              "href" : ""
+            } ],
+            "validations" : [ ],
+            "rules" : [ ]
+          },
+          "id" : "component-10",
+          "attributes" : { },
+          "data" : {
+            "name" : "Antonia",
+            "age" : 47
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-12" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-12",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 5",
+            "supportingText" : "Content 5",
+            "subhead" : "Subtitle 5",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-13" : {
+          "metadata" : {
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
+          },
+          "id" : "component-13",
+          "attributes" : { },
+          "data" : {
+            "headerText" : "Simple Card 6",
+            "supportingText" : "Content 6",
+            "subhead" : "Subtitle 6",
+            "media" : ""
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-11" : {
+          "metadata" : {
+            "type" : "HorizontalLayout"
+          },
+          "id" : "component-11",
+          "attributes" : { },
+          "data" : { },
+          "childComponentIds" : [ "component-12", "component-13" ]
+        },
+        "component-14" : {
+          "metadata" : {
+            "type" : "Element",
+            "name" : "div",
+            "attributes" : { }
+          },
+          "id" : "component-14",
+          "attributes" : { },
+          "data" : {
+            "value" : "stringField"
+          },
+          "childComponentIds" : [ ]
+        },
+        "component-15" : {
           "metadata" : {
             "type" : "Crud",
             "listId" : "simpleCrud",
@@ -200,520 +357,73 @@
             } ],
             "actions" : [ ]
           },
-          "id" : "bb6eb96b-2f85-4c87-b051-6ece311a269d",
+          "id" : "component-15",
           "attributes" : { },
           "data" : {
             "rpcView" : {
               "rowClass" : "io.mateu.demo.complexview.crud.Row",
               "searchFormClass" : "io.mateu.demo.complexview.crud.SearchForm",
-              "__toString" : "io.mateu.demo.complexview.crud.SimpleCrud@472719df"
+              "__toString" : "Simple crud"
             },
             "id" : "simpleCrud"
           },
           "childComponentIds" : [ ]
         },
-        "85da99c9-1b37-4ab7-9394-f0fbe7dbee5d" : {
+        "component-17" : {
           "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Complex view",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "header",
-                    "type" : "object[]",
-                    "stereotype" : "crud",
-                    "observed" : false,
-                    "caption" : "Header",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ ],
-            "validations" : [ ],
-            "rules" : [ ]
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
           },
-          "id" : "85da99c9-1b37-4ab7-9394-f0fbe7dbee5d",
+          "id" : "component-17",
           "attributes" : { },
           "data" : {
-            "simpleCard" : {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description",
-              "__toString" : "io.mateu.demo.complexview.SimpleCard@3d98729a"
-            },
-            "hl" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "simpleCrud" : null,
-            "left" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "horizontalLayoutContainer" : null,
-            "anotherSimpleForm" : null,
-            "header" : [ {
-              "name" : "h1",
-              "content" : "This is the title",
-              "attributes" : { }
-            }, {
-              "name" : "h2",
-              "content" : "This is the subtitle",
-              "attributes" : { }
-            } ],
-            "right" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "htmlInFooter" : "<h2>Hola! esto es el footer</h2>\n",
-            "stringField" : "stringField"
+            "headerText" : "Simple Card 7",
+            "supportingText" : "Content 7",
+            "subhead" : "Subtitle 7",
+            "media" : ""
           },
           "childComponentIds" : [ ]
         },
-        "717ad4bd-258d-4a0b-a76f-a0c54aa8021b" : {
+        "component-18" : {
           "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Complex view",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "horizontalLayoutContainer",
-                    "type" : "HorizontalLayoutContainer",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Horizontal layout container",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                }, {
-                  "fields" : [ {
-                    "id" : "hl",
-                    "type" : "object[]",
-                    "stereotype" : "crud",
-                    "observed" : false,
-                    "caption" : "Hl",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                }, {
-                  "fields" : [ {
-                    "id" : "stringField",
-                    "type" : "string",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "String field",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ ],
-            "validations" : [ ],
-            "rules" : [ ]
+            "type" : "Card",
+            "layout" : "Layout1",
+            "thumbnail" : "",
+            "buttons" : [ ],
+            "icons" : [ ]
           },
-          "id" : "717ad4bd-258d-4a0b-a76f-a0c54aa8021b",
+          "id" : "component-18",
           "attributes" : { },
           "data" : {
-            "simpleCard" : {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description",
-              "__toString" : "io.mateu.demo.complexview.SimpleCard@3d98729a"
-            },
-            "hl" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "simpleCrud" : null,
-            "left" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "horizontalLayoutContainer" : null,
-            "anotherSimpleForm" : null,
-            "header" : [ {
-              "name" : "h1",
-              "content" : "This is the title",
-              "attributes" : { }
-            }, {
-              "name" : "h2",
-              "content" : "This is the subtitle",
-              "attributes" : { }
-            } ],
-            "right" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "htmlInFooter" : "<h2>Hola! esto es el footer</h2>\n",
-            "stringField" : "stringField"
+            "headerText" : "Simple Card 8",
+            "supportingText" : "Content 8",
+            "subhead" : "Subtitle 8",
+            "media" : ""
           },
           "childComponentIds" : [ ]
         },
-        "9d9fa9e4-3d63-485c-9641-8274962cf063" : {
+        "component-16" : {
           "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Complex view",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "right",
-                    "type" : "object[]",
-                    "stereotype" : "crud",
-                    "observed" : false,
-                    "caption" : "Right",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ ],
-            "validations" : [ ],
-            "rules" : [ ]
+            "type" : "VerticalLayout"
           },
-          "id" : "9d9fa9e4-3d63-485c-9641-8274962cf063",
+          "id" : "component-16",
           "attributes" : { },
-          "data" : {
-            "simpleCard" : {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description",
-              "__toString" : "io.mateu.demo.complexview.SimpleCard@3d98729a"
-            },
-            "hl" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "simpleCrud" : null,
-            "left" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "horizontalLayoutContainer" : null,
-            "anotherSimpleForm" : null,
-            "header" : [ {
-              "name" : "h1",
-              "content" : "This is the title",
-              "attributes" : { }
-            }, {
-              "name" : "h2",
-              "content" : "This is the subtitle",
-              "attributes" : { }
-            } ],
-            "right" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "htmlInFooter" : "<h2>Hola! esto es el footer</h2>\n",
-            "stringField" : "stringField"
-          },
-          "childComponentIds" : [ ]
+          "data" : { },
+          "childComponentIds" : [ "component-17", "component-18" ]
         },
-        "04b3ec5f-9fa3-40d1-8d6f-5b075b1ded94" : {
+        "component-19" : {
           "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Complex view",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "htmlInFooter",
-                    "type" : "string",
-                    "stereotype" : "rawcontent",
-                    "observed" : false,
-                    "caption" : "Html in footer",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ ],
-            "validations" : [ ],
-            "rules" : [ ]
+            "type" : "Element",
+            "name" : "div",
+            "attributes" : { }
           },
-          "id" : "04b3ec5f-9fa3-40d1-8d6f-5b075b1ded94",
+          "id" : "component-19",
           "attributes" : { },
           "data" : {
-            "simpleCard" : {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description",
-              "__toString" : "io.mateu.demo.complexview.SimpleCard@3d98729a"
-            },
-            "hl" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "simpleCrud" : null,
-            "left" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "horizontalLayoutContainer" : null,
-            "anotherSimpleForm" : null,
-            "header" : [ {
-              "name" : "h1",
-              "content" : "This is the title",
-              "attributes" : { }
-            }, {
-              "name" : "h2",
-              "content" : "This is the subtitle",
-              "attributes" : { }
-            } ],
-            "right" : [ {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            }, {
-              "title" : "Card title",
-              "subtitle" : "Card subtitle",
-              "content" : "Card description"
-            } ],
-            "htmlInFooter" : "<h2>Hola! esto es el footer</h2>\n",
-            "stringField" : "stringField"
-          },
-          "childComponentIds" : [ ]
-        },
-        "5796902d-6367-4366-8fa4-c745aa42d9a2" : {
-          "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Another simple form",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "name",
-                    "type" : "string",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Name",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                }, {
-                  "fields" : [ {
-                    "id" : "age",
-                    "type" : "int",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Age",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ {
-              "id" : "submit",
-              "icon" : null,
-              "caption" : "Submit",
-              "type" : "Primary",
-              "visible" : true,
-              "validationRequired" : true,
-              "confirmationRequired" : false,
-              "rowsSelectedRequired" : false,
-              "confirmationTexts" : {
-                "title" : "Please confirm",
-                "message" : "",
-                "action" : "Submit"
-              },
-              "target" : "View",
-              "modalStyle" : "",
-              "customEvent" : "",
-              "href" : ""
-            } ],
-            "validations" : [ ],
-            "rules" : [ ]
-          },
-          "id" : "5796902d-6367-4366-8fa4-c745aa42d9a2",
-          "attributes" : { },
-          "data" : {
-            "name" : "Antonia",
-            "age" : 47
+            "value" : "<h2>Hola! esto es el footer</h2>"
           },
           "childComponentIds" : [ ]
         }

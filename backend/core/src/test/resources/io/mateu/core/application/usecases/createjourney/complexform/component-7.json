@@ -1,0 +1,9 @@
+{
+  "metadata" : {
+    "type" : "HorizontalLayout"
+  },
+  "id" : "component-7",
+  "attributes" : { },
+  "data" : { },
+  "childComponentIds" : [ "component-8", "component-9" ]
+}

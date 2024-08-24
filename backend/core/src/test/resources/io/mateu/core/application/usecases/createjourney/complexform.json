@@ -1,0 +1,47 @@
+{
+  "journeyId" : "----herethejourneyid----",
+  "journeyTypeId" : "____home____",
+  "journey" : {
+    "type" : "io.mateu.demo.complexview.ComplexView",
+    "status" : "Pending",
+    "statusMessage" : "Please fill the form",
+    "currentStepId" : "form",
+    "currentStepDefinitionId" : "io.mateu.demo.complexview.ComplexView"
+  },
+  "steps" : {
+    "form" : {
+      "id" : "form",
+      "name" : "Complex view",
+      "type" : "io.mateu.demo.complexview.ComplexView",
+      "view" : {
+        "messages" : [ ],
+        "header" : {
+          "classes" : null,
+          "componentIds" : [ "component-0" ]
+        },
+        "left" : {
+          "classes" : null,
+          "componentIds" : [ "component-3", "component-6" ]
+        },
+        "main" : {
+          "classes" : null,
+          "componentIds" : [ "component-7", "component-10", "component-11", "component-14", "component-15" ]
+        },
+        "right" : {
+          "classes" : null,
+          "componentIds" : [ "component-16" ]
+        },
+        "footer" : {
+          "classes" : null,
+          "componentIds" : [ "component-19" ]
+        }
+      },
+      "previousStepId" : null,
+      "target" : null,
+      "components" : "----herethecomponents----"
+    }
+  },
+  "stepHistory" : [ "form" ],
+  "initialStep" : "form",
+  "modalMustBeClosed" : false
+}

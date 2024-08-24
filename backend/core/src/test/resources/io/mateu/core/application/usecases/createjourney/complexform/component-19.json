@@ -1,0 +1,13 @@
+{
+  "metadata" : {
+    "type" : "Element",
+    "name" : "div",
+    "attributes" : { }
+  },
+  "id" : "component-19",
+  "attributes" : { },
+  "data" : {
+    "value" : "<h2>Hola! esto es el footer</h2>"
+  },
+  "childComponentIds" : [ ]
+}

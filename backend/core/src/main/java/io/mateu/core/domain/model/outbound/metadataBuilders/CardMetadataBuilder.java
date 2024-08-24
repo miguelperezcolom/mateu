@@ -30,19 +30,15 @@ public class CardMetadataBuilder {
   final CaptionProvider captionProvider;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(String stepId, Object uiInstance, List<Field> slotFields) {
-    Card card =
+  public Card build(String stepId, io.mateu.core.domain.uidefinition.core.interfaces.Card card, List<Field> slotFields) {
+    Card metadata =
         new Card(
                 CardLayout.Layout1,
-            captionProvider.getCaption(uiInstance),
-            getSubtitle(uiInstance),
-            getInfo(uiInstance),
-            getIcon(uiInstance),
-            getTotal(uiInstance),
+            card.thumbnail(),
             List.of(), //todo: create actions
                 List.of() //todo: create actions
         );
-    return card;
+    return metadata;
   }
 
   private String getIcon(Object uiInstance) {

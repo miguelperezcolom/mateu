@@ -15,7 +15,7 @@ public class BannerPainter {
     this.asciiPainter = asciiPainter;
   }
 
-  @PostConstruct
+  //@PostConstruct
   public void paintBanner() {
     asciiPainter.paint("Hello");
     asciiPainter.paint("MATEU");

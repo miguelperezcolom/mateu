@@ -14,6 +14,8 @@ public class ViewInstancePart {
 
   private SlotName slotName;
 
+  private boolean isForm;
+
   private Object uiInstance;
 
   private Field field;
