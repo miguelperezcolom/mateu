@@ -38,5 +38,4 @@ public record Crud(
   public List<Action> actions() {
     return Collections.unmodifiableList(actions);
   }
-
 }

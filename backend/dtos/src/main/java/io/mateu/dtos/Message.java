@@ -7,9 +7,4 @@ package io.mateu.dtos;
  * @param title The message title
  * @param text The message text
  */
-public record Message(
-        ResultType type,
-        String title,
-        String text
-) {
-}
+public record Message(ResultType type, String title, String text) {}

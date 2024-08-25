@@ -77,7 +77,6 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
   @Action(order = 40, target = ActionTarget.NewTab)
   public ResponseWrapper openTab() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
-            UUID.randomUUID().toString(),
             ResultType.Info,
             "Sample message",
             "Your name is " + name

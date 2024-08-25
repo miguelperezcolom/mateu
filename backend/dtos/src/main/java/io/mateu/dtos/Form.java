@@ -19,7 +19,6 @@ import java.util.List;
  * @param mainActions Actions for this form. To be shown at the bottom
  * @param validations Client side validations for this form
  * @param rules Rules to be run after each value change
- *
  */
 public record Form(
     String icon,

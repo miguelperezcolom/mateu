@@ -7,8 +7,7 @@ import io.mateu.demo.SimpleForm;
 @HorizontalLayout
 public class HorizontalLayoutContainer {
 
-    Card simpleCard = new Card("Simple Card 4", "Subtitle 4", "Content 4");
+  Card simpleCard = new Card("Simple Card 4", "Subtitle 4", "Content 4");
 
-    SimpleForm simpleForm;
-
+  SimpleForm simpleForm;
 }

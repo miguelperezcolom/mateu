@@ -14,7 +14,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Journey;
 import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.Step;
 import io.mateu.dtos.StepWrapper;
 import java.util.List;
@@ -57,7 +56,6 @@ public class StartJourneyCommandHandler {
     String uiId = command.getUiId();
     String journeyId = command.getJourneyId();
     String journeyTypeId = command.getJourneyTypeId();
-    JourneyCreationRq journeyCreationRq = command.getJourneyCreationRq();
     ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
     Journey journey = null;
@@ -88,14 +86,7 @@ public class StartJourneyCommandHandler {
     }
 
     JourneyContainer journeyContainer =
-        new JourneyContainer(
-            journeyId,
-            journeyTypeId,
-            journey,
-            Map.of(),
-            List.of(),
-            null,
-            false);
+        new JourneyContainer(journeyId, journeyTypeId, journey, Map.of(), List.of(), null, false);
 
     Step step =
         stepMapper.map(

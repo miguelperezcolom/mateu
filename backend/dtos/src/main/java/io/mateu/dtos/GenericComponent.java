@@ -5,17 +5,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A component inside a view part/layout. E.g. form, card, directory, stepper, ...
- * There is a specific implementation for cruds
+ * A component inside a view part/layout. E.g. form, card, directory, stepper, ... There is a
+ * specific implementation for cruds
  *
  * @param metadata The metadata to be used to paint the component
  * @param id The component id
- * @param attributes Attributes for this component. Not data, but to be used to change this component behaviour/appearance
+ * @param attributes Attributes for this component. Not data, but to be used to change this
+ *     component behaviour/appearance
  * @param data Pure data for this component
  * @param childComponentIds Child componentIds. This is used for layouts
  */
 public record GenericComponent(
-        ComponentMetadata metadata, String id, String className, Map<String, Object> attributes, Map<String, Object> data, List<String> childComponentIds) implements Component {
+    ComponentMetadata metadata,
+    String id,
+    String className,
+    Map<String, Object> attributes,
+    Map<String, Object> data,
+    List<String> childComponentIds)
+    implements Component {
 
   public GenericComponent {
     attributes = Collections.unmodifiableMap(attributes);

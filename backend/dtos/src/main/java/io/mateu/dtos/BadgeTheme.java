@@ -1,8 +1,6 @@
 package io.mateu.dtos;
 
-/**
- * Badge theme
- */
+/** Badge theme */
 public enum BadgeTheme {
   NONE,
   INFO,

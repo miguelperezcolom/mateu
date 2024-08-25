@@ -7,10 +7,4 @@ package io.mateu.dtos;
  * @param message An text to show if not valid
  * @param data Data needed to perform the validation
  */
-public record Validation(
-        ValidationType type,
-        String message,
-        Object data
-) {
-
-}
+public record Validation(ValidationType type, String message, Object data) {}

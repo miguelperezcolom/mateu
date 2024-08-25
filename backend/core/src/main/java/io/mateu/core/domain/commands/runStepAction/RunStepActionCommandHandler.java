@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.runStepAction;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.services.ViewInstanceProvider;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
@@ -37,7 +36,6 @@ public class RunStepActionCommandHandler {
 
   @Transactional
   public Mono<JourneyContainer> handle(RunStepActionCommand command) throws Throwable {
-    String journeyId = command.journeyId();
     String stepId = command.stepId();
     String componentId = command.componentId();
     String actionId = command.actionId();
@@ -56,7 +54,13 @@ public class RunStepActionCommandHandler {
     var step = journeyContainer.steps().get(stepId);
     step =
         new Step(
-            step.id(), step.name(), step.type(), step.view(), step.previousStepId(), step.target(), step.components());
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            step.previousStepId(),
+            step.target(),
+            step.components());
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(stepId, step);
     journeyContainer =
@@ -102,42 +106,45 @@ public class RunStepActionCommandHandler {
                             stepAfterRun.view(),
                             stepAfterRun.previousStepId(),
                             stepAfterRun.target(),
-                                stepAfterRun.components().entrySet().stream()
-                                        .map(
-                                                c -> new Pair<String, Component>(c.getKey(),
-                                                        (Component) new GenericComponent(
-                                                                c.getValue().metadata() instanceof Form f
-                                                                        ? new Form(
-                                                                        f.icon(),
-                                                                        f.title(),
-                                                                        f.readOnly(),
-                                                                        f.subtitle(),
-                                                                        f.status(),
-                                                                        f.badges(),
-                                                                        f.tabs().stream()
-                                                                                .map(
-                                                                                        t ->
-                                                                                                new Tab(
-                                                                                                        t.id(),
-                                                                                                        !Strings.isNullOrEmpty(
-                                                                                                                activeTabId)
-                                                                                                                && activeTabId
-                                                                                                                .equals(t.id()),
-                                                                                                        t.caption()))
-                                                                                .toList(),
-                                                                        f.banners(),
-                                                                        f.sections(),
-                                                                        f.actions(),
-                                                                        f.mainActions(),
-                                                                        f.validations(),
-                                                                        f.rules())
-                                                                        : c.getValue().metadata(),
-                                                                c.getValue().id(),
-                                                                c.getValue().className(),
-                                                                c.getValue().attributes(),
-                                                                c.getValue().data(),
-                                                                c.getValue().childComponentIds())))
-                                        .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()))));
+                            stepAfterRun.components().entrySet().stream()
+                                .map(
+                                    c ->
+                                        new Pair<String, Component>(
+                                            c.getKey(),
+                                            (Component)
+                                                new GenericComponent(
+                                                    c.getValue().metadata() instanceof Form f
+                                                        ? new Form(
+                                                            f.icon(),
+                                                            f.title(),
+                                                            f.readOnly(),
+                                                            f.subtitle(),
+                                                            f.status(),
+                                                            f.badges(),
+                                                            f.tabs().stream()
+                                                                .map(
+                                                                    t ->
+                                                                        new Tab(
+                                                                            t.id(),
+                                                                            !Strings.isNullOrEmpty(
+                                                                                    activeTabId)
+                                                                                && activeTabId
+                                                                                    .equals(t.id()),
+                                                                            t.caption()))
+                                                                .toList(),
+                                                            f.banners(),
+                                                            f.sections(),
+                                                            f.actions(),
+                                                            f.mainActions(),
+                                                            f.validations(),
+                                                            f.rules())
+                                                        : c.getValue().metadata(),
+                                                    c.getValue().id(),
+                                                    c.getValue().className(),
+                                                    c.getValue().attributes(),
+                                                    c.getValue().data(),
+                                                    c.getValue().childComponentIds())))
+                                .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()))));
                     return new JourneyContainer(
                         jc.journeyId(),
                         jc.journeyTypeId(),
@@ -158,9 +165,7 @@ public class RunStepActionCommandHandler {
   }
 
   private void fillViewInstanceWithData(Object viewInstance, Map<String, Object> data) {
-    if (viewInstance instanceof FieldEditor) {
-      // no need to fill the fieldEditor
-    } else if (viewInstance instanceof ObjectEditor) {
+    if (viewInstance instanceof ObjectEditor) {
       // no need to fill the entityEditor
     } else if (viewInstance instanceof EntityEditor) {
       // no need to fill the entityEditor
@@ -210,8 +215,7 @@ public class RunStepActionCommandHandler {
       String componentId,
       ServerHttpRequest serverHttpRequest) {
     var component = journeyContainer.steps().get(stepId).components().get(componentId);
-    var instance = reflectionHelper.newInstance(Class.forName(component.className()));
-    return instance;
+    return reflectionHelper.newInstance(Class.forName(component.className()));
   }
 
   private JourneyContainer resetMessages(JourneyContainer journeyContainer) {
@@ -229,7 +233,7 @@ public class RunStepActionCommandHandler {
                 List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
             step.target(),
-                step.components()));
+            step.components()));
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),

@@ -257,7 +257,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
             step.previousStepId(),
             step.target(),
-                step.components()));
+            step.components()));
     journeyContainer =
         new JourneyContainer(
             journeyContainer.journeyId(),
@@ -293,7 +293,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                   view.footer()),
               step.previousStepId(),
               step.target(),
-                  step.components()));
+              step.components()));
       return new JourneyContainer(
           journeyContainer.journeyId(),
           journeyContainer.journeyTypeId(),

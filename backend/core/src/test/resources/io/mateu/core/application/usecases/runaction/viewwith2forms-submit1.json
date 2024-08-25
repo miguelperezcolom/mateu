@@ -11,8 +11,8 @@
   "steps" : {
     "form" : {
       "id" : "form",
-      "name" : "View with 2 forms",
-      "type" : "io.mateu.demo.ViewWith2Forms",
+      "name" : "Simple form",
+      "type" : "io.mateu.demo.SimpleForm",
       "view" : "----heretheview----",
       "previousStepId" : null,
       "target" : null,

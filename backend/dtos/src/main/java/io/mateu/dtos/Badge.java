@@ -10,11 +10,8 @@ package io.mateu.dtos;
  * @param iconPosition The icon position: left or right
  */
 public record Badge(
-        BadgeTheme theme,
-        String message,
-        String icon,
-        BadgeStyle badgeStyle,
-        BadgeIconPosition iconPosition
-) {
-
-}
+    BadgeTheme theme,
+    String message,
+    String icon,
+    BadgeStyle badgeStyle,
+    BadgeIconPosition iconPosition) {}

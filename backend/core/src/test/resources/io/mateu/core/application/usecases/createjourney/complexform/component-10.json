@@ -27,7 +27,7 @@
         "message" : "",
         "action" : "Submit"
       },
-      "target" : "View",
+      "target" : "Component",
       "modalStyle" : "",
       "customEvent" : "",
       "href" : ""

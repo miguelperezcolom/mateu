@@ -1,8 +1,8 @@
 package io.mateu.core.domain.model.inbound.services;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.dtos.Component;
@@ -15,6 +15,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ViewInstanceProvider {
 
   private final ReflectionHelper reflectionHelper;
@@ -52,7 +53,11 @@ public class ViewInstanceProvider {
                     step.view().main().componentIds().stream(),
                     step.view().right().componentIds().stream())),
             step.view().footer().componentIds().stream())
-        .map(c -> new Object[] {step.components().get(c), getViewPart(viewInstance, step.components().get(c))})
+        .map(
+            c ->
+                new Object[] {
+                  step.components().get(c), getViewPart(viewInstance, step.components().get(c))
+                })
         .forEach(p -> applyData((Map<String, Object>) p[0], p[1]));
   }
 
@@ -64,11 +69,6 @@ public class ViewInstanceProvider {
     } else if (instance instanceof ObjectEditor objectEditor) {
       objectEditor.setType(Class.forName((String) data.get("__entityClassName__")));
       objectEditor.setData(data);
-    } else if (instance instanceof FieldEditor fieldEditor) {
-      fieldEditor.setType(Class.forName((String) data.get("__type__")));
-      fieldEditor.setFieldId((String) data.get("__fieldId__"));
-      fieldEditor.setInitialStep((String) data.get("__initialStep__"));
-      fieldEditor.setData(data);
     } else {
       data.entrySet()
           .forEach(

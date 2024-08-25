@@ -8,13 +8,10 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.dtos.Component;
 import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.Step;
+import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +39,8 @@ public class StepMapper {
     }
 
     var components = new LinkedHashMap<String, Component>();
-    var view = viewMapper.map(journeyContainer, stepId, formInstance, serverHttpRequest, components);
+    var view =
+        viewMapper.map(journeyContainer, stepId, formInstance, serverHttpRequest, components);
 
     return new Step(
         stepId,
@@ -51,6 +49,6 @@ public class StepMapper {
         view,
         previousStepId,
         null,
-            components);
+        components);
   }
 }

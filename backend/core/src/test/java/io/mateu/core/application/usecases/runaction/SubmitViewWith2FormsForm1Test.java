@@ -106,13 +106,13 @@ public class SubmitViewWith2FormsForm1Test {
   private void assertStep(Step step) {
     assertNotNull(step);
     assertEquals("form", step.id());
-    assertEquals(ViewWith2Forms.class.getName(), step.type());
+    assertEquals(SimpleForm.class.getName(), step.type());
     assertNull(step.previousStepId());
     assertEquals("Simple form", step.name());
     assertNull(step.target());
     var viewJson =
         new String(
-            getClass().getResourceAsStream("simpleform-view.json").readAllBytes(),
+            getClass().getResourceAsStream("viewwith2forms-submit1-view.json").readAllBytes(),
             StandardCharsets.UTF_8);
     JSONAssert.assertEquals(viewJson, serializer.toJson(step.view()), JSONCompareMode.STRICT);
   }

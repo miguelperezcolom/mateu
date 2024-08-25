@@ -7,10 +7,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.FormIdentifier;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
-import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Form;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -29,8 +26,8 @@ public class ViewInstancePartsExtractor {
   final ReflectionHelper reflectionHelper;
   private final FormIdentifier formIdentifier;
 
-  public List<ViewInstancePart> getUiParts(Object viewInstance, List<Field> fields, SlotName slotName)
-      throws Exception {
+  public List<ViewInstancePart> getUiParts(
+      Object viewInstance, List<Field> fields, SlotName slotName) throws Exception {
     List<ViewInstancePart> parts = new ArrayList<>();
 
     List<Field> partCandidates = new ArrayList<>();
@@ -42,9 +39,8 @@ public class ViewInstancePartsExtractor {
               || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
               || (Form.class.isAssignableFrom(f.getType()))
               || formMetadataBuilder.isOwner(f)
-                  || !SlotName.main.equals(slotName)
-                  || viewInstance instanceof Container
-          ) {
+              || !SlotName.main.equals(slotName)
+              || viewInstance instanceof Container) {
             partCandidates.add(f);
           } else {
             leftFields.add(f);
@@ -65,12 +61,13 @@ public class ViewInstancePartsExtractor {
     return parts;
   }
 
-  private ViewInstancePart buildPart(Field f, Object uiInstance, SlotName slotName) throws Exception {
+  private ViewInstancePart buildPart(Field f, Object uiInstance, SlotName slotName)
+      throws Exception {
     Object partInstance = reflectionHelper.getValue(f, uiInstance);
     if (partInstance == null) {
       partInstance = reflectionHelper.newInstance(f.getType());
     }
-    if (partInstance instanceof Listing<?,?> listing) {
+    if (partInstance instanceof Listing<?, ?> listing) {
       partInstance = new RpcViewWrapper(listing, f.getId());
     }
     return new ViewInstancePart(

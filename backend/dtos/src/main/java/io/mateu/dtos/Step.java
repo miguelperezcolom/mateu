@@ -15,14 +15,20 @@ import java.util.Map;
  * @param components All the componentIds by id
  */
 public record Step(
-    String id, String name, String type, View view, String previousStepId, String target, Map<String, Component> components) {
+    String id,
+    String name,
+    String type,
+    View view,
+    String previousStepId,
+    String target,
+    Map<String, Component> components) {
 
-    public Step {
-        components = Collections.unmodifiableMap(components);
-    }
+  public Step {
+    components = Collections.unmodifiableMap(components);
+  }
 
-    @Override
-    public Map<String, Component> components() {
-        return Collections.unmodifiableMap(components);
-    }
+  @Override
+  public Map<String, Component> components() {
+    return Collections.unmodifiableMap(components);
+  }
 }

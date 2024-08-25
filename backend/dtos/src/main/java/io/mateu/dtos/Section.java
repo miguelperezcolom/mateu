@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A section inside a form. Forms contain sections which contain field groups
- * which contain field lines which contain fields
+ * A section inside a form. Forms contain sections which contain field groups which contain field
+ * lines which contain fields
  *
  * @param id Section id
  * @param tabId Tab id in case we want this section to be shown inside a tab

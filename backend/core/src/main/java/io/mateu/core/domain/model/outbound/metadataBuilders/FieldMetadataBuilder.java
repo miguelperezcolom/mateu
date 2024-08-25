@@ -109,21 +109,21 @@ public class FieldMetadataBuilder {
 
   private void addMinValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Min.class)) {
-      validations.add(new Validation(
-                      ValidationType.Min,
-                      field.getAnnotation(Min.class).message(),
-                      field.getAnnotation(Min.class).value()
-              ));
+      validations.add(
+          new Validation(
+              ValidationType.Min,
+              field.getAnnotation(Min.class).message(),
+              field.getAnnotation(Min.class).value()));
     }
   }
 
   private void addMaxValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Max.class)) {
-      validations.add(new Validation(
-                      ValidationType.Max,
-                      field.getAnnotation(Max.class).message(),
-                      field.getAnnotation(Max.class).value()
-              ));
+      validations.add(
+          new Validation(
+              ValidationType.Max,
+              field.getAnnotation(Max.class).message(),
+              field.getAnnotation(Max.class).value()));
     }
   }
 
@@ -131,21 +131,17 @@ public class FieldMetadataBuilder {
     if (field.isAnnotationPresent(NotEmpty.class)
         || field.isAnnotationPresent(NotNull.class)
         || field.isAnnotationPresent(NotBlank.class)) {
-      validations.add(new Validation(
-                      ValidationType.NotEmpty,
-                      "Required field",
-              null
-              ));
+      validations.add(new Validation(ValidationType.NotEmpty, "Required field", null));
     }
   }
 
   private void addPatternValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Pattern.class)) {
-      validations.add(new Validation(
-                      ValidationType.Pattern,
-                      field.getAnnotation(Pattern.class).message(),
-                      field.getAnnotation(Pattern.class).regexp()
-              ));
+      validations.add(
+          new Validation(
+              ValidationType.Pattern,
+              field.getAnnotation(Pattern.class).message(),
+              field.getAnnotation(Pattern.class).regexp()));
     }
   }
 

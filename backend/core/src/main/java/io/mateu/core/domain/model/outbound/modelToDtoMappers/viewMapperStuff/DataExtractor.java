@@ -2,18 +2,16 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
+import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-
-import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -39,14 +37,6 @@ public class DataExtractor {
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
       return data;
     }
-    if (uiInstance instanceof FieldEditor) {
-      Map<String, Object> data = new HashMap<>();
-      data.putAll(((FieldEditor) uiInstance).getData());
-      data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
-      data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
-      data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
-      return data;
-    }
     return getData(actualUiInstance);
   }
 
@@ -57,11 +47,10 @@ public class DataExtractor {
     }
     if (uiInstance instanceof Card card) {
       return Map.of(
-              "headerText", card.headerText(),
-              "subhead", card.subhead(),
-              "media", card.media(),
-              "supportingText", card.supportingText()
-      );
+          "headerText", card.headerText(),
+          "subhead", card.subhead(),
+          "media", card.media(),
+          "supportingText", card.supportingText());
     }
     Map<String, Object> data = new HashMap<>();
     if (uiInstance instanceof EntityEditor) {
@@ -71,12 +60,6 @@ public class DataExtractor {
     if (uiInstance instanceof ObjectEditor) {
       data.putAll(((ObjectEditor) uiInstance).getData());
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
-    }
-    if (uiInstance instanceof FieldEditor) {
-      data.putAll(((FieldEditor) uiInstance).getData());
-      data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
-      data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
-      data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
     }
     data.putAll(serializer.toMap(uiInstance));
     convertStringsToFiles(uiInstance, data);

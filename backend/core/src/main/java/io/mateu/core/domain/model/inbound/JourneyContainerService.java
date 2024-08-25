@@ -14,7 +14,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,7 +184,7 @@ public class JourneyContainerService {
               step.view(),
               step.previousStepId(),
               actionTarget.name(),
-                  step.components());
+              step.components());
     }
     var steps = new HashMap<>(journeyContainer.steps());
     steps.put(newStepId, step);
@@ -309,12 +308,14 @@ public class JourneyContainerService {
 
   public Object getLastUsedFilters(
       JourneyContainer journeyContainer, String stepId, String listId) {
-    return ((CrudComponent)journeyContainer.steps().get(stepId).components().get(listId)).lastUsedFilters();
+    return ((CrudComponent) journeyContainer.steps().get(stepId).components().get(listId))
+        .lastUsedFilters();
   }
 
   public List<SortCriteria> getLastUsedOrders(
       JourneyContainer journeyContainer, String stepId, String listId) {
-    return ((CrudComponent)journeyContainer.steps().get(stepId).components().get(listId)).lastUsedSorting();
+    return ((CrudComponent) journeyContainer.steps().get(stepId).components().get(listId))
+        .lastUsedSorting();
   }
 
   public JourneyContainer deleteHistory(JourneyContainer journeyContainer) {
@@ -322,7 +323,14 @@ public class JourneyContainerService {
     var step = journeyContainer.steps().get(journeyContainer.journey().currentStepId());
     steps.put(
         journeyContainer.journey().currentStepId(),
-        new Step(step.id(), step.name(), step.type(), step.view(), null, step.target(), step.components()));
+        new Step(
+            step.id(),
+            step.name(),
+            step.type(),
+            step.view(),
+            null,
+            step.target(),
+            step.components()));
     return new JourneyContainer(
         journeyContainer.journeyId(),
         journeyContainer.journeyTypeId(),

@@ -1,8 +1,6 @@
 package io.mateu.dtos;
 
-/**
- * Badge position
- */
+/** Badge position */
 public enum BadgeIconPosition {
   LEFT,
   RIGHT

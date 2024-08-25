@@ -3,7 +3,6 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.dtos.*;
 import io.mateu.dtos.JourneyContainer;
@@ -12,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
@@ -26,25 +24,27 @@ public class ViewMapper {
   private final ActualUiInstanceProvider actualUiInstanceProvider;
 
   public ViewMapper(
-          FieldExtractor fieldExtractor,
-          ViewInstancePartsExtractor viewInstancePartsExtractor,
-          ComponentFactory componentFactory,
-          ActualUiInstanceProvider actualUiInstanceProvider) {
+      FieldExtractor fieldExtractor,
+      ViewInstancePartsExtractor viewInstancePartsExtractor,
+      ComponentFactory componentFactory,
+      ActualUiInstanceProvider actualUiInstanceProvider) {
     this.fieldExtractor = fieldExtractor;
     this.viewInstancePartsExtractor = viewInstancePartsExtractor;
     this.componentFactory = componentFactory;
-      this.actualUiInstanceProvider = actualUiInstanceProvider;
+    this.actualUiInstanceProvider = actualUiInstanceProvider;
   }
 
   public View map(
-          JourneyContainer journeyContainer,
-          String stepId,
-          Object object,
-          ServerHttpRequest serverHttpRequest, HashMap<String, Component> allComponentsInStep)
+      JourneyContainer journeyContainer,
+      String stepId,
+      Object object,
+      ServerHttpRequest serverHttpRequest,
+      HashMap<String, Component> allComponentsInStep)
       throws Throwable {
 
     var actualObject =
-        actualUiInstanceProvider.getActualUiInstance(journeyContainer, stepId, object, serverHttpRequest);
+        actualUiInstanceProvider.getActualUiInstance(
+            journeyContainer, stepId, object, serverHttpRequest);
 
     List<String> left = new ArrayList<>();
     List<String> main = new ArrayList<>();
@@ -77,7 +77,8 @@ public class ViewMapper {
       viewInstanceParts.forEach(
           p -> {
             var componentInstance = p.getUiInstance();
-            var component = componentFactory.createComponent(
+            var component =
+                componentFactory.createComponent(
                     p.isForm(),
                     componentInstance,
                     stepId,
@@ -87,9 +88,7 @@ public class ViewMapper {
                     p.getFields(),
                     allComponentsInStep,
                     componentCounter);
-            componentIdsPerSlot
-                .get(slot)
-                .add(component);
+            componentIdsPerSlot.get(slot).add(component);
           });
     }
 

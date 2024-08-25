@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.util;
 
 import io.mateu.core.domain.model.util.asciiart.AsciiPainter;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,7 @@ public class BannerPainter {
     this.asciiPainter = asciiPainter;
   }
 
-  //@PostConstruct
+  // @PostConstruct
   public void paintBanner() {
     asciiPainter.paint("Hello");
     asciiPainter.paint("MATEU");

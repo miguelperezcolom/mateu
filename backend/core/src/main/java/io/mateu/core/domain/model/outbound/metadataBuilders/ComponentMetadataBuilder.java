@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -18,14 +17,12 @@ import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
+import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -46,31 +43,41 @@ public class ComponentMetadataBuilder {
   @Autowired MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
 
   @Autowired ReflectionHelper reflectionHelper;
-    @Autowired
-    private DataExtractor dataExtractor;
+  @Autowired private DataExtractor dataExtractor;
 
   public ComponentMetadata getMetadata(
       boolean form, String stepId, Object componentInstance, Field field, List<Field> slotFields) {
     ComponentMetadata metadata;
     if (form) {
       metadata = getForm(stepId, componentInstance, slotFields);
-    } else{
-      if (componentInstance != null && componentInstance instanceof List<?> list && field != null
-              && field.isAnnotationPresent(HorizontalLayout.class)) {
+    } else {
+      if (componentInstance != null
+          && componentInstance instanceof List<?> list
+          && field != null
+          && field.isAnnotationPresent(HorizontalLayout.class)) {
         metadata = getHorizontalLayout(list, stepId, componentInstance, field);
-      } else if (componentInstance != null && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
-          metadata = getHorizontalLayout(componentInstance, stepId);
-      } else if (componentInstance != null && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
+      } else if (componentInstance != null
+          && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
+        metadata = getHorizontalLayout(componentInstance, stepId);
+      } else if (componentInstance != null
+          && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
         metadata = getVerticalLayout(componentInstance, stepId);
-      } else if (componentInstance != null && componentInstance instanceof List<?> list && field != null
-              && field.isAnnotationPresent(VerticalLayout.class)) {
+      } else if (componentInstance != null
+          && componentInstance instanceof List<?> list
+          && field != null
+          && field.isAnnotationPresent(VerticalLayout.class)) {
         metadata = getVerticalLayout(list, stepId, componentInstance, field);
-      } else if (componentInstance != null && componentInstance instanceof List<?> list && field != null
-              && field.isAnnotationPresent(SplitLayout.class)) {
+      } else if (componentInstance != null
+          && componentInstance instanceof List<?> list
+          && field != null
+          && field.isAnnotationPresent(SplitLayout.class)) {
         metadata = getSplitLayout(list, stepId, componentInstance, field);
-      } else if (componentInstance instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
+      } else if (componentInstance
+          instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
         metadata =
-                getJourneyStarter((io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) componentInstance);
+            getJourneyStarter(
+                (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter)
+                    componentInstance);
       } else if (componentInstance instanceof Element) {
         metadata = getElement(stepId, (Element) componentInstance);
       } else if (componentInstance instanceof MethodParametersEditor) {
@@ -81,7 +88,10 @@ public class ComponentMetadataBuilder {
         metadata = getCrud(stepId, "main", (Listing) componentInstance);
       } else if (componentInstance instanceof RpcViewWrapper) {
         metadata =
-                getCrud(stepId, ((RpcViewWrapper) componentInstance).getId(), ((RpcViewWrapper) componentInstance).getRpcView());
+            getCrud(
+                stepId,
+                ((RpcViewWrapper) componentInstance).getId(),
+                ((RpcViewWrapper) componentInstance).getRpcView());
       } else if (componentInstance instanceof Stepper) {
         metadata = getStepper();
       } else if (componentInstance instanceof Card card) {
@@ -91,10 +101,6 @@ public class ComponentMetadataBuilder {
       } else {
         metadata = getNonForm(stepId, componentInstance, slotFields);
       }
-    }
-
-    if (componentInstance instanceof FieldEditor) {
-      addActionsForFieldEditor((Form) metadata, (FieldEditor) componentInstance);
     }
 
     if (componentInstance instanceof EntityEditor && metadata instanceof Form) {
@@ -112,7 +118,8 @@ public class ComponentMetadataBuilder {
     return new io.mateu.dtos.HorizontalLayout();
   }
 
-  private ComponentMetadata getNonForm(String stepId, Object componentInstance, List<Field> slotFields) {
+  private ComponentMetadata getNonForm(
+      String stepId, Object componentInstance, List<Field> slotFields) {
     if (componentInstance instanceof Container) {
       return new io.mateu.dtos.VerticalLayout();
     }
@@ -123,17 +130,21 @@ public class ComponentMetadataBuilder {
     return new io.mateu.dtos.Element(element.name(), element.attributes());
   }
 
-  private ComponentMetadata getHorizontalLayout(List<?> list, String stepId, Object model, Field field) {
+  private ComponentMetadata getHorizontalLayout(
+      List<?> list, String stepId, Object model, Field field) {
     return new io.mateu.dtos.HorizontalLayout();
   }
 
-  private ComponentMetadata getVerticalLayout(List<?> list, String stepId, Object model, Field field) {
+  private ComponentMetadata getVerticalLayout(
+      List<?> list, String stepId, Object model, Field field) {
     return new io.mateu.dtos.VerticalLayout();
   }
 
   private ComponentMetadata getSplitLayout(List<?> list, String stepId, Object model, Field field) {
     if (list.size() > 2) {
-      log.warn("Split layout cannot have more than 2 elements" + (field != null?" for field " + field.getName():""));
+      log.warn(
+          "Split layout cannot have more than 2 elements"
+              + (field != null ? " for field " + field.getName() : ""));
     }
     return new io.mateu.dtos.SplitLayout();
   }
@@ -239,39 +250,5 @@ public class ComponentMetadataBuilder {
       }
     }
     return metadata;
-  }
-
-  private Form addActionsForFieldEditor(Form metadata, FieldEditor fieldEditor) {
-    return new Form(
-        metadata.icon(),
-        metadata.title(),
-        metadata.readOnly(),
-        metadata.subtitle(),
-        metadata.status(),
-        metadata.badges(),
-        metadata.tabs(),
-        metadata.banners(),
-        metadata.sections(),
-        metadata.actions(),
-        Stream.concat(
-                metadata.mainActions().stream(),
-                Stream.of(
-                    new Action(
-                        "save",
-                        null,
-                        "Save",
-                        ActionType.Primary,
-                        true,
-                        true,
-                        false,
-                        false,
-                        null,
-                        ActionTarget.View,
-                        null,
-                        null,
-                        null)))
-            .toList(),
-        metadata.validations(),
-        metadata.rules());
   }
 }

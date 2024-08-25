@@ -53,7 +53,6 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   @Action(order = 1)
   public Message showMessage() throws Exception {
     return new Message(
-                      UUID.randomUUID().toString(),
                       ResultType.Success,
                       "Sample message",
                       "Your name is " + name
@@ -63,7 +62,6 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   @Action(order = 2)
   public ResponseWrapper showMessageAfter() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
-            UUID.randomUUID().toString(),
             ResultType.Info,
             "Sample message",
             "Your name is " + name

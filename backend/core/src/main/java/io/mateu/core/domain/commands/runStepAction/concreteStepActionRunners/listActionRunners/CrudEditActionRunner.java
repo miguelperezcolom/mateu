@@ -51,9 +51,6 @@ public class CrudEditActionRunner implements ListActionRunner {
     int __index = (Integer) data.getOrDefault("__index", -1);
     int __count = (Integer) data.getOrDefault("__count", -1);
 
-    var newData = new HashMap<>(data);
-    newData.put("__listId", listId);
-
     var steps = new HashMap<>(journeyContainer.steps());
     var step = journeyContainer.steps().get(stepId);
 
@@ -66,7 +63,7 @@ public class CrudEditActionRunner implements ListActionRunner {
             step.view(),
             step.previousStepId(),
             step.target(),
-                step.components()));
+            step.components()));
 
     journeyContainer =
         new JourneyContainer(

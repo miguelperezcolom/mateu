@@ -1,8 +1,6 @@
 package io.mateu.dtos;
 
-/**
- * Badge style
- */
+/** Badge style */
 public enum BadgeStyle {
   SQUARE,
   ROUND
