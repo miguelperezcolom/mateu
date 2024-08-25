@@ -1,6 +1,7 @@
 package io.mateu.demo;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Form;
@@ -17,7 +18,7 @@ public class AnotherSimpleForm implements Form {
 
   int age = 47;
 
-  @MainAction
+  @MainAction(target = ActionTarget.Component)
   public Message submit() {
     // send the email
     return new Message(

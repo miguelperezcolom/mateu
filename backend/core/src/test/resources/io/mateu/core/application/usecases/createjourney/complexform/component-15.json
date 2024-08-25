@@ -1,4 +1,6 @@
 {
+  "type" : "GenericComponent",
+  "className" : "io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper",
   "metadata" : {
     "type" : "Crud",
     "listId" : "simpleCrud",

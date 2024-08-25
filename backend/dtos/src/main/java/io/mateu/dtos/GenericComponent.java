@@ -15,7 +15,7 @@ import java.util.Map;
  * @param childComponentIds Child componentIds. This is used for layouts
  */
 public record GenericComponent(
-        ComponentMetadata metadata, String id, Map<String, Object> attributes, Map<String, Object> data, List<String> childComponentIds) implements Component {
+        ComponentMetadata metadata, String id, String className, Map<String, Object> attributes, Map<String, Object> data, List<String> childComponentIds) implements Component {
 
   public GenericComponent {
     attributes = Collections.unmodifiableMap(attributes);

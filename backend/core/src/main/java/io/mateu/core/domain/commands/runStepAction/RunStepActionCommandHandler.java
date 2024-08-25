@@ -133,6 +133,7 @@ public class RunStepActionCommandHandler {
                                                                         f.rules())
                                                                         : c.getValue().metadata(),
                                                                 c.getValue().id(),
+                                                                c.getValue().className(),
                                                                 c.getValue().attributes(),
                                                                 c.getValue().data(),
                                                                 c.getValue().childComponentIds())))
@@ -208,16 +209,9 @@ public class RunStepActionCommandHandler {
       String stepId,
       String componentId,
       ServerHttpRequest serverHttpRequest) {
-    var viewInstance =
-        viewInstanceProvider.getViewInstance(journeyContainer, stepId, serverHttpRequest);
-    if (!"___self___".equals(componentId)) {
-      var field = reflectionHelper.getFieldByName(viewInstance.getClass(), componentId);
-      viewInstance = reflectionHelper.getValue(field, viewInstance);
-      if (viewInstance == null) {
-        viewInstance = reflectionHelper.newInstance(field.getType());
-      }
-    }
-    return viewInstance;
+    var component = journeyContainer.steps().get(stepId).components().get(componentId);
+    var instance = reflectionHelper.newInstance(Class.forName(component.className()));
+    return instance;
   }
 
   private JourneyContainer resetMessages(JourneyContainer journeyContainer) {

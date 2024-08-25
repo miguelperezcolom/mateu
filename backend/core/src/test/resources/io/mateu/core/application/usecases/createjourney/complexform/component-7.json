@@ -1,4 +1,6 @@
 {
+  "type" : "GenericComponent",
+  "className" : "io.mateu.demo.complexview.HorizontalLayoutContainer",
   "metadata" : {
     "type" : "HorizontalLayout"
   },

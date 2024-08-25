@@ -57,6 +57,7 @@ public class ComponentFactory {
             component = new GenericComponent(
                     metadata,
                     componentId,
+                    componentInstance.getClass().getName(),
                     Map.of(),
                     dataExtractor.getData(componentInstance, actualComponentInstance),
                     getChildComponents(form, actualComponentInstance, stepId, field,journeyContainer, serverHttpRequest, allComponentsInStep, componentCounter));
@@ -65,6 +66,7 @@ public class ComponentFactory {
                 component = new CrudComponent(
                         metadata,
                         componentId,
+                        actualComponentInstance.getClass().getName(),
                         Map.of(),
                         dataExtractor.getData(componentInstance, actualComponentInstance),
                         getChildComponents(form, actualComponentInstance, stepId, field, journeyContainer, serverHttpRequest, allComponentsInStep, componentCounter),
@@ -81,6 +83,7 @@ public class ComponentFactory {
                 component = new GenericComponent(
                         metadata,
                         componentId,
+                        actualComponentInstance.getClass().getName(),
                         Map.of(),
                         Map.of(),
                         getChildComponents(form, actualComponentInstance, stepId, field, journeyContainer, serverHttpRequest, allComponentsInStep, componentCounter));
@@ -88,6 +91,7 @@ public class ComponentFactory {
                 component = new GenericComponent(
                         metadata,
                         componentId,
+                        actualComponentInstance.getClass().getName(),
                         Map.of(),
                         dataExtractor.getData(componentInstance, actualComponentInstance),
                         getChildComponents(form, actualComponentInstance, stepId, field,journeyContainer, serverHttpRequest, allComponentsInStep, componentCounter));

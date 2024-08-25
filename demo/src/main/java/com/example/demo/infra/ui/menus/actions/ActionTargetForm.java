@@ -4,15 +4,12 @@ import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionType;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-
-import static io.mateu.core.infra.Utils.exit;
 
 @Service
 @Getter
@@ -46,12 +43,12 @@ public class ActionTargetForm {
         return run();
     }
 
-    @MainAction(target = ActionTarget.Left, type = ActionType.Secondary, order = 3)
+    @MainAction(target = ActionTarget.LeftAside, type = ActionType.Secondary, order = 3)
     String left() {
         return run();
     }
 
-    @MainAction(target = ActionTarget.Right, type = ActionType.Secondary, order = 3)
+    @MainAction(target = ActionTarget.RightAside, type = ActionType.Secondary, order = 3)
     String right() {
         return run();
     }

@@ -59,17 +59,17 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
   }
 
 
-  @Action(order = 20, target = ActionTarget.Left)
+  @Action(order = 20, target = ActionTarget.LeftAside)
   public WizardPage1 openOnLeft() throws Exception {
     return new WizardPage1();
   }
 
-  @Action(order = 30, target = ActionTarget.Right)
+  @Action(order = 30, target = ActionTarget.RightAside)
   public WizardPage1 openOnRight() throws Exception {
     return new WizardPage1();
   }
 
-  @Action(order = 30, target = ActionTarget.Right, modalStyle = "width: 50vh;")
+  @Action(order = 30, target = ActionTarget.RightAside, modalStyle = "width: 50vh;")
   public WizardPage1 openOnRightWide() throws Exception {
     return new WizardPage1();
   }

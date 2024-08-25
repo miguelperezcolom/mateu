@@ -7,6 +7,7 @@ import java.util.Map;
 public record CrudComponent(
         ComponentMetadata metadata,
         String id,
+        String className,
         Map<String, Object> attributes,
         Map<String, Object> data,
         List<String> childComponentIds,

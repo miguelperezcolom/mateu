@@ -1,4 +1,6 @@
 {
+  "type" : "GenericComponent",
+  "className" : "java.lang.String",
   "metadata" : {
     "type" : "Element",
     "name" : "div",

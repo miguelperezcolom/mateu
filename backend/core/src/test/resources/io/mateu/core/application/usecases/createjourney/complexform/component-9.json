@@ -1,4 +1,6 @@
 {
+  "type" : "GenericComponent",
+  "className" : "io.mateu.demo.SimpleForm",
   "metadata" : {
     "type" : "Form",
     "icon" : null,

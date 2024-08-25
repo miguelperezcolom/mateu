@@ -12,4 +12,5 @@ public class ViewWith2Forms {
   SimpleForm simpleForm;
 
   AnotherSimpleForm anotherSimpleForm;
+
 }

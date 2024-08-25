@@ -42,7 +42,7 @@ public class SubmitSimpleFormTest {
             journeyTypeId,
             journeyId,
             "form",
-            "___self___",
+            "component-0",
             actionId,
             runActionRq,
             serverHttpRequest);

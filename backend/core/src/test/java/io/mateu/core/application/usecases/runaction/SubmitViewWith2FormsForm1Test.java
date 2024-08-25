@@ -43,7 +43,7 @@ public class SubmitViewWith2FormsForm1Test {
             journeyTypeId,
             journeyId,
             "form",
-            "simpleForm",
+            "component-0",
             actionId,
             runActionRq,
             serverHttpRequest);

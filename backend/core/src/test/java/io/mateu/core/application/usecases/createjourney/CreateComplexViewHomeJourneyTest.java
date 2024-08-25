@@ -83,16 +83,16 @@ public class CreateComplexViewHomeJourneyTest {
         new String(
                 getClass().getResourceAsStream("complexform.json").readAllBytes(),
                 StandardCharsets.UTF_8)
-            .replaceAll("\"----herethejourneyid----\"", journeyId)
-                .replaceAll("\"----herethecomponents----\"", componentsJson)
+            .replace("\"----herethejourneyid----\"", journeyId)
+                .replace("\"----herethecomponents----\"", componentsJson)
             ;
     JSONAssert.assertEquals(json, serializer.toJson(store), JSONCompareMode.STRICT);
   }
 
   private String assertComponent(String componentId, Map<String, Object> store) throws Exception {
-    log.info("assertComponent: {}", componentId);
+    //log.info("assertComponent: {}", componentId);
     var realJson = getJsonForComponent(store, componentId);
-    log.info("realJson: {}", realJson);
+    //log.info("realJson: {}", realJson);
     var componentJson =
             new String(
                     getClass().getResourceAsStream("complexform/" + componentId + ".json").readAllBytes(),

@@ -1,4 +1,6 @@
 {
+  "type" : "GenericComponent",
+  "className" : "io.mateu.core.domain.uidefinition.shared.elements.Element",
   "metadata" : {
     "type" : "Element",
     "name" : "h2",

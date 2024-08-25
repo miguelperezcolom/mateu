@@ -6,10 +6,16 @@ public enum ActionTarget {
   NewModal,
   NewTab,
   NewWindow,
-  Right,
-  Left,
+  RightAside,
+  LeftAside,
   NewJourney,
   Deferred,
   DeferredNewTab,
-  DeferredNewWindow
+  DeferredNewWindow,
+  Component,
+  Header,
+  Footer,
+  Main,
+  Left,
+  Right
 }

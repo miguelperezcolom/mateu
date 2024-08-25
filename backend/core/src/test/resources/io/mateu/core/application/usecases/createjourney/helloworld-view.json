@@ -1,44 +1,23 @@
 {
-  "messages" : [ ],
-  "header" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "left" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "main" : {
-    "classes" : null,
-    "components" : [ {
-      "metadata" : {
-        "type" : "Form",
-        "dataPrefix" : "",
-        "icon" : null,
-        "title" : "Hello world",
-        "readOnly" : false,
-        "subtitle" : null,
-        "status" : null,
-        "badges" : [ ],
-        "tabs" : [ ],
-        "banners" : [ ],
-        "sections" : [ ],
-        "actions" : [ ],
-        "mainActions" : [ ],
-        "validations" : [ ],
-        "rules" : [ ]
-      },
-      "data" : { },
-      "id" : "___self___",
-      "attributes" : { }
-    } ]
-  },
-  "right" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "footer" : {
-    "classes" : null,
-    "components" : [ ]
-  }
-}
+        "messages" : [ ],
+        "header" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "left" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "main" : {
+          "classes" : null,
+          "componentIds" : [ "component-0" ]
+        },
+        "right" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "footer" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        }
+      }

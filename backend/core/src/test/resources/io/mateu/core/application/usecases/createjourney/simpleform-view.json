@@ -1,107 +1,23 @@
 {
-  "messages" : [ ],
-  "header" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "left" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "main" : {
-    "classes" : null,
-    "components" : [ {
-      "metadata" : {
-        "type" : "Form",
-        "dataPrefix" : "",
-        "icon" : null,
-        "title" : "Simple form",
-        "readOnly" : false,
-        "subtitle" : null,
-        "status" : null,
-        "badges" : [ ],
-        "tabs" : [ ],
-        "banners" : [ ],
-        "rules" : [ ],
-        "sections" : [ {
-          "id" : "section_0",
-          "tabId" : "",
-          "caption" : "",
-          "description" : "",
-          "readOnly" : false,
-          "type" : "Card",
-          "leftSideImageUrl" : "",
-          "topImageUrl" : "",
-          "actions" : [ ],
-          "fieldGroups" : [ {
-            "id" : "fieldgroup_1_0",
-            "caption" : "",
-            "lines" : [ {
-              "fields" : [ {
-                "id" : "name",
-                "type" : "string",
-                "stereotype" : "input",
-                "observed" : false,
-                "caption" : "Name",
-                "placeholder" : null,
-                "cssClasses" : null,
-                "description" : null,
-                "badges" : [ ],
-                "validations" : [ ],
-                "attributes" : [ ]
-              } ]
-            }, {
-              "fields" : [ {
-                "id" : "age",
-                "type" : "int",
-                "stereotype" : "input",
-                "observed" : false,
-                "caption" : "Age",
-                "placeholder" : null,
-                "cssClasses" : null,
-                "description" : null,
-                "badges" : [ ],
-                "validations" : [ ],
-                "attributes" : [ ]
-              } ]
-            } ]
-          } ]
-        } ],
-        "actions" : [ ],
-        "mainActions" : [ {
-          "id" : "submit",
-          "caption" : "Submit",
-          "type" : "Primary",
-          "visible" : true,
-          "validationRequired" : true,
-          "confirmationRequired" : false,
-          "rowsSelectedRequired" : false,
-          "confirmationTexts" : {
-            "title" : "Please confirm",
-            "message" : "",
-            "action" : "Submit"
-          },
-          "target" : "View",
-          "modalStyle" : "",
-          "customEvent" : "",
-          "href" : ""
-        } ],
-        "validations" : [ ]
-      },
-      "id" : "___self___",
-      "attributes" : { },
-      "data" : {
-        "name" : "Mateu",
-        "age" : 16
+        "messages" : [ ],
+        "header" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "left" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "main" : {
+          "classes" : null,
+          "componentIds" : [ "component-0" ]
+        },
+        "right" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        },
+        "footer" : {
+          "classes" : null,
+          "componentIds" : [ ]
+        }
       }
-    } ]
-  },
-  "right" : {
-    "classes" : null,
-    "components" : [ ]
-  },
-  "footer" : {
-    "classes" : null,
-    "components" : [ ]
-  }
-}

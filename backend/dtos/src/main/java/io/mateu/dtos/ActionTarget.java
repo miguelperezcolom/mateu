@@ -12,7 +12,7 @@ public enum ActionTarget {
   Deferred, // deferred used when returning a URL
   DeferredNewTab,
   DeferredNewWindow,
-  SameComponent,
+  Component,
   Header,
   Footer,
   Main,
