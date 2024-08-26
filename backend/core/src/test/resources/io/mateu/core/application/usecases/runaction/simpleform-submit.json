@@ -2,15 +2,15 @@
   "commands" : [ ],
   "content" : {
     "contentType" : "SingleComponent",
-    "componentId" : "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e"
+    "componentId" : "58234d75-7333-46ff-bdca-650edc6574b7"
   },
   "messages" : [ {
     "type" : "Success",
     "title" : "Form submitted",
-    "text" : "You entered Miguel, 55 before submitting."
+    "text" : "You entered Antonia, 47 before submitting."
   } ],
   "components" : {
-    "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e" : {
+    "58234d75-7333-46ff-bdca-650edc6574b7" : {
       "componentType" : "GenericComponent",
       "metadata" : {
         "type" : "Form",
@@ -117,11 +117,11 @@
         "validations" : [ ],
         "rules" : [ ]
       },
-      "id" : "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e",
+      "id" : "58234d75-7333-46ff-bdca-650edc6574b7",
       "className" : "io.mateu.core.domain.uidefinition.core.interfaces.Message",
       "attributes" : { },
       "data" : {
-        "text" : "You entered Miguel, 55 before submitting.",
+        "text" : "You entered Antonia, 47 before submitting.",
         "type" : "Success",
         "title" : "Form submitted"
       },

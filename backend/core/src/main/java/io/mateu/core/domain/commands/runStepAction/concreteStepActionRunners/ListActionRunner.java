@@ -1,22 +1,21 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.dtos.JourneyContainer;
+import io.mateu.dtos.UIIncrement;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 public interface ListActionRunner {
 
-  boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId);
+  boolean applies(Crud crud, String actionId);
 
-  Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  Mono<UIIncrement> run(
       Crud crud,
-      String stepId,
-      String listId,
+      String crudStepId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable;
 }

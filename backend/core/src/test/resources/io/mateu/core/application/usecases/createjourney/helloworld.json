@@ -1,50 +1,83 @@
 {
-  "journeyId" : "----herethejourneyid----",
-  "journeyTypeId" : "____home____",
-  "journey" : {
-    "type" : "io.mateu.demo.HelloWorld",
-    "status" : "Pending",
-    "statusMessage" : "Please fill the form",
-    "currentStepId" : "form",
-    "currentStepDefinitionId" : "io.mateu.demo.HelloWorld"
-  },
-  "steps" : {
-    "form" : {
-      "id" : "form",
-      "name" : "Hello world",
-      "type" : "io.mateu.demo.HelloWorld",
-      "view" : "----heretheview----",
-      "previousStepId" : null,
-      "target" : null,
-      "components" : {
-        "component-0" : {
-          "type" : "GenericComponent",
-          "className" : "io.mateu.demo.HelloWorld",
-          "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Hello world",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ ],
-            "actions" : [ ],
-            "mainActions" : [ ],
-            "validations" : [ ],
-            "rules" : [ ]
-          },
-          "id" : "component-0",
-          "attributes" : { },
-          "data" : { },
-          "childComponentIds" : [ ]
-        }
-      }
+  "commands" : [ ],
+  "content" : {
+    "contentType" : "View",
+    "header" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "left" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "main" : {
+      "classes" : null,
+      "componentIds" : [ "component-0" ]
+    },
+    "right" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "footer" : {
+      "classes" : null,
+      "componentIds" : [ ]
     }
   },
-  "stepHistory" : [ "form" ],
-  "initialStep" : "form",
-  "modalMustBeClosed" : false
+  "messages" : [ ],
+  "components" : {
+    "component-0" : {
+      "componentType" : "GenericComponent",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Hello world",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "cancel",
+          "icon" : null,
+          "caption" : "Cancel",
+          "type" : "Secondary",
+          "visible" : true,
+          "validationRequired" : false,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : null,
+          "target" : "View",
+          "modalStyle" : null,
+          "customEvent" : null,
+          "href" : null,
+          "runOnEnter" : false
+        }, {
+          "id" : "save",
+          "icon" : null,
+          "caption" : "Save",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : null,
+          "target" : "View",
+          "modalStyle" : null,
+          "customEvent" : null,
+          "href" : null,
+          "runOnEnter" : false
+        } ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "component-0",
+      "className" : "io.mateu.demo.HelloWorld",
+      "attributes" : { },
+      "data" : { },
+      "childComponentIds" : [ ]
+    }
+  }
 }

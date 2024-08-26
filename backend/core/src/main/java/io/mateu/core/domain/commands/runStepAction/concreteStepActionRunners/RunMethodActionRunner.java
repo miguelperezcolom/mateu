@@ -3,32 +3,28 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
-import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.ResultType;
-import io.mateu.dtos.Step;
-import io.mateu.dtos.View;
+import io.mateu.dtos.SingleComponent;
+import io.mateu.dtos.UIIncrement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -40,155 +36,65 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
 
-  final JourneyContainerService store;
   final Merger merger;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
   final ValidationService validationService;
+  private final ComponentFactory componentFactory;
+  private final UIIncrementFactory uIIncrementFactory;
 
   @Override
-  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
-    if ("xxxbacktostep".equals(actionId)) {
-      return true;
-    }
-    return getActions(journeyContainer, getActualInstance(journeyContainer, viewInstance, Map.of()))
-        .containsKey(actionId);
+  public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
+    return getActions(viewInstance).containsKey(actionId);
   }
 
-  private Object getActualInstance(
-      JourneyContainer journeyContainer, Object viewInstance, Map<String, Object> data) {
-    if (viewInstance instanceof EntityEditor) {
-      try {
-        EntityEditor entityEditor = ((EntityEditor) viewInstance);
-        var actualInstance =
-            merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
-                    reflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-        return actualInstance;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-    if (viewInstance instanceof ObjectEditor) {
-      try {
-        ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
-        Object object = reflectionHelper.newInstance(objectEditor.getType());
-        Object filled =
-            serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
-        reflectionHelper.copy(filled, object);
-        var actualInstance = object;
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
-                    reflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-        return actualInstance;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-    return viewInstance;
-  }
-
-  private Map<Object, Method> getActions(JourneyContainer journeyContainer, Object viewInstance) {
-    return reflectionHelper
-        .getAllMethods(getActualInstance(journeyContainer, viewInstance, Map.of()).getClass())
-        .stream()
+  private Map<Object, Method> getActions(Object viewInstance) {
+    return reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
         .collect(Collectors.toMap(m -> m.getName(), m -> m));
   }
 
   @Override
-  public Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  public Mono<UIIncrement> run(
       Object viewInstance,
       String stepId,
-      String componentId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    if ("xxxbacktostep".equals(actionId)) {
-      return Mono.just(store.backToStep(journeyContainer, stepId));
-    }
+    Method m = getActions(viewInstance).get(actionId);
 
-    Object actualViewInstance = getActualInstance(journeyContainer, viewInstance, data);
-
-    Method m = getActions(journeyContainer, actualViewInstance).get(actionId);
-
-    return runMethod(
-        journeyContainer,
-        actualViewInstance,
-        m,
-        stepId,
-        componentId,
-        actionId,
-        data,
-        serverHttpRequest);
+    return runMethod(viewInstance, m, data, serverHttpRequest);
   }
 
-  public Mono<JourneyContainer> runMethod(
-      JourneyContainer journeyContainer,
+  public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
       Method m,
-      String stepId,
-      String componentId,
-      String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
-    journeyContainer = resetMessages(journeyContainer);
-
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
     if (needsParameters(m)) {
 
       if (Modifier.isStatic(m.getModifiers())) {
 
-        journeyContainer =
-            store.setStep(
-                journeyContainer,
-                actionId,
-                new MethodParametersEditor(
-                    m.getDeclaringClass(),
-                    m.getName(),
-                    store.getCurrentStep(journeyContainer).id(),
-                    data),
-                serverHttpRequest,
-                getTarget(m));
+        return Mono.just(
+                uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(
+                        new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
+                        serverHttpRequest)));
 
       } else {
 
-        journeyContainer =
-            store.setStep(
-                journeyContainer,
-                actionId,
-                new MethodParametersEditor(
-                    actualViewInstance,
-                    m.getName(),
-                    store.getCurrentStep(journeyContainer).id(),
-                    serializer),
-                serverHttpRequest,
-                getTarget(m));
+        return Mono.just(
+                uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(
+                        new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
+                        serverHttpRequest)));
       }
 
     } else {
@@ -201,120 +107,56 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        if (result != null && Mono.class.isAssignableFrom(result.getClass())) {
+        // todo: manage goback and callback!!!!
+
+        if (result == null) {
+          return Mono.just(
+                  uIIncrementFactory.createForSingleComponent(componentFactory
+                          .createFormComponent(actualViewInstance, serverHttpRequest)));
+        }
+
+        if (Mono.class.isAssignableFrom(result.getClass())) {
 
           var mono = (Mono) result;
 
-          JourneyContainer finalJourneyContainer = journeyContainer;
           return mono.map(
               r -> {
-                var jc = finalJourneyContainer;
                 try {
-                  // update the ui instance after running the method, as something has possibly
-                  // changed
-                  jc = updateStep(jc, actualViewInstance, serverHttpRequest, r);
-                  // add a new step with the result
-                  jc = processResponse(jc, m, r, serverHttpRequest);
-                  jc = addMessages(jc, r, m);
+                  var component = componentFactory.createFormComponent(r, serverHttpRequest);
+                  return Mono.just(
+                      new UIIncrement(
+                          List.of(),
+                          new SingleComponent(component.id()),
+                          getMessages(r, m),
+                          Map.of(component.id(), component)));
                 } catch (Throwable e) {
                   return Mono.error(new RuntimeException(e));
                 }
-                return Mono.just(jc);
               });
         } else {
 
-          // update the ui instance after running the method, as something has possibly changed
-          journeyContainer =
-              updateStep(journeyContainer, actualViewInstance, serverHttpRequest, result);
-          // add a new step with the result
-          journeyContainer = processResponse(journeyContainer, m, result, serverHttpRequest);
-          journeyContainer = addMessages(journeyContainer, result, m);
+          var component = componentFactory.createFormComponent(result, serverHttpRequest);
+          return Mono.just(
+              new UIIncrement(
+                  List.of(),
+                  new SingleComponent(component.id()),
+                  getMessages(result, m),
+                  Map.of(component.id(), component)));
         }
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();
         System.out.println(
-            "" + targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
+            targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
         throw targetException;
       }
     }
-
-    return Mono.just(journeyContainer);
   }
 
-  private JourneyContainer resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.journey().currentStepId();
-    var step = journeyContainer.steps().get(currentStepId);
-    var view = step.view();
-    var steps = new HashMap<>(journeyContainer.steps());
-    steps.put(
-        currentStepId,
-        new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            new View(
-                List.of(), view.header(), view.left(), view.main(), view.right(), view.footer()),
-            step.previousStepId(),
-            step.target(),
-            step.components()));
-    journeyContainer =
-        new JourneyContainer(
-            journeyContainer.journeyId(),
-            journeyContainer.journeyTypeId(),
-            journeyContainer.journey(),
-            steps,
-            journeyContainer.stepHistory(),
-            journeyContainer.initialStep(),
-            journeyContainer.modalMustBeClosed());
-    return journeyContainer;
-  }
-
-  private JourneyContainer addMessages(
-      JourneyContainer journeyContainer, Object response, Method method) {
-    List<Message> messages = extractMessages(response, method);
-    try {
-      var currentStepId = journeyContainer.journey().currentStepId();
-      var step = journeyContainer.steps().get(currentStepId);
-      var view = step.view();
-      var steps = new HashMap<>(journeyContainer.steps());
-      steps.put(
-          currentStepId,
-          new Step(
-              step.id(),
-              step.name(),
-              step.type(),
-              new View(
-                  mapMessages(messages),
-                  view.header(),
-                  view.left(),
-                  view.main(),
-                  view.right(),
-                  view.footer()),
-              step.previousStepId(),
-              step.target(),
-              step.components()));
-      return new JourneyContainer(
-          journeyContainer.journeyId(),
-          journeyContainer.journeyTypeId(),
-          journeyContainer.journey(),
-          steps,
-          journeyContainer.stepHistory(),
-          journeyContainer.initialStep(),
-          journeyContainer.modalMustBeClosed() || response instanceof GoBack);
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private List<io.mateu.dtos.Message> mapMessages(List<Message> messages) {
-    if (messages != null) {
-      return messages.stream()
-          .map(m -> new io.mateu.dtos.Message(m.getType(), m.getTitle(), m.getText()))
-          .collect(Collectors.toList());
-    } else {
-      return List.of();
-    }
+  private List<io.mateu.dtos.Message> getMessages(Object r, Method m) {
+    return extractMessages(r, m).stream()
+        .map(msg -> new io.mateu.dtos.Message(msg.getType(), msg.getTitle(), msg.getText()))
+        .toList();
   }
 
   private List<Message> extractMessages(Object response, Method method) {
@@ -345,24 +187,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return List.of();
   }
 
-  private JourneyContainer updateStep(
-      JourneyContainer journeyContainer,
-      Object actualViewInstance,
-      ServerHttpRequest serverHttpRequest,
-      Object r) {
-    if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
-      try {
-        journeyContainer =
-            store.updateStep(journeyContainer, actualViewInstance, serverHttpRequest);
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return journeyContainer;
-  }
-
-  private JourneyContainer processResponse(
-      JourneyContainer journeyContainer, Method m, Object r, ServerHttpRequest serverHttpRequest)
+  /*
+  private Object processResponse(Method m, Object r, ServerHttpRequest serverHttpRequest)
       throws Throwable {
     Object whatToShow = getActualResponse(r, m);
     if (whatToShow instanceof GoBack goBack) {
@@ -387,6 +213,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     return journeyContainer;
   }
+   */
 
   private ActionTarget getTarget(Method m) {
     var target = ActionTarget.View;

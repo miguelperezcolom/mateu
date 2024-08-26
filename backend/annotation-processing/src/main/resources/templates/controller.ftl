@@ -33,14 +33,14 @@ public class ${simpleClassName}MateuController {
     private MateuService service;
 
 
-    @GetMapping(value = "v1/uis/{uiId}")
+    @GetMapping(value = "v3/uis/{uiId}")
     public Mono<UI> getUI(@PathVariable String uiId,
             ServerHttpRequest serverHttpRequest) throws Exception {
         return service.getUI(uiId, serverHttpRequest);
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<StepWrapper> createJourney(@PathVariable String uiId,
+    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}")
+    public Mono<UIIncrement> createJourney(@PathVariable String uiId,
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @RequestBody JourneyCreationRq rq,
@@ -48,8 +48,8 @@ public class ${simpleClassName}MateuController {
         return service.createJourney(uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
-    public Mono<StepWrapper> runStep(@PathVariable String uiId,
+    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
+    public Mono<UIIncrement> runStep(@PathVariable String uiId,
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @PathVariable String stepId,
@@ -60,11 +60,12 @@ public class ${simpleClassName}MateuController {
         return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, serverHttpRequest);
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/rows")
+    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
     public Mono<Page> getListRows(@PathVariable String uiId,
                 @PathVariable String journeyTypeId,
                 @PathVariable String journeyId,
                 @PathVariable String stepId,
+                @PathVariable String componentId,
                 @PathVariable String listId,
                 @RequestParam int page,
                 @RequestParam int page_size,
@@ -74,16 +75,18 @@ public class ${simpleClassName}MateuController {
                 @RequestParam String ordering,
                 ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
-        Map<String, Object> journey = null;
+        Map<String, Object> data = null;
+        String componentType = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
-            journey = (Map<String, Object>) body.get("__journey");
+            data = (Map<String, Object>) body.get("__data");
+            componentType = (String) body.get("__componentType");
         }
-        return service.getListRows(uiId, journeyTypeId, journeyId, stepId, listId, page, page_size,
-                            filters, ordering, journey, serverHttpRequest);
+        return service.getListRows(componentType, page, page_size,
+                            data, filters, ordering, serverHttpRequest);
     }
 
-    @GetMapping("v1/itemproviders/{itemProviderId}/items")
+    @GetMapping("v3/itemproviders/{itemProviderId}/items")
     public Mono<Items> getItems(@PathVariable String itemProviderId,
                                 @RequestParam int page,
                                 @RequestParam int page_size,
@@ -92,29 +95,30 @@ public class ${simpleClassName}MateuController {
         return service.getItems(itemProviderId, page, page_size, search_text);
     }
 
-    @GetMapping("v1/cdn/{fileId}/{filename:.+}")
+    @GetMapping("v3/cdn/{fileId}/{filename:.+}")
     @ResponseBody
     public Mono<ResponseEntity<Resource>> serveFile(@PathVariable String fileId, @PathVariable String filename)
         throws AuthenticationException {
         return service.serveFile(fileId, filename);
     }
 
-    @GetMapping(value = "v1/files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(value = "v3/files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
     public Mono<String> getFileUrl(@PathVariable String fileId, @PathVariable String fileName) throws AuthenticationException {
         return service.getFileUrl(fileId, fileName);
     }
 
-    @PostMapping("v1/files/{fileId}")
+    @PostMapping("v3/files/{fileId}")
     public Mono<Void> handleFileUpload(@PathVariable String fileId, @RequestPart("file") Mono<FilePart> file)
         throws Exception {
         return service.handleFileUpload(fileId, file);
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/csv")
+    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/csv")
     public ResponseEntity<Mono<Resource>> downloadCsv(@PathVariable String uiId,
                                         @PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
+                    @PathVariable String componentId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
                     @RequestBody Map<String, Object> body,
@@ -122,27 +126,30 @@ public class ${simpleClassName}MateuController {
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
-        Map<String, Object> journey = null;
+        Map<String, Object> data = null;
+        String componentType = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
-            journey = (Map<String, Object>) body.get("__journey");
+            data = (Map<String, Object>) body.get("__data");
+            componentType = (String) body.get("__componentType");
         }
         String fileName = String.format("%s.csv", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateCsv(uiId, journeyTypeId, journeyId, stepId, listId, filters, ordering, journey, serverHttpRequest)
+            .body(service.generateCsv(componentType, data, filters, ordering, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);
             }));
     }
 
-    @PostMapping("v1/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/lists/{listId}/xls")
+    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/xls")
     public ResponseEntity<Mono<Resource>> downloadExcel(@PathVariable String uiId,
                                             @PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
+                    @PathVariable String componentId,
                     @PathVariable String listId,
                     // urlencoded form of filters json serialized
                     @RequestBody Map<String, Object> body,
@@ -150,16 +157,18 @@ public class ${simpleClassName}MateuController {
                     @RequestParam String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
-        Map<String, Object> journey = null;
+        Map<String, Object> data = null;
+        String componentType = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
-            journey = (Map<String, Object>) body.get("__journey");
+            data = (Map<String, Object>) body.get("__data");
+            componentType = (String) body.get("__componentType");
         }
         String fileName = String.format("%s.xls", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateExcel(uiId, journeyTypeId, journeyId, stepId, listId, filters, ordering, journey, serverHttpRequest)
+            .body(service.generateExcel(componentType, data, filters, ordering, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);

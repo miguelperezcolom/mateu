@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 @Getter
 @Setter
-public class LeadEditor implements PersistentPojo<String> {
+public class LeadEditor {
 
   String id;
 
@@ -23,17 +23,11 @@ public class LeadEditor implements PersistentPojo<String> {
 
   public LeadEditor() {}
 
-  @Override
   public void load(String id) throws Throwable {
     setId(id);
     setName("North Sails");
   }
 
-  @Override
-  public Object retrieveId() {
-    return getId();
-  }
-
-  @Override
+  @Action("Save")
   public void save() throws Throwable {}
 }

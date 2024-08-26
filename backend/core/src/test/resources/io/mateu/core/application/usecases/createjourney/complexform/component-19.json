@@ -1,5 +1,5 @@
 {
-  "type" : "GenericComponent",
+  "componentType" : "GenericComponent",
   "className" : "java.lang.String",
   "metadata" : {
     "type" : "Element",

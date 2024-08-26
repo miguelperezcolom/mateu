@@ -31,7 +31,6 @@ public class CardMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(
-      String stepId,
       io.mateu.core.domain.uidefinition.core.interfaces.Card card,
       List<Field> slotFields) {
     Card metadata =

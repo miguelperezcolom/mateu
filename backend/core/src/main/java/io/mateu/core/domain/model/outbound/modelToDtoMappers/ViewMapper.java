@@ -5,7 +5,6 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.dtos.*;
-import io.mateu.dtos.JourneyContainer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,16 +34,13 @@ public class ViewMapper {
   }
 
   public View map(
-      JourneyContainer journeyContainer,
-      String stepId,
       Object object,
       ServerHttpRequest serverHttpRequest,
-      HashMap<String, Component> allComponentsInStep)
+      Map<String, Component> allComponentsInStep)
       throws Throwable {
 
     var actualObject =
-        actualUiInstanceProvider.getActualUiInstance(
-            journeyContainer, stepId, object, serverHttpRequest);
+        actualUiInstanceProvider.getActualUiInstance(object, serverHttpRequest);
 
     List<String> left = new ArrayList<>();
     List<String> main = new ArrayList<>();
@@ -81,8 +77,6 @@ public class ViewMapper {
                 componentFactory.createComponent(
                     p.isForm(),
                     componentInstance,
-                    stepId,
-                    journeyContainer,
                     serverHttpRequest,
                     p.getField(),
                     p.getFields(),
@@ -93,7 +87,6 @@ public class ViewMapper {
     }
 
     return new View(
-        List.of(),
         new ViewPart(null, header),
         new ViewPart(null, left),
         new ViewPart(null, main),

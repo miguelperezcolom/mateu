@@ -1,5 +1,5 @@
 {
-  "type" : "GenericComponent",
+  "componentType" : "GenericComponent",
   "className" : "java.util.ImmutableCollections$List12",
   "metadata" : {
     "type" : "HorizontalLayout"

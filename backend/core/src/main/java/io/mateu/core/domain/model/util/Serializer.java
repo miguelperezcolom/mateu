@@ -7,8 +7,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
 import jakarta.persistence.Entity;
@@ -30,14 +30,23 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class Serializer {
 
-  private final ReflectionHelper reflectionHelper;
   private final EntitySerializer entitySerializer;
+  private final ValueProvider valueProvider;
+  private final AllFieldsProvider allFieldsProvider;
+  private final BasicTypeChecker basicTypeChecker;
+  private final InstanceProvider instanceProvider;
+  private final ValueWriter valueWriter;
 
   private ObjectMapper mapper = new ObjectMapper();
   private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-  public Serializer(ReflectionHelper reflectionHelper, EntitySerializer entitySerializer) {
-    this.reflectionHelper = reflectionHelper;
+  public Serializer(
+      EntitySerializer entitySerializer,
+      ValueProvider valueProvider,
+      AllFieldsProvider allFieldsProvider,
+      BasicTypeChecker basicTypeChecker,
+      InstanceProvider instanceProvider,
+      ValueWriter valueWriter) {
     this.entitySerializer = entitySerializer;
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.registerModule(new JavaTimeModule());
@@ -48,6 +57,11 @@ public class Serializer {
     // Now you should use JavaTimeModule instead
     yamlMapper.registerModule(new JavaTimeModule());
     yamlMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    this.valueProvider = valueProvider;
+    this.allFieldsProvider = allFieldsProvider;
+    this.basicTypeChecker = basicTypeChecker;
+    this.instanceProvider = instanceProvider;
+    this.valueWriter = valueWriter;
   }
 
   public Map<String, Object> fromJson(String json) throws IOException {
@@ -98,10 +112,10 @@ public class Serializer {
     for (Map.Entry<String, Object> e : data.entrySet()) {
       if (e.getValue() != null && e.getValue() instanceof Map) {
         applyAttributeNames(
-            (Map<String, Object>) e.getValue(), reflectionHelper.getValue(e.getKey(), o));
+            (Map<String, Object>) e.getValue(), valueProvider.getValue(e.getKey(), o));
       }
     }
-    for (Field f : reflectionHelper.getAllFields(o.getClass())) {
+    for (Field f : allFieldsProvider.getAllFields(o.getClass())) {
       if (data.containsKey(f.getName())
           && f.isAnnotationPresent(Attribute.class)
           && !Strings.isNullOrEmpty(f.getAnnotation(Attribute.class).value())) {
@@ -170,12 +184,12 @@ public class Serializer {
       }
       Element e = new Element(o.getClass().getSimpleName());
       e.setAttribute("className", o.getClass().getName());
-      for (Field f : reflectionHelper.getAllFields(o.getClass())) {
+      for (Field f : allFieldsProvider.getAllFields(o.getClass())) {
         try {
-          Object i = reflectionHelper.getValue(f, o);
+          Object i = valueProvider.getValue(f, o);
 
           if (i != null) {
-            if (reflectionHelper.isBasic(i)) {
+            if (basicTypeChecker.isBasic(i)) {
               e.setAttribute(f.getName(), "" + i);
             } else {
 
@@ -207,15 +221,15 @@ public class Serializer {
 
         if (root.getAttribute("className") != null
             && !Strings.isNullOrEmpty(root.getAttributeValue("className"))) {
-          o = reflectionHelper.newInstance(Class.forName(root.getAttributeValue("className")));
+          o = instanceProvider.newInstance(Class.forName(root.getAttributeValue("className")));
 
-          for (Field f : reflectionHelper.getAllFields(o.getClass())) {
+          for (Field f : allFieldsProvider.getAllFields(o.getClass())) {
             try {
               String sv = root.getAttributeValue(f.getId());
 
               if (sv != null) {
-                if (reflectionHelper.isBasic(f.getType())) {
-                  reflectionHelper.setValue(f, o, reflectionHelper.newInstance(f.getType(), sv));
+                if (basicTypeChecker.isBasic(f.getType())) {
+                  valueWriter.setValue(f, o, instanceProvider.newInstance(f.getType(), sv));
                 } else {
 
                   // todo: añadir casos collection y map

@@ -1,64 +1,53 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.JourneyContainer;
+import io.mateu.dtos.UIIncrement;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MainListActionRunnner implements ActionRunner {
 
-  @Autowired JourneyContainerService store;
+  private final List<ListActionRunner> listActionRunners;
 
-  @Autowired List<ListActionRunner> listActionRunners;
-
-  @Override
-  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
-    return actionId.startsWith("__list__");
+  public MainListActionRunnner(List<ListActionRunner> listActionRunners) {
+    this.listActionRunners = listActionRunners;
   }
 
   @Override
-  public Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
+    return viewInstance instanceof Listing<?, ?>;
+  }
+
+  @Override
+  public Mono<UIIncrement> run(
       Object viewInstance,
       String stepId,
-      String componentId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    String listId = "main";
-
-    Listing rpcView;
-    if (viewInstance instanceof Listing) {
-      rpcView = (Listing) viewInstance;
-    } else {
-      listId = actionId.split("__")[2];
-      rpcView = store.getRpcViewInstance(journeyContainer, stepId, listId, serverHttpRequest);
-    }
-    actionId = actionId.substring(actionId.indexOf("__") + 2);
-    actionId = actionId.substring(actionId.indexOf("__") + 2);
-    actionId = actionId.substring(actionId.indexOf("__") + 2);
+    Listing rpcView = (Listing) viewInstance;
 
     if (rpcView instanceof Crud) {
       Crud crud = (Crud) rpcView;
 
       for (ListActionRunner listActionRunner : listActionRunners) {
-        if (listActionRunner.applies(journeyContainer, crud, actionId)) {
-          return listActionRunner.run(
-              journeyContainer, crud, stepId, listId, actionId, data, serverHttpRequest);
+        if (listActionRunner.applies(crud, actionId)) {
+          return listActionRunner.run(crud, stepId, actionId, data, contextData, serverHttpRequest);
         }
       }
     }
 
-    return Mono.just(journeyContainer);
+    return Mono.empty();
   }
 }

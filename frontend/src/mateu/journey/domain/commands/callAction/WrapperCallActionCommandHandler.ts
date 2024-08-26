@@ -12,6 +12,7 @@ export class WrapperCallActionCommandHandler {
             state.journeyTypeId!,
             state.journeyId!,
             state.stepId!,
+            command.componentId,
             command.actionId,
             command.data
         ).catch((error) => {

@@ -10,6 +10,7 @@ import java.util.List;
  * @param type Field data type
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation
+ * @param wantsFocus Set to true if you want it to be focused when rendered
  * @param caption The caption/label for this field
  * @param placeholder A placeholder for this field
  * @param cssClasses Css classes to be applied to this field
@@ -23,6 +24,7 @@ public record Field(
     String type,
     String stereotype,
     boolean observed,
+    boolean wantsFocus,
     String caption,
     String placeholder,
     String cssClasses,

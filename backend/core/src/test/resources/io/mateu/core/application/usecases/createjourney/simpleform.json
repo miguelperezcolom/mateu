@@ -1,113 +1,149 @@
 {
-  "journeyId" : "----herethejourneyid----",
-  "journeyTypeId" : "____home____",
-  "journey" : {
-    "type" : "io.mateu.demo.SimpleForm",
-    "status" : "Pending",
-    "statusMessage" : "Please fill the form",
-    "currentStepId" : "form",
-    "currentStepDefinitionId" : "io.mateu.demo.SimpleForm"
-  },
-  "steps" : {
-    "form" : {
-      "id" : "form",
-      "name" : "Simple form",
-      "type" : "io.mateu.demo.SimpleForm",
-      "view" : "----heretheview----",
-      "previousStepId" : null,
-      "target" : null,
-      "components" : {
-        "component-0" : {
-          "type" : "GenericComponent",
-          "className" : "io.mateu.demo.SimpleForm",
-          "metadata" : {
-            "type" : "Form",
-            "icon" : null,
-            "title" : "Simple form",
-            "readOnly" : false,
-            "subtitle" : null,
-            "status" : null,
-            "badges" : [ ],
-            "tabs" : [ ],
-            "banners" : [ ],
-            "sections" : [ {
-              "id" : "section_0",
-              "tabId" : "",
-              "caption" : "",
-              "description" : "",
-              "readOnly" : false,
-              "type" : "Card",
-              "leftSideImageUrl" : "",
-              "topImageUrl" : "",
-              "fieldGroups" : [ {
-                "id" : "fieldgroup_1_0",
-                "caption" : "",
-                "lines" : [ {
-                  "fields" : [ {
-                    "id" : "name",
-                    "type" : "string",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Name",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                }, {
-                  "fields" : [ {
-                    "id" : "age",
-                    "type" : "int",
-                    "stereotype" : "input",
-                    "observed" : false,
-                    "caption" : "Age",
-                    "placeholder" : null,
-                    "cssClasses" : null,
-                    "description" : null,
-                    "badges" : [ ],
-                    "validations" : [ ],
-                    "attributes" : [ ]
-                  } ]
-                } ]
-              } ]
-            } ],
-            "actions" : [ ],
-            "mainActions" : [ {
-              "id" : "submit",
-              "icon" : null,
-              "caption" : "Submit",
-              "type" : "Primary",
-              "visible" : true,
-              "validationRequired" : true,
-              "confirmationRequired" : false,
-              "rowsSelectedRequired" : false,
-              "confirmationTexts" : {
-                "title" : "Please confirm",
-                "message" : "",
-                "action" : "Submit"
-              },
-              "target" : "View",
-              "modalStyle" : "",
-              "customEvent" : "",
-              "href" : ""
-            } ],
-            "validations" : [ ],
-            "rules" : [ ]
-          },
-          "id" : "component-0",
-          "attributes" : { },
-          "data" : {
-            "name" : "Mateu",
-            "age" : 16
-          },
-          "childComponentIds" : [ ]
-        }
-      }
+  "commands" : [ ],
+  "content" : {
+    "contentType" : "View",
+    "header" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "left" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "main" : {
+      "classes" : null,
+      "componentIds" : [ "component-0" ]
+    },
+    "right" : {
+      "classes" : null,
+      "componentIds" : [ ]
+    },
+    "footer" : {
+      "classes" : null,
+      "componentIds" : [ ]
     }
   },
-  "stepHistory" : [ "form" ],
-  "initialStep" : "form",
-  "modalMustBeClosed" : false
+  "messages" : [ ],
+  "components" : {
+    "component-0" : {
+      "componentType" : "GenericComponent",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Simple form",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ {
+          "id" : "section_0",
+          "tabId" : "",
+          "caption" : "",
+          "description" : "",
+          "readOnly" : false,
+          "type" : "Card",
+          "leftSideImageUrl" : "",
+          "topImageUrl" : "",
+          "fieldGroups" : [ {
+            "id" : "fieldgroup_1_0",
+            "caption" : "",
+            "lines" : [ {
+              "fields" : [ {
+                "id" : "name",
+                "type" : "string",
+                "stereotype" : "input",
+                "observed" : false,
+                "wantsFocus" : false,
+                "caption" : "Name",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            }, {
+              "fields" : [ {
+                "id" : "age",
+                "type" : "int",
+                "stereotype" : "input",
+                "observed" : false,
+                "wantsFocus" : false,
+                "caption" : "Age",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            } ]
+          } ]
+        } ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "submit",
+          "icon" : null,
+          "caption" : "Submit",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : {
+            "title" : "Please confirm",
+            "message" : "",
+            "action" : "Submit"
+          },
+          "target" : "View",
+          "modalStyle" : "",
+          "customEvent" : "",
+          "href" : "",
+          "runOnEnter" : true
+        }, {
+          "id" : "cancel",
+          "icon" : null,
+          "caption" : "Cancel",
+          "type" : "Secondary",
+          "visible" : true,
+          "validationRequired" : false,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : null,
+          "target" : "View",
+          "modalStyle" : null,
+          "customEvent" : null,
+          "href" : null,
+          "runOnEnter" : false
+        }, {
+          "id" : "save",
+          "icon" : null,
+          "caption" : "Save",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : null,
+          "target" : "View",
+          "modalStyle" : null,
+          "customEvent" : null,
+          "href" : null,
+          "runOnEnter" : false
+        } ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "component-0",
+      "className" : "io.mateu.demo.SimpleForm",
+      "attributes" : { },
+      "data" : {
+        "name" : "Mateu",
+        "age" : 16
+      },
+      "childComponentIds" : [ ]
+    }
+  }
 }

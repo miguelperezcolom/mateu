@@ -34,7 +34,7 @@ public class CrudMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Crud build(String stepId, String listId, Object crudInstance) {
+  public Crud build(String listId, Object crudInstance) {
 
     if (crudInstance instanceof DynamicCrud) {
       return ((DynamicCrud) crudInstance).build().toFuture().get();
@@ -49,7 +49,7 @@ public class CrudMetadataBuilder {
         reflectionHelper.isOverridden(rpcView, "getDetail"),
         buildSearchForm(rpcView, listId),
         buildColumns(rpcView),
-        actionMetadataBuilder.getActions(stepId, listId, rpcView));
+        actionMetadataBuilder.getActions(listId, rpcView));
   }
 
   private String getSubtitle(Listing rpcView) {
@@ -131,6 +131,7 @@ public class CrudMetadataBuilder {
                         f.type(),
                         f.stereotype(),
                         f.observed(),
+                        f.wantsFocus(),
                         f.caption(),
                         f.placeholder(),
                         f.cssClasses(),
@@ -149,6 +150,7 @@ public class CrudMetadataBuilder {
                           "string",
                           "input",
                           false,
+                          true,
                           "Search",
                           "Search",
                           null,

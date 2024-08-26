@@ -21,9 +21,9 @@ export class Service {
         this.upstream.next({...this.state})
     }
 
-    async runAction(actionId: string, data: unknown) {
+    async runAction(componentId: string, actionId: string, data: unknown) {
         await wrapperCallActionCommandHandler
-            .handle({actionId, data}, this.state)
+            .handle({componentId, actionId, data}, this.state)
             .catch((error) => {
                 console.log('error', error)
                 throw error

@@ -8,25 +8,20 @@ import lombok.SneakyThrows;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MethodParametersEditor {
 
-  private String initialStep;
   private String methodId;
   private Class type;
   private Map<String, Object> data;
 
-  public MethodParametersEditor(
-      Class type, String methodId, String initialStep, Map<String, Object> data) {
+  public MethodParametersEditor(Class type, String methodId, Map<String, Object> data) {
     this.type = type;
     this.data = data;
-    this.initialStep = initialStep;
     this.methodId = methodId;
   }
 
   @SneakyThrows
-  public MethodParametersEditor(
-      Object entity, String methodId, String initialStep, Serializer serializer) {
+  public MethodParametersEditor(Object entity, String methodId, Serializer serializer) {
     this.type = entity.getClass();
     this.data = serializer.toMap(entity);
-    this.initialStep = initialStep;
     this.methodId = methodId;
   }
 
@@ -46,14 +41,6 @@ public class MethodParametersEditor {
 
   public Map<String, Object> getData() {
     return data;
-  }
-
-  public String getInitialStep() {
-    return initialStep;
-  }
-
-  public void setInitialStep(String initialStep) {
-    this.initialStep = initialStep;
   }
 
   public String getMethodId() {

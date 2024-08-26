@@ -3,10 +3,8 @@ package com.example.demo.infra.ui.menus.forms;
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
 import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
@@ -25,8 +23,9 @@ import java.util.List;
 @Caption("Read only pojo with crud")
 @Component
 @Scope("prototype")
+@ReadOnly
 public class MyReadOnlyPojoWithCrud
-    implements ReadOnlyPojo, HasBadges, HasStatus, HasCallback<MyReadOnlyPojoWithCrudEditor> {
+    implements HasBadges, HasStatus, HasCallback<MyReadOnlyPojoWithCrudEditor> {
 
   @JsonIgnore
   private final MyReadOnlyPojoData data;
@@ -64,10 +63,6 @@ public class MyReadOnlyPojoWithCrud
     return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
   }
 
-  @Override
-  public void load(Object id) throws Throwable {}
-
-  @Override
   public Object retrieveId() {
     return "010100101";
   }
@@ -77,12 +72,7 @@ public class MyReadOnlyPojoWithCrud
     return new Status(StatusType.SUCCESS, "This is the status!");
   }
 
-  @Override
-  public boolean hasEditor() {
-    return true;
-  }
-
-  @Override
+  @Action("Edit")
   public Object retrieveEditor() throws Throwable {
     editor.setId(retrieveId().toString());
     return editor;

@@ -3,8 +3,8 @@ package io.mateu.core.domain.commands.runStepAction;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.Entity;
@@ -32,8 +32,15 @@ public class ActualValueExtractor {
 
   final FileChecker fileChecker;
   final StorageService storageService;
-  final ReflectionHelper reflectionHelper;
   final Serializer serializer;
+  private final FieldByNameProvider fieldByNameProvider;
+  private final ValueProvider valueProvider;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final ValueWriter valueWriter;
+  private final GenericClassProvider genericClassProvider;
+  private final BasicTypeChecker basicTypeChecker;
+  private final InstanceProvider instanceProvider;
+  private final IdFieldProvider idFieldProvider;
 
   public Object getActualValue(Class targetType, Object value) throws Exception {
     Object targetValue = value;
@@ -92,7 +99,7 @@ public class ActualValueExtractor {
   }
 
   private boolean checkInjected(Object viewInstance, String fieldName) {
-    Field field = reflectionHelper.getFieldByName(viewInstance.getClass(), fieldName);
+    Field field = fieldByNameProvider.getFieldByName(viewInstance.getClass(), fieldName);
     return field != null
         && (field.isAnnotationPresent(Autowired.class) || Modifier.isFinal(field.getModifiers()));
   }
@@ -100,17 +107,17 @@ public class ActualValueExtractor {
   public Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance)
       throws Exception {
     Object targetValue = entry.getValue();
-    Field f = reflectionHelper.getFieldByName(viewInstance.getClass(), entry.getKey());
+    Field f = fieldByNameProvider.getFieldByName(viewInstance.getClass(), entry.getKey());
     if (f == null) {
       return targetValue;
     }
     if (checkInjected(viewInstance, f.getId())) {
-      Object injectedValue = reflectionHelper.getValue(f, viewInstance);
+      Object injectedValue = valueProvider.getValue(f, viewInstance);
       if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
         Map<String, Object> incomingValues = (Map<String, Object>) entry.getValue();
-        for (Field crudField : reflectionHelper.getAllEditableFields(injectedValue.getClass())) {
-          reflectionHelper.setValue(
-              crudField, injectedValue, incomingValues.get(crudField.getId()));
+        for (Field crudField :
+            allEditableFieldsProvider.getAllEditableFields(injectedValue.getClass())) {
+          valueWriter.setValue(crudField, injectedValue, incomingValues.get(crudField.getId()));
         }
       }
       return injectedValue;
@@ -124,11 +131,12 @@ public class ActualValueExtractor {
           List t = new ArrayList();
           List<Map<String, Object>> files = (List) entry.getValue();
           for (Map<String, Object> o : files) {
-            t.add(toFile(f, reflectionHelper.getGenericClass(f.getGenericType()), o));
+            t.add(toFile(f, genericClassProvider.getGenericClass(f.getGenericType()), o));
           }
           return t;
         }
-        if (ExternalReference.class.equals(reflectionHelper.getGenericClass(f.getGenericType()))) {
+        if (ExternalReference.class.equals(
+            genericClassProvider.getGenericClass(f.getGenericType()))) {
           List t = new ArrayList();
           List l = (List) entry.getValue();
           for (Object o : l) {
@@ -141,7 +149,7 @@ public class ActualValueExtractor {
           }
           return t;
         }
-        if (Integer.class.equals(reflectionHelper.getGenericClass(f.getGenericType()))) {
+        if (Integer.class.equals(genericClassProvider.getGenericClass(f.getGenericType()))) {
           List t = new ArrayList();
           List l = (List) entry.getValue();
           for (Object v : l) {
@@ -152,7 +160,7 @@ public class ActualValueExtractor {
           }
           return t;
         }
-        if (Double.class.equals(reflectionHelper.getGenericClass(f.getGenericType()))) {
+        if (Double.class.equals(genericClassProvider.getGenericClass(f.getGenericType()))) {
           List t = new ArrayList();
           List l = (List) entry.getValue();
           for (Object v : l) {
@@ -200,7 +208,7 @@ public class ActualValueExtractor {
               .forEach(v -> value.add(v));
           return value;
         }
-        if (!reflectionHelper.isBasic(f.getGenericClass())) {
+        if (!basicTypeChecker.isBasic(f.getGenericClass())) {
           List value = new ArrayList();
           List<Map<String, Object>> in = (List<Map<String, Object>>) entry.getValue();
           in.stream()
@@ -292,9 +300,9 @@ public class ActualValueExtractor {
           targetValue = getActualValue(f.getType(), entry.getValue());
         } else if (entry.getValue() instanceof Map) {
           if (f.getType().isAnnotationPresent(Entity.class)) {
-            targetValue = reflectionHelper.newInstance(f.getType());
+            targetValue = instanceProvider.newInstance(f.getType());
             Object id = ((Map<String, Object>) entry.getValue()).get("value");
-            reflectionHelper.setValue(reflectionHelper.getIdField(f.getType()), targetValue, id);
+            valueWriter.setValue(idFieldProvider.getIdField(f.getType()), targetValue, id);
           } else {
             targetValue = serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());
           }

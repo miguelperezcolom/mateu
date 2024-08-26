@@ -37,8 +37,17 @@ public class ButtonMetadataBuilder {
             getTarget(m),
             getModalStyle(m),
             getCustomEvent(m),
-            getHref(m));
+            getHref(m),
+            getRunEonEnter(m)
+                );
     return action;
+  }
+
+  private boolean getRunEonEnter(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).runOnEnter();
+    }
+    return false;
   }
 
   private String getModalStyle(Field f) {

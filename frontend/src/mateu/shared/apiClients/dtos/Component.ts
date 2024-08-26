@@ -3,6 +3,8 @@ import Rule from "./Rule";
 
 export default interface Component {
 
+    id: string
+    componentType: string
     metadata: ViewMetadata;
     data: {
         __index: number | undefined

@@ -10,7 +10,6 @@ import io.mateu.dtos.Action;
 import io.mateu.dtos.ActionTarget;
 import io.mateu.dtos.ActionType;
 import io.mateu.dtos.ConfirmationTexts;
-import jakarta.persistence.Entity;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -44,8 +43,18 @@ public class ActionMetadataBuilder {
             getTarget(m),
             getModalStyle(m),
             getCustomEvent(m),
-            getHref(m));
+            getHref(m),
+                isRunOnEnter(m));
     return action;
+  }
+
+  private boolean isRunOnEnter(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.runOnEnter();
+    }
+    return true;
   }
 
   private String getModalStyle(Method m) {
@@ -201,7 +210,7 @@ public class ActionMetadataBuilder {
     return "";
   }
 
-  protected List<Action> getActions(String stepId, String listId, Object uiInstance) {
+  protected List<Action> getActions(String listId, Object uiInstance) {
     List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
@@ -244,7 +253,8 @@ public class ActionMetadataBuilder {
                           a.target(),
                           a.modalStyle(),
                           a.customEvent(),
-                          a.href()))
+                          a.href(),
+                              false))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -261,7 +271,8 @@ public class ActionMetadataBuilder {
               ActionTarget.View,
               null,
               null,
-              null);
+              null,
+                  false);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -282,27 +293,8 @@ public class ActionMetadataBuilder {
               ActionTarget.View,
               null,
               null,
-              null);
-      actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
-    }
-    if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
-        || ((uiInstance instanceof ReadOnlyPojo && ((ReadOnlyPojo<?>) uiInstance).hasEditor())
-            && !(uiInstance instanceof PersistentPojo))) {
-      Action action =
-          new Action(
-              "edit",
               null,
-              getCaptionForEdit(uiInstance),
-              ActionType.Primary,
-              true,
-              false,
-              false,
-              false,
-              null,
-              ActionTarget.View,
-              null,
-              null,
-              null);
+                  false);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

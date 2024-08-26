@@ -1,4 +1,5 @@
 import View from "./View";
+import Component from "./Component";
 
 export default interface Step {
 
@@ -7,5 +8,6 @@ export default interface Step {
     previousStepId: string
     timestamp: string
     type: string
+    components: Record<string, Component>
 
 }

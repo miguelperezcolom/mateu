@@ -4,17 +4,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.mateu.core.application.usecases.RunStepUseCase;
-import io.mateu.core.application.usecases.createjourney.CreateSimpleFormHomeJourneyTest;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.demo.SimpleForm;
 import io.mateu.demo.ViewWith2Forms;
 import io.mateu.dtos.Journey;
 import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.Step;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+
+import io.mateu.dtos.SingleComponent;
+import io.mateu.dtos.UIIncrement;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -23,97 +26,51 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 @SpringBootTest
+@Slf4j
 public class SubmitViewWith2FormsForm1Test {
 
   @Autowired RunStepUseCase runStepUseCase;
   @Autowired Serializer serializer;
 
   @Test
-  void journeyIsCreated() throws Throwable {
+  void formIsSubmitted() throws Throwable {
     // given
     var uiId = SimpleForm.class.getName();
     var journeyTypeId = "____home____";
     var journeyId = UUID.randomUUID().toString();
+    var stepId = "x";
     var actionId = "submit";
-    var journey = createJourney(journeyId);
-    var runActionRq = new RunActionRq(Map.of("name", "Miguel", "age", 55), journey, Map.of());
+    var componentType = SimpleForm.class.getName();
+    var runActionRq = new RunActionRq(componentType, Map.of("name", "Miguel", "age", 55), Map.of());
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         runStepUseCase.runStep(
             journeyTypeId,
             journeyId,
             "form",
+            stepId,
             "component-0",
             actionId,
             runActionRq,
             serverHttpRequest);
 
     // when
-    var stepWrapper = mono.block();
+    var uiIncrement = mono.block();
 
     // then
-    assertNotNull(stepWrapper);
-    assertFalse(stepWrapper.modalMustBeClosed());
-    assertJourney(stepWrapper.journey());
-    assertStore(stepWrapper.store(), journeyId);
-    assertStep(stepWrapper.step());
+    assertUIIncrement(uiIncrement);
   }
 
   @SneakyThrows
-  private Map<String, Object> createJourney(String journeyId) {
-    var viewJson =
-        new String(
-            CreateSimpleFormHomeJourneyTest.class
-                .getResourceAsStream("viewwith2forms-view.json")
-                .readAllBytes(),
-            StandardCharsets.UTF_8);
-    var json =
-        new String(
-                CreateSimpleFormHomeJourneyTest.class
-                    .getResourceAsStream("viewwith2forms.json")
-                    .readAllBytes(),
-                StandardCharsets.UTF_8)
-            .replaceAll("----herethejourneyid----", journeyId)
-            .replaceAll("\"----heretheview----\"", viewJson);
-    return serializer.fromJson(json);
-  }
-
-  private void assertJourney(Journey journey) {
-    assertNotNull(journey);
-    assertEquals(ViewWith2Forms.class.getName(), journey.type());
-    assertEquals("Please fill the form", journey.statusMessage());
-    assertEquals(ViewWith2Forms.class.getName(), journey.currentStepDefinitionId());
-    assertEquals("form", journey.currentStepId());
-  }
-
-  @SneakyThrows
-  private void assertStore(Map<String, Object> store, String journeyId) {
-    assertNotNull(store);
-    var viewJson =
-        new String(
-            getClass().getResourceAsStream("viewwith2forms-submit1-view.json").readAllBytes(),
-            StandardCharsets.UTF_8);
+  private void assertUIIncrement(UIIncrement uiIncrement) {
+    assertNotNull(uiIncrement);
+    log.info(serializer.toJson(uiIncrement));
     var json =
         new String(
                 getClass().getResourceAsStream("viewwith2forms-submit1.json").readAllBytes(),
                 StandardCharsets.UTF_8)
-            .replaceAll("\"----herethejourneyid----\"", journeyId)
-            .replaceAll("\"----heretheview----\"", viewJson);
-    JSONAssert.assertEquals(json, serializer.toJson(store), JSONCompareMode.STRICT);
-  }
-
-  @SneakyThrows
-  private void assertStep(Step step) {
-    assertNotNull(step);
-    assertEquals("form", step.id());
-    assertEquals(SimpleForm.class.getName(), step.type());
-    assertNull(step.previousStepId());
-    assertEquals("Simple form", step.name());
-    assertNull(step.target());
-    var viewJson =
-        new String(
-            getClass().getResourceAsStream("viewwith2forms-submit1-view.json").readAllBytes(),
-            StandardCharsets.UTF_8);
-    JSONAssert.assertEquals(viewJson, serializer.toJson(step.view()), JSONCompareMode.STRICT);
+                .replaceAll("87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e",
+                        ((SingleComponent)uiIncrement.content()).componentId());
+    JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

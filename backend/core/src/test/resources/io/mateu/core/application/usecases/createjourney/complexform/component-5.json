@@ -1,5 +1,5 @@
 {
-  "type" : "GenericComponent",
+  "componentType" : "GenericComponent",
   "className" : "io.mateu.core.domain.uidefinition.core.interfaces.Card",
   "metadata" : {
     "type" : "Card",

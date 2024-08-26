@@ -61,10 +61,10 @@ export class MateuView extends LitElement {
     async updated(changedProperties: PropertyValues) {
       if (!changedProperties.has('crud')) {
           setTimeout(() => {
-              this.crud = this.view?.main?.components?.length == 1
-                  && this.view?.main?.components?.filter(c => c.metadata.type == ComponentType.Crud).length > 0
+              this.crud = this.view?.main?.componentIds?.length == 1
+                  && this.view?.main?.componentIds?.filter(c => this.step.components[c].metadata.type == ComponentType.Crud).length > 0
                   // @ts-ignore
-                  && this.view?.main?.components?.filter(c => c.metadata.type == ComponentType.Crud)[0].metadata.columns.length > 2
+                  && this.view?.main?.componentIds?.filter(c => this.step.components[c].metadata.type == ComponentType.Crud).map(c => this.step.components[c])[0].metadata.columns.length > 2
               ;
               if (this.crud) {
                   this.setAttribute('crud', '')
@@ -95,12 +95,15 @@ export class MateuView extends LitElement {
     }
 
     render() {
+        console.log('view', this.view)
     // @ts-ignore
         return html`
-            ${this.view?.header?.components?.length > 0?html`
+            ${this.view?.header?.componentIds?.length > 0?html`
         <header>
             <vaadin-vertical-layout>
-                ${this.view?.header?.components.map(c => html`<mateu-component
+                ${this.view?.header?.componentIds
+                        .map(componentId => this.step.components[componentId])
+                        .map(c => html`<mateu-component
                         .component=${c}
                         uiId="${this.uiId}"
                         journeyTypeId="${this.journeyTypeId}"
@@ -114,10 +117,12 @@ export class MateuView extends LitElement {
                 `)}
             </vaadin-vertical-layout>
         </header>
-        `:''}${this.view?.left?.components?.length > 0?html`
+        `:''}${this.view?.left?.componentIds?.length > 0?html`
       <aside class="left">
           <vaadin-vertical-layout>
-        ${this.view?.left?.components.map(c => html`<mateu-component
+        ${this.view?.left?.componentIds
+                .map(componentId => this.step.components[componentId])
+                .map(c => html`<mateu-component
             .component=${c}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
@@ -132,7 +137,7 @@ export class MateuView extends LitElement {
         `)}
           </vaadin-vertical-layout>
       </aside>
-      `:''}${this.view?.right?.components?.length > 0?html`
+      `:''}${this.view?.main?.componentIds?.length > 0?html`
       <main>
 
         ${this.view?.title?html`
@@ -142,7 +147,13 @@ export class MateuView extends LitElement {
           <p>${this.view?.subtitle}</p>
         `:''}
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xl">
-        ${this.view?.main?.components.map(c => html`<mateu-component 
+        ${this.view?.main?.componentIds
+                .map(componentId => this.step.components[componentId])
+                .map(c => {
+                    console.log('component', c)
+                    return c
+                })
+                .map(c => html`<mateu-component 
             .component=${c}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
@@ -156,9 +167,11 @@ export class MateuView extends LitElement {
         `)}
           </vaadin-vertical-layout>
           
-      </main>`:''}${this.view?.right?.components?.length > 0?html`<aside class="right">
+      </main>`:''}${this.view?.right?.componentIds?.length > 0?html`<aside class="right">
                 <vaadin-vertical-layout>
-        ${this.view?.right?.components.map(c => html`<mateu-component 
+        ${this.view?.right?.componentIds
+                .map(componentId => this.step.components[componentId])
+                .map(c => html`<mateu-component 
             .component=${c}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
@@ -171,10 +184,12 @@ export class MateuView extends LitElement {
           <slot></slot></mateu-component>
         `)}
                 </vaadin-vertical-layout>
-      </aside>`:''}${this.view?.footer?.components?.length > 0?html`
+      </aside>`:''}${this.view?.footer?.componentIds?.length > 0?html`
             <footer>
                 <vaadin-vertical-layout>
-                ${this.view?.footer?.components.map(c => html`<mateu-component
+                ${this.view?.footer?.componentIds
+                        .map(componentId => this.step.components[componentId])
+                        .map(c => html`<mateu-component
             .component=${c}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
@@ -202,7 +217,6 @@ export class MateuView extends LitElement {
     
     aside {
       flex: 1 1 0;
-      max-width: 250px;
       padding: 2rem 1rem;
     }
   
@@ -211,6 +225,8 @@ export class MateuView extends LitElement {
       padding-left: 2rem;
       padding-right: 2rem;
       width: clamp(45ch, 90%, 75ch);
+        max-width: 800px;
+        margin: auto;
     }
     
     header {

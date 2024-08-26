@@ -15,6 +15,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.dtos.*;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -45,11 +46,21 @@ public class ComponentFactory {
     this.formIdentifier = formIdentifier;
   }
 
+  public Component createFormComponent(
+      Object componentInstance, ServerHttpRequest serverHttpRequest) {
+    ComponentMetadata metadata = componentMetadataBuilder.getFormMetadata(componentInstance);
+    return new GenericComponent(
+        metadata,
+        UUID.randomUUID().toString(),
+        componentInstance.getClass().getName(),
+        Map.of(),
+        dataExtractor.getData(componentInstance),
+        List.of());
+  }
+
   public String createComponent(
       boolean form,
       Object componentInstance,
-      String stepId,
-      JourneyContainer journeyContainer,
       ServerHttpRequest serverHttpRequest,
       Field field,
       List<Field> fields,
@@ -57,10 +68,9 @@ public class ComponentFactory {
       AtomicInteger componentCounter) {
     String componentId = getComponentId(field, componentCounter);
     ComponentMetadata metadata =
-        componentMetadataBuilder.getMetadata(form, stepId, componentInstance, field, fields);
+        componentMetadataBuilder.getMetadata(form, componentInstance, field, fields);
     var actualComponentInstance =
-        actualUiInstanceProvider.getActualUiInstance(
-            journeyContainer, stepId, componentInstance, serverHttpRequest);
+        actualUiInstanceProvider.getActualUiInstance(componentInstance, serverHttpRequest);
     Component component;
     if (form) {
       component =
@@ -73,9 +83,7 @@ public class ComponentFactory {
               getChildComponents(
                   form,
                   actualComponentInstance,
-                  stepId,
                   field,
-                  journeyContainer,
                   serverHttpRequest,
                   allComponentsInStep,
                   componentCounter));
@@ -91,9 +99,7 @@ public class ComponentFactory {
                 getChildComponents(
                     form,
                     actualComponentInstance,
-                    stepId,
                     field,
-                    journeyContainer,
                     serverHttpRequest,
                     allComponentsInStep,
                     componentCounter),
@@ -110,9 +116,7 @@ public class ComponentFactory {
                 getChildComponents(
                     form,
                     actualComponentInstance,
-                    stepId,
                     field,
-                    journeyContainer,
                     serverHttpRequest,
                     allComponentsInStep,
                     componentCounter));
@@ -127,9 +131,7 @@ public class ComponentFactory {
                 getChildComponents(
                     form,
                     actualComponentInstance,
-                    stepId,
                     field,
-                    journeyContainer,
                     serverHttpRequest,
                     allComponentsInStep,
                     componentCounter));
@@ -153,9 +155,7 @@ public class ComponentFactory {
   private List<String> getChildComponents(
       boolean form,
       Object actualComponentInstance,
-      String stepId,
       Field field,
-      JourneyContainer journeyContainer,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
       AtomicInteger componentCounter) {
@@ -166,8 +166,6 @@ public class ComponentFactory {
                   createComponent(
                       form,
                       o,
-                      stepId,
-                      journeyContainer,
                       serverHttpRequest,
                       null,
                       List.of(),
@@ -191,8 +189,6 @@ public class ComponentFactory {
                   createComponent(
                       formIdentifier.isForm(p.getKey(), p.getValue()),
                       p.getValue(),
-                      stepId,
-                      journeyContainer,
                       serverHttpRequest,
                       p.getKey(),
                       List.of(),

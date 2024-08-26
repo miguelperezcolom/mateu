@@ -1,5 +1,5 @@
 {
-  "type" : "GenericComponent",
+  "componentType" : "GenericComponent",
   "className" : "io.mateu.demo.AnotherSimpleForm",
   "metadata" : {
     "type" : "Form",
@@ -30,7 +30,8 @@
       "target" : "Component",
       "modalStyle" : "",
       "customEvent" : "",
-      "href" : ""
+      "href" : "",
+      "runOnEnter" : true
     } ],
     "validations" : [ ],
     "rules" : [ ]

@@ -38,6 +38,8 @@ export class JourneyStarter extends LitElement {
     @property()
     label: string | undefined = undefined;
     @property()
+    componentId: string | undefined = undefined;
+    @property()
     actionId: string | undefined = undefined;
     @property()
     actionData: unknown | undefined = undefined;
@@ -173,7 +175,7 @@ renderNotification = () => html`${this.notificationMessage}`;
                 overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else {
-            this.service.runAction(event.detail.actionId, event.detail.data).then()
+            this.service.runAction(event.detail.componentId, event.detail.actionId, event.detail.data).then()
         }
     }
 
@@ -231,13 +233,13 @@ renderNotification = () => html`${this.notificationMessage}`;
                             console.log('error when parsing context data', e)
                         }
                         mateuApiClient.element = this
-                        if (this.actionId) {
+                        if (this.componentId && this.actionId) {
                             this.service.state.uiId = this.uiId
                             this.service.state.journeyTypeId = this.journeyTypeId
                             this.service.state.journeyId = this.journeyId
                             this.service.state.baseUrl = this.baseUrl
                             this.service.state.stepId = this.initialStepId
-                            await this.service.runAction(this.actionId, this.actionData)
+                            await this.service.runAction(this.componentId, this.actionId, this.actionData)
                         } else {
                             mateuApiClient.abortAll();
                             document.title = this.label??''
@@ -295,7 +297,8 @@ renderNotification = () => html`${this.notificationMessage}`;
             }}))
     }
 
-    async goPrevious() {
+    async goPrevious(componentId: string) {
+        const component = this.step?.components[componentId]
         this.dispatchEvent(new CustomEvent('previous-requested', {
             bubbles: true,
             composed: true,
@@ -303,9 +306,9 @@ renderNotification = () => html`${this.notificationMessage}`;
                 journeyTypeId: this.journeyTypeId,
                 journeyId: this.journeyId,
                 stepId: this.stepId,
-                __listId: '__list__' + this.step?.data.__listId+ '__edit',
-                __index: this.step?.data.__index! - 1,
-                __count: this.step?.data.__count,
+                __listId: '__list__' + component?.data.__listId+ '__edit',
+                __index: component?.data.__index! - 1,
+                __count: component?.data.__count,
                 previousStepId: this.previousStepId
             }}))
     }

@@ -6,10 +6,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereoty
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.CallActionOnChange;
-import io.mateu.core.domain.uidefinition.shared.annotations.Help;
-import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
-import io.mateu.core.domain.uidefinition.shared.annotations.StyleClassNames;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadgesOnFields;
 import io.mateu.dtos.*;
 import jakarta.validation.constraints.*;
@@ -37,6 +34,7 @@ public class FieldMetadataBuilder {
             fieldTypeMapper.mapFieldType(fieldInterfaced),
             fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
             isObserved(fieldInterfaced),
+            isFocusWanted(fieldInterfaced),
             captionProvider.getCaption(fieldInterfaced),
             getPlaceholder(fieldInterfaced),
             getCssClassNames(fieldInterfaced),
@@ -45,6 +43,10 @@ public class FieldMetadataBuilder {
             getValidations(fieldInterfaced),
             fieldAttributeBuilder.buildAttributes(view, fieldInterfaced));
     return field;
+  }
+
+  private boolean isFocusWanted(Field fieldInterfaced) {
+    return fieldInterfaced.isAnnotationPresent(RequestFocus.class);
   }
 
   private List<Badge> getBadges(Object view, Field field) {

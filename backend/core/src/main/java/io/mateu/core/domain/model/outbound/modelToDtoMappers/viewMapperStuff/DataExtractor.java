@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
@@ -25,12 +24,6 @@ public class DataExtractor {
   final Serializer serializer;
 
   public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) {
-    if (uiInstance instanceof EntityEditor) {
-      Map<String, Object> data = new HashMap<>();
-      data.putAll(((EntityEditor) uiInstance).getData());
-      data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
-      return data;
-    }
     if (uiInstance instanceof ObjectEditor) {
       Map<String, Object> data = new HashMap<>();
       data.putAll(((ObjectEditor) uiInstance).getData());
@@ -53,10 +46,6 @@ public class DataExtractor {
           "supportingText", card.supportingText());
     }
     Map<String, Object> data = new HashMap<>();
-    if (uiInstance instanceof EntityEditor) {
-      data.putAll(((EntityEditor) uiInstance).getData());
-      data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
-    }
     if (uiInstance instanceof ObjectEditor) {
       data.putAll(((ObjectEditor) uiInstance).getData());
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());

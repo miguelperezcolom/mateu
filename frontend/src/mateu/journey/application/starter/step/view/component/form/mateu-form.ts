@@ -200,6 +200,9 @@ export class MateuForm extends LitElement implements FormElement {
   stepId!: string
 
   @property()
+  componentId!: string
+
+  @property()
   previousStepId!: string
 
   @property()
@@ -310,6 +313,7 @@ export class MateuForm extends LitElement implements FormElement {
     } else {
       this.dispatchEvent(new CustomEvent('runaction', {
         detail: {
+          componentId: this.componentId,
           actionId: actionId,
           action: undefined,
           data: {...this.data, __activeTabId: this.activeTab}
@@ -351,6 +355,7 @@ export class MateuForm extends LitElement implements FormElement {
   private askForActionRun(action: Action) {
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
+        componentId: this.componentId,
         actionId: action.id,
         action: action,
         data: {...this.data, __activeTabId: this.activeTab}

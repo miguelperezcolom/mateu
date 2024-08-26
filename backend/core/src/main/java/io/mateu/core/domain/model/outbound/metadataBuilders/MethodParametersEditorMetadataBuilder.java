@@ -27,7 +27,7 @@ public class MethodParametersEditorMetadataBuilder {
   final ReflectionHelper reflectionHelper;
   final Humanizer humanizer;
 
-  public Form build(String stepId, MethodParametersEditor uiInstance) {
+  public Form build(MethodParametersEditor uiInstance) {
     return new Form(
         null,
         getCaption(uiInstance),
@@ -37,9 +37,9 @@ public class MethodParametersEditorMetadataBuilder {
         List.of(),
         List.of(),
         List.of(),
-        getSections(stepId, uiInstance),
+        getSections(uiInstance),
         List.of(),
-        getMainActions(stepId, uiInstance),
+        getMainActions(uiInstance),
         List.of(),
         List.of());
   }
@@ -48,7 +48,7 @@ public class MethodParametersEditorMetadataBuilder {
     return null;
   }
 
-  private List<Action> getMainActions(String stepId, Object uiInstance) {
+  private List<Action> getMainActions(Object uiInstance) {
     List<Action> actions = new ArrayList<>();
     Action action =
         new Action(
@@ -64,12 +64,13 @@ public class MethodParametersEditorMetadataBuilder {
             ActionTarget.View,
             null,
             null,
-            null);
+            null,
+                true);
     actions.add(action);
     return actions;
   }
 
-  private List<Section> getSections(String stepId, MethodParametersEditor methodParametersEditor) {
+  private List<Section> getSections(MethodParametersEditor methodParametersEditor) {
     Method m =
         reflectionHelper.getMethod(
             methodParametersEditor.getType(), methodParametersEditor.getMethodId());
@@ -80,7 +81,7 @@ public class MethodParametersEditorMetadataBuilder {
             .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
 
-    List<Section> sections = formMetadataBuilder.createSections(stepId, null, allEditableFields);
+    List<Section> sections = formMetadataBuilder.createSections(null, allEditableFields);
 
     sections = fillSectionIds(sections);
 
@@ -122,6 +123,7 @@ public class MethodParametersEditorMetadataBuilder {
                                                                     f.type(),
                                                                     f.stereotype(),
                                                                     f.observed(),
+                                                                    f.wantsFocus(),
                                                                     f.caption(),
                                                                     f.placeholder(),
                                                                     f.cssClasses(),

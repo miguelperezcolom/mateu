@@ -37,4 +37,6 @@ public @interface Action {
   String customEvent() default "";
 
   String href() default "";
+
+  boolean runOnEnter() default false;
 }

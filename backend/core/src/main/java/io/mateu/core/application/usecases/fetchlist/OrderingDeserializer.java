@@ -7,16 +7,20 @@ import io.mateu.dtos.SortType;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
+@Service
+@Slf4j
 public class OrderingDeserializer {
 
-  private final String raw;
+  private final Serializer serializer;
 
-  public OrderingDeserializer(String raw) {
-    this.raw = raw;
+  public OrderingDeserializer(Serializer serializer) {
+    this.serializer = serializer;
   }
 
-  public List<SortCriteria> deserialize(Serializer serializer) {
+  public List<SortCriteria> deserialize(String raw) {
     if (Strings.isNullOrEmpty(raw)) {
       return List.of();
     }

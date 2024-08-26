@@ -1,5 +1,5 @@
 {
-  "type" : "GenericComponent",
+  "componentType" : "GenericComponent",
   "className" : "io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper",
   "metadata" : {
     "type" : "Crud",
@@ -13,6 +13,7 @@
         "type" : "string",
         "stereotype" : "readonly",
         "observed" : false,
+        "wantsFocus" : false,
         "caption" : "Text",
         "placeholder" : null,
         "cssClasses" : null,

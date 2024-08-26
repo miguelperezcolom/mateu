@@ -16,6 +16,7 @@ package io.mateu.dtos;
  * @param modalStyle The value for the dialog style attribute
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
+ * @param runOnEnter Set to true if you want to add a shortcut on Enter key
  */
 public record Action(
     String id,
@@ -30,4 +31,6 @@ public record Action(
     ActionTarget target,
     String modalStyle,
     String customEvent,
-    String href) {}
+    String href,
+    boolean runOnEnter
+    ) {}

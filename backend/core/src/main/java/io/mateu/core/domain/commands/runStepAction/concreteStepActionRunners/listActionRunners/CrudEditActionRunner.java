@@ -2,18 +2,14 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
-import io.mateu.core.domain.model.inbound.editors.EntityEditorFactory;
-import io.mateu.core.domain.model.inbound.editors.ObjectEditorFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.Step;
-import jakarta.persistence.Entity;
-import java.util.HashMap;
+import io.mateu.dtos.UIIncrement;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -26,54 +22,33 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CrudEditActionRunner implements ListActionRunner {
 
-  final JourneyContainerService store;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
+  final FiltersDeserializer filtersDeserializer;
+  final ComponentFactory componentFactory;
+  private final UIIncrementFactory uIIncrementFactory;
 
   @Override
-  public boolean applies(JourneyContainer journeyContainer, Crud crud, String actionId) {
+  public boolean applies(Crud crud, String actionId) {
     return "edit".equals(actionId);
   }
 
   @Override
-  public Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  public Mono<UIIncrement> run(
       Crud crud,
-      String stepId,
-      String listId,
+      String crudStepId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
+
+    // todo: make reactive!
 
     Object row = data.get("_selectedRow");
 
     int __index = (Integer) data.getOrDefault("__index", -1);
     int __count = (Integer) data.getOrDefault("__count", -1);
-
-    var steps = new HashMap<>(journeyContainer.steps());
-    var step = journeyContainer.steps().get(stepId);
-
-    steps.put(
-        stepId,
-        new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            step.view(),
-            step.previousStepId(),
-            step.target(),
-            step.components()));
-
-    journeyContainer =
-        new JourneyContainer(
-            journeyContainer.journeyId(),
-            journeyContainer.journeyTypeId(),
-            journeyContainer.journey(),
-            steps,
-            journeyContainer.stepHistory(),
-            journeyContainer.initialStep(),
-            journeyContainer.modalMustBeClosed());
 
     if (row == null && (__index == -1 && __count == -1)) {
       throw new Exception("No row selected");
@@ -81,20 +56,10 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (row == null) {
 
-      Object filtersDeserialized =
-          new FiltersDeserializer(
-                  journeyContainer,
-                  stepId,
-                  listId,
-                  getAsMap(store.getLastUsedFilters(journeyContainer, stepId, listId)),
-                  serverHttpRequest,
-                  reflectionHelper,
-                  serializer)
-              .deserialize(store);
+      Object filtersDeserialized = filtersDeserializer.deserialize(crud, data, serverHttpRequest);
 
-      var ordering = store.getLastUsedOrders(journeyContainer, stepId, listId);
-      // new OrderingDeserializer(store.getLastUsedOrders(journeyId, stepId,
-      // listId)).deserialize(serializer);
+      // todo: recover ordering
+      var ordering = List.of(); // store.getLastUsedOrders(journeyContainer, stepId, listId);
 
       row =
           crud.fetchRows(filtersDeserialized, ordering, (Integer) __index, 1)
@@ -118,26 +83,8 @@ public class CrudEditActionRunner implements ListActionRunner {
       throw new Exception("Crud onEdit returned null");
     }
 
-    String newStepId = "view";
-    if (editor instanceof PersistentPojo) {
-      newStepId = "edit";
-    }
-
-    if (editor.getClass().isAnnotationPresent(Entity.class)) {
-      editor =
-          reflectionHelper
-              .newInstance(EntityEditorFactory.class)
-              .create(editor, __index, __count, listId);
-    } else {
-      editor =
-          reflectionHelper
-              .newInstance(ObjectEditorFactory.class)
-              .create(editor, __index, __count, listId);
-    }
-
-    journeyContainer = store.setStep(journeyContainer, newStepId, editor, serverHttpRequest);
-
-    return Mono.just(journeyContainer);
+    return Mono.just(
+            uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(editor, serverHttpRequest)));
   }
 
   @SneakyThrows

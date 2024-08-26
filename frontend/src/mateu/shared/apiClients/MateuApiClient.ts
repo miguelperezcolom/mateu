@@ -193,13 +193,13 @@ export default class MateuApiClient {
             }
         ).then((response) => response.data))
     }
-    async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, actionId: string,
+    async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
                         data: unknown): Promise<StepWrapper> {
         const journey = JSON.parse(sessionStorage.getItem(journeyId)!)
         journey.modalMustBeClosed = false
         return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
-            + '/' + actionId, {
+            + '/' + componentId+ '/' + actionId, {
                 data: data,
                 journey: journey
             }
