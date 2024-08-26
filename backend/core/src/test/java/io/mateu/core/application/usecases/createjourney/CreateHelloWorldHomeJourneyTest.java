@@ -7,12 +7,10 @@ import io.mateu.core.application.usecases.CreateJourneyUseCase;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.demo.HelloWorld;
 import io.mateu.dtos.JourneyCreationRq;
-
+import io.mateu.dtos.UIIncrement;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
-
-import io.mateu.dtos.UIIncrement;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -54,8 +52,8 @@ public class CreateHelloWorldHomeJourneyTest {
     log.info(serializer.toJson(uiIncrement));
     var json =
         new String(
-                getClass().getResourceAsStream("helloworld.json").readAllBytes(),
-                StandardCharsets.UTF_8);
+            getClass().getResourceAsStream("helloworld.json").readAllBytes(),
+            StandardCharsets.UTF_8);
     JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

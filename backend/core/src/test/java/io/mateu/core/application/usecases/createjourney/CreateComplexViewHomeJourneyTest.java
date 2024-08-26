@@ -7,15 +7,12 @@ import io.mateu.core.application.usecases.CreateJourneyUseCase;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.demo.complexview.ComplexView;
 import io.mateu.dtos.Component;
-import io.mateu.dtos.Journey;
 import io.mateu.dtos.JourneyCreationRq;
-
+import io.mateu.dtos.UIIncrement;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import io.mateu.dtos.UIIncrement;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -60,7 +57,8 @@ public class CreateComplexViewHomeJourneyTest {
     var maxComponents = 20;
 
     for (int i = 0; i < maxComponents; i++) {
-      var componentJson = assertComponent("component-" + i, uiIncrement.components().get("component-" + i));
+      var componentJson =
+          assertComponent("component-" + i, uiIncrement.components().get("component-" + i));
       componentsJsons.put("component-" + i, componentJson);
     }
 
@@ -90,8 +88,7 @@ public class CreateComplexViewHomeJourneyTest {
     return componentJson;
   }
 
-  private String getJsonForComponent(Component component)
-      throws Exception {
+  private String getJsonForComponent(Component component) throws Exception {
     return serializer.toJson(component);
   }
 }

@@ -7,13 +7,11 @@ import io.mateu.core.application.usecases.RunStepUseCase;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.demo.SimpleForm;
 import io.mateu.dtos.RunActionRq;
-
+import io.mateu.dtos.SingleComponent;
+import io.mateu.dtos.UIIncrement;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
-
-import io.mateu.dtos.SingleComponent;
-import io.mateu.dtos.UIIncrement;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -68,8 +66,9 @@ public class SubmitSimpleFormTest {
         new String(
                 getClass().getResourceAsStream("simpleform-submit.json").readAllBytes(),
                 StandardCharsets.UTF_8)
-                .replaceAll("58234d75-7333-46ff-bdca-650edc6574b7",
-                        ((SingleComponent)uiIncrement.content()).componentId());
+            .replaceAll(
+                "58234d75-7333-46ff-bdca-650edc6574b7",
+                ((SingleComponent) uiIncrement.content()).componentId());
     JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

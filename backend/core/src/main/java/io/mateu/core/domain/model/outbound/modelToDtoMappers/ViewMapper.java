@@ -6,7 +6,6 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
 import io.mateu.dtos.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,8 +38,7 @@ public class ViewMapper {
       Map<String, Component> allComponentsInStep)
       throws Throwable {
 
-    var actualObject =
-        actualUiInstanceProvider.getActualUiInstance(object, serverHttpRequest);
+    var actualObject = actualUiInstanceProvider.getActualUiInstance(object, serverHttpRequest);
 
     List<String> left = new ArrayList<>();
     List<String> main = new ArrayList<>();

@@ -7,7 +7,6 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.UIIncrement;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,10 @@ public class CrudRowActionRunner implements ListActionRunner {
   private final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
 
-  public CrudRowActionRunner(Serializer serializer, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory) {
+  public CrudRowActionRunner(
+      Serializer serializer,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory) {
     this.serializer = serializer;
     this.componentFactory = componentFactory;
     this.uIIncrementFactory = uIIncrementFactory;
@@ -60,7 +62,8 @@ public class CrudRowActionRunner implements ListActionRunner {
       }
 
       return Mono.just(
-              uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(r, serverHttpRequest)));
+          uIIncrementFactory.createForSingleComponent(
+              componentFactory.createFormComponent(r, serverHttpRequest)));
 
     } catch (Throwable e) {
       throw new Exception(

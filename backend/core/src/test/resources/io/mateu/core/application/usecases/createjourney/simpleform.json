@@ -102,36 +102,6 @@
           "customEvent" : "",
           "href" : "",
           "runOnEnter" : true
-        }, {
-          "id" : "cancel",
-          "icon" : null,
-          "caption" : "Cancel",
-          "type" : "Secondary",
-          "visible" : true,
-          "validationRequired" : false,
-          "confirmationRequired" : false,
-          "rowsSelectedRequired" : false,
-          "confirmationTexts" : null,
-          "target" : "View",
-          "modalStyle" : null,
-          "customEvent" : null,
-          "href" : null,
-          "runOnEnter" : false
-        }, {
-          "id" : "save",
-          "icon" : null,
-          "caption" : "Save",
-          "type" : "Primary",
-          "visible" : true,
-          "validationRequired" : true,
-          "confirmationRequired" : false,
-          "rowsSelectedRequired" : false,
-          "confirmationTexts" : null,
-          "target" : "View",
-          "modalStyle" : null,
-          "customEvent" : null,
-          "href" : null,
-          "runOnEnter" : false
         } ],
         "validations" : [ ],
         "rules" : [ ]

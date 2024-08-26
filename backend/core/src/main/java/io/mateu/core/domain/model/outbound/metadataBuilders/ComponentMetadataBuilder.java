@@ -123,13 +123,11 @@ public class ComponentMetadataBuilder {
     return new io.mateu.dtos.Element(element.name(), element.attributes());
   }
 
-  private ComponentMetadata getHorizontalLayout(
-      List<?> list, Object model, Field field) {
+  private ComponentMetadata getHorizontalLayout(List<?> list, Object model, Field field) {
     return new io.mateu.dtos.HorizontalLayout();
   }
 
-  private ComponentMetadata getVerticalLayout(
-      List<?> list, Object model, Field field) {
+  private ComponentMetadata getVerticalLayout(List<?> list, Object model, Field field) {
     return new io.mateu.dtos.VerticalLayout();
   }
 
@@ -178,7 +176,6 @@ public class ComponentMetadataBuilder {
   }
 
   public ComponentMetadata getFormMetadata(Object form) {
-    return getMetadata(
-        true, form, null, reflectionHelper.getAllEditableFields(form.getClass()));
+    return getMetadata(true, form, null, reflectionHelper.getAllEditableFields(form.getClass()));
   }
 }

@@ -5,5 +5,4 @@ package io.mateu.dtos;
  *
  * @param componentId The component id
  */
-public record SingleComponent(String componentId)
-    implements Content {}
+public record SingleComponent(String componentId) implements Content {}

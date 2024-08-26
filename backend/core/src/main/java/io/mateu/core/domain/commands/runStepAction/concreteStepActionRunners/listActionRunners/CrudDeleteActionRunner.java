@@ -23,15 +23,18 @@ public class CrudDeleteActionRunner implements ListActionRunner {
   private final Serializer serializer;
   private final ComponentFactory componentFactory;
   private final CaptionProvider captionProvider;
-    private final UIIncrementFactory uIIncrementFactory;
+  private final UIIncrementFactory uIIncrementFactory;
 
-    public CrudDeleteActionRunner(
-          Serializer serializer, ComponentFactory componentFactory, CaptionProvider captionProvider, UIIncrementFactory uIIncrementFactory) {
+  public CrudDeleteActionRunner(
+      Serializer serializer,
+      ComponentFactory componentFactory,
+      CaptionProvider captionProvider,
+      UIIncrementFactory uIIncrementFactory) {
     this.serializer = serializer;
     this.componentFactory = componentFactory;
     this.captionProvider = captionProvider;
-        this.uIIncrementFactory = uIIncrementFactory;
-    }
+    this.uIIncrementFactory = uIIncrementFactory;
+  }
 
   @Override
   public boolean applies(Crud crud, String actionId) {
@@ -84,7 +87,8 @@ public class CrudDeleteActionRunner implements ListActionRunner {
               null);
 
       return Mono.just(
-              uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(whatToShow, serverHttpRequest)));
+          uIIncrementFactory.createForSingleComponent(
+              componentFactory.createFormComponent(whatToShow, serverHttpRequest)));
 
     } catch (Throwable e) {
       throw new Exception(

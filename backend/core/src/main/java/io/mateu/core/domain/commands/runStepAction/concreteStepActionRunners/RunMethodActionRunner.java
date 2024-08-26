@@ -85,16 +85,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       if (Modifier.isStatic(m.getModifiers())) {
 
         return Mono.just(
-                uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(
-                        new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
-                        serverHttpRequest)));
+            uIIncrementFactory.createForSingleComponent(
+                componentFactory.createFormComponent(
+                    new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
+                    serverHttpRequest)));
 
       } else {
 
         return Mono.just(
-                uIIncrementFactory.createForSingleComponent(componentFactory.createFormComponent(
-                        new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
-                        serverHttpRequest)));
+            uIIncrementFactory.createForSingleComponent(
+                componentFactory.createFormComponent(
+                    new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
+                    serverHttpRequest)));
       }
 
     } else {
@@ -111,8 +113,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         if (result == null) {
           return Mono.just(
-                  uIIncrementFactory.createForSingleComponent(componentFactory
-                          .createFormComponent(actualViewInstance, serverHttpRequest)));
+              uIIncrementFactory.createForSingleComponent(
+                  componentFactory.createFormComponent(actualViewInstance, serverHttpRequest)));
         }
 
         if (Mono.class.isAssignableFrom(result.getClass())) {

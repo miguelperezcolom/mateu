@@ -13,11 +13,10 @@ import java.util.Map;
  * @param components List of new components
  */
 public record UIIncrement(
-        List<UICommand> commands,
-        Content content,
-        List<Message> messages,
-        Map<String, Component> components
-) {
+    List<UICommand> commands,
+    Content content,
+    List<Message> messages,
+    Map<String, Component> components) {
 
   public UIIncrement {
     commands = Collections.unmodifiableList(commands);

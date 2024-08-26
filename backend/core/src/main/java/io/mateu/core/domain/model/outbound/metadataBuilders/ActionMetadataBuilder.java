@@ -44,14 +44,14 @@ public class ActionMetadataBuilder {
             getModalStyle(m),
             getCustomEvent(m),
             getHref(m),
-                isRunOnEnter(m));
+            isRunOnEnter(m));
     return action;
   }
 
   private boolean isRunOnEnter(Method m) {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
       return action.runOnEnter();
     }
     return true;
@@ -254,7 +254,7 @@ public class ActionMetadataBuilder {
                           a.modalStyle(),
                           a.customEvent(),
                           a.href(),
-                              false))
+                          false))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -272,7 +272,7 @@ public class ActionMetadataBuilder {
               null,
               null,
               null,
-                  false);
+              false);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -294,7 +294,7 @@ public class ActionMetadataBuilder {
               null,
               null,
               null,
-                  false);
+              false);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

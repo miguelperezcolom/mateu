@@ -249,8 +249,7 @@ public class FormMetadataBuilder {
     return sections;
   }
 
-  public List<Section> createSections(
-      Object uiInstance, List<Field> allEditableFields) {
+  public List<Section> createSections(Object uiInstance, List<Field> allEditableFields) {
     Map<String, List<Field>> fieldsByTabId = groupFieldsByTabId(allEditableFields);
 
     List<Section> sections = new ArrayList<>();

@@ -31,8 +31,7 @@ public class CardMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(
-      io.mateu.core.domain.uidefinition.core.interfaces.Card card,
-      List<Field> slotFields) {
+      io.mateu.core.domain.uidefinition.core.interfaces.Card card, List<Field> slotFields) {
     Card metadata =
         new Card(
             CardLayout.Layout1,

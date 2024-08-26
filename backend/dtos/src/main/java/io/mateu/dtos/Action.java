@@ -32,5 +32,4 @@ public record Action(
     String modalStyle,
     String customEvent,
     String href,
-    boolean runOnEnter
-    ) {}
+    boolean runOnEnter) {}

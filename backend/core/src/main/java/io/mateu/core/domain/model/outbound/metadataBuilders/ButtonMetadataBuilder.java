@@ -38,8 +38,7 @@ public class ButtonMetadataBuilder {
             getModalStyle(m),
             getCustomEvent(m),
             getHref(m),
-            getRunEonEnter(m)
-                );
+            getRunEonEnter(m));
     return action;
   }
 

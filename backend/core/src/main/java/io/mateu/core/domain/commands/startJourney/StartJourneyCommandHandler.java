@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.startJourney;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.exceptions.NotFoundException;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
@@ -11,16 +10,12 @@ import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
 import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Component;
 import io.mateu.dtos.UIIncrement;
-
-import java.util.HashMap;
+import io.mateu.dtos.View;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.mateu.dtos.View;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -39,10 +34,11 @@ public class StartJourneyCommandHandler {
   private final ViewMapper viewMapper;
 
   public StartJourneyCommandHandler(
-          ReflectionHelper reflectionHelper,
-          MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
-          MenuResolver menuResolver,
-          UiInstantiator uiInstantiator, ViewMapper viewMapper) {
+      ReflectionHelper reflectionHelper,
+      MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
+      MenuResolver menuResolver,
+      UiInstantiator uiInstantiator,
+      ViewMapper viewMapper) {
     this.reflectionHelper = reflectionHelper;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.menuResolver = menuResolver;
