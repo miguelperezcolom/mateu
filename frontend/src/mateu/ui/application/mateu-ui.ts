@@ -180,12 +180,6 @@ export class MateuUi extends LitElement {
                         </div>
                     </vaadin-app-layout>
                 `:''}
-
-                <!--
-                <div class="container">
-                    <router-outlet></router-outlet>
-                </div>
-                -->
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
 

@@ -1,16 +1,19 @@
 import {LoadUiCommand} from "./LoadUiCommand";
 import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
-import {state} from "../../state";
 import Menu from "../../../../shared/apiClients/dtos/Menu";
 import {MenuBarItem} from "@vaadin/menu-bar";
 import {MenuType} from "../../../../shared/apiClients/dtos/MenuType";
+import UI from "../../../../shared/apiClients/dtos/UI";
 
 export class LoadUiCommandHandler {
 
-    public async handle(command: LoadUiCommand): Promise<void> {
-        state.ui = await mateuApiClient.fetchUi(command.uiId);
-        state.items = state.ui?.menu?.map(m => this.mapToMenuBarItem(m));
-        state.journeyTypeId = command.journeyTypeId
+    public async handle(command: LoadUiCommand): Promise<{ui: UI,items: any, journeyTypeId: string | undefined}> {
+        const ui = await mateuApiClient.fetchUi(command.uiId)
+        return {
+            ui: ui,
+            items: ui?.menu?.map(m => this.mapToMenuBarItem(m)),
+            journeyTypeId: command.journeyTypeId
+        };
     }
 
     private mapToMenuBarItem(m: Menu): {
