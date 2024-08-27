@@ -4,12 +4,11 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.ActionTarget;
-import io.mateu.dtos.ActionType;
-import io.mateu.dtos.ConfirmationTexts;
+import io.mateu.dtos.*;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -44,14 +43,29 @@ public class ActionMetadataBuilder {
             getModalStyle(m),
             getCustomEvent(m),
             getHref(m),
-            isRunOnEnter(m));
+            isRunOnEnter(m),
+                getPosition(m));
     return action;
+  }
+
+  private ActionPosition getPosition(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return ActionPosition.valueOf(action.position().name());
+    }
+    return ActionPosition.Right;
   }
 
   private boolean isRunOnEnter(Method m) {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.runOnEnter();
+    }
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
       return action.runOnEnter();
     }
     return true;
@@ -254,7 +268,8 @@ public class ActionMetadataBuilder {
                           a.modalStyle(),
                           a.customEvent(),
                           a.href(),
-                          false))
+                          false,
+                              ActionPosition.Right))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -272,7 +287,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               null,
-              false);
+              false,
+                  ActionPosition.Right);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -294,7 +310,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               null,
-              false);
+              false,
+                  ActionPosition.Right);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

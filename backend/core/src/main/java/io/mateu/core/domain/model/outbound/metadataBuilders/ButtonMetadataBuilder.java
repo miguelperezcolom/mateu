@@ -5,10 +5,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.ActionTarget;
-import io.mateu.dtos.ActionType;
-import io.mateu.dtos.ConfirmationTexts;
+import io.mateu.dtos.*;
+
 import java.net.URL;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +36,8 @@ public class ButtonMetadataBuilder {
             getModalStyle(m),
             getCustomEvent(m),
             getHref(m),
-            getRunEonEnter(m));
+            getRunEonEnter(m),
+                ActionPosition.Right);
     return action;
   }
 

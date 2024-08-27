@@ -35,4 +35,8 @@ public @interface MainAction {
   String customEvent() default "";
 
   String href() default "";
+
+  boolean runOnEnter() default false;
+
+  ActionPosition position() default ActionPosition.Right;
 }

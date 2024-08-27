@@ -22,9 +22,10 @@ import {Button} from "@vaadin/button";
 import {TabsSelectedChangedEvent} from "@vaadin/tabs";
 import Action from "../../../../../../shared/apiClients/dtos/Action";
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
-import { Service } from '../../../../../domain/service';
+import {Service} from '../../../../../domain/service';
 import {StatusType} from "../../../../../../shared/apiClients/dtos/StatusType";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
+import {ActionPosition} from "../../../../../../shared/apiClients/dtos/ActionPosition";
 
 export interface FormElement {
 
@@ -473,11 +474,15 @@ export class MateuForm extends LitElement implements FormElement {
 
         <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
           <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;">
-          <slot></slot>
+            ${this.metadata.mainActions.filter(a => a.position == ActionPosition.Left).map(a => html`
+              <vaadin-button theme="${this.getThemeForAction(a.type)}"
+                             data-testid="action-${a.id}"
+                             @click=${this.runAction} actionId=${a.id}>${a.caption}</vaadin-button>
+            `)}
           </vaadin-horizontal-layout>
           <vaadin-horizontal-layout style="justify-content: end;">
-          ${this.metadata.mainActions.map(a => html`
-            <vaadin-button theme="${ActionType.Primary == a.type?'primary':'secondary'}"
+          ${this.metadata.mainActions.filter(a => a.position == ActionPosition.Right).map(a => html`
+            <vaadin-button theme="${this.getThemeForAction(a.type)}"
                            data-testid="action-${a.id}"
                            @click=${this.runAction} actionId=${a.id}>${a.caption}</vaadin-button>
           `)}
@@ -512,6 +517,13 @@ export class MateuForm extends LitElement implements FormElement {
         
       </div>
     `
+  }
+
+  private getThemeForAction(type: ActionType) {
+    if (ActionType.Tertiary == type) {
+      return 'tertiary'
+    }
+    return ActionType.Primary == type?'primary':'secondary';
   }
 
   private getThemeForStatusType(type: StatusType): string {

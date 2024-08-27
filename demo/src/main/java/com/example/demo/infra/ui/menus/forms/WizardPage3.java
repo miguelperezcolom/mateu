@@ -1,5 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionPosition;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionType;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import lombok.Getter;
@@ -31,5 +33,10 @@ public class WizardPage3 {
         + wizardPage2.getWizardPage1().getName()
         + ", "
         + wizardPage2.getWizardPage1().getAge();
+  }
+
+  @MainAction(type = ActionType.Tertiary, position = ActionPosition.Left)
+  public WizardPage2 back() {
+    return wizardPage2;
   }
 }
