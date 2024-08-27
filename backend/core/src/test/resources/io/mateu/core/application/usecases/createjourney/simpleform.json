@@ -3,23 +3,23 @@
   "content" : {
     "contentType" : "View",
     "header" : {
-      "classes" : null,
+      "cssClasses" : null,
       "componentIds" : [ ]
     },
     "left" : {
-      "classes" : null,
+      "cssClasses" : null,
       "componentIds" : [ ]
     },
     "main" : {
-      "classes" : null,
+      "cssClasses" : null,
       "componentIds" : [ "component-0" ]
     },
     "right" : {
-      "classes" : null,
+      "cssClasses" : null,
       "componentIds" : [ ]
     },
     "footer" : {
-      "classes" : null,
+      "cssClasses" : null,
       "componentIds" : [ ]
     }
   },

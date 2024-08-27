@@ -1,6 +1,5 @@
-import ViewMetadata from "./ViewMetadata";
-import Component from "./Component";
+import ComponentMetadata from "./ComponentMetadata";
 
-export default interface VerticalLayout extends ViewMetadata {
-    components: Component[]
+export default interface VerticalLayout extends ComponentMetadata {
+
 }

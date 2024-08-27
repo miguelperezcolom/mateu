@@ -1,7 +1,4 @@
-import ViewMetadata from "./ViewMetadata";
-import Component from "./Component";
+import ComponentMetadata from "./ComponentMetadata";
 
-export default interface SplitLayout extends ViewMetadata {
-    left: Component
-    right: Component
+export default interface SplitLayout extends ComponentMetadata {
 }

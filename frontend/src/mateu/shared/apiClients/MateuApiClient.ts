@@ -1,16 +1,14 @@
 import UI from "./dtos/UI";
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios";
-import Journey from "./dtos/Journey";
-import Step from "./dtos/Step";
 import {nanoid} from "nanoid";
-import StepWrapper from "./dtos/StepWrapper";
+import UIIncrement from "./dtos/UIIncrement";
 import Page from "./dtos/Page";
 
 let abortControllers: AbortController[] = [];
 let fetchRowsAbortController0 = new AbortController()
 let fetchRowsAbortController1 = new AbortController()
 
-export default class MateuApiClient {
+class MateuApiClient {
 
     axiosInstance = axios.create({timeout: 60000})
 
@@ -86,19 +84,6 @@ export default class MateuApiClient {
         return JSON.stringify(reason)
     }
 
-    async getMax2(uri: string): Promise<AxiosResponse> {
-        fetchRowsAbortController0.abort()
-        fetchRowsAbortController0 = fetchRowsAbortController1
-        const abortController =  new AbortController();
-        fetchRowsAbortController1 = abortController
-
-        abortControllers = [...abortControllers, abortController]
-
-        return this.axiosInstance.get(uri, {
-            signal: abortController.signal
-        });
-    }
-
     async postMax2(uri: string, data:object): Promise<AxiosResponse> {
         fetchRowsAbortController0.abort()
         fetchRowsAbortController0 = fetchRowsAbortController1
@@ -119,16 +104,6 @@ export default class MateuApiClient {
 
         return this.axiosInstance.get(uri, {
             signal: abortController.signal
-        });
-    }
-
-    async getBlob(uri: string): Promise<AxiosResponse> {
-        const abortController =  new AbortController();
-        abortControllers = [...abortControllers, abortController]
-
-        return this.axiosInstance.get(uri, {
-            signal: abortController.signal
-            , responseType: 'blob'
         });
     }
 
@@ -160,33 +135,8 @@ export default class MateuApiClient {
             .then((response) => response.data))
     }
 
-    async createJourney(uiId: string, journeyType: string, journeyId: string): Promise<void> {
-        return await this.wrap<void>(this.post(this.baseUrl + '/' + uiId  + '/journeys/'
-            + journeyType + '/' + journeyId,
-            {
-                    "context-data": this.contextData
-                }
-            ))
-    }
-
-    async fetchJourney(uiId: string, journeyType: string, journeyId: string): Promise<Journey> {
-        return await this.wrap<Journey>(this.get(this.baseUrl + '/' + uiId + '/journeys/'
-            + journeyType + '/' + journeyId)
-                .then((response) => response.data))
-    }
-
-    async fetchStep(uiId: string, journeyType: string, journeyId: string, stepId: string): Promise<Step> {
-        return await this.wrap<Step>(this.get(this.baseUrl + '/' + uiId + '/journeys/' +
-            journeyType + '/' + journeyId + '/steps/' + stepId)
-                .then((response) => {
-                    const newStep = response.data
-                    newStep.timestamp = nanoid()
-                    return newStep
-                }))
-    }
-
-    async createJourneyAndReturn(uiId: string, journeyType: string, journeyId: string): Promise<StepWrapper> {
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
+    async createJourneyAndReturn(uiId: string, journeyType: string, journeyId: string): Promise<UIIncrement> {
+        return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId,
             {
                 "context-data": this.contextData
@@ -194,14 +144,13 @@ export default class MateuApiClient {
         ).then((response) => response.data))
     }
     async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
-                        data: unknown): Promise<StepWrapper> {
-        const journey = JSON.parse(sessionStorage.getItem(journeyId)!)
-        journey.modalMustBeClosed = false
-        return await this.wrap<StepWrapper>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
+                        componentType: string, data: unknown): Promise<UIIncrement> {
+        return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + componentId+ '/' + actionId, {
+                componentType: componentType,
                 data: data,
-                journey: journey
+            "context-data": this.contextData
             }
         ).then((response) => response.data).catch((error) => {
             console.log('error en post', error)

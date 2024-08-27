@@ -2,27 +2,28 @@ import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import '@vaadin/button'
 import '@vaadin/horizontal-layout'
-import './step/journey-step'
-import {notificationRenderer} from 'lit-vaadin-helpers';
-import Journey from "../../../shared/apiClients/dtos/Journey";
-import Step from "../../../shared/apiClients/dtos/Step";
 import {mateuApiClient} from "../../../shared/apiClients/MateuApiClient";
 import {Subject, Subscription} from "rxjs";
 import {State} from "../../domain/state";
 import {ApiController} from "./controllers/ApiController";
-import {PreviousAndNextController} from "./controllers/PreviousAndNextController";
 import Action from "../../../shared/apiClients/dtos/Action";
 import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Service} from "../../domain/service";
 import {nanoid} from "nanoid";
-import Form from "../../../shared/apiClients/dtos/Form";
+import UICommand from "../../../shared/apiClients/dtos/UICommand";
+import {UICommandType} from "../../../shared/apiClients/dtos/UICommandType";
+import Message from "../../../shared/apiClients/dtos/Message";
+import { Notification } from '@vaadin/notification';
+import View from "../../../shared/apiClients/dtos/View";
+import Component from "../../../shared/apiClients/dtos/Component";
+import './view/mateu-view'
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
 
-    //properties
+    //properties (reactive)
     @property()
     baseUrl = ''
     @property()
@@ -32,27 +33,15 @@ export class JourneyStarter extends LitElement {
     @property()
     journeyId: string | undefined = undefined;
     @property()
-    stepId: string | undefined = undefined;
+    stepId: string | undefined = 'notUsed';
     @property()
     instant: string | undefined = undefined;
-    @property()
-    label: string | undefined = undefined;
-    @property()
-    componentId: string | undefined = undefined;
-    @property()
-    actionId: string | undefined = undefined;
-    @property()
-    actionData: unknown | undefined = undefined;
-    @property()
-    parentStepId: string | undefined = undefined;
-    @property()
-    initialStepId: string | undefined = undefined;
     @property()
     inModal: boolean | undefined = undefined;
     @property()
     contextData: string | undefined = undefined;
 
-    //reactive state
+    //reactive state (not properties)
     @state()
     modalStepId: string | undefined = undefined;
     @state()
@@ -65,25 +54,15 @@ export class JourneyStarter extends LitElement {
     modalStyle: string | undefined = undefined;
     @state()
     modalClass: string | undefined = undefined;
+
     @state()
     loading: boolean = false;
     @state()
     error: boolean | undefined = undefined;
     @state()
-    journey: Journey | undefined = undefined;
+    view: View | undefined = undefined;
     @state()
-    previousStepId: string | undefined = undefined;
-    @state()
-    step: Step | undefined = undefined;
-    @state()
-    completed: boolean = false;
-    @state()
-    version = ''
-    @state()
-    notificationOpened: boolean = false;
-    @state()
-    notificationMessage: string = '';
-
+    components: Record<string, Component> | undefined = undefined;
 
 
     // upstream channel
@@ -91,35 +70,12 @@ export class JourneyStarter extends LitElement {
 
     upstream = new Subject<State>()
     apiController = new ApiController(this)
-    previousAndNextController: PreviousAndNextController
     service: Service
 
     constructor() {
         super();
         this.service = new Service(this.upstream)
-        this.previousAndNextController = new PreviousAndNextController(this, this.service);
     }
-
-    backMustBeShown() {
-        if (this.step?.previousStepId && this.step?.previousStepId != this.initialStepId) {
-            const form = this.step.view.main.components[0]
-            if ((form.metadata as Form).mainActions?.find(a => a.id.endsWith('___cancel') || a.id == 'cancel')) {
-                return false
-            }
-            if (form.data?.__index) {
-                return true
-            }
-            // @ts-ignore
-            if (!form.metadata.nowTo
-                // @ts-ignore
-                || this.step?.previousStepId != form.metadata.nowTo.value) {
-                return true
-            }
-        }
-        return false
-    }
-
-renderNotification = () => html`${this.notificationMessage}`;
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
@@ -175,12 +131,19 @@ renderNotification = () => html`${this.notificationMessage}`;
                 overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle?this.modalStyle:''))
             });
         } else {
-            this.service.runAction(event.detail.componentId, event.detail.actionId, event.detail.data).then()
+            console.log(event)
+            this.service.runAction(
+                this.baseUrl,
+                this.uiId!,
+                this.journeyTypeId!,
+                this.journeyId!,
+                this.stepId!,
+                event.detail.componentId,
+                event.detail.actionId,
+                event.detail.componentType,
+                event.detail.data
+            ).then()
         }
-    }
-
-    goBack() {
-        this.service.goBack(this.journeyId!).then()
     }
 
 
@@ -200,24 +163,99 @@ renderNotification = () => html`${this.notificationMessage}`;
 
     // write state to reactive properties
     stampState(state: State) {
-        if (state.modalMustBeClosed && this.inModal) {
-            console.log('closing modal')
-            this.closeModalAndStay()
-        } else {
-            this.error = state.error
-            this.journeyId = state.journeyId
-            this.journey = state.journey
-            this.step = state.step
-            this.stepId = state.stepId
-            this.previousStepId = state.previousStepId
-            this.completed = state.completed
-            this.version = state.version
-            this.notificationOpened = state.notificationOpened
-            this.notificationMessage = state.notificationMessage
-            this.uiId = state.uiId
-            this.journeyTypeId = state.journeyTypeId
+        // run commands
+        state.commands.forEach(c => this.runCommand(c))
+        state.commands = []
+
+        // show messages
+        state.messages.forEach(c => this.showMessage(c))
+        state.messages = []
+
+        this.view = state.view
+        this.components = state.components
+        this.error = state.error
+        this.requestUpdate('view')
+    }
+
+    private runCommand(c: UICommand) {
+        switch (c.type) {
+            case UICommandType.SetWindowTitle:
+                // @ts-ignore
+                document.title = c.data
+                return
+            case UICommandType.UpdateUrl:
+                // @ts-ignore
+                var url = '#' + c.data.url
+                if ('____home____' == this.journeyTypeId) {
+                    url = ''
+                }
+                window.history.pushState({},"", url)
+                return
+            case UICommandType.CloseModal:
+                if (this.inModal) {
+                    console.log('closing modal')
+                    this.closeModalAndStay()
+                }
+                return
+            case UICommandType.SetLocation:
+                // @ts-ignore
+                window.location = c.data.url
+                return
+            case UICommandType.ReplaceWithUrl:
+                window.close()
+                // @ts-ignore
+                window.open(c.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                return
+            case UICommandType.OpenNewTab:
+                // @ts-ignore
+                window.open(c.data.url, '_blank')
+                return
+            case UICommandType.OpenNewWindow:
+                // @ts-ignore
+                window.open(c.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                return
         }
     }
+
+    public showMessage(c: Message) {
+
+        const closer = {
+            notification: Notification,
+            close: Function
+        }
+
+        const renderer = () => html`
+  <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+    <div>${c.title}</div>
+    <vaadin-button theme="tertiary-inline" @click="${() => closer.close()}" aria-label="Close">
+      <vaadin-icon icon="lumo:cross"></vaadin-icon>
+    </vaadin-button>
+  </vaadin-horizontal-layout>
+`
+
+        const notification = Notification.show(renderer(), {
+            position: 'middle',
+            duration: 0,
+            theme: this.getThemeForMessageType(c.type),
+        });
+        // @ts-ignore
+        closer.notification = notification
+        closer.close = () => {
+            notification.close();
+        }
+
+    }
+
+    private getThemeForMessageType(type: string): string {
+        switch (type) {
+            case 'Success': return 'success';
+            case 'Warning': return 'contrast';
+            case 'Error': return 'error';
+            case 'Info': return 'primary';
+        }
+        return '';
+    }
+
 
     async updated(changedProperties: Map<string, unknown>) {
         if (changedProperties.has("baseUrl")
@@ -233,23 +271,15 @@ renderNotification = () => html`${this.notificationMessage}`;
                             console.log('error when parsing context data', e)
                         }
                         mateuApiClient.element = this
-                        if (this.componentId && this.actionId) {
-                            this.service.state.uiId = this.uiId
-                            this.service.state.journeyTypeId = this.journeyTypeId
-                            this.service.state.journeyId = this.journeyId
-                            this.service.state.baseUrl = this.baseUrl
-                            this.service.state.stepId = this.initialStepId
-                            await this.service.runAction(this.componentId, this.actionId, this.actionData)
-                        } else {
-                            mateuApiClient.abortAll();
-                            document.title = this.label??''
-                            var url = '#' + this.journeyTypeId
-                            if ('____home____' == this.journeyTypeId) {
-                                url = ''
-                            }
-                            window.history.pushState({},"", url);
-                            await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId)
+
+                        mateuApiClient.abortAll();
+                        var url = '#' + this.journeyTypeId
+                        if ('____home____' == this.journeyTypeId) {
+                            url = ''
                         }
+                        window.history.pushState({},"", url);
+                        this.journeyId = nanoid()
+                        await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId, this.journeyId)
                     }
                 })
         }
@@ -264,7 +294,6 @@ renderNotification = () => html`${this.notificationMessage}`;
 
     async closeModal() {
         this.modalOpened = false
-        await this.service.goToStep(this.stepId!)
     }
 
     closeModalAndStay() {
@@ -272,44 +301,6 @@ renderNotification = () => html`${this.notificationMessage}`;
             bubbles: true,
             composed: true,
             detail: {
-            }}))
-    }
-
-
-    async _goBack() {
-        this.dispatchEvent(new CustomEvent('back-requested', {
-            bubbles: true,
-            composed: true}))
-    }
-
-    async goNext() {
-        this.dispatchEvent(new CustomEvent('next-requested', {
-            bubbles: true,
-            composed: true,
-            detail: {
-                journeyTypeId: this.journeyTypeId,
-                journeyId: this.journeyId,
-                stepId: this.stepId,
-                __listId: '__list__' + this.step?.data.__listId+ '__edit',
-                __index: this.step?.data.__index! + 1,
-                __count: this.step?.data.__count,
-                previousStepId: this.previousStepId
-            }}))
-    }
-
-    async goPrevious(componentId: string) {
-        const component = this.step?.components[componentId]
-        this.dispatchEvent(new CustomEvent('previous-requested', {
-            bubbles: true,
-            composed: true,
-            detail: {
-                journeyTypeId: this.journeyTypeId,
-                journeyId: this.journeyId,
-                stepId: this.stepId,
-                __listId: '__list__' + component?.data.__listId+ '__edit',
-                __index: component?.data.__index! - 1,
-                __count: component?.data.__count,
-                previousStepId: this.previousStepId
             }}))
     }
 
@@ -332,7 +323,6 @@ renderNotification = () => html`${this.notificationMessage}`;
                         if (this.modalOpened) {
                             console.log('closing modal')
                             this.modalOpened = false
-                            await this.service.goToStep(this.stepId!)
                         } else {
                             console.log('NOT closing modal')
                         }
@@ -356,58 +346,23 @@ renderNotification = () => html`${this.notificationMessage}`;
                 
                 `:''}
             
-            ${this.journey?.status == 'Finished'?html`
                 
-                <h1>Application created</h1>
-                <h2><a href="">Go to application list</a></h2>
-                
-            `:html`
-                
-                ${this.step?html`
-                
-                        <journey-step
-                                id="step"
-                                uiId="${this.uiId}"
-                                journeyTypeId="${this.journeyTypeId}"
-                                journeyId="${this.journeyId}" 
-                                       stepId="${this.stepId}" 
-                                       .step=${this.step} 
-                                       baseUrl="${this.baseUrl}"
-                                initialStepId="${this.initialStepId}"
-                                version="${this.version}"
-                                .service=${this.service}
-                                @runaction="${this.runAction}"
-                                @back-requested="${this.goBack}"
-                        >
-                            ${this.step?.previousStepId || this.step?.data?.__index || this.step?.data?.__count?html`
-                <vaadin-horizontal-layout theme="spacing">
-                      ${this.backMustBeShown()?html`
-                                  <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
-                              `:''
-                          }
-                      ${this.step?.id != 'list' && this.step?.data?.__index != undefined && this.step?.data?.__count && this.step?.data?.__count > 0?html`
-
-                          <vaadin-button theme="tertiary" @click=${this.goPrevious} ?disabled=${this.step?.data?.__index == 0}>Previous</vaadin-button>
-                          <vaadin-button theme="tertiary" @click=${this.goNext} ?disabled=${this.step?.data?.__index >= this.step?.data?.__count - 1}>Next</vaadin-button>
-
-                      `:''}                    
-                </vaadin-horizontal-layout>
-`:''}
-                        </journey-step>
-
+                ${this.view?html`
+                    <mateu-view 
+                .view=${this.view}
+                .components=${this.components}
+                uiId="${this.uiId}"
+                journeyTypeId="${this.journeyTypeId}"
+                journeyId="${this.journeyId}" 
+                stepId="${this.stepId}"
+                .service=${this.service}
+                baseUrl="${this.baseUrl}"
+                @runaction="${this.runAction}"
+                instant="${nanoid()}"
+        ><slot></slot></mateu-view>
                     `:html`
                 <!--<p>No step</p>-->
             `}
-            `}
-                
-            <vaadin-notification
-                    .opened=${this.notificationOpened}
-                    position="bottom-end"
-                    duration="10000"
-                    theme="error"
-                    ${notificationRenderer(this.renderNotification)}
-            >${this.notificationMessage}</vaadin-notification>
-
 
             <vaadin-dialog
                     header-title=" "

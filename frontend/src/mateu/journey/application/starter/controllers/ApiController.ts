@@ -1,5 +1,6 @@
 import {ReactiveController} from 'lit';
 import {JourneyStarter} from "../journey-starter";
+import {ResultType} from "../../../../shared/apiClients/dtos/ResultType";
 
 export class ApiController implements ReactiveController {
 
@@ -62,15 +63,19 @@ export class ApiController implements ReactiveController {
         }
         this.host.loading = this.activeCalls > 0
         const ce = event as CustomEvent
-        this.host.notificationMessage = `${ce.detail.reason}`;
+        let title = `${ce.detail.reason}`;
+        let detail = '';
         if (ce.detail.reason.code || ce.detail.reason.message) {
-            this.host.notificationMessage = `${ce.detail.reason.code} ${ce.detail.reason.message}`;
+            title = `${ce.detail.reason.code} ${ce.detail.reason.message}`;
         }
         if (ce.detail.reason.response?.data) {
-            this.host.notificationMessage = `${ce.detail.reason.response.data}`
+            detail = `${ce.detail.reason.response.data}`
         }
-        this.host.notificationOpened = true;
-        setTimeout(() => this.host.notificationOpened = false, 5000)
+        this.host.showMessage({
+            type: ResultType.Error,
+            title: title,
+            text: detail
+        })
     }
 
 }

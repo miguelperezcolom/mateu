@@ -1,20 +1,12 @@
-import ViewMetadata from "./ViewMetadata";
-import FieldGroup from "./FieldGroup";
+import ComponentMetadata from "./ComponentMetadata";
+import {CardLayout} from "./CardLayout";
+import Action from "./Action";
 
-export default interface Card extends ViewMetadata {
+export default interface Card extends ComponentMetadata {
 
-    dataPrefix: string
-
-    title: string;
-
-    subtitle: string;
-
-    icon: string;
-
-    info: string;
-
-    total: string;
-
-    fieldGroups: FieldGroup[];
+    cardLayout: CardLayout
+    thumbnail: string
+    buttons: Action[]
+    icons: Action[]
 
 }

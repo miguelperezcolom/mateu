@@ -1,27 +1,15 @@
-import ViewMetadata from "./ViewMetadata";
+import ComponentMetadata from "./ComponentMetadata";
 import SearchForm from "./SearchForm";
 import Column from "./Column";
-import Form from "./Form";
 import Action from "./Action";
 
-export default interface Crud extends ViewMetadata {
+export default interface Crud extends ComponentMetadata {
 
-    listId: string;
-
-    title: string;
-
-    subtitle: string;
-
-    searchForm: SearchForm;
-
-    columns: Column[];
-
-    canEdit: boolean;
-
-    newItemForm: Form;
-
-    detailForm: Form;
-
-    actions: Action[];
+    title: string
+    subtitle: string
+    canEdit: boolean
+    searchForm: SearchForm
+    columns: Column[]
+    actions: Action[]
 
 }

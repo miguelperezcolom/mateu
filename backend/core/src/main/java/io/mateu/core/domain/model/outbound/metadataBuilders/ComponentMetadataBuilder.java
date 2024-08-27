@@ -147,8 +147,13 @@ public class ComponentMetadataBuilder {
   }
 
   private JourneyStarter getJourneyStarter(
-      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter uiInstance) {
-    return new JourneyStarter(uiInstance.baseUrl(), uiInstance.journeyTypeId());
+      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter journeyStarter) {
+    return new JourneyStarter(
+        journeyStarter.baseUrl(),
+        journeyStarter.journeyTypeId(),
+        journeyStarter.journeyId(),
+        journeyStarter.stepId(),
+        journeyStarter.actionId());
   }
 
   private Form getMethodParametersEditor(MethodParametersEditor uiInstance) {

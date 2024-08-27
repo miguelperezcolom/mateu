@@ -13,7 +13,7 @@ import java.util.List;
  * @param wantsFocus Set to true if you want it to be focused when rendered
  * @param caption The caption/label for this field
  * @param placeholder A placeholder for this field
- * @param cssClasses Css classes to be applied to this field
+ * @param cssClasses Css cssClasses to be applied to this field
  * @param description A help text to be used as tooltip
  * @param badges Badges which must appear close to this field
  * @param validations This fields validations

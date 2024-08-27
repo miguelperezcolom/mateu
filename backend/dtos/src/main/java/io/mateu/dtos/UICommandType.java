@@ -1,6 +1,11 @@
 package io.mateu.dtos;
 
 public enum UICommandType {
-  GoToStep,
-  CloseModal
+  CloseModal,
+  UpdateUrl,
+  ReplaceWithUrl,
+  OpenNewTab,
+  OpenNewWindow,
+  SetLocation,
+  SetWindowTitle
 }

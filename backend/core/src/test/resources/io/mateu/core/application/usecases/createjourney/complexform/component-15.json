@@ -3,7 +3,6 @@
   "className" : "io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper",
   "metadata" : {
     "type" : "Crud",
-    "listId" : "simpleCrud",
     "title" : "Simple crud",
     "subtitle" : null,
     "canEdit" : false,

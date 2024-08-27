@@ -15,7 +15,6 @@ import java.util.List;
  * @param actions The actions which can be run for this crud. They end up as buttons
  */
 public record Crud(
-    String listId,
     String title,
     String subtitle,
     boolean canEdit,

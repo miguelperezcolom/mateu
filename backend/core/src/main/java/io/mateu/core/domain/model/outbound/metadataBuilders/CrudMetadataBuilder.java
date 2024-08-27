@@ -43,7 +43,6 @@ public class CrudMetadataBuilder {
     var rpcView = (Listing) crudInstance;
 
     return new Crud(
-        listId,
         captionProvider.getCaption(rpcView),
         getSubtitle(rpcView),
         reflectionHelper.isOverridden(rpcView, "getDetail"),
