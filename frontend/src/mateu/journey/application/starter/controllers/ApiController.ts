@@ -56,7 +56,7 @@ export class ApiController implements ReactiveController {
     }
 
     onBackendFailed = (event: Event) => {
-        console.log('backend failed')
+        console.log('backend failed', event, (event as CustomEvent).detail.reason.response?.data)
         this.activeCalls--;
         if (this.activeCalls < 0) {
             this.activeCalls = 0
@@ -69,7 +69,7 @@ export class ApiController implements ReactiveController {
             title = `${ce.detail.reason.code} ${ce.detail.reason.message}`;
         }
         if (ce.detail.reason.response?.data) {
-            detail = `${ce.detail.reason.response.data}`
+            title = `${ce.detail.reason.response.data}`
         }
         this.host.showMessage({
             type: ResultType.Error,

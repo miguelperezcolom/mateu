@@ -226,7 +226,11 @@ export class JourneyStarter extends LitElement {
 
         const renderer = () => html`
   <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-    <div>${c.title}</div>
+    <div>${c.title}
+      ${c.text?html`
+          <p>${c.text}</p>
+      `:''}
+    </div>
     <vaadin-button theme="tertiary-inline" @click="${() => closer.close()}" aria-label="Close">
       <vaadin-icon icon="lumo:cross"></vaadin-icon>
     </vaadin-button>
