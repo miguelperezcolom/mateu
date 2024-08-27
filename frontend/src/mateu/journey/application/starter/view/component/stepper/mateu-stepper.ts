@@ -5,7 +5,6 @@ import '@vaadin/vaadin-notification'
 import '@vaadin/button'
 import '@vaadin/dialog'
 import Card from "../../../../../../shared/apiClients/dtos/Card";
-import Stepper from "../../../../../../shared/apiClients/dtos/Stepper";
 
 
 /**
@@ -39,7 +38,10 @@ export class MateuStepper extends LitElement {
   stepId!: string
 
   @property()
-  value: Stepper | undefined
+  value: {
+    text: string
+    value: number
+  } | undefined = undefined
 
   async updated(changedProperties: PropertyValues) {
     if (changedProperties.has("metadata")) {
@@ -50,7 +52,12 @@ export class MateuStepper extends LitElement {
 
   setUp() {
     if (this.data) {
-      this.value = this.data
+      this.value = {
+        // @ts-ignore
+        text: this.data.text,
+        // @ts-ignore
+        value: this.data.value
+      }
     } else {
       this.value = undefined
     }
