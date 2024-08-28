@@ -2,10 +2,7 @@ package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.Badge;
 import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
@@ -22,7 +19,7 @@ import java.util.List;
 @Data
 public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
-  @Section("Basic")
+  @Section(value = "Basic", columns = 2)
   @NotEmpty
   private String name = "Mateu";
 
@@ -33,7 +30,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
   private double balance = 20.31;
 
-  @Section("Assessment")
+  @Section(value = "Assessment", columns = 1)
   @ReadOnly
   private String assessment;
 

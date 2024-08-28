@@ -45,11 +45,8 @@ public class ComponentMetadataBuilder {
   @Autowired private DataExtractor dataExtractor;
 
   public ComponentMetadata getMetadata(
-      boolean form, Object componentInstance, Field field, List<Field> slotFields) {
+      boolean form, Object componentInstance, Field field, List<Field> slotFields, Map<String, Object> data) {
     ComponentMetadata metadata;
-    if (form) {
-      metadata = getForm(componentInstance, slotFields);
-    } else {
       if (componentInstance != null
           && componentInstance instanceof List<?> list
           && field != null
@@ -97,9 +94,12 @@ public class ComponentMetadataBuilder {
       } else if (componentInstance instanceof JpaCrud) {
         metadata = getCrud("main", (JpaCrud) componentInstance);
       } else {
-        metadata = getNonForm(componentInstance, slotFields);
+        if (form) {
+          metadata = getForm(componentInstance, slotFields, data);
+        } else {
+          metadata = getNonForm(componentInstance, slotFields);
+        }
       }
-    }
 
     return metadata;
   }
@@ -172,15 +172,15 @@ public class ComponentMetadataBuilder {
     return cardMetadataBuilder.build(uiInstance, slotFields);
   }
 
-  private Form getForm(Object uiInstance, List<Field> slotFields) {
-    return formMetadataBuilder.build(uiInstance, slotFields);
+  private Form getForm(Object uiInstance, List<Field> slotFields, Map<String, Object> data) {
+    return formMetadataBuilder.build(uiInstance, slotFields, data);
   }
 
   private Crud getCrud(String listId, Listing rpcView) {
     return crudMetadataBuilder.build(listId, rpcView);
   }
 
-  public ComponentMetadata getFormMetadata(Object form) {
-    return getMetadata(true, form, null, reflectionHelper.getAllEditableFields(form.getClass()));
+  public ComponentMetadata getFormMetadata(Object form, Map<String, Object> data) {
+    return getMetadata(true, form, null, reflectionHelper.getAllEditableFields(form.getClass()), data);
   }
 }

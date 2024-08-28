@@ -1,22 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.Badge;
-import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-public class TabsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
+public class TabsForm {
 
   @Tab("Tab 1")
   @Section("Basic")
@@ -31,6 +21,7 @@ public class TabsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   private double balance = 20.31;
 
+  @NoTab
   @Section("Assessment")
   @ReadOnly
   private String assessment;
@@ -56,23 +47,4 @@ public class TabsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
     return "This is a sample form (toString)";
   }
 
-  @Override
-  public List<Badge> getBadges() {
-    return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
-  }
-
-  @Override
-  public Status getStatus() {
-    return new Status(StatusType.SUCCESS, "This is the status!");
-  }
-
-  @Override
-  public String getSubtitle() {
-    return "This is the subtitle";
-  }
-
-  @Override
-  public String getTitle() {
-    return "This is the title";
-  }
 }

@@ -77,7 +77,7 @@ public class StartJourneyCommandHandler {
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
-    View view = viewMapper.map(formInstance, serverHttpRequest, allComponents);
+    View view = viewMapper.map(formInstance, serverHttpRequest, allComponents, Map.of());
 
     return Mono.just(new UIIncrement(List.of(), view, List.of(), allComponents));
   }

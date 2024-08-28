@@ -5,6 +5,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Rul
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.FormColumns;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
@@ -44,7 +45,7 @@ public class FormMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Form build(Object uiInstance, List<Field> slotFields) {
+  public Form build(Object uiInstance, List<Field> slotFields, Map<String, Object> data) {
     if (uiInstance instanceof DynamicForm) {
       return ((DynamicForm) uiInstance).build().toFuture().get();
     }
@@ -56,13 +57,23 @@ public class FormMetadataBuilder {
         getSubtitle(uiInstance),
         getStatus(uiInstance),
         getBadges(uiInstance),
-        getTabs(uiInstance),
+        getTabs(uiInstance, data),
         getBanners(uiInstance),
         getSections(uiInstance, slotFields),
         actionMetadataBuilder.getActions("", uiInstance),
         getMainActions(uiInstance),
         List.of(),
         rulesBuilder.buildRules(uiInstance));
+  }
+
+  private int getNumberOfColumns(Object uiInstance) {
+    if (uiInstance == null) {
+      return 1;
+    }
+    if (uiInstance.getClass().isAnnotationPresent(FormColumns.class)) {
+      return uiInstance.getClass().getAnnotation(FormColumns.class).value();
+    }
+    return 1;
   }
 
   private String getIcon(Object uiInstance) {
@@ -75,10 +86,11 @@ public class FormMetadataBuilder {
     return null;
   }
 
-  private List<Tab> getTabs(Object uiInstance) {
+  private List<Tab> getTabs(Object uiInstance, Map<String, Object> data) {
     if (uiInstance == null) {
       return null;
     }
+    String activeTabId = (String) data.get("__activeTabId");
     List<Tab> tabs = new ArrayList<>();
     var editableFields = reflectionHelper.getAllEditableFields(uiInstance.getClass());
     AtomicBoolean first = new AtomicBoolean(true);
@@ -92,12 +104,19 @@ public class FormMetadataBuilder {
                 f ->
                     new Tab(
                         "tab_" + f.getId(),
-                        first.getAndSet(false),
+                        isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
                         f.getAnnotation(
                                 io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)
                             .value()))
             .collect(Collectors.toList()));
     return tabs;
+  }
+
+  private boolean isActive(String tabId, boolean isFirst, String activeTabId) {
+    if (activeTabId == null || activeTabId.isEmpty()) {
+      return isFirst;
+    }
+    return activeTabId.equals(tabId);
   }
 
   private List<Banner> getBanners(Object uiInstance) {
@@ -263,7 +282,7 @@ public class FormMetadataBuilder {
                   fields -> {
                     if (!fields.isEmpty()) {
                       var firstField = fields.get(0);
-                      addSection(fields, uiInstance, firstField, tabId, sections);
+                      addSection(fields, uiInstance, firstField, tabId, sections, getNumberOfColumns(uiInstance));
                     }
                   });
             });
@@ -275,12 +294,14 @@ public class FormMetadataBuilder {
       Object uiInstance,
       Field firstField,
       String tabId,
-      List<Section> sections) {
+      List<Section> sections,
+      int defaultColumnsNumber) {
     String caption = "";
     String description = "";
     String leftSideImageUrl = "";
     String topImageUrl = "";
     boolean card = true;
+    int numberOfColumns = defaultColumnsNumber;
     if (firstField.isAnnotationPresent(
         io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Section annotation =
@@ -291,6 +312,10 @@ public class FormMetadataBuilder {
       description = annotation.description();
       leftSideImageUrl = annotation.leftSideImageUrl();
       topImageUrl = annotation.topImageUrl();
+      numberOfColumns = annotation.columns();
+      if (numberOfColumns <= 0) {
+        numberOfColumns = defaultColumnsNumber;
+      }
     }
     var section =
         new Section(
@@ -302,7 +327,9 @@ public class FormMetadataBuilder {
             card ? SectionType.Card : SectionType.Transparent,
             leftSideImageUrl,
             topImageUrl,
-            createFieldGroups(uiInstance, fields));
+            createFieldGroups(uiInstance, fields),
+                numberOfColumns
+                );
     sections.add(section);
   }
 
@@ -334,6 +361,10 @@ public class FormMetadataBuilder {
       if (field.isAnnotationPresent(
           io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)) {
         tabId = "tab_" + field.getId();
+      }
+      if (field.isAnnotationPresent(
+              io.mateu.core.domain.uidefinition.shared.annotations.NoTab.class)) {
+        tabId = "";
       }
       fieldsByTabId.putIfAbsent(tabId, new ArrayList<>());
       fieldsByTabId.get(tabId).add(field);
@@ -397,7 +428,8 @@ public class FormMetadataBuilder {
                                     "fieldgroup_" + i + "_" + j,
                                     s.fieldGroups().get(j).caption(),
                                     s.fieldGroups().get(j).lines()))
-                        .toList()))
+                        .toList(),
+                        s.columns()))
         .toList();
   }
 }

@@ -19,6 +19,9 @@ import { Notification } from '@vaadin/notification';
 import View from "../../../shared/apiClients/dtos/View";
 import Component from "../../../shared/apiClients/dtos/Component";
 import './view/mateu-view'
+import UIIncrement from "../../../shared/apiClients/dtos/UIIncrement";
+import {ContentType} from "../../../shared/apiClients/dtos/ContentType";
+import {SingleComponent} from "../../../shared/apiClients/dtos/SingleComponent";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -33,27 +36,25 @@ export class JourneyStarter extends LitElement {
     @property()
     journeyId: string | undefined = undefined;
     @property()
-    stepId: string | undefined = 'notUsed';
-    @property()
     instant: string | undefined = undefined;
     @property()
     inModal: boolean | undefined = undefined;
     @property()
     contextData: string | undefined = undefined;
+    @property()
+    initialUiIncrement: UIIncrement | undefined = undefined;
 
     //reactive state (not properties)
     @state()
     modalStepId: string | undefined = undefined;
     @state()
-    modalActionId: string | undefined = undefined;
-    @state()
-    modalActionData: unknown | undefined = undefined;
-    @state()
     modalInstant: string | undefined = undefined;
     @state()
     modalStyle: string | undefined = undefined;
     @state()
-    modalClass: string | undefined = undefined;
+    modalClass: string | undefined = undefined
+    @state()
+    modalInitialUiIncrement: UIIncrement | undefined
 
     @state()
     loading: boolean = false;
@@ -62,7 +63,7 @@ export class JourneyStarter extends LitElement {
     @state()
     view: View | undefined = undefined;
     @state()
-    components: Record<string, Component> | undefined = undefined;
+    components: Record<string, Component> = {};
 
 
     // upstream channel
@@ -79,71 +80,19 @@ export class JourneyStarter extends LitElement {
 
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
-        if (action && ActionTarget.NewTab == action.target) {
-            const newWindow = window.open();
-            newWindow?.document.write(`${this.renderModal()}`);
-        } else if (action && ActionTarget.NewWindow == action.target) {
-            const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
-            newWindow?.document.write(`${this.renderModal()}`);
-        } else if (action && ActionTarget.NewModal == action.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalStepId = this.stepId
-            this.modalActionId = event.detail.actionId
-            this.modalActionData = event.detail.data
-            this.modalInstant = nanoid()
-            this.modalStyle = action.modalStyle
-            this.modalClass = ''
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                console.log(overlay)
-                overlay?.setAttribute('class', '')
-                overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
-            });
-        } else if (action && ActionTarget.LeftDrawer == action.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalStepId = this.stepId
-            this.modalActionId = event.detail.actionId
-            this.modalActionData = event.detail.data
-            this.modalInstant = nanoid()
-            this.modalStyle = action.modalStyle
-            this.modalClass = 'modal-left'
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                console.log(overlay)
-                overlay?.setAttribute('class', 'modal-left')
-                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
-            });
-        } else if (action && ActionTarget.Right == action.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalStepId = this.stepId
-            this.modalActionId = event.detail.actionId
-            this.modalActionData = event.detail.data
-            this.modalInstant = nanoid()
-            this.modalStyle = action.modalStyle
-            this.modalClass = 'modal-right'
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                console.log(overlay)
-                overlay?.setAttribute('class', 'modal-right')
-                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle?this.modalStyle:''))
-            });
-        } else {
-            console.log(event)
-            this.service.runAction(
-                this.baseUrl,
-                this.uiId!,
-                this.journeyTypeId!,
-                this.journeyId!,
-                this.stepId!,
-                event.detail.componentId,
-                event.detail.actionId,
-                event.detail.componentType,
-                event.detail.data
-            ).then()
-        }
+        this.service.runAction(
+            this.baseUrl,
+            this.uiId!,
+            this.journeyTypeId!,
+            this.journeyId!,
+            'notInUse',
+            event.detail.componentId,
+            event.detail.actionId,
+            action.target,
+            action.modalStyle,
+            event.detail.componentType,
+            event.detail.data
+        ).then()
     }
 
 
@@ -163,6 +112,7 @@ export class JourneyStarter extends LitElement {
 
     // write state to reactive properties
     stampState(state: State) {
+
         // run commands
         state.commands.forEach(c => this.runCommand(c))
         state.commands = []
@@ -171,10 +121,79 @@ export class JourneyStarter extends LitElement {
         state.messages.forEach(c => this.showMessage(c))
         state.messages = []
 
-        this.view = state.view
-        this.components = state.components
-        this.error = state.error
-        this.requestUpdate('view')
+
+        if (ActionTarget.NewTab == state.target) {
+            const newWindow = window.open();
+            newWindow?.document.write(`${this.renderModal()}`);
+        } else if (ActionTarget.NewWindow == state.target) {
+            const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
+            newWindow?.document.write(`${this.renderModal()}`);
+        } else if (ActionTarget.NewModal == state.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+            this.modalInstant = nanoid()
+            this.modalInitialUiIncrement = {
+                messages: state.messages,
+                commands: state.commands,
+                content: state.content!,
+                components: state.components
+            }
+            this.modalStyle = state.modalStyle
+            this.modalClass = ''
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+
+                overlay?.setAttribute('class', '')
+                overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
+            });
+        } else if (ActionTarget.LeftDrawer == state.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+            this.modalInstant = nanoid()
+            this.modalInitialUiIncrement = {
+                messages: state.messages,
+                commands: state.commands,
+                content: state.content!,
+                components: state.components
+            }
+            this.modalStyle = state.modalStyle
+            this.modalClass = 'modal-left'
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                console.log(overlay)
+                overlay?.setAttribute('class', 'modal-left')
+                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
+            });
+        } else if (ActionTarget.RightDrawer == state.target) {
+            // crear modal y meter un journey-starter dentro
+            this.modalOpened = true
+            this.modalInstant = nanoid()
+            this.modalInitialUiIncrement = {
+                messages: state.messages,
+                commands: state.commands,
+                content: state.content!,
+                components: state.components
+            }
+            this.modalStyle = state.modalStyle
+            this.modalClass = 'modal-right'
+            setTimeout(() => {
+                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                console.log(overlay)
+                overlay?.setAttribute('class', 'modal-right')
+                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle ? this.modalStyle : ''))
+            });
+        } else {
+            if (state.view) {
+                this.view = state.view
+            }
+            if (state.components) {
+                for (let componentId in state.components) {
+                    this.components[componentId] = state.components[componentId]
+                }
+            }
+            this.error = state.error
+            this.requestUpdate('view')
+        }
     }
 
     private runCommand(c: UICommand) {
@@ -192,27 +211,24 @@ export class JourneyStarter extends LitElement {
                 window.history.pushState({},"", url)
                 return
             case UICommandType.CloseModal:
-                if (this.inModal) {
-                    console.log('closing modal')
-                    this.closeModalAndStay()
-                }
+                this.closeModalAndStay(c.data as UIIncrement)
                 return
             case UICommandType.SetLocation:
                 // @ts-ignore
-                window.location = c.data.url
+                window.location = c.data
                 return
             case UICommandType.ReplaceWithUrl:
                 window.close()
                 // @ts-ignore
-                window.open(c.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
                 return
             case UICommandType.OpenNewTab:
                 // @ts-ignore
-                window.open(c.data.url, '_blank')
+                window.open(c.data, '_blank')
                 return
             case UICommandType.OpenNewWindow:
                 // @ts-ignore
-                window.open(c.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
                 return
         }
     }
@@ -262,7 +278,54 @@ export class JourneyStarter extends LitElement {
 
 
     async updated(changedProperties: Map<string, unknown>) {
-        if (changedProperties.has("baseUrl")
+        if (changedProperties.has("initialUiIncrement")) {
+            //todo: código duplicado en service.ts. Mover
+            if (this.initialUiIncrement) {
+                const delta = this.initialUiIncrement!
+
+                const state = new State()
+                state.commands = delta.commands
+                state.messages = delta.messages
+
+                // send new state upstream
+                if (delta.content) {
+                    state.content = delta.content
+                    if (delta.content.contentType == ContentType.View) {
+                        state.view = delta.content as View
+                    } else if (delta.content.contentType == ContentType.SingleComponent) {
+                        const singleComponent = delta.content as SingleComponent
+                        state.view = {
+                            contentType: ContentType.View,
+                            header: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            left: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            main: {
+                                componentIds: [singleComponent.componentId],
+                                cssClasses: undefined
+                            },
+                            right: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            footer: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            }
+                        }
+                    }
+                    for (let componentId in delta.components) {
+                        state.components[componentId] = delta.components[componentId]
+                    }
+
+                }
+                this.stampState(state)
+            }
+        } else if (changedProperties.has("baseUrl")
             || changedProperties.has("journeyTypeId")
             || changedProperties.has("instant")
         ) {
@@ -300,11 +363,12 @@ export class JourneyStarter extends LitElement {
         this.modalOpened = false
     }
 
-    closeModalAndStay() {
+    closeModalAndStay(uiIncrement: UIIncrement) {
         this.dispatchEvent(new CustomEvent('close-modal', {
             bubbles: true,
             composed: true,
             detail: {
+                uiIncrement
             }}))
     }
 
@@ -317,16 +381,13 @@ export class JourneyStarter extends LitElement {
                     stepId="${this.modalStepId}"
                     baseUrl="${this.baseUrl}"
                     instant="${this.modalInstant}"
-                    actionId="${this.modalActionId}"
-                    .actionData=${this.modalActionData}
-                    parentStepId="${this.stepId}"
-                    initialStepId="${this.stepId}"
+                    .initialUiIncrement="${this.modalInitialUiIncrement}"
+                    .parent="${this}"
                     inModal="true"
                     @close-modal="${async (event: any) => {
-                        console.log('close-modal', event, this.modalOpened)
                         if (this.modalOpened) {
-                            console.log('closing modal')
                             this.modalOpened = false
+                            this.initialUiIncrement = event.detail.uiIncrement
                         } else {
                             console.log('NOT closing modal')
                         }
@@ -358,7 +419,6 @@ export class JourneyStarter extends LitElement {
                 uiId="${this.uiId}"
                 journeyTypeId="${this.journeyTypeId}"
                 journeyId="${this.journeyId}" 
-                stepId="${this.stepId}"
                 .service=${this.service}
                 baseUrl="${this.baseUrl}"
                 @runaction="${this.runAction}"
@@ -375,7 +435,7 @@ export class JourneyStarter extends LitElement {
                     resizable
                     draggable
                     @opened-changed="${async (event: DialogOpenedChangedEvent) => {
-                        if (!event.detail.value && this.modalOpened && this.stepId) {
+                        if (!event.detail.value && this.modalOpened) {
                             this.closeModal()
                         }
                     }}"

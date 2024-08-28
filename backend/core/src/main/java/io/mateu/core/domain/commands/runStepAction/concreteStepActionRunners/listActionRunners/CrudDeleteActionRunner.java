@@ -88,7 +88,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
 
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(whatToShow, serverHttpRequest)));
+              componentFactory.createFormComponent(whatToShow, serverHttpRequest, data)));
 
     } catch (Throwable e) {
       throw new Exception(

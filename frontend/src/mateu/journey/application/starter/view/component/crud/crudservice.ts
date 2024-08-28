@@ -1,6 +1,7 @@
 import {fetchRowsQueryHandler} from "./queries/fetchRows/FetchRowsQueryHandler";
 import {CrudState} from "./crudstate";
 import {Subject} from "rxjs";
+import Component from "../../../../../../shared/apiClients/dtos/Component";
 
 export class CrudService {
 
@@ -12,7 +13,7 @@ export class CrudService {
         pageSize: number
         filters: object
         sortOrders: string
-    }) {
+    },  component: Component, data: unknown) {
 
 
         // @ts-ignore
@@ -33,7 +34,9 @@ export class CrudService {
             filters: params.filters,
             page: params.page,
             pageSize: params.pageSize,
-            sortOrders: params.sortOrders
+            sortOrders: params.sortOrders,
+            component: component,
+            data: data
         })
         const items = page.content
         const count = page.totalElements

@@ -9,7 +9,6 @@ import './crud/mateu-crud'
 import './result/mateu-result'
 import '../../journey-starter'
 import JourneyStarter from "../../../../../shared/apiClients/dtos/JourneyStarter";
-import Step from "../../../../../shared/apiClients/dtos/Step";
 import {Service} from "../../../../domain/service";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
 import CustomElement from "../../../../../shared/apiClients/dtos/CustomElement";
@@ -44,9 +43,6 @@ export class MateuComponent extends LitElement {
     service: Service | undefined
 
     @property()
-    step!: Step
-
-    @property()
     previousStepId: string | undefined
 
 
@@ -67,7 +63,6 @@ export class MateuComponent extends LitElement {
                         journeyTypeId="${this.journeyTypeId}"
                         journeyId="${this.journeyId}"
                         stepId="${this.stepId}"
-                        .step=${this.step}
                         baseUrl="${this.baseUrl}"
                         previousStepId="${this.previousStepId}"
                 >
@@ -85,7 +80,6 @@ export class MateuComponent extends LitElement {
                         journeyTypeId="${this.journeyTypeId}"
                         journeyId="${this.journeyId}"
                         stepId="${this.stepId}"
-                        .step=${this.step}
                         baseUrl="${this.baseUrl}"
                         previousStepId="${this.previousStepId}"
                 >
@@ -103,7 +97,6 @@ export class MateuComponent extends LitElement {
                         journeyTypeId="${this.journeyTypeId}"
                         journeyId="${this.journeyId}"
                         stepId="${this.stepId}"
-                        .step=${this.step}
                         baseUrl="${this.baseUrl}"
                         previousStepId="${this.previousStepId}"
                 >
@@ -150,7 +143,6 @@ export class MateuComponent extends LitElement {
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
                             componentId="${this.component.id}"
-                            .step=${this.step}
                             .rules=${(this.component.metadata as Form).rules}
                             .service=${this.service}
                             baseUrl="${this.baseUrl}"
@@ -168,7 +160,6 @@ export class MateuComponent extends LitElement {
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
-                            timestamp="${this.step.timestamp}"
                             baseUrl="${this.baseUrl}"
                             previousStepId="${this.previousStepId}"
                             searchSignature="${this.journeyId}-${this.stepId}-${this.component.id}"

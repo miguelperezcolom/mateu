@@ -2,7 +2,6 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
 import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -25,7 +24,7 @@ import java.util.List;
 @Scope("prototype")
 @ReadOnly
 public class MyReadOnlyPojoWithCrud
-    implements HasBadges, HasStatus, HasCallback<MyReadOnlyPojoWithCrudEditor> {
+    implements HasBadges, HasStatus {
 
   @JsonIgnore
   private final MyReadOnlyPojoData data;
@@ -78,8 +77,4 @@ public class MyReadOnlyPojoWithCrud
     return editor;
   }
 
-  @Override
-  public void callback(GoBack<MyReadOnlyPojoWithCrudEditor> data, ServerHttpRequest serverHttpRequest) {
-    name = data.getData().getName();
-  }
 }

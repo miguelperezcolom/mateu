@@ -16,5 +16,6 @@ export default interface Field {
     badges: Badge[]
     validations: Validation[]
     attributes: Pair[]
+    colspan: number
 
 }

@@ -1,3 +1,5 @@
+import Component from "../../../../../../../../shared/apiClients/dtos/Component";
+
 export interface FetchRowsQuery {
 
     uiId: string
@@ -9,5 +11,6 @@ export interface FetchRowsQuery {
     pageSize: number
     filters: object
     sortOrders: string
-
+    component: Component
+    data: unknown
 }

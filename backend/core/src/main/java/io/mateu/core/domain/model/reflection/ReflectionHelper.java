@@ -298,7 +298,7 @@ public class ReflectionHelper {
           InstantiationException,
           InvocationTargetException,
           NoSuchMethodException {
-    var instance = instanceProvider.newInstance(c);
+    var instance = instanceProvider.newInstance(c, data);
     if (instance instanceof ObjectEditor) {
       // no need to fill the entityEditor
     } else {

@@ -131,10 +131,12 @@ public class MethodParametersEditorMetadataBuilder {
                                                                     f.description(),
                                                                     f.badges(),
                                                                     f.validations(),
-                                                                    f.attributes()))
+                                                                    f.attributes(),
+                                                                        f.colspan()))
                                                         .toList()))
                                         .toList()))
-                        .toList()))
+                        .toList(),
+                        s.columns()))
         .toList();
   }
 

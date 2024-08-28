@@ -2,11 +2,14 @@ import { LitElement, css, html } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import Section from "../../../../../../../shared/apiClients/dtos/Section";
 import './fieldGroup/mateu-fieldgroup'
+import '@vaadin/form-layout'
+import '@vaadin/horizontal-layout'
 import {FormElement} from "../mateu-form";
 import Field from "../../../../../../../shared/apiClients/dtos/Field";
-import Value from "../../../../../../../shared/apiClients/dtos/Value";
 import Form from "../../../../../../../shared/apiClients/dtos/Form";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
+import {FormLayoutResponsiveStep} from "@vaadin/form-layout";
+import FieldGroupLine from "../../../../../../../shared/apiClients/dtos/FieldGroupLine";
 
 /**
  * An example element.
@@ -31,44 +34,18 @@ export class MateuSection extends LitElement {
   @property()
   formElement!: FormElement;
 
-  getPaintableValue(field: Field, value: unknown) {
-      if (field.type == 'url[]') {
-          const values = value as string[]
-          return unsafeHTML(`${values.map(l => `<a href="${l}">${l}</a>`).join(', ')}`)
-      }
-      if (field.type == 'ExternalReference[]') {
-          const values = value as Value[]
-          return values.map(v => v.key).join(', ');
-      }
-      // @ts-ignore
-      return (value && value.key)?value.key:value;
-  }
-
-  getColumnStyle(field: Field) {
-      if (field.stereotype == 'rawcontent') {
-          return 'fullWidth'
-      }
-      if (field.type == 'url[]') {
-          return 'fullWidth'
-      }
-      if (field.type == 'ExternalReference[]') {
-          return 'fullWidth'
-      }
-      if (field.stereotype == 'file') {
-          return 'hidden'
-      }
-      return '';
-  }
-
     onValueChange(e: CustomEvent) {
         this.formElement.valueChanged(e.detail.key, e.detail.value)
     }
 
     getStyle(f: Field) {
-        let width = f.attributes.find(a => a.key == 'width')?.value;
-
+        const width = f.attributes.find(a => a.key == 'width')?.value;
         if (width) {
             return 'width: ' + width + ';'
+        }
+        const flexGrow = f.attributes.find(a => a.key == 'flex-grow')?.value;
+        if (flexGrow) {
+            return 'flex-grow: ' + flexGrow + ';'
         }
         return 'flex-grow: 1;'
     }
@@ -77,42 +54,64 @@ export class MateuSection extends LitElement {
           if (f.stereotype == 'rawcontent') {
               return unsafeHTML(`<div class="fullWidth">${this.formElement.getValue(f.id)}</div>`)
           }
-        return f.observed?html`
-                  <mateu-field .field="${f}"  class="fullWidth"
+        return html`
+                  <mateu-field .field="${f}"
                                                   @change=${this.onValueChange}
                                                     baseUrl=${this.baseUrl}
                                                     name="${f.id}"
                                                     id="${f.id}"
+                               colspan="${f.colspan}"
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(f.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(f)}
-            style="${this.getStyle(f)}">
+            style="align-self: end;${this.getStyle(f)}">
             </mateu-field>
-                      `:html`
-                  <div class="field ${this.getColumnStyle(f)}"><div class="cell caption">${f.caption}</div>
-                  <div class="cell value">${this.getPaintableValue(f, this.formElement.getValue(f.id))}</div></div>
+                  
               `
+    }
+
+
+    getLineHtml(l: FieldGroupLine) {
+        if (l.fields.length == 1) {
+            return this.getFieldHtml(l.fields[0])
+        }
+        return html`
+            <vaadin-horizontal-layout class="line" theme="spacing">
+                      ${l.fields.map(f => this.getFieldHtml(f))}
+                  </vaadin-horizontal-layout>                  
+              `
+    }
+
+    responsiveSteps = (maxColumns: number): FormLayoutResponsiveStep[] => {
+      const steps: FormLayoutResponsiveStep[] = [// Use one column by default
+          { minWidth: 0, columns: 1 }]
+        if (maxColumns > 1) {
+            // Use two columns, if layout's width exceeds 500px
+            steps.push({ minWidth: '500px', columns: 2 })
+        }
+        if (maxColumns > 2) {
+            // Use two columns, if layout's width exceeds 500px
+            steps.push({ minWidth: '800px', columns: 3 })
+        }
+        if (maxColumns > 3) {
+            // Use two columns, if layout's width exceeds 500px
+            steps.push({ minWidth: '1000px', columns: maxColumns })
+        }
+        return steps
     }
 
     renderContent() {
         return html`
            ${this.section.caption?html`<h3>${this.section.caption}</h3>`:''}
           ${this.section.description?html`<p>${this.section.description}</p>`:''}
-        
-        ${this.form.readOnly || this.section.readOnly?html`
-          ${this.section.fieldGroups.map(g => html`
+           
+           <vaadin-form-layout .responsiveSteps="${this.responsiveSteps(this.section.columns)}">
+               ${this.section.fieldGroups.map(g => html`
               ${g.caption?html`<h4>${g.caption}</h4>`:''}
-              <div class="table">
-              ${g.lines.flatMap(l => l.fields).map(f => this.getFieldHtml(f))}
-              </div>
-          </div>`)}
-        `:html`
-          ${this.section.fieldGroups.map(s => html`<mateu-fieldgroup 
-                  .fieldGroup="${s}" 
-                  .formElement=${this.formElement}
-                  baseUrl="${this.baseUrl}"
-          ></mateu-fieldgroup>`)}
-        `}
+              ${g.lines.map(f => this.getLineHtml(f))}
+          `)}
+           </vaadin-form-layout>
+        
     `
     }
 

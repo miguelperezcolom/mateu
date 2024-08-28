@@ -18,6 +18,7 @@ import java.util.List;
  * @param badges Badges which must appear close to this field
  * @param validations This fields validations
  * @param attributes Some generic attributes
+ * @param colspan Colspan for this field
  */
 public record Field(
     String id,
@@ -31,7 +32,8 @@ public record Field(
     String description,
     List<Badge> badges,
     List<Validation> validations,
-    List<Pair> attributes) {
+    List<Pair> attributes,
+    int colspan) {
 
   public Field {
     badges = Collections.unmodifiableList(badges);

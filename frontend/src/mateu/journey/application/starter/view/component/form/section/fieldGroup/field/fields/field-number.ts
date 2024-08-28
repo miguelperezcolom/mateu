@@ -97,9 +97,11 @@ export class FieldNumber extends LitElement implements Component {
         if (_changedProperties.has("field")) {
             this.field?.validations.forEach(f => {
                 if ('Min' == f.type) {
+                    // @ts-ignore
                     this.min = f.data
                 }
                 if ('Max' == f.type) {
+                    // @ts-ignore
                     this.max = f.data
                 }
             })

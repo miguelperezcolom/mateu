@@ -137,7 +137,8 @@ public class CrudMetadataBuilder {
                         f.description(),
                         f.badges(),
                         f.validations(),
-                        f.attributes()))
+                        f.attributes(),
+                            f.colspan()))
             .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
@@ -156,7 +157,8 @@ public class CrudMetadataBuilder {
                           null,
                           List.of(),
                           List.of(),
-                          List.of())),
+                          List.of(),
+                              1)),
                   filterFields.stream())
               .toList();
     return filterFields;

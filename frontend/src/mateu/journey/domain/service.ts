@@ -6,11 +6,11 @@ import {startJourneyCommandHandler} from "./commands/startJourney/StartJourneyCo
 import {ContentType} from "../../shared/apiClients/dtos/ContentType";
 import View from "../../shared/apiClients/dtos/View";
 import {SingleComponent} from "../../shared/apiClients/dtos/SingleComponent";
+import {ActionTarget} from "../../shared/apiClients/dtos/ActionTarget";
 
 export class Service {
 
     upstream: Subject<State>
-    state = new State()
 
     constructor(upstream: Subject<State>) {
         this.upstream = upstream;
@@ -18,9 +18,12 @@ export class Service {
 
     async startJourney(baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
         const uiIncrement = await startJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId, journeyId})
-        this.state.view = uiIncrement.content as View
-        this.state.components = uiIncrement.components
-        this.upstream.next({...this.state })
+        const state = new State()
+        state.content = uiIncrement.content
+        state.view = uiIncrement.content as View
+        state.components = uiIncrement.components
+        state.target = ActionTarget.View
+        this.upstream.next(state)
     }
 
     async runAction(
@@ -31,6 +34,8 @@ export class Service {
         stepId: string,
         componentId: string,
         actionId: string,
+        target: ActionTarget,
+        modalStyle: string | undefined,
         componentType: string,
         data: unknown
     ) {
@@ -43,6 +48,7 @@ export class Service {
                 stepId,
                 componentId,
                 actionId,
+                target,
                 componentType,
                 data
             })
@@ -52,23 +58,49 @@ export class Service {
             })
             .then(async (delta: UIIncrement) => {
 
-                console.log('state', this.state)
+                const state = new State()
+                state.modalStyle = modalStyle
+                state.target = target
+                state.commands = delta.commands
+                state.messages = delta.messages
 
                 // send new state upstream
-                if (delta.content.contentType == ContentType.View) {
-                    this.state.view = delta.content as View
-                } else if (delta.content.contentType == ContentType.SingleComponent) {
-                    const singleComponent = delta.content as SingleComponent
-                    if (this.state.view) {
-                        this.state.view.main.componentIds = [singleComponent.componentId]
-                    } else {
-                        console.error('no view in state')
+                if (delta.content) {
+                    state.content = delta.content
+                    if (delta.content.contentType == ContentType.View) {
+                        state.view = delta.content as View
+                    } else if (delta.content.contentType == ContentType.SingleComponent) {
+                        const singleComponent = delta.content as SingleComponent
+                        state.view = {
+                            contentType: ContentType.View,
+                            header: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            left: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            main: {
+                                componentIds: [singleComponent.componentId],
+                                cssClasses: undefined
+                            },
+                            right: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            footer: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            }
+                        }
+                    }
+                    for (let componentId in delta.components) {
+                        state.components[componentId] = delta.components[componentId]
                     }
                 }
-                for (let componentId in delta.components) {
-                    this.state.components[componentId] = delta.components[componentId]
-                }
-                this.upstream.next({...this.state})
+
+                this.upstream.next(state)
             })
     }
 

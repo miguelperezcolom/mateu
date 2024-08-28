@@ -360,7 +360,6 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private askForActionRun(action: Action) {
-    console.log('component in form', this.component)
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
         componentId: this.componentId,
@@ -375,10 +374,8 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   private findAction(actionId: string) {
-    console.log('search for action', actionId, this.metadata.actions, this.metadata.mainActions)
     let action = this.metadata.actions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
     if (!action) action = this.metadata.mainActions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
-    console.log('found', action)
     return action
   }
 
@@ -421,14 +418,14 @@ export class MateuForm extends LitElement implements FormElement {
 
         <vaadin-horizontal-layout class="header" style="align-items: baseline;">
           <div style="flex-grow: 1; ">
-            <h2>${this.metadata.title}</h2>
+            <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
             ${this.metadata.subtitle?html`
-            <p>${this.metadata.subtitle}</p>
+            <p style="margin-top: -6px;">${this.metadata.subtitle}</p>
           `:''}
           </div>
           <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
             ${this.metadata.actions.filter(a => a.visible).length > 2?html`
-              <vaadin-menu-bar theme="icon tertiary small" open-on-hover
+              <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
                                .items="${this.buildItemsForActions(this.metadata.actions
                   .filter(a => a.visible))}"></vaadin-menu-bar>
@@ -451,6 +448,15 @@ export class MateuForm extends LitElement implements FormElement {
             </div>        
         `:''}
 
+        ${this.metadata.sections
+            .filter(s => !s.tabId)
+            .map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
+                                                              baseUrl="${this.baseUrl}"
+                                                              .formElement=${this}
+                                          @run-action="${this.captureRunActionEvent}"
+                                          style="display: ${!s.tabId || !this.activeTab || this.activeTab == s.tabId?'unset':'none'};"
+            ></mateu-section>`)}
+
         ${this.metadata.tabs.length > 0?html`
 
           <vaadin-tabs 
@@ -464,7 +470,10 @@ export class MateuForm extends LitElement implements FormElement {
           
         `:''}
         
+        
+        
         ${this.metadata.sections
+            .filter(s => s.tabId)
             .map(s => html`<mateu-section .section="${s}" .form="${this.metadata}"
                                                               baseUrl="${this.baseUrl}"
                                                               .formElement=${this}

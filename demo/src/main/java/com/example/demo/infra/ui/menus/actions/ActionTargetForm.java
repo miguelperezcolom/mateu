@@ -23,9 +23,10 @@ public class ActionTargetForm {
         return "Hello " + name + "!";
     }
 
+    @SneakyThrows
     @MainAction(type = ActionType.Secondary, order = 0)
-    String here() {
-        return run();
+    URL here() {
+        return new URL("https://www.google.es");
     }
 
     @MainAction(target = ActionTarget.Message, type = ActionType.Secondary, order = 1)
@@ -43,12 +44,12 @@ public class ActionTargetForm {
         return run();
     }
 
-    @MainAction(target = ActionTarget.LeftAside, type = ActionType.Secondary, order = 3)
+    @MainAction(target = ActionTarget.LeftDrawer, type = ActionType.Secondary, order = 3)
     String left() {
         return run();
     }
 
-    @MainAction(target = ActionTarget.RightAside, type = ActionType.Secondary, order = 3)
+    @MainAction(target = ActionTarget.RightDrawer, type = ActionType.Secondary, order = 3)
     String right() {
         return run();
     }

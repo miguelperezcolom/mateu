@@ -35,7 +35,8 @@ public class ViewMapper {
   public View map(
       Object object,
       ServerHttpRequest serverHttpRequest,
-      Map<String, Component> allComponentsInStep)
+      Map<String, Component> allComponentsInStep,
+      Map<String, Object> data)
       throws Throwable {
 
     var actualObject = actualUiInstanceProvider.getActualUiInstance(object, serverHttpRequest);
@@ -79,7 +80,7 @@ public class ViewMapper {
                     p.getField(),
                     p.getFields(),
                     allComponentsInStep,
-                    componentCounter);
+                    componentCounter, data);
             componentIdsPerSlot.get(slot).add(component);
           });
     }

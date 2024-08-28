@@ -3,6 +3,7 @@ import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios";
 import {nanoid} from "nanoid";
 import UIIncrement from "./dtos/UIIncrement";
 import Page from "./dtos/Page";
+import Component from "./dtos/Component";
 
 let abortControllers: AbortController[] = [];
 let fetchRowsAbortController0 = new AbortController()
@@ -160,18 +161,20 @@ class MateuApiClient {
 
     async fetchRows(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
-                    sortOrders: string, filters: object
+                    sortOrders: string, filters: object, component: Component, data: unknown
                     ): Promise<Page> {
-        const data = {
+        const payload = {
             __filters: filters,
-            __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
+            __data: data,
+            __componentType: component.className
         }
         return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + '/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
-            "/lists/" + listId + "/rows?page=" + page + "&page_size=" + pageSize +
+            '/' + listId + '/' +
+            "/lists/unique/rows?page=" + page + "&page_size=" + pageSize +
             "&ordering=" + sortOrders
-            , data)
+            , payload)
             .then((response) => response.data))
     }
 

@@ -41,8 +41,16 @@ public class FieldMetadataBuilder {
             getDescription(fieldInterfaced),
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
-            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced));
+            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced),
+                getColspan(fieldInterfaced));
     return field;
+  }
+
+  private int getColspan(Field field) {
+    if (field.isAnnotationPresent(Colspan.class)) {
+      return field.getAnnotation(Colspan.class).value();
+    }
+    return 1;
   }
 
   private boolean isFocusWanted(Field fieldInterfaced) {

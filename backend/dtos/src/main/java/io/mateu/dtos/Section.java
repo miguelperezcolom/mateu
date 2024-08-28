@@ -16,6 +16,7 @@ import java.util.List;
  * @param leftSideImageUrl Image to show on the left side of this section
  * @param topImageUrl Image to show at the stop of this section
  * @param fieldGroups Groups of fields which belong to this section
+ * @param columns Number of columns in this section
  */
 public record Section(
     String id,
@@ -26,7 +27,8 @@ public record Section(
     SectionType type,
     String leftSideImageUrl,
     String topImageUrl,
-    List<FieldGroup> fieldGroups) {
+    List<FieldGroup> fieldGroups,
+    int columns) {
 
   public Section {
     fieldGroups = Collections.unmodifiableList(fieldGroups);

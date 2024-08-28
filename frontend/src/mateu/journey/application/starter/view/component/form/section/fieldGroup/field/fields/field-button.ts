@@ -110,7 +110,6 @@ export class FieldButton extends LitElement implements Component {
 
     firstUpdated() {
         this.buttonMetadata = this.field?.attributes.find(a => a.key == 'buttonMetadata')?.value as Action
-        console.log('buttonMetadata', this.buttonMetadata)
     }
 
 

@@ -7,19 +7,8 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER}) // can use in method only.
-public @interface Section {
+@Target({ElementType.TYPE}) // can use in method only.
+public @interface FormColumns {
 
-  String value();
-
-  String description() default "";
-
-  boolean card() default true;
-
-  String leftSideImageUrl() default "";
-
-  String topImageUrl() default "";
-
-  int columns() default 0;
-
+  int value();
 }

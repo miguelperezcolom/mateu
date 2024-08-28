@@ -1,10 +1,9 @@
-import {css, html, LitElement, PropertyValues} from 'lit'
+import {css, html, LitElement} from 'lit'
 import {customElement, property} from 'lit/decorators.js'
 import './component/mateu-component';
 import './component/crud/mateu-crud';
 import View from "../../../../shared/apiClients/dtos/View";
 import {Service} from "../../../domain/service";
-import {ComponentMetadataType} from "../../../../shared/apiClients/dtos/ComponentMetadataType";
 import Component from "../../../../shared/apiClients/dtos/Component";
 
 /**
@@ -44,27 +43,7 @@ export class MateuView extends LitElement {
     service: Service | undefined
 
     @property()
-    crud: undefined | boolean = undefined
-
-    @property()
     instant = ''
-
-    async updated(changedProperties: PropertyValues) {
-      if (!changedProperties.has('crud')) {
-          setTimeout(() => {
-              this.crud = this.view?.main?.componentIds?.length == 1
-                  && this.view?.main?.componentIds?.filter(c => this.components[c].metadata.type == ComponentMetadataType.Crud).length > 0
-                  // @ts-ignore
-                  && this.view?.main?.componentIds?.filter(c => this.step.components[c].metadata.type == ComponentMetadataType.Crud).map(c => this.step.components[c])[0].metadata.columns.length > 2
-              ;
-              if (this.crud) {
-                  this.setAttribute('crud', '')
-              } else {
-                  this.removeAttribute('crud')
-              }
-          })
-      }
-    }
 
     render() {
     // @ts-ignore

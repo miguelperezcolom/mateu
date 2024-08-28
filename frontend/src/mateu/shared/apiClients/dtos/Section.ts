@@ -12,5 +12,6 @@ export default interface Section {
     leftSideImageUrl: string
     topImageUrl: string
     fieldGroups: FieldGroup[]
+    columns: number
 
 }

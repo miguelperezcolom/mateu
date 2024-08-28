@@ -8,12 +8,17 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
+
+import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 @Service
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class InstanceProvider {
 
+  private final BasicTypeChecker basicTypeChecker;
   List<Class> notFromString = new ArrayList<>();
 
   private final MateuConfiguratorBean beanProvider;
@@ -23,19 +28,28 @@ public class InstanceProvider {
   private final AllFieldsProvider allFieldsProvider;
 
   public InstanceProvider(
-      MateuConfiguratorBean beanProvider,
-      FieldByNameProvider fieldByNameProvider,
-      ValueProvider valueProvider,
-      ValueWriter valueWriter,
-      AllFieldsProvider allFieldsProvider) {
+          MateuConfiguratorBean beanProvider,
+          FieldByNameProvider fieldByNameProvider,
+          ValueProvider valueProvider,
+          ValueWriter valueWriter,
+          AllFieldsProvider allFieldsProvider, BasicTypeChecker basicTypeChecker) {
     this.beanProvider = beanProvider;
     this.fieldByNameProvider = fieldByNameProvider;
     this.valueProvider = valueProvider;
     this.valueWriter = valueWriter;
     this.allFieldsProvider = allFieldsProvider;
+    this.basicTypeChecker = basicTypeChecker;
   }
 
-  public <T> T newInstance(Class<T> c)
+  public <T> T newInstance(Class c)
+          throws NoSuchMethodException,
+          IllegalAccessException,
+          InvocationTargetException,
+          InstantiationException {
+    return (T) newInstance(c, Map.of());
+  }
+
+  public <T> T newInstance(Class<T> c, Map<String, Object> data)
       throws NoSuchMethodException,
           IllegalAccessException,
           InvocationTargetException,
@@ -58,7 +72,11 @@ public class InstanceProvider {
       } else {
         Constructor con = getConstructor(c);
         if (con != null) {
-          o = con.newInstance();
+          if (con.getParameterCount() > 0) {
+            o = con.newInstance(buildConstructorParams(con, data));
+          } else {
+            o = con.newInstance();
+          }
         } else {
           Method builderMethod = null;
           try {
@@ -80,6 +98,18 @@ public class InstanceProvider {
       notFromString.add(c);
     }
     return (T) o;
+  }
+
+  private Object[] buildConstructorParams(Constructor con, Map<String, Object> data) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+    List<Object> params = new ArrayList<>();
+    for (Parameter parameter : con.getParameters()) {
+      if (basicTypeChecker.isBasic(parameter.getType())) {
+        params.add(convert(data.get(parameter.getName()), parameter.getType()));
+      } else {
+        params.add(newInstance(parameter.getType(), data.getOrDefault(parameter.getName(), Map.of())));
+      }
+    }
+    return params.toArray();
   }
 
   public Object newInstance(Class c, Object parent)

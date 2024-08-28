@@ -28,6 +28,7 @@ import {CrudState} from "./crudstate";
 import {Subject, Subscription} from "rxjs";
 import {CrudService} from "./crudservice";
 import Action from "../../../../../../shared/apiClients/dtos/Action";
+import Component from "../../../../../../shared/apiClients/dtos/Component";
 
 /**
  * An example element.
@@ -63,13 +64,13 @@ export class MateuCrud extends LitElement {
   previousStepId!: string
 
   @property()
-  listId!: string
-
-  @property()
   metadata!: Crud
 
   @property()
   data: any;
+
+  @property()
+  component!: Component
 
   data0: any;
 
@@ -139,6 +140,7 @@ export class MateuCrud extends LitElement {
     items: [],
     count: 0,
     page: 0,
+    filters: {},
     sorting: [],
     message: ''
   }
@@ -166,7 +168,7 @@ export class MateuCrud extends LitElement {
     const sortOrders = this.getSortOrders()
 
     await this.fetchData({
-      listId: this.listId,
+      listId: this.component.id,
       page,
       pageSize,
       sortOrders,
@@ -203,12 +205,9 @@ export class MateuCrud extends LitElement {
       this.state.journeyTypeId = this.journeyTypeId
       this.state.journeyId = this.journeyId
       this.state.stepId = this.stepId
-      this.state.listId = this.listId
-      const journey = JSON.parse(sessionStorage.getItem(this.journeyId)!)
-      journey.lastUsedFilters[this.stepId + "#" + this.listId] = params.filters
-      journey.lastUsedSorting[this.stepId + "#" + this.listId] = JSON.parse(Base64.decode(params.sortOrders))
-      sessionStorage.setItem(this.journeyId, JSON.stringify(journey))
-      await this.crudService.fetch(this.state, this.crudUpstream, params)
+      this.state.listId = this.component.id
+      this.state.filters = params.filters
+      await this.crudService.fetch(this.state, this.crudUpstream, params, this.component, this.data)
   }
 
   connectedCallback() {
@@ -219,7 +218,7 @@ export class MateuCrud extends LitElement {
   }
 
   private stampState(state: CrudState) {
-    if (this.journeyId == state.journeyId && this.listId == state.listId) {
+    if (this.journeyId == state.journeyId && this.component.id == state.listId) {
       this.state = state
       this.items = state.items
       if (state.count > -1) {
@@ -313,7 +312,7 @@ export class MateuCrud extends LitElement {
     };
     // @ts-ignore
     this.data = { ...this.data, ...obj}
-    this.askForActionRun('__list__' + this.listId + '__edit', this.data)
+    this.askForActionRun('__list__' + this.component.id + '__edit', this.data)
   }
 
   async runAction(e:Event) {
@@ -385,7 +384,7 @@ export class MateuCrud extends LitElement {
     };
     // @ts-ignore
     const extendedData = { ...this.data, ...obj}
-    this.askForActionRun('__list__' + this.listId + '__row__' + e.detail.value.methodNameInCrud, extendedData)
+    this.askForActionRun('__list__' + this.component.id + '__row__' + e.detail.value.methodNameInCrud, extendedData)
   }
 
   private getThemeForBadgetType(type: StatusType): string {
@@ -452,9 +451,9 @@ export class MateuCrud extends LitElement {
   exportItemSelected(event: MenuBarItemSelectedEvent) {
     let item = event.detail.value
     if (item.text == 'Excel') {
-      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
+      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.data)
     } else if (item.text == 'Csv') {
-      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.listId, this.getSortOrders(), this.data)
+      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.data)
     }
   }
 
@@ -494,9 +493,9 @@ export class MateuCrud extends LitElement {
 
       <vaadin-horizontal-layout class="header" style="align-items: baseline;">
         <div style=" flex-grow: 1;">
-          <h2>${this.metadata.title}</h2>
+          <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
           ${this.metadata.subtitle?html`
-            <p>${this.metadata.subtitle}</p>
+            <p style="margin-top: -6px;">${this.metadata.subtitle}</p>
           `:''}
         </div>
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">

@@ -47,8 +47,8 @@ public class ComponentFactory {
   }
 
   public Component createFormComponent(
-      Object componentInstance, ServerHttpRequest serverHttpRequest) {
-    ComponentMetadata metadata = componentMetadataBuilder.getFormMetadata(componentInstance);
+      Object componentInstance, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
+    ComponentMetadata metadata = componentMetadataBuilder.getFormMetadata(componentInstance, data);
     return new GenericComponent(
         metadata,
         UUID.randomUUID().toString(),
@@ -65,10 +65,11 @@ public class ComponentFactory {
       Field field,
       List<Field> fields,
       Map<String, Component> allComponentsInStep,
-      AtomicInteger componentCounter) {
+      AtomicInteger componentCounter,
+      Map<String, Object> data) {
     String componentId = getComponentId(field, componentCounter);
     ComponentMetadata metadata =
-        componentMetadataBuilder.getMetadata(form, componentInstance, field, fields);
+        componentMetadataBuilder.getMetadata(form, componentInstance, field, fields, data);
     var actualComponentInstance =
         actualUiInstanceProvider.getActualUiInstance(componentInstance, serverHttpRequest);
     Component component;
@@ -86,7 +87,7 @@ public class ComponentFactory {
                   field,
                   serverHttpRequest,
                   allComponentsInStep,
-                  componentCounter));
+                  componentCounter, data));
     } else {
       if (actualComponentInstance instanceof Crud<?, ?>) {
         component =
@@ -102,7 +103,7 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter),
+                    componentCounter, data),
                 Map.of(),
                 List.of());
       } else if (isLayout(field, actualComponentInstance)) {
@@ -119,7 +120,7 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter));
+                    componentCounter, data));
       } else {
         component =
             new GenericComponent(
@@ -134,7 +135,7 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter));
+                    componentCounter, data));
       }
     }
     allComponentsInStep.put(component.id(), component);
@@ -158,7 +159,7 @@ public class ComponentFactory {
       Field field,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
-      AtomicInteger componentCounter) {
+      AtomicInteger componentCounter, Map<String, Object> data) {
     if (actualComponentInstance instanceof List<?> list) {
       return list.stream()
           .map(
@@ -170,7 +171,7 @@ public class ComponentFactory {
                       null,
                       List.of(),
                       allComponentsInStep,
-                      componentCounter))
+                      componentCounter, data))
           .toList();
     }
     if (actualComponentInstance instanceof Container
@@ -193,7 +194,7 @@ public class ComponentFactory {
                       p.getKey(),
                       List.of(),
                       allComponentsInStep,
-                      componentCounter))
+                      componentCounter, data))
           .toList();
     }
     return List.of();

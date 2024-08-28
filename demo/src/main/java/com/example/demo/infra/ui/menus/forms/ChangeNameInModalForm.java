@@ -1,25 +1,23 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.data.GoBack;
-import io.mateu.dtos.ResultType;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter@Setter
-public class ChangeNameForm {
+public class ChangeNameInModalForm {
 
-    private final FormWithCallbacks formWithCallbacks;
+    private final ModalsForm formWithCallbacks;
 
     String name;
 
-    public ChangeNameForm(String name, FormWithCallbacks formWithCallbacks) {
+    public ChangeNameInModalForm(String name, ModalsForm formWithCallbacks) {
         this.name = name;
         this.formWithCallbacks = formWithCallbacks;
     }
 
     @MainAction
-    FormWithCallbacks save() {
+    ModalsForm save() {
         formWithCallbacks.name = this.name;
         return formWithCallbacks;
     }

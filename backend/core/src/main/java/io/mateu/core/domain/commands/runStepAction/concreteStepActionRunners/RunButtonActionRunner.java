@@ -10,16 +10,23 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinition.shared.annotations.Button;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.dtos.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,16 +35,13 @@ import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
+public class RunButtonActionRunner extends AbstractActionRunner implements ActionRunner {
 
   final Merger merger;
   final ActualValueExtractor actualValueExtractor;
@@ -47,15 +51,16 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
   private final BasicTypeChecker basicTypeChecker;
+  private final ValueProvider valueProvider;
 
   @Override
   public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
     return getActions(viewInstance).containsKey(actionId);
   }
 
-  private Map<Object, Method> getActions(Object viewInstance) {
-    return reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
-        .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
+  private Map<Object, Field> getActions(Object viewInstance) {
+    return reflectionHelper.getAllFields(viewInstance.getClass()).stream()
+        .filter(m -> m.isAnnotationPresent(Button.class))
         .collect(Collectors.toMap(m -> m.getName(), m -> m));
   }
 
@@ -69,51 +74,29 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    Method m = getActions(viewInstance).get(actionId);
+    Field m = getActions(viewInstance).get(actionId);
 
     return runMethod(viewInstance, m, data, serverHttpRequest);
   }
 
   public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
-      Method m,
+      Field m,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-
-    // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
-    if (needsParameters(m)) {
-
-      if (Modifier.isStatic(m.getModifiers())) {
-
-        return Mono.just(
-            uIIncrementFactory.createForSingleComponent(
-                componentFactory.createFormComponent(
-                    new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
-                    serverHttpRequest, data)));
-
-      } else {
-
-        return Mono.just(
-            uIIncrementFactory.createForSingleComponent(
-                componentFactory.createFormComponent(
-                    new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
-                    serverHttpRequest, data)));
-      }
-
-    } else {
-
-      if (needsValidation(m)) {
-        validationService.validate(actualViewInstance);
-      }
+    {
 
       try {
 
-        Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
-
-        // todo: manage goback and callback!!!!
+        Object logicToRun = valueProvider.getValue(m, actualViewInstance);
+        Object result = null;
+        if (logicToRun instanceof Runnable runnable) {
+          runnable.run();
+        } else if (logicToRun instanceof Callable<?> callable) {
+          result = callable.call();
+        }
 
         if (result == null) {
           return Mono.just(
@@ -149,7 +132,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private UIIncrement getUiIncrement(Method m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+  private UIIncrement getUiIncrement(Field m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
     if (r instanceof CloseModal closeModal) {
       var component = componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
       var uiIncrement = new UIIncrement(
@@ -211,23 +194,20 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                     Map.of(component.id(), component));
   }
 
-  private ActionTarget getActionTarget(Method m) {
-    if (m.isAnnotationPresent(MainAction.class)) {
-      return m.getAnnotation(MainAction.class).target();
-    }
-    if (m.isAnnotationPresent(Action.class)) {
-      return m.getAnnotation(Action.class).target();
+  private ActionTarget getActionTarget(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).target();
     }
     return null;
   }
 
-  private List<io.mateu.dtos.Message> getMessages(Object r, Method m) {
+  private List<io.mateu.dtos.Message> getMessages(Object r, Field m) {
     return extractMessages(r, m).stream()
         .map(msg -> new io.mateu.dtos.Message(msg.getType(), msg.getTitle(), msg.getText()))
         .toList();
   }
 
-  private List<Message> extractMessages(Object response, Method method) {
+  private List<Message> extractMessages(Object response, Field method) {
     if (response instanceof Message) {
       return List.of((Message) response);
     }
@@ -238,12 +218,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (response instanceof ResponseWrapper) {
       return ((ResponseWrapper) response).getMessages();
     }
-    if (method.isAnnotationPresent(Action.class)
-        && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
-      return List.of(new Message(ResultType.Success, "", "" + response));
-    }
-    if (method.isAnnotationPresent(MainAction.class)
-        && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
+    if (method.isAnnotationPresent(Button.class)
+        && ActionTarget.Message.equals(method.getAnnotation(Button.class).target())) {
       return List.of(new Message(ResultType.Success, "", "" + response));
     }
     if (response instanceof GoBack goBack) {
@@ -255,38 +231,4 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return List.of();
   }
 
-  private boolean needsValidation(Method m) {
-    if (m.isAnnotationPresent(Action.class)) {
-      return m.getAnnotation(Action.class).validateBefore();
-    }
-    if (m.isAnnotationPresent(MainAction.class)) {
-      return m.getAnnotation(MainAction.class).validateBefore();
-    }
-    return false;
-  }
-
-  private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest) {
-    Object[] values = new Object[m.getParameterCount()];
-    for (int i = 0; i < m.getParameters().length; i++) {
-      Parameter parameter = m.getParameters()[i];
-      Object value = null;
-      if (ServerHttpRequest.class.equals(parameter.getType())) {
-        value = serverHttpRequest;
-      }
-      values[i] = value;
-    }
-    return values;
-  }
-
-  private boolean needsParameters(Method m) {
-    if (m.getParameterCount() == 0) return false;
-    boolean anyNotInjected = false;
-    for (Parameter parameter : m.getParameters()) {
-      if (parameter.getType().equals(ServerHttpRequest.class)) {
-        continue;
-      }
-      anyNotInjected = true;
-    }
-    return anyNotInjected;
-  }
 }
