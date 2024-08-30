@@ -9,6 +9,8 @@ public class FormsSubmenu {
   BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
 
+  @MenuOption private AutoReloadForm autoReload;
+
   @MenuOption private FormWithCallbacks formWithCallbacks;
 
   @MenuOption private BackgroundOnTop backgroundOnTop;

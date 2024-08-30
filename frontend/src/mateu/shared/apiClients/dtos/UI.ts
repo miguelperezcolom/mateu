@@ -1,4 +1,5 @@
 import Menu from "./Menu";
+import {App} from "./App";
 
 export default interface UI {
 
@@ -10,5 +11,6 @@ export default interface UI {
     homeJourneyTypeId: string | undefined
     loginUrl: string | undefined
     logoutUrl: string | undefined
+    apps: App[] | undefined
 
 }

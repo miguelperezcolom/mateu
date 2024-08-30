@@ -160,6 +160,7 @@ export class MateuComponent extends LitElement {
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
+                            componentId="${this.component.id}"
                             baseUrl="${this.baseUrl}"
                             previousStepId="${this.previousStepId}"
                             searchSignature="${this.journeyId}-${this.stepId}-${this.component.id}"

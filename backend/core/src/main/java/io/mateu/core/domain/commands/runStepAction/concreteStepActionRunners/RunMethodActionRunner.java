@@ -11,6 +11,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Obj
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
@@ -26,10 +27,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -47,9 +50,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
   private final BasicTypeChecker basicTypeChecker;
+  private final MethodParametersEditorHandler methodParametersEditorHandler;
+  private final MethodProvider methodProvider;
 
   @Override
   public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
+    if (viewInstance instanceof MethodParametersEditor methodParametersEditor) {
+      return methodParametersEditorHandler.handles(methodParametersEditor, actionId);
+    }
     return getActions(viewInstance).containsKey(actionId);
   }
 
@@ -69,9 +77,32 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
+    if (viewInstance instanceof MethodParametersEditor methodParametersEditor) {
+      Object targetInstance = methodParametersEditorHandler.getTargetInstance(methodParametersEditor);
+      Method m = methodProvider.getMethod(targetInstance.getClass(), methodParametersEditor.getMethodId());
+      if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+      Object result = m.invoke(targetInstance, injectParameters(m, serverHttpRequest, data));
+      return processResult(targetInstance, m, data, serverHttpRequest, result);
+    }
+
     Method m = getActions(viewInstance).get(actionId);
 
     return runMethod(viewInstance, m, data, serverHttpRequest);
+  }
+
+  @SneakyThrows
+  private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
+
+    List<Object> values = new ArrayList<>();
+    for (int i = 0; i < m.getParameterCount(); i++) {
+      if (ServerHttpRequest.class.equals(m.getParameterTypes()[i])) {
+        values.add(serverHttpRequest);
+        continue;
+      }
+      values.add(
+              actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
+    }
+    return values.toArray();
   }
 
   public Mono<UIIncrement> runMethod(
@@ -113,19 +144,29 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        // todo: manage goback and callback!!!!
+        return processResult(actualViewInstance, m, data, serverHttpRequest, result);
 
-        if (result == null) {
-          return Mono.just(
+      } catch (InvocationTargetException ex) {
+        Throwable targetException = ex.getTargetException();
+        System.out.println(
+            targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
+        throw targetException;
+      }
+    }
+  }
+
+  private Mono processResult(Object actualViewInstance, Method m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object result) {
+    if (result == null) {
+      return Mono.just(
               uIIncrementFactory.createForSingleComponent(
-                  componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
-        }
+                      componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
+    }
 
-        if (Mono.class.isAssignableFrom(result.getClass())) {
+    if (Mono.class.isAssignableFrom(result.getClass())) {
 
-          var mono = (Mono) result;
+      var mono = (Mono) result;
 
-          return mono.map(
+      return mono.map(
               r -> {
                 try {
                   return getUiIncrement(m, data, serverHttpRequest, r);
@@ -134,18 +175,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 }
               });
 
-        } else {
+    } else {
 
-          return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
+      return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
 
-        }
-
-      } catch (InvocationTargetException ex) {
-        Throwable targetException = ex.getTargetException();
-        System.out.println(
-            targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
-        throw targetException;
-      }
     }
   }
 
@@ -165,16 +198,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (r instanceof Message message) {
       return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
-              message.getType(),
-              message.getTitle(),
-              message.getText()
+              message.type(),
+              message.title(),
+              message.text(),
+              message.duration()
       )), Map.of());
     }
     if (ActionTarget.Message.equals(getActionTarget(m))) {
       return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
               ResultType.Success,
               "" + r,
-              null
+              null,
+              0
       )), Map.of());
     }
     if (r instanceof URL url) {
@@ -197,9 +232,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               List.of(),
               new SingleComponent(component.id()),
               responseWrapper.getMessages().stream().map(message -> new io.mateu.dtos.Message(
-                      message.getType(),
-                      message.getTitle(),
-                      message.getText()
+                      message.type(),
+                      message.title(),
+                      message.text(),
+                      message.duration()
               )).toList(),
               Map.of(component.id(), component));
     }
@@ -223,7 +259,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   private List<io.mateu.dtos.Message> getMessages(Object r, Method m) {
     return extractMessages(r, m).stream()
-        .map(msg -> new io.mateu.dtos.Message(msg.getType(), msg.getTitle(), msg.getText()))
+        .map(msg -> new io.mateu.dtos.Message(msg.type(), msg.title(), msg.text(), msg.duration()))
         .toList();
   }
 
@@ -240,17 +276,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (method.isAnnotationPresent(Action.class)
         && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
-      return List.of(new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response, 0));
     }
     if (method.isAnnotationPresent(MainAction.class)
         && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
-      return List.of(new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response, 0));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
-      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage()));
+      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage(), 0));
     }
     return List.of();
   }

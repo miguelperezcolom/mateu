@@ -21,6 +21,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
   @Section(value = "Basic", columns = 2)
   @NotEmpty
+  @RequestFocus
   private String name = "Mateu";
 
   @Placeholder("This should appear as the placeholder")

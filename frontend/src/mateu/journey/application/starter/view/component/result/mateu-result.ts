@@ -7,6 +7,8 @@ import "@vaadin/icon";
 import {Button} from "@vaadin/button";
 import Result from "../../../../../../shared/apiClients/dtos/Result";
 import {ResultType} from "../../../../../../shared/apiClients/dtos/ResultType";
+import Destination from "../../../../../../shared/apiClients/dtos/Destination";
+import Component from "../../../../../../shared/apiClients/dtos/Component";
 
 /**
  * An example element.
@@ -41,28 +43,27 @@ export class MateuResult extends LitElement {
   @property()
   data: object | undefined;
 
+  @property()
+  component!: Component
+
   connectedCallback() {
     super.connectedCallback();
   }
 
-  async goBack() {
-    this.dispatchEvent(new CustomEvent('back-requested', {
-      bubbles: true,
-      composed: true,
-      detail: this.previousStepId}))
-  }
-
   async runAction(e:Event) {
       const button = e.currentTarget as Button;
-      this.askForActionRun(button.getAttribute('actionid')!)
+      // @ts-ignore
+    this.askForActionRun(button.destination)
   }
 
-  private askForActionRun(actionId: string) {
-    this.dispatchEvent(new CustomEvent('runaction', {
+  private askForActionRun(destination: Destination) {
+
+    console.log(destination)
+
+    this.dispatchEvent(new CustomEvent('replace-component', {
       detail: {
-        actionId: actionId,
-        action: {},
-        data: this.data
+        target: this.component,
+        replacement: destination.value
       },
       bubbles: true,
       composed: true
@@ -113,9 +114,9 @@ export class MateuResult extends LitElement {
             
             ${this.metadata.interestingLinks.map(l => html`
 
-    <div class="youmayalsolink"><vaadin-button theme="tertiary" @click=${this.runAction}
+    <div class="link"><vaadin-button theme="tertiary" @click=${this.runAction}
                                                data-testid="link-${l.value}"
-                                               actionId=${l.value}>${l.description}</vaadin-button></div>                   
+                                     .destination=${l}>${l.description}</vaadin-button></div>                   
 
 `)}
             </vaadin-vertical-layout>
@@ -132,7 +133,7 @@ export class MateuResult extends LitElement {
         ${this.metadata.nowTo?html`
           <vaadin-button theme="primary" @click=${this.runAction} 
                          data-testid="action-nowto"
-                         actionId=${this.metadata.nowTo.value}>${this.metadata.nowTo.description}</vaadin-button>
+                         .destination=${this.metadata.nowTo}>${this.metadata.nowTo.description}</vaadin-button>
         `:''}
       </vaadin-horizontal-layout>
     `

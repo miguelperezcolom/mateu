@@ -1,6 +1,7 @@
 package io.mateu.core.domain.queries.getListRows;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
@@ -26,8 +27,14 @@ public class GetListRowsQueryHandler {
   @Transactional
   public Flux<Object> run(GetListRowsQuery query) throws Throwable {
 
-    Listing listing =
-        (Listing) reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+    Object instance = reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+
+    Listing listing = null;
+    if (instance instanceof Listing instanceAsListing) {
+      listing = instanceAsListing;
+    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
+      listing = rpcViewWrapper.getRpcView();
+    }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
 

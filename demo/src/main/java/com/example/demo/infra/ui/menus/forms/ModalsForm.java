@@ -80,7 +80,8 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
     return new ResponseWrapper("Some result", List.of(new Message(
             ResultType.Info,
             "Sample message",
-            "Your name is " + name
+            "Your name is " + name,
+            5000
     )));
   }
 

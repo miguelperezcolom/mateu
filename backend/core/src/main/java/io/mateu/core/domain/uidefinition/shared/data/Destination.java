@@ -15,5 +15,5 @@ public class Destination {
 
   private String description;
 
-  private String value;
+  private Object value;
 }

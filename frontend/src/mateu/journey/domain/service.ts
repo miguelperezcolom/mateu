@@ -53,7 +53,6 @@ export class Service {
                 data
             })
             .catch((error) => {
-                console.log('error', error)
                 throw error
             })
             .then(async (delta: UIIncrement) => {

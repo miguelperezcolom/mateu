@@ -41,8 +41,7 @@ public class FiltersDeserializer {
           rawDatesRangeValue += raw.get(field.getId() + "_to");
         }
         map.put(field.getId(), rawDatesRangeValue);
-      }
-      if (boolean.class.equals(field.getType())) {
+      } else if (boolean.class.equals(field.getType())) {
         boolean value = false;
         if (raw.get(field.getId()) != null) {
           Object object = raw.get(field.getId());
@@ -54,8 +53,7 @@ public class FiltersDeserializer {
           }
         }
         map.put(field.getId(), value);
-      }
-      if (raw.containsKey(field.getId()) && field.getType().isEnum()) {
+      } else if (raw.containsKey(field.getId()) && field.getType().isEnum()) {
         if (Strings.isNullOrEmpty((String) raw.get(field.getId()))) {
           map.remove(field.getId());
         } else {
@@ -63,6 +61,10 @@ public class FiltersDeserializer {
               field.getId(),
               Enum.valueOf((Class) field.getType(), (String) raw.get(field.getId())));
         }
+      } else {
+        map.put(
+                field.getId(),
+                raw.get(field.getId()));
       }
     }
     return serializer.fromJson(serializer.toJson(map), listing.getSearchFormClass());

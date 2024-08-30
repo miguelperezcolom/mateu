@@ -67,7 +67,7 @@ public class ViewInstancePartsExtractor {
     if (partInstance == null) {
       partInstance = reflectionHelper.newInstance(f.getType());
     }
-    if (partInstance instanceof Listing<?, ?> listing) {
+    if (false && partInstance instanceof Listing<?, ?> listing) {
       partInstance = new RpcViewWrapper(listing, f.getId());
     }
     return new ViewInstancePart(

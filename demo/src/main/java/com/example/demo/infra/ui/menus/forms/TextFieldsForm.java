@@ -11,8 +11,8 @@ public class TextFieldsForm {
   @NotEmpty
   private String name = "Mateu";
 
-  @Placeholder("This should appear as the placeholder")
-  private String withPlaceholder;
+  @Password
+  private String password;
 
   @TextArea
   @Colspan(2)
@@ -29,7 +29,7 @@ public class TextFieldsForm {
 
   @Action
   public void assess() {
-    assessment = "" + "" + name + "" + withPlaceholder + ", " + text;
+    assessment = "" + "" + name + "" + password + ", " + text;
   }
 
   public String toString() {

@@ -148,16 +148,18 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     }
     if (r instanceof Message message) {
       return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
-              message.getType(),
-              message.getTitle(),
-              message.getText()
+              message.type(),
+              message.title(),
+              message.text(),
+              message.duration()
       )), Map.of());
     }
     if (ActionTarget.Message.equals(getActionTarget(m))) {
       return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
               ResultType.Success,
               "" + r,
-              null
+              null,
+              0
       )), Map.of());
     }
     if (r instanceof URL url) {
@@ -180,9 +182,10 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
               List.of(),
               new SingleComponent(component.id()),
               responseWrapper.getMessages().stream().map(message -> new io.mateu.dtos.Message(
-                      message.getType(),
-                      message.getTitle(),
-                      message.getText()
+                      message.type(),
+                      message.title(),
+                      message.text(),
+                      message.duration()
               )).toList(),
               Map.of(component.id(), component));
     }
@@ -203,7 +206,7 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
 
   private List<io.mateu.dtos.Message> getMessages(Object r, Field m) {
     return extractMessages(r, m).stream()
-        .map(msg -> new io.mateu.dtos.Message(msg.getType(), msg.getTitle(), msg.getText()))
+        .map(msg -> new io.mateu.dtos.Message(msg.type(), msg.title(), msg.text(), msg.duration()))
         .toList();
   }
 
@@ -220,13 +223,13 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     }
     if (method.isAnnotationPresent(Button.class)
         && ActionTarget.Message.equals(method.getAnnotation(Button.class).target())) {
-      return List.of(new Message(ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response, 0));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
-      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage()));
+      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage(), 0));
     }
     return List.of();
   }

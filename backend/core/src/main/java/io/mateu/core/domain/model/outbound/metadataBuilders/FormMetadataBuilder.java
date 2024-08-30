@@ -142,7 +142,7 @@ public class FormMetadataBuilder {
   }
 
   private boolean isReadOnly(Object uiInstance) {
-    return uiInstance
+    return uiInstance != null && uiInstance
         .getClass()
         .isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly.class);
   }

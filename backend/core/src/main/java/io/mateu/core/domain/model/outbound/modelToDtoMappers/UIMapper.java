@@ -7,11 +7,14 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.dtos.App;
 import io.mateu.dtos.UI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +41,23 @@ public class UIMapper {
             menuCreator.buildMenuForUi(uiInstance, serverHttpRequest),
             "____home____",
             getLoginUrl(uiInstance),
-            getLogoutUrl(uiInstance));
+            getLogoutUrl(uiInstance),
+                getApps(uiInstance));
 
     return ui;
+  }
+
+  private List<App> getApps(Object uiInstance) {
+    if (uiInstance instanceof HasApps hasApps) {
+      return hasApps.getApps().stream().map(app -> new App(
+              app.icon(),
+              app.name(),
+              app.description(),
+              app.url(),
+              app.disabled()
+      )).toList();
+    }
+    return List.of();
   }
 
   private String getLogoutUrl(Object uiInstance) {

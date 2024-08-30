@@ -38,6 +38,7 @@ import './fields/field-rich-text-vaadin'
 import './fields/field-json'
 import './fields/field-externalrefclosedlist'
 import './fields/field-button'
+import './fields/field-password'
 import FieldWrapper from "../../../FieldWrapper";
 
 /**

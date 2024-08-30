@@ -2,15 +2,15 @@ import {customElement, property, query} from "lit/decorators.js";
 import {html, css, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
-import '@vaadin/vaadin-text-field'
+import '@vaadin/password-field'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import {TextField} from "@vaadin/vaadin-text-field";
 
 
-@customElement('field-text')
-export class FieldText extends LitElement implements Component {
+@customElement('field-password')
+export class FieldPassword extends LitElement implements Component {
 
-    @query('vaadin-text-field')
+    @query('vaadin-password-field')
     textField: TextField | undefined
 
     isInvalid(): boolean | undefined {
@@ -93,7 +93,7 @@ export class FieldText extends LitElement implements Component {
 
     render() {
         return html`
-            <vaadin-text-field
+            <vaadin-password-field
                 label="${this.label}"
                 @change=${this.onChange} 
                            name="${this.name}" 
@@ -105,15 +105,12 @@ export class FieldText extends LitElement implements Component {
                 placeholder="${this.placeholder}"
                 allowed-char-pattern="${this.pattern}"
                 pattern="${this.pattern}"
-                ?autofocus="${this.field?.wantsFocus}"
-                autoselect="on"
-            ></vaadin-text-field>
+            ></vaadin-password-field>
             `
     }
 
-
     static styles = css`
-        vaadin-text-field {
+        vaadin-password-field {
             width: 100%;
         }
     `
@@ -122,7 +119,7 @@ export class FieldText extends LitElement implements Component {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'field-text': FieldText
+        'field-password': FieldPassword
     }
 }
 

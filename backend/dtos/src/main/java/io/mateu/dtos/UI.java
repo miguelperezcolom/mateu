@@ -12,7 +12,8 @@ public record UI(
     List<Menu> menu,
     String homeJourneyTypeId,
     String loginUrl,
-    String logoutUrl) {
+    String logoutUrl,
+    List<App> apps) {
 
   public UI {
     menu = Collections.unmodifiableList(menu);

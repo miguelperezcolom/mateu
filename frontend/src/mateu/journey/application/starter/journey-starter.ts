@@ -22,6 +22,7 @@ import './view/mateu-view'
 import UIIncrement from "../../../shared/apiClients/dtos/UIIncrement";
 import {ContentType} from "../../../shared/apiClients/dtos/ContentType";
 import {SingleComponent} from "../../../shared/apiClients/dtos/SingleComponent";
+    import {Content} from "../../../shared/apiClients/dtos/Content";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -63,6 +64,8 @@ export class JourneyStarter extends LitElement {
     @state()
     view: View | undefined = undefined;
     @state()
+    content: Content | undefined = undefined;
+    @state()
     components: Record<string, Component> = {};
 
 
@@ -93,6 +96,23 @@ export class JourneyStarter extends LitElement {
             event.detail.componentType,
             event.detail.data
         ).then()
+    }
+
+    replaceComponent(event: CustomEvent) {
+        const target = event.detail.target
+        const replacement = event.detail.replacement
+        replacement.id = target.id
+        this.components[target.id] = replacement
+
+
+        const state = new State()
+        state.modalStyle = this.modalStyle
+        state.target = ActionTarget.View
+        state.commands = []
+        state.messages = []
+        state.view = this.view
+        state.content = this.content
+        this.upstream.next(state)
     }
 
 
@@ -183,6 +203,9 @@ export class JourneyStarter extends LitElement {
                 overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle ? this.modalStyle : ''))
             });
         } else {
+            if (state.content) {
+                this.content = state.content
+            }
             if (state.view) {
                 this.view = state.view
             }
@@ -197,39 +220,43 @@ export class JourneyStarter extends LitElement {
     }
 
     private runCommand(c: UICommand) {
-        switch (c.type) {
-            case UICommandType.SetWindowTitle:
-                // @ts-ignore
-                document.title = c.data
-                return
-            case UICommandType.UpdateUrl:
-                // @ts-ignore
-                var url = '#' + c.data.url
-                if ('____home____' == this.journeyTypeId) {
-                    url = ''
-                }
-                window.history.pushState({},"", url)
-                return
-            case UICommandType.CloseModal:
-                this.closeModalAndStay(c.data as UIIncrement)
-                return
-            case UICommandType.SetLocation:
-                // @ts-ignore
-                window.location = c.data
-                return
-            case UICommandType.ReplaceWithUrl:
-                window.close()
-                // @ts-ignore
-                window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
-                return
-            case UICommandType.OpenNewTab:
-                // @ts-ignore
-                window.open(c.data, '_blank')
-                return
-            case UICommandType.OpenNewWindow:
-                // @ts-ignore
-                window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
-                return
+        try {
+            switch (c.type) {
+                case UICommandType.SetWindowTitle:
+                    // @ts-ignore
+                    document.title = c.data
+                    return
+                case UICommandType.UpdateUrl:
+                    // @ts-ignore
+                    var url = '#' + c.data.url
+                    if ('____home____' == this.journeyTypeId) {
+                        url = ''
+                    }
+                    window.history.pushState({},"", url)
+                    return
+                case UICommandType.CloseModal:
+                    this.closeModalAndStay(c.data as UIIncrement)
+                    return
+                case UICommandType.SetLocation:
+                    // @ts-ignore
+                    window.location = c.data
+                    return
+                case UICommandType.ReplaceWithUrl:
+                    window.close()
+                    // @ts-ignore
+                    window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                    return
+                case UICommandType.OpenNewTab:
+                    // @ts-ignore
+                    window.open(c.data, '_blank')
+                    return
+                case UICommandType.OpenNewWindow:
+                    // @ts-ignore
+                    window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
+                    return
+            }
+        } catch (e) {
+            console.error(e)
         }
     }
 
@@ -255,7 +282,7 @@ export class JourneyStarter extends LitElement {
 
         const notification = Notification.show(renderer(), {
             position: 'middle',
-            duration: 0,
+            duration: c.duration,
             theme: this.getThemeForMessageType(c.type),
         });
         // @ts-ignore
@@ -421,7 +448,9 @@ export class JourneyStarter extends LitElement {
                 journeyId="${this.journeyId}" 
                 .service=${this.service}
                 baseUrl="${this.baseUrl}"
+                stepId="none"
                 @runaction="${this.runAction}"
+                @replace-component="${this.replaceComponent}"
                 instant="${nanoid()}"
         ><slot></slot></mateu-view>
                     `:html`

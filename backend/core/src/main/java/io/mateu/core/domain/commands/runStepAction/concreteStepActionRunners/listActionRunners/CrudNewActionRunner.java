@@ -9,18 +9,18 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.UIIncrement;
-import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class CrudEditActionRunner implements ListActionRunner {
+public class CrudNewActionRunner implements ListActionRunner {
 
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
@@ -30,7 +30,7 @@ public class CrudEditActionRunner implements ListActionRunner {
 
   @Override
   public boolean applies(Crud crud, String actionId) {
-    return "edit".equals(actionId.substring(actionId.lastIndexOf("__") + 2));
+    return "new".equals(actionId.substring(actionId.lastIndexOf("__") + 2));
   }
 
   @Override
@@ -43,44 +43,10 @@ public class CrudEditActionRunner implements ListActionRunner {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    // todo: make reactive!
-
-    Object row = data.get("_selectedRow");
-
-    int __index = (Integer) data.getOrDefault("__index", -1);
-    int __count = (Integer) data.getOrDefault("__count", -1);
-
-    if (row == null && (__index == -1 && __count == -1)) {
-      throw new Exception("No row selected");
-    }
-
-    if (row == null) {
-
-      Object filtersDeserialized = filtersDeserializer.deserialize(crud, data, serverHttpRequest);
-
-      // todo: recover ordering
-      var ordering = List.of(); // store.getLastUsedOrders(journeyContainer, stepId, listId);
-
-      row =
-          crud.fetchRows(filtersDeserialized, ordering, (Integer) __index, 1)
-              .next()
-              .toFuture()
-              .get();
-    }
-
-    Object editor = null;
-    try {
-      if (row instanceof Map) {
-        row = crud.getRow((Map<String, Object>) row, serializer);
-      }
-      editor = crud.getDetail(row);
-    } catch (Throwable e) {
-      throw new Exception(
-          "When getting detail for row " + e.getClass().getSimpleName() + ": " + e.getMessage());
-    }
+    Object editor = crud.getNewRecordForm();
 
     if (editor == null) {
-      throw new Exception("Crud getDetail returned null");
+      throw new Exception("Crud getNewRecordForm() returned null");
     }
 
     return Mono.just(

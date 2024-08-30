@@ -39,4 +39,6 @@ public @interface Action {
   String href() default "";
 
   boolean runOnEnter() default false;
+
+  int timeoutMillis() default 0;
 }

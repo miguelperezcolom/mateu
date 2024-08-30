@@ -71,11 +71,14 @@ export class ApiController implements ReactiveController {
         if (ce.detail.reason.response?.data) {
             title = `${ce.detail.reason.response.data}`
         }
-        this.host.showMessage({
-            type: ResultType.Error,
-            title: title,
-            text: detail
-        })
+        if (!title.startsWith('Unknown action')) {
+            this.host.showMessage({
+                type: ResultType.Error,
+                title: title,
+                text: detail,
+                duration: 5000
+            })
+        }
     }
 
 }

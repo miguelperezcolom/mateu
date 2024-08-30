@@ -37,7 +37,7 @@ public class ButtonMetadataBuilder {
             getCustomEvent(m),
             getHref(m),
             getRunEonEnter(m),
-                ActionPosition.Right);
+                ActionPosition.Right, 0);
     return action;
   }
 

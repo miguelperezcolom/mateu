@@ -1,5 +1,5 @@
 import {css, html, LitElement, PropertyValues, TemplateResult} from 'lit'
-import {customElement, property, state, query} from 'lit/decorators.js'
+import {customElement, property, query, state} from 'lit/decorators.js'
 import Crud from "../../../../../../shared/apiClients/dtos/Crud";
 import "@vaadin/horizontal-layout";
 import "@vaadin/button";
@@ -20,8 +20,8 @@ import '@vaadin/menu-bar';
 import {mateuApiClient} from "../../../../../../shared/apiClients/MateuApiClient";
 import {Base64} from "js-base64";
 import ConfirmationTexts from "../../../../../../shared/apiClients/dtos/ConfirmationTexts";
-import { dialogRenderer } from 'lit-vaadin-helpers';
-import { dialogFooterRenderer } from '@vaadin/dialog/lit';
+import {dialogRenderer} from 'lit-vaadin-helpers';
+import {dialogFooterRenderer} from '@vaadin/dialog/lit';
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
 import {mapField} from "./crudFieldMapping";
 import {CrudState} from "./crudstate";
@@ -29,6 +29,7 @@ import {Subject, Subscription} from "rxjs";
 import {CrudService} from "./crudservice";
 import Action from "../../../../../../shared/apiClients/dtos/Action";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
+import {ActionTarget} from "../../../../../../shared/apiClients/dtos/ActionTarget";
 
 /**
  * An example element.
@@ -155,7 +156,7 @@ export class MateuCrud extends LitElement {
     if (
         changedProperties.has('journeyId')
         || changedProperties.has('stepId')
-        || changedProperties.has('listId')
+        || changedProperties.has('component')
     ) {
       this.page = 0
       this.doSearch().then()
@@ -213,6 +214,10 @@ export class MateuCrud extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.data0 = this.data
+    if (this.data.data0) {
+      this.data0 = {...this.data.data0}
+    }
+    this.data.data0 = {...this.data0}
     this.addEventListener('keydown', this.handleKey);
     this.upstreamSubscription = this.crudUpstream.subscribe((state: CrudState) => this.stampState(state))
   }
@@ -254,6 +259,7 @@ export class MateuCrud extends LitElement {
   }
 
   clickedOnClearFilters() {
+    console.log('clear filters', this.data, this.data0)
     this.data = this.data0
     setTimeout(() => this.doSearch())
   }
@@ -316,9 +322,23 @@ export class MateuCrud extends LitElement {
   }
 
   async runAction(e:Event) {
+    console.log('runAction', e)
     const button = e.currentTarget as Button;
     const actionId = button.getAttribute('actionid');
-    const rowsSelectedRequired = button.getAttribute('rowsSelectedRequired');
+    if (!actionId) {
+      console.log('Attribute actionId is missing for ' + button)
+      return
+    }
+    this.doRunAction(actionId)
+  }
+
+  async doRunAction(actionId: string) {
+    const action = this.findAction(actionId!)
+    if (!action) {
+      console.log('No action with id ' + actionId)
+      return
+    }
+    const rowsSelectedRequired = action.rowsSelectedRequired
     if (rowsSelectedRequired && this.grid.selectedItems.length == 0) {
       this.confirmationTexts = {
         message: 'You need to first select some rows',
@@ -328,22 +348,10 @@ export class MateuCrud extends LitElement {
       this.confirmationOpened = true;
       return
     }
-    if (!actionId) {
-      console.log('Attribute actionId is missing for ' + button)
-      return
-    }
-    this.doRunAction(actionId)
-  }
-
-  async doRunAction(actionId: string) {
-
-    const action = this.findAction(actionId!)
-    if (!action) {
-      console.log('No action with id ' + actionId)
-      return
-    }
     const obj = {
       // @ts-ignore
+      componentId: this.component.id,
+      componentType: this.component.className,
       _selectedRows: this.grid.selectedItems,
       _clickedRow: this.clickedRow
     };
@@ -361,10 +369,21 @@ export class MateuCrud extends LitElement {
   }
 
   private askForActionRun(actionId: string, data: unknown) {
+    let action = this.findAction(actionId!)
+    if (!action) {
+      // @ts-ignore
+      action = {
+        target: ActionTarget.View,
+        id: actionId,
+      }
+    }
+
     this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
+        componentId: this.component.id,
+        componentType: this.component?.className,
         actionId: actionId,
-        action: this.findAction(actionId!),
+        action: action,
         data: data
       },
       bubbles: true,
@@ -500,7 +519,7 @@ export class MateuCrud extends LitElement {
         </div>
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
           ${this.metadata.actions.filter(a => a.visible).length > 2?html`
-              <vaadin-menu-bar theme="icon tertiary small" open-on-hover
+              <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
                                .items="${this.buildItemsForActions(this.metadata.actions
               .filter(a => a.visible))}"></vaadin-menu-bar>
@@ -519,7 +538,8 @@ export class MateuCrud extends LitElement {
                              @change=${this.filterChanged}
                              xplaceholder="${f.placeholder}"
                              value="${this.data[f.id]}"
-                             style="flex-grow: 1;"></vaadin-text-field>
+                             style="flex-grow: 1;" autofocus="true"
+                             autoselect="on"></vaadin-text-field>
         `)}
           <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
           ${this.metadata?.searchForm.fields?html`
@@ -527,7 +547,7 @@ export class MateuCrud extends LitElement {
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
           `:''}
         </vaadin-horizontal-layout>
-        <p>${this.filtersText}</p>
+        <p style="margin-block-start: 0;">${this.filtersText}</p>
       `:''}
 
       <vaadin-grid id="grid" .items="${this.items}" all-rows-visible>

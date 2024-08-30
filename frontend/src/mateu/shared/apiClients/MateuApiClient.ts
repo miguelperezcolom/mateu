@@ -65,7 +65,6 @@ class MateuApiClient {
                     }
                 }))
             } else {
-                console.log('error on api call', reason)
                 this.element.dispatchEvent(new CustomEvent('backend-failed-event', {
                     bubbles: true,
                     composed: true,

@@ -39,4 +39,6 @@ public @interface MainAction {
   boolean runOnEnter() default false;
 
   ActionPosition position() default ActionPosition.Right;
+
+  int timeoutMillis() default 0;
 }

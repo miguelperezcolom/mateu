@@ -44,7 +44,8 @@ public class ActionMetadataBuilder {
             getCustomEvent(m),
             getHref(m),
             isRunOnEnter(m),
-                getPosition(m));
+                getPosition(m),
+                getTimeoutMillis(m));
     return action;
   }
 
@@ -69,6 +70,20 @@ public class ActionMetadataBuilder {
       return action.runOnEnter();
     }
     return true;
+  }
+
+  private int getTimeoutMillis(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.timeoutMillis();
+    }
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return action.timeoutMillis();
+    }
+    return 0;
   }
 
   private String getModalStyle(Method m) {
@@ -269,7 +284,8 @@ public class ActionMetadataBuilder {
                           a.customEvent(),
                           a.href(),
                           false,
-                              ActionPosition.Right))
+                              ActionPosition.Right,
+                              a.timeoutMillis()))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -288,7 +304,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               false,
-                  ActionPosition.Right);
+                  ActionPosition.Right,
+                  0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -301,7 +318,7 @@ public class ActionMetadataBuilder {
               true,
               false,
               true,
-              false,
+              true,
               new ConfirmationTexts(
                   "Please confirm",
                   "Are you sure you want to delete the selected rows",
@@ -311,7 +328,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               false,
-                  ActionPosition.Right);
+                  ActionPosition.Right,
+                  0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

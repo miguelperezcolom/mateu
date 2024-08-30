@@ -1,6 +1,7 @@
 package io.mateu.core.domain.queries.getListCount;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
@@ -29,7 +30,14 @@ public class GetListCountQueryHandler {
 
   public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
-    Listing listing = (Listing) reflectionHelper.newInstance(Class.forName(query.componentType()));
+    Object instance = reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+
+    Listing listing = null;
+    if (instance instanceof Listing instanceAsListing) {
+      listing = instanceAsListing;
+    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
+      listing = rpcViewWrapper.getRpcView();
+    }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
 

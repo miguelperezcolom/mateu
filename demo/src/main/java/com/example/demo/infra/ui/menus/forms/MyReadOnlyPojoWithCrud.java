@@ -31,26 +31,19 @@ public class MyReadOnlyPojoWithCrud
   @JsonIgnore
   private final MyReadOnlyPojoWithCrudEditor editor;
 
-  @Section("Basic")
+  @Section(value = "", columns = 2)
   private String name = "Mateu";
-
-  @Placeholder("This should appear as the placeholder")
-  private String withPlaceholder;
 
   private int age;
 
-  private double balance = 20.31;
+  private String assessment;
 
   @Autowired
   private ProgrammingLanguages programmingLanguages;
 
-  @Section("Assessment")
-  @ReadOnly
-  private String assessment;
-
   @Action
   public void assess() {
-    assessment = "" + name + ", " + age + ", " + balance;
+    assessment = "" + name + ", " + age;
   }
 
   public String toString() {

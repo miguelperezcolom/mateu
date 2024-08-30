@@ -66,7 +66,7 @@ public class MethodParametersEditorMetadataBuilder {
             null,
             null,
             true,
-                ActionPosition.Right);
+                ActionPosition.Right, 0);
     actions.add(action);
     return actions;
   }

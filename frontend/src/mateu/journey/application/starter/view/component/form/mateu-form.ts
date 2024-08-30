@@ -275,8 +275,18 @@ export class MateuForm extends LitElement implements FormElement {
       const b = this.renderRoot.querySelector('vaadin-button[actionid="' + id + '"]') as Button
       this.actionsMap.map.set(id, b)
     })
+    this.metadata.actions.filter(a => a.timeoutMillis).forEach(a => {
+      setTimeout(() => {
+        this.askForActionRun(a)
+      }, a.timeoutMillis)
+    })
+    this.metadata.mainActions.filter(a => a.timeoutMillis).forEach(a => {
+      setTimeout(() => {
+        this.askForActionRun(a)
+      }, a.timeoutMillis)
+    })
 
-    setTimeout(() => this.runRules());
+      setTimeout(() => this.runRules());
   }
 
   editFieldListener = async (event: Event) => {

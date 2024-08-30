@@ -17,6 +17,8 @@ package io.mateu.dtos;
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
  * @param runOnEnter Set to true if you want to add a shortcut on Enter key
+ * @param position Position in the action bar. Can be left or right
+ * @param timeoutMillis Run this action automatically after a timeout
  */
 public record Action(
     String id,
@@ -33,4 +35,5 @@ public record Action(
     String customEvent,
     String href,
     boolean runOnEnter,
-    ActionPosition position) {}
+    ActionPosition position,
+    int timeoutMillis) {}

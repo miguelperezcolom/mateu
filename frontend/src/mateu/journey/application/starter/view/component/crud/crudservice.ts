@@ -14,16 +14,6 @@ export class CrudService {
         filters: object
         sortOrders: string
     },  component: Component, data: unknown) {
-
-
-        // @ts-ignore
-        /*
-        if (rows.code == 'ERR_CANCELED') {
-            state.message = `Request cancelled`;
-            return {rows: [], count: 0}
-        }
-         */
-
         // Pagination
         const page = await fetchRowsQueryHandler.handle({
             uiId: crudState.uiId,
@@ -58,6 +48,5 @@ export class CrudService {
         }
         crudUpstream.next({...crudState})
     }
-
 
 }

@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ComponentMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -52,10 +53,14 @@ public class ComponentFactory {
     return new GenericComponent(
         metadata,
         UUID.randomUUID().toString(),
-        componentInstance.getClass().getName(),
+            getComponentClassName(componentInstance),
         Map.of(),
         dataExtractor.getData(componentInstance),
         List.of());
+  }
+
+  private static String getComponentClassName(Object componentInstance) {
+    return componentInstance.getClass().getName();
   }
 
   public String createComponent(
@@ -78,7 +83,7 @@ public class ComponentFactory {
           new GenericComponent(
               metadata,
               componentId,
-              componentInstance.getClass().getName(),
+                  getComponentClassName(componentInstance),
               Map.of(),
               dataExtractor.getData(componentInstance, actualComponentInstance),
               getChildComponents(
@@ -94,7 +99,7 @@ public class ComponentFactory {
             new CrudComponent(
                 metadata,
                 componentId,
-                actualComponentInstance.getClass().getName(),
+                    getComponentClassName(actualComponentInstance),
                 Map.of(),
                 dataExtractor.getData(componentInstance, actualComponentInstance),
                 getChildComponents(
@@ -111,7 +116,7 @@ public class ComponentFactory {
             new GenericComponent(
                 metadata,
                 componentId,
-                actualComponentInstance.getClass().getName(),
+                    getComponentClassName(actualComponentInstance),
                 Map.of(),
                 Map.of(),
                 getChildComponents(
@@ -126,7 +131,7 @@ public class ComponentFactory {
             new GenericComponent(
                 metadata,
                 componentId,
-                actualComponentInstance.getClass().getName(),
+                    getComponentClassName(actualComponentInstance),
                 Map.of(),
                 dataExtractor.getData(componentInstance, actualComponentInstance),
                 getChildComponents(

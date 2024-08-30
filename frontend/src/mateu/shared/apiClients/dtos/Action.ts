@@ -20,5 +20,6 @@ export default interface Action {
     href: string
     runOnEnter: boolean
     position: ActionPosition
+    timeoutMillis: number
 
 }

@@ -11,6 +11,7 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
     }
     switch (stereotype) {
         case 'readonly': return 'field-readonly';
+        case 'password': return 'field-password';
         case 'rich-text': return 'field-rich-text-vaadin';
         case 'rich-text-vaadin': return 'field-rich-text-vaadin';
         case 'textarea': return 'field-textarea';

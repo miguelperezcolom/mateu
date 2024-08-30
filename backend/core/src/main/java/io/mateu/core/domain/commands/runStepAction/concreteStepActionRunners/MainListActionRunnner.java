@@ -2,8 +2,17 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
+import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
+import io.mateu.core.domain.model.inbound.persistence.Merger;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
+import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
+import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinition.shared.interfaces.SelectedRowsContext;
 import io.mateu.dtos.UIIncrement;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +22,34 @@ import reactor.core.publisher.Mono;
 
 @Service
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public class MainListActionRunnner implements ActionRunner {
+public class MainListActionRunnner extends RunMethodActionRunner implements ActionRunner {
 
   private final List<ListActionRunner> listActionRunners;
+  final Merger merger;
+  final ActualValueExtractor actualValueExtractor;
+  final ReflectionHelper reflectionHelper;
+  final Serializer serializer;
+  final ValidationService validationService;
+  private final ComponentFactory componentFactory;
+  private final UIIncrementFactory uIIncrementFactory;
+  private final BasicTypeChecker basicTypeChecker;
+  private final MethodParametersEditorHandler methodParametersEditorHandler;
+  private final MethodProvider methodProvider;
 
-  public MainListActionRunnner(List<ListActionRunner> listActionRunners) {
-    this.listActionRunners = listActionRunners;
+  public MainListActionRunnner(List<ListActionRunner> listActionRunners, Merger merger, ActualValueExtractor actualValueExtractor, ReflectionHelper reflectionHelper, Serializer serializer, ValidationService validationService, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory, BasicTypeChecker basicTypeChecker, MethodParametersEditorHandler methodParametersEditorHandler, MethodProvider methodProvider) {
+      super(merger,
+              actualValueExtractor, reflectionHelper, serializer, validationService, componentFactory, uIIncrementFactory, basicTypeChecker, methodParametersEditorHandler, methodProvider);
+      this.listActionRunners = listActionRunners;
+      this.merger = merger;
+      this.actualValueExtractor = actualValueExtractor;
+      this.reflectionHelper = reflectionHelper;
+      this.serializer = serializer;
+      this.validationService = validationService;
+      this.componentFactory = componentFactory;
+      this.uIIncrementFactory = uIIncrementFactory;
+      this.basicTypeChecker = basicTypeChecker;
+      this.methodParametersEditorHandler = methodParametersEditorHandler;
+      this.methodProvider = methodProvider;
   }
 
   @Override
@@ -38,6 +69,9 @@ public class MainListActionRunnner implements ActionRunner {
 
     Listing rpcView = (Listing) viewInstance;
 
+    List selectedRows = (List) data.get("_selectedRows");
+    new SelectedRowsContext(selectedRows);
+
     if (rpcView instanceof Crud) {
       Crud crud = (Crud) rpcView;
 
@@ -48,6 +82,6 @@ public class MainListActionRunnner implements ActionRunner {
       }
     }
 
-    return Mono.empty();
+    return super.run(rpcView, stepId, actionId.substring(actionId.lastIndexOf("__") + 2), data, contextData, serverHttpRequest);
   }
 }

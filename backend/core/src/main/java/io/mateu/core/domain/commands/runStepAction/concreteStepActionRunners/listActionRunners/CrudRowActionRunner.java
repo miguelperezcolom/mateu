@@ -30,7 +30,7 @@ public class CrudRowActionRunner implements ListActionRunner {
 
   @Override
   public boolean applies(Crud crud, String actionId) {
-    return actionId.startsWith("row__");
+    return actionId.contains("__row__");
   }
 
   @Override
@@ -51,14 +51,16 @@ public class CrudRowActionRunner implements ListActionRunner {
 
     // todo: make reactive!
 
-    String methodName = actionId.replaceAll("row__", "");
+    String methodName = actionId.substring(actionId.indexOf("row__") + "row__".length());
     try {
 
       Method method = crud.getClass().getMethod(methodName, crud.getRowClass());
       var r = method.invoke(crud, serializer.fromJson(serializer.toJson(row), crud.getRowClass()));
 
       if (r == null) {
-        return Mono.empty();
+        return Mono.just(
+                uIIncrementFactory.createForSingleComponent(
+                        componentFactory.createFormComponent(crud, serverHttpRequest, data)));
       }
 
       return Mono.just(

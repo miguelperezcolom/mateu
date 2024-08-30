@@ -126,7 +126,7 @@ public class CrudMetadataBuilder {
             .map(
                 f ->
                     new io.mateu.dtos.Field(
-                        listId + "-" + f.id(),
+                        f.id(),
                         f.type(),
                         f.stereotype(),
                         f.observed(),
