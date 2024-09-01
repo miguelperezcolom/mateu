@@ -1,7 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ComponentMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -53,7 +52,7 @@ public class ComponentFactory {
     return new GenericComponent(
         metadata,
         UUID.randomUUID().toString(),
-            getComponentClassName(componentInstance),
+        getComponentClassName(componentInstance),
         Map.of(),
         dataExtractor.getData(componentInstance),
         List.of());
@@ -83,7 +82,7 @@ public class ComponentFactory {
           new GenericComponent(
               metadata,
               componentId,
-                  getComponentClassName(componentInstance),
+              getComponentClassName(componentInstance),
               Map.of(),
               dataExtractor.getData(componentInstance, actualComponentInstance),
               getChildComponents(
@@ -92,14 +91,15 @@ public class ComponentFactory {
                   field,
                   serverHttpRequest,
                   allComponentsInStep,
-                  componentCounter, data));
+                  componentCounter,
+                  data));
     } else {
       if (actualComponentInstance instanceof Crud<?, ?>) {
         component =
             new CrudComponent(
                 metadata,
                 componentId,
-                    getComponentClassName(actualComponentInstance),
+                getComponentClassName(actualComponentInstance),
                 Map.of(),
                 dataExtractor.getData(componentInstance, actualComponentInstance),
                 getChildComponents(
@@ -108,7 +108,8 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter, data),
+                    componentCounter,
+                    data),
                 Map.of(),
                 List.of());
       } else if (isLayout(field, actualComponentInstance)) {
@@ -116,7 +117,7 @@ public class ComponentFactory {
             new GenericComponent(
                 metadata,
                 componentId,
-                    getComponentClassName(actualComponentInstance),
+                getComponentClassName(actualComponentInstance),
                 Map.of(),
                 Map.of(),
                 getChildComponents(
@@ -125,13 +126,14 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter, data));
+                    componentCounter,
+                    data));
       } else {
         component =
             new GenericComponent(
                 metadata,
                 componentId,
-                    getComponentClassName(actualComponentInstance),
+                getComponentClassName(actualComponentInstance),
                 Map.of(),
                 dataExtractor.getData(componentInstance, actualComponentInstance),
                 getChildComponents(
@@ -140,7 +142,8 @@ public class ComponentFactory {
                     field,
                     serverHttpRequest,
                     allComponentsInStep,
-                    componentCounter, data));
+                    componentCounter,
+                    data));
       }
     }
     allComponentsInStep.put(component.id(), component);
@@ -164,7 +167,8 @@ public class ComponentFactory {
       Field field,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
-      AtomicInteger componentCounter, Map<String, Object> data) {
+      AtomicInteger componentCounter,
+      Map<String, Object> data) {
     if (actualComponentInstance instanceof List<?> list) {
       return list.stream()
           .map(
@@ -176,7 +180,8 @@ public class ComponentFactory {
                       null,
                       List.of(),
                       allComponentsInStep,
-                      componentCounter, data))
+                      componentCounter,
+                      data))
           .toList();
     }
     if (actualComponentInstance instanceof Container
@@ -199,7 +204,8 @@ public class ComponentFactory {
                       p.getKey(),
                       List.of(),
                       allComponentsInStep,
-                      componentCounter, data))
+                      componentCounter,
+                      data))
           .toList();
     }
     return List.of();

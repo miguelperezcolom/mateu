@@ -4,15 +4,19 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.dtos.Component;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.View;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -27,6 +31,7 @@ public class CrudEditActionRunner implements ListActionRunner {
   final FiltersDeserializer filtersDeserializer;
   final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
+  private final ViewMapper viewMapper;
 
   @Override
   public boolean applies(Crud crud, String actionId) {
@@ -81,6 +86,12 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (editor == null) {
       throw new Exception("Crud getDetail returned null");
+    }
+
+    if (editor instanceof Container) {
+      Map<String, Component> allComponents = new LinkedHashMap<>();
+      View view = viewMapper.map(editor, serverHttpRequest, allComponents, Map.of());
+      return Mono.just(new UIIncrement(List.of(), view, List.of(), allComponents));
     }
 
     return Mono.just(

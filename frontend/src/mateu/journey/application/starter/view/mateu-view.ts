@@ -1,10 +1,12 @@
-import {css, html, LitElement} from 'lit'
-import {customElement, property} from 'lit/decorators.js'
+import {css, html, LitElement, PropertyValues} from 'lit'
+import {customElement, property, state} from 'lit/decorators.js'
 import './component/mateu-component';
 import './component/crud/mateu-crud';
 import View from "../../../../shared/apiClients/dtos/View";
 import {Service} from "../../../domain/service";
 import Component from "../../../../shared/apiClients/dtos/Component";
+import Crud from "../../../../shared/apiClients/dtos/Crud";
+import {ComponentMetadataType} from "../../../../shared/apiClients/dtos/ComponentMetadataType";
 
 /**
  * An example element.
@@ -44,6 +46,25 @@ export class MateuView extends LitElement {
 
     @property()
     instant = ''
+
+    @state()
+    maincssclasses = ''
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        if (this.components) {
+            let x = '';
+            for (let k in  this.view.main.componentIds) {
+                const c = this.components[this.view.main.componentIds[k]];
+                if (c.metadata.type == ComponentMetadataType.Crud) {
+                    if ((c.metadata as Crud).columns.length > 4) {
+                        x = 'fullwidth'
+                    }
+                }
+            }
+            this.maincssclasses = x;
+        }
+    }
 
     render() {
     // @ts-ignore
@@ -87,7 +108,7 @@ export class MateuView extends LitElement {
           </vaadin-vertical-layout>
       </aside>
       `:''}${this.view?.main?.componentIds?.length > 0?html`
-      <main>
+      <main class="${this.maincssclasses}">
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xs">
         ${this.view?.main?.componentIds
                 .map(componentId => this.components[componentId])
@@ -166,6 +187,10 @@ export class MateuView extends LitElement {
         max-width: 800px;
         margin: auto;
     }
+      
+      main.fullwidth {
+          max-width: unset;
+      }
     
     header {
         flex-basis: 100%;

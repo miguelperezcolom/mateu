@@ -201,7 +201,7 @@ export class MateuUi extends LitElement {
                     <vaadin-app-layout>
                         <vaadin-horizontal-layout slot="navbar" style="align-items: center;">
                             <h3 class="title ml-l" @click=${this.goHome}>${this.ui.title}</h3>
-                            ${this.ui.apps?html`
+                            ${this.ui.apps && this.ui.apps.length > 0?html`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                                  @item-selected="${this.appSelected}"
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
@@ -232,7 +232,6 @@ export class MateuUi extends LitElement {
                 `:''}
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
-                        hola!
                     <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
                     
                 `:''}
@@ -281,9 +280,18 @@ export class MateuUi extends LitElement {
         cursor: pointer;        
     }
         
-        .container {
+        .containerx {
             justify-content: center;
             display: flex;
+        }
+
+        .container {
+            flex: 1 1 0;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            width: clamp(45ch, 90%, 75ch);
+            max-width: 955px;
+            margin: auto;
         }
     
     vaadin-button {

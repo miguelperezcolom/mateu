@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
-import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
@@ -16,27 +15,21 @@ import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.dtos.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +80,6 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
       throws Throwable {
 
     {
-
       try {
 
         Object logicToRun = valueProvider.getValue(m, actualViewInstance);
@@ -101,7 +93,8 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
         if (result == null) {
           return Mono.just(
               uIIncrementFactory.createForSingleComponent(
-                  componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
+                  componentFactory.createFormComponent(
+                      actualViewInstance, serverHttpRequest, data)));
         }
 
         if (Mono.class.isAssignableFrom(result.getClass())) {
@@ -120,7 +113,6 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
         } else {
 
           return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
-
         }
 
       } catch (InvocationTargetException ex) {
@@ -132,69 +124,93 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     }
   }
 
-  private UIIncrement getUiIncrement(Field m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+  private UIIncrement getUiIncrement(
+      Field m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+    if (r == null) {
+      return new UIIncrement(List.of(), null, List.of(), Map.of());
+    }
     if (r instanceof CloseModal closeModal) {
-      var component = componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
-      var uiIncrement = new UIIncrement(
+      var component =
+          componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
+      var uiIncrement =
+          new UIIncrement(
               List.of(),
               new SingleComponent(component.id()),
               getMessages(r, m),
               Map.of(component.id(), component));
       return new UIIncrement(
-              List.of(new UICommand(UICommandType.CloseModal, uiIncrement)),
-              null,
-              List.of(),
-              Map.of());
+          List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), null, List.of(), Map.of());
     }
     if (r instanceof Message message) {
-      return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
-              message.type(),
-              message.title(),
-              message.text(),
-              message.duration()
-      )), Map.of());
+      return new UIIncrement(
+          List.of(),
+          null,
+          List.of(
+              new io.mateu.dtos.Message(
+                  message.type(), message.title(), message.text(), message.duration())),
+          Map.of());
     }
     if (ActionTarget.Message.equals(getActionTarget(m))) {
-      return new UIIncrement(List.of(), null, List.of(new io.mateu.dtos.Message(
-              ResultType.Success,
-              "" + r,
-              null,
-              0
-      )), Map.of());
+      return new UIIncrement(
+          List.of(),
+          null,
+          List.of(new io.mateu.dtos.Message(ResultType.Success, "" + r, null, 0)),
+          Map.of());
     }
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m))) {
-        return new UIIncrement(List.of(new UICommand(UICommandType.OpenNewTab, url.toString())), null, List.of(), Map.of());
+        return new UIIncrement(
+            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())),
+            null,
+            List.of(),
+            Map.of());
       }
       if (ActionTarget.NewWindow.equals(getActionTarget(m))) {
-        return new UIIncrement(List.of(new UICommand(UICommandType.OpenNewWindow, url.toString())), null, List.of(), Map.of());
+        return new UIIncrement(
+            List.of(new UICommand(UICommandType.OpenNewWindow, url.toString())),
+            null,
+            List.of(),
+            Map.of());
       }
-      var component = componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
-      return new UIIncrement(List.of(), new SingleComponent(component.id()), List.of(), Map.of(component.id(), component));
+      var component =
+          componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
+      return new UIIncrement(
+          List.of(),
+          new SingleComponent(component.id()),
+          List.of(),
+          Map.of(component.id(), component));
     }
-    if (r != null && basicTypeChecker.isBasic(r.getClass())) {
-      var component = componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
-      return new UIIncrement(List.of(), new SingleComponent(component.id()), List.of(), Map.of(component.id(), component));
+
+    if (basicTypeChecker.isBasic(r.getClass())) {
+      var component =
+          componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
+      return new UIIncrement(
+          List.of(),
+          new SingleComponent(component.id()),
+          List.of(),
+          Map.of(component.id(), component));
     }
     if (r instanceof ResponseWrapper responseWrapper) {
-      var component = componentFactory.createFormComponent(responseWrapper.getResponse(), serverHttpRequest, data);
+      var component =
+          componentFactory.createFormComponent(
+              responseWrapper.getResponse(), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              new SingleComponent(component.id()),
-              responseWrapper.getMessages().stream().map(message -> new io.mateu.dtos.Message(
-                      message.type(),
-                      message.title(),
-                      message.text(),
-                      message.duration()
-              )).toList(),
-              Map.of(component.id(), component));
+          List.of(),
+          new SingleComponent(component.id()),
+          responseWrapper.getMessages().stream()
+              .map(
+                  message ->
+                      new io.mateu.dtos.Message(
+                          message.type(), message.title(), message.text(), message.duration()))
+              .toList(),
+          Map.of(component.id(), component));
     }
     var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
     return new UIIncrement(
-                    List.of(),
-                    new SingleComponent(component.id()),
-                    getMessages(r, m),
-                    Map.of(component.id(), component));
+        List.of(),
+        new SingleComponent(component.id()),
+        getMessages(r, m),
+        Map.of(component.id(), component));
   }
 
   private ActionTarget getActionTarget(Field m) {
@@ -233,5 +249,4 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     }
     return List.of();
   }
-
 }

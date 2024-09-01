@@ -62,9 +62,7 @@ public class FiltersDeserializer {
               Enum.valueOf((Class) field.getType(), (String) raw.get(field.getId())));
         }
       } else {
-        map.put(
-                field.getId(),
-                raw.get(field.getId()));
+        map.put(field.getId(), raw.get(field.getId()));
       }
     }
     return serializer.fromJson(serializer.toJson(map), listing.getSearchFormClass());

@@ -12,13 +12,12 @@ import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.ResultType;
 import io.mateu.dtos.Component;
 import io.mateu.dtos.UIIncrement;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CrudDeleteActionRunner implements ListActionRunner {
@@ -79,7 +78,16 @@ public class CrudDeleteActionRunner implements ListActionRunner {
       crud.delete(targetSet);
 
       Map<String, Component> backToComponents = new HashMap<>();
-      String backToComponentId = componentFactory.createComponent(false, crud, serverHttpRequest, null, List.of(), backToComponents, new AtomicInteger(), data);
+      String backToComponentId =
+          componentFactory.createComponent(
+              false,
+              crud,
+              serverHttpRequest,
+              null,
+              List.of(),
+              backToComponents,
+              new AtomicInteger(),
+              data);
 
       Result whatToShow =
           new Result(
@@ -109,11 +117,12 @@ public class CrudDeleteActionRunner implements ListActionRunner {
     if (targetSet.size() == 1) {
       return targetSet.get(0).toString() + " has been deleted.";
     }
-    String msg = "" + targetSet.get(0);
+    var msg = new StringBuilder("" + targetSet.get(0));
     for (int i = 1; i < targetSet.size() - 1; i++) {
-      msg += ", " + targetSet.get(i);
+      msg.append(", " + targetSet.get(i));
     }
-    msg += " and " + targetSet.get(targetSet.size() - 1);
-    return msg + " have been deleted.";
+    msg.append(" and " + targetSet.get(targetSet.size() - 1));
+    msg.append(" have been deleted.");
+    return msg.toString();
   }
 }

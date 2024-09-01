@@ -35,7 +35,8 @@ class SerializerTest {
                   new SetterProvider(),
                   new GetterProvider(),
                   new FieldByNameProvider(new AllFieldsProvider(new FieldFactory()))),
-              new AllFieldsProvider(new FieldFactory())),
+              new AllFieldsProvider(new FieldFactory()),
+              new BasicTypeChecker()),
           new ValueWriter(
               new SetterProvider(),
               new GetterProvider(),

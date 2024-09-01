@@ -11,20 +11,22 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MethodParametersEditorHandler {
 
-    private final InstanceProvider instanceProvider;
-    private final AllMethodsProvider allMethodsProvider;
+  private final InstanceProvider instanceProvider;
+  private final AllMethodsProvider allMethodsProvider;
 
-    public MethodParametersEditorHandler(InstanceProvider instanceProvider, AllMethodsProvider allMethodsProvider) {
-        this.instanceProvider = instanceProvider;
-        this.allMethodsProvider = allMethodsProvider;
-    }
+  public MethodParametersEditorHandler(
+      InstanceProvider instanceProvider, AllMethodsProvider allMethodsProvider) {
+    this.instanceProvider = instanceProvider;
+    this.allMethodsProvider = allMethodsProvider;
+  }
 
-    public boolean handles(MethodParametersEditor methodParametersEditor, String actionId) {
-        return "run".equals(actionId);
-    }
+  public boolean handles(MethodParametersEditor methodParametersEditor, String actionId) {
+    return "run".equals(actionId);
+  }
 
-    @SneakyThrows
-    public Object getTargetInstance(MethodParametersEditor methodParametersEditor) {
-        return instanceProvider.newInstance(methodParametersEditor.getType(), methodParametersEditor.getData());
-    }
+  @SneakyThrows
+  public Object getTargetInstance(MethodParametersEditor methodParametersEditor) {
+    return instanceProvider.newInstance(
+        methodParametersEditor.getType(), methodParametersEditor.getData());
+  }
 }

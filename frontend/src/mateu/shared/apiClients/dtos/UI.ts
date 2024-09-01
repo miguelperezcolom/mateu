@@ -1,5 +1,5 @@
 import Menu from "./Menu";
-import {App} from "./App";
+import App from "./App";
 
 export default interface UI {
 

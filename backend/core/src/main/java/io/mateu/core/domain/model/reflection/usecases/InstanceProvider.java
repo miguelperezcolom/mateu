@@ -1,5 +1,7 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
+import static org.apache.commons.beanutils.ConvertUtils.convert;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.infra.MateuConfiguratorBean;
@@ -9,10 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Service;
-
-import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 @Service
 @SuppressFBWarnings("EI_EXPOSE_REP2")
@@ -28,11 +27,12 @@ public class InstanceProvider {
   private final AllFieldsProvider allFieldsProvider;
 
   public InstanceProvider(
-          MateuConfiguratorBean beanProvider,
-          FieldByNameProvider fieldByNameProvider,
-          ValueProvider valueProvider,
-          ValueWriter valueWriter,
-          AllFieldsProvider allFieldsProvider, BasicTypeChecker basicTypeChecker) {
+      MateuConfiguratorBean beanProvider,
+      FieldByNameProvider fieldByNameProvider,
+      ValueProvider valueProvider,
+      ValueWriter valueWriter,
+      AllFieldsProvider allFieldsProvider,
+      BasicTypeChecker basicTypeChecker) {
     this.beanProvider = beanProvider;
     this.fieldByNameProvider = fieldByNameProvider;
     this.valueProvider = valueProvider;
@@ -42,7 +42,7 @@ public class InstanceProvider {
   }
 
   public <T> T newInstance(Class c)
-          throws NoSuchMethodException,
+      throws NoSuchMethodException,
           IllegalAccessException,
           InvocationTargetException,
           InstantiationException {
@@ -100,13 +100,18 @@ public class InstanceProvider {
     return (T) o;
   }
 
-  private Object[] buildConstructorParams(Constructor con, Map<String, Object> data) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+  private Object[] buildConstructorParams(Constructor con, Map<String, Object> data)
+      throws InvocationTargetException,
+          IllegalAccessException,
+          InstantiationException,
+          NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
       if (basicTypeChecker.isBasic(parameter.getType())) {
         params.add(convert(data.get(parameter.getName()), parameter.getType()));
       } else {
-        params.add(newInstance(parameter.getType(), data.getOrDefault(parameter.getName(), Map.of())));
+        params.add(
+            newInstance(parameter.getType(), data.getOrDefault(parameter.getName(), Map.of())));
       }
     }
     return params.toArray();

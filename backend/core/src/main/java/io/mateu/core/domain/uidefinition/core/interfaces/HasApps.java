@@ -5,5 +5,4 @@ import java.util.List;
 public interface HasApps {
 
   List<App> getApps();
-
 }

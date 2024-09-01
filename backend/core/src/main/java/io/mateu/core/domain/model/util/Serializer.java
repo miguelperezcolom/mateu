@@ -1,8 +1,10 @@
 package io.mateu.core.domain.model.util;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.introspect.AnnotatedField;
+import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
@@ -14,6 +16,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
 import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,6 +56,26 @@ public class Serializer {
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    // mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.NON_PRIVATE);
+    mapper.setVisibility(
+        new VisibilityChecker.Std(JsonAutoDetect.Visibility.NON_PRIVATE) {
+          @Override
+          public boolean isFieldVisible(java.lang.reflect.Field f) {
+            if (Modifier.isFinal(f.getModifiers())) {
+              return false;
+            }
+            return super.isFieldVisible(f);
+          }
+
+          @Override
+          public boolean isFieldVisible(AnnotatedField f) {
+            if (Modifier.isFinal(f.getModifiers())) {
+              return false;
+            }
+            return super.isFieldVisible(f);
+          }
+        });
     yamlMapper.enable(SerializationFeature.INDENT_OUTPUT);
     // Now you should use JavaTimeModule instead
     yamlMapper.registerModule(new JavaTimeModule());

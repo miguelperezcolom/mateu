@@ -21,5 +21,4 @@ public @interface Section {
   String topImageUrl() default "";
 
   int columns() default 0;
-
 }

@@ -59,8 +59,8 @@ public class CrudRowActionRunner implements ListActionRunner {
 
       if (r == null) {
         return Mono.just(
-                uIIncrementFactory.createForSingleComponent(
-                        componentFactory.createFormComponent(crud, serverHttpRequest, data)));
+            uIIncrementFactory.createForSingleComponent(
+                componentFactory.createFormComponent(crud, serverHttpRequest, data)));
       }
 
       return Mono.just(

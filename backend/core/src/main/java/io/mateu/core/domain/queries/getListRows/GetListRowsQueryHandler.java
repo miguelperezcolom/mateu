@@ -27,18 +27,31 @@ public class GetListRowsQueryHandler {
   @Transactional
   public Flux<Object> run(GetListRowsQuery query) throws Throwable {
 
-    Object instance = reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+    Object instance =
+        reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
 
-    Listing listing = null;
-    if (instance instanceof Listing instanceAsListing) {
-      listing = instanceAsListing;
-    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
-      listing = rpcViewWrapper.getRpcView();
+    if (instance == null) {
+      return Flux.empty();
+    }
+
+    Listing listing = getListing(instance);
+
+    if (listing == null) {
+      return Flux.empty();
     }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
 
     return listing.fetchRows(
         filters, query.ordering(), query.page() * query.pageSize(), query.pageSize());
+  }
+
+  private Listing getListing(Object instance) {
+    if (instance instanceof Listing instanceAsListing) {
+      return instanceAsListing;
+    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
+      return rpcViewWrapper.getRpcView();
+    }
+    return null;
   }
 }

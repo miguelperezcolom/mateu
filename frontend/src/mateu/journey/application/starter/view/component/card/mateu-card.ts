@@ -1,4 +1,4 @@
-import {css, html, LitElement, PropertyValues} from 'lit'
+import {css, html, LitElement} from 'lit'
 import {customElement, property} from 'lit/decorators.js'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vaadin-notification'
@@ -7,8 +7,8 @@ import '@vaadin/dialog'
 import Field from "../../../../../../shared/apiClients/dtos/Field";
 import FieldWrapper from "../form/FieldWrapper";
 import FieldsMap from "../form/FieldsMap";
-import Card from "../../../../../../../shared/apiClients/dtos/Card";
-import Value from "../../../../../../../shared/apiClients/dtos/Value";
+import Card from "../../../../../../shared/apiClients/dtos/Card";
+import Value from "../../../../../../shared/apiClients/dtos/Value";
 
 export interface FormElement {
 
@@ -57,25 +57,6 @@ export class MateuCard extends LitElement {
   @property()
   fieldsMap: FieldsMap = new FieldsMap();
 
-  async updated(changedProperties: PropertyValues) {
-    if (changedProperties.has("metadata")) {
-      this.setUp()
-    }
-    // No need to call any other method here.
-  }
-
-  setUp() {
-    this.metadata.fieldGroups
-        .flatMap(g => g.lines)
-        .flatMap(l => l.fields)
-        .forEach(f => this.fieldsMap.map.set(f, new FieldWrapper(f)))
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.setUp()
-  }
-
   getPaintableValue(field: Field, value: unknown) {
     if (field.type == 'ExternalReference[]') {
       const values = value as Value[]
@@ -94,28 +75,7 @@ export class MateuCard extends LitElement {
     return html`
       <div class="card">
         
-        <vaadin-horizontal-layout class="header">
-          ${this.metadata.icon?html`<vaadin-icon icon="vaadin:${this.metadata.icon}"></vaadin-icon>`:''}
-          <div>
-            <h4>${this.metadata.title}</h4>
-            <h6>${this.metadata.subtitle}</h6>
-          </div>
-          <div>${this.metadata.info}</div>
-        </vaadin-horizontal-layout>
-
-        ${this.metadata.fieldGroups.map(g => html`
-              ${g.caption?html`<h3>${g.caption}</h3>`:''}
-              <div class="table">
-              ${g.lines.flatMap(l => l.fields).map(f => html`<div class="field"><div class="cell caption">${f.caption}</div>
-                  <div class="cell value">${this.getPaintableValue(f, this.getValue(f.id))}</div></div>`)}
-
-                ${this.metadata.total?html`
-                  <div class="field total"><div class="cell caption">Total</div>
-                    <div class="cell value">${this.metadata.total}</div></div>
-        `:''}
-
-              </div>
-          </div>`)}
+        This is a card
       </div>
     `
   }

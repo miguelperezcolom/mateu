@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -31,6 +32,7 @@ public class FieldStereotypeMapper {
   final ReflectionHelper reflectionHelper;
   final SetterProvider setterProvider;
   final MethodProvider methodProvider;
+  private final GetterProvider getterProvider;
 
   public String mapStereotype(Object view, Field field) {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
@@ -41,11 +43,15 @@ public class FieldStereotypeMapper {
     }
     if (view != null
         && methodProvider.getMethod(
+                view.getClass(), getterProvider.getGetter(view.getClass(), field.getName()))
+            != null
+        && methodProvider.getMethod(
                 view.getClass(), setterProvider.getSetter(view.getClass(), field.getName()))
             == null) {
       return "readonly";
     }
-    if (field.isAnnotationPresent(ReadOnly.class) || view.getClass().isAnnotationPresent(ReadOnly.class)) {
+    if (field.isAnnotationPresent(ReadOnly.class)
+        || view.getClass().isAnnotationPresent(ReadOnly.class)) {
       return "readonly";
     }
     if (field.isAnnotationPresent(Password.class)) {

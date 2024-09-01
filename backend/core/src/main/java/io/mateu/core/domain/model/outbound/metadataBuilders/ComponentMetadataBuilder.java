@@ -45,61 +45,65 @@ public class ComponentMetadataBuilder {
   @Autowired private DataExtractor dataExtractor;
 
   public ComponentMetadata getMetadata(
-      boolean form, Object componentInstance, Field field, List<Field> slotFields, Map<String, Object> data) {
+      boolean form,
+      Object componentInstance,
+      Field field,
+      List<Field> slotFields,
+      Map<String, Object> data) {
     ComponentMetadata metadata;
-      if (componentInstance != null
-          && componentInstance instanceof List<?> list
-          && field != null
-          && field.isAnnotationPresent(HorizontalLayout.class)) {
-        metadata = getHorizontalLayout(list, componentInstance, field);
-      } else if (componentInstance != null
-          && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
-        metadata = getHorizontalLayout(componentInstance);
-      } else if (componentInstance != null
-          && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
-        metadata = getVerticalLayout(componentInstance);
-      } else if (componentInstance != null
-          && componentInstance instanceof List<?> list
-          && field != null
-          && field.isAnnotationPresent(VerticalLayout.class)) {
-        metadata = getVerticalLayout(list, componentInstance, field);
-      } else if (componentInstance != null
-          && componentInstance instanceof List<?> list
-          && field != null
-          && field.isAnnotationPresent(SplitLayout.class)) {
-        metadata = getSplitLayout(list, componentInstance, field);
-      } else if (componentInstance
-          instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
-        metadata =
-            getJourneyStarter(
-                (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter)
-                    componentInstance);
-      } else if (componentInstance instanceof Element) {
-        metadata = getElement((Element) componentInstance);
-      } else if (componentInstance instanceof MethodParametersEditor) {
-        metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
-      } else if (componentInstance instanceof Result) {
-        metadata = getResult((Result) componentInstance);
-      } else if (componentInstance instanceof Listing) {
-        metadata = getCrud("main", (Listing) componentInstance);
-      } else if (componentInstance instanceof RpcViewWrapper) {
-        metadata =
-            getCrud(
-                ((RpcViewWrapper) componentInstance).getId(),
-                ((RpcViewWrapper) componentInstance).getRpcView());
-      } else if (componentInstance instanceof Stepper) {
-        metadata = getStepper();
-      } else if (componentInstance instanceof Card card) {
-        metadata = getCard(card, slotFields);
-      } else if (componentInstance instanceof JpaCrud) {
-        metadata = getCrud("main", (JpaCrud) componentInstance);
+    if (componentInstance != null
+        && componentInstance instanceof List<?> list
+        && field != null
+        && field.isAnnotationPresent(HorizontalLayout.class)) {
+      metadata = getHorizontalLayout(list, componentInstance, field);
+    } else if (componentInstance != null
+        && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
+      metadata = getHorizontalLayout(componentInstance);
+    } else if (componentInstance != null
+        && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
+      metadata = getVerticalLayout(componentInstance);
+    } else if (componentInstance != null
+        && componentInstance instanceof List<?> list
+        && field != null
+        && field.isAnnotationPresent(VerticalLayout.class)) {
+      metadata = getVerticalLayout(list, componentInstance, field);
+    } else if (componentInstance != null
+        && componentInstance instanceof List<?> list
+        && field != null
+        && field.isAnnotationPresent(SplitLayout.class)) {
+      metadata = getSplitLayout(list, componentInstance, field);
+    } else if (componentInstance
+        instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
+      metadata =
+          getJourneyStarter(
+              (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter)
+                  componentInstance);
+    } else if (componentInstance instanceof Element) {
+      metadata = getElement((Element) componentInstance);
+    } else if (componentInstance instanceof MethodParametersEditor) {
+      metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
+    } else if (componentInstance instanceof Result) {
+      metadata = getResult((Result) componentInstance);
+    } else if (componentInstance instanceof Listing) {
+      metadata = getCrud("main", (Listing) componentInstance);
+    } else if (componentInstance instanceof RpcViewWrapper) {
+      metadata =
+          getCrud(
+              ((RpcViewWrapper) componentInstance).getId(),
+              ((RpcViewWrapper) componentInstance).getRpcView());
+    } else if (componentInstance instanceof Stepper) {
+      metadata = getStepper();
+    } else if (componentInstance instanceof Card card) {
+      metadata = getCard(card, slotFields);
+    } else if (componentInstance instanceof JpaCrud) {
+      metadata = getCrud("main", (JpaCrud) componentInstance);
+    } else {
+      if (form) {
+        metadata = getForm(componentInstance, slotFields, data);
       } else {
-        if (form) {
-          metadata = getForm(componentInstance, slotFields, data);
-        } else {
-          metadata = getNonForm(componentInstance, slotFields);
-        }
+        metadata = getNonForm(componentInstance, slotFields);
       }
+    }
 
     return metadata;
   }
@@ -181,6 +185,7 @@ public class ComponentMetadataBuilder {
   }
 
   public ComponentMetadata getFormMetadata(Object form, Map<String, Object> data) {
-    return getMetadata(true, form, null, reflectionHelper.getAllEditableFields(form.getClass()), data);
+    return getMetadata(
+        true, form, null, reflectionHelper.getAllEditableFields(form.getClass()), data);
   }
 }

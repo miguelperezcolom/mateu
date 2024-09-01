@@ -74,7 +74,7 @@ export class FieldStepper extends LitElement implements Component {
     }
 
     @property()
-    value: Stepper | undefined;
+    value: any | undefined;
 
     @property()
     enabled = true;

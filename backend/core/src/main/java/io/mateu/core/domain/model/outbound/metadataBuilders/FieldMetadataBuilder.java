@@ -42,7 +42,7 @@ public class FieldMetadataBuilder {
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
             fieldAttributeBuilder.buildAttributes(view, fieldInterfaced),
-                getColspan(fieldInterfaced));
+            getColspan(fieldInterfaced));
     return field;
   }
 

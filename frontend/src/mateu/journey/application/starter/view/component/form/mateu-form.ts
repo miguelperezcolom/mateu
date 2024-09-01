@@ -391,6 +391,7 @@ export class MateuForm extends LitElement implements FormElement {
 
   tabChanged = (e: TabsSelectedChangedEvent) => {
     this.activeTab = this.metadata.tabs[e.detail.value].id
+    console.log('tab changed to', this.activeTab)
   }
 
   getSelectedTabIndex = () => {

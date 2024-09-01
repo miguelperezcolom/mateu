@@ -142,9 +142,11 @@ public class FormMetadataBuilder {
   }
 
   private boolean isReadOnly(Object uiInstance) {
-    return uiInstance != null && uiInstance
-        .getClass()
-        .isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly.class);
+    return uiInstance != null
+        && uiInstance
+            .getClass()
+            .isAnnotationPresent(
+                io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly.class);
   }
 
   public boolean isOwner(Field f) {
@@ -258,7 +260,7 @@ public class FormMetadataBuilder {
     List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
-            .filter(f -> slotFields.contains(f))
+            .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
             .toList();
 
     var sections = createSections(uiInstance, allEditableFields);
@@ -282,7 +284,13 @@ public class FormMetadataBuilder {
                   fields -> {
                     if (!fields.isEmpty()) {
                       var firstField = fields.get(0);
-                      addSection(fields, uiInstance, firstField, tabId, sections, getNumberOfColumns(uiInstance));
+                      addSection(
+                          fields,
+                          uiInstance,
+                          firstField,
+                          tabId,
+                          sections,
+                          getNumberOfColumns(uiInstance));
                     }
                   });
             });
@@ -328,8 +336,7 @@ public class FormMetadataBuilder {
             leftSideImageUrl,
             topImageUrl,
             createFieldGroups(uiInstance, fields),
-                numberOfColumns
-                );
+            numberOfColumns);
     sections.add(section);
   }
 
@@ -363,7 +370,7 @@ public class FormMetadataBuilder {
         tabId = "tab_" + field.getId();
       }
       if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.NoTab.class)) {
+          io.mateu.core.domain.uidefinition.shared.annotations.NoTab.class)) {
         tabId = "";
       }
       fieldsByTabId.putIfAbsent(tabId, new ArrayList<>());
@@ -429,7 +436,7 @@ public class FormMetadataBuilder {
                                     s.fieldGroups().get(j).caption(),
                                     s.fieldGroups().get(j).lines()))
                         .toList(),
-                        s.columns()))
+                    s.columns()))
         .toList();
   }
 }

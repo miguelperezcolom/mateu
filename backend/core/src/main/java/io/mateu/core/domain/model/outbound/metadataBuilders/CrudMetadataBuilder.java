@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
+import io.mateu.core.domain.uidefinition.shared.annotations.Child;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Column;
@@ -48,7 +49,8 @@ public class CrudMetadataBuilder {
         reflectionHelper.isOverridden(rpcView, "getDetail"),
         buildSearchForm(rpcView, listId),
         buildColumns(rpcView),
-        actionMetadataBuilder.getActions(listId, rpcView));
+        actionMetadataBuilder.getActions(listId, rpcView),
+        rpcView.getClass().isAnnotationPresent(Child.class));
   }
 
   private String getSubtitle(Listing rpcView) {
@@ -138,7 +140,7 @@ public class CrudMetadataBuilder {
                         f.badges(),
                         f.validations(),
                         f.attributes(),
-                            f.colspan()))
+                        f.colspan()))
             .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
@@ -158,7 +160,7 @@ public class CrudMetadataBuilder {
                           List.of(),
                           List.of(),
                           List.of(),
-                              1)),
+                          1)),
                   filterFields.stream())
               .toList();
     return filterFields;

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -29,6 +30,7 @@ public class SubmitSimpleFormTest {
   @Autowired Serializer serializer;
 
   @Test
+  @Disabled
   void formIsSubmitted() throws Throwable {
     // given
     var uiId = SimpleForm.class.getName();

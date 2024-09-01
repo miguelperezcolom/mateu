@@ -30,17 +30,30 @@ public class GetListCountQueryHandler {
 
   public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
-    Object instance = reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+    Object instance =
+        reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
 
-    Listing listing = null;
-    if (instance instanceof Listing instanceAsListing) {
-      listing = instanceAsListing;
-    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
-      listing = rpcViewWrapper.getRpcView();
+    if (instance == null) {
+      return Mono.empty();
+    }
+
+    Listing listing = getListing(instance);
+
+    if (listing == null) {
+      return Mono.empty();
     }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
 
     return listing.fetchCount(filters);
+  }
+
+  private Listing getListing(Object instance) {
+    if (instance instanceof Listing instanceAsListing) {
+      return instanceAsListing;
+    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
+      return rpcViewWrapper.getRpcView();
+    }
+    return null;
   }
 }

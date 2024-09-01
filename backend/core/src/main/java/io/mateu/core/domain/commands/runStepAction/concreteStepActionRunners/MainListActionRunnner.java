@@ -6,6 +6,7 @@ import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
@@ -30,26 +31,38 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
   final ValidationService validationService;
-  private final ComponentFactory componentFactory;
-  private final UIIncrementFactory uIIncrementFactory;
-  private final BasicTypeChecker basicTypeChecker;
-  private final MethodParametersEditorHandler methodParametersEditorHandler;
-  private final MethodProvider methodProvider;
 
-  public MainListActionRunnner(List<ListActionRunner> listActionRunners, Merger merger, ActualValueExtractor actualValueExtractor, ReflectionHelper reflectionHelper, Serializer serializer, ValidationService validationService, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory, BasicTypeChecker basicTypeChecker, MethodParametersEditorHandler methodParametersEditorHandler, MethodProvider methodProvider) {
-      super(merger,
-              actualValueExtractor, reflectionHelper, serializer, validationService, componentFactory, uIIncrementFactory, basicTypeChecker, methodParametersEditorHandler, methodProvider);
-      this.listActionRunners = listActionRunners;
-      this.merger = merger;
-      this.actualValueExtractor = actualValueExtractor;
-      this.reflectionHelper = reflectionHelper;
-      this.serializer = serializer;
-      this.validationService = validationService;
-      this.componentFactory = componentFactory;
-      this.uIIncrementFactory = uIIncrementFactory;
-      this.basicTypeChecker = basicTypeChecker;
-      this.methodParametersEditorHandler = methodParametersEditorHandler;
-      this.methodProvider = methodProvider;
+  public MainListActionRunnner(
+      List<ListActionRunner> listActionRunners,
+      Merger merger,
+      ActualValueExtractor actualValueExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      ValidationService validationService,
+      ViewMapper viewMapper,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory,
+      BasicTypeChecker basicTypeChecker,
+      MethodParametersEditorHandler methodParametersEditorHandler,
+      MethodProvider methodProvider) {
+    super(
+        merger,
+        actualValueExtractor,
+        reflectionHelper,
+        serializer,
+        validationService,
+        componentFactory,
+        uIIncrementFactory,
+        basicTypeChecker,
+        methodParametersEditorHandler,
+        methodProvider,
+        viewMapper);
+    this.listActionRunners = listActionRunners;
+    this.merger = merger;
+    this.actualValueExtractor = actualValueExtractor;
+    this.reflectionHelper = reflectionHelper;
+    this.serializer = serializer;
+    this.validationService = validationService;
   }
 
   @Override
@@ -82,6 +95,12 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
       }
     }
 
-    return super.run(rpcView, stepId, actionId.substring(actionId.lastIndexOf("__") + 2), data, contextData, serverHttpRequest);
+    return super.run(
+        rpcView,
+        stepId,
+        actionId.substring(actionId.lastIndexOf("__") + 2),
+        data,
+        contextData,
+        serverHttpRequest);
   }
 }

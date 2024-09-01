@@ -23,6 +23,7 @@ public class SimpleForm implements Form {
     return new Message(
         ResultType.Success,
         "Form submitted",
-        "You entered " + name + ", " + age + " before submitting.");
+        "You entered " + name + ", " + age + " before submitting.",
+        5000);
   }
 }

@@ -9,5 +9,4 @@ package io.mateu.dtos;
  * @param url Url for this app
  * @param disabled If this app is disabled
  */
-public record App(String icon, String name, String description, String url, boolean disabled) {
-}
+public record App(String icon, String name, String description, String url, boolean disabled) {}

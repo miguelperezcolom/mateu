@@ -17,10 +17,16 @@ public record UI(
 
   public UI {
     menu = Collections.unmodifiableList(menu);
+    apps = Collections.unmodifiableList(apps);
   }
 
   @Override
   public List<Menu> menu() {
     return Collections.unmodifiableList(menu);
+  }
+
+  @Override
+  public List<App> apps() {
+    return Collections.unmodifiableList(apps);
   }
 }

@@ -66,7 +66,8 @@ public class MethodParametersEditorMetadataBuilder {
             null,
             null,
             true,
-                ActionPosition.Right, 0);
+            ActionPosition.Right,
+            0);
     actions.add(action);
     return actions;
   }
@@ -132,11 +133,11 @@ public class MethodParametersEditorMetadataBuilder {
                                                                     f.badges(),
                                                                     f.validations(),
                                                                     f.attributes(),
-                                                                        f.colspan()))
+                                                                    f.colspan()))
                                                         .toList()))
                                         .toList()))
                         .toList(),
-                        s.columns()))
+                    s.columns()))
         .toList();
   }
 

@@ -123,17 +123,13 @@ export class FieldCrud extends LitElement implements Component {
     && f.type != 'DatesRange'
     && f.type != 'ExternalReference'?html`
             <vaadin-text-field id="${f.id}" label="${f.caption}"
-                               placeholder="${f.placeholder}"
                                value="${this.getFieldValue(f.id)}"
-                               ?readonly="${f.readOnly}"
                                @value-changed="${filterChanged}"
             ></vaadin-text-field>
           `:''}
           ${f.type == 'int'?html`
               <vaadin-integer-field id="${f.id}" label="${f.caption}"
-                                 placeholder="${f.placeholder}"
                                  value="${this.getFieldValue(f.id)}"
-                                 ?readonly="${f.readOnly}"
                                  @value-changed="${filterChanged}"
               ></vaadin-integer-field>
           `:''}
@@ -141,7 +137,6 @@ export class FieldCrud extends LitElement implements Component {
             <vaadin-checkbox-group
             ><vaadin-checkbox label="Yes"
                               id="${f.id}" label="${f.caption}"
-                              placeholder="${f.placeholder}"
                               value="${this.getFieldValue(f.id)}"
                               @change=${filterChanged}
                               ?checked=${this.getFieldValue(f.id)}
@@ -153,7 +148,6 @@ export class FieldCrud extends LitElement implements Component {
           ${f.type == 'date'?html`
             <vaadin-date-picker id="${f.id}" label="${f.caption}" 
                                value="${this.getFieldValue(f.id)}"
-                               placeholder="${f.placeholder}"
                                @change=${filterChanged}></vaadin-date-picker>
           `:''}
           ${f.type == 'enum'?html`
@@ -165,7 +159,6 @@ export class FieldCrud extends LitElement implements Component {
                               .items="${f.attributes.filter(a => a.key == 'choice').map(a => a.value)}"
                               item-label-path="key"
                               item-value-path="value"
-                              placeholder="${f.placeholder}"
             >
             </vaadin-combo-box>
             
@@ -181,7 +174,6 @@ export class FieldCrud extends LitElement implements Component {
                                @filterchanged=${filterChanged}
                               item-label-path="key"
                               item-value-path="value"
-                              placeholder="${f.placeholder}"
             >
             </field-externalref>
             

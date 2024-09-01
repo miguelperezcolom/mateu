@@ -1,14 +1,12 @@
 package io.mateu.core.domain.uidefinition.core.interfaces;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public interface CustomActionHandler {
 
-    List<String> getManagedActions();
+  List<String> getManagedActions();
 
-    Object handle(String actionId, Map<String, Object> data, ServerHttpRequest serverHttpRequest);
-
+  Object handle(String actionId, Map<String, Object> data, ServerHttpRequest serverHttpRequest);
 }

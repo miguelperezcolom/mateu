@@ -30,6 +30,8 @@ import {CrudService} from "./crudservice";
 import Action from "../../../../../../shared/apiClients/dtos/Action";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
 import {ActionTarget} from "../../../../../../shared/apiClients/dtos/ActionTarget";
+import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
+
 
 /**
  * An example element.
@@ -43,7 +45,7 @@ export class MateuCrud extends LitElement {
    * Copy for the read the docs hint.
    */
 
-  @query('#grid')
+  @query('vaadin-grid')
   grid!: Grid
 
   @property()
@@ -223,14 +225,14 @@ export class MateuCrud extends LitElement {
   }
 
   private stampState(state: CrudState) {
-    if (this.journeyId == state.journeyId && this.component.id == state.listId) {
+//    if (this.journeyId == state.journeyId && this.component.id == state.listId) {
       this.state = state
       this.items = state.items
       if (state.count > -1) {
         this.count = state.count
       }
       this.message = state.message
-    }
+//    }
   }
 
   disconnectedCallback() {
@@ -420,11 +422,13 @@ export class MateuCrud extends LitElement {
     if (c.type == 'Status') {
       return html`
             <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
+                                      id="${this.component.id}-${c.id}"
                                       width="${c.width}" data-testid="column-${c.id}"
                 ${columnBodyRenderer(
-          (row) => {
+                    // @ts-ignore
+                    (row, model, column) => {
             // @ts-ignore
-            const status = row[c.id]
+            const status = row[column.path]
             return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
           },
           []
@@ -435,10 +439,12 @@ export class MateuCrud extends LitElement {
     if (c.type == 'ColumnActionGroup') {
       return html`
         <vaadin-grid-column  path="${c.id}" data-testid="column-${c.id}" header="${c.caption}" width="60px"
+                             id="${this.component.id}-${c.id}"
                              ${columnBodyRenderer(
-                                 (row) => {
+                                 // @ts-ignore
+                                 (row, model, column) => {
                                    // @ts-ignore
-                                   const actions = row[c.id]?.actions.map(a => {
+                                   const actions = row[column.path]?.actions.map(a => {
                                      return {
                                        ...a,text: a.caption
                                      }
@@ -448,7 +454,7 @@ export class MateuCrud extends LitElement {
                                          .items=${[{ text: '···', children: actions }]}
                                          theme="tertiary"
                                          .row="${row}"
-                                         data-testid="menubar-${c.id}"
+                                         data-testid="menubar-${column.path}"
                                          @item-selected="${this.itemSelected}"
                                      ></vaadin-menu-bar>
                                    `;
@@ -462,6 +468,16 @@ export class MateuCrud extends LitElement {
             <vaadin-grid-sort-column path="${c.id}" header="${c.caption}" resizable
                                      width="${c.width}"
                                      data-testid="column-${c.id}"
+                                     id="${this.component.id}-${c.id}"
+                                     ${columnBodyRenderer(
+                                         // @ts-ignore
+                                         (row, model, column) => {
+                                           // @ts-ignore
+                                           const value = row[column.path]
+                                           return html`${unsafeHTML(value)}`;
+                                         },
+                                         []
+                                     )}
             ></vaadin-grid-sort-column>
         `;
   }
@@ -512,10 +528,17 @@ export class MateuCrud extends LitElement {
 
       <vaadin-horizontal-layout class="header" style="align-items: baseline;">
         <div style=" flex-grow: 1;">
-          <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
-          ${this.metadata.subtitle?html`
+          ${this.metadata.child?html`
+            <h4>${this.metadata.title}</h4>
+            ${this.metadata.subtitle?html`
             <p style="margin-top: -6px;">${this.metadata.subtitle}</p>
           `:''}
+          `:html`
+            <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
+            ${this.metadata.subtitle?html`
+            <p style="margin-top: -6px;">${this.metadata.subtitle}</p>
+          `:''}
+          `}
         </div>
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
           ${this.metadata.actions.filter(a => a.visible).length > 2?html`
@@ -529,7 +552,7 @@ export class MateuCrud extends LitElement {
           `)}
             `}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
-      ${this.metadata?.searchForm.fields?html`
+      ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
           ${this.metadata?.searchForm.fields.slice(0,1).map(f => html`
           <vaadin-text-field id="${f.id}" 
@@ -542,7 +565,7 @@ export class MateuCrud extends LitElement {
                              autoselect="on"></vaadin-text-field>
         `)}
           <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
-          ${this.metadata?.searchForm.fields?html`
+          ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 1?html`
             <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
           `:''}
@@ -550,7 +573,7 @@ export class MateuCrud extends LitElement {
         <p style="margin-block-start: 0;">${this.filtersText}</p>
       `:''}
 
-      <vaadin-grid id="grid" .items="${this.items}" all-rows-visible>
+      <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible>
         <vaadin-grid-selection-column></vaadin-grid-selection-column>
 
       ${this.metadata?.columns.map(c => {
@@ -571,6 +594,7 @@ export class MateuCrud extends LitElement {
         
         </vaadin-grid>
       
+      ${this.count > this.pageSize?html`
       <vaadin-horizontal-layout style="align-items: baseline; width: 100%;" theme="spacing">
         <div style=" flex-grow: 1;">${this.message?this.message:`${this.count} elements found.`}</div>
         <div style="justify-content: end;">
@@ -585,20 +609,16 @@ export class MateuCrud extends LitElement {
         <div style="justify-content: end;">
           <vaadin-menu-bar
               .items=${[{ text: 'Export as ...', children: [
-                  {text: 'Excel'},
-                  {text: 'Csv'}
-                ] }]}
+          {text: 'Excel'},
+          {text: 'Csv'}
+        ] }]}
               theme="tertiary"
               data-testid="export-menu"
               @item-selected="${this.exportItemSelected}"
           ></vaadin-menu-bar>
         </div>
       </vaadin-horizontal-layout>
-      <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
-        <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;">
-          <slot></slot>
-        </vaadin-horizontal-layout>
-      </vaadin-horizontal-layout>
+      `:''}
 
       <vaadin-dialog
           header-title="Filters"

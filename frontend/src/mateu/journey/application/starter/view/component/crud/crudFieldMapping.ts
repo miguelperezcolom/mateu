@@ -1,5 +1,5 @@
 import {html} from 'lit'
-import Field from "../../../../../../../shared/apiClients/dtos/Field";
+import Field from "../../../../../../shared/apiClients/dtos/Field";
 
 export const mapField = (f: Field, filterChanged: Function, baseUrl: string, data: any) => html`
           ${f.type != 'enum'

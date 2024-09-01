@@ -11,5 +11,4 @@ public class CloseModal<T> {
   public CloseModal(T data) {
     this.data = data;
   }
-
 }

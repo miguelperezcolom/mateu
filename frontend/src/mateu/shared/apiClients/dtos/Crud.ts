@@ -11,5 +11,6 @@ export default interface Crud extends ComponentMetadata {
     searchForm: SearchForm
     columns: Column[]
     actions: Action[]
+    child: boolean
 
 }

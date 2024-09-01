@@ -80,7 +80,8 @@ public class ViewMapper {
                     p.getField(),
                     p.getFields(),
                     allComponentsInStep,
-                    componentCounter, data);
+                    componentCounter,
+                    data);
             componentIdsPerSlot.get(slot).add(component);
           });
     }

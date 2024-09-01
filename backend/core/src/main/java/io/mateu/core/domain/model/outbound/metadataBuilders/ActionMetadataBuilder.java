@@ -8,7 +8,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -44,15 +43,16 @@ public class ActionMetadataBuilder {
             getCustomEvent(m),
             getHref(m),
             isRunOnEnter(m),
-                getPosition(m),
-                getTimeoutMillis(m));
+            getPosition(m),
+            getTimeoutMillis(m));
     return action;
   }
 
   private ActionPosition getPosition(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
       return ActionPosition.valueOf(action.position().name());
     }
     return ActionPosition.Right;
@@ -64,9 +64,10 @@ public class ActionMetadataBuilder {
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
       return action.runOnEnter();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
       return action.runOnEnter();
     }
     return true;
@@ -75,12 +76,13 @@ public class ActionMetadataBuilder {
   private int getTimeoutMillis(Method m) {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
       return action.timeoutMillis();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
       return action.timeoutMillis();
     }
     return 0;
@@ -284,8 +286,8 @@ public class ActionMetadataBuilder {
                           a.customEvent(),
                           a.href(),
                           false,
-                              ActionPosition.Right,
-                              a.timeoutMillis()))
+                          ActionPosition.Right,
+                          a.timeoutMillis()))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -304,8 +306,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               false,
-                  ActionPosition.Right,
-                  0);
+              ActionPosition.Right,
+              0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -328,8 +330,8 @@ public class ActionMetadataBuilder {
               null,
               null,
               false,
-                  ActionPosition.Right,
-                  0);
+              ActionPosition.Right,
+              0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

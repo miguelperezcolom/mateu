@@ -1,4 +1,4 @@
-import Field from "../../../../../../../shared/apiClients/dtos/Field";
+import Field from "../../../../../../shared/apiClients/dtos/Field";
 import Component from "./section/fieldGroup/field/fields/interfaces/Component";
 import {MateuField} from "./section/fieldGroup/field/mateu-field";
 
