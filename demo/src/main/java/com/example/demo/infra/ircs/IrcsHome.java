@@ -11,7 +11,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 
 @MateuUI("/ircs")
-@KeycloakSecured(url = "https://lemur-10.cloud-iam.com/auth", realm = "mateu", clientId = "cliente")
+//@KeycloakSecured(url = "https://lemur-10.cloud-iam.com/auth", realm = "mateu", clientId = "cliente")
 public class IrcsHome implements HasLogout, HasAppTitle {
 
     @MenuOption

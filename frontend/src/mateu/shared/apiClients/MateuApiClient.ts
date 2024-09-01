@@ -170,7 +170,7 @@ class MateuApiClient {
         return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + '/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
-            '/' + listId + '/' +
+            '/' + listId +
             "/lists/unique/rows?page=" + page + "&page_size=" + pageSize +
             "&ordering=" + sortOrders
             , payload)
