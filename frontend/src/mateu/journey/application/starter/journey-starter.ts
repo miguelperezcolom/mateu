@@ -287,6 +287,7 @@ export class JourneyStarter extends LitElement {
         });
         // @ts-ignore
         closer.notification = notification
+        // @ts-ignore
         closer.close = () => {
             notification.close();
         }
