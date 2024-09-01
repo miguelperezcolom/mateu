@@ -1,15 +1,21 @@
 package io.mateu.dtos;
 
 public enum ActionTarget {
-  SameLane,
+  View,
   Message,
   NewModal,
   NewTab,
   NewWindow,
-  Left,
-  Right,
+  LeftDrawer,
+  RightDrawer,
   NewJourney,
-  Deferred,
+  Deferred, // deferred used when returning a URL
   DeferredNewTab,
-  DeferredNewWindow
+  DeferredNewWindow,
+  Component,
+  Header,
+  Footer,
+  Main,
+  Left,
+  Right
 }

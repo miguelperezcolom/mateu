@@ -1,8 +1,10 @@
 package io.mateu.jpa.domain.json;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.AllTransferrableFieldsProvider;
+import io.mateu.core.domain.model.reflection.usecases.IdProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.CascadeType;
@@ -19,12 +21,15 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MateuEntitySerializer implements EntitySerializer {
 
-  final ReflectionHelper reflectionHelper;
+  private final AllTransferrableFieldsProvider allTransferrableFieldsProvider;
+  private final ValueProvider valueProvider;
+  private final IdProvider idProvider;
 
   @Override
   public Map<String, Object> toMap(Object entity) throws Exception {
     Map<String, Object> data = new HashMap<>();
-    for (Field field : reflectionHelper.getAllTransferrableFields(entity.getClass())) {
+    for (Field field :
+        allTransferrableFieldsProvider.getAllTransferrableFields(entity.getClass())) {
       addToData(data, field, entity);
     }
     return data;
@@ -39,19 +44,19 @@ public class MateuEntitySerializer implements EntitySerializer {
       addManyToOne(data, field, entity);
       return;
     }
-    data.put(field.getId(), reflectionHelper.getValue(field, entity));
+    data.put(field.getId(), valueProvider.getValue(field, entity));
   }
 
   private void addManyToOne(Map<String, Object> data, Field field, Object entity) throws Exception {
-    Object value = reflectionHelper.getValue(field, entity);
+    Object value = valueProvider.getValue(field, entity);
     if (value == null) {
       return;
     }
-    data.put(field.getId(), new ExternalReference(reflectionHelper.getId(value), value.toString()));
+    data.put(field.getId(), new ExternalReference(idProvider.getId(value), value.toString()));
   }
 
   private void addXToMany(Map<String, Object> data, Field field, Object entity) throws Exception {
-    Collection list = (Collection) reflectionHelper.getValue(field, entity);
+    Collection list = (Collection) valueProvider.getValue(field, entity);
     if (list == null) {
       return;
     }
@@ -69,8 +74,7 @@ public class MateuEntitySerializer implements EntitySerializer {
     } else {
       List<ExternalReference> refs = new ArrayList<>();
       list.forEach(
-          value ->
-              refs.add(new ExternalReference(reflectionHelper.getId(value), value.toString())));
+          value -> refs.add(new ExternalReference(idProvider.getId(value), value.toString())));
       data.put(field.getId(), refs);
     }
   }

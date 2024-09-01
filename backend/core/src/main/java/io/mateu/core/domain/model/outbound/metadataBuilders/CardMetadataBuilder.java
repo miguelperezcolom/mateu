@@ -9,6 +9,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Card;
+import io.mateu.dtos.CardLayout;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
@@ -29,17 +30,16 @@ public class CardMetadataBuilder {
   final CaptionProvider captionProvider;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(String dataPrefix, String stepId, Object uiInstance, List<Field> slotFields) {
-    Card card =
+  public Card build(
+      io.mateu.core.domain.uidefinition.core.interfaces.Card card, List<Field> slotFields) {
+    Card metadata =
         new Card(
-            dataPrefix,
-            captionProvider.getCaption(uiInstance),
-            getSubtitle(uiInstance),
-            getInfo(uiInstance),
-            getIcon(uiInstance),
-            getTotal(uiInstance),
-            getFieldGroups(stepId, uiInstance, slotFields));
-    return card;
+            CardLayout.Layout1,
+            card.thumbnail(),
+            List.of(), // todo: create actions
+            List.of() // todo: create actions
+            );
+    return metadata;
   }
 
   private String getIcon(Object uiInstance) {

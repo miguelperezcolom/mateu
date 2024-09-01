@@ -1,26 +1,17 @@
 import FieldGroup from "./FieldGroup";
-import Action from "./Action";
+import {SectionType} from "./SectionType";
 
 export default interface Section {
 
     id: string
-
-    caption: string
-
     tabId: string
-
+    caption: string
     description: string
-
     readOnly: boolean
-
-    type: string
-
+    type: SectionType
     leftSideImageUrl: string
-
     topImageUrl: string
-
-    actions: Action[]
-
     fieldGroups: FieldGroup[]
+    columns: number
 
 }

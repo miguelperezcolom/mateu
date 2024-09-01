@@ -1,20 +1,20 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import io.mateu.dtos.JourneyContainer;
+import io.mateu.dtos.UIIncrement;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 public interface ActionRunner {
 
-  boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId);
+  boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData);
 
-  Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  Mono<UIIncrement> run(
       Object viewInstance,
       String stepId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable;
 }

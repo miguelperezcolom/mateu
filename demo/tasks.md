@@ -13,7 +13,7 @@
 - incidencia details anidados con cruds
 ### Domingo
 - métodos con parámetros
-- @Element + @ExternalScript + falta mapear **eventos**
+- @CustomElement + @ExternalScript + falta mapear **eventos**
   - https://web.dev/model-viewer/
   - https://axa-ch-webhub-cloud.github.io/plib-feature/develop/?path=/story/components--input-phone
 - Section y FieldGroup interfaces

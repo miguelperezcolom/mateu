@@ -1,17 +1,18 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.inbound.editors.EntityEditor;
-import io.mateu.core.domain.model.inbound.editors.FieldEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.shared.annotations.File;
+import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,45 +23,32 @@ public class DataExtractor {
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
 
-  public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) throws Exception {
-    if (uiInstance instanceof EntityEditor) {
-      Map<String, Object> data = new HashMap<>();
-      data.putAll(((EntityEditor) uiInstance).getData());
-      data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
-      return data;
-    }
+  public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) {
     if (uiInstance instanceof ObjectEditor) {
       Map<String, Object> data = new HashMap<>();
       data.putAll(((ObjectEditor) uiInstance).getData());
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
-      return data;
-    }
-    if (uiInstance instanceof FieldEditor) {
-      Map<String, Object> data = new HashMap<>();
-      data.putAll(((FieldEditor) uiInstance).getData());
-      data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
-      data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
-      data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
       return data;
     }
     return getData(actualUiInstance);
   }
 
-  public Map<String, Object> getData(Object uiInstance) throws Exception {
-    Map<String, Object> data = new HashMap<>();
-    if (uiInstance instanceof EntityEditor) {
-      data.putAll(((EntityEditor) uiInstance).getData());
-      data.put("__entityClassName__", ((EntityEditor) uiInstance).getEntityClass().getName());
+  @SneakyThrows
+  public Map<String, Object> getData(Object uiInstance) {
+    if (uiInstance instanceof Element element) {
+      return Map.of("content", element.content());
     }
+    if (uiInstance instanceof Card card) {
+      return Map.of(
+          "headerText", card.headerText(),
+          "subhead", card.subhead(),
+          "media", card.media(),
+          "supportingText", card.supportingText());
+    }
+    Map<String, Object> data = new HashMap<>();
     if (uiInstance instanceof ObjectEditor) {
       data.putAll(((ObjectEditor) uiInstance).getData());
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
-    }
-    if (uiInstance instanceof FieldEditor) {
-      data.putAll(((FieldEditor) uiInstance).getData());
-      data.put("__type__", ((FieldEditor) uiInstance).getType().getName());
-      data.put("__fieldId__", ((FieldEditor) uiInstance).getFieldId());
-      data.put("__initialStep__", ((FieldEditor) uiInstance).getInitialStep());
     }
     data.putAll(serializer.toMap(uiInstance));
     convertStringsToFiles(uiInstance, data);

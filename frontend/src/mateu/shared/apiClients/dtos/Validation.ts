@@ -1,9 +1,9 @@
+import {ValidationType} from "./ValidationType";
+
 export default interface Validation {
 
-    type: string;
-
+    type: ValidationType;
     message: string;
-
-    data: string;
+    data: unknown;
 
 }

@@ -3,34 +3,38 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
-import io.mateu.core.domain.model.inbound.editors.EntityEditor;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
-import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasCallback;
+import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.ResultType;
-import io.mateu.dtos.Step;
-import io.mateu.dtos.View;
+import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -40,146 +44,102 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class RunMethodActionRunner extends AbstractActionRunner implements ActionRunner {
 
-  final JourneyContainerService store;
   final Merger merger;
   final ActualValueExtractor actualValueExtractor;
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
   final ValidationService validationService;
+  private final ComponentFactory componentFactory;
+  private final UIIncrementFactory uIIncrementFactory;
+  private final BasicTypeChecker basicTypeChecker;
+  private final MethodParametersEditorHandler methodParametersEditorHandler;
+  private final MethodProvider methodProvider;
+  private final ViewMapper viewMapper;
 
   @Override
-  public boolean applies(JourneyContainer journeyContainer, Object viewInstance, String actionId) {
-    if ("xxxbacktostep".equals(actionId)) {
-      return true;
+  public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
+    if (viewInstance instanceof MethodParametersEditor methodParametersEditor) {
+      return methodParametersEditorHandler.handles(methodParametersEditor, actionId);
     }
-    return getActions(journeyContainer, getActualInstance(journeyContainer, viewInstance, Map.of()))
-        .containsKey(actionId);
+    return getActions(viewInstance).containsKey(actionId);
   }
 
-  private Object getActualInstance(
-      JourneyContainer journeyContainer, Object viewInstance, Map<String, Object> data) {
-    if (viewInstance instanceof EntityEditor) {
-      try {
-        EntityEditor entityEditor = ((EntityEditor) viewInstance);
-        var actualInstance =
-            merger.loadEntity(entityEditor.getData(), entityEditor.getEntityClass());
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
-                    reflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-        return actualInstance;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-    if (viewInstance instanceof ObjectEditor) {
-      try {
-        ObjectEditor objectEditor = ((ObjectEditor) viewInstance);
-        Object object = reflectionHelper.newInstance(objectEditor.getType());
-        Object filled =
-            serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
-        reflectionHelper.copy(filled, object);
-        var actualInstance = object;
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    Object actualValue = actualValueExtractor.getActualValue(entry, actualInstance);
-                    reflectionHelper.setValue(entry.getKey(), actualInstance, actualValue);
-                  } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                  }
-                });
-        return actualInstance;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-    return viewInstance;
-  }
-
-  private Map<Object, Method> getActions(JourneyContainer journeyContainer, Object viewInstance) {
-    return reflectionHelper
-        .getAllMethods(getActualInstance(journeyContainer, viewInstance, Map.of()).getClass())
-        .stream()
+  private Map<Object, Method> getActions(Object viewInstance) {
+    return reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
         .collect(Collectors.toMap(m -> m.getName(), m -> m));
   }
 
   @Override
-  public Mono<JourneyContainer> run(
-      JourneyContainer journeyContainer,
+  public Mono<UIIncrement> run(
       Object viewInstance,
       String stepId,
       String actionId,
       Map<String, Object> data,
+      Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    if ("xxxbacktostep".equals(actionId)) {
-      return Mono.just(store.backToStep(journeyContainer, stepId));
+    if (viewInstance instanceof MethodParametersEditor methodParametersEditor) {
+      Object targetInstance =
+          methodParametersEditorHandler.getTargetInstance(methodParametersEditor);
+      Method m =
+          methodProvider.getMethod(targetInstance.getClass(), methodParametersEditor.getMethodId());
+      if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+      Object result = m.invoke(targetInstance, injectParameters(m, serverHttpRequest, data));
+      return processResult(targetInstance, m, data, serverHttpRequest, result);
     }
 
-    Object actualViewInstance = getActualInstance(journeyContainer, viewInstance, data);
+    Method m = getActions(viewInstance).get(actionId);
 
-    Method m = getActions(journeyContainer, actualViewInstance).get(actionId);
-
-    return runMethod(
-        journeyContainer, actualViewInstance, m, stepId, actionId, data, serverHttpRequest);
+    return runMethod(viewInstance, m, data, serverHttpRequest);
   }
 
-  public Mono<JourneyContainer> runMethod(
-      JourneyContainer journeyContainer,
+  @SneakyThrows
+  private Object[] injectParameters(
+      Method m, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
+
+    List<Object> values = new ArrayList<>();
+    for (int i = 0; i < m.getParameterCount(); i++) {
+      if (ServerHttpRequest.class.equals(m.getParameterTypes()[i])) {
+        values.add(serverHttpRequest);
+        continue;
+      }
+      values.add(
+          actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
+    }
+    return values.toArray();
+  }
+
+  public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
       Method m,
-      String stepId,
-      String actionId,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
-    journeyContainer = resetMessages(journeyContainer);
-
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
     if (needsParameters(m)) {
 
       if (Modifier.isStatic(m.getModifiers())) {
 
-        journeyContainer =
-            store.setStep(
-                journeyContainer,
-                actionId,
-                new MethodParametersEditor(
-                    m.getDeclaringClass(),
-                    m.getName(),
-                    store.getCurrentStep(journeyContainer).id(),
-                    data),
-                serverHttpRequest,
-                getTarget(m));
+        return Mono.just(
+            uIIncrementFactory.createForSingleComponent(
+                componentFactory.createFormComponent(
+                    new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
+                    serverHttpRequest,
+                    data)));
 
       } else {
 
-        journeyContainer =
-            store.setStep(
-                journeyContainer,
-                actionId,
-                new MethodParametersEditor(
-                    actualViewInstance,
-                    m.getName(),
-                    store.getCurrentStep(journeyContainer).id(),
-                    serializer),
-                serverHttpRequest,
-                getTarget(m));
+        return Mono.just(
+            uIIncrementFactory.createForSingleComponent(
+                componentFactory.createFormComponent(
+                    new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
+                    serverHttpRequest,
+                    data)));
       }
 
     } else {
@@ -192,141 +152,157 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        if (result != null && Mono.class.isAssignableFrom(result.getClass())) {
-
-          var mono = (Mono) result;
-
-          JourneyContainer finalJourneyContainer = journeyContainer;
-          return mono.map(
-              r -> {
-                var jc = finalJourneyContainer;
-                try {
-                  // update the ui instance after running the method, as something has possibly
-                  // changed
-                  jc = updateStep(jc, actualViewInstance, serverHttpRequest, r);
-                  // add a new step with the result
-                  jc = processResponse(jc, m, r, serverHttpRequest);
-                  jc = addMessages(jc, r, m);
-                } catch (Throwable e) {
-                  return Mono.error(new RuntimeException(e));
-                }
-                return Mono.just(jc);
-              });
-        } else {
-
-          // update the ui instance after running the method, as something has possibly changed
-          journeyContainer =
-              updateStep(journeyContainer, actualViewInstance, serverHttpRequest, result);
-          // add a new step with the result
-          journeyContainer = processResponse(journeyContainer, m, result, serverHttpRequest);
-          journeyContainer = addMessages(journeyContainer, result, m);
-        }
+        return processResult(actualViewInstance, m, data, serverHttpRequest, result);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();
         System.out.println(
-            "" + targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
+            targetException.getClass().getSimpleName() + ": " + targetException.getMessage());
         throw targetException;
       }
     }
-
-    return Mono.just(journeyContainer);
   }
 
-  private JourneyContainer resetMessages(JourneyContainer journeyContainer) {
-    var currentStepId = journeyContainer.journey().currentStepId();
-    var step = journeyContainer.steps().get(currentStepId);
-    var view = step.view();
-    var steps = new HashMap<>(journeyContainer.steps());
-    steps.put(
-        currentStepId,
-        new Step(
-            step.id(),
-            step.name(),
-            step.type(),
-            new View(
-                view.title(),
-                view.subtitle(),
-                List.of(),
-                view.header(),
-                view.left(),
-                view.main(),
-                view.right(),
-                view.footer()),
-            step.data(),
-            step.rules(),
-            step.previousStepId(),
-            step.target()));
-    journeyContainer =
-        new JourneyContainer(
-            journeyContainer.journeyId(),
-            journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
-            journeyContainer.journey(),
-            steps,
-            journeyContainer.stepHistory(),
-            journeyContainer.initialStep(),
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
-            journeyContainer.modalMustBeClosed());
-    return journeyContainer;
-  }
-
-  private JourneyContainer addMessages(
-      JourneyContainer journeyContainer, Object response, Method method) {
-    List<Message> messages = extractMessages(response, method);
-    try {
-      var currentStepId = journeyContainer.journey().currentStepId();
-      var step = journeyContainer.steps().get(currentStepId);
-      var view = step.view();
-      var steps = new HashMap<>(journeyContainer.steps());
-      steps.put(
-          currentStepId,
-          new Step(
-              step.id(),
-              step.name(),
-              step.type(),
-              new View(
-                  view.title(),
-                  view.subtitle(),
-                  mapMessages(messages),
-                  view.header(),
-                  view.left(),
-                  view.main(),
-                  view.right(),
-                  view.footer()),
-              step.data(),
-              step.rules(),
-              step.previousStepId(),
-              step.target()));
-      return new JourneyContainer(
-          journeyContainer.journeyId(),
-          journeyContainer.journeyTypeId(),
-          journeyContainer.remoteBaseUrl(),
-          journeyContainer.journeyClass(),
-          journeyContainer.journeyData(),
-          journeyContainer.journey(),
-          steps,
-          journeyContainer.stepHistory(),
-          journeyContainer.initialStep(),
-          journeyContainer.lastUsedFilters(),
-          journeyContainer.lastUsedSorting(),
-          journeyContainer.modalMustBeClosed() || response instanceof GoBack);
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
+  private Mono processResult(
+      Object actualViewInstance,
+      Method m,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      Object result) {
+    if (result == null) {
+      return Mono.just(
+          uIIncrementFactory.createForSingleComponent(
+              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
     }
-  }
 
-  private List<io.mateu.dtos.Message> mapMessages(List<Message> messages) {
-    if (messages != null) {
-      return messages.stream()
-          .map(m -> new io.mateu.dtos.Message(m.getId(), m.getType(), m.getTitle(), m.getText()))
-          .collect(Collectors.toList());
+    if (Mono.class.isAssignableFrom(result.getClass())) {
+
+      var mono = (Mono) result;
+
+      return mono.map(
+          r -> {
+            try {
+              return getUiIncrement(m, data, serverHttpRequest, r);
+            } catch (Throwable e) {
+              return Mono.error(new RuntimeException(e));
+            }
+          });
+
     } else {
-      return List.of();
+
+      return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
     }
+  }
+
+  @SneakyThrows
+  private UIIncrement getUiIncrement(
+      Method m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+    if (r == null) {
+      return new UIIncrement(List.of(), null, List.of(), Map.of());
+    }
+    if (r instanceof CloseModal closeModal) {
+      var component =
+          componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
+      var uiIncrement =
+          new UIIncrement(
+              List.of(),
+              new SingleComponent(component.id()),
+              getMessages(r, m),
+              Map.of(component.id(), component));
+      return new UIIncrement(
+          List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), null, List.of(), Map.of());
+    }
+    if (r instanceof Message message) {
+      return new UIIncrement(
+          List.of(),
+          null,
+          List.of(
+              new io.mateu.dtos.Message(
+                  message.type(), message.title(), message.text(), message.duration())),
+          Map.of());
+    }
+    if (ActionTarget.Message.equals(getActionTarget(m))) {
+      return new UIIncrement(
+          List.of(),
+          null,
+          List.of(new io.mateu.dtos.Message(ResultType.Success, "" + r, null, 0)),
+          Map.of());
+    }
+    if (r instanceof URL url) {
+      if (ActionTarget.NewTab.equals(getActionTarget(m))) {
+        return new UIIncrement(
+            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())),
+            null,
+            List.of(),
+            Map.of());
+      }
+      if (ActionTarget.NewWindow.equals(getActionTarget(m))) {
+        return new UIIncrement(
+            List.of(new UICommand(UICommandType.OpenNewWindow, url.toString())),
+            null,
+            List.of(),
+            Map.of());
+      }
+      var component =
+          componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
+      return new UIIncrement(
+          List.of(),
+          new SingleComponent(component.id()),
+          List.of(),
+          Map.of(component.id(), component));
+    }
+
+    if (basicTypeChecker.isBasic(r.getClass())) {
+      var component =
+          componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
+      return new UIIncrement(
+          List.of(),
+          new SingleComponent(component.id()),
+          List.of(),
+          Map.of(component.id(), component));
+    }
+    if (r instanceof ResponseWrapper responseWrapper) {
+      var component =
+          componentFactory.createFormComponent(
+              responseWrapper.getResponse(), serverHttpRequest, data);
+      return new UIIncrement(
+          List.of(),
+          new SingleComponent(component.id()),
+          responseWrapper.getMessages().stream()
+              .map(
+                  message ->
+                      new io.mateu.dtos.Message(
+                          message.type(), message.title(), message.text(), message.duration()))
+              .toList(),
+          Map.of(component.id(), component));
+    }
+    if (r instanceof Container) {
+      Map<String, Component> allComponents = new LinkedHashMap<>();
+      View view = viewMapper.map(r, serverHttpRequest, allComponents, Map.of());
+      return new UIIncrement(List.of(), view, List.of(), allComponents);
+    }
+    var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
+    return new UIIncrement(
+        List.of(),
+        new SingleComponent(component.id()),
+        getMessages(r, m),
+        Map.of(component.id(), component));
+  }
+
+  private ActionTarget getActionTarget(Method m) {
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).target();
+    }
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).target();
+    }
+    return null;
+  }
+
+  private List<io.mateu.dtos.Message> getMessages(Object r, Method m) {
+    return extractMessages(r, m).stream()
+        .map(msg -> new io.mateu.dtos.Message(msg.type(), msg.title(), msg.text(), msg.duration()))
+        .toList();
   }
 
   private List<Message> extractMessages(Object response, Method method) {
@@ -342,119 +318,19 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (method.isAnnotationPresent(Action.class)
         && ActionTarget.Message.equals(method.getAnnotation(Action.class).target())) {
-      return List.of(
-          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response, 0));
     }
     if (method.isAnnotationPresent(MainAction.class)
         && ActionTarget.Message.equals(method.getAnnotation(MainAction.class).target())) {
-      return List.of(
-          new Message(UUID.randomUUID().toString(), ResultType.Success, "", "" + response));
+      return List.of(new Message(ResultType.Success, "", "" + response, 0));
     }
     if (response instanceof GoBack goBack) {
       if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
         return List.of();
       }
-      return List.of(
-          new Message(
-              UUID.randomUUID().toString(), goBack.getResultType(), "", goBack.getMessage()));
+      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage(), 0));
     }
     return List.of();
-  }
-
-  private JourneyContainer updateStep(
-      JourneyContainer journeyContainer,
-      Object actualViewInstance,
-      ServerHttpRequest serverHttpRequest,
-      Object r) {
-    if (actualViewInstance != null && !(actualViewInstance instanceof Listing)) {
-      try {
-        journeyContainer =
-            store.updateStep(journeyContainer, actualViewInstance, serverHttpRequest);
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return journeyContainer;
-  }
-
-  private JourneyContainer processResponse(
-      JourneyContainer journeyContainer, Method m, Object r, ServerHttpRequest serverHttpRequest)
-      throws Throwable {
-    Object whatToShow = getActualResponse(r, m);
-    if (whatToShow instanceof GoBack goBack) {
-      journeyContainer = store.back(journeyContainer);
-      Object whereIGoBack =
-          store.getViewInstance(
-              journeyContainer, journeyContainer.journey().currentStepId(), serverHttpRequest);
-      if (whereIGoBack instanceof HasCallback hasCallback) {
-        hasCallback.callback(goBack, serverHttpRequest);
-        journeyContainer = store.updateStep(journeyContainer, hasCallback, serverHttpRequest);
-      }
-    } else if (needsToBeShown(m, r)) {
-      if (whatToShow instanceof Result) {
-        addBackDestination((Result) whatToShow, store.getInitialStep(journeyContainer));
-      }
-      String newStepId = "result_" + UUID.randomUUID().toString();
-      journeyContainer =
-          store.setStep(journeyContainer, newStepId, whatToShow, serverHttpRequest, getTarget(m));
-    }
-    if (ActionTarget.NewJourney.equals(getTarget(m))) {
-      journeyContainer = store.deleteHistory(journeyContainer);
-    }
-    return journeyContainer;
-  }
-
-  private ActionTarget getTarget(Method m) {
-    var target = ActionTarget.SameLane;
-    if (m.isAnnotationPresent(Action.class)) {
-      target = m.getAnnotation(Action.class).target();
-    }
-    if (m.isAnnotationPresent(MainAction.class)) {
-      target = m.getAnnotation(MainAction.class).target();
-    }
-    if (URL.class.equals(m.getReturnType())) {
-      if (ActionTarget.NewTab.equals(target)) {
-        target = ActionTarget.DeferredNewTab;
-      } else if (ActionTarget.NewWindow.equals(target)) {
-        target = ActionTarget.DeferredNewWindow;
-      } else {
-        target = ActionTarget.Deferred;
-      }
-    }
-    return target;
-  }
-
-  private boolean needsToBeShown(Method m, Object r) {
-    return !void.class.equals(m.getReturnType())
-        && !Message.class.equals(m.getReturnType())
-        && (!(m.isAnnotationPresent(Action.class)
-                && ActionTarget.Message.equals(m.getAnnotation(Action.class).target()))
-            && !(m.isAnnotationPresent(MainAction.class)
-                && ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target())))
-        && (!List.class.isAssignableFrom(m.getReturnType())
-            || !Message.class.equals(reflectionHelper.getGenericClass(m.getGenericReturnType())));
-  }
-
-  private Object getActualResponse(Object r, Method m) {
-    if (r == null) {
-      return r;
-    }
-    if (r instanceof ResponseWrapper) {
-      return ((ResponseWrapper) r).getResponse();
-    }
-    if (r instanceof Message) {
-      return null;
-    }
-    if (r instanceof List && Message.class.equals(reflectionHelper.getGenericClass(r.getClass()))) {
-      return null;
-    }
-    if ((m.isAnnotationPresent(Action.class)
-            && ActionTarget.Message.equals(m.getAnnotation(Action.class).target()))
-        || (m.isAnnotationPresent(MainAction.class)
-            && ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target()))) {
-      return null;
-    }
-    return r;
   }
 
   private boolean needsValidation(Method m) {

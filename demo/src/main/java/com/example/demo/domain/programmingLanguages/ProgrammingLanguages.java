@@ -9,6 +9,8 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
 import io.mateu.core.domain.uidefinition.shared.data.DatesRange;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.dtos.SortCriteria;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,7 +54,7 @@ public class ProgrammingLanguages
   public Flux<LanguageRow> fetchRows(
       ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
       throws Throwable {
-    Thread.sleep(500);
+    //Thread.sleep(500);
     RowComparator comparator = new RowComparator(sortOrders);
     return repo.findAll()
         .filter(
@@ -119,15 +121,15 @@ public class ProgrammingLanguages
   }
 
   public void unblockRow(LanguageRow row) {
-    System.out.println("unblocking " + row);
+    repo.findById((String) row.getId()).setStatus(new Status(StatusType.SUCCESS, "Unblocked"));
   }
 
   public void blockRow(LanguageRow row) {
-    System.out.println("blocking " + row);
+    repo.findById((String) row.getId()).setStatus(new Status(StatusType.DANGER, "Blocked"));
   }
 
   public void deleteRow(LanguageRow row) {
-    System.out.println("deleting " + row);
+    repo.removeAll(List.of(row));
   }
 
   @Override

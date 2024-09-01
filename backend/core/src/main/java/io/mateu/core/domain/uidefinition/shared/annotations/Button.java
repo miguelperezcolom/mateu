@@ -30,11 +30,13 @@ public @interface Button {
 
   boolean visible() default true;
 
-  ActionTarget target() default ActionTarget.SameLane;
+  ActionTarget target() default ActionTarget.View;
 
   String modalStyle() default "";
 
   String customEvent() default "";
 
   String href() default "";
+
+  boolean runOnEnter() default false;
 }

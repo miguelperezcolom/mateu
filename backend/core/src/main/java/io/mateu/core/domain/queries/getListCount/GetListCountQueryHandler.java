@@ -1,49 +1,59 @@
 package io.mateu.core.domain.queries.getListCount;
 
-import io.mateu.core.domain.model.inbound.JourneyContainerService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetListCountQueryHandler {
 
-  @Autowired JourneyContainerService store;
+  private final ReflectionHelper reflectionHelper;
+  private final Serializer serializer;
+  private final FiltersDeserializer filtersDeserializer;
 
-  @Autowired ReflectionHelper reflectionHelper;
-
-  @Autowired Serializer serializer;
+  public GetListCountQueryHandler(
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      FiltersDeserializer filtersDeserializer) {
+    this.reflectionHelper = reflectionHelper;
+    this.serializer = serializer;
+    this.filtersDeserializer = filtersDeserializer;
+  }
 
   public Mono<Long> run(GetListCountQuery query) throws Throwable {
 
-    Object filtersDeserialized =
-        new FiltersDeserializer(
-                query.getJourneyContainer(),
-                query.getStepId(),
-                query.getListId(),
-                query.getFilters(),
-                query.getServerHttpRequest(),
-                reflectionHelper,
-                serializer)
-            .deserialize(store);
+    Object instance =
+        reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
 
-    Listing rpcView =
-        store.getRpcViewInstance(
-            query.getJourneyContainer(),
-            query.getStepId(),
-            query.getListId(),
-            query.getServerHttpRequest());
-
-    if (rpcView == null) {
-      return Mono.just(0l);
+    if (instance == null) {
+      return Mono.empty();
     }
 
-    return rpcView.fetchCount(filtersDeserialized);
+    Listing listing = getListing(instance);
+
+    if (listing == null) {
+      return Mono.empty();
+    }
+
+    var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
+
+    return listing.fetchCount(filters);
+  }
+
+  private Listing getListing(Object instance) {
+    if (instance instanceof Listing instanceAsListing) {
+      return instanceAsListing;
+    } else if (instance instanceof RpcViewWrapper rpcViewWrapper) {
+      return rpcViewWrapper.getRpcView();
+    }
+    return null;
   }
 }

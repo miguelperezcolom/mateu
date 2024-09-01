@@ -4,13 +4,10 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.ActionTarget;
-import io.mateu.dtos.ActionType;
-import io.mateu.dtos.ConfirmationTexts;
-import jakarta.persistence.Entity;
+import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -33,6 +30,7 @@ public class ActionMetadataBuilder {
     Action action =
         new Action(
             m.getName(),
+            null,
             captionProvider.getCaption(m),
             getActionType(m),
             isVisible(m),
@@ -43,8 +41,51 @@ public class ActionMetadataBuilder {
             getTarget(m),
             getModalStyle(m),
             getCustomEvent(m),
-            getHref(m));
+            getHref(m),
+            isRunOnEnter(m),
+            getPosition(m),
+            getTimeoutMillis(m));
     return action;
+  }
+
+  private ActionPosition getPosition(Method m) {
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return ActionPosition.valueOf(action.position().name());
+    }
+    return ActionPosition.Right;
+  }
+
+  private boolean isRunOnEnter(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.runOnEnter();
+    }
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return action.runOnEnter();
+    }
+    return true;
+  }
+
+  private int getTimeoutMillis(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.timeoutMillis();
+    }
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return action.timeoutMillis();
+    }
+    return 0;
   }
 
   private String getModalStyle(Method m) {
@@ -66,7 +107,7 @@ public class ActionMetadataBuilder {
 
   private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(
       Method m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
+    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       target =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
@@ -200,7 +241,7 @@ public class ActionMetadataBuilder {
     return "";
   }
 
-  protected List<Action> getActions(String stepId, String listId, Object uiInstance) {
+  protected List<Action> getActions(String listId, Object uiInstance) {
     List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
@@ -232,6 +273,7 @@ public class ActionMetadataBuilder {
                   a ->
                       new Action(
                           "__list__" + listId + "__" + a.id(),
+                          null,
                           a.caption(),
                           a.type(),
                           a.visible(),
@@ -242,12 +284,16 @@ public class ActionMetadataBuilder {
                           a.target(),
                           a.modalStyle(),
                           a.customEvent(),
-                          a.href()))
+                          a.href(),
+                          false,
+                          ActionPosition.Right,
+                          a.timeoutMillis()))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
           new Action(
               "__list__" + listId + "__new",
+              null,
               getCaptionForNew(uiInstance),
               ActionType.Primary,
               true,
@@ -255,49 +301,37 @@ public class ActionMetadataBuilder {
               false,
               false,
               null,
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
-              null);
+              null,
+              false,
+              ActionPosition.Right,
+              0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
       Action action =
           new Action(
               "__list__" + listId + "__delete",
+              null,
               getCaptionForDelete(uiInstance),
               ActionType.Primary,
               true,
               false,
               true,
-              false,
+              true,
               new ConfirmationTexts(
                   "Please confirm",
                   "Are you sure you want to delete the selected rows",
                   "Yes, delete them"),
-              ActionTarget.SameLane,
+              ActionTarget.View,
               null,
               null,
-              null);
-      actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
-    }
-    if (("view".equals(stepId) && uiInstance.getClass().isAnnotationPresent(Entity.class))
-        || ((uiInstance instanceof ReadOnlyPojo && ((ReadOnlyPojo<?>) uiInstance).hasEditor())
-            && !(uiInstance instanceof PersistentPojo))) {
-      Action action =
-          new Action(
-              "edit",
-              getCaptionForEdit(uiInstance),
-              ActionType.Primary,
-              true,
+              null,
               false,
-              false,
-              false,
-              null,
-              ActionTarget.SameLane,
-              null,
-              null,
-              null);
+              ActionPosition.Right,
+              0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;

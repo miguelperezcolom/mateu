@@ -6,7 +6,6 @@ import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldForCheckboxColumn;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
@@ -26,11 +25,6 @@ public class CaptionProvider {
 
   public String getCaption(Object object) {
     var caption = guessCaption(object);
-    if (object instanceof PersistentPojo persistentPojo) {
-      if (persistentPojo.isNewRecord()) {
-        caption = "New " + caption;
-      }
-    }
     return translator.translate(caption);
   }
 

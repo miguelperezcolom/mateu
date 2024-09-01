@@ -12,14 +12,21 @@ public record UI(
     List<Menu> menu,
     String homeJourneyTypeId,
     String loginUrl,
-    String logoutUrl) {
+    String logoutUrl,
+    List<App> apps) {
 
   public UI {
     menu = Collections.unmodifiableList(menu);
+    apps = Collections.unmodifiableList(apps);
   }
 
   @Override
   public List<Menu> menu() {
     return Collections.unmodifiableList(menu);
+  }
+
+  @Override
+  public List<App> apps() {
+    return Collections.unmodifiableList(apps);
   }
 }

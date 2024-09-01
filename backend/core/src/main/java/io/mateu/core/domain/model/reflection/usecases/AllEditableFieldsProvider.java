@@ -147,7 +147,9 @@ public class AllEditableFieldsProvider {
   private List<Field> filterAccesible(List<Field> allFields) {
     List<Field> r = new ArrayList<>();
     for (Field f : allFields) {
-      if (hasGetter(f)) r.add(f);
+      if (f.getDeclaringClass().isRecord()
+          || !Modifier.isPrivate(f.getField().getModifiers())
+          || hasGetter(f)) r.add(f);
     }
     return r;
   }
@@ -155,7 +157,8 @@ public class AllEditableFieldsProvider {
   private List<Field> filterInjected(List<Field> allFields) {
     List<Field> r = new ArrayList<>();
     for (Field f : allFields) {
-      if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
+      if (!f.isAnnotationPresent(Autowired.class)
+          && (f.getDeclaringClass().isRecord() || !Modifier.isFinal(f.getModifiers()))) r.add(f);
     }
     return r;
   }

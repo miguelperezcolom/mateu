@@ -7,14 +7,15 @@ import lombok.Data;
 @Data
 public class TextFieldsForm {
 
-  @Section("Basic")
+  @Section(value = "Basic", columns = 2)
   @NotEmpty
   private String name = "Mateu";
 
-  @Placeholder("This should appear as the placeholder")
-  private String withPlaceholder;
+  @Password
+  private String password;
 
   @TextArea
+  @Colspan(2)
   private String text =
       """
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel semper libero. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
@@ -28,7 +29,7 @@ public class TextFieldsForm {
 
   @Action
   public void assess() {
-    assessment = "" + "" + name + "" + withPlaceholder + ", " + text;
+    assessment = "" + "" + name + "" + password + ", " + text;
   }
 
   public String toString() {

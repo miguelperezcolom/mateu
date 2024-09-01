@@ -2,9 +2,7 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.*;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
-import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasAppTitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasLogin;
+import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Private;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
@@ -12,11 +10,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
 @Slf4j
-public class DemoApp implements HasLogin, HasAppTitle
+public class DemoApp implements HasLogin, HasAppTitle, HasApps
 // , IncludesRemoteUIs
 {
 
@@ -30,23 +29,13 @@ public class DemoApp implements HasLogin, HasAppTitle
 
   @Submenu private ActionsSubmenu actions;
 
+  @Submenu private LayoutsSubmenu layouts;
+
   @Submenu private UtilSubmenu util;
 
   @Submenu private UseCasesSubmenu useCases;
 
   @MenuOption @Private private BasicFieldsForm eyesOnly;
-
-  /*
-  @Submenu
-  private RemoteSubmenu remote = new RemoteSubmenu("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp", "Simple menu");
-
-
-  @Override
-  public List<RemoteUI> getRemoteUIs() {
-      return List.of(new RemoteUI("https://demo.mateu.io/mateu/v1", "com.example.demo.DemoApp"));
-  }
-
-  */
 
   @Override
   public String getLoginUrl() {
@@ -58,4 +47,13 @@ public class DemoApp implements HasLogin, HasAppTitle
     return "Demo";
   }
 
+  @Override
+  public List<App> getApps() {
+    return List.of(
+            new App("vaadin:invoice", "Invoicing", "", "", false),
+            new App("vaadin:calendar-user", "HR", "", "", false),
+            new App("vaadin:factory", "Factory", "", "", true),
+            new App("vaadin:doctor", "Health", "", "/simpleform", false)
+    );
+  }
 }

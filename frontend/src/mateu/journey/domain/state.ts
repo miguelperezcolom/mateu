@@ -1,19 +1,17 @@
-import Journey from "../../shared/apiClients/dtos/Journey";
-import Step from "../../shared/apiClients/dtos/Step";
+import View from "../../shared/apiClients/dtos/View";
+import Component from "../../shared/apiClients/dtos/Component";
+import UICommand from "../../shared/apiClients/dtos/UICommand";
+import Message from "../../shared/apiClients/dtos/Message";
+import {ActionTarget} from "../../shared/apiClients/dtos/ActionTarget";
+import {Content} from "../../shared/apiClients/dtos/Content";
 
 export class State {
-    baseUrl: string = ''
-    error: boolean | undefined = undefined;
-    uiId: string | undefined = undefined;
-    journeyTypeId: string | undefined = undefined;
-    journeyId: string | undefined = undefined;
-    journey: Journey | undefined = undefined;
-    stepId: string | undefined = undefined;
-    previousStepId: string | undefined = undefined;
-    step: Step | undefined = undefined;
-    completed: boolean = false;
-    version = ''
-    notificationOpened: boolean = false;
-    notificationMessage: string = '';
-    modalMustBeClosed: boolean = false
+    error: boolean | undefined = undefined
+    view: View | undefined = undefined
+    content: Content | undefined = undefined
+    components: Record<string, Component> = {}
+    commands: UICommand[] = []
+    messages: Message[] = []
+    target: ActionTarget = ActionTarget.View
+    modalStyle: string | undefined = undefined
 }

@@ -1,0 +1,131 @@
+{
+  "commands" : [ ],
+  "content" : {
+    "contentType" : "SingleComponent",
+    "componentId" : "58234d75-7333-46ff-bdca-650edc6574b7"
+  },
+  "messages" : [ {
+    "type" : "Success",
+    "title" : "Form submitted",
+    "text" : "You entered Antonia, 47 before submitting."
+  } ],
+  "components" : {
+    "58234d75-7333-46ff-bdca-650edc6574b7" : {
+      "componentType" : "GenericComponent",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Message",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ {
+          "id" : "section_0",
+          "tabId" : "",
+          "caption" : "",
+          "description" : "",
+          "readOnly" : false,
+          "type" : "Card",
+          "leftSideImageUrl" : "",
+          "topImageUrl" : "",
+          "fieldGroups" : [ {
+            "id" : "fieldgroup_1_0",
+            "caption" : "",
+            "lines" : [ {
+              "fields" : [ {
+                "id" : "type",
+                "type" : "enum",
+                "stereotype" : "combobox",
+                "observed" : false,
+                "wantsFocus" : false,
+                "caption" : "Type",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ {
+                  "key" : "choice",
+                  "value" : {
+                    "key" : "Success",
+                    "value" : "Success"
+                  }
+                }, {
+                  "key" : "choice",
+                  "value" : {
+                    "key" : "Info",
+                    "value" : "Info"
+                  }
+                }, {
+                  "key" : "choice",
+                  "value" : {
+                    "key" : "Warning",
+                    "value" : "Warning"
+                  }
+                }, {
+                  "key" : "choice",
+                  "value" : {
+                    "key" : "Error",
+                    "value" : "Error"
+                  }
+                }, {
+                  "key" : "choice",
+                  "value" : {
+                    "key" : "Ignored",
+                    "value" : "Ignored"
+                  }
+                } ]
+              } ]
+            }, {
+              "fields" : [ {
+                "id" : "title",
+                "type" : "string",
+                "stereotype" : "input",
+                "observed" : false,
+                "wantsFocus" : false,
+                "caption" : "Title",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            }, {
+              "fields" : [ {
+                "id" : "text",
+                "type" : "string",
+                "stereotype" : "input",
+                "observed" : false,
+                "wantsFocus" : false,
+                "caption" : "Text",
+                "placeholder" : null,
+                "cssClasses" : null,
+                "description" : null,
+                "badges" : [ ],
+                "validations" : [ ],
+                "attributes" : [ ]
+              } ]
+            } ]
+          } ]
+        } ],
+        "actions" : [ ],
+        "mainActions" : [ ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "58234d75-7333-46ff-bdca-650edc6574b7",
+      "className" : "io.mateu.core.domain.uidefinition.core.interfaces.Message",
+      "attributes" : { },
+      "data" : {
+        "text" : "You entered Antonia, 47 before submitting.",
+        "type" : "Success",
+        "title" : "Form submitted"
+      },
+      "childComponentIds" : [ ]
+    }
+  }
+}

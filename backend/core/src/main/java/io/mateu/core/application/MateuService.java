@@ -5,12 +5,8 @@ import io.mateu.core.application.usecases.*;
 import io.mateu.core.application.usecases.fetchlist.FetchListUseCase;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
-import io.mateu.dtos.Items;
-import io.mateu.dtos.JourneyCreationRq;
-import io.mateu.dtos.Page;
-import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.StepWrapper;
-import io.mateu.dtos.UI;
+import io.mateu.dtos.*;
+import io.mateu.dtos.UIIncrement;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -77,7 +73,7 @@ public class MateuService {
     return getUiUseCase.getUI(uiId, serverHttpRequest);
   }
 
-  public Mono<StepWrapper> createJourney(
+  public Mono<UIIncrement> createJourney(
       String uiId,
       String journeyTypeId,
       String journeyId,
@@ -88,47 +84,32 @@ public class MateuService {
         uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
   }
 
-  public Mono<StepWrapper> runStepAndReturn(
+  public Mono<UIIncrement> runStepAndReturn(
       String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
+      String componentId,
       String actionId,
       RunActionRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return runStepUseCase.runStep(
-        journeyTypeId, journeyId, stepId, actionId, rq, serverHttpRequest);
+        uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, serverHttpRequest);
   }
 
   public Mono<Page> getListRows(
-      String uiId,
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
-      String listId,
+      String componentType,
       int page,
       int page_size,
-      // urlencoded form of filters json serialized
+      Map<String, Object> data,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
-      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return fetchListUseCase
-        .fetchPage(
-            uiId,
-            journeyTypeId,
-            journeyId,
-            stepId,
-            listId,
-            page,
-            page_size,
-            filters,
-            ordering,
-            journey,
-            serverHttpRequest)
+        .fetchPage(componentType, data, page, page_size, filters, ordering, serverHttpRequest)
         .subscribeOn(Schedulers.boundedElastic());
   }
 
@@ -156,31 +137,16 @@ public class MateuService {
   }
 
   public Mono<ByteArrayInputStream> generateCsv(
-      String uiId,
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
-      String listId,
+      String componentType,
       // urlencoded form of filters json serialized
+      Map<String, Object> data,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
-      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    return getListRows(
-            uiId,
-            journeyTypeId,
-            journeyId,
-            stepId,
-            listId,
-            0,
-            500,
-            filters,
-            ordering,
-            journey,
-            serverHttpRequest)
+    return getListRows(componentType, 0, 500, data, filters, ordering, serverHttpRequest)
         .map(Page::content)
         .map(
             list -> {
@@ -220,31 +186,16 @@ public class MateuService {
   }
 
   public Mono<ByteArrayInputStream> generateExcel(
-      String uiId,
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
-      String listId,
+      String componentType,
       // urlencoded form of filters json serialized
+      Map<String, Object> data,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
-      Map<String, Object> journey,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    return getListRows(
-            uiId,
-            journeyTypeId,
-            journeyId,
-            stepId,
-            listId,
-            0,
-            500,
-            filters,
-            ordering,
-            journey,
-            serverHttpRequest)
+    return getListRows(componentType, 0, 500, data, filters, ordering, serverHttpRequest)
         .map(Page::content)
         .map(
             list ->
@@ -271,11 +222,11 @@ public class MateuService {
 
                 for (int i = 0; i < list.size(); i++) {
                   Row row = sheet.createRow(i + 1);
-                  String[] data = list.get(i);
-                  if (data != null) {
-                    for (int col = 0; col < data.length; col++) {
+                  String[] rowData = list.get(i);
+                  if (rowData != null) {
+                    for (int col = 0; col < rowData.length; col++) {
                       Cell cell = row.createCell(col);
-                      cell.setCellValue(data[col] != null ? "" + data[col] : "");
+                      cell.setCellValue(rowData[col] != null ? "" + rowData[col] : "");
                       cell.setCellStyle(style);
                     }
                   }

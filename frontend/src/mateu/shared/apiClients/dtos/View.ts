@@ -1,22 +1,12 @@
-import Message from "./Message";
 import ViewPart from "./ViewPart";
+import {Content} from "./Content";
 
-export default interface View {
-
-    title: string
-
-    subtitle: string
-
-    messages: Message[]
+export default interface View extends Content {
 
     header: ViewPart
-
     left: ViewPart
-
     main: ViewPart
-
     right: ViewPart
-
     footer: ViewPart
 
 }

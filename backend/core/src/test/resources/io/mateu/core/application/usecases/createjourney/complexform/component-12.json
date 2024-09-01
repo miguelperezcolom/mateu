@@ -1,0 +1,20 @@
+{
+  "componentType" : "GenericComponent",
+  "className" : "io.mateu.core.domain.uidefinition.core.interfaces.Card",
+  "metadata" : {
+    "type" : "Card",
+    "layout" : "Layout1",
+    "thumbnail" : "",
+    "buttons" : [ ],
+    "icons" : [ ]
+  },
+  "id" : "component-12",
+  "attributes" : { },
+  "data" : {
+    "media" : "",
+    "headerText" : "Simple Card 5",
+    "supportingText" : "Content 5",
+    "subhead" : "Subtitle 5"
+  },
+  "childComponentIds" : [ ]
+}

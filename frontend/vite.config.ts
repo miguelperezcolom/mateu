@@ -20,6 +20,8 @@ export default defineConfig({
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
       '/mateu': 'http://localhost:8091',
+      '/ircs/mateu': 'http://localhost:8091',
+      '/images': 'http://localhost:8091',
     },
   },
 })

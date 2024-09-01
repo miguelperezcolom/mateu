@@ -1,6 +1,7 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, PropertyValues} from "lit";
 import UI from "../../shared/apiClients/dtos/UI";
+import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
 import '@vaadin/app-layout/vaadin-drawer-toggle'
@@ -16,6 +17,9 @@ import {Subscription} from "rxjs";
 import {service} from "../domain/service";
 import {mateuApiClient} from "../../shared/apiClients/MateuApiClient";
 import {nanoid} from "nanoid";
+import "../../shared/apiClients/dtos/App";
+import "../../shared/apiClients/dtos/App";
+import App from "../../shared/apiClients/dtos/App";
 
 interface MyMenuBarItem extends MenuBarItem {
 
@@ -55,6 +59,7 @@ export class MateuUi extends LitElement {
     notificationOpened: boolean = false;
     @property()
     notificationMessage: string = '';
+
 
 
     // upstream channel
@@ -147,6 +152,45 @@ export class MateuUi extends LitElement {
         window.location.href = ''
     }
 
+    appSelected(event: MenuBarItemSelectedEvent) {
+        setTimeout(async () => {
+            // @ts-ignore
+            window.location = event.detail.value.action.url
+        })
+    }
+
+    buildItemsForApps(apps: App[]) {
+        const items = apps.map(a => ({action: a, component: this.createComponentForApp(a), disabled: a.disabled}))
+        return [
+            {component: this.createRootAppsComponent(),
+                children: items
+            }]
+    }
+
+    createComponentForApp(a: App) {
+        const item = document.createElement('vaadin-context-menu-item');
+        const icon = document.createElement('vaadin-icon');
+        icon.style.color = 'var(--lumo-secondary-text-color)';
+        icon.style.marginInlineEnd = 'var(--lumo-space-s)';
+        icon.style.padding = 'var(--lumo-space-xs)';
+        icon.setAttribute('icon', `${a.icon}`);
+        item.appendChild(icon);
+        if (a.name) {
+            item.appendChild(document.createTextNode(a.name));
+        }
+        return item;
+    }
+
+    private createRootAppsComponent():HTMLElement {
+        const item = document.createElement('vaadin-menu-bar-item');
+        const icon = document.createElement('vaadin-icon');
+        item.setAttribute('aria-label', 'Other save options');
+        icon.setAttribute('icon', `vaadin:grid-big`);
+        icon.setAttribute('style', `color: var(--lumo-body-text-color);`);
+        item.appendChild(icon);
+        return item;
+    }
+
 
     render() {
        return html`
@@ -155,18 +199,24 @@ export class MateuUi extends LitElement {
                 
                 ${this.ui.menu && this.ui.menu.length > 0?html`
                     <vaadin-app-layout>
-                        <h3 slot="navbar" class="title ml-l mr-l" style="width: 200px;" @click=${this.goHome}>${this.ui.title}</h3>
-                        <div class="container" slot="navbar">
+                        <vaadin-horizontal-layout slot="navbar" style="align-items: center;">
+                            <h3 class="title ml-l" @click=${this.goHome}>${this.ui.title}</h3>
+                            ${this.ui.apps && this.ui.apps.length > 0?html`
+                                <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
+                                                 @item-selected="${this.appSelected}"
+                                                 .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
+                            `:''}
+                        </vaadin-horizontal-layout>
+                        <div class="container" slot="navbar" style="flex-grow: 1;">
                             ${this.ui.menu?html`
-                    <vaadin-menu-bar slot="navbar"
-                            .items="${this.items}"
-                            @item-selected="${this.itemSelected}"
-                                     theme="tertiary"
-                    ></vaadin-menu-bar>
-                `:''}
-
+                                <vaadin-menu-bar id="main-menu"
+                                        .items="${this.items}"
+                                        @item-selected="${this.itemSelected}"
+                                                 theme="tertiary"
+                                ></vaadin-menu-bar>
+                            `:''}
                         </div>                         
-                        <div slot="navbar" style="width: 200px; text-align: right; padding-right: 10px;">
+                        <div slot="navbar" style="text-align: right; padding-right: 10px;">
                                 ${this.ui.loginUrl?html`
                                     <vaadin-button theme="tertiary" 
                                                    @click="${this.login}"
@@ -180,15 +230,8 @@ export class MateuUi extends LitElement {
                         </div>
                     </vaadin-app-layout>
                 `:''}
-
-                <!--
-                <div class="container">
-                    <router-outlet></router-outlet>
-                </div>
-                -->
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
-
                     <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
                     
                 `:''}
@@ -232,8 +275,24 @@ export class MateuUi extends LitElement {
         font-size: var(--lumo-font-size-xl);
         margin-bottom: 0.5em;
         font-weight: 600;
-        padding-bottom: 6px;
+        margin-block-start: 0em; 
+        margin-block-end: 0em;
+        cursor: pointer;        
     }
+        
+        .containerx {
+            justify-content: center;
+            display: flex;
+        }
+
+        .container {
+            flex: 1 1 0;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            width: clamp(45ch, 90%, 75ch);
+            max-width: 955px;
+            margin: auto;
+        }
     
     vaadin-button {
         padding-bottom: 4px;
@@ -242,11 +301,6 @@ export class MateuUi extends LitElement {
     
     div {
         height: 44px;
-    }
-        
-    .container {
-      max-width: 1124px;
-      margin: auto;
     }
 
   `

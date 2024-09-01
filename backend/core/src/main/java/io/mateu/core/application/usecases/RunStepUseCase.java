@@ -3,10 +3,8 @@ package io.mateu.core.application.usecases;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.StepWrapper;
-import java.util.Map;
+import io.mateu.dtos.UIIncrement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -26,47 +24,41 @@ public class RunStepUseCase {
     this.serializer = serializer;
   }
 
-  public Mono<StepWrapper> runStep(
+  public Mono<UIIncrement> runStep(
+      String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
+      String componentId,
       String actionId,
       RunActionRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    log.info("running action " + journeyTypeId + "/" + journeyId + "/" + stepId + "/" + actionId);
-    JourneyContainer journeyContainer =
-        serializer.fromJson(serializer.toJson(rq.journey()), JourneyContainer.class);
+    log.info(
+        "running action "
+            + uiId
+            + "/"
+            + journeyTypeId
+            + "/"
+            + journeyId
+            + "/"
+            + stepId
+            + "/"
+            + componentId
+            + "/"
+            + actionId);
     return runStepActionCommandHandler
         .handle(
             new RunStepActionCommand(
                 journeyTypeId,
                 journeyId,
                 stepId,
+                componentId,
                 actionId,
+                rq.componentType(),
                 rq.data(),
-                journeyContainer,
+                rq.contextData(),
                 serverHttpRequest))
-        .map(
-            c ->
-                new StepWrapper(
-                    c.journey(),
-                    c.steps().get(c.journey().currentStepId()),
-                    toMap(c),
-                    c.modalMustBeClosed()))
         .subscribeOn(Schedulers.boundedElastic());
-  }
-
-  private Map<String, Object> toMap(Object o) {
-    if (o instanceof Map) {
-      return (Map<String, Object>) o;
-    } else {
-      try {
-        return serializer.toMap(o);
-      } catch (Exception e) {
-        e.printStackTrace();
-        return Map.of();
-      }
-    }
   }
 }

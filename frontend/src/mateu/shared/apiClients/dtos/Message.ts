@@ -1,9 +1,10 @@
 import {ResultType} from "./ResultType";
 
-export default interface Result {
-    id: string
+export default interface Message {
+
     type: ResultType
     title: string
     text: string
+    duration: number
 
 }

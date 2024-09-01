@@ -28,11 +28,17 @@ public @interface MainAction {
 
   ActionType type() default ActionType.Primary;
 
-  ActionTarget target() default ActionTarget.SameLane;
+  ActionTarget target() default ActionTarget.View;
 
   String modalStyle() default "";
 
   String customEvent() default "";
 
   String href() default "";
+
+  boolean runOnEnter() default false;
+
+  ActionPosition position() default ActionPosition.Right;
+
+  int timeoutMillis() default 0;
 }

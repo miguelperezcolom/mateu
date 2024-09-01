@@ -4,12 +4,8 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.ActionTarget;
-import io.mateu.dtos.ActionType;
-import io.mateu.dtos.ConfirmationTexts;
+import io.mateu.dtos.*;
 import java.net.URL;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +23,7 @@ public class ButtonMetadataBuilder {
     Action action =
         new Action(
             m.getName(),
+            null,
             captionProvider.getCaption(m),
             getActionType(m),
             isVisible(m),
@@ -37,8 +34,18 @@ public class ButtonMetadataBuilder {
             getTarget(m),
             getModalStyle(m),
             getCustomEvent(m),
-            getHref(m));
+            getHref(m),
+            getRunEonEnter(m),
+            ActionPosition.Right,
+            0);
     return action;
+  }
+
+  private boolean getRunEonEnter(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).runOnEnter();
+    }
+    return false;
   }
 
   private String getModalStyle(Field f) {
@@ -53,7 +60,7 @@ public class ButtonMetadataBuilder {
   }
 
   private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(Field m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.SameLane;
+    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(Button.class)) {
       target = m.getAnnotation(Button.class).target();
     }

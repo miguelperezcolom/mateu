@@ -7,5 +7,8 @@ public enum ViewMetadataType {
   JourneyStarter,
   JourneyRunner,
   Card,
-  Stepper
+  Stepper,
+  HorizontalLayout,
+  VerticalLayout,
+  SplitLayout,
 }

@@ -1,117 +1,106 @@
 import {State} from "./state";
-import {goBackCommandHandler} from "./commands/goBack/GoBackCommandHandler";
-import {goToIndexCommandHandler} from "./commands/goToIndex/GoToIndexCommandHandler";
 import {Subject} from "rxjs";
-import {goToStepCommandHandler} from "./commands/goToStep/GoToStepCommandHandler";
-import {wrapperCallActionCommandHandler} from "./commands/callAction/WrapperCallActionCommandHandler";
-import StepWrapper from "../../shared/apiClients/dtos/StepWrapper";
-import {wrapperStartJourneyCommandHandler} from "./commands/startJourney/WrapperStartJourneyCommandHandler";
+import {callActionCommandHandler} from "./commands/callAction/CallActionCommandHandler";
+import UIIncrement from "../../shared/apiClients/dtos/UIIncrement";
+import {startJourneyCommandHandler} from "./commands/startJourney/StartJourneyCommandHandler";
+import {ContentType} from "../../shared/apiClients/dtos/ContentType";
+import View from "../../shared/apiClients/dtos/View";
+import {SingleComponent} from "../../shared/apiClients/dtos/SingleComponent";
+import {ActionTarget} from "../../shared/apiClients/dtos/ActionTarget";
 
 export class Service {
 
     upstream: Subject<State>
-    state = new State()
 
     constructor(upstream: Subject<State>) {
         this.upstream = upstream;
     }
 
-    async startJourney(baseUrl: string, uiId: string, journeyTypeId: string) {
-        await wrapperStartJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId}, this.state)
-        this.upstream.next({...this.state})
+    async startJourney(baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
+        const uiIncrement = await startJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId, journeyId})
+        const state = new State()
+        state.content = uiIncrement.content
+        state.view = uiIncrement.content as View
+        state.components = uiIncrement.components
+        state.target = ActionTarget.View
+        this.upstream.next(state)
     }
 
-    async runAction(actionId: string, data: unknown) {
-        await wrapperCallActionCommandHandler
-            .handle({actionId, data}, this.state)
+    async runAction(
+        baseUrl: string,
+        uiId: string,
+        journeyTypeId: string,
+        journeyId: string,
+        stepId: string,
+        componentId: string,
+        actionId: string,
+        target: ActionTarget,
+        modalStyle: string | undefined,
+        componentType: string,
+        data: unknown
+    ) {
+        await callActionCommandHandler
+            .handle({
+                baseUrl,
+                uiId,
+                journeyTypeId,
+                journeyId,
+                stepId,
+                componentId,
+                actionId,
+                target,
+                componentType,
+                data
+            })
             .catch((error) => {
-                console.log('error', error)
                 throw error
             })
-            .then(async (value: StepWrapper) => {
-                if (value.step?.type == 'java.net.URL') {
-                    // @ts-ignore
-                    if (value.step.target == 'Deferred') {
-                        // @ts-ignore
-                        window.location = value.step.data.url
-                        return
+            .then(async (delta: UIIncrement) => {
+
+                const state = new State()
+                state.modalStyle = modalStyle
+                state.target = target
+                state.commands = delta.commands
+                state.messages = delta.messages
+
+                // send new state upstream
+                if (delta.content) {
+                    state.content = delta.content
+                    if (delta.content.contentType == ContentType.View) {
+                        state.view = delta.content as View
+                    } else if (delta.content.contentType == ContentType.SingleComponent) {
+                        const singleComponent = delta.content as SingleComponent
+                        state.view = {
+                            contentType: ContentType.View,
+                            header: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            left: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            main: {
+                                componentIds: [singleComponent.componentId],
+                                cssClasses: undefined
+                            },
+                            right: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            },
+                            footer: {
+                                componentIds: [],
+                                cssClasses: undefined
+                            }
+                        }
                     }
-                    // @ts-ignore
-                    if (value.step.target == 'DeferredNewTab') {
-                        // @ts-ignore
-                        window.open(value.step.data.url, '_blank')
-                        return
-                    }
-                    // @ts-ignore
-                    if (value.step.target == 'DeferredNewWindow') {
-                        // @ts-ignore
-                        window.open(value.step.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
-                        return
-                    }
-                    // @ts-ignore
-                    if (value.step.target == 'DeferredReplace') {
-                        window.close()
-                        // @ts-ignore
-                        window.open(value.step.data.url, 'A window', 'width=800,height=400,screenX=200,screenY=200')
-                        return
+                    for (let componentId in delta.components) {
+                        state.components[componentId] = delta.components[componentId]
                     }
                 }
 
-                this.state.modalMustBeClosed = value.modalMustBeClosed
-                value.store.modalMustBeClosed = false
-                sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
-                this.state.journey = value.journey
-                this.state.stepId = this.state.journey.currentStepId
-                if (this.state.journey.status != 'Finished') {
-                    this.state.step = value.step
-                    this.state.previousStepId = this.state.step.previousStepId
-                }
-                this.upstream.next({...this.state})
+                this.upstream.next(state)
             })
-    }
-
-
-    async goBack(journeyId: string) {
-        await goBackCommandHandler.handle({
-            journey: JSON.parse(sessionStorage.getItem(journeyId)!)
-        }, this.state).then(async (value: StepWrapper) => {
-            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
-            this.state.journey = value.journey
-            this.state.stepId = this.state.journey.currentStepId
-            if (this.state.journey.status != 'Finished') {
-                this.state.step = value.step
-                this.state.previousStepId = this.state.step.previousStepId
-            }
-            this.upstream.next({...this.state})
-        })
-    }
-
-    async goToIndex(data: { __listId: string; __index: number; __count: number }) {
-        await goToIndexCommandHandler.handle(data, this.state).then(async (value: StepWrapper) => {
-            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
-            this.state.journey = value.journey
-            this.state.stepId = this.state.journey.currentStepId
-            if (this.state.journey.status != 'Finished') {
-                this.state.step = value.step
-                this.state.previousStepId = this.state.step.previousStepId
-            }
-            this.upstream.next({...this.state})
-        })
-    }
-
-    async goToStep(stepId: string) {
-        await goToStepCommandHandler.handle({
-            __stepId: stepId
-        }, this.state).then(async (value: StepWrapper) => {
-            sessionStorage.setItem(this.state.journeyId!, JSON.stringify(value.store))
-            this.state.journey = value.journey
-            this.state.stepId = this.state.journey.currentStepId
-            if (this.state.journey.status != 'Finished') {
-                this.state.step = value.step
-                this.state.previousStepId = this.state.step.previousStepId
-            }
-            this.upstream.next({...this.state})
-        })
     }
 
 }

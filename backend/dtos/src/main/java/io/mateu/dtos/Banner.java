@@ -1,16 +1,13 @@
 package io.mateu.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class Banner {
-  private String theme;
-  private Boolean hasIcon;
-  private Boolean hasCloseButton;
-  private String title;
-  private String description;
-}
+/**
+ * A banner. Similar to message, but with a different behaviour
+ *
+ * @param theme The banner theme: success, error, info, ...
+ * @param hasIcon The banner icon
+ * @param hasCloseButton If this banner is closeable
+ * @param title The banner title
+ * @param description The banner text
+ */
+public record Banner(
+    BannerTheme theme, boolean hasIcon, boolean hasCloseButton, String title, String description) {}

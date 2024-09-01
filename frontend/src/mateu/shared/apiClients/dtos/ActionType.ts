@@ -1,5 +1,5 @@
 export enum ActionType {
 
-    Primary = "Primary", Secondary = "Secondary"
+    Primary = "Primary", Secondary = "Secondary", Tertiary = "Tertiary"
 
 }

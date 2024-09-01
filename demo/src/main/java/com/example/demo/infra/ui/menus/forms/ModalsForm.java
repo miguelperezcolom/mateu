@@ -1,11 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinition.core.interfaces.Message;
+import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
-import io.mateu.core.domain.uidefinition.shared.data.*;
+import io.mateu.core.domain.uidefinition.shared.data.Badge;
+import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.dtos.ResultType;
@@ -14,22 +17,20 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, HasCallback<String> {
+public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @Tab("Tab 1")
   @Section("Basic")
   @NotEmpty
-  private String name = "Mateu";
+  protected String name = "Mateu";
 
   @Placeholder("This should appear as the placeholder")
   private String withPlaceholder;
@@ -54,22 +55,22 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
   }
 
   @Action(order = 10, target = ActionTarget.NewModal)
-  public ChangeNameForm changeNameInModal() throws Exception {
-    return new ChangeNameForm(name);
+  public ChangeNameInModalForm changeNameInModal() throws Exception {
+    return new ChangeNameInModalForm(name, this);
   }
 
 
-  @Action(order = 20, target = ActionTarget.Left)
+  @Action(order = 20, target = ActionTarget.LeftDrawer)
   public WizardPage1 openOnLeft() throws Exception {
     return new WizardPage1();
   }
 
-  @Action(order = 30, target = ActionTarget.Right)
+  @Action(order = 30, target = ActionTarget.RightDrawer)
   public WizardPage1 openOnRight() throws Exception {
     return new WizardPage1();
   }
 
-  @Action(order = 30, target = ActionTarget.Right, modalStyle = "width: 50vh;")
+  @Action(order = 30, target = ActionTarget.RightDrawer, modalStyle = "width: 50vh;")
   public WizardPage1 openOnRightWide() throws Exception {
     return new WizardPage1();
   }
@@ -77,10 +78,10 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
   @Action(order = 40, target = ActionTarget.NewTab)
   public ResponseWrapper openTab() throws Exception {
     return new ResponseWrapper("Some result", List.of(new Message(
-            UUID.randomUUID().toString(),
             ResultType.Info,
             "Sample message",
-            "Your name is " + name
+            "Your name is " + name,
+            5000
     )));
   }
 
@@ -119,8 +120,4 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle, 
     return "This is the title";
   }
 
-  @Override
-  public void callback(GoBack<String> data, ServerHttpRequest serverHttpRequest) {
-    name = data.getData();
-  }
 }

@@ -9,18 +9,19 @@ import lombok.Setter;
 @Getter@Setter
 public class ChangeNameForm {
 
+    private final FormWithCallbacks formWithCallbacks;
+
     String name;
 
-    public ChangeNameForm() {
-    }
-
-    public ChangeNameForm(String name) {
+    public ChangeNameForm(String name, FormWithCallbacks formWithCallbacks) {
         this.name = name;
+        this.formWithCallbacks = formWithCallbacks;
     }
 
     @MainAction
-    GoBack<String> save() {
-        return new GoBack<>(ResultType.Ignored, null, name);
+    FormWithCallbacks save() {
+        formWithCallbacks.name = this.name;
+        return formWithCallbacks;
     }
 
 }

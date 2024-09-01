@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.startJourney;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.exceptions.NotFoundException;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
@@ -11,12 +10,10 @@ import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
 import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.Journey;
-import io.mateu.dtos.JourneyContainer;
-import io.mateu.dtos.JourneyCreationRq;
-import io.mateu.dtos.Step;
-import io.mateu.dtos.StepWrapper;
+import io.mateu.dtos.Component;
+import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.View;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -32,35 +29,29 @@ public class StartJourneyCommandHandler {
 
   private final ReflectionHelper reflectionHelper;
   private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
-  private final StepMapper stepMapper;
-  private final Serializer serializer;
   private final MenuResolver menuResolver;
   private final UiInstantiator uiInstantiator;
+  private final ViewMapper viewMapper;
 
   public StartJourneyCommandHandler(
       ReflectionHelper reflectionHelper,
       MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
-      StepMapper stepMapper,
-      Serializer serializer,
       MenuResolver menuResolver,
-      UiInstantiator uiInstantiator) {
+      UiInstantiator uiInstantiator,
+      ViewMapper viewMapper) {
     this.reflectionHelper = reflectionHelper;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
-    this.stepMapper = stepMapper;
-    this.serializer = serializer;
     this.menuResolver = menuResolver;
     this.uiInstantiator = uiInstantiator;
+    this.viewMapper = viewMapper;
   }
 
-  public Mono<StepWrapper> handle(StartJourneyCommand command) throws Throwable {
+  public Mono<UIIncrement> handle(StartJourneyCommand command) throws Throwable {
 
     String uiId = command.getUiId();
-    String journeyId = command.getJourneyId();
     String journeyTypeId = command.getJourneyTypeId();
-    JourneyCreationRq journeyCreationRq = command.getJourneyCreationRq();
     ServerHttpRequest serverHttpRequest = command.getServerHttpRequest();
 
-    Journey journey = null;
     Object formInstance = null;
 
     try {
@@ -80,58 +71,15 @@ public class StartJourneyCommandHandler {
             command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
-      journey = new JourneyMapper().map(formInstance);
-
     } catch (Exception e) {
       log.error("error on getUi", e);
       throw new NotFoundException("No class with name " + journeyTypeId + " found");
     }
 
-    JourneyContainer journeyContainer =
-        new JourneyContainer(
-            journeyId,
-            journeyTypeId,
-            null,
-            formInstance.getClass(),
-            journeyCreationRq.contextData(),
-            journey,
-            Map.of(),
-            List.of(),
-            null,
-            Map.of(),
-            Map.of(),
-            false);
+    Map<String, Component> allComponents = new LinkedHashMap<>();
+    View view = viewMapper.map(formInstance, serverHttpRequest, allComponents, Map.of());
 
-    Step step =
-        stepMapper.map(
-            journeyContainer, getStepId(formInstance), null, formInstance, serverHttpRequest, null);
-    journey =
-        new Journey(
-            journey.type(), journey.status(), journey.statusMessage(), step.id(), step.type());
-
-    journeyContainer =
-        new JourneyContainer(
-            journeyContainer.journeyId(),
-            journeyContainer.journeyTypeId(),
-            journeyContainer.remoteBaseUrl(),
-            journeyContainer.journeyClass(),
-            journeyContainer.journeyData(),
-            journey,
-            Map.of(step.id(), step),
-            List.of(step.id()),
-            step,
-            journeyContainer.lastUsedFilters(),
-            journeyContainer.lastUsedSorting(),
-            false);
-
-    return Mono.just(
-        new StepWrapper(
-            journey, step, toMap(journeyContainer), journeyContainer.modalMustBeClosed()));
-  }
-
-  private String getStepId(Object formInstance) {
-    if (formInstance instanceof Listing) return "list";
-    return "form";
+    return Mono.just(new UIIncrement(List.of(), view, List.of(), allComponents));
   }
 
   public Object resolveJourneyTypeId(
@@ -160,18 +108,5 @@ public class StartJourneyCommandHandler {
       return reflectionHelper.newInstance(action.getListViewClass());
     }
     return null;
-  }
-
-  private Map<String, Object> toMap(Object o) {
-    if (o instanceof Map) {
-      return (Map<String, Object>) o;
-    } else {
-      try {
-        return serializer.toMap(o);
-      } catch (Exception e) {
-        e.printStackTrace();
-        return Map.of();
-      }
-    }
   }
 }

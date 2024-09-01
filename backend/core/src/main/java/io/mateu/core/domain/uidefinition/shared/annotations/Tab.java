@@ -11,6 +11,4 @@ import java.lang.annotation.Target;
 public @interface Tab {
 
   String value();
-
-  boolean fullWith() default false;
 }

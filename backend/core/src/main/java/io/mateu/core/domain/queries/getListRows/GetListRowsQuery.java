@@ -1,36 +1,38 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.dtos.JourneyContainer;
 import io.mateu.dtos.SortCriteria;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import lombok.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
-@Data
-@Builder
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-@Getter
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class GetListRowsQuery {
+public record GetListRowsQuery(
+    String componentType,
+    Map<String, Object> data,
+    ServerHttpRequest serverHttpRequest,
+    Map<String, Object> filters,
+    int page,
+    int pageSize,
+    List<SortCriteria> ordering) {
 
-  private JourneyContainer journeyContainer;
+  public GetListRowsQuery {
+    data = data != null ? Collections.unmodifiableMap(data) : Map.of();
+    filters = filters != null ? Collections.unmodifiableMap(filters) : Map.of();
+    ordering = ordering != null ? Collections.unmodifiableList(ordering) : Collections.emptyList();
+  }
 
-  private String stepId;
+  @Override
+  public Map<String, Object> data() {
+    return Collections.unmodifiableMap(data);
+  }
 
-  private String componentId;
+  @Override
+  public Map<String, Object> filters() {
+    return Collections.unmodifiableMap(filters);
+  }
 
-  private String listId;
-
-  private Map<String, Object> filters;
-
-  private int page;
-
-  private int pageSize;
-
-  private List<SortCriteria> ordering;
-
-  private ServerHttpRequest serverHttpRequest;
+  @Override
+  public List<SortCriteria> ordering() {
+    return Collections.unmodifiableList(ordering);
+  }
 }

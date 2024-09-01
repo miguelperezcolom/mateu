@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
+import io.mateu.core.domain.uidefinition.shared.annotations.Child;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Column;
@@ -34,7 +35,7 @@ public class CrudMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Crud build(String stepId, String listId, Object crudInstance) {
+  public Crud build(String listId, Object crudInstance) {
 
     if (crudInstance instanceof DynamicCrud) {
       return ((DynamicCrud) crudInstance).build().toFuture().get();
@@ -43,14 +44,13 @@ public class CrudMetadataBuilder {
     var rpcView = (Listing) crudInstance;
 
     return new Crud(
-        "",
-        listId,
         captionProvider.getCaption(rpcView),
         getSubtitle(rpcView),
         reflectionHelper.isOverridden(rpcView, "getDetail"),
         buildSearchForm(rpcView, listId),
         buildColumns(rpcView),
-        actionMetadataBuilder.getActions(stepId, listId, rpcView));
+        actionMetadataBuilder.getActions(listId, rpcView),
+        rpcView.getClass().isAnnotationPresent(Child.class));
   }
 
   private String getSubtitle(Listing rpcView) {
@@ -93,7 +93,6 @@ public class CrudMetadataBuilder {
         columnCaption,
         "",
         fieldTypeMapper.getWidth(field),
-        false,
         List.of());
   }
 
@@ -129,17 +128,19 @@ public class CrudMetadataBuilder {
             .map(
                 f ->
                     new io.mateu.dtos.Field(
-                        listId + "-" + f.id(),
+                        f.id(),
                         f.type(),
                         f.stereotype(),
                         f.observed(),
+                        f.wantsFocus(),
                         f.caption(),
                         f.placeholder(),
                         f.cssClasses(),
                         f.description(),
                         f.badges(),
                         f.validations(),
-                        f.attributes()))
+                        f.attributes(),
+                        f.colspan()))
             .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
@@ -151,13 +152,15 @@ public class CrudMetadataBuilder {
                           "string",
                           "input",
                           false,
+                          true,
                           "Search",
                           "Search",
                           null,
                           null,
                           List.of(),
                           List.of(),
-                          List.of())),
+                          List.of(),
+                          1)),
                   filterFields.stream())
               .toList();
     return filterFields;

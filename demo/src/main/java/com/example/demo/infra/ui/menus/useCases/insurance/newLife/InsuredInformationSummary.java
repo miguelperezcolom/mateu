@@ -10,7 +10,7 @@ import lombok.Setter;
 @ReadOnly
 @Getter
 @Setter
-public class InsuredInformationSummary implements Card, HasIcon, HasTitle {
+public class InsuredInformationSummary implements HasIcon, HasTitle {
 
   private String birthDate = "27 Nov 1975";
 

@@ -6,10 +6,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereoty
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.CallActionOnChange;
-import io.mateu.core.domain.uidefinition.shared.annotations.Help;
-import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
-import io.mateu.core.domain.uidefinition.shared.annotations.StyleClassNames;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadgesOnFields;
 import io.mateu.dtos.*;
 import jakarta.validation.constraints.*;
@@ -37,14 +34,27 @@ public class FieldMetadataBuilder {
             fieldTypeMapper.mapFieldType(fieldInterfaced),
             fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
             isObserved(fieldInterfaced),
+            isFocusWanted(fieldInterfaced),
             captionProvider.getCaption(fieldInterfaced),
             getPlaceholder(fieldInterfaced),
             getCssClassNames(fieldInterfaced),
             getDescription(fieldInterfaced),
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
-            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced));
+            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced),
+            getColspan(fieldInterfaced));
     return field;
+  }
+
+  private int getColspan(Field field) {
+    if (field.isAnnotationPresent(Colspan.class)) {
+      return field.getAnnotation(Colspan.class).value();
+    }
+    return 1;
+  }
+
+  private boolean isFocusWanted(Field fieldInterfaced) {
+    return fieldInterfaced.isAnnotationPresent(RequestFocus.class);
   }
 
   private List<Badge> getBadges(Object view, Field field) {
@@ -110,22 +120,20 @@ public class FieldMetadataBuilder {
   private void addMinValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Min.class)) {
       validations.add(
-          Validation.builder()
-              .type(ValidationType.Min)
-              .data(field.getAnnotation(Min.class).value())
-              .message(field.getAnnotation(Min.class).message())
-              .build());
+          new Validation(
+              ValidationType.Min,
+              field.getAnnotation(Min.class).message(),
+              field.getAnnotation(Min.class).value()));
     }
   }
 
   private void addMaxValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Max.class)) {
       validations.add(
-          Validation.builder()
-              .type(ValidationType.Max)
-              .data(field.getAnnotation(Max.class).value())
-              .message(field.getAnnotation(Max.class).message())
-              .build());
+          new Validation(
+              ValidationType.Max,
+              field.getAnnotation(Max.class).message(),
+              field.getAnnotation(Max.class).value()));
     }
   }
 
@@ -133,23 +141,17 @@ public class FieldMetadataBuilder {
     if (field.isAnnotationPresent(NotEmpty.class)
         || field.isAnnotationPresent(NotNull.class)
         || field.isAnnotationPresent(NotBlank.class)) {
-      validations.add(
-          Validation.builder()
-              .type(ValidationType.NotEmpty)
-              .data(null)
-              .message("Required field")
-              .build());
+      validations.add(new Validation(ValidationType.NotEmpty, "Required field", null));
     }
   }
 
   private void addPatternValidation(Field field, List<Validation> validations) {
     if (field.isAnnotationPresent(Pattern.class)) {
       validations.add(
-          Validation.builder()
-              .type(ValidationType.Pattern)
-              .data(field.getAnnotation(Pattern.class).regexp())
-              .message(field.getAnnotation(Pattern.class).message())
-              .build());
+          new Validation(
+              ValidationType.Pattern,
+              field.getAnnotation(Pattern.class).message(),
+              field.getAnnotation(Pattern.class).regexp()));
     }
   }
 

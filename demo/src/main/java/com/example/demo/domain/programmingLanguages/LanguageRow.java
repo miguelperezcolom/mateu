@@ -42,7 +42,7 @@ public class LanguageRow {
   private ColumnActionGroup actions;
 
   public ColumnActionGroup getActions() {
-    if (status != null && StatusType.INFO.equals(status.getType())) {
+    if (status != null && StatusType.DANGER.equals(status.getType())) {
       return new ColumnActionGroup(
           new ColumnAction[] {
             new ColumnAction("unblockRow", "Unblock", null),

@@ -4,7 +4,6 @@ import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.core.interfaces.ReadOnlyPojo;
 import io.mateu.core.domain.uidefinition.shared.data.Badge;
 import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
@@ -20,8 +19,9 @@ import java.util.List;
 
 @Data
 @Caption("Read only pojo")
+@ReadOnly
 public class MyReadOnlyPojo
-    implements ReadOnlyPojo, HasBadges, HasStatus {
+    implements HasBadges, HasStatus {
 
   @Section("Basic")
   private String name = "Mateu";
@@ -102,10 +102,6 @@ public class MyReadOnlyPojo
     return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
   }
 
-  @Override
-  public void load(Object id) throws Throwable {}
-
-  @Override
   public Object retrieveId() {
     return "010100101";
   }

@@ -1,11 +1,7 @@
 package com.example.demo.infra.ui;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinition.shared.annotations.ExternalScripts;
-import io.mateu.core.domain.uidefinition.shared.annotations.RawContent;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -20,6 +16,7 @@ import java.util.Map;
 @Getter
 @Slf4j
 // @KeycloakSecured(url = "http://keycloak.mateu.io", realm = "prueba", clientId = "cliente")
+@KeycloakSecured(url = "https://lemur-10.cloud-iam.com/auth", realm = "mateu", clientId = "cliente")
 public class Home extends DemoApp implements ConsumesContextData {
 
   @Section(value = "", leftSideImageUrl = "/myassets/background.svg")

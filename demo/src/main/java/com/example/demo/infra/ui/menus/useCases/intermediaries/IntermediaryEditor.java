@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.PersistentPojo;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 @Getter
 @Setter
-public class IntermediaryEditor implements PersistentPojo<String> {
+public class IntermediaryEditor {
 
   String id;
 
@@ -18,17 +18,11 @@ public class IntermediaryEditor implements PersistentPojo<String> {
 
   public IntermediaryEditor() {}
 
-  @Override
   public void load(String id) throws Throwable {
     setId(id);
     setName("North Sails");
   }
 
-  @Override
-  public Object retrieveId() {
-    return getId();
-  }
-
-  @Override
+  @Action("Save")
   public void save() throws Throwable {}
 }

@@ -1,24 +1,13 @@
-import Validation from "./Validation";
-import Attribute from "./Attribute";
+import Pair from "./Pair";
 
 export default interface Column {
 
-    id: string;
-
-    type: string;
-
-    caption: string;
-
-    description: string;
-
-    width: string;
-
-    readOnly: boolean;
-
-    placeholder: string;
-
-    validations: Validation[]
-
-    attributes: Attribute[]
+    id: string
+    type: string
+    stereotype: string
+    caption: string
+    description: string
+    width: string
+    attributes: Pair[]
 
 }

@@ -33,13 +33,17 @@ public class ValueWriter {
     }
     if (f instanceof FieldForCheckboxColumn) {
       f.setValue(o, v);
-    } else if (f instanceof FieldFromReflectionField) {
-      Method setter = o.getClass().getMethod(setterProvider.getSetter(f), f.getType());
+    } else if (f instanceof FieldFromReflectionField field) {
       try {
-        setter.invoke(o, v);
-        //                        BeanUtils.setProperty(o, fn, v);
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        log.error("when setting value for field " + f.getName(), e);
+        Method setter = o.getClass().getMethod(setterProvider.getSetter(f), f.getType());
+        try {
+          setter.invoke(o, v);
+          //                        BeanUtils.setProperty(o, fn, v);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+          log.error("when setting value for field " + f.getName(), e);
+        }
+      } catch (NoSuchMethodException ignored) {
+        field.setValue(o, v);
       }
     } else setValue(f.getId(), o, v);
   }

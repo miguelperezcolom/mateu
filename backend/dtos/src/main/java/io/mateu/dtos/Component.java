@@ -1,17 +1,30 @@
 package io.mateu.dtos;
 
-import java.util.Collections;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.List;
 import java.util.Map;
-import lombok.*;
 
-public record Component(ViewMetadata metadata, String id, Map<String, Object> attributes) {
+/** A common interface for componentIds */
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "componentType")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = GenericComponent.class, name = "GenericComponent"),
+  @JsonSubTypes.Type(value = CrudComponent.class, name = "CrudComponent"),
+})
+public interface Component {
 
-  public Component {
-    attributes = Collections.unmodifiableMap(attributes);
-  }
+  ComponentMetadata metadata();
 
-  @Override
-  public Map<String, Object> attributes() {
-    return Collections.unmodifiableMap(attributes);
-  }
+  String id();
+
+  String className();
+
+  Map<String, Object> attributes();
+
+  Map<String, Object> data();
+
+  List<String> childComponentIds();
 }

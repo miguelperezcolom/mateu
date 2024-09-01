@@ -2,6 +2,8 @@ package io.mateu.core.domain.model.reflection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
+import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFactory;
@@ -47,6 +49,7 @@ public class ReflectionHelper {
   private final SubclassProvider subclassProvider;
   private final ObjectCopier objectCopier;
   private final InstanceProvider instanceProvider;
+  private final ActualValueExtractor actualValueExtractor;
 
   Map<Class, List<io.mateu.core.domain.model.reflection.fieldabstraction.Field>> allFieldsCache =
       new HashMap<>();
@@ -78,7 +81,8 @@ public class ReflectionHelper {
       AllTransferrableFieldsProvider allTransferrableFieldsProvider,
       SubclassProvider subclassProvider,
       ObjectCopier objectCopier,
-      InstanceProvider instanceProvider) {
+      InstanceProvider instanceProvider,
+      ActualValueExtractor actualValueExtractor) {
     this.valueProvider = valueProvider;
     this.basicTypeChecker = basicTypeChecker;
     this.translator = translator;
@@ -108,6 +112,7 @@ public class ReflectionHelper {
     this.subclassProvider = subclassProvider;
     this.objectCopier = objectCopier;
     this.instanceProvider = instanceProvider;
+    this.actualValueExtractor = actualValueExtractor;
   }
 
   public boolean isBasic(Class c) {
@@ -286,6 +291,29 @@ public class ReflectionHelper {
           InvocationTargetException,
           InstantiationException {
     return instanceProvider.newInstance(c);
+  }
+
+  public Object newInstance(Class c, Map<String, Object> data)
+      throws IllegalAccessException,
+          InstantiationException,
+          InvocationTargetException,
+          NoSuchMethodException {
+    var instance = instanceProvider.newInstance(c, data);
+    if (instance instanceof ObjectEditor) {
+      // no need to fill the entityEditor
+    } else {
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  Object actualValue = actualValueExtractor.getActualValue(entry, instance);
+                  setValue(entry.getKey(), instance, actualValue);
+                } catch (Exception ex) {
+                  System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                }
+              });
+    }
+    return instance;
   }
 
   public Object newInstance(Class c, Object parent)

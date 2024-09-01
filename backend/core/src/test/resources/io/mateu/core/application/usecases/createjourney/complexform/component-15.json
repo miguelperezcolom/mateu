@@ -1,0 +1,63 @@
+{
+  "componentType" : "GenericComponent",
+  "className" : "io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper",
+  "metadata" : {
+    "type" : "Crud",
+    "title" : "Simple crud",
+    "subtitle" : null,
+    "canEdit" : false,
+    "searchForm" : {
+      "fields" : [ {
+        "id" : "simpleCrud-text",
+        "type" : "string",
+        "stereotype" : "readonly",
+        "observed" : false,
+        "wantsFocus" : false,
+        "caption" : "Text",
+        "placeholder" : null,
+        "cssClasses" : null,
+        "description" : null,
+        "badges" : [ ],
+        "validations" : [ ],
+        "attributes" : [ ]
+      } ]
+    },
+    "columns" : [ {
+      "id" : "id",
+      "type" : "string",
+      "stereotype" : "column",
+      "caption" : "Id",
+      "description" : "",
+      "width" : "150px",
+      "attributes" : [ ]
+    }, {
+      "id" : "name",
+      "type" : "string",
+      "stereotype" : "column",
+      "caption" : "Name",
+      "description" : "",
+      "width" : "150px",
+      "attributes" : [ ]
+    }, {
+      "id" : "age",
+      "type" : "int",
+      "stereotype" : "column",
+      "caption" : "Age",
+      "description" : "",
+      "width" : "150px",
+      "attributes" : [ ]
+    } ],
+    "actions" : [ ]
+  },
+  "id" : "component-15",
+  "attributes" : { },
+  "data" : {
+    "rpcView" : {
+      "rowClass" : "io.mateu.demo.complexview.crud.Row",
+      "searchFormClass" : "io.mateu.demo.complexview.crud.SearchForm",
+      "__toString" : "Simple crud"
+    },
+    "id" : "simpleCrud"
+  },
+  "childComponentIds" : [ ]
+}

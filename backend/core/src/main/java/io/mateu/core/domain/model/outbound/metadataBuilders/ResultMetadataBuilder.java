@@ -12,7 +12,6 @@ public class ResultMetadataBuilder {
 
   public Result build(io.mateu.core.domain.uidefinition.shared.data.Result result) {
     return new Result(
-        "",
         ResultType.valueOf(result.getType().toString()),
         result.getMessage(),
         result.getInterestingLinks() != null

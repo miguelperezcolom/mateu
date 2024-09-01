@@ -19,4 +19,6 @@ public @interface Section {
   String leftSideImageUrl() default "";
 
   String topImageUrl() default "";
+
+  int columns() default 0;
 }

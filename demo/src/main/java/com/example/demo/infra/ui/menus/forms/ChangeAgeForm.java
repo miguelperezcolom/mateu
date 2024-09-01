@@ -9,18 +9,21 @@ import lombok.Setter;
 @Getter@Setter
 public class ChangeAgeForm {
 
+    private final FormWithCallbacks formWithCallbacks;
+
     int age;
 
-    public ChangeAgeForm() {
+    public ChangeAgeForm(int age, FormWithCallbacks formWithCallbacks) {
+        this.age = age;
+        this.formWithCallbacks = formWithCallbacks;
     }
 
-    public ChangeAgeForm(int age) {
-        this.age = age;
-    }
 
     @MainAction
-    GoBack<Integer> save() {
-        return new GoBack<>(ResultType.Ignored, null, age);
+    FormWithCallbacks save() {
+        formWithCallbacks.age = this.age;
+        return formWithCallbacks;
     }
+
 
 }
