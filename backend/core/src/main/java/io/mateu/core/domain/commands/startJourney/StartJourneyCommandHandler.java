@@ -10,9 +10,9 @@ import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
 import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.dtos.Component;
-import io.mateu.dtos.UIIncrement;
-import io.mateu.dtos.View;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.dtos.*;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +71,16 @@ public class StartJourneyCommandHandler {
             command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
+      if (formInstance instanceof JourneyStarter journeyStarter) {
+        return Mono.just(new UIIncrement(
+                List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
+                        journeyStarter.uiId(),
+                        journeyStarter.baseUrl(),
+                        journeyStarter.journeyTypeId(),
+                        journeyStarter.contextData()
+                ))), null, List.of(), Map.of()));
+      }
+
     } catch (Exception e) {
       log.error("error on getUi", e);
       throw new NotFoundException("No class with name " + journeyTypeId + " found");
@@ -94,6 +104,9 @@ public class StartJourneyCommandHandler {
 
   @SneakyThrows
   private Object createInstanceFromMenuMapping(Object menuEntry) {
+    if (menuEntry instanceof JourneyStarter journeyStarter) {
+      return journeyStarter;
+    }
     if (menuEntry instanceof MDDOpenEditorAction action) {
       if (action.getSupplier() != null) {
         return action.getSupplier().get();

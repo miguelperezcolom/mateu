@@ -16,5 +16,5 @@ public @interface KeycloakSecured {
 
   String clientId();
 
-  String jsUrl();
+  String jsUrl() default "";
 }

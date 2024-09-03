@@ -19,6 +19,8 @@ export class Service {
     async startJourney(baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
         const uiIncrement = await startJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId, journeyId})
         const state = new State()
+        state.commands = uiIncrement.commands
+        state.messages = uiIncrement.messages
         state.content = uiIncrement.content
         state.view = uiIncrement.content as View
         state.components = uiIncrement.components

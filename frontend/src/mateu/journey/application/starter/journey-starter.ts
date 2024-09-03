@@ -47,6 +47,16 @@ export class JourneyStarter extends LitElement {
 
     //reactive state (not properties)
     @state()
+    effectiveBaseUrl = ''
+    @state()
+    effectiveUuiId: string | undefined = undefined;
+    @state()
+    effectiveJourneyTypeId: string | undefined = undefined;
+    @state()
+    effectiveContextData: string | undefined = undefined;
+
+
+    @state()
     modalStepId: string | undefined = undefined;
     @state()
     modalInstant: string | undefined = undefined;
@@ -84,9 +94,9 @@ export class JourneyStarter extends LitElement {
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
         this.service.runAction(
-            this.baseUrl,
-            this.uiId!,
-            this.journeyTypeId!,
+            this.effectiveBaseUrl,
+            this.effectiveUuiId!,
+            this.effectiveJourneyTypeId!,
             this.journeyId!,
             'notInUse',
             event.detail.componentId,
@@ -132,6 +142,7 @@ export class JourneyStarter extends LitElement {
 
     // write state to reactive properties
     stampState(state: State) {
+
 
         // run commands
         state.commands.forEach(c => this.runCommand(c))
@@ -254,6 +265,10 @@ export class JourneyStarter extends LitElement {
                     // @ts-ignore
                     window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
                     return
+                case UICommandType.ReplaceJourney:
+                    this.replaceJourney(c.data as JourneyStarter)
+                    return
+
             }
         } catch (e) {
             console.error(e)
@@ -355,11 +370,18 @@ export class JourneyStarter extends LitElement {
             }
         } else if (changedProperties.has("baseUrl")
             || changedProperties.has("journeyTypeId")
+        ) {
+            this.effectiveBaseUrl = this.baseUrl;
+            this.effectiveUuiId = this.uiId;
+            this.effectiveJourneyTypeId = this.journeyTypeId
+            this.effectiveContextData = this.contextData
+        } else if (changedProperties.has("effectiveBaseUrl")
+            || changedProperties.has("effectiveJourneyTypeId")
             || changedProperties.has("instant")
         ) {
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
-                        mateuApiClient.baseUrl = this.baseUrl
+                        mateuApiClient.baseUrl = this.effectiveBaseUrl
                         try {
                             mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
                         } catch (e) {
@@ -374,7 +396,7 @@ export class JourneyStarter extends LitElement {
                         }
                         window.history.pushState({},"", url);
                         this.journeyId = nanoid()
-                        await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId, this.journeyId)
+                        await this.service.startJourney(this.effectiveBaseUrl, this.effectiveUuiId!, this.effectiveJourneyTypeId!, this.journeyId)
                     }
                 })
         }
@@ -399,6 +421,14 @@ export class JourneyStarter extends LitElement {
                 uiIncrement
             }}))
     }
+
+    replaceJourney(journeyStarter: JourneyStarter) {
+        this.effectiveUuiId = journeyStarter.uiId
+        this.effectiveJourneyTypeId = journeyStarter.journeyTypeId
+        this.effectiveBaseUrl = journeyStarter.baseUrl
+        this.effectiveContextData = journeyStarter.contextData
+    }
+
 
     renderModal() {
         return html`

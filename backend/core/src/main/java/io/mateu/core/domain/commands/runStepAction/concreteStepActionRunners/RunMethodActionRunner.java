@@ -22,6 +22,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -173,6 +174,16 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
               componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
+    }
+
+    if (actualViewInstance instanceof JourneyStarter journeyStarter) {
+      return Mono.just(new UIIncrement(
+              List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
+                      journeyStarter.uiId(),
+                      journeyStarter.baseUrl(),
+                      journeyStarter.journeyTypeId(),
+                      journeyStarter.contextData()
+              ))), null, List.of(), Map.of()));
     }
 
     if (Mono.class.isAssignableFrom(result.getClass())) {

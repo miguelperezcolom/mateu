@@ -7,5 +7,6 @@ public enum UICommandType {
   OpenNewTab,
   OpenNewWindow,
   SetLocation,
-  SetWindowTitle
+  SetWindowTitle,
+  ReplaceJourney
 }

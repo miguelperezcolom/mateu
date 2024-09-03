@@ -2,12 +2,21 @@ package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.forms.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 
 public class FormsSubmenu {
 
   @MenuOption
   BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
+
+
+  @MenuOption private JourneyStarter remoteForm = new JourneyStarter(
+          "com.example.demo.infra.ircs.IrcsHome",
+          "users",
+          "http://localhost:8091/ircs/mateu/v3",
+          ""
+  );
 
   @MenuOption private AutoReloadForm autoReload;
 
