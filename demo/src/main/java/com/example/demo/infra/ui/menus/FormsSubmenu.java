@@ -10,11 +10,19 @@ public class FormsSubmenu {
   BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
 
+  /*
+  <journey-starter
+  uiid="com.example.mateuarticle1.ui.HelloWorld"
+  journeytypeid="crud"
+  baseurl="/mateu/v3"
+  instant="IE5ctOHMfClup44NcP-Bp"
+  contextdata=""></journey-starter>
+   */
 
   @MenuOption private JourneyStarter remoteForm = new JourneyStarter(
-          "com.example.demo.infra.ircs.IrcsHome",
-          "users",
-          "http://localhost:8091/ircs/mateu/v3",
+          "com.example.mateuarticle1.ui.HelloWorld",
+          "crud",
+          "http://localhost:8080/mateu/v3",
           ""
   );
 

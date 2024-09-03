@@ -155,10 +155,9 @@ export class MateuCrud extends LitElement {
 
   protected update(changedProperties: PropertyValues) {
     super.update(changedProperties)
+    console.log('updated', changedProperties, this.baseUrl)
     if (
-        changedProperties.has('journeyId')
-        || changedProperties.has('stepId')
-        || changedProperties.has('component')
+        changedProperties.has('component')
     ) {
       this.page = 0
       this.doSearch().then()
@@ -473,7 +472,7 @@ export class MateuCrud extends LitElement {
                                          // @ts-ignore
                                          (row, model, column) => {
                                            // @ts-ignore
-                                           const value = row[column.path]
+                                           const value = '' + row[column.path]
                                            return html`${unsafeHTML(value)}`;
                                          },
                                          []
