@@ -474,11 +474,11 @@ export class JourneyStarter extends LitElement {
                     <mateu-view 
                 .view=${this.view}
                 .components=${this.components}
-                uiId="${this.uiId}"
-                journeyTypeId="${this.journeyTypeId}"
+                uiId="${this.effectiveUuiId}"
+                journeyTypeId="${this.effectiveJourneyTypeId}"
                 journeyId="${this.journeyId}" 
                 .service=${this.service}
-                baseUrl="${this.baseUrl}"
+                baseUrl="${this.effectiveBaseUrl}"
                 stepId="none"
                 @runaction="${this.runAction}"
                 @replace-component="${this.replaceComponent}"
