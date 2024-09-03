@@ -47,16 +47,6 @@ export class JourneyStarter extends LitElement {
 
     //reactive state (not properties)
     @state()
-    effectiveBaseUrl = ''
-    @state()
-    effectiveUuiId: string | undefined = undefined;
-    @state()
-    effectiveJourneyTypeId: string | undefined = undefined;
-    @state()
-    effectiveContextData: string | undefined = undefined;
-
-
-    @state()
     modalStepId: string | undefined = undefined;
     @state()
     modalInstant: string | undefined = undefined;
@@ -94,9 +84,9 @@ export class JourneyStarter extends LitElement {
     runAction(event: CustomEvent) {
         const action: Action = event.detail.action
         this.service.runAction(
-            this.effectiveBaseUrl,
-            this.effectiveUuiId!,
-            this.effectiveJourneyTypeId!,
+            this.baseUrl,
+            this.uiId!,
+            this.journeyTypeId!,
             this.journeyId!,
             'notInUse',
             event.detail.componentId,
@@ -370,18 +360,11 @@ export class JourneyStarter extends LitElement {
             }
         } else if (changedProperties.has("baseUrl")
             || changedProperties.has("journeyTypeId")
-        ) {
-            this.effectiveBaseUrl = this.baseUrl;
-            this.effectiveUuiId = this.uiId;
-            this.effectiveJourneyTypeId = this.journeyTypeId
-            this.effectiveContextData = this.contextData
-        } else if (changedProperties.has("effectiveBaseUrl")
-            || changedProperties.has("effectiveJourneyTypeId")
             || changedProperties.has("instant")
         ) {
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
-                        mateuApiClient.baseUrl = this.effectiveBaseUrl
+                        mateuApiClient.baseUrl = this.baseUrl
                         try {
                             mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
                         } catch (e) {
@@ -396,7 +379,7 @@ export class JourneyStarter extends LitElement {
                         }
                         window.history.pushState({},"", url);
                         this.journeyId = nanoid()
-                        await this.service.startJourney(this.effectiveBaseUrl, this.effectiveUuiId!, this.effectiveJourneyTypeId!, this.journeyId)
+                        await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
                     }
                 })
         }
@@ -414,7 +397,12 @@ export class JourneyStarter extends LitElement {
     }
 
     closeModalAndStay(uiIncrement: UIIncrement) {
-        this.dispatchEvent(new CustomEvent('close-modal', {
+        this.dispatchEvent(new CustomEvent('this.dispatchEvent(new CustomEvent(\'replace-journey\', {\n' +
+            '            bubbles: true,\n' +
+            '            composed: true,\n' +
+            '            detail: {\n' +
+            '                journeyStarter\n' +
+            '            }}))', {
             bubbles: true,
             composed: true,
             detail: {
@@ -423,10 +411,12 @@ export class JourneyStarter extends LitElement {
     }
 
     replaceJourney(journeyStarter: JourneyStarter) {
-        this.effectiveUuiId = journeyStarter.uiId
-        this.effectiveJourneyTypeId = journeyStarter.journeyTypeId
-        this.effectiveBaseUrl = journeyStarter.baseUrl
-        this.effectiveContextData = journeyStarter.contextData
+        this.dispatchEvent(new CustomEvent('replace-journey', {
+            bubbles: true,
+            composed: true,
+            detail: {
+                journeyStarter
+            }}))
     }
 
 
@@ -474,11 +464,11 @@ export class JourneyStarter extends LitElement {
                     <mateu-view 
                 .view=${this.view}
                 .components=${this.components}
-                uiId="${this.effectiveUuiId}"
-                journeyTypeId="${this.effectiveJourneyTypeId}"
+                uiId="${this.uiId}"
+                journeyTypeId="${this.journeyTypeId}"
                 journeyId="${this.journeyId}" 
                 .service=${this.service}
-                baseUrl="${this.effectiveBaseUrl}"
+                baseUrl="${this.baseUrl}"
                 stepId="none"
                 @runaction="${this.runAction}"
                 @replace-component="${this.replaceComponent}"

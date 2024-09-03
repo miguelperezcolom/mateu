@@ -42,6 +42,12 @@ export class MateuUi extends LitElement {
 
     // state
     @state()
+    journeyBaseUrl = ''
+    @state()
+    journeyUiId = '';
+    @state()
+    journeyContextData: string | undefined = undefined;
+    @state()
     ui: UI | undefined = undefined;
     @property()
     journeyTypeId: string | undefined;
@@ -133,6 +139,9 @@ export class MateuUi extends LitElement {
         this.instant = nanoid()
         let item = event.detail.value as MyMenuBarItem
         this.journeyTypeId = item.journeyTypeId
+        this.journeyUiId = this.uiId
+        this.journeyBaseUrl = this.baseUrl
+        this.journeyContextData = this.contextData
         this.label = item.text
     }
 
@@ -191,6 +200,14 @@ export class MateuUi extends LitElement {
         return item;
     }
 
+    replaceJourney(event: CustomEvent) {
+        const journeyStarter = event.detail.journeyStarter
+        this.journeyBaseUrl = journeyStarter.baseUrl
+        this.journeyUiId = journeyStarter.uiId
+        this.journeyTypeId = journeyStarter.journeyTypeId
+        this.journeyContextData = journeyStarter.contextData
+    }
+
 
     render() {
        return html`
@@ -232,13 +249,27 @@ export class MateuUi extends LitElement {
                 `:''}
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
-                    <journey-starter uiId="${this.uiId}" journeytypeid="${this.ui.homeJourneyTypeId}" baseUrl="${this.baseUrl}" instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
+                    <journey-starter 
+                            uiId="${this.journeyUiId}" 
+                            journeytypeid="${this.ui.homeJourneyTypeId}" 
+                            baseUrl="${this.journeyBaseUrl}" 
+                            instant="${this.instant}" 
+                            contextData="${this.journeyContextData}"
+                            @replace-journey="${this.replaceJourney}"
+                    ></journey-starter>
                     
                 `:''}
 
                     ${this.journeyTypeId?html`
 
-                    <journey-starter uiId="${this.uiId}" journeytypeid=${this.journeyTypeId} baseUrl="${this.baseUrl}"  instant="${this.instant}" contextData="${this.contextData}"></journey-starter>
+                    <journey-starter 
+                            uiId="${this.journeyUiId}" 
+                            journeytypeid=${this.journeyTypeId} 
+                            baseUrl="${this.journeyBaseUrl}"  
+                            instant="${this.instant}" 
+                            contextData="${this.journeyContextData}"
+                            @replace-journey="${this.replaceJourney}"
+                    ></journey-starter>
                     
                 `:''}
 
