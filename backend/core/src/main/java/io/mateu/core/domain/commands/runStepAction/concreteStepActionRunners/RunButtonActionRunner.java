@@ -129,6 +129,16 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     if (r == null) {
       return new UIIncrement(List.of(), null, List.of(), Map.of());
     }
+    if (r instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter journeyStarter) {
+      return new UIIncrement(
+              List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
+                      journeyStarter.uiId(),
+                      journeyStarter.baseUrl(),
+                      journeyStarter.journeyTypeId(),
+                      journeyStarter.contextData()
+              ))), null, List.of(), Map.of());
+    }
+
     if (r instanceof CloseModal closeModal) {
       var component =
           componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);

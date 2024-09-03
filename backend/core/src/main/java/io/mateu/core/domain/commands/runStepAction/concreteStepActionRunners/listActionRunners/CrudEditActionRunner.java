@@ -10,9 +10,9 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.dtos.Component;
-import io.mateu.dtos.UIIncrement;
-import io.mateu.dtos.View;
+import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.dtos.*;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +86,16 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (editor == null) {
       throw new Exception("Crud getDetail returned null");
+    }
+
+    if (editor instanceof JourneyStarter journeyStarter) {
+      return Mono.just(new UIIncrement(
+              List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
+                      journeyStarter.uiId(),
+                      journeyStarter.baseUrl(),
+                      journeyStarter.journeyTypeId(),
+                      journeyStarter.contextData()
+              ))), null, List.of(), Map.of()));
     }
 
     if (editor instanceof Container) {
