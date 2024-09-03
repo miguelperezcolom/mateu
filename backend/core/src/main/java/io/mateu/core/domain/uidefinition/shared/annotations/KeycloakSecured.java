@@ -15,4 +15,6 @@ public @interface KeycloakSecured {
   String realm();
 
   String clientId();
+
+  String jsUrl();
 }

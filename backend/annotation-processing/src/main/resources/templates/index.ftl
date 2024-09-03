@@ -40,7 +40,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");
 <#if keycloak??>
         String keycloakStuff = """
-<script src='https://www.unpkg.com/keycloak-js/dist/keycloak.min.js'></script>
+<script src='${keycloak.jsUrl}'></script>
 <script>
     function initKeycloak() {
         const keycloak = new Keycloak({

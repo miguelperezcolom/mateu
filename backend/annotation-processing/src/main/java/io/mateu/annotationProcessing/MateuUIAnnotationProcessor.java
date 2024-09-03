@@ -156,13 +156,22 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         String keycloakUrl = keycloakAnnotation.url();
         String keycloakRealm = keycloakAnnotation.realm();
         String keycloakClientId = keycloakAnnotation.clientId();
+        String keycloakJsUrl = keycloakAnnotation.jsUrl();
+        if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
+          keycloakJsUrl = "https://www.unpkg.com/keycloak-js/dist/keycloak.min.js";
+        }
 
         model.put(
             "keycloak",
             Map.of(
-                "url", keycloakUrl,
-                "realm", keycloakRealm,
-                "clientId", keycloakClientId));
+                "url",
+                keycloakUrl,
+                "realm",
+                keycloakRealm,
+                "clientId",
+                keycloakClientId,
+                "jsUrl",
+                keycloakJsUrl));
       }
 
       io.mateu.annotationProcessing.Formatter formatter =

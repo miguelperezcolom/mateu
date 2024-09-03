@@ -184,11 +184,10 @@ export class MateuComponent extends LitElement {
                     html`<journey-starter
                             .component=${this.component}
                             .components=${this.components}
+                            uiId="${(this.component.metadata as JourneyStarter).uiId}"
                             baseUrl="${(this.component.metadata as JourneyStarter).baseUrl?(this.component.metadata as JourneyStarter).baseUrl:this.baseUrl}"
-                            journeyType="${(this.component.metadata as JourneyStarter).journeyTypeId}"
-                            journeyId="${(this.component.metadata as JourneyStarter).journeyId}"
-                            stepId="${(this.component.metadata as JourneyStarter).stepId}"
-                            actionId="${(this.component.metadata as JourneyStarter).actionId}"
+                            journeyTypeId="${(this.component.metadata as JourneyStarter).journeyTypeId}"
+                            contextData="${(this.component.metadata as JourneyStarter).contextData}"
                     ></journey-starter>`
                     :html``}
         `
