@@ -12,7 +12,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,13 +88,19 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     if (editor instanceof JourneyStarter journeyStarter) {
-      return Mono.just(new UIIncrement(
-              List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
-                      journeyStarter.uiId(),
-                      journeyStarter.baseUrl(),
-                      journeyStarter.journeyTypeId(),
-                      journeyStarter.contextData()
-              ))), null, List.of(), Map.of()));
+      return Mono.just(
+          new UIIncrement(
+              List.of(
+                  new UICommand(
+                      UICommandType.ReplaceJourney,
+                      new io.mateu.dtos.JourneyStarter(
+                          journeyStarter.uiId(),
+                          journeyStarter.baseUrl(),
+                          journeyStarter.journeyTypeId(),
+                          journeyStarter.contextData()))),
+              null,
+              List.of(),
+              Map.of()));
     }
 
     if (editor instanceof Container) {

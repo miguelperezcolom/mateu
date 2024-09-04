@@ -201,6 +201,7 @@ export class MateuUi extends LitElement {
     }
 
     replaceJourney(event: CustomEvent) {
+        console.log('replaceJourney', event)
         const journeyStarter = event.detail.journeyStarter
         this.journeyBaseUrl = journeyStarter.baseUrl
         this.journeyUiId = journeyStarter.uiId

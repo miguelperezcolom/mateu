@@ -176,14 +176,20 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
     }
 
-    if (actualViewInstance instanceof JourneyStarter journeyStarter) {
-      return Mono.just(new UIIncrement(
-              List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
-                      journeyStarter.uiId(),
-                      journeyStarter.baseUrl(),
-                      journeyStarter.journeyTypeId(),
-                      journeyStarter.contextData()
-              ))), null, List.of(), Map.of()));
+    if (result instanceof JourneyStarter journeyStarter) {
+      return Mono.just(
+          new UIIncrement(
+              List.of(
+                  new UICommand(
+                      UICommandType.ReplaceJourney,
+                      new io.mateu.dtos.JourneyStarter(
+                          journeyStarter.uiId(),
+                          journeyStarter.baseUrl(),
+                          journeyStarter.journeyTypeId(),
+                          journeyStarter.contextData()))),
+              null,
+              List.of(),
+              Map.of()));
     }
 
     if (Mono.class.isAssignableFrom(result.getClass())) {

@@ -12,7 +12,6 @@ import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,13 +71,19 @@ public class StartJourneyCommandHandler {
       }
 
       if (formInstance instanceof JourneyStarter journeyStarter) {
-        return Mono.just(new UIIncrement(
-                List.of(new UICommand(UICommandType.ReplaceJourney, new io.mateu.dtos.JourneyStarter(
-                        journeyStarter.uiId(),
-                        journeyStarter.baseUrl(),
-                        journeyStarter.journeyTypeId(),
-                        journeyStarter.contextData()
-                ))), null, List.of(), Map.of()));
+        return Mono.just(
+            new UIIncrement(
+                List.of(
+                    new UICommand(
+                        UICommandType.ReplaceJourney,
+                        new io.mateu.dtos.JourneyStarter(
+                            journeyStarter.uiId(),
+                            journeyStarter.baseUrl(),
+                            journeyStarter.journeyTypeId(),
+                            journeyStarter.contextData()))),
+                null,
+                List.of(),
+                Map.of()));
       }
 
     } catch (Exception e) {

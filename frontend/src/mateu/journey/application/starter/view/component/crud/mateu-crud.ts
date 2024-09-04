@@ -155,7 +155,6 @@ export class MateuCrud extends LitElement {
 
   protected update(changedProperties: PropertyValues) {
     super.update(changedProperties)
-    console.log('updated', changedProperties, this.baseUrl)
     if (
         changedProperties.has('component')
     ) {
