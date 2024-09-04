@@ -23,7 +23,7 @@ public class FormsSubmenu {
           "com.example.mateuarticle1.ui.HelloWorld",
           "crud",
           "http://localhost:8080/mateu/v3",
-          ""
+          "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 
   @MenuOption private AutoReloadForm autoReload;

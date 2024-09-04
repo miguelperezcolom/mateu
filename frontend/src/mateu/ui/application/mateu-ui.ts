@@ -81,6 +81,9 @@ export class MateuUi extends LitElement {
         if (window.location.hash) {
             if (!window.location.hash.startsWith('#state=')) {
                 this.journeyTypeId = window.location.hash.split('&')[0].substring(1)
+                this.journeyBaseUrl = this.baseUrl
+                this.journeyUiId = this.uiId
+                this.journeyContextData = this.contextData
             }
         }
 
@@ -88,6 +91,9 @@ export class MateuUi extends LitElement {
             const w = e.target as Window
             if (!w.location.hash.startsWith('#state=')) {
                 this.journeyTypeId = w.location.hash.split('&')[0].substring(1)
+                this.journeyBaseUrl = this.baseUrl
+                this.journeyUiId = this.uiId
+                this.journeyContextData = this.contextData
             }
         };
     }

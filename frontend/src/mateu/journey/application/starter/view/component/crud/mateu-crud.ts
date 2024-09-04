@@ -322,7 +322,6 @@ export class MateuCrud extends LitElement {
   }
 
   async runAction(e:Event) {
-    console.log('runAction', e)
     const button = e.currentTarget as Button;
     const actionId = button.getAttribute('actionid');
     if (!actionId) {
@@ -539,16 +538,15 @@ export class MateuCrud extends LitElement {
           `}
         </div>
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
+          ${this.metadata.actions.filter(a => a.visible).slice(0, 2).map(a => html`
+            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${a.rowsSelectedRequired}  actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
+          `)}
           ${this.metadata.actions.filter(a => a.visible).length > 2?html`
               <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
                                .items="${this.buildItemsForActions(this.metadata.actions
-              .filter(a => a.visible))}"></vaadin-menu-bar>
-            `:html`
-              ${this.metadata.actions.filter(a => a.visible).map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${a.rowsSelectedRequired}  actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
-          `)}
-            `}
+              .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
+            `:''}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
       ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">

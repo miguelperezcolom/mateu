@@ -211,6 +211,9 @@ export class JourneyStarter extends LitElement {
                 this.view = state.view
             }
             if (state.components) {
+                if (!this.components) {
+                    this.components = {}
+                }
                 for (let componentId in state.components) {
                     this.components[componentId] = state.components[componentId]
                 }
@@ -411,6 +414,7 @@ export class JourneyStarter extends LitElement {
     }
 
     replaceJourney(journeyStarter: JourneyStarter) {
+        console.log('journey-starter.replaceJourney', journeyStarter)
         this.dispatchEvent(new CustomEvent('replace-journey', {
             bubbles: true,
             composed: true,

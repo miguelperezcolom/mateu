@@ -435,16 +435,15 @@ export class MateuForm extends LitElement implements FormElement {
           `:''}
           </div>
           <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
+            ${this.metadata.actions.filter(a => a.visible).slice(0, 2).map(a => html`
+            <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
+          `)}
             ${this.metadata.actions.filter(a => a.visible).length > 2?html`
               <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
                                .items="${this.buildItemsForActions(this.metadata.actions
-                  .filter(a => a.visible))}"></vaadin-menu-bar>
-            `:html`
-              ${this.metadata.actions.filter(a => a.visible).map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
-          `)}
-            `}
+                  .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
+            `:''}
           </vaadin-horizontal-layout>
         </vaadin-horizontal-layout>
           
