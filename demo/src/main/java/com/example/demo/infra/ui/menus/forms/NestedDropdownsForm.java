@@ -26,6 +26,7 @@ public class NestedDropdownsForm {
 
   @Section("Using @ValuesProviderMethod")
   @CallActionOnChange("none")
+  @RequestFocus
   private Country countryAgain;
 
   @Action(visible = false)

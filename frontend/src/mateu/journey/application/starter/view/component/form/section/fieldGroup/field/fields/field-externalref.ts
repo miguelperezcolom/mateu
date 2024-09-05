@@ -127,6 +127,8 @@ export class FieldExternalRef extends LitElement implements Component {
                               item-label-path="key"
                               item-value-path="value"
                               placeholder="${this.placeholder}"
+                              ?autofocus="${this.field?.wantsFocus}"
+                              autoselect="on"
             >
             </vaadin-combo-box>
             `
