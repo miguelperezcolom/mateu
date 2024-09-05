@@ -9,5 +9,5 @@ export default interface Column {
     description: string
     width: string
     attributes: Pair[]
-
+    detail: boolean
 }

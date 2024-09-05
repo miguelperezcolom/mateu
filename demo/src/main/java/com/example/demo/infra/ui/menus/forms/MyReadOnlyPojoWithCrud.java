@@ -39,7 +39,7 @@ public class MyReadOnlyPojoWithCrud
   private String assessment;
 
   @Autowired
-  private ProgrammingLanguages programmingLanguages;
+  private MyReadOnlyPojoWithCrudCrud children;
 
   @Action
   public void assess() {

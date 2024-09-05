@@ -8,6 +8,7 @@ import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
 import io.mateu.core.domain.uidefinition.core.interfaces.RpcCrudViewExtended;
 import io.mateu.core.domain.uidefinition.shared.annotations.Child;
+import io.mateu.core.domain.uidefinition.shared.annotations.Detail;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.Column;
@@ -93,7 +94,9 @@ public class CrudMetadataBuilder {
         columnCaption,
         "",
         fieldTypeMapper.getWidth(field),
-        List.of());
+        List.of(),
+            field.isAnnotationPresent(Detail.class)
+            );
   }
 
   private SearchForm buildSearchForm(Listing rpcView, String listId) {

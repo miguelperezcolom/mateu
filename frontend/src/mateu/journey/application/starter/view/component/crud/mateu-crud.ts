@@ -10,7 +10,7 @@ import "@vaadin/vaadin-grid/vaadin-grid-column";
 import "../form/section/fieldGroup/field/fields/field-externalref"
 import "./mateu-paginator"
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
-import {Grid} from "@vaadin/vaadin-grid";
+import {Grid, GridActiveItemChangedEvent} from "@vaadin/vaadin-grid";
 import {GridSortColumn} from "@vaadin/vaadin-grid/vaadin-grid-sort-column";
 import {Button} from "@vaadin/button";
 import {badge} from "@vaadin/vaadin-lumo-styles";
@@ -20,7 +20,7 @@ import '@vaadin/menu-bar';
 import {mateuApiClient} from "../../../../../../shared/apiClients/MateuApiClient";
 import {Base64} from "js-base64";
 import ConfirmationTexts from "../../../../../../shared/apiClients/dtos/ConfirmationTexts";
-import {dialogRenderer} from 'lit-vaadin-helpers';
+import {dialogRenderer, gridRowDetailsRenderer} from 'lit-vaadin-helpers';
 import {dialogFooterRenderer} from '@vaadin/dialog/lit';
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
 import {mapField} from "./crudFieldMapping";
@@ -133,6 +133,9 @@ export class MateuCrud extends LitElement {
 
   @property()
   items:any[] = []
+
+  @state()
+  detailsOpenedItem: any[] = [];
 
   state: CrudState = {
     uiId: '',
@@ -521,6 +524,7 @@ export class MateuCrud extends LitElement {
   render() {
     // @ts-ignore
     // @ts-ignore
+    // @ts-ignore
     return html`
 
       <vaadin-horizontal-layout class="header" style="align-items: baseline;">
@@ -537,6 +541,9 @@ export class MateuCrud extends LitElement {
           `:''}
           `}
         </div>
+        ${!this.metadata?.searchForm.fields || this.metadata?.searchForm.fields.length == 0?html`
+            <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
+          `:''}
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
           ${this.metadata.actions.filter(a => a.visible).slice(0, 2).map(a => html`
             <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${a.rowsSelectedRequired}  actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
@@ -568,11 +575,33 @@ export class MateuCrud extends LitElement {
         </vaadin-horizontal-layout>
         <p style="margin-block-start: 0;">${this.filtersText}</p>
       `:''}
-
-      <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible>
+      
+      <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible
+                   .detailsOpenedItems="${this.detailsOpenedItem}"
+                   @active-item-changed="${(event: GridActiveItemChangedEvent<any>) => {
+                     //this.detailsOpenedItem = [event.detail.value]
+                     if (this.metadata.columns.filter(c => c.detail)) {
+                       const row = event.detail.value
+                       if (row) {
+                         this.detailsOpenedItem = [row]
+                       } else {
+                         this.detailsOpenedItem = []
+                       }
+                     }
+                   }}"
+                   ${gridRowDetailsRenderer(
+          (detail) => html`
+            <vaadin-vertical-layout>
+              ${this.metadata.columns.filter(c => c.detail).map(c =>
+                  // @ts-ignore    
+                  html`<div>${detail[c.id]}</div>`)}  
+            </vaadin-vertical-layout>
+          `,
+          []
+      )}>
         <vaadin-grid-selection-column></vaadin-grid-selection-column>
 
-      ${this.metadata?.columns.map(c => {
+      ${this.metadata?.columns.filter(c => !c.detail).map(c => {
         return this.getColumn(c)
       })}
 
@@ -587,6 +616,7 @@ export class MateuCrud extends LitElement {
                   []
               )}></vaadin-grid-column>
         `:''}
+        
         
         </vaadin-grid>
       

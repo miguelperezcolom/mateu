@@ -39,6 +39,7 @@ import './fields/field-json'
 import './fields/field-externalrefclosedlist'
 import './fields/field-button'
 import './fields/field-password'
+import './fields/field-email'
 import FieldWrapper from "../../../FieldWrapper";
 
 /**

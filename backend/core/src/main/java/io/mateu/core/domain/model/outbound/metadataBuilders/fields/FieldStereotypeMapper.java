@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,9 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(ReadOnly.class)
         || view.getClass().isAnnotationPresent(ReadOnly.class)) {
       return "readonly";
+    }
+    if (field.isAnnotationPresent(Email.class)) {
+      return "email";
     }
     if (field.isAnnotationPresent(Password.class)) {
       return "password";

@@ -57,6 +57,7 @@
     "@vaadin/vaadin-radio-button": "^23.3.8",
     "@vaadin/vaadin-tabs": "^23.3.8",
     "@vaadin/vaadin-text-field": "^23.3.8",
+    "@vaadin/email-field": "^23.3.8",
     "@vaadin/vaadin-upload": "^23.3.8",
     "@vaadin/vertical-layout": "^23.2.1",
     "@vaadin/split-layout": "^23.2.1",

@@ -157,7 +157,9 @@ public class FieldAttributeBuilder {
                     captionProvider.getCaption(columnField),
                     "",
                     fieldTypeMapper.getWidth(columnField),
-                    List.of())));
+                    List.of(),
+                        columnField.isAnnotationPresent(Detail.class)
+                        )));
       }
     }
     return attributes;

@@ -13,6 +13,7 @@ import java.util.List;
  * @param description A help text. Usually a tooltip
  * @param width The preferred width for this column
  * @param attributes Some extra column attributes/data
+ * @param detail If this column is to be opened in the detail
  */
 public record Column(
     String id,
@@ -21,7 +22,8 @@ public record Column(
     String caption,
     String description,
     String width,
-    List<Pair> attributes) {
+    List<Pair> attributes,
+    boolean detail) {
 
   public Column {
     attributes = Collections.unmodifiableList(attributes);
