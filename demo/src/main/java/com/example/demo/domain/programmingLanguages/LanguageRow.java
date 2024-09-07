@@ -21,10 +21,10 @@ public class LanguageRow {
 
   private String name;
 
-  @Width("80px")
+  @Width("150px")
   private LanguageTarget target;
 
-  @Width("90px")
+  @Width("150px")
   private Status status = new Status(StatusType.INFO, "New record");
 
   public enum LanguageTarget {

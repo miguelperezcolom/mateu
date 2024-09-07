@@ -15,8 +15,12 @@ import java.util.List;
 @Component@Scope("prototype")
 public class SimpleCrud implements Crud<SearchForm, Row> {
 
-    @Autowired
-    SimpleCrudService service;
+
+    private final SimpleCrudService service;
+
+    public SimpleCrud(SimpleCrudService service) {
+        this.service = service;
+    }
 
     @Override
     public Flux<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders,

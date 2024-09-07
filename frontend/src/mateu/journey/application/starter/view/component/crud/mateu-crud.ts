@@ -424,7 +424,9 @@ export class MateuCrud extends LitElement {
       return html`
             <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
                                       id="${this.component.id}-${c.id}"
-                                      width="${ifDefined(c.width?c.width:undefined)}" data-testid="column-${c.id}"
+                                      width="${ifDefined(c.width?c.width:undefined)}"
+                                      flex-grow="${ifDefined(c.width?'0':undefined)}"
+                                      data-testid="column-${c.id}"
                 ${columnBodyRenderer(
                     // @ts-ignore
                     (row, model, column) => {
@@ -439,7 +441,7 @@ export class MateuCrud extends LitElement {
     }
     if (c.type == 'ColumnActionGroup') {
       return html`
-        <vaadin-grid-column  path="${c.id}" data-testid="column-${c.id}" header="${c.caption}" width="60px"
+        <vaadin-grid-column  path="${c.id}" data-testid="column-${c.id}" header="${c.caption}" width="90px" flex-grow="0"
                              id="${this.component.id}-${c.id}"
                              ${columnBodyRenderer(
                                  // @ts-ignore
@@ -467,7 +469,8 @@ export class MateuCrud extends LitElement {
     }
     return html`
             <vaadin-grid-sort-column path="${c.id}" header="${c.caption}" resizable
-                                     width="${c.width}"
+                                     width="${ifDefined(c.width?c.width:undefined)}"
+                                     flex-grow="${ifDefined(c.width?'0':undefined)}"
                                      data-testid="column-${c.id}"
                                      id="${this.component.id}-${c.id}"
                                      ${columnBodyRenderer(
@@ -484,7 +487,6 @@ export class MateuCrud extends LitElement {
   }
 
   hasDetail() {
-    console.log('hasDetail()', this.metadata.columns.find(c => c.detail))
     return this.metadata.columns.find(c => c.detail);
   }
 
