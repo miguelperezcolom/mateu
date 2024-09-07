@@ -2,12 +2,9 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.core.domain.uidefinition.core.interfaces.Container;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import lombok.Data;
@@ -24,50 +21,9 @@ import java.util.List;
 @Scope("prototype")
 @ReadOnly
 public class MyReadOnlyPojoWithCrud
-    implements HasBadges, HasStatus {
+    implements Container {
 
-  @JsonIgnore
-  private final MyReadOnlyPojoData data;
-  @JsonIgnore
-  private final MyReadOnlyPojoWithCrudEditor editor;
-
-  @Section(value = "", columns = 2)
-  private String name = "Mateu";
-
-  private int age;
-
-  private String assessment;
-
-  @Autowired
-  private MyReadOnlyPojoWithCrudCrud children;
-
-  @Action
-  public void assess() {
-    assessment = "" + name + ", " + age;
-  }
-
-  public String toString() {
-    return "This is a sample form (from toString)";
-  }
-
-  @Override
-  public List<Badge> getBadges() {
-    return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
-  }
-
-  public Object retrieveId() {
-    return "010100101";
-  }
-
-  @Override
-  public Status getStatus() {
-    return new Status(StatusType.SUCCESS, "This is the status!");
-  }
-
-  @Action("Edit")
-  public Object retrieveEditor() throws Throwable {
-    editor.setId(retrieveId().toString());
-    return editor;
-  }
+  private final MyReadOnlyPojoWithCrudForm form;
+  private final MyReadOnlyPojoWithCrudCrud crud;
 
 }

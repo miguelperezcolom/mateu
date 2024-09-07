@@ -104,6 +104,6 @@ public class FieldTypeMapper {
     if (field.isAnnotationPresent(Width.class)) {
       return field.getAnnotation(Width.class).value();
     }
-    return "150px";
+    return null;
   }
 }

@@ -207,7 +207,6 @@ export class MateuUi extends LitElement {
     }
 
     replaceJourney(event: CustomEvent) {
-        console.log('replaceJourney', event)
         const journeyStarter = event.detail.journeyStarter
         this.journeyBaseUrl = journeyStarter.baseUrl
         this.journeyUiId = journeyStarter.uiId
@@ -263,6 +262,7 @@ export class MateuUi extends LitElement {
                             instant="${this.instant}" 
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
+                            remote="${this.baseUrl != this.journeyBaseUrl}"
                     ></journey-starter>
                     
                 `:''}
@@ -276,6 +276,7 @@ export class MateuUi extends LitElement {
                             instant="${this.instant}" 
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
+                            remote="${this.baseUrl != this.journeyBaseUrl}"
                     ></journey-starter>
                     
                 `:''}

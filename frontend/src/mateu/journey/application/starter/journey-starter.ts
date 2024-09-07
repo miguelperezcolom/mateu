@@ -44,6 +44,8 @@ export class JourneyStarter extends LitElement {
     contextData: string | undefined = undefined;
     @property()
     initialUiIncrement: UIIncrement | undefined = undefined;
+    @property()
+    remote: boolean = false
 
     //reactive state (not properties)
     @state()
@@ -61,6 +63,8 @@ export class JourneyStarter extends LitElement {
     loading: boolean = false;
     @state()
     error: boolean | undefined = undefined;
+    @state()
+    loadFailed: unknown;
     @state()
     view: View | undefined = undefined;
     @state()
@@ -376,13 +380,23 @@ export class JourneyStarter extends LitElement {
                         mateuApiClient.element = this
 
                         mateuApiClient.abortAll();
-                        var url = '#' + this.journeyTypeId
-                        if ('____home____' == this.journeyTypeId) {
-                            url = ''
+
+                        // @ts-ignore
+                        if (!this.remote || this.remote == 'false') {
+                            var url = '#' + this.journeyTypeId
+                            if ('____home____' == this.journeyTypeId) {
+                                url = ''
+                            }
+                            window.history.pushState({},"", url);
                         }
-                        window.history.pushState({},"", url);
+
                         this.journeyId = nanoid()
-                        await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
+                        try {
+                            await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
+                            this.loadFailed = undefined
+                        } catch (e) {
+                            this.loadFailed = e
+                        }
                     }
                 })
         }
@@ -414,7 +428,6 @@ export class JourneyStarter extends LitElement {
     }
 
     replaceJourney(journeyStarter: JourneyStarter) {
-        console.log('journey-starter.replaceJourney', journeyStarter)
         this.dispatchEvent(new CustomEvent('replace-journey', {
             bubbles: true,
             composed: true,
@@ -463,7 +476,16 @@ export class JourneyStarter extends LitElement {
                 
                 `:''}
             
+            ${this.loadFailed?html`
                 
+                <vaadin-vertical-layout style="height: 50vh; align-items: center; justify-content: center;" theme="spacing padding">
+                    <vaadin-icon icon="vaadin:frown-o" style="height: var(--lumo-icon-size-l); width: var(--lumo-icon-size-l);color: var(--lumo-error-color);"></vaadin-icon>
+                    <p style="color: var(--lumo-error-color)">${this.loadFailed}</p>
+                </vaadin-vertical-layout>
+                
+            
+            `:html`
+
                 ${this.view?html`
                     <mateu-view 
                 .view=${this.view}
@@ -480,6 +502,8 @@ export class JourneyStarter extends LitElement {
         ><slot></slot></mateu-view>
                     `:html`
                 <!--<p>No step</p>-->
+            `}
+            
             `}
 
             <vaadin-dialog

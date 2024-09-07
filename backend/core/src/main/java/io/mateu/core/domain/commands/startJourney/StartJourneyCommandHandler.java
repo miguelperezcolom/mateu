@@ -88,7 +88,8 @@ public class StartJourneyCommandHandler {
 
     } catch (Exception e) {
       log.error("error on getUi", e);
-      throw new NotFoundException("No class with name " + journeyTypeId + " found");
+      //throw new NotFoundException("No class with name " + journeyTypeId + " found");
+      throw e;
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();

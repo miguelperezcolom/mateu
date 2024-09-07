@@ -31,6 +31,7 @@ import Action from "../../../../../../shared/apiClients/dtos/Action";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
 import {ActionTarget} from "../../../../../../shared/apiClients/dtos/ActionTarget";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
+import {ifDefined} from "lit/directives/if-defined.js";
 
 
 /**
@@ -423,7 +424,7 @@ export class MateuCrud extends LitElement {
       return html`
             <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
                                       id="${this.component.id}-${c.id}"
-                                      width="${c.width}" data-testid="column-${c.id}"
+                                      width="${ifDefined(c.width?c.width:undefined)}" data-testid="column-${c.id}"
                 ${columnBodyRenderer(
                     // @ts-ignore
                     (row, model, column) => {
@@ -480,6 +481,11 @@ export class MateuCrud extends LitElement {
                                      )}
             ></vaadin-grid-sort-column>
         `;
+  }
+
+  hasDetail() {
+    console.log('hasDetail()', this.metadata.columns.find(c => c.detail))
+    return this.metadata.columns.find(c => c.detail);
   }
 
 
@@ -576,9 +582,10 @@ export class MateuCrud extends LitElement {
         <p style="margin-block-start: 0;">${this.filtersText}</p>
       `:''}
       
+      
       <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible
                    .detailsOpenedItems="${this.detailsOpenedItem}"
-                   @active-item-changed="${(event: GridActiveItemChangedEvent<any>) => {
+                   @active-item-changed="${ifDefined(this.hasDetail()?(event: GridActiveItemChangedEvent<any>) => {
                      //this.detailsOpenedItem = [event.detail.value]
                      if (this.metadata.columns.filter(c => c.detail)) {
                        const row = event.detail.value
@@ -588,7 +595,7 @@ export class MateuCrud extends LitElement {
                          this.detailsOpenedItem = []
                        }
                      }
-                   }}"
+                   }:undefined)}"
                    ${gridRowDetailsRenderer(
           (detail) => html`
             <vaadin-vertical-layout>

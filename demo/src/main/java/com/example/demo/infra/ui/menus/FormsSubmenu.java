@@ -10,6 +10,8 @@ public class FormsSubmenu {
   BasicFieldsForm basicFields;
   @MenuOption private TextFieldsForm text;
 
+  @MenuOption private FailingForm failingForm;
+
   /*
   <journey-starter
   uiid="com.example.mateuarticle1.ui.HelloWorld"
