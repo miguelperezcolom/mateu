@@ -70,6 +70,10 @@ export class Service {
                     state.content = delta.content
                     if (delta.content.contentType == ContentType.View) {
                         state.view = delta.content as View
+                    } else if (target == ActionTarget.Component && delta.content.contentType == ContentType.SingleComponent) {
+                        for (let componentIdx in delta.components) {
+                            state.components[componentId] = delta.components[componentIdx]
+                        }
                     } else if (delta.content.contentType == ContentType.SingleComponent) {
                         const singleComponent = delta.content as SingleComponent
                         state.view = {

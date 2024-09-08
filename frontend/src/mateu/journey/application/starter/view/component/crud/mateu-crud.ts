@@ -425,7 +425,7 @@ export class MateuCrud extends LitElement {
             <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
                                       id="${this.component.id}-${c.id}"
                                       width="${ifDefined(c.width?c.width:undefined)}"
-                                      flex-grow="${ifDefined(c.width?'0':undefined)}"
+                                      flex-grow="${ifDefined(c.width?'0':'1')}"
                                       data-testid="column-${c.id}"
                 ${columnBodyRenderer(
                     // @ts-ignore
@@ -469,8 +469,8 @@ export class MateuCrud extends LitElement {
     }
     return html`
             <vaadin-grid-sort-column path="${c.id}" header="${c.caption}" resizable
-                                     width="${ifDefined(c.width?c.width:undefined)}"
-                                     flex-grow="${ifDefined(c.width?'0':undefined)}"
+                                     width="${ifDefined(c.width?c.width:'50px')}"
+                                     flex-grow="${ifDefined(c.width?'0':'1')}"
                                      data-testid="column-${c.id}"
                                      id="${this.component.id}-${c.id}"
                                      ${columnBodyRenderer(

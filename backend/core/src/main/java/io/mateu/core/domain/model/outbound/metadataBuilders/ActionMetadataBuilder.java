@@ -30,7 +30,7 @@ public class ActionMetadataBuilder {
     Action action =
         new Action(
             m.getName(),
-            null,
+            getIcon(m),
             captionProvider.getCaption(m),
             getActionType(m),
             isVisible(m),
@@ -46,6 +46,21 @@ public class ActionMetadataBuilder {
             getPosition(m),
             getTimeoutMillis(m));
     return action;
+  }
+
+  private String getIcon(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.icon();
+    }
+    if (m.isAnnotationPresent(
+            io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return action.icon();
+    }
+    return null;
   }
 
   private ActionPosition getPosition(Method m) {
