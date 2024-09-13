@@ -19,7 +19,7 @@ public class GetUiUseCase {
   }
 
   public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
-    log.info("Get UI with id {}", uiId);
+    log.info("Get UI with targetId {}", uiId);
     return Mono.just(
         getUIQueryHandler.run(GetUIQuery.builder().uiId(uiId).build(), serverHttpRequest));
   }

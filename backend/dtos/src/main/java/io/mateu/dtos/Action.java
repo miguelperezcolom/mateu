@@ -3,7 +3,7 @@ package io.mateu.dtos;
 /**
  * A button
  *
- * @param id This action id
+ * @param id This action targetId
  * @param icon Icon to be used
  * @param caption Button text
  * @param type Action type: primary, secondary

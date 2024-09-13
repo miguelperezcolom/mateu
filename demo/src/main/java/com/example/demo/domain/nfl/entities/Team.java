@@ -29,7 +29,7 @@ public class Team {
   @Action
   public Object players() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
     var action = new MDDOpenCRUDAction("Players of " + name, Player.class);
-    action.setExtraFilters(new ExtraFilters("x.team.id = :teamId", "teamId", id));
+    action.setExtraFilters(new ExtraFilters("x.team.targetId = :teamId", "teamId", id));
     var jpaRpcCrudView = MateuConfiguratorBean.get().getBean(JpaRpcCrudView.class);
     jpaRpcCrudView.setAction(action);
     return jpaRpcCrudView;
@@ -54,7 +54,7 @@ public class Team {
 
     @Override
     public String getExtraWhereFilter() {
-      return "x.team.id = '" + id + "'";
+      return "x.team.targetId = '" + id + "'";
     }
 
     @Override

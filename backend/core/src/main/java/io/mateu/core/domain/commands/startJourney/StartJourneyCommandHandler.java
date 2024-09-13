@@ -81,9 +81,8 @@ public class StartJourneyCommandHandler {
                             journeyStarter.baseUrl(),
                             journeyStarter.journeyTypeId(),
                             journeyStarter.contextData()))),
-                null,
                 List.of(),
-                Map.of()));
+                List.of()));
       }
 
     } catch (Exception e) {
@@ -95,7 +94,16 @@ public class StartJourneyCommandHandler {
     Map<String, Component> allComponents = new LinkedHashMap<>();
     View view = viewMapper.map(formInstance, serverHttpRequest, allComponents, Map.of());
 
-    return Mono.just(new UIIncrement(List.of(), view, List.of(), allComponents));
+    return Mono.just(new UIIncrement(
+            List.of(),
+            List.of(),
+            List.of(new UIFragment(
+                    io.mateu.dtos.ActionTarget.View,
+                    "",
+                    "",
+                    view,
+                    allComponents
+            ))));
   }
 
   public Object resolveJourneyTypeId(

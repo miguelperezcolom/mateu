@@ -34,7 +34,7 @@ public class GetItemsRowsQueryHandler {
     if (type.isAnnotationPresent(Entity.class)) {
       return findEntities(type, searchText, page, pageSize);
     }
-    throw new Exception("No item provider with id " + itemsProviderId);
+    throw new Exception("No item provider with targetId " + itemsProviderId);
   }
 
   private List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize)

@@ -127,7 +127,7 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
   private UIIncrement getUiIncrement(
       Field m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
     if (r == null) {
-      return new UIIncrement(List.of(), null, List.of(), Map.of());
+      return new UIIncrement(List.of(), List.of(), List.of());
     }
     if (r
         instanceof
@@ -141,93 +141,112 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
                       journeyStarter.baseUrl(),
                       journeyStarter.journeyTypeId(),
                       journeyStarter.contextData()))),
-          null,
           List.of(),
-          Map.of());
+          List.of());
     }
 
     if (r instanceof CloseModal closeModal) {
       var component =
           componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
-      var uiIncrement =
-          new UIIncrement(
+      var uiIncrement = new UIIncrement(
               List.of(),
-              new SingleComponent(component.id()),
               getMessages(r, m),
-              Map.of(component.id(), component));
+              List.of(new UIFragment(
+                      io.mateu.dtos.ActionTarget.View,
+                      "",
+                      "",
+                      new SingleComponent(component.id()),
+                      Map.of(component.id(), component)
+              )));
       return new UIIncrement(
-          List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), null, List.of(), Map.of());
+          List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), List.of(), List.of());
     }
     if (r instanceof Message message) {
       return new UIIncrement(
           List.of(),
-          null,
           List.of(
               new io.mateu.dtos.Message(
                   message.type(), message.title(), message.text(), message.duration())),
-          Map.of());
+          List.of());
     }
     if (ActionTarget.Message.equals(getActionTarget(m))) {
       return new UIIncrement(
           List.of(),
-          null,
           List.of(new io.mateu.dtos.Message(ResultType.Success, "" + r, null, 0)),
-          Map.of());
+          List.of());
     }
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m))) {
         return new UIIncrement(
             List.of(new UICommand(UICommandType.OpenNewTab, url.toString())),
-            null,
             List.of(),
-            Map.of());
+            List.of());
       }
       if (ActionTarget.NewWindow.equals(getActionTarget(m))) {
         return new UIIncrement(
             List.of(new UICommand(UICommandType.OpenNewWindow, url.toString())),
-            null,
             List.of(),
-            Map.of());
+            List.of());
       }
       var component =
           componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
       return new UIIncrement(
-          List.of(),
-          new SingleComponent(component.id()),
-          List.of(),
-          Map.of(component.id(), component));
+              List.of(),
+              List.of(),
+              List.of(new UIFragment(
+                      io.mateu.dtos.ActionTarget.View,
+                      "",
+                      "",
+                      new SingleComponent(component.id()),
+                      Map.of(component.id(), component)
+              )));
     }
 
     if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
           componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
       return new UIIncrement(
-          List.of(),
-          new SingleComponent(component.id()),
-          List.of(),
-          Map.of(component.id(), component));
+              List.of(),
+              List.of(),
+              List.of(new UIFragment(
+                      io.mateu.dtos.ActionTarget.View,
+                      "",
+                      "",
+                      new SingleComponent(component.id()),
+                      Map.of(component.id(), component)
+              )));
     }
     if (r instanceof ResponseWrapper responseWrapper) {
       var component =
           componentFactory.createFormComponent(
               responseWrapper.getResponse(), serverHttpRequest, data);
       return new UIIncrement(
-          List.of(),
-          new SingleComponent(component.id()),
-          responseWrapper.getMessages().stream()
-              .map(
-                  message ->
-                      new io.mateu.dtos.Message(
-                          message.type(), message.title(), message.text(), message.duration()))
-              .toList(),
-          Map.of(component.id(), component));
+              List.of(),
+              responseWrapper.getMessages().stream()
+                      .map(
+                              message ->
+                                      new io.mateu.dtos.Message(
+                                              message.type(), message.title(), message.text(), message.duration()))
+                      .toList(),
+              List.of(new UIFragment(
+                      io.mateu.dtos.ActionTarget.View,
+                      "",
+                      "",
+                      new SingleComponent(component.id()),
+                      Map.of(component.id(), component)
+              )));
     }
     var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
     return new UIIncrement(
-        List.of(),
-        new SingleComponent(component.id()),
-        getMessages(r, m),
-        Map.of(component.id(), component));
+            List.of(),
+            getMessages(r, m),
+            List.of(new UIFragment(
+                    io.mateu.dtos.ActionTarget.View,
+                    "",
+                    "",
+                    new SingleComponent(component.id()),
+                    Map.of(component.id(), component)
+            )));
   }
 
   private ActionTarget getActionTarget(Field m) {

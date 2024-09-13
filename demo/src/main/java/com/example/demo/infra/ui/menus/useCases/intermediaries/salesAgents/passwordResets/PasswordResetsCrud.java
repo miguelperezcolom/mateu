@@ -31,7 +31,7 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
   }
 
   private Flux<PasswordResetsRow> getFilteredList() {
-    log.info("sales agent id: " + salesAgentId);
+    log.info("sales agent targetId: " + salesAgentId);
     return Flux.just(
             new PasswordResetsRow("1", "1", "2023-01-12"),
             new PasswordResetsRow("2", "2", "2023-02-11"))

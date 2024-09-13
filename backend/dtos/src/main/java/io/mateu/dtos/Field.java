@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A field in a form
  *
- * @param id Field id
+ * @param id Field targetId
  * @param type Field data type
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation

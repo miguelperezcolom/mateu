@@ -9,7 +9,7 @@ import java.util.Map;
  * specific implementation for cruds
  *
  * @param metadata The metadata to be used to paint the component
- * @param id The component id
+ * @param id The component targetId
  * @param attributes Attributes for this component. Not data, but to be used to change this
  *     component behaviour/appearance
  * @param data Pure data for this component

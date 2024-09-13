@@ -4,9 +4,7 @@ import '@vaadin/button'
 import '@vaadin/horizontal-layout'
 import {mateuApiClient} from "../../../shared/apiClients/MateuApiClient";
 import {Subject, Subscription} from "rxjs";
-import {State} from "../../domain/state";
 import {ApiController} from "./controllers/ApiController";
-import Action from "../../../shared/apiClients/dtos/Action";
 import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
@@ -15,14 +13,14 @@ import {nanoid} from "nanoid";
 import UICommand from "../../../shared/apiClients/dtos/UICommand";
 import {UICommandType} from "../../../shared/apiClients/dtos/UICommandType";
 import Message from "../../../shared/apiClients/dtos/Message";
-import { Notification } from '@vaadin/notification';
+import {Notification} from '@vaadin/notification';
 import View from "../../../shared/apiClients/dtos/View";
 import Component from "../../../shared/apiClients/dtos/Component";
 import './view/mateu-view'
 import UIIncrement from "../../../shared/apiClients/dtos/UIIncrement";
 import {ContentType} from "../../../shared/apiClients/dtos/ContentType";
 import {SingleComponent} from "../../../shared/apiClients/dtos/SingleComponent";
-    import {Content} from "../../../shared/apiClients/dtos/Content";
+import {UIFragment} from "../../../shared/apiClients/dtos/UIFragment";
 
 @customElement('journey-starter')
 export class JourneyStarter extends LitElement {
@@ -43,7 +41,7 @@ export class JourneyStarter extends LitElement {
     @property()
     contextData: string | undefined = undefined;
     @property()
-    initialUiIncrement: UIIncrement | undefined = undefined;
+    initialUiIncrement: UIFragment | undefined = undefined;
     @property()
     remote: boolean = false
 
@@ -57,7 +55,7 @@ export class JourneyStarter extends LitElement {
     @state()
     modalClass: string | undefined = undefined
     @state()
-    modalInitialUiIncrement: UIIncrement | undefined
+    modalInitialUiIncrement: UIFragment | undefined
 
     @state()
     loading: boolean = false;
@@ -68,15 +66,13 @@ export class JourneyStarter extends LitElement {
     @state()
     view: View | undefined = undefined;
     @state()
-    content: Content | undefined = undefined;
-    @state()
     components: Record<string, Component> = {};
 
 
     // upstream channel
     private upstreamSubscription: Subscription | undefined;
 
-    upstream = new Subject<State>()
+    upstream = new Subject<UIIncrement>()
     apiController = new ApiController(this)
     service: Service
 
@@ -86,7 +82,6 @@ export class JourneyStarter extends LitElement {
     }
 
     runAction(event: CustomEvent) {
-        const action: Action = event.detail.action
         this.service.runAction(
             this.baseUrl,
             this.uiId!,
@@ -95,8 +90,6 @@ export class JourneyStarter extends LitElement {
             'notInUse',
             event.detail.componentId,
             event.detail.actionId,
-            action.target,
-            action.modalStyle,
             event.detail.componentType,
             event.detail.data
         ).then()
@@ -106,16 +99,22 @@ export class JourneyStarter extends LitElement {
         const target = event.detail.target
         const replacement = event.detail.replacement
         replacement.id = target.id
-        this.components[target.id] = replacement
+        const components: Record<string, Component> = {}
+        components[target.id] = replacement
 
-
-        const state = new State()
-        state.modalStyle = this.modalStyle
-        state.target = ActionTarget.View
-        state.commands = []
-        state.messages = []
-        state.view = this.view
-        state.content = this.content
+        const state:UIIncrement = {
+            commands: [],
+            messages: [],
+            uiFragments: [
+                {
+                    target: ActionTarget.Component,
+                    targetId: target.id,
+                    modalStyle: undefined,
+                    content: replacement,
+                    components: components
+                }
+            ]
+        }
         this.upstream.next(state)
     }
 
@@ -123,8 +122,8 @@ export class JourneyStarter extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
 
-        this.upstreamSubscription = this.upstream.subscribe((state: State) =>
-            this.stampState(state)
+        this.upstreamSubscription = this.upstream.subscribe((delta: UIIncrement) =>
+            this.stampState(delta )
         )
 
     }
@@ -135,95 +134,111 @@ export class JourneyStarter extends LitElement {
     }
 
     // write state to reactive properties
-    stampState(state: State) {
-
+    stampState(delta: UIIncrement) {
 
         // run commands
-        state.commands.forEach(c => this.runCommand(c))
-        state.commands = []
+        delta.commands.forEach(c => this.runCommand(c))
 
         // show messages
-        state.messages.forEach(c => this.showMessage(c))
-        state.messages = []
+        delta.messages.forEach(c => this.showMessage(c))
 
+        // apply ui fragments
+        delta.uiFragments.forEach(f => {
 
-        if (ActionTarget.NewTab == state.target) {
-            const newWindow = window.open();
-            newWindow?.document.write(`${this.renderModal()}`);
-        } else if (ActionTarget.NewWindow == state.target) {
-            const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
-            newWindow?.document.write(`${this.renderModal()}`);
-        } else if (ActionTarget.NewModal == state.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalInstant = nanoid()
-            this.modalInitialUiIncrement = {
-                messages: state.messages,
-                commands: state.commands,
-                content: state.content!,
-                components: state.components
-            }
-            this.modalStyle = state.modalStyle
-            this.modalClass = ''
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+            if (ActionTarget.NewTab == f.target) {
+                const newWindow = window.open();
+                newWindow?.document.write(`${this.renderModal()}`);
+            } else if (ActionTarget.NewWindow == f.target) {
+                const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
+                newWindow?.document.write(`${this.renderModal()}`);
+            } else if (ActionTarget.NewModal == f.target) {
+                // crear modal y meter un journey-starter dentro
+                this.modalOpened = true
+                this.modalInstant = nanoid()
+                this.modalInitialUiIncrement = f
+                this.modalStyle = f.modalStyle
+                this.modalClass = ''
+                setTimeout(() => {
+                    const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
 
-                overlay?.setAttribute('class', '')
-                overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
-            });
-        } else if (ActionTarget.LeftDrawer == state.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalInstant = nanoid()
-            this.modalInitialUiIncrement = {
-                messages: state.messages,
-                commands: state.commands,
-                content: state.content!,
-                components: state.components
+                    overlay?.setAttribute('class', '')
+                    overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
+                });
+            } else if (ActionTarget.LeftDrawer == f.target) {
+                // crear modal y meter un journey-starter dentro
+                this.modalOpened = true
+                this.modalInstant = nanoid()
+                this.modalInitialUiIncrement = f
+                this.modalStyle = f.modalStyle
+                this.modalClass = 'modal-left'
+                setTimeout(() => {
+                    const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                    console.log(overlay)
+                    overlay?.setAttribute('class', 'modal-left')
+                    overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
+                });
+            } else if (ActionTarget.RightDrawer == f.target) {
+                // crear modal y meter un journey-starter dentro
+                this.modalOpened = true
+                this.modalInstant = nanoid()
+                this.modalInitialUiIncrement = f
+                this.modalStyle = f.modalStyle
+                this.modalClass = 'modal-right'
+                setTimeout(() => {
+                    const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
+                    console.log(overlay)
+                    overlay?.setAttribute('class', 'modal-right')
+                    overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle ? this.modalStyle : ''))
+                });
+            } else {
+                this.stampFragment(f)
+                this.requestUpdate('view')
             }
-            this.modalStyle = state.modalStyle
-            this.modalClass = 'modal-left'
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                console.log(overlay)
-                overlay?.setAttribute('class', 'modal-left')
-                overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
-            });
-        } else if (ActionTarget.RightDrawer == state.target) {
-            // crear modal y meter un journey-starter dentro
-            this.modalOpened = true
-            this.modalInstant = nanoid()
-            this.modalInitialUiIncrement = {
-                messages: state.messages,
-                commands: state.commands,
-                content: state.content!,
-                components: state.components
+
+        })
+
+    }
+
+    stampFragment(f: UIFragment) {
+        if (f.content.contentType == ContentType.View) {
+            this.view = f.content as View
+        } else if (f.target == ActionTarget.Component && f.content.contentType == ContentType.SingleComponent) {
+            for (let componentIdx in f.components) {
+                this.components[f.targetId] = f.components[componentIdx]
             }
-            this.modalStyle = state.modalStyle
-            this.modalClass = 'modal-right'
-            setTimeout(() => {
-                const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                console.log(overlay)
-                overlay?.setAttribute('class', 'modal-right')
-                overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle ? this.modalStyle : ''))
-            });
-        } else {
-            if (state.content) {
-                this.content = state.content
-            }
-            if (state.view) {
-                this.view = state.view
-            }
-            if (state.components) {
-                if (!this.components) {
-                    this.components = {}
+        } else if (f.content.contentType == ContentType.SingleComponent) {
+            const singleComponent = f.content as SingleComponent
+            this.view = {
+                contentType: ContentType.View,
+                header: {
+                    componentIds: [],
+                    cssClasses: undefined
+                },
+                left: {
+                    componentIds: [],
+                    cssClasses: undefined
+                },
+                main: {
+                    componentIds: [singleComponent.componentId],
+                    cssClasses: undefined
+                },
+                right: {
+                    componentIds: [],
+                    cssClasses: undefined
+                },
+                footer: {
+                    componentIds: [],
+                    cssClasses: undefined
                 }
-                for (let componentId in state.components) {
-                    this.components[componentId] = state.components[componentId]
-                }
             }
-            this.error = state.error
-            this.requestUpdate('view')
+        }
+        if (f.components) {
+            if (!this.components) {
+                this.components = {}
+            }
+            for (let componentId in f.components) {
+                this.components[componentId] = f.components[componentId]
+            }
         }
     }
 
@@ -319,51 +334,12 @@ export class JourneyStarter extends LitElement {
 
     async updated(changedProperties: Map<string, unknown>) {
         if (changedProperties.has("initialUiIncrement")) {
-            //todo: código duplicado en service.ts. Mover
             if (this.initialUiIncrement) {
-                const delta = this.initialUiIncrement!
-
-                const state = new State()
-                state.commands = delta.commands
-                state.messages = delta.messages
-
-                // send new state upstream
-                if (delta.content) {
-                    state.content = delta.content
-                    if (delta.content.contentType == ContentType.View) {
-                        state.view = delta.content as View
-                    } else if (delta.content.contentType == ContentType.SingleComponent) {
-                        const singleComponent = delta.content as SingleComponent
-                        state.view = {
-                            contentType: ContentType.View,
-                            header: {
-                                componentIds: [],
-                                cssClasses: undefined
-                            },
-                            left: {
-                                componentIds: [],
-                                cssClasses: undefined
-                            },
-                            main: {
-                                componentIds: [singleComponent.componentId],
-                                cssClasses: undefined
-                            },
-                            right: {
-                                componentIds: [],
-                                cssClasses: undefined
-                            },
-                            footer: {
-                                componentIds: [],
-                                cssClasses: undefined
-                            }
-                        }
-                    }
-                    for (let componentId in delta.components) {
-                        state.components[componentId] = delta.components[componentId]
-                    }
-
-                }
-                this.stampState(state)
+                this.stampState({
+                    commands: [],
+                    messages: [],
+                    uiFragments: [this.initialUiIncrement]
+                })
             }
         } else if (changedProperties.has("baseUrl")
             || changedProperties.has("journeyTypeId")
@@ -393,8 +369,10 @@ export class JourneyStarter extends LitElement {
                         this.journeyId = nanoid()
                         try {
                             await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
+                            this.error = false
                             this.loadFailed = undefined
                         } catch (e) {
+                            this.error = true
                             this.loadFailed = e
                         }
                     }

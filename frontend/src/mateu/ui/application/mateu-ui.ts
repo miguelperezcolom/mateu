@@ -135,6 +135,10 @@ export class MateuUi extends LitElement {
         this.selectedItem = state.selectedItem
         this.notificationOpened = state.notificationOpened
         this.notificationMessage = state.notificationMessage
+
+        this.journeyBaseUrl = this.baseUrl
+        this.journeyUiId = this.uiId
+        this.journeyContextData = this.contextData
     }
 
 

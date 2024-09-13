@@ -7,8 +7,8 @@ import java.util.List;
  * A section inside a form. Forms contain sections which contain field groups which contain field
  * lines which contain fields
  *
- * @param id Section id
- * @param tabId Tab id in case we want this section to be shown inside a tab
+ * @param id Section targetId
+ * @param tabId Tab targetId in case we want this section to be shown inside a tab
  * @param caption Section title
  * @param description Section description. A kind of subtitle
  * @param readOnly If all the fields in this section should be read only

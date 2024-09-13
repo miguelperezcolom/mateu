@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A group of fields
  *
- * @param id Field group id
+ * @param id Field group targetId
  * @param caption Field group title
  * @param lines Lines which are contained in this group
  */

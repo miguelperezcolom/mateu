@@ -29,7 +29,7 @@ public class GetItemsCountQueryHandler {
     if (type.isAnnotationPresent(Entity.class)) {
       return countEntities(type, searchText);
     }
-    throw new Exception("No item provider with id " + itemsProviderId);
+    throw new Exception("No item provider with targetId " + itemsProviderId);
   }
 
   private int countEntities(Class entityClass, String searchText)

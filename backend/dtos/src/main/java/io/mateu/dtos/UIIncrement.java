@@ -8,20 +8,18 @@ import java.util.Map;
  * UI increment. Components to be added / replacements / actions to run
  *
  * @param commands List of command to run in the frontend
- * @param content New content
  * @param messages List of messages to be shown in the UI
- * @param components List of new components
+ * @param uiFragments List of new UI fragments
  */
 public record UIIncrement(
     List<UICommand> commands,
-    Content content,
     List<Message> messages,
-    Map<String, Component> components) {
+    List<UIFragment> uiFragments) {
 
   public UIIncrement {
     commands = Collections.unmodifiableList(commands);
     messages = Collections.unmodifiableList(messages);
-    components = Collections.unmodifiableMap(components);
+    uiFragments = Collections.unmodifiableList(uiFragments);
   }
 
   @Override
@@ -35,7 +33,8 @@ public record UIIncrement(
   }
 
   @Override
-  public Map<String, Component> components() {
-    return Collections.unmodifiableMap(components);
+  public List<UIFragment> uiFragments() {
+    return Collections.unmodifiableList(uiFragments);
   }
+
 }
