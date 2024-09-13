@@ -127,7 +127,7 @@ public class MenuBuilder {
     if (m.isAnnotationPresent(Home.class)
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
-      l.add(new Menu(MenuType.Submenu, "home", "Home", "", List.of(), order));
+      l.add(new Menu(MenuType.Submenu, "home", "Home", "", List.of(), order, true));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
           new Menu(
@@ -136,10 +136,21 @@ public class MenuBuilder {
               caption,
               journeyTypeId,
               buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
-              order));
+              order,
+                  m.getAnnotation(Submenu.class).visible()));
     } else {
-      l.add(new Menu(MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order));
+      l.add(new Menu(MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order, isVisible(m)));
     }
+  }
+
+  private boolean isVisible(AnnotatedElement m) {
+    if (m.isAnnotationPresent(Submenu.class)) {
+      return m.getAnnotation(Submenu.class).visible();
+    }
+    if (m.isAnnotationPresent(MenuOption.class)) {
+      return m.getAnnotation(MenuOption.class).visible();
+    }
+    return true;
   }
 
   @SneakyThrows

@@ -11,7 +11,7 @@ export class LoadUiCommandHandler {
         const ui = await mateuApiClient.fetchUi(command.uiId)
         return {
             ui: ui,
-            items: ui?.menu?.map(m => this.mapToMenuBarItem(m)),
+            items: ui?.menu?.filter(m => m.visible).map(m => this.mapToMenuBarItem(m)),
             journeyTypeId: command.journeyTypeId
         };
     }

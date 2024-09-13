@@ -11,7 +11,8 @@ public record Menu(
     String caption,
     String journeyTypeId,
     List<Menu> submenus,
-    @JsonIgnore int order) {
+    @JsonIgnore int order,
+    boolean visible) {
 
   public Menu {
     submenus = Collections.unmodifiableList(submenus);
