@@ -1,15 +1,13 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.Placeholder;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 @Data
+@FormColumns(2)
 public class NumberFieldsForm {
 
   @Section("Basic")

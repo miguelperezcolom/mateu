@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 @Caption("Booleans")
+@FormColumns(2)
 public class BooleanFieldsForm {
 
   @Section("Primitives")

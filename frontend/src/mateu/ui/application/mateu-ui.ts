@@ -226,7 +226,7 @@ export class MateuUi extends LitElement {
                 
                 ${this.ui.menu && this.ui.menu.length > 0?html`
                     <vaadin-app-layout>
-                        <vaadin-horizontal-layout slot="navbar" style="align-items: center;">
+                        <vaadin-horizontal-layout slot="navbar" theme="spacing" style="align-items: center;">
                             <h3 class="title ml-l" @click=${this.goHome}>${this.ui.title}</h3>
                             ${this.ui.apps && this.ui.apps.length > 0?html`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover

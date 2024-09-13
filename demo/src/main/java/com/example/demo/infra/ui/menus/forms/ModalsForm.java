@@ -25,20 +25,11 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
+@Caption("Modals")
 public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
-  @Tab("Tab 1")
-  @Section("Basic")
   @NotEmpty
   protected String name = "Mateu";
-
-  @Placeholder("This should appear as the placeholder")
-  private String withPlaceholder;
-
-  @Tab("Tab 2")
-  @NotNull private int age = 15;
-
-  private double balance = 20.31;
 
   @Section("Assessment")
   @ReadOnly
@@ -92,7 +83,7 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @Action(order = 3)
   public void assess() {
-    assessment = "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
+    assessment = "" + name;
   }
 
 

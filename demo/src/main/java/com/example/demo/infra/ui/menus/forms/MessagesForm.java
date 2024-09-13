@@ -26,20 +26,11 @@ import java.util.UUID;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
+@Caption("Messages")
 public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
-  @Tab("Tab 1")
-  @Section("Basic")
   @NotEmpty
   private String name = "Mateu";
-
-  @Placeholder("This should appear as the placeholder")
-  private String withPlaceholder;
-
-  @Tab("Tab 2")
-  @NotNull private int age = 15;
-
-  private double balance = 20.31;
 
   @Section("Assessment")
   @ReadOnly
@@ -77,7 +68,7 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
 
   @Action(order = 4)
   public void assess() {
-    assessment = "" + name + ", " + age + ", " + balance + ", " + withPlaceholder;
+    assessment = "" + name;
   }
 
   public String toString() {
