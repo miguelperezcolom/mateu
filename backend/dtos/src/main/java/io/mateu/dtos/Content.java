@@ -5,8 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "contentType")
+        property = "contentType")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = SingleComponent.class, name = "SingleComponent"),
   @JsonSubTypes.Type(value = View.class, name = "View"),

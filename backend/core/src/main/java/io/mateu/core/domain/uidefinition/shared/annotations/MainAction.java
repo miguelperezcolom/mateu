@@ -30,6 +30,8 @@ public @interface MainAction {
 
   ActionTarget target() default ActionTarget.View;
 
+  String targetId() default "";
+
   String modalStyle() default "";
 
   String customEvent() default "";

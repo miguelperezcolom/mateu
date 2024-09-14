@@ -37,12 +37,12 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   private String assessment;
 
   @Action(order = 0, target = ActionTarget.Message)
-  public String messageTarget() throws Exception {
+  public String messageTarget() {
     return "Hello Mateu";
   }
 
   @Action(order = 1)
-  public Message showMessage() throws Exception {
+  public Message showMessage() {
     return new Message(
                       ResultType.Success,
                       "Sample message",
@@ -52,7 +52,7 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   }
 
   @Action(order = 2)
-  public ResponseWrapper showMessageAfter() throws Exception {
+  public ResponseWrapper showMessageAfter() {
     return new ResponseWrapper("Some result", List.of(new Message(
             ResultType.Info,
             "Sample message",

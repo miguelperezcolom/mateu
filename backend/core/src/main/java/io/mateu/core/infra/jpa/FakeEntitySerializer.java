@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnMissingClass("io.mateu.jpa.domain.json.MateuEntitySerializer")
 public class FakeEntitySerializer implements EntitySerializer {
   @Override
-  public Map<String, Object> toMap(Object entity) throws Exception {
+  public Map<String, Object> toMap(Object entity) {
     return null;
   }
 }

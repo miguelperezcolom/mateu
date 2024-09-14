@@ -21,5 +21,6 @@ public class ViewEnvironment implements Container {
     }
 
     @VerticalLayout
+    final
     List<Object> vl;
 }

@@ -19,7 +19,7 @@ public class LanguageDetail extends LanguageDetailDefinition {
   @Autowired @JsonIgnore ReflectionHelper reflectionHelper;
   @Autowired LanguageForm form;
 
-  public void load(Object id) throws Throwable {
+  public void load(Object id) {
     reflectionHelper.copy(repo.findById((String) id), this);
   }
 

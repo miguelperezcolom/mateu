@@ -17,7 +17,7 @@ public class NflTeamsCrud extends JpaRpcCrudView {
     }
 
     @Override
-    public Object getDetail(Object id) throws Throwable {
+    public Object getDetail(Object id) {
         return id; // targetId is the entity
     }
 }

@@ -40,11 +40,11 @@ public class LanguageForm {
   }
 
   @MainAction(type = ActionType.Tertiary, position = ActionPosition.Left)
-  public ProgrammingLanguages back() throws Throwable {
+  public ProgrammingLanguages back() {
     return applicationContext.getBean(ProgrammingLanguages.class);
   }
 
-  public void load(Object id) throws Throwable {
+  public void load(Object id) {
     reflectionHelper.copy(repo.findById((String) id), this);
   }
 

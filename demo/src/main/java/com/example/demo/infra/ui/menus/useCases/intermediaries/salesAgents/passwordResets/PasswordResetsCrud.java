@@ -25,8 +25,7 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
 
   @Override
   public Flux<PasswordResetsRow> fetchRows(
-      SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
-      throws Throwable {
+      SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return getFilteredList();
   }
 
@@ -39,7 +38,7 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
   }
 
   @Override
-  public Mono<Long> fetchCount(SalesAgentsSearchForm filters) throws Throwable {
+  public Mono<Long> fetchCount(SalesAgentsSearchForm filters) {
     return getFilteredList().count();
   }
 }

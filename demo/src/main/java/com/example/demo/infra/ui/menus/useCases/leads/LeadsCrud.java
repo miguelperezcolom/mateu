@@ -23,13 +23,12 @@ public class LeadsCrud implements Crud<LeadsSearchForm, LeadsRow> {
 
   @Override
   public Flux<LeadsRow> fetchRows(
-      LeadsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
-      throws Throwable {
+      LeadsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return repo.findAll();
   }
 
   @Override
-  public Mono<Long> fetchCount(LeadsSearchForm filters) throws Throwable {
+  public Mono<Long> fetchCount(LeadsSearchForm filters) {
     return repo.findAll().count();
   }
 

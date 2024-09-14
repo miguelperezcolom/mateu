@@ -77,9 +77,6 @@ public class FormMetadataBuilder {
   }
 
   private String getIcon(Object uiInstance) {
-    if (uiInstance == null) {
-      return null;
-    }
     if (uiInstance instanceof HasIcon) {
       ((HasIcon) uiInstance).getIcon();
     }
@@ -252,11 +249,7 @@ public class FormMetadataBuilder {
     return actions;
   }
 
-  public List<Section> getSections(Object uiInstance, List<Field> slotFields)
-      throws InvocationTargetException,
-          NoSuchMethodException,
-          IllegalAccessException,
-          InstantiationException {
+  public List<Section> getSections(Object uiInstance, List<Field> slotFields) {
     List<Field> allEditableFields =
         reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))

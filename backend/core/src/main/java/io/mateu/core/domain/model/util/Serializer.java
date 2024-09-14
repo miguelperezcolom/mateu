@@ -40,8 +40,8 @@ public class Serializer {
   private final InstanceProvider instanceProvider;
   private final ValueWriter valueWriter;
 
-  private ObjectMapper mapper = new ObjectMapper();
-  private ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
   public Serializer(
       EntitySerializer entitySerializer,

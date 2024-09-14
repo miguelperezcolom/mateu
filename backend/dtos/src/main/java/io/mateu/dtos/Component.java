@@ -8,8 +8,7 @@ import java.util.Map;
 /** A common interface for componentIds */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "componentType")
+        property = "componentType")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = GenericComponent.class, name = "GenericComponent"),
   @JsonSubTypes.Type(value = CrudComponent.class, name = "CrudComponent"),

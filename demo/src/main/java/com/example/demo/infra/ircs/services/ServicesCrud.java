@@ -26,7 +26,7 @@ public class ServicesCrud implements Crud<ServicesSearchForm, ServiceRow> {
     }
 
     @Override
-    public Flux<ServiceRow> fetchRows(ServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<ServiceRow> fetchRows(ServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new ServiceRow("PAS", new Status(StatusType.SUCCESS, "Active")),
                 new ServiceRow("HIM", new Status(StatusType.SUCCESS, "Active")),
@@ -35,17 +35,17 @@ public class ServicesCrud implements Crud<ServicesSearchForm, ServiceRow> {
     }
 
     @Override
-    public Mono<Long> fetchCount(ServicesSearchForm filters) throws Throwable {
+    public Mono<Long> fetchCount(ServicesSearchForm filters) {
         return Mono.just(3L);
     }
 
     @Override
-    public Object getNewRecordForm() throws Throwable {
+    public Object getNewRecordForm() {
         return newServiceForm;
     }
 
     @Override
-    public Object getDetail(ServiceRow userRow) throws Throwable {
+    public Object getDetail(ServiceRow userRow) {
         editServiceForm.name = userRow.name();
         return editServiceForm;
     }

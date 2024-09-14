@@ -325,11 +325,7 @@ public class ActualValueExtractor {
   private Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
     Object targetValue = null;
     if (String.class.equals(genericType)) {
-      try {
-        targetValue = storageService.getUrl((String) value.get("id"), (String) value.get("name"));
-      } catch (AuthenticationException e) {
-        e.printStackTrace();
-      }
+      targetValue = storageService.getUrl((String) value.get("id"), (String) value.get("name"));
       // targetValue =  value.get("targetUrl") + "/" + value.get("name");
     } else if (java.io.File.class.equals(genericType)) {
       try {
@@ -338,8 +334,6 @@ public class ActualValueExtractor {
                 .loadAsResource((String) value.get("id"), (String) value.get("name"))
                 .getFile();
       } catch (IOException e) {
-        e.printStackTrace();
-      } catch (AuthenticationException e) {
         e.printStackTrace();
       }
     } else {

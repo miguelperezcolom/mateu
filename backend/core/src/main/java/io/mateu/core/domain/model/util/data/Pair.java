@@ -31,7 +31,7 @@ import java.io.Serializable;
 public class Pair<K, V> implements Serializable {
 
   /** Key of this <code>Pair</code>. */
-  private K key;
+  private final K key;
 
   /**
    * Gets the key for this pair.
@@ -43,7 +43,7 @@ public class Pair<K, V> implements Serializable {
   }
 
   /** Value of this this <code>Pair</code>. */
-  private V value;
+  private final V value;
 
   /**
    * Gets the value for this pair.

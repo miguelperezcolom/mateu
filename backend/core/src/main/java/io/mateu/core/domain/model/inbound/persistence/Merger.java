@@ -39,7 +39,7 @@ public class Merger {
     return entityDeserializer.fromJson(em, serializer.toJson(data), entityClass);
   }
 
-  public Object loadEntity(Map<String, Object> data, Class entityClass) throws Exception {
+  public Object loadEntity(Map<String, Object> data, Class entityClass) {
     return em.find(entityClass, data.get("__id"));
   }
 }

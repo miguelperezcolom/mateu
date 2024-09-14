@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class OccupationsProvider implements ItemsListProvider {
 
-  List<String> all =
+  final List<String> all =
       List.of("Project Manager", "Engineer Manager", "Frontend Developer", "Backend Developer");
 
   @Override

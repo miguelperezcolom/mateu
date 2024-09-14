@@ -29,7 +29,7 @@ public class ContractedServicesCrud implements Crud<ContractedServicesSearchForm
     }
 
     @Override
-    public Flux<ContractedServiceRow> fetchRows(ContractedServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+    public Flux<ContractedServiceRow> fetchRows(ContractedServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new ContractedServiceRow("PAS", new Status(StatusType.SUCCESS, "Active")),
                 new ContractedServiceRow("HIM", new Status(StatusType.SUCCESS, "Active")),
@@ -38,17 +38,17 @@ public class ContractedServicesCrud implements Crud<ContractedServicesSearchForm
     }
 
     @Override
-    public Mono<Long> fetchCount(ContractedServicesSearchForm filters) throws Throwable {
+    public Mono<Long> fetchCount(ContractedServicesSearchForm filters) {
         return Mono.just(2L);
     }
 
     @Override
-    public Object getNewRecordForm() throws Throwable {
+    public Object getNewRecordForm() {
         return newContractedServiceForm;
     }
 
     @Override
-    public Object getDetail(ContractedServiceRow userRow) throws Throwable {
+    public Object getDetail(ContractedServiceRow userRow) {
         editContractedServiceForm.name = userRow.name();
         return editContractedServiceForm;
     }

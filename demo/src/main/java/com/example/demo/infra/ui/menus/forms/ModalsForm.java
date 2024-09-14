@@ -36,38 +36,38 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
   private String assessment;
 
   @Action(order = -1, target = ActionTarget.NewModal)
-  public WizardPage1 openModal() throws Exception {
+  public WizardPage1 openModal() {
     return new WizardPage1();
   }
 
   @Action(order = 0, target = ActionTarget.NewModal, modalStyle = "width: 800px; height: 300px;")
-  public TextFieldsForm openModal2() throws Exception {
+  public TextFieldsForm openModal2() {
     return new TextFieldsForm();
   }
 
   @Action(order = 10, target = ActionTarget.NewModal)
-  public ChangeNameInModalForm changeNameInModal() throws Exception {
+  public ChangeNameInModalForm changeNameInModal() {
     return new ChangeNameInModalForm(name, this);
   }
 
 
   @Action(order = 20, target = ActionTarget.LeftDrawer)
-  public WizardPage1 openOnLeft() throws Exception {
+  public WizardPage1 openOnLeft() {
     return new WizardPage1();
   }
 
   @Action(order = 30, target = ActionTarget.RightDrawer)
-  public WizardPage1 openOnRight() throws Exception {
+  public WizardPage1 openOnRight() {
     return new WizardPage1();
   }
 
   @Action(order = 30, target = ActionTarget.RightDrawer, modalStyle = "width: 50vh;")
-  public WizardPage1 openOnRightWide() throws Exception {
+  public WizardPage1 openOnRightWide() {
     return new WizardPage1();
   }
 
   @Action(order = 40, target = ActionTarget.NewTab)
-  public ResponseWrapper openTab() throws Exception {
+  public ResponseWrapper openTab() {
     return new ResponseWrapper("Some result", List.of(new Message(
             ResultType.Info,
             "Sample message",
@@ -77,7 +77,7 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
   }
 
   @Action(order = 250, target = ActionTarget.NewWindow)
-  public WizardPage1 openWindow() throws Exception {
+  public WizardPage1 openWindow() {
     return new WizardPage1();
   }
 

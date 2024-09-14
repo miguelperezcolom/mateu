@@ -52,8 +52,7 @@ public class ProgrammingLanguages
 
   @Override
   public Flux<LanguageRow> fetchRows(
-      ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit)
-      throws Throwable {
+      ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit) {
     //Thread.sleep(500);
     RowComparator comparator = new RowComparator(sortOrders);
     return repo.findAll()
@@ -68,7 +67,7 @@ public class ProgrammingLanguages
   }
 
   @Override
-  public Mono<Long> fetchCount(ProgrammingLanguages filters) throws Throwable {
+  public Mono<Long> fetchCount(ProgrammingLanguages filters) {
     return repo.findAll()
         .filter(
             p ->
@@ -79,7 +78,7 @@ public class ProgrammingLanguages
   }
 
   @Override
-  public void delete(List<LanguageRow> selection) throws Throwable {
+  public void delete(List<LanguageRow> selection) {
     repo.removeAll(selection);
   }
 
@@ -94,7 +93,7 @@ public class ProgrammingLanguages
   }
 
   @Override
-  public LanguageForm getNewRecordForm() throws Throwable {
+  public LanguageForm getNewRecordForm() {
     return context.getBean(LanguageForm.class);
   }
 

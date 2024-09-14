@@ -14,9 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class RowsQuery extends Query {
 
-  private int offset;
-  private int limit;
-  private List<SortCriteria> sortOrders;
+  private final int offset;
+  private final int limit;
+  private final List<SortCriteria> sortOrders;
 
   public RowsQuery(
       MDDOpenCRUDAction action,

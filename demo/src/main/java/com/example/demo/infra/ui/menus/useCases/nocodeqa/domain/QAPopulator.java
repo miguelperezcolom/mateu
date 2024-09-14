@@ -34,7 +34,7 @@ public class QAPopulator implements CommandLineRunner {
   TestExecutionRepository testExecutionRepository;
 
   @Override
-  public void run(String... args) throws Exception {
+  public void run(String... args) {
     TestProject project = new TestProject();
     project.setName("My project");
     project.setGithubRepository("");

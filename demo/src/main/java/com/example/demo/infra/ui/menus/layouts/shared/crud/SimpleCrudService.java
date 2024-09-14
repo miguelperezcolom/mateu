@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class SimpleCrudService {
 
-    List<Row> rows = List.of(
+    final List<Row> rows = List.of(
             new Row("1", "Mateu", 16),
             new Row("2", "Antonia", 47),
             new Row("3", "Miguel", 55)

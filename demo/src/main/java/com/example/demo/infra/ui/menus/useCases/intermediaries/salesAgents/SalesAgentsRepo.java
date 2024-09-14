@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class SalesAgentsRepo {
 
-  List<SalesAgentsRow> all =
+  final List<SalesAgentsRow> all =
       new ArrayList(
           List.of(
               new SalesAgentsRow("1", "1001", "Michael Jordan"),

@@ -18,7 +18,7 @@ public class LeadsDetail extends LeadDetailDefinition {
     super();
   }
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("North Sails");
   }

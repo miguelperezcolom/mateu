@@ -366,13 +366,6 @@ public class ActionMetadataBuilder {
     return "Delete";
   }
 
-  private String getCaptionForEdit(Object uiInstance) {
-    if (uiInstance != null && uiInstance instanceof Listing) {
-      return ((Listing) uiInstance).getCaptionForEdit();
-    }
-    return "Edit";
-  }
-
   private boolean canAdd(Object uiInstance) {
     if (uiInstance instanceof RpcCrudViewExtended) {
       return ((RpcCrudViewExtended) uiInstance).isAddEnabled();

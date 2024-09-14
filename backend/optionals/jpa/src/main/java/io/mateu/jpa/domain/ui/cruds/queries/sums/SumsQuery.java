@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class SumsQuery extends Query {
 
-  private List<Field> sumFields;
+  private final List<Field> sumFields;
 
   public SumsQuery(
       MDDOpenCRUDAction action,

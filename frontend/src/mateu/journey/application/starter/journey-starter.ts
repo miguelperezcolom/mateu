@@ -137,13 +137,13 @@ export class JourneyStarter extends LitElement {
     stampState(delta: UIIncrement) {
 
         // run commands
-        delta.commands.forEach(c => this.runCommand(c))
+        delta.commands?.forEach(c => this.runCommand(c))
 
         // show messages
-        delta.messages.forEach(c => this.showMessage(c))
+        delta.messages?.forEach(c => this.showMessage(c))
 
         // apply ui fragments
-        delta.uiFragments.forEach(f => {
+        delta.uiFragments?.forEach(f => {
 
             if (ActionTarget.NewTab == f.target) {
                 const newWindow = window.open();
@@ -155,7 +155,13 @@ export class JourneyStarter extends LitElement {
                 // crear modal y meter un journey-starter dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
-                this.modalInitialUiIncrement = f
+                this.modalInitialUiIncrement = {
+                    modalStyle: undefined,
+                    content: f.content,
+                    targetId: '',
+                    target: ActionTarget.View,
+                    components: f.components
+                }
                 this.modalStyle = f.modalStyle
                 this.modalClass = ''
                 setTimeout(() => {
@@ -168,7 +174,13 @@ export class JourneyStarter extends LitElement {
                 // crear modal y meter un journey-starter dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
-                this.modalInitialUiIncrement = f
+                this.modalInitialUiIncrement = {
+                    modalStyle: undefined,
+                    content: f.content,
+                    targetId: '',
+                    target: ActionTarget.View,
+                    components: f.components
+                }
                 this.modalStyle = f.modalStyle
                 this.modalClass = 'modal-left'
                 setTimeout(() => {
@@ -181,7 +193,13 @@ export class JourneyStarter extends LitElement {
                 // crear modal y meter un journey-starter dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
-                this.modalInitialUiIncrement = f
+                this.modalInitialUiIncrement = {
+                    modalStyle: undefined,
+                    content: f.content,
+                    targetId: '',
+                    target: ActionTarget.View,
+                    components: f.components
+                }
                 this.modalStyle = f.modalStyle
                 this.modalClass = 'modal-right'
                 setTimeout(() => {

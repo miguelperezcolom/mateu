@@ -327,12 +327,39 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             List.of(),
             getMessages(r, m),
             List.of(new UIFragment(
-                    io.mateu.dtos.ActionTarget.View,
-                    "",
-                    "",
+                    mapActionTarget(getActionTarget(m)),
+                    getTargetId(m),
+                    getModalStyle(m),
                     new SingleComponent(component.id()),
                     Map.of(component.id(), component)
             )));
+  }
+
+  private String getModalStyle(Method m) {
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).modalStyle();
+    }
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).modalStyle();
+    }
+    return null;
+  }
+
+  private String getTargetId(Method m) {
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).targetId();
+    }
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).targetId();
+    }
+    return null;
+  }
+
+  private io.mateu.dtos.ActionTarget mapActionTarget(ActionTarget actionTarget) {
+    if (actionTarget == null) {
+      return null;
+    }
+    return io.mateu.dtos.ActionTarget.valueOf(actionTarget.name());
   }
 
   private ActionTarget getActionTarget(Method m) {

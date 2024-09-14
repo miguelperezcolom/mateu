@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnMissingClass("io.mateu.jpa.domain.ui.cruds.JpaMDDOpenCrudActionViewBuilder")
 public class FakeMDDOpenCRUDActionViewBuilder implements MDDOpenCRUDActionViewBuilder {
   @Override
-  public Crud buildView(MDDOpenCRUDAction action) throws Exception {
+  public Crud buildView(MDDOpenCRUDAction action) {
     return null;
   }
 }

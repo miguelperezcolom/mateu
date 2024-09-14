@@ -20,11 +20,6 @@ public abstract class AbstractMenu implements MenuEntry {
     this.name = name;
   }
 
-  public AbstractMenu(String icon, String name) {
-    this.icon = icon;
-    this.name = name;
-  }
-
   public String getCaption() {
     return name;
   }

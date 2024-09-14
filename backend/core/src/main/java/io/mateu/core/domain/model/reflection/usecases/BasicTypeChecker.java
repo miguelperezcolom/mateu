@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BasicTypeChecker {
 
-  private List<Class> basicTypes = new ArrayList<>();
+  private final List<Class> basicTypes = new ArrayList<>();
 
   public BasicTypeChecker() {
     basicTypes.add(String.class);

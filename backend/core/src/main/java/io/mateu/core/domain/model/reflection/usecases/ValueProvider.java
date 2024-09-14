@@ -88,7 +88,7 @@ public class ValueProvider {
   }
 
   public Object getValue(String id, Object o)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+      throws IllegalAccessException, InvocationTargetException {
     Object v = null;
 
     if (id.contains(".")) {

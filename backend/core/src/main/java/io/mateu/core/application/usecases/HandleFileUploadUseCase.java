@@ -20,7 +20,7 @@ public class HandleFileUploadUseCase {
   }
 
   public Mono<Void> handleFileUpload(String fileId, Mono<FilePart> file)
-      throws AuthenticationException, ExecutionException, InterruptedException, TimeoutException {
+      throws AuthenticationException {
     return storageService.store(fileId, file);
   }
 }

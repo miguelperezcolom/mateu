@@ -18,7 +18,7 @@ public enum Position {
   Punter("Punter"),
   Fullback("Fullback");
 
-  private String displayName;
+  private final String displayName;
 
   Position(String displayName) {
     this.displayName = displayName;

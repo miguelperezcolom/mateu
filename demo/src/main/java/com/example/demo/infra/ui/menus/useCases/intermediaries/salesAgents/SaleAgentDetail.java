@@ -13,7 +13,7 @@ public class SaleAgentDetail extends SaleAgentDetailDefinition {
 
   @Ignored @JsonIgnore @Autowired SaleAgentForm form;
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("Michael Jordan");
     this.getPasswordResets().setSalesAgentId(id);

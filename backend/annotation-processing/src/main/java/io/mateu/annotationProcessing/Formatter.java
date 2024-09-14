@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Formatter {
 
-  private static Configuration cfg;
+  private static final Configuration cfg;
 
   private final String templateName;
   private final Map<String, Object> model;

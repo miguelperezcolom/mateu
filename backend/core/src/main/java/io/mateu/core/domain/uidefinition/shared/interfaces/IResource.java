@@ -17,13 +17,13 @@ public interface IResource {
 
   void setPath(String path);
 
-  IFileLocator toFileLocator() throws Exception;
+  IFileLocator toFileLocator();
 
-  void set(String name, String absolutePath) throws Exception;
+  void set(String name, String absolutePath);
 
   void setUrl(String o);
 
-  void set(String value) throws Exception;
+  void set(String value);
 
   String getUrl();
 }

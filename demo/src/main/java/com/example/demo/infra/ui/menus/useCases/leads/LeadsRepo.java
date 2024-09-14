@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class LeadsRepo {
 
-  List all =
+  final List all =
       new ArrayList(
           List.of(
               new LeadsRow("1001", "North Sails"),

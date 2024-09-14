@@ -67,7 +67,7 @@ public class DemoFileStorageService implements StorageService {
   }
 
   @Override
-  public String getUrl(String fileId, String fileName) throws AuthenticationException {
+  public String getUrl(String fileId, String fileName) {
     try {
       Path basePath = this.root.resolve(fileId);
       return cdnBaseUrl
@@ -85,7 +85,7 @@ public class DemoFileStorageService implements StorageService {
   }
 
   @Override
-  public Resource loadAsResource(String fileId, String filename) throws AuthenticationException {
+  public Resource loadAsResource(String fileId, String filename) {
     try {
       Path file =
           root.resolve("mateuremoteistheremoteflavourofmateu" + fileId + File.separator + filename);

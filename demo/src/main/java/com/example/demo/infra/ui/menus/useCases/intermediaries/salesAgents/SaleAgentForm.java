@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class SaleAgentForm extends SaleAgentFormDefinition {
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("Michael Jordan");
   }
 
   @Action("Save")
-  public void save() throws Throwable {}
+  public void save() {}
 
   @Override
   public String toString() {

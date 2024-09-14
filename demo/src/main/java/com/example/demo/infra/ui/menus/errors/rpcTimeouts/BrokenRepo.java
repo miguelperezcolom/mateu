@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class BrokenRepo {
 
-  List all =
+  final List all =
       new ArrayList(
           List.of(
               new BrokenRow("1001", "North Sails"),

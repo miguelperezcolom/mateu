@@ -56,7 +56,7 @@ public class URLResource implements IResource {
   public void setPath(String path) {}
 
   @Override
-  public IFileLocator toFileLocator() throws Exception {
+  public IFileLocator toFileLocator() {
     return url != null
         ? new IFileLocator() {
 
@@ -104,7 +104,7 @@ public class URLResource implements IResource {
   }
 
   @Override
-  public void set(String name, String absolutePath) throws Exception {}
+  public void set(String name, String absolutePath) {}
 
   @Override
   public void setUrl(String url) {
@@ -116,7 +116,7 @@ public class URLResource implements IResource {
   }
 
   @Override
-  public void set(String value) throws Exception {
+  public void set(String value) {
     setUrl(value);
   }
 

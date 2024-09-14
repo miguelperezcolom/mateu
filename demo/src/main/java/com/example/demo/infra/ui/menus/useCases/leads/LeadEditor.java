@@ -23,11 +23,11 @@ public class LeadEditor {
 
   public LeadEditor() {}
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("North Sails");
   }
 
   @Action("Save")
-  public void save() throws Throwable {}
+  public void save() {}
 }

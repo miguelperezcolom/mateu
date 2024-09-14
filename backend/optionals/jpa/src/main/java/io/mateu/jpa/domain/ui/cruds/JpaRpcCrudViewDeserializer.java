@@ -9,8 +9,7 @@ import java.io.IOException;
 public class JpaRpcCrudViewDeserializer extends JsonDeserializer<JpaRpcCrudView> {
   @Override
   public JpaRpcCrudView deserialize(
-      JsonParser jsonParser, DeserializationContext deserializationContext)
-      throws IOException, JacksonException {
+      JsonParser jsonParser, DeserializationContext deserializationContext) {
     var crud = new JpaRpcCrudView();
     /*
     JsonNode node = jsonParser.getCodec().readTree(jsonParser);

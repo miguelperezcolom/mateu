@@ -118,13 +118,12 @@ public class MateuService {
     return fetchItemsUseCase.getItems(itemProviderId, page, page_size, search_text);
   }
 
-  public Mono<ResponseEntity<Resource>> serveFile(String fileId, String filename)
-      throws AuthenticationException {
+  public Mono<ResponseEntity<Resource>> serveFile(String fileId, String filename) {
     return Mono.fromCallable(() -> serveFileUseCase.serveFile(fileId, filename))
         .subscribeOn(Schedulers.boundedElastic());
   }
 
-  public Mono<String> getFileUrl(String fileId, String fileName) throws AuthenticationException {
+  public Mono<String> getFileUrl(String fileId, String fileName) {
     return Mono.fromCallable(() -> getFileUrlUseCase.getFileUrl(fileId, fileName))
         .subscribeOn(Schedulers.boundedElastic());
   }

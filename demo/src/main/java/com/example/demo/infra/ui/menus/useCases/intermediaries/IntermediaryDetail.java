@@ -18,7 +18,7 @@ public class IntermediaryDetail extends IntermediaryDetailDefinition {
 
   public IntermediaryDetail() throws MalformedURLException {}
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("North Sails");
     this.getSalesAgents().setIntermediaryId(id);

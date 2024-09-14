@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnMissingClass("io.mateu.jpa.domain.json.MateuEntityDeserializer")
 public class FakeEntityDeserializer implements EntityDeserializer {
   @Override
-  public <T> T fromJson(EntityManager em, String json, Class<T> c) throws Exception {
+  public <T> T fromJson(EntityManager em, String json, Class<T> c) {
     return null;
   }
 }

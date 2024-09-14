@@ -16,9 +16,9 @@ public class NewUserForm {
 
     final ApplicationContext applicationContext;
 
-    String name = "a";
+    final String name = "a";
 
-    String email = "b";
+    final String email = "b";
 
     public NewUserForm(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;

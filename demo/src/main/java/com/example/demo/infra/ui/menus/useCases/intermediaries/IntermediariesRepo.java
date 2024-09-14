@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class IntermediariesRepo {
 
-  List all =
+  final List all =
       new ArrayList(
           List.of(
               new IntermediariesRow("1001", "North Sails"),

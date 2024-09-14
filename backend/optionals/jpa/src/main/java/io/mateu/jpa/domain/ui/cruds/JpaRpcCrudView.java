@@ -90,19 +90,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   public JpaRpcCrudView() {}
 
-  public JpaRpcCrudView(MDDOpenCRUDAction action)
-      throws InvocationTargetException,
-          NoSuchMethodException,
-          IllegalAccessException,
-          InstantiationException {
+  public JpaRpcCrudView(MDDOpenCRUDAction action) {
     this.action = action;
   }
 
-  public void init()
-      throws InvocationTargetException,
-          NoSuchMethodException,
-          IllegalAccessException,
-          InstantiationException {
+  public void init() {
     reset();
     columnFields =
         getColumnFields(
@@ -186,8 +178,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Flux fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit)
-      throws Throwable {
+  public Flux fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return rowsQueryHandler.run(
         new RowsQuery(
             action,
@@ -209,7 +200,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Mono<Long> fetchCount(Object filters) throws Throwable {
+  public Mono<Long> fetchCount(Object filters) {
     sums =
         sumFields.isEmpty()
             ? List.of()
@@ -266,7 +257,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore
   @Override
-  public Object getRow(Map<String, Object> row, Serializer serializer) throws Throwable {
+  public Object getRow(Map<String, Object> row, Serializer serializer) {
     Object id = row.get("col0");
     return findByIdQueryHandler.run(
         FindByIdQuery.builder().entityClass(getEntityClass()).id(id).build());

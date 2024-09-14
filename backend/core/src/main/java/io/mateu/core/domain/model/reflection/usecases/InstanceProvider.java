@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class InstanceProvider {
 
   private final BasicTypeChecker basicTypeChecker;
-  List<Class> notFromString = new ArrayList<>();
+  final List<Class> notFromString = new ArrayList<>();
 
   private final MateuConfiguratorBean beanProvider;
   private final FieldByNameProvider fieldByNameProvider;

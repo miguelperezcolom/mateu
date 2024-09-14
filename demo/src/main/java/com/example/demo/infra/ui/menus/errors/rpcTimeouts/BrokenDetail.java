@@ -16,7 +16,7 @@ public class BrokenDetail extends BrokenDetailDefinition {
 
   public BrokenDetail() {}
 
-  public void load(String id) throws Throwable {
+  public void load(String id) {
     setId(id);
     setName("North Sails");
     this.getSalesAgents().setIntermediaryId(id);

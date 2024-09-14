@@ -302,5 +302,5 @@ public class QueryHelper {
     return ql;
   }
 
-  public void updateExtraFilters() throws Exception {}
+  public void updateExtraFilters() {}
 }

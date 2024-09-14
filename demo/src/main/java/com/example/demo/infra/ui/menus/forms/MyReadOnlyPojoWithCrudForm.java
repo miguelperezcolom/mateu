@@ -60,12 +60,12 @@ public class MyReadOnlyPojoWithCrudForm
 
   @Action(icon = "vaadin:refresh", target = ActionTarget.Component, order = -1)
   @Caption("")
-  public void refresh() throws Throwable {
+  public void refresh() {
     assessment = "reloaded";
   }
 
   @Action("Edit")
-  public Object retrieveEditor() throws Throwable {
+  public Object retrieveEditor() {
     editor.setId(retrieveId().toString());
     return editor;
   }

@@ -15,7 +15,7 @@ public class FieldFromParameter implements Field {
   private final Parameter p;
   private final Executable m;
 
-  private List<Annotation> extraAnnotations = new ArrayList<>();
+  private final List<Annotation> extraAnnotations = new ArrayList<>();
 
   public FieldFromParameter(FieldFromParameter f, Annotation a) {
     this(f);
@@ -123,13 +123,13 @@ public class FieldFromParameter implements Field {
 
   @Override
   public Object getValue(Object o)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+      throws NoSuchMethodException {
     throw new NoSuchMethodException("We cannot get values for parameter fields");
   }
 
   @Override
   public void setValue(Object o, Object v)
-      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+      throws NoSuchMethodException {
     throw new NoSuchMethodException("We cannot set values for parameter fields");
   }
 

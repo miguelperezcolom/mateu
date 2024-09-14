@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class FakeJpaRpcCrudFactory implements JpaRpcCrudFactory {
   @Override
-  public Listing create(Object parentEntity, Field field) throws Exception {
+  public Listing create(Object parentEntity, Field field) {
     throw new NotImplementedException();
   }
 
   @Override
-  public Listing create(JpaCrud crud) throws Exception {
+  public Listing create(JpaCrud crud) {
     throw new NotImplementedException();
   }
 }

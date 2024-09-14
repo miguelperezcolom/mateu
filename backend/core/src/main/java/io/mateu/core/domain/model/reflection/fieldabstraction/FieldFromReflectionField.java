@@ -14,7 +14,7 @@ public class FieldFromReflectionField implements Field {
   private final java.lang.reflect.Field f;
   private final Field ff;
 
-  private List<Annotation> extraAnnotations = new ArrayList<>();
+  private final List<Annotation> extraAnnotations = new ArrayList<>();
 
   public FieldFromReflectionField(Field f, Annotation a) {
     this(f);
@@ -120,7 +120,7 @@ public class FieldFromReflectionField implements Field {
 
   @Override
   public Object getValue(Object o)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+      throws IllegalAccessException {
     try {
       Method getter = o.getClass().getMethod(getGetter(f), f.getType());
       if (getter != null) {
@@ -148,7 +148,7 @@ public class FieldFromReflectionField implements Field {
 
   @Override
   public void setValue(Object o, Object v)
-      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+      throws IllegalAccessException {
     try {
       Method setter = o.getClass().getMethod(getSetter(f), f.getType());
       if (setter != null) {
