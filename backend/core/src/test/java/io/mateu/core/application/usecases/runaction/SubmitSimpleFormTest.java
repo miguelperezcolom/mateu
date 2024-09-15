@@ -70,7 +70,7 @@ public class SubmitSimpleFormTest {
                 StandardCharsets.UTF_8)
             .replaceAll(
                 "58234d75-7333-46ff-bdca-650edc6574b7",
-                ((SingleComponent) uiIncrement.content()).componentId());
+                ((SingleComponent) uiIncrement.uiFragments().get(0).content()).componentId());
     JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }
