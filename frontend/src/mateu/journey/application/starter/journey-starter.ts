@@ -185,7 +185,6 @@ export class JourneyStarter extends LitElement {
                 this.modalClass = 'modal-left'
                 setTimeout(() => {
                     const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                    console.log(overlay)
                     overlay?.setAttribute('class', 'modal-left')
                     overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
                 });
@@ -204,7 +203,6 @@ export class JourneyStarter extends LitElement {
                 this.modalClass = 'modal-right'
                 setTimeout(() => {
                     const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
-                    console.log(overlay)
                     overlay?.setAttribute('class', 'modal-right')
                     overlay?.setAttribute('style', 'right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;' + (this.modalStyle ? this.modalStyle : ''))
                 });
@@ -410,12 +408,7 @@ export class JourneyStarter extends LitElement {
     }
 
     closeModalAndStay(uiIncrement: UIIncrement) {
-        this.dispatchEvent(new CustomEvent('this.dispatchEvent(new CustomEvent(\'replace-journey\', {\n' +
-            '            bubbles: true,\n' +
-            '            composed: true,\n' +
-            '            detail: {\n' +
-            '                journeyStarter\n' +
-            '            }}))', {
+        this.dispatchEvent(new CustomEvent('close-modal', {
             bubbles: true,
             composed: true,
             detail: {
@@ -448,7 +441,7 @@ export class JourneyStarter extends LitElement {
                     @close-modal="${async (event: any) => {
                         if (this.modalOpened) {
                             this.modalOpened = false
-                            this.initialUiIncrement = event.detail.uiIncrement
+                            this.initialUiIncrement = event.detail.uiIncrement.uiFragments[0]
                         } else {
                             console.log('NOT closing modal')
                         }

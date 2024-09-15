@@ -17,10 +17,12 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
+import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -152,9 +154,9 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
               List.of(),
               getMessages(r, m),
               List.of(new UIFragment(
-                      io.mateu.dtos.ActionTarget.View,
-                      "",
-                      "",
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
                       new SingleComponent(component.id()),
                       Map.of(component.id(), component)
               )));
@@ -194,9 +196,9 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
               List.of(),
               List.of(),
               List.of(new UIFragment(
-                      io.mateu.dtos.ActionTarget.View,
-                      "",
-                      "",
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
                       new SingleComponent(component.id()),
                       Map.of(component.id(), component)
               )));
@@ -209,9 +211,9 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
               List.of(),
               List.of(),
               List.of(new UIFragment(
-                      io.mateu.dtos.ActionTarget.View,
-                      "",
-                      "",
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
                       new SingleComponent(component.id()),
                       Map.of(component.id(), component)
               )));
@@ -229,9 +231,9 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
                                               message.type(), message.title(), message.text(), message.duration()))
                       .toList(),
               List.of(new UIFragment(
-                      io.mateu.dtos.ActionTarget.View,
-                      "",
-                      "",
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
                       new SingleComponent(component.id()),
                       Map.of(component.id(), component)
               )));
@@ -241,12 +243,33 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
             List.of(),
             getMessages(r, m),
             List.of(new UIFragment(
-                    io.mateu.dtos.ActionTarget.View,
-                    "",
-                    "",
+                    mapActionTarget(getActionTarget(m)),
+                    getTargetId(m),
+                    getModalStyle(m),
                     new SingleComponent(component.id()),
                     Map.of(component.id(), component)
             )));
+  }
+
+  private String getModalStyle(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).modalStyle();
+    }
+    return null;
+  }
+
+  private String getTargetId(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).targetId();
+    }
+    return null;
+  }
+
+  private io.mateu.dtos.ActionTarget mapActionTarget(ActionTarget actionTarget) {
+    if (actionTarget == null) {
+      return null;
+    }
+    return io.mateu.dtos.ActionTarget.valueOf(actionTarget.name());
   }
 
   private ActionTarget getActionTarget(Field m) {
