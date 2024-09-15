@@ -95,8 +95,7 @@ public class CrudMetadataBuilder {
         "",
         fieldTypeMapper.getWidth(field),
         List.of(),
-            field.isAnnotationPresent(Detail.class)
-            );
+        field.isAnnotationPresent(Detail.class));
   }
 
   private SearchForm buildSearchForm(Listing rpcView, String listId) {

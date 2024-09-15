@@ -15,14 +15,14 @@ public class UIIncrementFactory {
 
   public UIIncrement createForSingleComponent(Component component) {
     return new UIIncrement(
-            List.of(),
-            List.of(),
-            List.of(new UIFragment(
-                    io.mateu.dtos.ActionTarget.View,
-                    "",
-                    "",
-                    new SingleComponent(component.id()),
-                    Map.of(component.id(), component)
-            )));
+        List.of(),
+        List.of(),
+        List.of(
+            new UIFragment(
+                io.mateu.dtos.ActionTarget.View,
+                "",
+                "",
+                new SingleComponent(component.id()),
+                Map.of(component.id(), component))));
   }
 }

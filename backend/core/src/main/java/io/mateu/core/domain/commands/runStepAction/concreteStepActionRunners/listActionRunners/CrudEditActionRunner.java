@@ -105,16 +105,11 @@ public class CrudEditActionRunner implements ListActionRunner {
     if (editor instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View view = viewMapper.map(editor, serverHttpRequest, allComponents, Map.of());
-      return Mono.just(new UIIncrement(
+      return Mono.just(
+          new UIIncrement(
               List.of(),
               List.of(),
-              List.of(new UIFragment(
-                      ActionTarget.View,
-              "",
-              "",
-              view,
-              allComponents
-      ))));
+              List.of(new UIFragment(ActionTarget.View, "", "", view, allComponents))));
     }
 
     return Mono.just(

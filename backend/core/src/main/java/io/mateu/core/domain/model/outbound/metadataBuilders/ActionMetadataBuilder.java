@@ -6,7 +6,6 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -51,13 +50,13 @@ public class ActionMetadataBuilder {
   private String getIcon(Method m) {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
       return action.icon();
     }
     if (m.isAnnotationPresent(
-            io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-              m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
       return action.icon();
     }
     return null;

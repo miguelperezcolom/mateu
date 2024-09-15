@@ -3,7 +3,6 @@ package io.mateu.core.domain.commands.startJourney;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.exceptions.NotFoundException;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
@@ -87,23 +86,18 @@ public class StartJourneyCommandHandler {
 
     } catch (Exception e) {
       log.error("error on getUi", e);
-      //throw new NotFoundException("No class with name " + journeyTypeId + " found");
+      // throw new NotFoundException("No class with name " + journeyTypeId + " found");
       throw e;
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
     View view = viewMapper.map(formInstance, serverHttpRequest, allComponents, Map.of());
 
-    return Mono.just(new UIIncrement(
+    return Mono.just(
+        new UIIncrement(
             List.of(),
             List.of(),
-            List.of(new UIFragment(
-                    io.mateu.dtos.ActionTarget.View,
-                    "",
-                    "",
-                    view,
-                    allComponents
-            ))));
+            List.of(new UIFragment(io.mateu.dtos.ActionTarget.View, "", "", view, allComponents))));
   }
 
   public Object resolveJourneyTypeId(

@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /** A common interface for componentIds */
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-        property = "componentType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "componentType")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = GenericComponent.class, name = "GenericComponent"),
   @JsonSubTypes.Type(value = CrudComponent.class, name = "CrudComponent"),

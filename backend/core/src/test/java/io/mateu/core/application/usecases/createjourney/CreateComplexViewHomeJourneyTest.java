@@ -60,7 +60,9 @@ public class CreateComplexViewHomeJourneyTest {
 
     for (int i = 0; i < maxComponents; i++) {
       var componentJson =
-          assertComponent("component-" + i, uiIncrement.components().get("component-" + i));
+          assertComponent(
+              "component-" + i,
+              uiIncrement.uiFragments().get(0).components().get("component-" + i));
       componentsJsons.put("component-" + i, componentJson);
     }
 

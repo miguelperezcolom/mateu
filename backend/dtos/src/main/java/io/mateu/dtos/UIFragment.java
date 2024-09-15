@@ -12,20 +12,18 @@ import java.util.Map;
  * @param components List of new components
  */
 public record UIFragment(
-        ActionTarget target,
-        String targetId,
-        String modalStyle,
-        Content content,
-        Map<String, Component> components
-) {
+    ActionTarget target,
+    String targetId,
+    String modalStyle,
+    Content content,
+    Map<String, Component> components) {
 
-    public UIFragment {
-        components = Collections.unmodifiableMap(components);
-    }
+  public UIFragment {
+    components = Collections.unmodifiableMap(components);
+  }
 
-    @Override
-    public Map<String, Component> components() {
-        return Collections.unmodifiableMap(components);
-    }
-
+  @Override
+  public Map<String, Component> components() {
+    return Collections.unmodifiableMap(components);
+  }
 }

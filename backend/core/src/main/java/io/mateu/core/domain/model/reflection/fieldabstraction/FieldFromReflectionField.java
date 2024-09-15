@@ -119,8 +119,7 @@ public class FieldFromReflectionField implements Field {
   }
 
   @Override
-  public Object getValue(Object o)
-      throws IllegalAccessException {
+  public Object getValue(Object o) throws IllegalAccessException {
     try {
       Method getter = o.getClass().getMethod(getGetter(f), f.getType());
       if (getter != null) {
@@ -147,8 +146,7 @@ public class FieldFromReflectionField implements Field {
   }
 
   @Override
-  public void setValue(Object o, Object v)
-      throws IllegalAccessException {
+  public void setValue(Object o, Object v) throws IllegalAccessException {
     try {
       Method setter = o.getClass().getMethod(getSetter(f), f.getType());
       if (setter != null) {

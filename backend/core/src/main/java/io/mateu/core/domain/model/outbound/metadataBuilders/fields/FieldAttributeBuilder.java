@@ -158,8 +158,7 @@ public class FieldAttributeBuilder {
                     "",
                     fieldTypeMapper.getWidth(columnField),
                     List.of(),
-                        columnField.isAnnotationPresent(Detail.class)
-                        )));
+                    columnField.isAnnotationPresent(Detail.class))));
       }
     }
     return attributes;

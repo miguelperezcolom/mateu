@@ -4,7 +4,7 @@ import java.util.List;
 
 public class SelectedRowsContext {
 
-  //todo: do not use thread local for webflux
+  // todo: do not use thread local for webflux
   private static final ThreadLocal<List> rows = new ThreadLocal<>();
 
   public SelectedRowsContext(List rows) {

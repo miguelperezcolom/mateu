@@ -17,12 +17,10 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -150,16 +148,17 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     if (r instanceof CloseModal closeModal) {
       var component =
           componentFactory.createFormComponent(closeModal.getData(), serverHttpRequest, data);
-      var uiIncrement = new UIIncrement(
+      var uiIncrement =
+          new UIIncrement(
               List.of(),
               getMessages(r, m),
-              List.of(new UIFragment(
+              List.of(
+                  new UIFragment(
                       mapActionTarget(getActionTarget(m)),
                       getTargetId(m),
                       getModalStyle(m),
                       new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+                      Map.of(component.id(), component))));
       return new UIIncrement(
           List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), List.of(), List.of());
     }
@@ -180,9 +179,7 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m))) {
         return new UIIncrement(
-            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())),
-            List.of(),
-            List.of());
+            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())), List.of(), List.of());
       }
       if (ActionTarget.NewWindow.equals(getActionTarget(m))) {
         return new UIIncrement(
@@ -193,62 +190,62 @@ public class RunButtonActionRunner extends AbstractActionRunner implements Actio
       var component =
           componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              List.of(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(),
+          List.of(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
 
     if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
           componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              List.of(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(),
+          List.of(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
     if (r instanceof ResponseWrapper responseWrapper) {
       var component =
           componentFactory.createFormComponent(
               responseWrapper.getResponse(), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              responseWrapper.getMessages().stream()
-                      .map(
-                              message ->
-                                      new io.mateu.dtos.Message(
-                                              message.type(), message.title(), message.text(), message.duration()))
-                      .toList(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(),
+          responseWrapper.getMessages().stream()
+              .map(
+                  message ->
+                      new io.mateu.dtos.Message(
+                          message.type(), message.title(), message.text(), message.duration()))
+              .toList(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
     var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
     return new UIIncrement(
-            List.of(),
-            getMessages(r, m),
-            List.of(new UIFragment(
-                    mapActionTarget(getActionTarget(m)),
-                    getTargetId(m),
-                    getModalStyle(m),
-                    new SingleComponent(component.id()),
-                    Map.of(component.id(), component)
-            )));
+        List.of(),
+        getMessages(r, m),
+        List.of(
+            new UIFragment(
+                mapActionTarget(getActionTarget(m)),
+                getTargetId(m),
+                getModalStyle(m),
+                new SingleComponent(component.id()),
+                Map.of(component.id(), component))));
   }
 
   private String getModalStyle(Field m) {

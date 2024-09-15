@@ -222,14 +222,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       var uiIncrement =
           new UIIncrement(
               List.of(),
-                  getMessages(r, m),
-              List.of(new UIFragment(
+              getMessages(r, m),
+              List.of(
+                  new UIFragment(
                       mapActionTarget(getActionTarget(m)),
                       getTargetId(m),
                       getModalStyle(m),
                       new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+                      Map.of(component.id(), component))));
       return new UIIncrement(
           List.of(new UICommand(UICommandType.CloseModal, uiIncrement)), List.of(), List.of());
     }
@@ -250,9 +250,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m))) {
         return new UIIncrement(
-            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())),
-            List.of(),
-            List.of());
+            List.of(new UICommand(UICommandType.OpenNewTab, url.toString())), List.of(), List.of());
       }
       if (ActionTarget.NewWindow.equals(getActionTarget(m))) {
         return new UIIncrement(
@@ -265,74 +263,74 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return new UIIncrement(
           List.of(),
           List.of(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
 
     if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
           componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              List.of(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(),
+          List.of(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
     if (r instanceof ResponseWrapper responseWrapper) {
       var component =
           componentFactory.createFormComponent(
               responseWrapper.getResponse(), serverHttpRequest, data);
       return new UIIncrement(
-              List.of(),
-              responseWrapper.getMessages().stream()
-                      .map(
-                              message ->
-                                      new io.mateu.dtos.Message(
-                                              message.type(), message.title(), message.text(), message.duration()))
-                      .toList(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      new SingleComponent(component.id()),
-                      Map.of(component.id(), component)
-              )));
+          List.of(),
+          responseWrapper.getMessages().stream()
+              .map(
+                  message ->
+                      new io.mateu.dtos.Message(
+                          message.type(), message.title(), message.text(), message.duration()))
+              .toList(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  new SingleComponent(component.id()),
+                  Map.of(component.id(), component))));
     }
     if (r instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View view = viewMapper.map(r, serverHttpRequest, allComponents, Map.of());
       return new UIIncrement(
-              List.of(),
-              List.of(),
-              List.of(new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
-                      getModalStyle(m),
-                      view,
-                      allComponents
-              )));
+          List.of(),
+          List.of(),
+          List.of(
+              new UIFragment(
+                  mapActionTarget(getActionTarget(m)),
+                  getTargetId(m),
+                  getModalStyle(m),
+                  view,
+                  allComponents)));
     }
     var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
     return new UIIncrement(
-            List.of(),
-            getMessages(r, m),
-            List.of(new UIFragment(
-                    mapActionTarget(getActionTarget(m)),
-                    getTargetId(m),
-                    getModalStyle(m),
-                    new SingleComponent(component.id()),
-                    Map.of(component.id(), component)
-            )));
+        List.of(),
+        getMessages(r, m),
+        List.of(
+            new UIFragment(
+                mapActionTarget(getActionTarget(m)),
+                getTargetId(m),
+                getModalStyle(m),
+                new SingleComponent(component.id()),
+                Map.of(component.id(), component))));
   }
 
   private String getModalStyle(Method m) {

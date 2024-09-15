@@ -45,8 +45,7 @@ public class ComponentMetadataBuilder {
 
   @Autowired ReflectionHelper reflectionHelper;
   @Autowired private DataExtractor dataExtractor;
-    @Autowired
-    private BasicTypeChecker basicTypeChecker;
+  @Autowired private BasicTypeChecker basicTypeChecker;
 
   public ComponentMetadata getMetadata(
       boolean form,
@@ -101,12 +100,14 @@ public class ComponentMetadataBuilder {
     } else if (componentInstance instanceof ObjectWrapper objectWrapper) {
       metadata = wrap(objectWrapper.getValue());
     } else if (componentInstance != null && basicTypeChecker.isBasic(componentInstance)) {
-      metadata = getResult(new Result(
-              io.mateu.core.domain.uidefinition.shared.data.ResultType.Success,
-              "" + componentInstance,
-              List.of(),
-              null,
-              null));
+      metadata =
+          getResult(
+              new Result(
+                  io.mateu.core.domain.uidefinition.shared.data.ResultType.Success,
+                  "" + componentInstance,
+                  List.of(),
+                  null,
+                  null));
     } else {
       if (form) {
         metadata = getForm(componentInstance, slotFields, data);
@@ -119,13 +120,17 @@ public class ComponentMetadataBuilder {
   }
 
   private ComponentMetadata wrap(Object value) {
-    return new io.mateu.dtos.Element("div", Map.of(), """
+    return new io.mateu.dtos.Element(
+        "div",
+        Map.of(),
+            """
             <vaadin-vertical-layout
             theme='spacing padding'
               style='justify-content: center;align-items: center;'>
               <h3>%s</h3>
             </vaadin-vertical-layout>
-            """.formatted("" + value));
+            """
+            .formatted("" + value));
   }
 
   private ComponentMetadata getVerticalLayout(Object componentInstance) {

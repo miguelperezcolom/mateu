@@ -122,14 +122,12 @@ public class FieldFromParameter implements Field {
   }
 
   @Override
-  public Object getValue(Object o)
-      throws NoSuchMethodException {
+  public Object getValue(Object o) throws NoSuchMethodException {
     throw new NoSuchMethodException("We cannot get values for parameter fields");
   }
 
   @Override
-  public void setValue(Object o, Object v)
-      throws NoSuchMethodException {
+  public void setValue(Object o, Object v) throws NoSuchMethodException {
     throw new NoSuchMethodException("We cannot set values for parameter fields");
   }
 

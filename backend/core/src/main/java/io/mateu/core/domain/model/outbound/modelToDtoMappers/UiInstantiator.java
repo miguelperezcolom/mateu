@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.exceptions.NotFoundException;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicUI;
 import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -39,7 +38,7 @@ public class UiInstantiator {
 
     } catch (Exception e) {
       //      log.error("error on getUi", e);
-      //throw new NotFoundException("No class with name " + uiId + " found");
+      // throw new NotFoundException("No class with name " + uiId + " found");
       throw new RuntimeException(e);
     }
   }

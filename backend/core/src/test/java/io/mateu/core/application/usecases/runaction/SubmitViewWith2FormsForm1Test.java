@@ -69,7 +69,7 @@ public class SubmitViewWith2FormsForm1Test {
                 StandardCharsets.UTF_8)
             .replaceAll(
                 "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e",
-                ((SingleComponent) uiIncrement.content()).componentId());
+                ((SingleComponent) uiIncrement.uiFragments().get(0).content()).componentId());
     JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

@@ -137,9 +137,11 @@ public class MenuBuilder {
               journeyTypeId,
               buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
               order,
-                  m.getAnnotation(Submenu.class).visible()));
+              m.getAnnotation(Submenu.class).visible()));
     } else {
-      l.add(new Menu(MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order, isVisible(m)));
+      l.add(
+          new Menu(
+              MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order, isVisible(m)));
     }
   }
 
