@@ -2,8 +2,10 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
@@ -43,6 +45,8 @@ public class ComponentMetadataBuilder {
 
   @Autowired ReflectionHelper reflectionHelper;
   @Autowired private DataExtractor dataExtractor;
+    @Autowired
+    private BasicTypeChecker basicTypeChecker;
 
   public ComponentMetadata getMetadata(
       boolean form,
@@ -51,8 +55,7 @@ public class ComponentMetadataBuilder {
       List<Field> slotFields,
       Map<String, Object> data) {
     ComponentMetadata metadata;
-    if (componentInstance != null
-        && componentInstance instanceof List<?> list
+    if (componentInstance instanceof List<?> list
         && field != null
         && field.isAnnotationPresent(HorizontalLayout.class)) {
       metadata = getHorizontalLayout(list, componentInstance, field);
@@ -62,13 +65,11 @@ public class ComponentMetadataBuilder {
     } else if (componentInstance != null
         && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
       metadata = getVerticalLayout(componentInstance);
-    } else if (componentInstance != null
-        && componentInstance instanceof List<?> list
+    } else if (componentInstance instanceof List<?> list
         && field != null
         && field.isAnnotationPresent(VerticalLayout.class)) {
       metadata = getVerticalLayout(list, componentInstance, field);
-    } else if (componentInstance != null
-        && componentInstance instanceof List<?> list
+    } else if (componentInstance instanceof List<?> list
         && field != null
         && field.isAnnotationPresent(SplitLayout.class)) {
       metadata = getSplitLayout(list, componentInstance, field);
@@ -97,15 +98,34 @@ public class ComponentMetadataBuilder {
       metadata = getCard(card, slotFields);
     } else if (componentInstance instanceof JpaCrud) {
       metadata = getCrud("main", (JpaCrud) componentInstance);
+    } else if (componentInstance instanceof ObjectWrapper objectWrapper) {
+      metadata = wrap(objectWrapper.getValue());
+    } else if (componentInstance != null && basicTypeChecker.isBasic(componentInstance)) {
+      metadata = getResult(new Result(
+              io.mateu.core.domain.uidefinition.shared.data.ResultType.Success,
+              "" + componentInstance,
+              List.of(),
+              null,
+              null));
     } else {
       if (form) {
         metadata = getForm(componentInstance, slotFields, data);
       } else {
-        metadata = getNonForm(componentInstance, slotFields);
+        metadata = getNonForm(componentInstance);
       }
     }
 
     return metadata;
+  }
+
+  private ComponentMetadata wrap(Object value) {
+    return new io.mateu.dtos.Element("div", Map.of(), """
+            <vaadin-vertical-layout
+            theme='spacing padding'
+              style='justify-content: center;align-items: center;'>
+              <h3>%s</h3>
+            </vaadin-vertical-layout>
+            """.formatted("" + value));
   }
 
   private ComponentMetadata getVerticalLayout(Object componentInstance) {
@@ -116,15 +136,15 @@ public class ComponentMetadataBuilder {
     return new io.mateu.dtos.HorizontalLayout();
   }
 
-  private ComponentMetadata getNonForm(Object componentInstance, List<Field> slotFields) {
+  private ComponentMetadata getNonForm(Object componentInstance) {
     if (componentInstance instanceof Container) {
       return new io.mateu.dtos.VerticalLayout();
     }
-    return new io.mateu.dtos.Element("div", Map.of());
+    return new io.mateu.dtos.Element("div", Map.of(), "" + componentInstance);
   }
 
   private ComponentMetadata getElement(Element element) {
-    return new io.mateu.dtos.Element(element.name(), element.attributes());
+    return new io.mateu.dtos.Element(element.name(), element.attributes(), element.content());
   }
 
   private ComponentMetadata getHorizontalLayout(List<?> list, Object model, Field field) {
