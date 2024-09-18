@@ -282,7 +282,7 @@ public class ReflectionHelper {
   }
 
   public Object newInstance(Constructor c, Object params) throws Throwable {
-    return instanceProvider.newInstance(c, params);
+    return instanceProvider.newInstanceFromParams(c, params);
   }
 
   public <T> T newInstance(Class<T> c)
@@ -321,7 +321,7 @@ public class ReflectionHelper {
           InstantiationException,
           InvocationTargetException,
           NoSuchMethodException {
-    return instanceProvider.newInstance(c, parent);
+    return instanceProvider.newInstanceFromParent(c, parent);
   }
 
   public boolean isOverridden(Object instance, String methodName) {

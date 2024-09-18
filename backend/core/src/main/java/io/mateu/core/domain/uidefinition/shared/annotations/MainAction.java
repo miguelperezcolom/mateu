@@ -43,4 +43,7 @@ public @interface MainAction {
   ActionPosition position() default ActionPosition.Right;
 
   int timeoutMillis() default 0;
+
+  boolean closeModalWindow() default false;
+
 }

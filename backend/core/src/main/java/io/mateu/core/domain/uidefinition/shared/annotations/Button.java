@@ -41,4 +41,6 @@ public @interface Button {
   String href() default "";
 
   boolean runOnEnter() default false;
+
+  boolean closeModalWindow() default false;
 }

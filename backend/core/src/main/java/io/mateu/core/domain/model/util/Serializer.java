@@ -252,7 +252,7 @@ public class Serializer {
 
               if (sv != null) {
                 if (basicTypeChecker.isBasic(f.getType())) {
-                  valueWriter.setValue(f, o, instanceProvider.newInstance(f.getType(), sv));
+                  valueWriter.setValue(f, o, instanceProvider.newInstanceFromParent(f.getType(), sv));
                 } else {
 
                   // todo: añadir casos collection y map

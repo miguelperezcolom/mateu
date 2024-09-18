@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
@@ -33,18 +34,18 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   final ValidationService validationService;
 
   public MainListActionRunnner(
-      List<ListActionRunner> listActionRunners,
-      Merger merger,
-      ActualValueExtractor actualValueExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
-      ValidationService validationService,
-      ViewMapper viewMapper,
-      ComponentFactory componentFactory,
-      UIIncrementFactory uIIncrementFactory,
-      BasicTypeChecker basicTypeChecker,
-      MethodParametersEditorHandler methodParametersEditorHandler,
-      MethodProvider methodProvider) {
+          List<ListActionRunner> listActionRunners,
+          Merger merger,
+          ActualValueExtractor actualValueExtractor,
+          ReflectionHelper reflectionHelper,
+          Serializer serializer,
+          ValidationService validationService,
+          ViewMapper viewMapper,
+          ComponentFactory componentFactory,
+          UIIncrementFactory uIIncrementFactory,
+          BasicTypeChecker basicTypeChecker,
+          MethodParametersEditorHandler methodParametersEditorHandler,
+          MethodProvider methodProvider, DataExtractor dataExtractor) {
     super(
         merger,
         actualValueExtractor,
@@ -56,7 +57,8 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         basicTypeChecker,
         methodParametersEditorHandler,
         methodProvider,
-        viewMapper);
+        viewMapper,
+            dataExtractor);
     this.listActionRunners = listActionRunners;
     this.merger = merger;
     this.actualValueExtractor = actualValueExtractor;

@@ -43,4 +43,6 @@ public @interface Action {
   boolean runOnEnter() default false;
 
   int timeoutMillis() default 0;
+
+  boolean closeModalWindow() default false;
 }

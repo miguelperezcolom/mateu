@@ -111,13 +111,13 @@ public class InstanceProvider {
         params.add(convert(data.get(parameter.getName()), parameter.getType()));
       } else {
         params.add(
-            newInstance(parameter.getType(), data.getOrDefault(parameter.getName(), Map.of())));
+            newInstance(parameter.getType(), (Map<String, Object>) data.getOrDefault(parameter.getName(), Map.of())));
       }
     }
     return params.toArray();
   }
 
-  public Object newInstance(Class c, Object parent)
+  public Object newInstanceFromParent(Class c, Object parent)
       throws IllegalAccessException,
           InstantiationException,
           InvocationTargetException,
@@ -152,7 +152,7 @@ public class InstanceProvider {
     return i;
   }
 
-  public Object newInstance(Constructor c, Object params) throws Throwable {
+  public Object newInstanceFromParams(Constructor c, Object params) throws Throwable {
     List<Object> vs = new ArrayList<>();
     for (Parameter p : c.getParameters()) {
       if (params != null

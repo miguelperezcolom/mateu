@@ -2,13 +2,13 @@ package io.mateu.core.domain.uidefinition.shared.data;
 
 public class CloseModal<T> {
 
-  private final T data;
+  private final T result;
 
-  public T getData() {
-    return data;
+  public T getResult() {
+    return result;
   }
 
-  public CloseModal(T data) {
-    this.data = data;
+  public CloseModal(T result) {
+    this.result = result;
   }
 }

@@ -1,12 +1,9 @@
 package com.example.demo.infra.ui.menus.actions;
 
-import com.example.demo.infra.ui.menus.forms.FormWithCallbacks;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter@Setter
+@Caption("Change name")
 public class ChangeNameForm {
 
     private final ActionsAsButtonsForm formWithCallbacks;
@@ -18,10 +15,10 @@ public class ChangeNameForm {
         this.formWithCallbacks = formWithCallbacks;
     }
 
-    @MainAction
-    CloseModal<ActionsAsButtonsForm> save() {
+    @MainAction(closeModalWindow = true)
+    ActionsAsButtonsForm save() {
         formWithCallbacks.name = this.name;
-        return new CloseModal<>(formWithCallbacks);
+        return formWithCallbacks;
     }
 
 }
