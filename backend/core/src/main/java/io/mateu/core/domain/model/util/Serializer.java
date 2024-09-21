@@ -62,7 +62,8 @@ public class Serializer {
         new VisibilityChecker.Std(JsonAutoDetect.Visibility.NON_PRIVATE) {
           @Override
           public boolean isFieldVisible(java.lang.reflect.Field f) {
-            if (Modifier.isFinal(f.getModifiers())) {
+            if (Modifier.isFinal(f.getModifiers())
+            || Modifier.isTransient(f.getModifiers())) {
               return false;
             }
             return super.isFieldVisible(f);
@@ -70,7 +71,8 @@ public class Serializer {
 
           @Override
           public boolean isFieldVisible(AnnotatedField f) {
-            if (Modifier.isFinal(f.getModifiers())) {
+            if (Modifier.isFinal(f.getModifiers())
+            || Modifier.isTransient(f.getModifiers())) {
               return false;
             }
             return super.isFieldVisible(f);

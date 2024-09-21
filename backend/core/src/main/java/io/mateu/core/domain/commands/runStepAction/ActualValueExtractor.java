@@ -100,7 +100,8 @@ public class ActualValueExtractor {
   private boolean checkInjected(Object viewInstance, String fieldName) {
     Field field = fieldByNameProvider.getFieldByName(viewInstance.getClass(), fieldName);
     return field != null
-        && (field.isAnnotationPresent(Autowired.class) || Modifier.isFinal(field.getModifiers()));
+        && (field.isAnnotationPresent(Autowired.class)
+            || Modifier.isFinal(field.getModifiers()));
   }
 
   public Object getActualValue(Map.Entry<String, Object> entry, Object viewInstance)

@@ -13,9 +13,9 @@ public enum ActionTarget {
   LeftDrawer,
   RightDrawer,
   NewJourney,
-  Deferred,
-  DeferredNewTab,
-  DeferredNewWindow,
+  Deferred, // used for urls
+  DeferredNewTab, // used for urls
+  DeferredNewWindow, // used for urls
   Component,
   Header,
   Footer,

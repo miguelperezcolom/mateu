@@ -44,7 +44,9 @@ public class AllTransferrableFieldsProvider {
   private List<Field> filterInjected(List<Field> allFields) {
     List<Field> r = new ArrayList<>();
     for (Field f : allFields) {
-      if (!f.isAnnotationPresent(Autowired.class) && !Modifier.isFinal(f.getModifiers())) r.add(f);
+      if (!f.isAnnotationPresent(Autowired.class)
+              && !Modifier.isFinal(f.getModifiers())
+              && !Modifier.isTransient(f.getModifiers())) r.add(f);
     }
     return r;
   }
