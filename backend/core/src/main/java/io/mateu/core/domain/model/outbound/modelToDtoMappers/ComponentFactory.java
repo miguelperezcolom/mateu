@@ -174,7 +174,7 @@ public class ComponentFactory {
           .map(
               o ->
                   createComponent(
-                      form,
+                      true,
                       o,
                       serverHttpRequest,
                       null,

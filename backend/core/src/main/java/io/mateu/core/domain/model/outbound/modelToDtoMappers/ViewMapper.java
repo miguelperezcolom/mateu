@@ -33,13 +33,13 @@ public class ViewMapper {
   }
 
   public View map(
-      Object object,
+      io.mateu.core.domain.uidefinition.core.interfaces.View view,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
       Map<String, Object> data)
       throws Throwable {
 
-    var actualObject = actualUiInstanceProvider.getActualUiInstance(object, serverHttpRequest);
+    var actualObject = actualUiInstanceProvider.getActualUiInstance(view, serverHttpRequest);
 
     List<String> left = new ArrayList<>();
     List<String> main = new ArrayList<>();

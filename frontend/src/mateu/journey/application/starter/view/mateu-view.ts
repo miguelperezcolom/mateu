@@ -7,6 +7,7 @@ import {Service} from "../../../domain/service";
 import Component from "../../../../shared/apiClients/dtos/Component";
 import Crud from "../../../../shared/apiClients/dtos/Crud";
 import {ComponentMetadataType} from "../../../../shared/apiClients/dtos/ComponentMetadataType";
+import Form from "../../../../shared/apiClients/dtos/Form";
 
 /**
  * An example element.
@@ -59,6 +60,15 @@ export class MateuView extends LitElement {
                 if (c.metadata.type == ComponentMetadataType.Crud) {
                     if ((c.metadata as Crud).columns.length > 4) {
                         x = 'fullwidth'
+                        break
+                    }
+                }
+                if (c.metadata.type == ComponentMetadataType.Form) {
+                    for (let s of (c.metadata as Form).sections) {
+                        if (s.columns > 2) {
+                            x = 'fullwidth'
+                            break
+                        }
                     }
                 }
             }
@@ -95,6 +105,7 @@ export class MateuView extends LitElement {
                 .map(componentId => this.components[componentId])
                 .map(c => html`<mateu-component
             .component=${c}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
@@ -117,6 +128,7 @@ export class MateuView extends LitElement {
                 })
                 .map(c => html`<mateu-component 
             .component=${c}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -134,6 +146,7 @@ export class MateuView extends LitElement {
                 .map(componentId => this.components[componentId])
                 .map(c => html`<mateu-component 
             .component=${c}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -151,6 +164,7 @@ export class MateuView extends LitElement {
                         .map(componentId => this.components[componentId])
                         .map(c => html`<mateu-component
             .component=${c}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
@@ -192,7 +206,7 @@ export class MateuView extends LitElement {
           max-width: unset;
       }
     
-    header {
+    header, footer {
         flex-basis: 100%;
     }
     

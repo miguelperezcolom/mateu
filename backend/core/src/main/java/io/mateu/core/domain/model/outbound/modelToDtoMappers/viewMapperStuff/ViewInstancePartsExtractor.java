@@ -32,7 +32,8 @@ public class ViewInstancePartsExtractor {
 
     List<Field> partCandidates = new ArrayList<>();
     List<Field> leftFields = new ArrayList<>();
-    fields.forEach(
+    partCandidates.addAll(fields);
+    if (false) fields.forEach(
         f -> {
           if (Crud.class.isAssignableFrom(f.getType())
               || Card.class.isAssignableFrom(f.getType())

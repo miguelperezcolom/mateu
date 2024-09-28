@@ -12,6 +12,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Obj
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
@@ -41,10 +42,12 @@ import reactor.core.publisher.Mono;
 public class RunButtonActionRunner extends RunMethodActionRunner implements ActionRunner {
 
   private final ValueProvider valueProvider;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
 
-  public RunButtonActionRunner(Merger merger, ActualValueExtractor actualValueExtractor, ReflectionHelper reflectionHelper, Serializer serializer, ValidationService validationService, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory, BasicTypeChecker basicTypeChecker, MethodParametersEditorHandler methodParametersEditorHandler, MethodProvider methodProvider, ViewMapper viewMapper, ValueProvider valueProvider, DataExtractor dataExtractor) {
-    super(merger, actualValueExtractor, reflectionHelper, serializer, validationService, componentFactory, uIIncrementFactory, basicTypeChecker, methodParametersEditorHandler, methodProvider, viewMapper, dataExtractor);
+  public RunButtonActionRunner(Merger merger, ActualValueExtractor actualValueExtractor, ReflectionHelper reflectionHelper, Serializer serializer, ValidationService validationService, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory, BasicTypeChecker basicTypeChecker, MethodParametersEditorHandler methodParametersEditorHandler, MethodProvider methodProvider, ViewMapper viewMapper, ValueProvider valueProvider, DataExtractor dataExtractor, AllEditableFieldsProvider allEditableFieldsProvider) {
+    super(merger, actualValueExtractor, reflectionHelper, serializer, validationService, componentFactory, uIIncrementFactory, basicTypeChecker, methodParametersEditorHandler, methodProvider, viewMapper, dataExtractor, allEditableFieldsProvider);
       this.valueProvider = valueProvider;
+    this.allEditableFieldsProvider = allEditableFieldsProvider;
   }
 
   @Override

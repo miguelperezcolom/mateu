@@ -9,6 +9,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
@@ -32,6 +33,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   final ReflectionHelper reflectionHelper;
   final Serializer serializer;
   final ValidationService validationService;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
 
   public MainListActionRunnner(
           List<ListActionRunner> listActionRunners,
@@ -45,7 +47,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
           UIIncrementFactory uIIncrementFactory,
           BasicTypeChecker basicTypeChecker,
           MethodParametersEditorHandler methodParametersEditorHandler,
-          MethodProvider methodProvider, DataExtractor dataExtractor) {
+          MethodProvider methodProvider, DataExtractor dataExtractor, AllEditableFieldsProvider allEditableFieldsProvider) {
     super(
         merger,
         actualValueExtractor,
@@ -58,13 +60,15 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         methodParametersEditorHandler,
         methodProvider,
         viewMapper,
-            dataExtractor);
+            dataExtractor,
+            allEditableFieldsProvider);
     this.listActionRunners = listActionRunners;
     this.merger = merger;
     this.actualValueExtractor = actualValueExtractor;
     this.reflectionHelper = reflectionHelper;
     this.serializer = serializer;
     this.validationService = validationService;
+    this.allEditableFieldsProvider = allEditableFieldsProvider;
   }
 
   @Override

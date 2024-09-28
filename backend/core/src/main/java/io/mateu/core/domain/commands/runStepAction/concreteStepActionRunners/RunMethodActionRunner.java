@@ -12,12 +12,14 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Dat
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
+import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
@@ -57,6 +59,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private final MethodProvider methodProvider;
   private final ViewMapper viewMapper;
   private final DataExtractor dataExtractor;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
 
   @Override
   public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
@@ -257,16 +260,26 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                               getModalStyle(m),
                               new SingleComponent(component.id()),
                               Map.of(component.id(), component)));
+    } else if (r instanceof io.mateu.core.domain.uidefinition.core.interfaces.View view) {
+      Map<String, Component> allComponents = new LinkedHashMap<>();
+      View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
+      fragments.add(
+              new UIFragment(
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
+                      viewDto,
+                      allComponents));
     } else if (r instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
-      View view = viewMapper.map(r, serverHttpRequest, allComponents, Map.of());
+      View viewDto = viewMapper.map(new SingleComponentView(r), serverHttpRequest, allComponents, Map.of());
       fragments.add(
-                      new UIFragment(
-                              mapActionTarget(getActionTarget(m)),
-                              getTargetId(m),
-                              getModalStyle(m),
-                              view,
-                              allComponents));
+              new UIFragment(
+                      mapActionTarget(getActionTarget(m)),
+                      getTargetId(m),
+                      getModalStyle(m),
+                      viewDto,
+                      allComponents));
     } else {
       var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
       fragments.add(

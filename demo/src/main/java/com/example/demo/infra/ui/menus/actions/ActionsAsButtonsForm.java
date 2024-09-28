@@ -3,10 +3,11 @@ package com.example.demo.infra.ui.menus.actions;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 @Service
-@Caption("Actions as buttons")
+@Caption("Actions")
 public class ActionsAsButtonsForm {
 
     String name = "Mateu";
@@ -16,11 +17,27 @@ public class ActionsAsButtonsForm {
     @FlexGrow("0")
     Callable<ChangeNameForm> changeName = () -> new ChangeNameForm(name, this);
 
-    int age = 16;
+    @Button(type = ActionType.Secondary)
+    Runnable setRandomName = () -> name = UUID.randomUUID().toString();
 
-    @Button(target = ActionTarget.NewModal)
-    @SameLine
-    @FlexGrow("0")
-    Callable<ChangeAgeForm> changeAge = () -> new ChangeAgeForm(age, this);
+    @Action
+    void thisIsAnAction() {
+
+    }
+
+    @MainAction(type = ActionType.Tertiary, position = ActionPosition.Left)
+    void yetAnotherMainAction() {
+
+    }
+
+    @MainAction(type = ActionType.Secondary)
+    void anotherMainAction() {
+
+    }
+
+    @MainAction
+    void aMainAction() {
+
+    }
 
 }

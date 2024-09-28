@@ -8,6 +8,9 @@ import './card/mateu-card'
 import './crud/mateu-crud'
 import './result/mateu-result'
 import '../../journey-starter'
+import '@vaadin/horizontal-layout'
+import '@vaadin/vertical-layout'
+import '@vaadin/split-layout'
 import JourneyStarter from "../../../../../shared/apiClients/dtos/JourneyStarter";
 import {Service} from "../../../../domain/service";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
@@ -49,29 +52,30 @@ export class MateuComponent extends LitElement {
     render() {
         return html`
 
-            ${this.component?.metadata.type == ComponentMetadataType.Element?
-                    this.renderElement(this.component.metadata as CustomElement)
-                    :html``}
+    ${this.component?.metadata.type == ComponentMetadataType.Element?
+            this.renderElement(this.component.metadata as CustomElement)
+            :html``}
 
-            ${this.component?.metadata.type == ComponentMetadataType.HorizontalLayout?
-                    html`<vaadin-horizontal-layout>${this.component.childComponentIds
-                            .map(id => this.components[id])
-                            .map(c => html`<mateu-component
-                        .component=${c}
-                        .components=${this.components}
-                        uiId="${this.uiId}"
-                        journeyTypeId="${this.journeyTypeId}"
-                        journeyId="${this.journeyId}"
-                        stepId="${this.stepId}"
-                        baseUrl="${this.baseUrl}"
-                        previousStepId="${this.previousStepId}"
-                >
-                    <slot></slot></mateu-component>
-                `)}</vaadin-horizontal-layout>`
+    ${this.component?.metadata.type == ComponentMetadataType.HorizontalLayout?
+            html`<vaadin-horizontal-layout theme="spacing">
+                ${this.component.childComponentIds
+                    .map(id => this.components[id])
+                    .map(c => html`<mateu-component
+                .component=${c}
+                .components=${this.components}
+                uiId="${this.uiId}"
+                journeyTypeId="${this.journeyTypeId}"
+                journeyId="${this.journeyId}"
+                stepId="${this.stepId}"
+                baseUrl="${this.baseUrl}"
+                previousStepId="${this.previousStepId}"
+        >
+            <slot></slot></mateu-component>
+        `)}</vaadin-horizontal-layout>`
                     :html``}
 
             ${this.component?.metadata.type == ComponentMetadataType.VerticalLayout?
-                    html`<vaadin-horizontal-layout>${this.component.childComponentIds
+                    html`<vaadin-vertical-layout theme="spacing">${this.component.childComponentIds
                             .map(id => this.components[id])
                             .map(c => html`<mateu-component
                                     .component=${c}
@@ -84,11 +88,11 @@ export class MateuComponent extends LitElement {
                         previousStepId="${this.previousStepId}"
                 >
                     <slot></slot></mateu-component>
-                `)}</vaadin-horizontal-layout>`
+                `)}</vaadin-vertical-layout>`
                     :html``}
 
             ${this.component?.metadata.type == ComponentMetadataType.SplitLayout?
-                    html`<vaadin-spl>${this.component.childComponentIds
+                    html`<vaadin-split-layout>${this.component.childComponentIds
                             .map(id => this.components[id])
                             .map(c => html`<mateu-component
                                     .component=${c}
@@ -101,7 +105,7 @@ export class MateuComponent extends LitElement {
                         previousStepId="${this.previousStepId}"
                 >
                     <slot></slot></mateu-component>
-                `)}</vaadin-spl>`
+                `)}</vaadin-split-layout>`
                     :html``}
 
             ${this.component?.metadata.type == ComponentMetadataType.Stepper?

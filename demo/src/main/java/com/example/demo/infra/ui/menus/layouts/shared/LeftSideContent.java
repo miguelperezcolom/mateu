@@ -9,4 +9,11 @@ public class LeftSideContent {
 
     String content = "Hola!";
 
+    public LeftSideContent() {
+    }
+
+    public LeftSideContent(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

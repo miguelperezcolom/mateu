@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
 import java.util.LinkedHashMap;
@@ -104,7 +105,7 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     if (editor instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
-      View view = viewMapper.map(editor, serverHttpRequest, allComponents, Map.of());
+      View view = viewMapper.map(new SingleComponentView(editor), serverHttpRequest, allComponents, Map.of());
       return Mono.just(
           new UIIncrement(
               List.of(),
