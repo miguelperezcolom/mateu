@@ -1,5 +1,6 @@
 package com.example.demo.infra.ui.menus.actions;
 
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 
@@ -15,7 +16,7 @@ public class ChangeNameForm {
         this.formWithCallbacks = formWithCallbacks;
     }
 
-    @MainAction(closeModalWindow = true)
+    @MainAction(target = ActionTarget.View, closeModalWindow = true)
     ActionsAsButtonsForm save() {
         formWithCallbacks.name = this.name;
         return formWithCallbacks;

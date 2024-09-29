@@ -29,6 +29,7 @@ import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQueryHandler;
 import io.mateu.jpa.domain.ui.cruds.queries.sums.SumsQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.sums.SumsQueryHandler;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
@@ -94,6 +95,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     this.action = action;
   }
 
+  @PostConstruct
   public void init() {
     reset();
     columnFields =

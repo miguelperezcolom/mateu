@@ -5,6 +5,7 @@ package io.mateu.core.domain.uidefinition.shared.annotations;
  * This is used to avoid opening a tab/window in case the call fails
  */
 public enum ActionTarget {
+  Self,
   View,
   Message,
   NewModal,

@@ -221,6 +221,8 @@ export class JourneyStarter extends LitElement {
         } else if (f.target == ActionTarget.Component && f.content.contentType == ContentType.SingleComponent) {
             for (let componentIdx in f.components) {
                 this.components[f.targetId] = f.components[componentIdx]
+                this.components[f.targetId].id = f.targetId
+                this.components = {...this.components}
             }
         } else if (f.content.contentType == ContentType.SingleComponent) {
             const singleComponent = f.content as SingleComponent

@@ -81,6 +81,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
       Object viewInstance,
       String stepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
@@ -105,6 +106,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         rpcView,
         stepId,
         actionId.substring(actionId.lastIndexOf("__") + 2),
+        componentId,
         data,
         contextData,
         serverHttpRequest);

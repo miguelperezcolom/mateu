@@ -1,6 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,10 +18,10 @@ public class ChangeNameInModalForm {
         this.formWithCallbacks = formWithCallbacks;
     }
 
-    @MainAction
-    ModalsForm save() {
+    @MainAction(target = ActionTarget.View)
+    CloseModal<ModalsForm> save() {
         formWithCallbacks.name = this.name;
-        return formWithCallbacks;
+        return new CloseModal<>(formWithCallbacks);
     }
 
 }

@@ -28,7 +28,7 @@ public @interface MainAction {
 
   ActionType type() default ActionType.Primary;
 
-  ActionTarget target() default ActionTarget.View;
+  ActionTarget target() default ActionTarget.Self;
 
   String targetId() default "";
 

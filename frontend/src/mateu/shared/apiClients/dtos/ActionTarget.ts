@@ -1,4 +1,5 @@
 export enum ActionTarget {
+    Self = "Self",
     View = "View",
     Message = "Message",
     NewModal = "NewModal",

@@ -1,6 +1,7 @@
 package io.mateu.dtos;
 
 public enum ActionTarget {
+  Self,
   View,
   Message,
   NewModal,

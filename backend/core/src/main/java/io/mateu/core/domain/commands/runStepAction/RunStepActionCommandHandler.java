@@ -28,6 +28,7 @@ public class RunStepActionCommandHandler {
   public Mono<UIIncrement> handle(RunStepActionCommand command) throws Throwable {
     String stepId = command.stepId();
     String actionId = command.actionId();
+    String componentId = command.componentId();
     Map<String, Object> data = command.data();
     ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
@@ -37,7 +38,7 @@ public class RunStepActionCommandHandler {
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId, command.contextData())) {
         return actionRunner.run(
-            viewInstance, stepId, actionId, data, command.contextData(), serverHttpRequest);
+            viewInstance, stepId, actionId, componentId, data, command.contextData(), serverHttpRequest);
       }
     }
 

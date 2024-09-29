@@ -5,6 +5,7 @@ import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,9 @@ public class ActualUiInstanceProvider {
   @SneakyThrows
   public Object getActualUiInstance(Object uiInstance, ServerHttpRequest serverHttpRequest) {
     Object actualUiInstance = uiInstance;
-    if (uiInstance instanceof ObjectEditor) {
+    if (uiInstance instanceof SingleComponentView singleComponentView) {
+      actualUiInstance = singleComponentView.component();
+    } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
       actualUiInstance = reflectionHelper.newInstance(objectEditor.getType());
       Object filled =

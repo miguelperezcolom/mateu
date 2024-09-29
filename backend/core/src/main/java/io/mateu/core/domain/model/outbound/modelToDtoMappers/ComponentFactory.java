@@ -71,6 +71,7 @@ public class ComponentFactory {
       Map<String, Component> allComponentsInStep,
       AtomicInteger componentCounter,
       Map<String, Object> data) {
+
     String componentId = getComponentId(field, componentInstance, componentCounter);
     ComponentMetadata metadata =
         componentMetadataBuilder.getMetadata(form, componentInstance, field, fields, data);

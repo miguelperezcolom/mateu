@@ -80,6 +80,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object viewInstance,
       String stepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
@@ -92,12 +93,12 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           methodProvider.getMethod(targetInstance.getClass(), methodParametersEditor.getMethodId());
       if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
       Object result = m.invoke(targetInstance, injectParameters(m, serverHttpRequest, data));
-      return processResult(targetInstance, m, data, serverHttpRequest, result);
+      return processResult(targetInstance, m, data, serverHttpRequest, result, componentId);
     }
 
     Method m = getActions(viewInstance).get(actionId);
 
-    return runMethod(viewInstance, m, data, serverHttpRequest);
+    return runMethod(viewInstance, m, data, serverHttpRequest, componentId);
   }
 
   @SneakyThrows
@@ -120,7 +121,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object actualViewInstance,
       Method m,
       Map<String, Object> data,
-      ServerHttpRequest serverHttpRequest)
+      ServerHttpRequest serverHttpRequest,
+      String componentId)
       throws Throwable {
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
@@ -157,7 +159,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
         Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
 
-        return processResult(actualViewInstance, m, data, serverHttpRequest, result);
+        return processResult(actualViewInstance, m, data, serverHttpRequest, result, componentId);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();
@@ -173,11 +175,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Method m,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest,
-      Object result) {
+      Object result, String componentId) {
     if (result == null) {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data)));
+              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data), componentId));
     }
 
     if (result instanceof JourneyStarter journeyStarter) {
@@ -202,7 +204,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return mono.map(
           r -> {
             try {
-              return getUiIncrement(m, data, serverHttpRequest, r);
+              return getUiIncrement(m, data, serverHttpRequest, r, componentId);
             } catch (Throwable e) {
               return Mono.error(new RuntimeException(e));
             }
@@ -210,23 +212,23 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
     } else {
 
-      return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
+      return Mono.just(getUiIncrement(m, data, serverHttpRequest, result, componentId));
     }
   }
 
   @SneakyThrows
   protected UIIncrement getUiIncrement(
-          AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+          AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r, String componentId) {
 
     var commands = getCommands(m, data, serverHttpRequest, r);
     var messages = getMessages(r, m);
-    var fragments = getFragments(m, data, serverHttpRequest, r);
+    var fragments = getFragments(m, data, serverHttpRequest, r, componentId);
 
     return new UIIncrement(commands, messages, fragments);
   }
 
   @SneakyThrows
-  private List<UIFragment> getFragments(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+  private List<UIFragment> getFragments(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r, String componentId) {
     List<UIFragment> fragments = new ArrayList<>();
     if (mustCloseModal(m) || r instanceof CloseModal) {
     } else if (isTargetMessage(m) || r instanceof Message || r instanceof io.mateu.dtos.Message) {
@@ -237,7 +239,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
         fragments.add(new UIFragment(
                                 mapActionTarget(getActionTarget(m)),
-                                getTargetId(m),
+                                getTargetId(m, componentId),
                                 getModalStyle(m),
                                 new SingleComponent(component.id()),
                                 Map.of(component.id(), component)));
@@ -247,7 +249,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
       fragments.add(new UIFragment(
                               mapActionTarget(getActionTarget(m)),
-                              getTargetId(m),
+                              getTargetId(m, componentId),
                               getModalStyle(m),
                               new SingleComponent(component.id()),
                               Map.of(component.id(), component)));
@@ -257,7 +259,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       responseWrapper.getResponse(), serverHttpRequest, data);
       fragments.add(new UIFragment(
                               mapActionTarget(getActionTarget(m)),
-                              getTargetId(m),
+                              getTargetId(m, componentId),
                               getModalStyle(m),
                               new SingleComponent(component.id()),
                               Map.of(component.id(), component)));
@@ -267,7 +269,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       fragments.add(
               new UIFragment(
                       mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
+                      getTargetId(m, componentId),
                       getModalStyle(m),
                       viewDto,
                       allComponents));
@@ -277,7 +279,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       fragments.add(
               new UIFragment(
                       mapActionTarget(getActionTarget(m)),
-                      getTargetId(m),
+                      getTargetId(m, componentId),
                       getModalStyle(m),
                       viewDto,
                       allComponents));
@@ -286,7 +288,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       fragments.add(
                       new UIFragment(
                               mapActionTarget(getActionTarget(m)),
-                              getTargetId(m),
+                              getTargetId(m, componentId),
                               getModalStyle(m),
                               new SingleComponent(component.id()),
                               Map.of(component.id(), component)));
@@ -336,7 +338,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                     List.of(
                             new UIFragment(
                                     mapActionTarget(getActionTarget(m)),
-                                    getTargetId(m),
+                                    getTargetId(m, null),
                                     getModalStyle(m),
                                     new SingleComponent(component.id()),
                                     Map.of(component.id(), component))));
@@ -369,7 +371,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return null;
   }
 
-  protected String getTargetId(AnnotatedElement m) {
+  protected String getTargetId(AnnotatedElement m, String componentId) {
+    if (ActionTarget.Self.equals(getActionTarget(m))) {
+      return componentId;
+    }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).targetId();
     }
@@ -385,6 +390,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private io.mateu.dtos.ActionTarget mapActionTarget(ActionTarget actionTarget) {
     if (actionTarget == null) {
       return null;
+    }
+    if (ActionTarget.Self.equals(actionTarget)) {
+      return io.mateu.dtos.ActionTarget.Component;
     }
     return io.mateu.dtos.ActionTarget.valueOf(actionTarget.name());
   }

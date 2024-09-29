@@ -3,6 +3,7 @@ package com.example.demo.infra.ui.menus.forms;
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
+import io.mateu.core.domain.uidefinition.core.interfaces.View;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.*;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;

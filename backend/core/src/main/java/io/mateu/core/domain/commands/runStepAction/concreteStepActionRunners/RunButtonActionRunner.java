@@ -66,6 +66,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
       Object viewInstance,
       String stepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)
@@ -73,14 +74,14 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
 
     Field m = getActions(viewInstance).get(actionId);
 
-    return runMethod(viewInstance, m, data, serverHttpRequest);
+    return runMethod(viewInstance, m, data, serverHttpRequest, componentId);
   }
 
   public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
       Field m,
       Map<String, Object> data,
-      ServerHttpRequest serverHttpRequest)
+      ServerHttpRequest serverHttpRequest, String componentId)
       throws Throwable {
 
     {
@@ -108,7 +109,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
           return mono.map(
               r -> {
                 try {
-                  return getUiIncrement(m, data, serverHttpRequest, r);
+                  return getUiIncrement(m, data, serverHttpRequest, r, componentId);
                 } catch (Throwable e) {
                   return Mono.error(new RuntimeException(e));
                 }
@@ -116,7 +117,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
 
         } else {
 
-          return Mono.just(getUiIncrement(m, data, serverHttpRequest, result));
+          return Mono.just(getUiIncrement(m, data, serverHttpRequest, result, componentId));
         }
 
       } catch (InvocationTargetException ex) {
@@ -136,7 +137,10 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   }
 
   @Override
-  protected String getTargetId(AnnotatedElement m) {
+  protected String getTargetId(AnnotatedElement m, String componentId) {
+    if (ActionTarget.Self.equals(getActionTarget(m))) {
+      return componentId;
+    }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).targetId();
     }

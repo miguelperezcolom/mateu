@@ -13,6 +13,7 @@ public interface ActionRunner {
       Object viewInstance,
       String stepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       ServerHttpRequest serverHttpRequest)

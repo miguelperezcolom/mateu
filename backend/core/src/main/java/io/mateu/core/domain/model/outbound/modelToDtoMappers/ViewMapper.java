@@ -60,10 +60,10 @@ public class ViewMapper {
     for (SlotName slot :
         List.of(SlotName.header, SlotName.left, SlotName.main, SlotName.right, SlotName.footer)) {
 
-      List<Field> slotFields = fieldExtractor.getFields(actualObject, slot);
+      List<Field> slotFields = fieldExtractor.getFields(view, slot);
 
       List<ViewInstancePart> viewInstanceParts =
-          viewInstancePartsExtractor.getUiParts(actualObject, slotFields, slot);
+          viewInstancePartsExtractor.getUiParts(view, slotFields, slot);
 
       if (SlotName.main.equals(slot) && viewInstanceParts.isEmpty()) {
         viewInstanceParts.add(new ViewInstancePart(slot, true, actualObject, null, List.of()));
