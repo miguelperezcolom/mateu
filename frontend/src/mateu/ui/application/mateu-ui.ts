@@ -226,7 +226,8 @@ export class MateuUi extends LitElement {
                 
                 ${this.ui.menu && this.ui.menu.length > 0?html`
                     <vaadin-app-layout>
-                        <vaadin-horizontal-layout slot="navbar" theme="spacing" style="align-items: center;">
+                        <vaadin-horizontal-layout style="width: 100%" slot="navbar">
+                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                             <h3 class="title ml-l" @click=${this.goHome}>${this.ui.title}</h3>
                             ${this.ui.apps && this.ui.apps.length > 0?html`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
@@ -234,7 +235,7 @@ export class MateuUi extends LitElement {
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
                             `:''}
                         </vaadin-horizontal-layout>
-                        <div class="container" slot="navbar" style="flex-grow: 1;">
+                        <div class="container" style="flex-grow: 1;">
                             ${this.ui.menu?html`
                                 <vaadin-menu-bar id="main-menu"
                                         .items="${this.items}"
@@ -243,7 +244,7 @@ export class MateuUi extends LitElement {
                                 ></vaadin-menu-bar>
                             `:''}
                         </div>                         
-                        <div slot="navbar" style="text-align: right; padding-right: 10px;">
+                        <div style="text-align: right; padding-right: 10px;">
                                 ${this.ui.loginUrl?html`
                                     <vaadin-button theme="tertiary" 
                                                    @click="${this.login}"
@@ -255,6 +256,7 @@ export class MateuUi extends LitElement {
                                     >Logout</vaadin-button>
                             `:''}
                         </div>
+                        </vaadin-horizontal-layout>
                     </vaadin-app-layout>
                 `:''}
                 

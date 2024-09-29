@@ -229,6 +229,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private List<UIFragment> getFragments(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
     List<UIFragment> fragments = new ArrayList<>();
     if (mustCloseModal(m) || r instanceof CloseModal) {
+    } else if (isTargetMessage(m) || r instanceof Message || r instanceof io.mateu.dtos.Message) {
 
     } else if (r instanceof URL url) {
       if (!ActionTarget.NewTab.equals(getActionTarget(m)) && !ActionTarget.NewWindow.equals(getActionTarget(m))) {
@@ -292,6 +293,19 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
 
     return fragments;
+  }
+
+  private boolean isTargetMessage(AnnotatedElement m) {
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target());
+    }
+    if (m.isAnnotationPresent(Action.class)) {
+      return ActionTarget.Message.equals(m.getAnnotation(Action.class).target());
+    }
+    if (m.isAnnotationPresent(Button.class)) {
+      return ActionTarget.Message.equals(m.getAnnotation(Button.class).target());
+    }
+    return false;
   }
 
   private List<UICommand> getCommands(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
