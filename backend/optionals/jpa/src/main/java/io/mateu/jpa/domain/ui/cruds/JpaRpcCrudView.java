@@ -98,6 +98,9 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @PostConstruct
   public void init() {
     reset();
+    if (action == null) {
+      return;
+    }
     columnFields =
         getColumnFields(
             action.getEntityClass(), false, action.getColumns(), columnNames, fieldsByColumnName);
