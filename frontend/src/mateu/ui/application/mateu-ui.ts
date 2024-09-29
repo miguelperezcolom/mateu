@@ -235,7 +235,7 @@ export class MateuUi extends LitElement {
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
                             `:''}
                         </vaadin-horizontal-layout>
-                        <div class="container" style="flex-grow: 1;">
+                        <div class="container" style="/*flex-grow: 1;*/">
                             ${this.ui.menu?html`
                                 <vaadin-menu-bar id="main-menu"
                                         .items="${this.items}"
@@ -331,10 +331,11 @@ export class MateuUi extends LitElement {
         }
 
         .container {
-            flex: 1 1 0;
+            /* flex: 1 1 0; */
             padding-left: 2rem;
             padding-right: 2rem;
-            width: clamp(45ch, 90%, 75ch);
+            /*width: clamp(45ch, 20%, 75ch);*/
+            width: 50%;
             max-width: 955px;
             margin: auto;
         }
