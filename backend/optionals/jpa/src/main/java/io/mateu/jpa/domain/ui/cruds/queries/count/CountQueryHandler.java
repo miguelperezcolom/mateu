@@ -29,6 +29,7 @@ public class CountQueryHandler {
                   query,
                   em,
                   query.getSelectColumnsForCount(),
+                  query.getSearchtext(),
                   query.getFilters(),
                   null,
                   null,

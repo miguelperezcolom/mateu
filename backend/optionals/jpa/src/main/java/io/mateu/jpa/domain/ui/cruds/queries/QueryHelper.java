@@ -29,6 +29,7 @@ public class QueryHelper {
       io.mateu.jpa.domain.ui.cruds.queries.Query query,
       EntityManager em,
       String selectedColumns,
+      String searchText,
       Object filters,
       List<SortCriteria> sortOrders,
       String groupClause,
@@ -153,6 +154,33 @@ public class QueryHelper {
 
     // todo: contemplar caso varias anotaciones @SearchFilter para un mismo campo
 
+    if (!Strings.isNullOrEmpty(query.getSearchtext())) {
+
+      var stringFields =
+              reflectionHelper.getAllEditableFields(entityClass).stream()
+                      .filter(field -> String.class.equals(field.getType()))
+                      .collect(Collectors.toList());
+
+      if (stringFields.size() > 0) {
+        if (!"".equals(ql)) ql += " and ";
+        String or = "";
+        for (Field stringField : stringFields) {
+          if (!"".equals(or)) {
+            or += " or ";
+          }
+          or +=
+                  " lower(x."
+                          + stringField.getName()
+                          + (stringField.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
+                          + ") like :"
+                          + "_searchtext"
+                          + " ";
+        }
+        ql += "(" + or + ")";
+        parameterValues.put("_searchtext", "%" + query.getSearchtext().toLowerCase() + "%");
+      }
+    }
+
     for (Field f : allFields) {
 
       Object v = reflectionHelper.getValue(f, filters);
@@ -161,36 +189,7 @@ public class QueryHelper {
 
         Field ef = reflectionHelper.getFieldByName(entityClass, f.getName());
 
-        if (ef == null && "_search-text".equals(f.getId())) {
-
-          if (!Strings.isNullOrEmpty((String) v)) {
-
-            var stringFields =
-                reflectionHelper.getAllEditableFields(entityClass).stream()
-                    .filter(field -> String.class.equals(field.getType()))
-                    .collect(Collectors.toList());
-
-            if (stringFields.size() > 0) {
-              if (!"".equals(ql)) ql += " and ";
-              String or = "";
-              for (Field stringField : stringFields) {
-                if (!"".equals(or)) {
-                  or += " or ";
-                }
-                or +=
-                    " lower(x."
-                        + stringField.getName()
-                        + (f.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
-                        + ") like :"
-                        + "_searchtext"
-                        + " ";
-              }
-              ql += "(" + or + ")";
-              parameterValues.put("_searchtext", "%" + ((String) v).toLowerCase() + "%");
-            }
-          }
-
-        } else if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
+        if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
           boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 

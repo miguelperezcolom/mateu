@@ -28,7 +28,7 @@ public class EnvironmentsCrud implements Crud<EnvironmentsSearchForm, Environmen
     }
 
     @Override
-    public Flux<EnvironmentRow> fetchRows(EnvironmentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+    public Flux<EnvironmentRow> fetchRows(String searchText, EnvironmentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new EnvironmentRow("<img style='height: 20px; vertical-align: text-bottom;' src='/images/tgss.svg'></img> <span style='display: inline-block; width: 15px;'></span> Seguridad Social", "ES", "Madrid", "La Paz",  EHRType.IshMed, LocalDate.of(2004, 02, 15), new Status(StatusType.SUCCESS, "Deployed")),
                 new EnvironmentRow("<img style='height: 20px; vertical-align: text-bottom;' src='/images/tgss.svg'></img> <span style='display: inline-block; width: 15px;'></span> Seguridad Social", "ES", "Palma de Mallorca", "Son Espases",  EHRType.IshMed, LocalDate.of(2008, 10, 23), new Status(StatusType.DANGER, "Not valid")),
@@ -37,7 +37,7 @@ public class EnvironmentsCrud implements Crud<EnvironmentsSearchForm, Environmen
     }
 
     @Override
-    public Mono<Long> fetchCount(EnvironmentsSearchForm filters) {
+    public Mono<Long> fetchCount(String searchText, EnvironmentsSearchForm filters) {
         return Mono.just(3L);
     }
 

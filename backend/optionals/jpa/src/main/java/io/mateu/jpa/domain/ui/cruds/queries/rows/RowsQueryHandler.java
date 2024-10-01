@@ -37,6 +37,7 @@ public class RowsQueryHandler {
                   query,
                   em,
                   query.getSelectColumnsForList(),
+                  query.getSearchtext(),
                   query.getFilters(),
                   query.getSortOrders(),
                   null,

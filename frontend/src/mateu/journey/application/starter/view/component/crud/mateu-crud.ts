@@ -71,6 +71,9 @@ export class MateuCrud extends LitElement {
   metadata!: Crud
 
   @property()
+  searchText: string | undefined;
+
+  @property()
   data: any;
 
   @property()
@@ -147,6 +150,7 @@ export class MateuCrud extends LitElement {
     items: [],
     count: 0,
     page: 0,
+    searchText: '',
     filters: {},
     sorting: [],
     message: ''
@@ -177,6 +181,7 @@ export class MateuCrud extends LitElement {
       page,
       pageSize,
       sortOrders,
+      searchText: this.searchText,
       // @ts-ignore
       filters: this.data
     });
@@ -203,6 +208,7 @@ export class MateuCrud extends LitElement {
     listId: string
     page: number
     pageSize: number
+    searchText: string | undefined
     filters: object
     sortOrders: string
   }) {
@@ -211,6 +217,7 @@ export class MateuCrud extends LitElement {
       this.state.journeyId = this.journeyId
       this.state.stepId = this.stepId
       this.state.listId = this.component.id
+      this.state.searchText = params.searchText
       this.state.filters = params.filters
       await this.crudService.fetch(this.state, this.crudUpstream, params, this.component, this.data)
   }
@@ -295,7 +302,7 @@ export class MateuCrud extends LitElement {
   }
 
   updateFiltersText() {
-    let text = '';
+    let text = this.searchText?this.searchText:'';
     for (const k in this.metadata?.searchForm.fields) {
       const f = this.metadata?.searchForm.fields[k]
       if (this.data[f.id]) {
@@ -549,7 +556,7 @@ export class MateuCrud extends LitElement {
           `:''}
           `}
         </div>
-        ${!this.metadata?.searchForm.fields || this.metadata?.searchForm.fields.length == 0?html`
+        ${!this.metadata?.searchable && (!this.metadata?.searchForm.fields || this.metadata?.searchForm.fields.length == 0)?html`
             <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
           `:''}
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
@@ -565,18 +572,15 @@ export class MateuCrud extends LitElement {
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
       ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
-          ${this.metadata?.searchForm.fields.slice(0,1).map(f => html`
-          <vaadin-text-field id="${f.id}" 
-                             data-testid="filter-${f.id}" 
-                             placeholder="${f.caption}" 
+          <vaadin-text-field id="searchText" 
+                             data-testid="searchText" 
+                             placeholder="Search" 
                              @change=${this.filterChanged}
-                             xplaceholder="${f.placeholder}"
-                             value="${this.data[f.id]}"
+                             value="${this.searchText}"
                              style="flex-grow: 1;" autofocus="true"
                              autoselect="on"></vaadin-text-field>
-        `)}
           <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
-          ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 1?html`
+          ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
             <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
           `:''}
@@ -661,9 +665,9 @@ export class MateuCrud extends LitElement {
           @opened-changed="${this.openedChangedForFilters}"
           ${dialogRenderer(() => html`
 
-            <vaadin-vertical-layout theme="spacing">
-              ${this.metadata?.searchForm.fields.slice(1).map(f => mapField(f, this.filterChanged, this.baseUrl, this.data))}
-            </vaadin-vertical-layout>
+            <vaadin-form-layout>
+              ${this.metadata?.searchForm.fields.map(f => mapField(f, this.filterChanged, this.baseUrl, this.data))}
+            </vaadin-form-layout>
           `, [])}
           ${dialogFooterRenderer(
               () => html`

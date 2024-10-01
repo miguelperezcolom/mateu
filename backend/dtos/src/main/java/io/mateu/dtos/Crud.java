@@ -9,6 +9,7 @@ import java.util.List;
  * @param title The title
  * @param subtitle The subtitle
  * @param canEdit If records can be edited. This make the Edit button visible
+ * @param searchable If list can be searched
  * @param searchForm The form for searching. It can include several filters
  * @param columns The columns
  * @param actions The actions which can be run for this crud. They end up as buttons
@@ -18,6 +19,7 @@ public record Crud(
     String title,
     String subtitle,
     boolean canEdit,
+    boolean searchable,
     SearchForm searchForm,
     List<Column> columns,
     List<Action> actions,

@@ -37,6 +37,7 @@ public class FetchListUseCase {
       Map<String, Object> data,
       int page,
       int page_size,
+      String searchText,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
@@ -48,6 +49,7 @@ public class FetchListUseCase {
                 componentType,
                 data,
                 serverHttpRequest,
+                    searchText,
                 filters,
                 page,
                 page_size,

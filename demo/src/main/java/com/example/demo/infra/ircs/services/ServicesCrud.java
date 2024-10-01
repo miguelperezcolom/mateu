@@ -26,7 +26,7 @@ public class ServicesCrud implements Crud<ServicesSearchForm, ServiceRow> {
     }
 
     @Override
-    public Flux<ServiceRow> fetchRows(ServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+    public Flux<ServiceRow> fetchRows(String searchText, ServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new ServiceRow("PAS", new Status(StatusType.SUCCESS, "Active")),
                 new ServiceRow("HIM", new Status(StatusType.SUCCESS, "Active")),
@@ -35,7 +35,7 @@ public class ServicesCrud implements Crud<ServicesSearchForm, ServiceRow> {
     }
 
     @Override
-    public Mono<Long> fetchCount(ServicesSearchForm filters) {
+    public Mono<Long> fetchCount(String searchText, ServicesSearchForm filters) {
         return Mono.just(3L);
     }
 

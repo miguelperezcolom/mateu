@@ -52,7 +52,7 @@ public class ProgrammingLanguages
 
   @Override
   public Flux<LanguageRow> fetchRows(
-      ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit) {
+          String searchText, ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit) {
     //Thread.sleep(500);
     RowComparator comparator = new RowComparator(sortOrders);
     return repo.findAll()
@@ -67,7 +67,7 @@ public class ProgrammingLanguages
   }
 
   @Override
-  public Mono<Long> fetchCount(ProgrammingLanguages filters) {
+  public Mono<Long> fetchCount(String searchText, ProgrammingLanguages filters) {
     return repo.findAll()
         .filter(
             p ->

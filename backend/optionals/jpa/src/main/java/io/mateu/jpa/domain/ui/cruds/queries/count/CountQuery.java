@@ -14,6 +14,7 @@ public class CountQuery extends Query {
 
   public CountQuery(
       MDDOpenCRUDAction action,
+      String searchtext,
       Object filters,
       List<SortCriteria> sortOrders,
       int offset,
@@ -31,6 +32,7 @@ public class CountQuery extends Query {
       List<Field> columnFields) {
     super(
         action,
+        searchtext,
         filters,
         sortOrders,
         offset,

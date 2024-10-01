@@ -55,6 +55,8 @@ public class CrudEditActionRunner implements ListActionRunner {
     int __index = (Integer) data.getOrDefault("__index", -1);
     int __count = (Integer) data.getOrDefault("__count", -1);
 
+    String searchText = (String) data.getOrDefault("__searchText", "");
+
     if (row == null && (__index == -1 && __count == -1)) {
       throw new Exception("No row selected");
     }
@@ -67,7 +69,7 @@ public class CrudEditActionRunner implements ListActionRunner {
       var ordering = List.of(); // store.getLastUsedOrders(journeyContainer, stepId, listId);
 
       row =
-          crud.fetchRows(filtersDeserialized, ordering, (Integer) __index, 1)
+          crud.fetchRows(searchText, filtersDeserialized, ordering, __index, 1)
               .next()
               .toFuture()
               .get();

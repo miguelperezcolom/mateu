@@ -16,6 +16,7 @@ import lombok.Getter;
 public abstract class Query {
 
   private MDDOpenCRUDAction action;
+  private String searchtext;
   private Object filters;
   private List<SortCriteria> sortOrders;
   private int offset;

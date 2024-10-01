@@ -23,12 +23,12 @@ public class IntermediariesCrud implements Crud<IntermediariesSearchForm, Interm
 
   @Override
   public Flux<IntermediariesRow> fetchRows(
-      IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+          String searchText, IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return repo.findAll();
   }
 
   @Override
-  public Mono<Long> fetchCount(IntermediariesSearchForm filters) {
+  public Mono<Long> fetchCount(String searchText, IntermediariesSearchForm filters) {
     return repo.findAll().count();
   }
 

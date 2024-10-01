@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class MyReadOnlyPojoWithCrudCrud implements Crud<MyReadOnlyPojoWithCrudCrudSearchForm, MyReadOnlyPojoWithCrudCrudRow> {
     @Override
-    public Flux<MyReadOnlyPojoWithCrudCrudRow> fetchRows(MyReadOnlyPojoWithCrudCrudSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+    public Flux<MyReadOnlyPojoWithCrudCrudRow> fetchRows(String searchText, MyReadOnlyPojoWithCrudCrudSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new MyReadOnlyPojoWithCrudCrudRow("Mateu", 16, "Bla bla bla Bla bla bla Bla bla bla Bla bla blaBla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla"),
                 new MyReadOnlyPojoWithCrudCrudRow("Antonia", 47, "Bla bla bla Bla bla bla Bla bla bla Bla bla blaBla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla Bla bla bla")
@@ -19,7 +19,7 @@ public class MyReadOnlyPojoWithCrudCrud implements Crud<MyReadOnlyPojoWithCrudCr
     }
 
     @Override
-    public Mono<Long> fetchCount(MyReadOnlyPojoWithCrudCrudSearchForm filters) {
+    public Mono<Long> fetchCount(String searchText, MyReadOnlyPojoWithCrudCrudSearchForm filters) {
         return Mono.just(2L);
     }
 }

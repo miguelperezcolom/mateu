@@ -7,6 +7,7 @@ export interface CrudState {
     listId: string
     items: unknown[]
     count: number
+    searchText: string | undefined
     filters: unknown
     sorting: unknown[]
     page: number

@@ -8,19 +8,23 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface Listing<SearchForm, Row> {
+public interface Listing<FiltersForm, Row> {
 
-  Flux<Row> fetchRows(SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
+  default boolean isSearchable() {
+    return true;
+  }
+
+  Flux<Row> fetchRows(String searchText, FiltersForm filters, List<SortCriteria> sortOrders, int offset, int limit)
       throws Throwable;
 
-  Mono<Long> fetchCount(SearchForm filters) throws Throwable;
+  Mono<Long> fetchCount(String searchText, FiltersForm filters) throws Throwable;
 
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
     return false;
   }
 
-  default Class<SearchForm> getSearchFormClass() {
-    return (Class<SearchForm>)
+  default Class<FiltersForm> getSearchFormClass() {
+    return (Class<FiltersForm>)
         ((ParameterizedType) getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
   }
 

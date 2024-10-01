@@ -44,6 +44,7 @@ public class SumsQueryHandler {
                   query,
                   em,
                   query.getSelectColumnsForCount(),
+                  query.getSearchtext(),
                   query.getFilters(),
                   null,
                   null,

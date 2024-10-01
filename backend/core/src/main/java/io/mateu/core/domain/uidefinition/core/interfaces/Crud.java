@@ -7,7 +7,7 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import java.util.List;
 import java.util.Map;
 
-public interface Crud<SearchForm, Row> extends Listing<SearchForm, Row> {
+public interface Crud<FiltersForm, Row> extends Listing<FiltersForm, Row> {
 
   @Override
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {

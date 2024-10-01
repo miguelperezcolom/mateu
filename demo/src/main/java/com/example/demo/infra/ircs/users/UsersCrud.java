@@ -27,14 +27,14 @@ public class UsersCrud implements Crud<UsersSearchForm, UserRow> {
     }
 
     @Override
-    public Flux<UserRow> fetchRows(UsersSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+    public Flux<UserRow> fetchRows(String searchText, UsersSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
         return Flux.just(
                 new UserRow("Jay", "jay@oracle.com", new Status(StatusType.SUCCESS, "Admin")),
                 new UserRow("Miguel", "miguel@oracle.com", new Status(StatusType.WARNING, "Operator")));
     }
 
     @Override
-    public Mono<Long> fetchCount(UsersSearchForm filters) {
+    public Mono<Long> fetchCount(String searchText, UsersSearchForm filters) {
         return Mono.just(2L);
     }
 

@@ -48,6 +48,7 @@ public class CrudMetadataBuilder {
         captionProvider.getCaption(rpcView),
         getSubtitle(rpcView),
         reflectionHelper.isOverridden(rpcView, "getDetail"),
+        rpcView.isSearchable(),
         buildSearchForm(rpcView, listId),
         buildColumns(rpcView),
         actionMetadataBuilder.getActions(listId, rpcView),

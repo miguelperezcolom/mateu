@@ -18,6 +18,7 @@ public class SumsQuery extends Query {
 
   public SumsQuery(
       MDDOpenCRUDAction action,
+      String searchText,
       Object filters,
       List<SortCriteria> sortOrders,
       int offset,
@@ -36,6 +37,7 @@ public class SumsQuery extends Query {
       List<Field> columnFields) {
     super(
         action,
+        searchText,
         filters,
         sortOrders,
         offset,

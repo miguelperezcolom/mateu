@@ -10,6 +10,7 @@ public record GetListRowsQuery(
     String componentType,
     Map<String, Object> data,
     ServerHttpRequest serverHttpRequest,
+    String searchText,
     Map<String, Object> filters,
     int page,
     int pageSize,

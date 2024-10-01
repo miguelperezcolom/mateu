@@ -109,7 +109,11 @@ public class MateuService {
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return fetchListUseCase
-        .fetchPage(componentType, data, page, page_size, filters, ordering, serverHttpRequest)
+        .fetchPage(componentType, data, page, page_size,
+                (String) data.getOrDefault("__searchText", ""),
+                filters,
+                ordering,
+                serverHttpRequest)
         .subscribeOn(Schedulers.boundedElastic());
   }
 

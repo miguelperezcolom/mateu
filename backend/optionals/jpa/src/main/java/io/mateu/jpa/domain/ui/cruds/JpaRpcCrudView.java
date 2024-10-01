@@ -183,10 +183,11 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Flux fetchRows(Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
+  public Flux fetchRows(String searchText, Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return rowsQueryHandler.run(
         new RowsQuery(
             action,
+            searchText,
             filters,
             sortOrders,
             offset,
@@ -205,13 +206,14 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Mono<Long> fetchCount(Object filters) {
+  public Mono<Long> fetchCount(String searchText, Object filters) {
     sums =
         sumFields.isEmpty()
             ? List.of()
             : sumsQueryHandler.run(
                 new SumsQuery(
                     action,
+                    searchText,
                     filters,
                     null,
                     0,
@@ -231,6 +233,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     return countQueryHandler.run(
         new CountQuery(
             action,
+            searchText,
             filters,
             null,
             0,
@@ -529,9 +532,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                 .collect(Collectors.toList());
       }
 
-      var searchTextField = new FieldFromType(String.class, "_search-text", reflectionHelper);
-      filterFields.add(0, searchTextField);
-
       filterFields.forEach(
           f -> {
             filterNames.add(f.getName());
@@ -557,9 +557,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                   })
               .filter(f -> f != null)
               .collect(Collectors.toList());
-
-      var searchTextField = new FieldFromType(String.class, "_search-text", reflectionHelper);
-      filterFields.add(0, searchTextField);
 
       filterFields.forEach(
           f -> {

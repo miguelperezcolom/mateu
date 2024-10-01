@@ -20,6 +20,7 @@ public class RowsQuery extends Query {
 
   public RowsQuery(
       MDDOpenCRUDAction action,
+      String searchText,
       Object filters,
       List<SortCriteria> sortOrders,
       int offset,
@@ -37,6 +38,7 @@ public class RowsQuery extends Query {
       List<Field> columnFields) {
     super(
         action,
+        searchText,
         filters,
         sortOrders,
         offset,

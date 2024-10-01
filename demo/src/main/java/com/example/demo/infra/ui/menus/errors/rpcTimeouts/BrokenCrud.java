@@ -23,13 +23,13 @@ public class BrokenCrud implements Crud<BrokenSearchForm, BrokenRow> {
 
   @Override
   public Flux<BrokenRow> fetchRows(
-      BrokenSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
+          String searchText, BrokenSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
       throws Throwable {
     return repo.findAll();
   }
 
   @Override
-  public Mono<Long> fetchCount(BrokenSearchForm filters) throws Throwable {
+  public Mono<Long> fetchCount(String searchText, BrokenSearchForm filters) throws Throwable {
     return repo.findAll().count();
   }
 

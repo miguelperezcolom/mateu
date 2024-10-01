@@ -38,7 +38,7 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
 
   @Override
   public Flux<SalesAgentsRow> fetchRows(
-      SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
+      String searchText, SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return getFilteredList();
   }
 
@@ -47,7 +47,7 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
   }
 
   @Override
-  public Mono<Long> fetchCount(SalesAgentsSearchForm filters) {
+  public Mono<Long> fetchCount(String searchText, SalesAgentsSearchForm filters) {
     return getFilteredList().count();
   }
 
