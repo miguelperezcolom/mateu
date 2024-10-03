@@ -5825,9 +5825,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 `)}get[Symbol.toStringTag](){return"AxiosHeaders"}static from(O){return O instanceof this?O:new this(O)}static concat(O,...F){const U=new this(O);return F.forEach(q=>U.set(q)),U}static accessor(O){const U=(this[$internals]=this[$internals]={accessors:{}}).accessors,q=this.prototype;function W(G){const K=normalizeHeader(G);U[K]||(buildAccessors(q,G),U[K]=!0)}return utils$1.isArray(O)?O.forEach(W):W(O),this}}AxiosHeaders.accessor(["Content-Type","Content-Length","Accept","Accept-Encoding","User-Agent","Authorization"]);utils$1.reduceDescriptors(AxiosHeaders.prototype,({value:j},O)=>{let F=O[0].toUpperCase()+O.slice(1);return{get:()=>j,set(U){this[F]=U}}});utils$1.freezeMethods(AxiosHeaders);function transformData(j,O){const F=this||defaults,U=O||F,q=AxiosHeaders.from(U.headers);let W=U.data;return utils$1.forEach(j,function(K){W=K.call(F,W,q.normalize(),O?O.status:void 0)}),q.normalize(),W}function isCancel(j){return!!(j&&j.__CANCEL__)}function CanceledError(j,O,F){AxiosError.call(this,j??"canceled",AxiosError.ERR_CANCELED,O,F),this.name="CanceledError"}utils$1.inherits(CanceledError,AxiosError,{__CANCEL__:!0});function settle(j,O,F){const U=F.config.validateStatus;!F.status||!U||U(F.status)?j(F):O(new AxiosError("Request failed with status code "+F.status,[AxiosError.ERR_BAD_REQUEST,AxiosError.ERR_BAD_RESPONSE][Math.floor(F.status/100)-4],F.config,F.request,F))}function parseProtocol(j){const O=/^([-+\w]{1,25})(:?\/\/|:)/.exec(j);return O&&O[1]||""}function speedometer(j,O){j=j||10;const F=new Array(j),U=new Array(j);let q=0,W=0,G;return O=O!==void 0?O:1e3,function(Y){const J=Date.now(),X=U[W];G||(G=J),F[q]=Y,U[q]=J;let Q=W,te=0;for(;Q!==q;)te+=F[Q++],Q=Q%j;if(q=(q+1)%j,q===W&&(W=(W+1)%j),J-G<O)return;const re=X&&J-X;return re?Math.round(te*1e3/re):void 0}}function throttle(j,O){let F=0,U=1e3/O,q,W;const G=(J,X=Date.now())=>{F=X,q=null,W&&(clearTimeout(W),W=null),j.apply(null,J)};return[(...J)=>{const X=Date.now(),Q=X-F;Q>=U?G(J,X):(q=J,W||(W=setTimeout(()=>{W=null,G(q)},U-Q)))},()=>q&&G(q)]}const progressEventReducer=(j,O,F=3)=>{let U=0;const q=speedometer(50,250);return throttle(W=>{const G=W.loaded,K=W.lengthComputable?W.total:void 0,Y=G-U,J=q(Y),X=G<=K;U=G;const Q={loaded:G,total:K,progress:K?G/K:void 0,bytes:Y,rate:J||void 0,estimated:J&&K&&X?(K-G)/J:void 0,event:W,lengthComputable:K!=null,[O?"download":"upload"]:!0};j(Q)},F)},progressEventDecorator=(j,O)=>{const F=j!=null;return[U=>O[0]({lengthComputable:F,total:j,loaded:U}),O[1]]},asyncDecorator=j=>(...O)=>utils$1.asap(()=>j(...O)),isURLSameOrigin=platform.hasStandardBrowserEnv?function(){const O=platform.navigator&&/(msie|trident)/i.test(platform.navigator.userAgent),F=document.createElement("a");let U;function q(W){let G=W;return O&&(F.setAttribute("href",G),G=F.href),F.setAttribute("href",G),{href:F.href,protocol:F.protocol?F.protocol.replace(/:$/,""):"",host:F.host,search:F.search?F.search.replace(/^\?/,""):"",hash:F.hash?F.hash.replace(/^#/,""):"",hostname:F.hostname,port:F.port,pathname:F.pathname.charAt(0)==="/"?F.pathname:"/"+F.pathname}}return U=q(window.location.href),function(G){const K=utils$1.isString(G)?q(G):G;return K.protocol===U.protocol&&K.host===U.host}}():function(){return function(){return!0}}(),cookies=platform.hasStandardBrowserEnv?{write(j,O,F,U,q,W){const G=[j+"="+encodeURIComponent(O)];utils$1.isNumber(F)&&G.push("expires="+new Date(F).toGMTString()),utils$1.isString(U)&&G.push("path="+U),utils$1.isString(q)&&G.push("domain="+q),W===!0&&G.push("secure"),document.cookie=G.join("; ")},read(j){const O=document.cookie.match(new RegExp("(^|;\\s*)("+j+")=([^;]*)"));return O?decodeURIComponent(O[3]):null},remove(j){this.write(j,"",Date.now()-864e5)}}:{write(){},read(){return null},remove(){}};function isAbsoluteURL(j){return/^([a-z][a-z\d+\-.]*:)?\/\//i.test(j)}function combineURLs(j,O){return O?j.replace(/\/?\/$/,"")+"/"+O.replace(/^\/+/,""):j}function buildFullPath(j,O){return j&&!isAbsoluteURL(O)?combineURLs(j,O):O}const headersToObject=j=>j instanceof AxiosHeaders?{...j}:j;function mergeConfig(j,O){O=O||{};const F={};function U(J,X,Q){return utils$1.isPlainObject(J)&&utils$1.isPlainObject(X)?utils$1.merge.call({caseless:Q},J,X):utils$1.isPlainObject(X)?utils$1.merge({},X):utils$1.isArray(X)?X.slice():X}function q(J,X,Q){if(utils$1.isUndefined(X)){if(!utils$1.isUndefined(J))return U(void 0,J,Q)}else return U(J,X,Q)}function W(J,X){if(!utils$1.isUndefined(X))return U(void 0,X)}function G(J,X){if(utils$1.isUndefined(X)){if(!utils$1.isUndefined(J))return U(void 0,J)}else return U(void 0,X)}function K(J,X,Q){if(Q in O)return U(J,X);if(Q in j)return U(void 0,J)}const Y={url:W,method:W,data:W,baseURL:G,transformRequest:G,transformResponse:G,paramsSerializer:G,timeout:G,timeoutMessage:G,withCredentials:G,withXSRFToken:G,adapter:G,responseType:G,xsrfCookieName:G,xsrfHeaderName:G,onUploadProgress:G,onDownloadProgress:G,decompress:G,maxContentLength:G,maxBodyLength:G,beforeRedirect:G,transport:G,httpAgent:G,httpsAgent:G,cancelToken:G,socketPath:G,responseEncoding:G,validateStatus:K,headers:(J,X)=>q(headersToObject(J),headersToObject(X),!0)};return utils$1.forEach(Object.keys(Object.assign({},j,O)),function(X){const Q=Y[X]||q,te=Q(j[X],O[X],X);utils$1.isUndefined(te)&&Q!==K||(F[X]=te)}),F}const resolveConfig=j=>{const O=mergeConfig({},j);let{data:F,withXSRFToken:U,xsrfHeaderName:q,xsrfCookieName:W,headers:G,auth:K}=O;O.headers=G=AxiosHeaders.from(G),O.url=buildURL(buildFullPath(O.baseURL,O.url),j.params,j.paramsSerializer),K&&G.set("Authorization","Basic "+btoa((K.username||"")+":"+(K.password?unescape(encodeURIComponent(K.password)):"")));let Y;if(utils$1.isFormData(F)){if(platform.hasStandardBrowserEnv||platform.hasStandardBrowserWebWorkerEnv)G.setContentType(void 0);else if((Y=G.getContentType())!==!1){const[J,...X]=Y?Y.split(";").map(Q=>Q.trim()).filter(Boolean):[];G.setContentType([J||"multipart/form-data",...X].join("; "))}}if(platform.hasStandardBrowserEnv&&(U&&utils$1.isFunction(U)&&(U=U(O)),U||U!==!1&&isURLSameOrigin(O.url))){const J=q&&W&&cookies.read(W);J&&G.set(q,J)}return O},isXHRAdapterSupported=typeof XMLHttpRequest<"u",xhrAdapter=isXHRAdapterSupported&&function(j){return new Promise(function(F,U){const q=resolveConfig(j);let W=q.data;const G=AxiosHeaders.from(q.headers).normalize();let{responseType:K,onUploadProgress:Y,onDownloadProgress:J}=q,X,Q,te,re,ee;function ie(){re&&re(),ee&&ee(),q.cancelToken&&q.cancelToken.unsubscribe(X),q.signal&&q.signal.removeEventListener("abort",X)}let ae=new XMLHttpRequest;ae.open(q.method.toUpperCase(),q.url,!0),ae.timeout=q.timeout;function ne(){if(!ae)return;const le=AxiosHeaders.from("getAllResponseHeaders"in ae&&ae.getAllResponseHeaders()),ve={data:!K||K==="text"||K==="json"?ae.responseText:ae.response,status:ae.status,statusText:ae.statusText,headers:le,config:j,request:ae};settle(function(ge){F(ge),ie()},function(ge){U(ge),ie()},ve),ae=null}"onloadend"in ae?ae.onloadend=ne:ae.onreadystatechange=function(){!ae||ae.readyState!==4||ae.status===0&&!(ae.responseURL&&ae.responseURL.indexOf("file:")===0)||setTimeout(ne)},ae.onabort=function(){ae&&(U(new AxiosError("Request aborted",AxiosError.ECONNABORTED,j,ae)),ae=null)},ae.onerror=function(){U(new AxiosError("Network Error",AxiosError.ERR_NETWORK,j,ae)),ae=null},ae.ontimeout=function(){let ue=q.timeout?"timeout of "+q.timeout+"ms exceeded":"timeout exceeded";const ve=q.transitional||transitionalDefaults;q.timeoutErrorMessage&&(ue=q.timeoutErrorMessage),U(new AxiosError(ue,ve.clarifyTimeoutError?AxiosError.ETIMEDOUT:AxiosError.ECONNABORTED,j,ae)),ae=null},W===void 0&&G.setContentType(null),"setRequestHeader"in ae&&utils$1.forEach(G.toJSON(),function(ue,ve){ae.setRequestHeader(ve,ue)}),utils$1.isUndefined(q.withCredentials)||(ae.withCredentials=!!q.withCredentials),K&&K!=="json"&&(ae.responseType=q.responseType),J&&([te,ee]=progressEventReducer(J,!0),ae.addEventListener("progress",te)),Y&&ae.upload&&([Q,re]=progressEventReducer(Y),ae.upload.addEventListener("progress",Q),ae.upload.addEventListener("loadend",re)),(q.cancelToken||q.signal)&&(X=le=>{ae&&(U(!le||le.type?new CanceledError(null,j,ae):le),ae.abort(),ae=null)},q.cancelToken&&q.cancelToken.subscribe(X),q.signal&&(q.signal.aborted?X():q.signal.addEventListener("abort",X)));const oe=parseProtocol(q.url);if(oe&&platform.protocols.indexOf(oe)===-1){U(new AxiosError("Unsupported protocol "+oe+":",AxiosError.ERR_BAD_REQUEST,j));return}ae.send(W||null)})},composeSignals=(j,O)=>{const{length:F}=j=j?j.filter(Boolean):[];if(O||F){let U=new AbortController,q;const W=function(J){if(!q){q=!0,K();const X=J instanceof Error?J:this.reason;U.abort(X instanceof AxiosError?X:new CanceledError(X instanceof Error?X.message:X))}};let G=O&&setTimeout(()=>{G=null,W(new AxiosError(`timeout ${O} of ms exceeded`,AxiosError.ETIMEDOUT))},O);const K=()=>{j&&(G&&clearTimeout(G),G=null,j.forEach(J=>{J.unsubscribe?J.unsubscribe(W):J.removeEventListener("abort",W)}),j=null)};j.forEach(J=>J.addEventListener("abort",W));const{signal:Y}=U;return Y.unsubscribe=()=>utils$1.asap(K),Y}},streamChunk=function*(j,O){let F=j.byteLength;if(!O||F<O){yield j;return}let U=0,q;for(;U<F;)q=U+O,yield j.slice(U,q),U=q},readBytes=async function*(j,O){for await(const F of readStream(j))yield*streamChunk(F,O)},readStream=async function*(j){if(j[Symbol.asyncIterator]){yield*j;return}const O=j.getReader();try{for(;;){const{done:F,value:U}=await O.read();if(F)break;yield U}}finally{await O.cancel()}},trackStream=(j,O,F,U)=>{const q=readBytes(j,O);let W=0,G,K=Y=>{G||(G=!0,U&&U(Y))};return new ReadableStream({async pull(Y){try{const{done:J,value:X}=await q.next();if(J){K(),Y.close();return}let Q=X.byteLength;if(F){let te=W+=Q;F(te)}Y.enqueue(new Uint8Array(X))}catch(J){throw K(J),J}},cancel(Y){return K(Y),q.return()}},{highWaterMark:2})},isFetchSupported=typeof fetch=="function"&&typeof Request=="function"&&typeof Response=="function",isReadableStreamSupported=isFetchSupported&&typeof ReadableStream=="function",encodeText=isFetchSupported&&(typeof TextEncoder=="function"?(j=>O=>j.encode(O))(new TextEncoder):async j=>new Uint8Array(await new Response(j).arrayBuffer())),test=(j,...O)=>{try{return!!j(...O)}catch{return!1}},supportsRequestStream=isReadableStreamSupported&&test(()=>{let j=!1;const O=new Request(platform.origin,{body:new ReadableStream,method:"POST",get duplex(){return j=!0,"half"}}).headers.has("Content-Type");return j&&!O}),DEFAULT_CHUNK_SIZE=64*1024,supportsResponseStream=isReadableStreamSupported&&test(()=>utils$1.isReadableStream(new Response("").body)),resolvers={stream:supportsResponseStream&&(j=>j.body)};isFetchSupported&&(j=>{["text","arrayBuffer","blob","formData","stream"].forEach(O=>{!resolvers[O]&&(resolvers[O]=utils$1.isFunction(j[O])?F=>F[O]():(F,U)=>{throw new AxiosError(`Response type '${O}' is not supported`,AxiosError.ERR_NOT_SUPPORT,U)})})})(new Response);const getBodyLength=async j=>{if(j==null)return 0;if(utils$1.isBlob(j))return j.size;if(utils$1.isSpecCompliantForm(j))return(await new Request(platform.origin,{method:"POST",body:j}).arrayBuffer()).byteLength;if(utils$1.isArrayBufferView(j)||utils$1.isArrayBuffer(j))return j.byteLength;if(utils$1.isURLSearchParams(j)&&(j=j+""),utils$1.isString(j))return(await encodeText(j)).byteLength},resolveBodyLength=async(j,O)=>{const F=utils$1.toFiniteNumber(j.getContentLength());return F??getBodyLength(O)},fetchAdapter=isFetchSupported&&(async j=>{let{url:O,method:F,data:U,signal:q,cancelToken:W,timeout:G,onDownloadProgress:K,onUploadProgress:Y,responseType:J,headers:X,withCredentials:Q="same-origin",fetchOptions:te}=resolveConfig(j);J=J?(J+"").toLowerCase():"text";let re=composeSignals([q,W&&W.toAbortSignal()],G),ee;const ie=re&&re.unsubscribe&&(()=>{re.unsubscribe()});let ae;try{if(Y&&supportsRequestStream&&F!=="get"&&F!=="head"&&(ae=await resolveBodyLength(X,U))!==0){let ve=new Request(O,{method:"POST",body:U,duplex:"half"}),be;if(utils$1.isFormData(U)&&(be=ve.headers.get("content-type"))&&X.setContentType(be),ve.body){const[ge,pe]=progressEventDecorator(ae,progressEventReducer(asyncDecorator(Y)));U=trackStream(ve.body,DEFAULT_CHUNK_SIZE,ge,pe)}}utils$1.isString(Q)||(Q=Q?"include":"omit");const ne="credentials"in Request.prototype;ee=new Request(O,{...te,signal:re,method:F.toUpperCase(),headers:X.normalize().toJSON(),body:U,duplex:"half",credentials:ne?Q:void 0});let oe=await fetch(ee);const le=supportsResponseStream&&(J==="stream"||J==="response");if(supportsResponseStream&&(K||le&&ie)){const ve={};["status","statusText","headers"].forEach(ce=>{ve[ce]=oe[ce]});const be=utils$1.toFiniteNumber(oe.headers.get("content-length")),[ge,pe]=K&&progressEventDecorator(be,progressEventReducer(asyncDecorator(K),!0))||[];oe=new Response(trackStream(oe.body,DEFAULT_CHUNK_SIZE,ge,()=>{pe&&pe(),ie&&ie()}),ve)}J=J||"text";let ue=await resolvers[utils$1.findKey(resolvers,J)||"text"](oe,j);return!le&&ie&&ie(),await new Promise((ve,be)=>{settle(ve,be,{data:ue,headers:AxiosHeaders.from(oe.headers),status:oe.status,statusText:oe.statusText,config:j,request:ee})})}catch(ne){throw ie&&ie(),ne&&ne.name==="TypeError"&&/fetch/i.test(ne.message)?Object.assign(new AxiosError("Network Error",AxiosError.ERR_NETWORK,j,ee),{cause:ne.cause||ne}):AxiosError.from(ne,ne&&ne.code,j,ee)}}),knownAdapters={http:httpAdapter,xhr:xhrAdapter,fetch:fetchAdapter};utils$1.forEach(knownAdapters,(j,O)=>{if(j){try{Object.defineProperty(j,"name",{value:O})}catch{}Object.defineProperty(j,"adapterName",{value:O})}});const renderReason=j=>`- ${j}`,isResolvedHandle=j=>utils$1.isFunction(j)||j===null||j===!1,adapters={getAdapter:j=>{j=utils$1.isArray(j)?j:[j];const{length:O}=j;let F,U;const q={};for(let W=0;W<O;W++){F=j[W];let G;if(U=F,!isResolvedHandle(F)&&(U=knownAdapters[(G=String(F)).toLowerCase()],U===void 0))throw new AxiosError(`Unknown adapter '${G}'`);if(U)break;q[G||"#"+W]=U}if(!U){const W=Object.entries(q).map(([K,Y])=>`adapter ${K} `+(Y===!1?"is not supported by the environment":"is not available in the build"));let G=O?W.length>1?`since :
 `+W.map(renderReason).join(`
 `):" "+renderReason(W[0]):"as no adapter specified";throw new AxiosError("There is no suitable adapter to dispatch the request "+G,"ERR_NOT_SUPPORT")}return U},adapters:knownAdapters};function throwIfCancellationRequested(j){if(j.cancelToken&&j.cancelToken.throwIfRequested(),j.signal&&j.signal.aborted)throw new CanceledError(null,j)}function dispatchRequest(j){return throwIfCancellationRequested(j),j.headers=AxiosHeaders.from(j.headers),j.data=transformData.call(j,j.transformRequest),["post","put","patch"].indexOf(j.method)!==-1&&j.headers.setContentType("application/x-www-form-urlencoded",!1),adapters.getAdapter(j.adapter||defaults.adapter)(j).then(function(U){return throwIfCancellationRequested(j),U.data=transformData.call(j,j.transformResponse,U),U.headers=AxiosHeaders.from(U.headers),U},function(U){return isCancel(U)||(throwIfCancellationRequested(j),U&&U.response&&(U.response.data=transformData.call(j,j.transformResponse,U.response),U.response.headers=AxiosHeaders.from(U.response.headers))),Promise.reject(U)})}const VERSION$1="1.7.7",validators$1={};["object","boolean","number","function","string","symbol"].forEach((j,O)=>{validators$1[j]=function(U){return typeof U===j||"a"+(O<1?"n ":" ")+j}});const deprecatedWarnings={};validators$1.transitional=function(O,F,U){function q(W,G){return"[Axios v"+VERSION$1+"] Transitional option '"+W+"'"+G+(U?". "+U:"")}return(W,G,K)=>{if(O===!1)throw new AxiosError(q(G," has been removed"+(F?" in "+F:"")),AxiosError.ERR_DEPRECATED);return F&&!deprecatedWarnings[G]&&(deprecatedWarnings[G]=!0,console.warn(q(G," has been deprecated since v"+F+" and will be removed in the near future"))),O?O(W,G,K):!0}};function assertOptions(j,O,F){if(typeof j!="object")throw new AxiosError("options must be an object",AxiosError.ERR_BAD_OPTION_VALUE);const U=Object.keys(j);let q=U.length;for(;q-- >0;){const W=U[q],G=O[W];if(G){const K=j[W],Y=K===void 0||G(K,W,j);if(Y!==!0)throw new AxiosError("option "+W+" must be "+Y,AxiosError.ERR_BAD_OPTION_VALUE);continue}if(F!==!0)throw new AxiosError("Unknown option "+W,AxiosError.ERR_BAD_OPTION)}}const validator={assertOptions,validators:validators$1},validators=validator.validators;class Axios{constructor(O){this.defaults=O,this.interceptors={request:new InterceptorManager,response:new InterceptorManager}}async request(O,F){try{return await this._request(O,F)}catch(U){if(U instanceof Error){let q;Error.captureStackTrace?Error.captureStackTrace(q={}):q=new Error;const W=q.stack?q.stack.replace(/^.+\n/,""):"";try{U.stack?W&&!String(U.stack).endsWith(W.replace(/^.+\n.+\n/,""))&&(U.stack+=`
-`+W):U.stack=W}catch{}}throw U}}_request(O,F){typeof O=="string"?(F=F||{},F.url=O):F=O||{},F=mergeConfig(this.defaults,F);const{transitional:U,paramsSerializer:q,headers:W}=F;U!==void 0&&validator.assertOptions(U,{silentJSONParsing:validators.transitional(validators.boolean),forcedJSONParsing:validators.transitional(validators.boolean),clarifyTimeoutError:validators.transitional(validators.boolean)},!1),q!=null&&(utils$1.isFunction(q)?F.paramsSerializer={serialize:q}:validator.assertOptions(q,{encode:validators.function,serialize:validators.function},!0)),F.method=(F.method||this.defaults.method||"get").toLowerCase();let G=W&&utils$1.merge(W.common,W[F.method]);W&&utils$1.forEach(["delete","get","head","post","put","patch","common"],ee=>{delete W[ee]}),F.headers=AxiosHeaders.concat(G,W);const K=[];let Y=!0;this.interceptors.request.forEach(function(ie){typeof ie.runWhen=="function"&&ie.runWhen(F)===!1||(Y=Y&&ie.synchronous,K.unshift(ie.fulfilled,ie.rejected))});const J=[];this.interceptors.response.forEach(function(ie){J.push(ie.fulfilled,ie.rejected)});let X,Q=0,te;if(!Y){const ee=[dispatchRequest.bind(this),void 0];for(ee.unshift.apply(ee,K),ee.push.apply(ee,J),te=ee.length,X=Promise.resolve(F);Q<te;)X=X.then(ee[Q++],ee[Q++]);return X}te=K.length;let re=F;for(Q=0;Q<te;){const ee=K[Q++],ie=K[Q++];try{re=ee(re)}catch(ae){ie.call(this,ae);break}}try{X=dispatchRequest.call(this,re)}catch(ee){return Promise.reject(ee)}for(Q=0,te=J.length;Q<te;)X=X.then(J[Q++],J[Q++]);return X}getUri(O){O=mergeConfig(this.defaults,O);const F=buildFullPath(O.baseURL,O.url);return buildURL(F,O.params,O.paramsSerializer)}}utils$1.forEach(["delete","get","head","options"],function(O){Axios.prototype[O]=function(F,U){return this.request(mergeConfig(U||{},{method:O,url:F,data:(U||{}).data}))}});utils$1.forEach(["post","put","patch"],function(O){function F(U){return function(W,G,K){return this.request(mergeConfig(K||{},{method:O,headers:U?{"Content-Type":"multipart/form-data"}:{},url:W,data:G}))}}Axios.prototype[O]=F(),Axios.prototype[O+"Form"]=F(!0)});class CancelToken{constructor(O){if(typeof O!="function")throw new TypeError("executor must be a function.");let F;this.promise=new Promise(function(W){F=W});const U=this;this.promise.then(q=>{if(!U._listeners)return;let W=U._listeners.length;for(;W-- >0;)U._listeners[W](q);U._listeners=null}),this.promise.then=q=>{let W;const G=new Promise(K=>{U.subscribe(K),W=K}).then(q);return G.cancel=function(){U.unsubscribe(W)},G},O(function(W,G,K){U.reason||(U.reason=new CanceledError(W,G,K),F(U.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(O){if(this.reason){O(this.reason);return}this._listeners?this._listeners.push(O):this._listeners=[O]}unsubscribe(O){if(!this._listeners)return;const F=this._listeners.indexOf(O);F!==-1&&this._listeners.splice(F,1)}toAbortSignal(){const O=new AbortController,F=U=>{O.abort(U)};return this.subscribe(F),O.signal.unsubscribe=()=>this.unsubscribe(F),O.signal}static source(){let O;return{token:new CancelToken(function(q){O=q}),cancel:O}}}function spread(j){return function(F){return j.apply(null,F)}}function isAxiosError(j){return utils$1.isObject(j)&&j.isAxiosError===!0}const HttpStatusCode={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511};Object.entries(HttpStatusCode).forEach(([j,O])=>{HttpStatusCode[O]=j});function createInstance(j){const O=new Axios(j),F=bind$1(Axios.prototype.request,O);return utils$1.extend(F,Axios.prototype,O,{allOwnKeys:!0}),utils$1.extend(F,O,null,{allOwnKeys:!0}),F.create=function(q){return createInstance(mergeConfig(j,q))},F}const axios=createInstance(defaults);axios.Axios=Axios;axios.CanceledError=CanceledError;axios.CancelToken=CancelToken;axios.isCancel=isCancel;axios.VERSION=VERSION$1;axios.toFormData=toFormData;axios.AxiosError=AxiosError;axios.Cancel=axios.CanceledError;axios.all=function(O){return Promise.all(O)};axios.spread=spread;axios.isAxiosError=isAxiosError;axios.mergeConfig=mergeConfig;axios.AxiosHeaders=AxiosHeaders;axios.formToJSON=j=>formDataToJSON(utils$1.isHTMLForm(j)?new FormData(j):j);axios.getAdapter=adapters.getAdapter;axios.HttpStatusCode=HttpStatusCode;axios.default=axios;let nanoid=(j=21)=>crypto.getRandomValues(new Uint8Array(j)).reduce((O,F)=>(F&=63,F<36?O+=F.toString(36):F<62?O+=(F-26).toString(36).toUpperCase():F>62?O+="-":O+="_",O),""),abortControllers=[],fetchRowsAbortController0=new AbortController,fetchRowsAbortController1=new AbortController;class MateuApiClient{constructor(){this.axiosInstance=axios.create({timeout:6e4}),this.baseUrl="",this.element=document.body,this.contextData={},this.axiosInstance.interceptors.request.use(O=>(this.addAuthToken(O),this.addSessionId(O),O))}addSessionId(O){let F=sessionStorage.getItem("__mateu_sesion_id");F||(F=nanoid(),sessionStorage.setItem("__mateu_sesion_id",F)),O.headers["X-Session-Id"]=F}addAuthToken(O){const F=localStorage.getItem("__mateu_auth_token");F&&(O.headers.Authorization="Bearer "+F)}async wrap(O){return this.element.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),O.then(F=>(this.element.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{}})),F)).catch(F=>{throw F.code=="ERR_CANCELED"?this.element.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):this.element.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{reason:this.serialize(F)}})),F})}serialize(O){return O.message?O:JSON.stringify(O)}async postMax2(O,F){fetchRowsAbortController0.abort(),fetchRowsAbortController0=fetchRowsAbortController1;const U=new AbortController;return fetchRowsAbortController1=U,abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async get(O){const F=new AbortController;return abortControllers=[...abortControllers,F],this.axiosInstance.get(O,{signal:F.signal})}async post(O,F){const U=new AbortController;return abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async getUsingPost(O,F){const U=new AbortController;return abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async abortAll(){abortControllers.forEach(O=>O.abort()),abortControllers=[]}async fetchUi(O){return await this.wrap(this.get(this.baseUrl+"/uis/"+O).then(F=>F.data))}async createJourneyAndReturn(O,F,U){return await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U,{"context-data":this.contextData}).then(q=>q.data))}async runStepActionAndReturn(O,F,U,q,W,G,K,Y){return await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/"+W+"/"+G,{componentType:K,data:Y,"context-data":this.contextData}).then(J=>J.data).catch(J=>{throw console.log("error en post",J),J}))}async fetchRows(O,F,U,q,W,G,K,Y,J,X,Q){const te={__filters:J,__data:Q,__componentType:X.className};return await this.wrap(this.postMax2(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/"+W+"/lists/unique/rows?page="+G+"&page_size="+K+"&ordering="+Y,te).then(re=>re.data))}async getCsv(O,F,U,q,W,G,K){const Y={__filters:K,__journey:JSON.parse(sessionStorage.getItem(U))};await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/lists/"+W+"/csv?&ordering="+G,Y).then(J=>{const X=J.headers["content-type"],Q=new Blob([J.data],{type:X}),te=document.createElement("a");return te.href=window.URL.createObjectURL(Q),te.download="file.csv",te.click(),J.data}))}async getXls(O,F,U,q,W,G,K){const Y={__filters:K,__journey:JSON.parse(sessionStorage.getItem(U))};await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/lists/"+W+"/xls?&ordering="+G,Y).then(J=>{const X=J.headers["content-type"],Q=new Blob([J.data],{type:X}),te=document.createElement("a");return te.href=window.URL.createObjectURL(Q),te.download="file.xlsx",te.click(),J.data}))}}const mateuApiClient=new MateuApiClient;var extendStatics=function(j,O){return extendStatics=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(F,U){F.__proto__=U}||function(F,U){for(var q in U)Object.prototype.hasOwnProperty.call(U,q)&&(F[q]=U[q])},extendStatics(j,O)};function __extends(j,O){if(typeof O!="function"&&O!==null)throw new TypeError("Class extends value "+String(O)+" is not a constructor or null");extendStatics(j,O);function F(){this.constructor=j}j.prototype=O===null?Object.create(O):(F.prototype=O.prototype,new F)}function __values(j){var O=typeof Symbol=="function"&&Symbol.iterator,F=O&&j[O],U=0;if(F)return F.call(j);if(j&&typeof j.length=="number")return{next:function(){return j&&U>=j.length&&(j=void 0),{value:j&&j[U++],done:!j}}};throw new TypeError(O?"Object is not iterable.":"Symbol.iterator is not defined.")}function __read(j,O){var F=typeof Symbol=="function"&&j[Symbol.iterator];if(!F)return j;var U=F.call(j),q,W=[],G;try{for(;(O===void 0||O-- >0)&&!(q=U.next()).done;)W.push(q.value)}catch(K){G={error:K}}finally{try{q&&!q.done&&(F=U.return)&&F.call(U)}finally{if(G)throw G.error}}return W}function __spreadArray(j,O,F){if(F||arguments.length===2)for(var U=0,q=O.length,W;U<q;U++)(W||!(U in O))&&(W||(W=Array.prototype.slice.call(O,0,U)),W[U]=O[U]);return j.concat(W||Array.prototype.slice.call(O))}typeof SuppressedError=="function"&&SuppressedError;function isFunction(j){return typeof j=="function"}function createErrorClass(j){var O=function(U){Error.call(U),U.stack=new Error().stack},F=j(O);return F.prototype=Object.create(Error.prototype),F.prototype.constructor=F,F}var UnsubscriptionError=createErrorClass(function(j){return function(F){j(this),this.message=F?F.length+` errors occurred during unsubscription:
+`+W):U.stack=W}catch{}}throw U}}_request(O,F){typeof O=="string"?(F=F||{},F.url=O):F=O||{},F=mergeConfig(this.defaults,F);const{transitional:U,paramsSerializer:q,headers:W}=F;U!==void 0&&validator.assertOptions(U,{silentJSONParsing:validators.transitional(validators.boolean),forcedJSONParsing:validators.transitional(validators.boolean),clarifyTimeoutError:validators.transitional(validators.boolean)},!1),q!=null&&(utils$1.isFunction(q)?F.paramsSerializer={serialize:q}:validator.assertOptions(q,{encode:validators.function,serialize:validators.function},!0)),F.method=(F.method||this.defaults.method||"get").toLowerCase();let G=W&&utils$1.merge(W.common,W[F.method]);W&&utils$1.forEach(["delete","get","head","post","put","patch","common"],ee=>{delete W[ee]}),F.headers=AxiosHeaders.concat(G,W);const K=[];let Y=!0;this.interceptors.request.forEach(function(ie){typeof ie.runWhen=="function"&&ie.runWhen(F)===!1||(Y=Y&&ie.synchronous,K.unshift(ie.fulfilled,ie.rejected))});const J=[];this.interceptors.response.forEach(function(ie){J.push(ie.fulfilled,ie.rejected)});let X,Q=0,te;if(!Y){const ee=[dispatchRequest.bind(this),void 0];for(ee.unshift.apply(ee,K),ee.push.apply(ee,J),te=ee.length,X=Promise.resolve(F);Q<te;)X=X.then(ee[Q++],ee[Q++]);return X}te=K.length;let re=F;for(Q=0;Q<te;){const ee=K[Q++],ie=K[Q++];try{re=ee(re)}catch(ae){ie.call(this,ae);break}}try{X=dispatchRequest.call(this,re)}catch(ee){return Promise.reject(ee)}for(Q=0,te=J.length;Q<te;)X=X.then(J[Q++],J[Q++]);return X}getUri(O){O=mergeConfig(this.defaults,O);const F=buildFullPath(O.baseURL,O.url);return buildURL(F,O.params,O.paramsSerializer)}}utils$1.forEach(["delete","get","head","options"],function(O){Axios.prototype[O]=function(F,U){return this.request(mergeConfig(U||{},{method:O,url:F,data:(U||{}).data}))}});utils$1.forEach(["post","put","patch"],function(O){function F(U){return function(W,G,K){return this.request(mergeConfig(K||{},{method:O,headers:U?{"Content-Type":"multipart/form-data"}:{},url:W,data:G}))}}Axios.prototype[O]=F(),Axios.prototype[O+"Form"]=F(!0)});class CancelToken{constructor(O){if(typeof O!="function")throw new TypeError("executor must be a function.");let F;this.promise=new Promise(function(W){F=W});const U=this;this.promise.then(q=>{if(!U._listeners)return;let W=U._listeners.length;for(;W-- >0;)U._listeners[W](q);U._listeners=null}),this.promise.then=q=>{let W;const G=new Promise(K=>{U.subscribe(K),W=K}).then(q);return G.cancel=function(){U.unsubscribe(W)},G},O(function(W,G,K){U.reason||(U.reason=new CanceledError(W,G,K),F(U.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(O){if(this.reason){O(this.reason);return}this._listeners?this._listeners.push(O):this._listeners=[O]}unsubscribe(O){if(!this._listeners)return;const F=this._listeners.indexOf(O);F!==-1&&this._listeners.splice(F,1)}toAbortSignal(){const O=new AbortController,F=U=>{O.abort(U)};return this.subscribe(F),O.signal.unsubscribe=()=>this.unsubscribe(F),O.signal}static source(){let O;return{token:new CancelToken(function(q){O=q}),cancel:O}}}function spread(j){return function(F){return j.apply(null,F)}}function isAxiosError(j){return utils$1.isObject(j)&&j.isAxiosError===!0}const HttpStatusCode={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511};Object.entries(HttpStatusCode).forEach(([j,O])=>{HttpStatusCode[O]=j});function createInstance(j){const O=new Axios(j),F=bind$1(Axios.prototype.request,O);return utils$1.extend(F,Axios.prototype,O,{allOwnKeys:!0}),utils$1.extend(F,O,null,{allOwnKeys:!0}),F.create=function(q){return createInstance(mergeConfig(j,q))},F}const axios=createInstance(defaults);axios.Axios=Axios;axios.CanceledError=CanceledError;axios.CancelToken=CancelToken;axios.isCancel=isCancel;axios.VERSION=VERSION$1;axios.toFormData=toFormData;axios.AxiosError=AxiosError;axios.Cancel=axios.CanceledError;axios.all=function(O){return Promise.all(O)};axios.spread=spread;axios.isAxiosError=isAxiosError;axios.mergeConfig=mergeConfig;axios.AxiosHeaders=AxiosHeaders;axios.formToJSON=j=>formDataToJSON(utils$1.isHTMLForm(j)?new FormData(j):j);axios.getAdapter=adapters.getAdapter;axios.HttpStatusCode=HttpStatusCode;axios.default=axios;let nanoid=(j=21)=>crypto.getRandomValues(new Uint8Array(j)).reduce((O,F)=>(F&=63,F<36?O+=F.toString(36):F<62?O+=(F-26).toString(36).toUpperCase():F>62?O+="-":O+="_",O),""),abortControllers=[],fetchRowsAbortController0=new AbortController,fetchRowsAbortController1=new AbortController;class MateuApiClient{constructor(){this.axiosInstance=axios.create({timeout:6e4}),this.baseUrl="",this.element=document.body,this.contextData={},this.axiosInstance.interceptors.request.use(O=>(this.addAuthToken(O),this.addSessionId(O),O))}addSessionId(O){let F=sessionStorage.getItem("__mateu_sesion_id");F||(F=nanoid(),sessionStorage.setItem("__mateu_sesion_id",F)),O.headers["X-Session-Id"]=F}addAuthToken(O){const F=localStorage.getItem("__mateu_auth_token");F&&(O.headers.Authorization="Bearer "+F)}async wrap(O){return this.element.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),O.then(F=>(this.element.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{}})),F)).catch(F=>{throw F.code=="ERR_CANCELED"?this.element.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):this.element.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{reason:this.serialize(F)}})),F})}serialize(O){return O.message?O:JSON.stringify(O)}async postMax2(O,F){fetchRowsAbortController0.abort(),fetchRowsAbortController0=fetchRowsAbortController1;const U=new AbortController;return fetchRowsAbortController1=U,abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async get(O){const F=new AbortController;return abortControllers=[...abortControllers,F],this.axiosInstance.get(O,{signal:F.signal})}async post(O,F){const U=new AbortController;return abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async getUsingPost(O,F){const U=new AbortController;return abortControllers=[...abortControllers,U],this.axiosInstance.post(O,F,{signal:U.signal})}async abortAll(){abortControllers.forEach(O=>O.abort()),abortControllers=[]}async fetchUi(O){return await this.wrap(this.get(this.baseUrl+"/uis/"+O).then(F=>F.data))}async createJourneyAndReturn(O,F,U){return await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U,{"context-data":this.contextData}).then(q=>q.data))}async runStepActionAndReturn(O,F,U,q,W,G,K,Y){return await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/"+W+"/"+G,{componentType:K,data:Y,"context-data":this.contextData}).then(J=>J.data).catch(J=>{throw console.log("error en post",J),J}))}async fetchRows(O,F,U,q,W,G,K,Y,J,X,Q,te){const re={__filters:X,__data:te,__searchText:J,__componentType:Q.className};return await this.wrap(this.postMax2(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/"+W+"/lists/unique/rows?page="+G+"&page_size="+K+"&ordering="+Y,re).then(ee=>ee.data))}async getCsv(O,F,U,q,W,G,K,Y){const J={__searchText:K,__filters:Y,__journey:JSON.parse(sessionStorage.getItem(U))};await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/lists/"+W+"/csv?&ordering="+G,J).then(X=>{const Q=X.headers["content-type"],te=new Blob([X.data],{type:Q}),re=document.createElement("a");return re.href=window.URL.createObjectURL(te),re.download="file.csv",re.click(),X.data}))}async getXls(O,F,U,q,W,G,K,Y){const J={__searchText:K,__filters:Y,__journey:JSON.parse(sessionStorage.getItem(U))};await this.wrap(this.getUsingPost(this.baseUrl+"/"+O+"/journeys/"+F+"/"+U+"/steps/"+q+"/lists/"+W+"/xls?&ordering="+G,J).then(X=>{const Q=X.headers["content-type"],te=new Blob([X.data],{type:Q}),re=document.createElement("a");return re.href=window.URL.createObjectURL(te),re.download="file.xlsx",re.click(),X.data}))}}const mateuApiClient=new MateuApiClient;var extendStatics=function(j,O){return extendStatics=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(F,U){F.__proto__=U}||function(F,U){for(var q in U)Object.prototype.hasOwnProperty.call(U,q)&&(F[q]=U[q])},extendStatics(j,O)};function __extends(j,O){if(typeof O!="function"&&O!==null)throw new TypeError("Class extends value "+String(O)+" is not a constructor or null");extendStatics(j,O);function F(){this.constructor=j}j.prototype=O===null?Object.create(O):(F.prototype=O.prototype,new F)}function __values(j){var O=typeof Symbol=="function"&&Symbol.iterator,F=O&&j[O],U=0;if(F)return F.call(j);if(j&&typeof j.length=="number")return{next:function(){return j&&U>=j.length&&(j=void 0),{value:j&&j[U++],done:!j}}};throw new TypeError(O?"Object is not iterable.":"Symbol.iterator is not defined.")}function __read(j,O){var F=typeof Symbol=="function"&&j[Symbol.iterator];if(!F)return j;var U=F.call(j),q,W=[],G;try{for(;(O===void 0||O-- >0)&&!(q=U.next()).done;)W.push(q.value)}catch(K){G={error:K}}finally{try{q&&!q.done&&(F=U.return)&&F.call(U)}finally{if(G)throw G.error}}return W}function __spreadArray(j,O,F){if(F||arguments.length===2)for(var U=0,q=O.length,W;U<q;U++)(W||!(U in O))&&(W||(W=Array.prototype.slice.call(O,0,U)),W[U]=O[U]);return j.concat(W||Array.prototype.slice.call(O))}typeof SuppressedError=="function"&&SuppressedError;function isFunction(j){return typeof j=="function"}function createErrorClass(j){var O=function(U){Error.call(U),U.stack=new Error().stack},F=j(O);return F.prototype=Object.create(Error.prototype),F.prototype.constructor=F,F}var UnsubscriptionError=createErrorClass(function(j){return function(F){j(this),this.message=F?F.length+` errors occurred during unsubscription:
 `+F.map(function(U,q){return q+1+") "+U.toString()}).join(`
-  `):"",this.name="UnsubscriptionError",this.errors=F}});function arrRemove(j,O){if(j){var F=j.indexOf(O);0<=F&&j.splice(F,1)}}var Subscription=function(){function j(O){this.initialTeardown=O,this.closed=!1,this._parentage=null,this._finalizers=null}return j.prototype.unsubscribe=function(){var O,F,U,q,W;if(!this.closed){this.closed=!0;var G=this._parentage;if(G)if(this._parentage=null,Array.isArray(G))try{for(var K=__values(G),Y=K.next();!Y.done;Y=K.next()){var J=Y.value;J.remove(this)}}catch(ie){O={error:ie}}finally{try{Y&&!Y.done&&(F=K.return)&&F.call(K)}finally{if(O)throw O.error}}else G.remove(this);var X=this.initialTeardown;if(isFunction(X))try{X()}catch(ie){W=ie instanceof UnsubscriptionError?ie.errors:[ie]}var Q=this._finalizers;if(Q){this._finalizers=null;try{for(var te=__values(Q),re=te.next();!re.done;re=te.next()){var ee=re.value;try{execFinalizer(ee)}catch(ie){W=W??[],ie instanceof UnsubscriptionError?W=__spreadArray(__spreadArray([],__read(W)),__read(ie.errors)):W.push(ie)}}}catch(ie){U={error:ie}}finally{try{re&&!re.done&&(q=te.return)&&q.call(te)}finally{if(U)throw U.error}}}if(W)throw new UnsubscriptionError(W)}},j.prototype.add=function(O){var F;if(O&&O!==this)if(this.closed)execFinalizer(O);else{if(O instanceof j){if(O.closed||O._hasParent(this))return;O._addParent(this)}(this._finalizers=(F=this._finalizers)!==null&&F!==void 0?F:[]).push(O)}},j.prototype._hasParent=function(O){var F=this._parentage;return F===O||Array.isArray(F)&&F.includes(O)},j.prototype._addParent=function(O){var F=this._parentage;this._parentage=Array.isArray(F)?(F.push(O),F):F?[F,O]:O},j.prototype._removeParent=function(O){var F=this._parentage;F===O?this._parentage=null:Array.isArray(F)&&arrRemove(F,O)},j.prototype.remove=function(O){var F=this._finalizers;F&&arrRemove(F,O),O instanceof j&&O._removeParent(this)},j.EMPTY=function(){var O=new j;return O.closed=!0,O}(),j}(),EMPTY_SUBSCRIPTION=Subscription.EMPTY;function isSubscription(j){return j instanceof Subscription||j&&"closed"in j&&isFunction(j.remove)&&isFunction(j.add)&&isFunction(j.unsubscribe)}function execFinalizer(j){isFunction(j)?j():j.unsubscribe()}var config={onUnhandledError:null,onStoppedNotification:null,Promise:void 0,useDeprecatedSynchronousErrorHandling:!1,useDeprecatedNextContext:!1},timeoutProvider={setTimeout:function(j,O){for(var F=[],U=2;U<arguments.length;U++)F[U-2]=arguments[U];return setTimeout.apply(void 0,__spreadArray([j,O],__read(F)))},clearTimeout:function(j){var O=timeoutProvider.delegate;return((O==null?void 0:O.clearTimeout)||clearTimeout)(j)},delegate:void 0};function reportUnhandledError(j){timeoutProvider.setTimeout(function(){throw j})}function noop(){}function errorContext(j){j()}var Subscriber=function(j){__extends(O,j);function O(F){var U=j.call(this)||this;return U.isStopped=!1,F?(U.destination=F,isSubscription(F)&&F.add(U)):U.destination=EMPTY_OBSERVER,U}return O.create=function(F,U,q){return new SafeSubscriber(F,U,q)},O.prototype.next=function(F){this.isStopped||this._next(F)},O.prototype.error=function(F){this.isStopped||(this.isStopped=!0,this._error(F))},O.prototype.complete=function(){this.isStopped||(this.isStopped=!0,this._complete())},O.prototype.unsubscribe=function(){this.closed||(this.isStopped=!0,j.prototype.unsubscribe.call(this),this.destination=null)},O.prototype._next=function(F){this.destination.next(F)},O.prototype._error=function(F){try{this.destination.error(F)}finally{this.unsubscribe()}},O.prototype._complete=function(){try{this.destination.complete()}finally{this.unsubscribe()}},O}(Subscription),_bind=Function.prototype.bind;function bind(j,O){return _bind.call(j,O)}var ConsumerObserver=function(){function j(O){this.partialObserver=O}return j.prototype.next=function(O){var F=this.partialObserver;if(F.next)try{F.next(O)}catch(U){handleUnhandledError(U)}},j.prototype.error=function(O){var F=this.partialObserver;if(F.error)try{F.error(O)}catch(U){handleUnhandledError(U)}else handleUnhandledError(O)},j.prototype.complete=function(){var O=this.partialObserver;if(O.complete)try{O.complete()}catch(F){handleUnhandledError(F)}},j}(),SafeSubscriber=function(j){__extends(O,j);function O(F,U,q){var W=j.call(this)||this,G;if(isFunction(F)||!F)G={next:F??void 0,error:U??void 0,complete:q??void 0};else{var K;W&&config.useDeprecatedNextContext?(K=Object.create(F),K.unsubscribe=function(){return W.unsubscribe()},G={next:F.next&&bind(F.next,K),error:F.error&&bind(F.error,K),complete:F.complete&&bind(F.complete,K)}):G=F}return W.destination=new ConsumerObserver(G),W}return O}(Subscriber);function handleUnhandledError(j){reportUnhandledError(j)}function defaultErrorHandler(j){throw j}var EMPTY_OBSERVER={closed:!0,next:noop,error:defaultErrorHandler,complete:noop},observable=function(){return typeof Symbol=="function"&&Symbol.observable||"@@observable"}();function identity(j){return j}function pipeFromArray(j){return j.length===0?identity:j.length===1?j[0]:function(F){return j.reduce(function(U,q){return q(U)},F)}}var Observable=function(){function j(O){O&&(this._subscribe=O)}return j.prototype.lift=function(O){var F=new j;return F.source=this,F.operator=O,F},j.prototype.subscribe=function(O,F,U){var q=this,W=isSubscriber(O)?O:new SafeSubscriber(O,F,U);return errorContext(function(){var G=q,K=G.operator,Y=G.source;W.add(K?K.call(W,Y):Y?q._subscribe(W):q._trySubscribe(W))}),W},j.prototype._trySubscribe=function(O){try{return this._subscribe(O)}catch(F){O.error(F)}},j.prototype.forEach=function(O,F){var U=this;return F=getPromiseCtor(F),new F(function(q,W){var G=new SafeSubscriber({next:function(K){try{O(K)}catch(Y){W(Y),G.unsubscribe()}},error:W,complete:q});U.subscribe(G)})},j.prototype._subscribe=function(O){var F;return(F=this.source)===null||F===void 0?void 0:F.subscribe(O)},j.prototype[observable]=function(){return this},j.prototype.pipe=function(){for(var O=[],F=0;F<arguments.length;F++)O[F]=arguments[F];return pipeFromArray(O)(this)},j.prototype.toPromise=function(O){var F=this;return O=getPromiseCtor(O),new O(function(U,q){var W;F.subscribe(function(G){return W=G},function(G){return q(G)},function(){return U(W)})})},j.create=function(O){return new j(O)},j}();function getPromiseCtor(j){var O;return(O=j??config.Promise)!==null&&O!==void 0?O:Promise}function isObserver(j){return j&&isFunction(j.next)&&isFunction(j.error)&&isFunction(j.complete)}function isSubscriber(j){return j&&j instanceof Subscriber||isObserver(j)&&isSubscription(j)}var ObjectUnsubscribedError=createErrorClass(function(j){return function(){j(this),this.name="ObjectUnsubscribedError",this.message="object unsubscribed"}}),Subject=function(j){__extends(O,j);function O(){var F=j.call(this)||this;return F.closed=!1,F.currentObservers=null,F.observers=[],F.isStopped=!1,F.hasError=!1,F.thrownError=null,F}return O.prototype.lift=function(F){var U=new AnonymousSubject(this,this);return U.operator=F,U},O.prototype._throwIfClosed=function(){if(this.closed)throw new ObjectUnsubscribedError},O.prototype.next=function(F){var U=this;errorContext(function(){var q,W;if(U._throwIfClosed(),!U.isStopped){U.currentObservers||(U.currentObservers=Array.from(U.observers));try{for(var G=__values(U.currentObservers),K=G.next();!K.done;K=G.next()){var Y=K.value;Y.next(F)}}catch(J){q={error:J}}finally{try{K&&!K.done&&(W=G.return)&&W.call(G)}finally{if(q)throw q.error}}}})},O.prototype.error=function(F){var U=this;errorContext(function(){if(U._throwIfClosed(),!U.isStopped){U.hasError=U.isStopped=!0,U.thrownError=F;for(var q=U.observers;q.length;)q.shift().error(F)}})},O.prototype.complete=function(){var F=this;errorContext(function(){if(F._throwIfClosed(),!F.isStopped){F.isStopped=!0;for(var U=F.observers;U.length;)U.shift().complete()}})},O.prototype.unsubscribe=function(){this.isStopped=this.closed=!0,this.observers=this.currentObservers=null},Object.defineProperty(O.prototype,"observed",{get:function(){var F;return((F=this.observers)===null||F===void 0?void 0:F.length)>0},enumerable:!1,configurable:!0}),O.prototype._trySubscribe=function(F){return this._throwIfClosed(),j.prototype._trySubscribe.call(this,F)},O.prototype._subscribe=function(F){return this._throwIfClosed(),this._checkFinalizedStatuses(F),this._innerSubscribe(F)},O.prototype._innerSubscribe=function(F){var U=this,q=this,W=q.hasError,G=q.isStopped,K=q.observers;return W||G?EMPTY_SUBSCRIPTION:(this.currentObservers=null,K.push(F),new Subscription(function(){U.currentObservers=null,arrRemove(K,F)}))},O.prototype._checkFinalizedStatuses=function(F){var U=this,q=U.hasError,W=U.thrownError,G=U.isStopped;q?F.error(W):G&&F.complete()},O.prototype.asObservable=function(){var F=new Observable;return F.source=this,F},O.create=function(F,U){return new AnonymousSubject(F,U)},O}(Observable),AnonymousSubject=function(j){__extends(O,j);function O(F,U){var q=j.call(this)||this;return q.destination=F,q.source=U,q}return O.prototype.next=function(F){var U,q;(q=(U=this.destination)===null||U===void 0?void 0:U.next)===null||q===void 0||q.call(U,F)},O.prototype.error=function(F){var U,q;(q=(U=this.destination)===null||U===void 0?void 0:U.error)===null||q===void 0||q.call(U,F)},O.prototype.complete=function(){var F,U;(U=(F=this.destination)===null||F===void 0?void 0:F.complete)===null||U===void 0||U.call(F)},O.prototype._subscribe=function(F){var U,q;return(q=(U=this.source)===null||U===void 0?void 0:U.subscribe(F))!==null&&q!==void 0?q:EMPTY_SUBSCRIPTION},O}(Subject),ResultType=(j=>(j.Success="Success",j.Info="Info",j.Warning="Warning",j.Error="Error",j.Ignored="Ignored",j))(ResultType||{});class ApiController{constructor(O){this.activeCalls=0,this.onBackendCalled=()=>{this.activeCalls<0&&(this.activeCalls=0),this.activeCalls++,this.host.loading=this.activeCalls>0},this.onBackendSucceeded=()=>{this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0},this.onBackendCancelled=()=>{console.log("backend cancelled"),this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0},this.onBackendFailed=F=>{var G,K;console.log("backend failed",F,(G=F.detail.reason.response)==null?void 0:G.data),this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0;const U=F;let q=`${U.detail.reason}`,W="";(U.detail.reason.code||U.detail.reason.message)&&(q=`${U.detail.reason.code} ${U.detail.reason.message}`),(K=U.detail.reason.response)!=null&&K.data&&(q=`${U.detail.reason.response.data}`),q.startsWith("Unknown action")||this.host.showMessage({type:ResultType.Error,title:q,text:W,duration:5e3})},(this.host=O).addController(this),this.activeCalls=0}hostConnected(){this.host.addEventListener("backend-called-event",this.onBackendCalled),this.host.addEventListener("backend-succeeded-event",this.onBackendSucceeded),this.host.addEventListener("backend-cancelled-event",this.onBackendCancelled),this.host.addEventListener("backend-failed-event",this.onBackendFailed)}hostDisconnected(){this.host.removeEventListener("backend-called-event",this.onBackendCalled),this.host.removeEventListener("backend-succeeded-event",this.onBackendSucceeded),this.host.removeEventListener("backend-cancelled-event",this.onBackendCancelled),this.host.removeEventListener("backend-failed-event",this.onBackendFailed)}}var ActionTarget=(j=>(j.View="View",j.Message="Message",j.NewModal="NewModal",j.NewTab="NewTab",j.NewWindow="NewWindow",j.LeftDrawer="LeftDrawer",j.RightDrawer="RightDrawer",j.NewJourney="NewJourney",j.Deferred="Deferred",j.DeferredNewTab="DeferredNewTab",j.DeferredNewWindow="DeferredNewWindow",j.Component="Component",j.Header="Header",j.Footer="Footer",j.Main="Main",j.Left="Left",j.Right="Right",j))(ActionTarget||{});/**
+  `):"",this.name="UnsubscriptionError",this.errors=F}});function arrRemove(j,O){if(j){var F=j.indexOf(O);0<=F&&j.splice(F,1)}}var Subscription=function(){function j(O){this.initialTeardown=O,this.closed=!1,this._parentage=null,this._finalizers=null}return j.prototype.unsubscribe=function(){var O,F,U,q,W;if(!this.closed){this.closed=!0;var G=this._parentage;if(G)if(this._parentage=null,Array.isArray(G))try{for(var K=__values(G),Y=K.next();!Y.done;Y=K.next()){var J=Y.value;J.remove(this)}}catch(ie){O={error:ie}}finally{try{Y&&!Y.done&&(F=K.return)&&F.call(K)}finally{if(O)throw O.error}}else G.remove(this);var X=this.initialTeardown;if(isFunction(X))try{X()}catch(ie){W=ie instanceof UnsubscriptionError?ie.errors:[ie]}var Q=this._finalizers;if(Q){this._finalizers=null;try{for(var te=__values(Q),re=te.next();!re.done;re=te.next()){var ee=re.value;try{execFinalizer(ee)}catch(ie){W=W??[],ie instanceof UnsubscriptionError?W=__spreadArray(__spreadArray([],__read(W)),__read(ie.errors)):W.push(ie)}}}catch(ie){U={error:ie}}finally{try{re&&!re.done&&(q=te.return)&&q.call(te)}finally{if(U)throw U.error}}}if(W)throw new UnsubscriptionError(W)}},j.prototype.add=function(O){var F;if(O&&O!==this)if(this.closed)execFinalizer(O);else{if(O instanceof j){if(O.closed||O._hasParent(this))return;O._addParent(this)}(this._finalizers=(F=this._finalizers)!==null&&F!==void 0?F:[]).push(O)}},j.prototype._hasParent=function(O){var F=this._parentage;return F===O||Array.isArray(F)&&F.includes(O)},j.prototype._addParent=function(O){var F=this._parentage;this._parentage=Array.isArray(F)?(F.push(O),F):F?[F,O]:O},j.prototype._removeParent=function(O){var F=this._parentage;F===O?this._parentage=null:Array.isArray(F)&&arrRemove(F,O)},j.prototype.remove=function(O){var F=this._finalizers;F&&arrRemove(F,O),O instanceof j&&O._removeParent(this)},j.EMPTY=function(){var O=new j;return O.closed=!0,O}(),j}(),EMPTY_SUBSCRIPTION=Subscription.EMPTY;function isSubscription(j){return j instanceof Subscription||j&&"closed"in j&&isFunction(j.remove)&&isFunction(j.add)&&isFunction(j.unsubscribe)}function execFinalizer(j){isFunction(j)?j():j.unsubscribe()}var config={onUnhandledError:null,onStoppedNotification:null,Promise:void 0,useDeprecatedSynchronousErrorHandling:!1,useDeprecatedNextContext:!1},timeoutProvider={setTimeout:function(j,O){for(var F=[],U=2;U<arguments.length;U++)F[U-2]=arguments[U];return setTimeout.apply(void 0,__spreadArray([j,O],__read(F)))},clearTimeout:function(j){var O=timeoutProvider.delegate;return((O==null?void 0:O.clearTimeout)||clearTimeout)(j)},delegate:void 0};function reportUnhandledError(j){timeoutProvider.setTimeout(function(){throw j})}function noop(){}function errorContext(j){j()}var Subscriber=function(j){__extends(O,j);function O(F){var U=j.call(this)||this;return U.isStopped=!1,F?(U.destination=F,isSubscription(F)&&F.add(U)):U.destination=EMPTY_OBSERVER,U}return O.create=function(F,U,q){return new SafeSubscriber(F,U,q)},O.prototype.next=function(F){this.isStopped||this._next(F)},O.prototype.error=function(F){this.isStopped||(this.isStopped=!0,this._error(F))},O.prototype.complete=function(){this.isStopped||(this.isStopped=!0,this._complete())},O.prototype.unsubscribe=function(){this.closed||(this.isStopped=!0,j.prototype.unsubscribe.call(this),this.destination=null)},O.prototype._next=function(F){this.destination.next(F)},O.prototype._error=function(F){try{this.destination.error(F)}finally{this.unsubscribe()}},O.prototype._complete=function(){try{this.destination.complete()}finally{this.unsubscribe()}},O}(Subscription),_bind=Function.prototype.bind;function bind(j,O){return _bind.call(j,O)}var ConsumerObserver=function(){function j(O){this.partialObserver=O}return j.prototype.next=function(O){var F=this.partialObserver;if(F.next)try{F.next(O)}catch(U){handleUnhandledError(U)}},j.prototype.error=function(O){var F=this.partialObserver;if(F.error)try{F.error(O)}catch(U){handleUnhandledError(U)}else handleUnhandledError(O)},j.prototype.complete=function(){var O=this.partialObserver;if(O.complete)try{O.complete()}catch(F){handleUnhandledError(F)}},j}(),SafeSubscriber=function(j){__extends(O,j);function O(F,U,q){var W=j.call(this)||this,G;if(isFunction(F)||!F)G={next:F??void 0,error:U??void 0,complete:q??void 0};else{var K;W&&config.useDeprecatedNextContext?(K=Object.create(F),K.unsubscribe=function(){return W.unsubscribe()},G={next:F.next&&bind(F.next,K),error:F.error&&bind(F.error,K),complete:F.complete&&bind(F.complete,K)}):G=F}return W.destination=new ConsumerObserver(G),W}return O}(Subscriber);function handleUnhandledError(j){reportUnhandledError(j)}function defaultErrorHandler(j){throw j}var EMPTY_OBSERVER={closed:!0,next:noop,error:defaultErrorHandler,complete:noop},observable=function(){return typeof Symbol=="function"&&Symbol.observable||"@@observable"}();function identity(j){return j}function pipeFromArray(j){return j.length===0?identity:j.length===1?j[0]:function(F){return j.reduce(function(U,q){return q(U)},F)}}var Observable=function(){function j(O){O&&(this._subscribe=O)}return j.prototype.lift=function(O){var F=new j;return F.source=this,F.operator=O,F},j.prototype.subscribe=function(O,F,U){var q=this,W=isSubscriber(O)?O:new SafeSubscriber(O,F,U);return errorContext(function(){var G=q,K=G.operator,Y=G.source;W.add(K?K.call(W,Y):Y?q._subscribe(W):q._trySubscribe(W))}),W},j.prototype._trySubscribe=function(O){try{return this._subscribe(O)}catch(F){O.error(F)}},j.prototype.forEach=function(O,F){var U=this;return F=getPromiseCtor(F),new F(function(q,W){var G=new SafeSubscriber({next:function(K){try{O(K)}catch(Y){W(Y),G.unsubscribe()}},error:W,complete:q});U.subscribe(G)})},j.prototype._subscribe=function(O){var F;return(F=this.source)===null||F===void 0?void 0:F.subscribe(O)},j.prototype[observable]=function(){return this},j.prototype.pipe=function(){for(var O=[],F=0;F<arguments.length;F++)O[F]=arguments[F];return pipeFromArray(O)(this)},j.prototype.toPromise=function(O){var F=this;return O=getPromiseCtor(O),new O(function(U,q){var W;F.subscribe(function(G){return W=G},function(G){return q(G)},function(){return U(W)})})},j.create=function(O){return new j(O)},j}();function getPromiseCtor(j){var O;return(O=j??config.Promise)!==null&&O!==void 0?O:Promise}function isObserver(j){return j&&isFunction(j.next)&&isFunction(j.error)&&isFunction(j.complete)}function isSubscriber(j){return j&&j instanceof Subscriber||isObserver(j)&&isSubscription(j)}var ObjectUnsubscribedError=createErrorClass(function(j){return function(){j(this),this.name="ObjectUnsubscribedError",this.message="object unsubscribed"}}),Subject=function(j){__extends(O,j);function O(){var F=j.call(this)||this;return F.closed=!1,F.currentObservers=null,F.observers=[],F.isStopped=!1,F.hasError=!1,F.thrownError=null,F}return O.prototype.lift=function(F){var U=new AnonymousSubject(this,this);return U.operator=F,U},O.prototype._throwIfClosed=function(){if(this.closed)throw new ObjectUnsubscribedError},O.prototype.next=function(F){var U=this;errorContext(function(){var q,W;if(U._throwIfClosed(),!U.isStopped){U.currentObservers||(U.currentObservers=Array.from(U.observers));try{for(var G=__values(U.currentObservers),K=G.next();!K.done;K=G.next()){var Y=K.value;Y.next(F)}}catch(J){q={error:J}}finally{try{K&&!K.done&&(W=G.return)&&W.call(G)}finally{if(q)throw q.error}}}})},O.prototype.error=function(F){var U=this;errorContext(function(){if(U._throwIfClosed(),!U.isStopped){U.hasError=U.isStopped=!0,U.thrownError=F;for(var q=U.observers;q.length;)q.shift().error(F)}})},O.prototype.complete=function(){var F=this;errorContext(function(){if(F._throwIfClosed(),!F.isStopped){F.isStopped=!0;for(var U=F.observers;U.length;)U.shift().complete()}})},O.prototype.unsubscribe=function(){this.isStopped=this.closed=!0,this.observers=this.currentObservers=null},Object.defineProperty(O.prototype,"observed",{get:function(){var F;return((F=this.observers)===null||F===void 0?void 0:F.length)>0},enumerable:!1,configurable:!0}),O.prototype._trySubscribe=function(F){return this._throwIfClosed(),j.prototype._trySubscribe.call(this,F)},O.prototype._subscribe=function(F){return this._throwIfClosed(),this._checkFinalizedStatuses(F),this._innerSubscribe(F)},O.prototype._innerSubscribe=function(F){var U=this,q=this,W=q.hasError,G=q.isStopped,K=q.observers;return W||G?EMPTY_SUBSCRIPTION:(this.currentObservers=null,K.push(F),new Subscription(function(){U.currentObservers=null,arrRemove(K,F)}))},O.prototype._checkFinalizedStatuses=function(F){var U=this,q=U.hasError,W=U.thrownError,G=U.isStopped;q?F.error(W):G&&F.complete()},O.prototype.asObservable=function(){var F=new Observable;return F.source=this,F},O.create=function(F,U){return new AnonymousSubject(F,U)},O}(Observable),AnonymousSubject=function(j){__extends(O,j);function O(F,U){var q=j.call(this)||this;return q.destination=F,q.source=U,q}return O.prototype.next=function(F){var U,q;(q=(U=this.destination)===null||U===void 0?void 0:U.next)===null||q===void 0||q.call(U,F)},O.prototype.error=function(F){var U,q;(q=(U=this.destination)===null||U===void 0?void 0:U.error)===null||q===void 0||q.call(U,F)},O.prototype.complete=function(){var F,U;(U=(F=this.destination)===null||F===void 0?void 0:F.complete)===null||U===void 0||U.call(F)},O.prototype._subscribe=function(F){var U,q;return(q=(U=this.source)===null||U===void 0?void 0:U.subscribe(F))!==null&&q!==void 0?q:EMPTY_SUBSCRIPTION},O}(Subject),ResultType=(j=>(j.Success="Success",j.Info="Info",j.Warning="Warning",j.Error="Error",j.Ignored="Ignored",j))(ResultType||{});class ApiController{constructor(O){this.activeCalls=0,this.onBackendCalled=()=>{this.activeCalls<0&&(this.activeCalls=0),this.activeCalls++,this.host.loading=this.activeCalls>0},this.onBackendSucceeded=()=>{this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0},this.onBackendCancelled=()=>{console.log("backend cancelled"),this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0},this.onBackendFailed=F=>{var G,K;console.log("backend failed",F,(G=F.detail.reason.response)==null?void 0:G.data),this.activeCalls--,this.activeCalls<0&&(this.activeCalls=0),this.host.loading=this.activeCalls>0;const U=F;let q=`${U.detail.reason}`,W="";(U.detail.reason.code||U.detail.reason.message)&&(q=`${U.detail.reason.code} ${U.detail.reason.message}`),(K=U.detail.reason.response)!=null&&K.data&&(q=`${U.detail.reason.response.data}`),q.startsWith("Unknown action")||this.host.showMessage({type:ResultType.Error,title:q,text:W,duration:5e3})},(this.host=O).addController(this),this.activeCalls=0}hostConnected(){this.host.addEventListener("backend-called-event",this.onBackendCalled),this.host.addEventListener("backend-succeeded-event",this.onBackendSucceeded),this.host.addEventListener("backend-cancelled-event",this.onBackendCancelled),this.host.addEventListener("backend-failed-event",this.onBackendFailed)}hostDisconnected(){this.host.removeEventListener("backend-called-event",this.onBackendCalled),this.host.removeEventListener("backend-succeeded-event",this.onBackendSucceeded),this.host.removeEventListener("backend-cancelled-event",this.onBackendCancelled),this.host.removeEventListener("backend-failed-event",this.onBackendFailed)}}var ActionTarget=(j=>(j.Self="Self",j.View="View",j.Message="Message",j.NewModal="NewModal",j.NewTab="NewTab",j.NewWindow="NewWindow",j.LeftDrawer="LeftDrawer",j.RightDrawer="RightDrawer",j.NewJourney="NewJourney",j.Deferred="Deferred",j.DeferredNewTab="DeferredNewTab",j.DeferredNewWindow="DeferredNewWindow",j.Component="Component",j.Header="Header",j.Footer="Footer",j.Main="Main",j.Left="Left",j.Right="Right",j))(ActionTarget||{});/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -13870,7 +13870,124 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */class GridFilterColumn extends GridColumn{static get is(){return"vaadin-grid-filter-column"}static get properties(){return{path:String,header:String}}static get observers(){return["_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, _filterValue)"]}constructor(){super(),this.__boundOnFilterValueChanged=this.__onFilterValueChanged.bind(this)}_defaultHeaderRenderer(O,F){let U=O.firstElementChild,q=U?U.firstElementChild:void 0;U||(U=document.createElement("vaadin-grid-filter"),q=document.createElement("vaadin-text-field"),q.setAttribute("slot","filter"),q.setAttribute("theme","small"),q.setAttribute("style","max-width: 100%;"),q.setAttribute("focus-target",""),q.addEventListener("value-changed",this.__boundOnFilterValueChanged),U.appendChild(q),O.appendChild(U)),U.path=this.path,U.value=this._filterValue,q.__rendererValue=this._filterValue,q.value=this._filterValue,q.label=this.__getHeader(this.header,this.path)}_computeHeaderRenderer(){return this._defaultHeaderRenderer}__onFilterValueChanged(O){O.detail.value!==O.target.__rendererValue&&(this._filterValue=O.detail.value)}__getHeader(O,F){if(O)return O;if(F)return this._generateHeader(F)}}customElements.define(GridFilterColumn.is,GridFilterColumn);const initialValue={};class AbstractRendererDirective extends i$2{constructor(O){if(super(O),this.previousValue=initialValue,O.type!==t$2.ELEMENT)throw new Error("renderer only supports binding to element")}render(O,F){return A}update(O,[F,U]){var q;const W=this.previousValue===initialValue;if(!this.hasChanged(U))return A;this.previousValue=Array.isArray(U)?Array.from(U):U;const G=O.element;if(W){const K=(q=O.options)===null||q===void 0?void 0:q.host;this.addRenderer(G,F,{host:K})}else this.runRenderer(G);return A}hasChanged(O){let F=!0;return Array.isArray(O)?Array.isArray(this.previousValue)&&this.previousValue.length===O.length&&O.every((U,q)=>U===this.previousValue[q])&&(F=!1):this.previousValue===O&&(F=!1),F}}class DialogRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.renderer=(q,W)=>{D(F.call(U.host,W),q,U)}}runRenderer(O){O.requestContentUpdate()}}const rendererDirective$3=e$3(DialogRendererDirective),dialogRenderer=(j,O)=>rendererDirective$3(j,O);function debounce(j,O){const F=j;F._debounceLitRender=Debouncer.debounce(F._debounceLitRender,microTask$1,O)}class AbstractGridColumnRenderer extends AbstractRendererDirective{runRenderer(O){const F=O._grid;F&&debounce(F,()=>{F.requestContentUpdate()})}}let GridColumnBodyRendererDirective$1=class extends AbstractGridColumnRenderer{addRenderer(O,F,U){O.renderer=(q,W,G)=>{G&&D(F.call(U.host,G.item,G,W),q,U)}}};const rendererDirective$2=e$3(GridColumnBodyRendererDirective$1),columnBodyRenderer$1=(j,O)=>rendererDirective$2(j,O);class GridRowDetailsRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.rowDetailsRenderer=(q,W,G)=>{if(G){const K=G.item;D(F.call(U.host,K,G,W),q,U)}}}runRenderer(O){debounce(O,()=>{O.requestContentUpdate()})}}const rendererDirective$1=e$3(GridRowDetailsRendererDirective),gridRowDetailsRenderer=(j,O)=>rendererDirective$1(j,O);class NotificationRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.renderer=(q,W)=>{D(F.call(U.host,W),q,U)}}runRenderer(O){O.requestContentUpdate()}}const rendererDirective=e$3(NotificationRendererDirective),notificationRenderer=(j,O)=>rendererDirective(j,O);var __defProp$k=Object.defineProperty,__getOwnPropDesc$k=Object.getOwnPropertyDescriptor,__decorateClass$k=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$k(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$k(O,F,q),q};let FieldCrud=class extends s$1{constructor(){super(...arguments),this.required=!1,this.baseUrl="",this.label="",this.placeholder="",this.name="",this.onChange=j=>{const O=j.target;this.onValueChanged({fieldId:this.field.id,value:O.value})},this.enabled=!0,this.selectedItems=[],this.dialogOpened=!1,this.selectedItem={},this.selectedIndex=-1,this.mapField=(j,O,F)=>x`
+ */class GridFilterColumn extends GridColumn{static get is(){return"vaadin-grid-filter-column"}static get properties(){return{path:String,header:String}}static get observers(){return["_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, _filterValue)"]}constructor(){super(),this.__boundOnFilterValueChanged=this.__onFilterValueChanged.bind(this)}_defaultHeaderRenderer(O,F){let U=O.firstElementChild,q=U?U.firstElementChild:void 0;U||(U=document.createElement("vaadin-grid-filter"),q=document.createElement("vaadin-text-field"),q.setAttribute("slot","filter"),q.setAttribute("theme","small"),q.setAttribute("style","max-width: 100%;"),q.setAttribute("focus-target",""),q.addEventListener("value-changed",this.__boundOnFilterValueChanged),U.appendChild(q),O.appendChild(U)),U.path=this.path,U.value=this._filterValue,q.__rendererValue=this._filterValue,q.value=this._filterValue,q.label=this.__getHeader(this.header,this.path)}_computeHeaderRenderer(){return this._defaultHeaderRenderer}__onFilterValueChanged(O){O.detail.value!==O.target.__rendererValue&&(this._filterValue=O.detail.value)}__getHeader(O,F){if(O)return O;if(F)return this._generateHeader(F)}}customElements.define(GridFilterColumn.is,GridFilterColumn);registerStyles("vaadin-grid-sorter",i$4`
+    :host {
+      justify-content: flex-start;
+      align-items: baseline;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      cursor: var(--lumo-clickable-cursor);
+    }
+
+    [part='content'] {
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    [part='indicators'] {
+      margin-left: var(--lumo-space-s);
+    }
+
+    [part='indicators']::before {
+      transform: scale(0.8);
+    }
+
+    :host(:not([direction]):not(:hover)) [part='indicators'] {
+      color: var(--lumo-tertiary-text-color);
+    }
+
+    :host([direction]) {
+      color: var(--lumo-primary-text-color);
+    }
+
+    [part='order'] {
+      font-size: var(--lumo-font-size-xxs);
+      line-height: 1;
+    }
+
+    /* RTL specific styles */
+
+    :host([dir='rtl']) [part='indicators'] {
+      margin-right: var(--lumo-space-s);
+      margin-left: 0;
+    }
+  `,{moduleId:"lumo-grid-sorter"});/**
+ * @license
+ * Copyright (c) 2000 - 2024 Vaadin Ltd.
+ *
+ * This program is available under Vaadin Commercial License and Service Terms.
+ *
+ *
+ * See https://vaadin.com/commercial-license-and-service-terms for the full
+ * license.
+ */const template$2=document.createElement("template");template$2.innerHTML=`
+  <style>
+    @font-face {
+      font-family: 'vaadin-grid-sorter-icons';
+      src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAAAQwAA0AAAAABuwAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAAEFAAAABkAAAAcfep+mUdERUYAAAP4AAAAHAAAAB4AJwAOT1MvMgAAAZgAAAA/AAAAYA8TBPpjbWFwAAAB7AAAAFUAAAFeF1fZ4mdhc3AAAAPwAAAACAAAAAgAAAAQZ2x5ZgAAAlgAAABcAAAAnMvguMloZWFkAAABMAAAAC8AAAA2C5Ap72hoZWEAAAFgAAAAHQAAACQGbQPHaG10eAAAAdgAAAAUAAAAHAoAAABsb2NhAAACRAAAABIAAAASAIwAYG1heHAAAAGAAAAAFgAAACAACwAKbmFtZQAAArQAAAECAAACZxWCgKhwb3N0AAADuAAAADUAAABZCrApUXicY2BkYGAA4rDECVrx/DZfGbhZGEDgyqNPOxH0/wNMq5kPALkcDEwgUQBWRA0dAHicY2BkYGA+8P8AAwMLAwgwrWZgZEAFbABY4QM8AAAAeJxjYGRgYOAAQiYGEICQSAAAAi8AFgAAeJxjYGY6yziBgZWBgWkm0xkGBoZ+CM34msGYkZMBFTAKoAkwODAwvmRiPvD/AIMDMxCD1CDJKjAwAgBktQsXAHicY2GAAMZQCM0EwqshbAALxAEKeJxjYGBgZoBgGQZGBhCIAPIYwXwWBhsgzcXAwcAEhIwMCi+Z/v/9/x+sSuElA4T9/4k4K1gHFwMMMILMY2QDYmaoABOQYGJABUA7WBiGNwAAJd4NIQAAAAAAAAAACAAIABAAGAAmAEAATgAAeJyNjLENgDAMBP9tIURJwQCMQccSZgk2i5fIYBDAidJjycXr7x5EPwE2wY8si7jmyBNXGo/bNBerxJNrpxhbO3/fEFpx8ZICpV+ghxJ74fAMe+h7Ox14AbrsHB14nK2QQWrDMBRER4mTkhQK3ZRQKOgCNk7oGQqhhEIX2WSlWEI1BAlkJ5CDdNsj5Ey9Rncdi38ES+jzNJo/HwTgATcoDEthhY3wBHc4CE+pfwsX5F/hGe7Vo/AcK/UhvMSz+mGXKhZU6pww8ISz3oWn1BvhgnwTnuEJf8Jz1OpFeIlX9YULDLdFi4ASHolkSR0iuYdjLak1vAequBhj21D61Nqyi6l3qWybGPjySbPHGScGJl6dP58MYcQRI0bts7mjebBqrFENH7t3qWtj0OuqHnXcW7b0HOTZFnKryRGW2hFX1m0O2vEM3opNMfTau+CS6Z3Vx6veNnEXY6jwDxhsc2gAAHicY2BiwA84GBgYmRiYGJkZmBlZGFkZ2djScyoLMgzZS/MyDQwMwLSrpYEBlIbxjQDrzgsuAAAAAAEAAf//AA94nGNgZGBg4AFiMSBmYmAEQnYgZgHzGAAD6wA2eJxjYGBgZACCKyoz1cD0o087YTQATOcIewAAAA==) format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+`;document.head.appendChild(template$2.content);class GridSorter extends ThemableMixin(DirMixin$1(PolymerElement)){static get template(){return html`
+      <style>
+        :host {
+          display: inline-flex;
+          cursor: pointer;
+          max-width: 100%;
+        }
+
+        [part='content'] {
+          flex: 1 1 auto;
+        }
+
+        [part='indicators'] {
+          position: relative;
+          align-self: center;
+          flex: none;
+        }
+
+        [part='order'] {
+          display: inline;
+          vertical-align: super;
+        }
+
+        [part='indicators']::before {
+          font-family: 'vaadin-grid-sorter-icons';
+          display: inline-block;
+        }
+
+        :host(:not([direction])) [part='indicators']::before {
+          content: '\\e901';
+        }
+
+        :host([direction='asc']) [part='indicators']::before {
+          content: '\\e900';
+        }
+
+        :host([direction='desc']) [part='indicators']::before {
+          content: '\\e902';
+        }
+      </style>
+
+      <div part="content">
+        <slot></slot>
+      </div>
+      <div part="indicators">
+        <span part="order">[[_getDisplayOrder(_order)]]</span>
+      </div>
+    `}static get is(){return"vaadin-grid-sorter"}static get properties(){return{path:String,direction:{type:String,reflectToAttribute:!0,notify:!0,value:null},_order:{type:Number,value:null},_isConnected:{type:Boolean,observer:"__isConnectedChanged"}}}static get observers(){return["_pathOrDirectionChanged(path, direction)"]}ready(){super.ready(),this.addEventListener("click",this._onClick.bind(this))}connectedCallback(){super.connectedCallback(),this._isConnected=!0}disconnectedCallback(){super.disconnectedCallback(),this._isConnected=!1,!this.parentNode&&this._grid&&this._grid.__removeSorters([this])}_pathOrDirectionChanged(){this.__dispatchSorterChangedEvenIfPossible()}__isConnectedChanged(O,F){F!==!1&&this.__dispatchSorterChangedEvenIfPossible()}__dispatchSorterChangedEvenIfPossible(){this.path===void 0||this.direction===void 0||!this._isConnected||(this.dispatchEvent(new CustomEvent("sorter-changed",{detail:{shiftClick:!!this._shiftClick,fromSorterClick:!!this._fromSorterClick},bubbles:!0,composed:!0})),this._fromSorterClick=!1,this._shiftClick=!1)}_getDisplayOrder(O){return O===null?"":O+1}_onClick(O){if(O.defaultPrevented)return;const F=this.getRootNode().activeElement;this!==F&&this.contains(F)||(O.preventDefault(),this._shiftClick=O.shiftKey,this._fromSorterClick=!0,this.direction==="asc"?this.direction="desc":this.direction==="desc"?this.direction=null:this.direction="asc")}}customElements.define(GridSorter.is,GridSorter);/**
+ * @license
+ * Copyright (c) 2000 - 2024 Vaadin Ltd.
+ *
+ * This program is available under Vaadin Commercial License and Service Terms.
+ *
+ *
+ * See https://vaadin.com/commercial-license-and-service-terms for the full
+ * license.
+ */class GridSortColumn extends GridColumn{static get is(){return"vaadin-grid-sort-column"}static get properties(){return{path:String,direction:{type:String,notify:!0}}}static get observers(){return["_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, direction)"]}constructor(){super(),this.__boundOnDirectionChanged=this.__onDirectionChanged.bind(this)}_defaultHeaderRenderer(O,F){let U=O.firstElementChild;U||(U=document.createElement("vaadin-grid-sorter"),U.addEventListener("direction-changed",this.__boundOnDirectionChanged),O.appendChild(U)),U.path=this.path,U.__rendererDirection=this.direction,U.direction=this.direction,U.textContent=this.__getHeader(this.header,this.path)}_computeHeaderRenderer(){return this._defaultHeaderRenderer}__onDirectionChanged(O){O.detail.value!==O.target.__rendererDirection&&(this.direction=O.detail.value)}__getHeader(O,F){if(O)return O;if(F)return this._generateHeader(F)}}customElements.define(GridSortColumn.is,GridSortColumn);const initialValue={};class AbstractRendererDirective extends i$2{constructor(O){if(super(O),this.previousValue=initialValue,O.type!==t$2.ELEMENT)throw new Error("renderer only supports binding to element")}render(O,F){return A}update(O,[F,U]){var q;const W=this.previousValue===initialValue;if(!this.hasChanged(U))return A;this.previousValue=Array.isArray(U)?Array.from(U):U;const G=O.element;if(W){const K=(q=O.options)===null||q===void 0?void 0:q.host;this.addRenderer(G,F,{host:K})}else this.runRenderer(G);return A}hasChanged(O){let F=!0;return Array.isArray(O)?Array.isArray(this.previousValue)&&this.previousValue.length===O.length&&O.every((U,q)=>U===this.previousValue[q])&&(F=!1):this.previousValue===O&&(F=!1),F}}class DialogRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.renderer=(q,W)=>{D(F.call(U.host,W),q,U)}}runRenderer(O){O.requestContentUpdate()}}const rendererDirective$3=e$3(DialogRendererDirective),dialogRenderer=(j,O)=>rendererDirective$3(j,O);function debounce(j,O){const F=j;F._debounceLitRender=Debouncer.debounce(F._debounceLitRender,microTask$1,O)}class AbstractGridColumnRenderer extends AbstractRendererDirective{runRenderer(O){const F=O._grid;F&&debounce(F,()=>{F.requestContentUpdate()})}}let GridColumnBodyRendererDirective$1=class extends AbstractGridColumnRenderer{addRenderer(O,F,U){O.renderer=(q,W,G)=>{G&&D(F.call(U.host,G.item,G,W),q,U)}}};const rendererDirective$2=e$3(GridColumnBodyRendererDirective$1),columnBodyRenderer$1=(j,O)=>rendererDirective$2(j,O);class GridRowDetailsRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.rowDetailsRenderer=(q,W,G)=>{if(G){const K=G.item;D(F.call(U.host,K,G,W),q,U)}}}runRenderer(O){debounce(O,()=>{O.requestContentUpdate()})}}const rendererDirective$1=e$3(GridRowDetailsRendererDirective),gridRowDetailsRenderer=(j,O)=>rendererDirective$1(j,O);class NotificationRendererDirective extends AbstractRendererDirective{addRenderer(O,F,U){O.renderer=(q,W)=>{D(F.call(U.host,W),q,U)}}runRenderer(O){O.requestContentUpdate()}}const rendererDirective=e$3(NotificationRendererDirective),notificationRenderer=(j,O)=>rendererDirective(j,O);var __defProp$k=Object.defineProperty,__getOwnPropDesc$k=Object.getOwnPropertyDescriptor,__decorateClass$k=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$k(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$k(O,F,q),q};let FieldCrud=class extends s$1{constructor(){super(...arguments),this.required=!1,this.baseUrl="",this.label="",this.placeholder="",this.name="",this.onChange=j=>{const O=j.target;this.onValueChanged({fieldId:this.field.id,value:O.value})},this.enabled=!0,this.selectedItems=[],this.dialogOpened=!1,this.selectedItem={},this.selectedIndex=-1,this.mapField=(j,O,F)=>x`
           ${j.type!="enum"&&j.type!="boolean"&&j.type!="int"&&j.type!="DatesRange"&&j.type!="ExternalReference"?x`
             <vaadin-text-field id="${j.id}" label="${j.caption}"
                                value="${this.getFieldValue(j.id)}"
@@ -13938,7 +14055,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <vaadin-button id="movenext" @click=${this.moveNext} ?disabled=${this.selectedIndex==-1||this.selectedIndex>=this.value.length-1}><vaadin-icon icon="vaadin:arrow-down"></vaadin-button>
     <vaadin-button @click="${this.close}">Cancel</vaadin-button>
     <vaadin-button theme="primary" @click="${this.save}">Save</vaadin-button>
-  `}isInvalid(){}setRequired(j){this.required=j}setField(j){this.field=j}setLabel(j){this.label=j}setPlaceholder(j){this.placeholder=j}setPattern(){}setEnabled(j){this.enabled=j}onValueChanged(j){}setValue(j){this.value=j}setBaseUrl(j){this.baseUrl=j}delete(){var j;this.selectedItems.length>0&&(this.value=(j=this.value)==null?void 0:j.filter(O=>O!==this.selectedItems[0])),this.selectedItems=[],this.onValueChanged({fieldId:this.field.id,value:this.value})}getFieldValue(j){return this.selectedItem[j]}setFieldValue(j,O){this.selectedItem[j]=O}moveNext(){this.selectedIndex++,this.selectedItem=this.value[this.selectedIndex],this.updateForm()}updateForm(){setTimeout(()=>{var j,O,F,U,q,W;(j=this.field)==null||j.attributes.filter(G=>G.key=="column").map(G=>G.value).forEach(G=>{if(document.getElementById(G.id)){const K=document.getElementById(G.id);G.type=="boolean"?K.checked=this.getFieldValue(G.id):K.value=this.getFieldValue(G.id)}}),this.selectedIndex<=0?(O=document.getElementById("moveprev"))==null||O.setAttribute("disabled",""):(F=document.getElementById("moveprev"))==null||F.removeAttribute("disabled"),this.selectedIndex==-1||this.selectedIndex>=((U=this.value)==null?void 0:U.length)-1?(q=document.getElementById("movenext"))==null||q.setAttribute("disabled",""):(W=document.getElementById("movenext"))==null||W.removeAttribute("disabled")})}movePrev(){this.selectedIndex--,this.selectedItem=this.value[this.selectedIndex],this.updateForm()}save(){var j;this.selectedIndex>=0?this.value=(j=this.value)==null?void 0:j.map((O,F)=>F==this.selectedIndex?this.selectedItem:O):this.value?this.value=[].concat(this.value,this.selectedItem):this.value=Array.of(this.selectedItem),this.onValueChanged({fieldId:this.field.id,value:this.value}),this.close()}new(){this.selectedItem={},this.selectedIndex=-1,this.dialogOpened=!0,this.updateForm()}close(){this.dialogOpened=!1}edit(j){const O=j.currentTarget;this.selectedIndex=O.index.index,this.selectedItem=O.row,this.dialogOpened=!0}render(){var j;return x`
+  `}isInvalid(){}setRequired(j){this.required=j}setField(j){this.field=j}setLabel(j){this.label=j}setPlaceholder(j){this.placeholder=j}setPattern(){}setEnabled(j){this.enabled=j}onValueChanged(j){}setValue(j){this.value=j}setBaseUrl(j){this.baseUrl=j}delete(){var j;this.selectedItems.length>0&&(this.value=(j=this.value)==null?void 0:j.filter(O=>O!==this.selectedItems[0])),this.selectedItems=[],this.onValueChanged({fieldId:this.field.id,value:this.value})}getFieldValue(j){return this.selectedItem[j]}setFieldValue(j,O){this.selectedItem[j]=O}moveNext(){this.selectedIndex++,this.selectedItem=this.value[this.selectedIndex],this.updateForm()}updateForm(){setTimeout(()=>{var j,O,F,U,q,W;(j=this.field)==null||j.attributes.filter(G=>G.key=="column").map(G=>G.value).forEach(G=>{if(document.getElementById(G.id)){const K=document.getElementById(G.id);G.type=="boolean"?K.checked=this.getFieldValue(G.id):K.value=this.getFieldValue(G.id)}}),this.selectedIndex<=0?(O=document.getElementById("moveprev"))==null||O.setAttribute("disabled",""):(F=document.getElementById("moveprev"))==null||F.removeAttribute("disabled"),this.selectedIndex==-1||this.selectedIndex>=((U=this.value)==null?void 0:U.length)-1?(q=document.getElementById("movenext"))==null||q.setAttribute("disabled",""):(W=document.getElementById("movenext"))==null||W.removeAttribute("disabled")})}movePrev(){this.selectedIndex--,this.selectedItem=this.value[this.selectedIndex],this.updateForm()}save(){var j;this.selectedIndex>=0?this.value=(j=this.value)==null?void 0:j.map((O,F)=>F==this.selectedIndex?this.selectedItem:O):this.value?this.value=[].concat(this.value,this.selectedItem):this.value=Array.of(this.selectedItem),this.onValueChanged({fieldId:this.field.id,value:this.value}),this.close()}new(){this.selectedItem={},this.selectedIndex=-1,this.dialogOpened=!0,this.updateForm()}close(){this.dialogOpened=!1}edit(j){const O=j.currentTarget;this.selectedIndex=O.index.index,this.selectedItem=O.row,this.dialogOpened=!0}render(){var F,U,q,W,G;const j=(F=this.field)==null?void 0:F.attributes.filter(K=>K.key=="searchable").length,O=(U=this.field)==null?void 0:U.attributes.filter(K=>K.key=="editable").length;return x`
 
             <vaadin-custom-field
                     label="${this.label}"
@@ -13946,40 +14063,56 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     ?required=${this.required}
                     placeholder="${this.placeholder}"
             >
+                ${(q=this.value)!=null&&q.length?x`
                 <vaadin-grid .items="${this.value}"
                              .selectedItems="${this.selectedItems}"
-                             @active-item-changed="${O=>{const F=O.detail.value;this.selectedItems=F?[F]:[]}}"
+                             @active-item-changed="${K=>{const Y=K.detail.value;this.selectedItems=Y?[Y]:[]}}"
+                             all-rows-visible
+                             class="${(W=this.value)!=null&&W.length?"":"no-rows"}"
                 >
-                    ${(j=this.field)==null?void 0:j.attributes.filter(O=>O.key=="column").map(O=>O.value).map(O=>x`
-                        <vaadin-grid-filter-column path="${O.id}" resizable></vaadin-grid-filter-column>
+                        ${(G=this.field)==null?void 0:G.attributes.filter(K=>K.key=="column").map(K=>K.value).map(K=>x`
+                                                        ${j?x`
+                                                            <vaadin-grid-filter-column path="${K.id}" resizable></vaadin-grid-filter-column>
+`:x`
+                                                            <vaadin-grid-sort-column path="${K.id}" resizable></vaadin-grid-sort-column>
+                                                        `}
                     `)}
-                    <vaadin-grid-column
-                            frozen-to-end
-                            auto-width
-                            flex-grow="0"
-                            ${columnBodyRenderer$1((O,F)=>x`
+                    ${O?x`
+                        <vaadin-grid-column
+                                frozen-to-end
+                                auto-width
+                                flex-grow="0"
+                                ${columnBodyRenderer$1((K,Y)=>x`
                                         <vaadin-button theme="tertiary-inline" 
-                                                       .index="${F}" 
-                                                       .row="${O}" 
+                                                       .index="${Y}" 
+                                                       .row="${K}" 
                                                        @click="${this.edit}" 
                                         >Edit</vaadin-button>`,[])}
-                    ></vaadin-grid-column>
+                        ></vaadin-grid-column>
+                    `:""}
                 </vaadin-grid>
-                <div class="toolbar">
-                    <vaadin-horizontal-layout class="botones">
-                        <div class="delete-button">
-                            <vaadin-button theme="tertiary error" ?disabled="${!this.selectedItems.length}"
-                                           @click="${this.delete}">Delete...</vaadin-button>
-                        </div>
-                        <vaadin-button theme="primary" @click="${this.new}">New item</vaadin-button>
-                    </vaadin-horizontal-layout>
-                </div>
+                `:x`
+                    <div class="no-rows">
+                        No value
+                    </div>
+                `}
+                ${O?x`
+                    <div class="toolbar">
+                        <vaadin-horizontal-layout class="botones">
+                            <div class="delete-button">
+                                <vaadin-button theme="tertiary error" ?disabled="${!this.selectedItems.length}"
+                                               @click="${this.delete}">Delete...</vaadin-button>
+                            </div>
+                            <vaadin-button theme="primary" @click="${this.new}">New item</vaadin-button>
+                        </vaadin-horizontal-layout>
+                    </div>
+                `:""}
             </vaadin-custom-field>
 
             <vaadin-dialog
                     header-title="New ${this.label}"
                     .opened="${this.dialogOpened}"
-                    @opened-changed="${O=>{this.dialogOpened=O.detail.value}}"
+                    @opened-changed="${K=>{this.dialogOpened=K.detail.value}}"
                     ${dialogRenderer$1(this.renderDialog,[])}
                     ${dialogFooterRenderer(this.renderFooter,[])}
             ></vaadin-dialog>
@@ -13999,6 +14132,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             flex-shrink: 0;
             align-items: baseline;
             justify-content: flex-end;
+        }
+        
+        .no-rows {
+            padding: var(--lumo-space-s) var(--lumo-space-m);
+            border: 1px solid var(--lumo-contrast-10pct);
+
+            display: flex;
+            flex-shrink: 0;
+            align-items: baseline;
+            justify-content: center;
         }
         
         .botones {
@@ -14805,7 +14948,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const template$2=document.createElement("template");template$2.innerHTML=`
+ */const template$1=document.createElement("template");template$1.innerHTML=`
   <style>
     @font-face {
       font-family: 'vaadin-rte-icons';
@@ -14827,7 +14970,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       --vaadin-rte-icons-undo: "\\ea0a";
     }
   </style>
-`;document.head.appendChild(template$2.content);const iconsStyles=i$4`
+`;document.head.appendChild(template$1.content);const iconsStyles=i$4`
   [part~='toolbar-button-align-center']::before {
     content: var(--vaadin-rte-icons-align-center);
   }
@@ -15911,7 +16054,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const template$1=document.createElement("template");template$1.innerHTML=`<vaadin-iconset name="lumo" size="1000">
+ */const template=document.createElement("template");template.innerHTML=`<vaadin-iconset name="lumo" size="1000">
 <svg xmlns="http://www.w3.org/2000/svg">
 <defs>
 <g id="lumo:align-center"><path d="M167 217c0-18 17-33 38-34H795c21 0 38 15 38 34 0 18-17 33-38 33H205C184 250 167 235 167 217z m83 191c0-18 13-33 29-33H721c16 0 29 15 29 33 0 18-13 33-29 34H279C263 442 250 427 250 408zM250 792c0-18 13-33 29-34H721c16 0 29 15 29 34s-13 33-29 33H279C263 825 250 810 250 792z m-83-192c0-18 17-33 38-33H795c21 0 38 15 38 33s-17 33-38 33H205C184 633 167 618 167 600z" fill-rule="evenodd" clip-rule="evenodd"></path></g>
@@ -15958,7 +16101,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <g id="lumo:user"><path d="M500 500c-69 0-125-56-125-125s56-125 125-125 125 56 125 125-56 125-125 125z m-292 292c0-115 131-208 292-209s292 93 292 209H208z"></path></g>
 </defs>
 </svg>
-</vaadin-iconset>`;document.head.appendChild(template$1.content);var BadgeTheme=(j=>(j.NONE="NONE",j.INFO="INFO",j.SUCCESS="SUCCESS",j.WARNING="WARNING",j.DANGER="DANGER",j.CONTRAST="CONTRAST",j.SECONDARY="SECONDARY",j.LIGHT="LIGHT",j))(BadgeTheme||{});class ActionsMap{constructor(){this.map=new Map}}var StatusType=(j=>(j.NONE="NONE",j.INFO="INFO",j.SUCCESS="SUCCESS",j.WARNING="WARNING",j.DANGER="DANGER",j))(StatusType||{}),ActionPosition=(j=>(j.Left="Left",j.Right="Right",j))(ActionPosition||{}),__defProp$9=Object.defineProperty,__getOwnPropDesc$9=Object.getOwnPropertyDescriptor,__decorateClass$9=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$9(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$9(O,F,q),q};let MateuForm=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.notificationOpened=!1,this.notificationMessage="",this.fieldsMap=new FieldsMap,this.actionsMap=new ActionsMap,this.confirmationOpened=!1,this.activeTab="",this.closeConfirmation=()=>{this.confirmationOpened=!1},this.confirmationAction=()=>{},this.runConfirmedAction=()=>{this.confirmationAction(),this.confirmationOpened=!1},this.renderNotification=()=>x`${this.notificationMessage}`,this.editFieldListener=async j=>{const F=j.detail.fieldId;await this.doRunActionId("__editfield__"+F)},this.tabChanged=j=>{this.activeTab=this.metadata.tabs[j.detail.value].id,console.log("tab changed to",this.activeTab)},this.getSelectedTabIndex=()=>this.metadata.tabs.findIndex(O=>O.active)}getFieldWrapper(j){return this.fieldsMap.map.get(j)}valueChanged(j,O){const F={};F[j]=O,this.valueChangedKey=j,this.data={...this.data,...F};try{this.runRules()}catch(U){console.log(U)}this.valueChangedKey=void 0}getValue(j){return this.data[j]}runRules(){this.metadata.actions.map(j=>j.id).map(j=>this.actionsMap.map.get(j)).forEach(j=>{j&&(j.style.display="",j.disabled=!1)}),this.metadata.mainActions.map(j=>j.id).map(j=>this.actionsMap.map.get(j)).forEach(j=>{j&&(j.style.display="",j.disabled=!1)}),this.metadata.sections.flatMap(j=>j.fieldGroups).flatMap(j=>j.lines).flatMap(j=>j.fields).map(j=>this.fieldsMap.map.get(j)).filter(j=>j).forEach(j=>{j.setVisible(!0),j.setEnabled(!0)});for(const j of this.rules)if(this.applyRule(j)&&j.result=="Stop")break}hasChanged(j){return j==this.valueChangedKey}applyRule(r){try{const applies=eval(this.buildJs(r.filter));if(applies){if(r.action=="Hide"){const j=r.data;this.metadata.sections.flatMap(O=>O.fieldGroups).flatMap(O=>O.lines).flatMap(O=>O.fields).filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.fieldsMap.map.get(O)).forEach(O=>{O.setVisible(!1)})}if(r.action=="Disable"){const j=r.data;this.metadata.sections.flatMap(O=>O.fieldGroups).flatMap(O=>O.lines).flatMap(O=>O.fields).filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.fieldsMap.map.get(O)).forEach(O=>{O.setEnabled(!1)})}if(r.action=="RunAction"){const j=r.data;this.doRunActionId(j)}if(r.action=="HideAction"){const j=r.data;this.metadata.actions.filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.actionsMap.map.get(O.id)).forEach(O=>{O.style.display="none"})}if(r.action=="DisableAction"){const j=r.data;this.metadata.actions.filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.actionsMap.map.get(O.id)).forEach(O=>{O.disabled=!0})}return!0}}catch(j){}return!1}buildJs(j){let O="";for(let F in this.data)O+="const "+F+' = this.getValue("'+F+'");';return O+=""+j,O=O.replace("hasChanged(","this.hasChanged("),O}async updated(j){j.has("metadata")&&this.setUp()}setUp(){this.activeTab=this.metadata.tabs.length>0?this.metadata.tabs.filter(j=>j.active).map(j=>j.id)[0]:"",this.metadata.sections.flatMap(j=>j.fieldGroups).flatMap(j=>j.lines).flatMap(j=>j.fields).forEach(j=>this.fieldsMap.map.set(j,new FieldWrapper(j))),this.metadata.actions.map(j=>j.id).forEach(j=>{const O=this.renderRoot.querySelector('vaadin-button[actionid="'+j+'"]');this.actionsMap.map.set(j,O)}),this.metadata.mainActions.map(j=>j.id).forEach(j=>{const O=this.renderRoot.querySelector('vaadin-button[actionid="'+j+'"]');this.actionsMap.map.set(j,O)}),this.metadata.actions.filter(j=>j.timeoutMillis).forEach(j=>{setTimeout(()=>{this.askForActionRun(j)},j.timeoutMillis)}),this.metadata.mainActions.filter(j=>j.timeoutMillis).forEach(j=>{setTimeout(()=>{this.askForActionRun(j)},j.timeoutMillis)}),setTimeout(()=>this.runRules())}connectedCallback(){super.connectedCallback(),this.setUp(),this.addEventListener("edit-field",this.editFieldListener)}disconnectedCallback(){this.removeEventListener("edit-field",this.editFieldListener),super.disconnectedCallback()}async runAction(j){const F=j.target.getAttribute("actionId");if(!F){console.log("Attribute actionId is missing for "+j.target);return}setTimeout(async()=>{await this.doRunActionId(F)})}async captureRunActionEvent(j){await this.doRunAction(j.detail.action)}async doRunActionId(j){var F;const O=this.findAction(j);O?await this.doRunAction(O):this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.componentId,componentType:(F=this.component)==null?void 0:F.className,actionId:j,action:void 0,data:{...this.data,__activeTabId:this.activeTab}},bubbles:!0,composed:!0}))}async doRunAction(j){if(j!=null&&j.validationRequired){const F=this.metadata.sections.flatMap(U=>U.fieldGroups.flatMap(q=>q.lines).flatMap(q=>q.fields)).map(U=>this.getFieldWrapper(U)).filter(U=>{var q;return(q=U==null?void 0:U.component)==null?void 0:q.isInvalid()}).map(U=>U==null?void 0:U.field);if(F.length){const U=F.map(q=>q==null?void 0:q.caption);this.notificationMessage="Several fields have errors ("+U+"). Please fix.",this.notificationOpened=!0,setTimeout(()=>this.notificationOpened=!1,3e3);return}}j!=null&&j.confirmationRequired?(this.confirmationAction=async()=>{this.askForActionRun(j)},this.confirmationTexts=j.confirmationTexts,this.confirmationOpened=!0):this.askForActionRun(j)}askForActionRun(j){var O;this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.componentId,componentType:(O=this.component)==null?void 0:O.className,actionId:j.id,action:j,data:{...this.data,__activeTabId:this.activeTab}},bubbles:!0,composed:!0}))}findAction(j){let O=this.metadata.actions.find(F=>F.id.endsWith("__"+j)||F.id==j);return O||(O=this.metadata.mainActions.find(F=>F.id.endsWith("__"+j)||F.id==j)),O}buildItemsForActions(j){const O=j.map(F=>({text:F.caption,action:F}));return[{component:this.createRootActionsComponent(),children:O}]}actionItemSelected(j){setTimeout(async()=>{await this.doRunActionId(j.detail.value.action.id)})}createRootActionsComponent(){const j=document.createElement("vaadin-menu-bar-item"),O=document.createElement("vaadin-icon");return j.setAttribute("aria-label","Other save options"),O.setAttribute("icon","vaadin:ellipsis-dots-v"),j.appendChild(O),j}render(){var j;return x`
+</vaadin-iconset>`;document.head.appendChild(template.content);var BadgeTheme=(j=>(j.NONE="NONE",j.INFO="INFO",j.SUCCESS="SUCCESS",j.WARNING="WARNING",j.DANGER="DANGER",j.CONTRAST="CONTRAST",j.SECONDARY="SECONDARY",j.LIGHT="LIGHT",j))(BadgeTheme||{});class ActionsMap{constructor(){this.map=new Map}}var StatusType=(j=>(j.NONE="NONE",j.INFO="INFO",j.SUCCESS="SUCCESS",j.WARNING="WARNING",j.DANGER="DANGER",j))(StatusType||{}),ActionPosition=(j=>(j.Left="Left",j.Right="Right",j))(ActionPosition||{}),__defProp$9=Object.defineProperty,__getOwnPropDesc$9=Object.getOwnPropertyDescriptor,__decorateClass$9=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$9(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$9(O,F,q),q};let MateuForm=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.notificationOpened=!1,this.notificationMessage="",this.fieldsMap=new FieldsMap,this.actionsMap=new ActionsMap,this.confirmationOpened=!1,this.activeTab="",this.closeConfirmation=()=>{this.confirmationOpened=!1},this.confirmationAction=()=>{},this.runConfirmedAction=()=>{this.confirmationAction(),this.confirmationOpened=!1},this.renderNotification=()=>x`${this.notificationMessage}`,this.editFieldListener=async j=>{const F=j.detail.fieldId;await this.doRunActionId("__editfield__"+F)},this.tabChanged=j=>{this.activeTab=this.metadata.tabs[j.detail.value].id,console.log("tab changed to",this.activeTab)},this.getSelectedTabIndex=()=>this.metadata.tabs.findIndex(O=>O.active)}getFieldWrapper(j){return this.fieldsMap.map.get(j)}valueChanged(j,O){const F={};F[j]=O,this.valueChangedKey=j,this.data={...this.data,...F};try{this.runRules()}catch(U){console.log(U)}this.valueChangedKey=void 0}getValue(j){return this.data[j]}runRules(){this.metadata.actions.map(j=>j.id).map(j=>this.actionsMap.map.get(j)).forEach(j=>{j&&(j.style.display="",j.disabled=!1)}),this.metadata.mainActions.map(j=>j.id).map(j=>this.actionsMap.map.get(j)).forEach(j=>{j&&(j.style.display="",j.disabled=!1)}),this.metadata.sections.flatMap(j=>j.fieldGroups).flatMap(j=>j.lines).flatMap(j=>j.fields).map(j=>this.fieldsMap.map.get(j)).filter(j=>j).forEach(j=>{j.setVisible(!0),j.setEnabled(!0)});for(const j of this.rules)if(this.applyRule(j)&&j.result=="Stop")break}hasChanged(j){return j==this.valueChangedKey}applyRule(r){try{const applies=eval(this.buildJs(r.filter));if(applies){if(r.action=="Hide"){const j=r.data;this.metadata.sections.flatMap(O=>O.fieldGroups).flatMap(O=>O.lines).flatMap(O=>O.fields).filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.fieldsMap.map.get(O)).forEach(O=>{O.setVisible(!1)})}if(r.action=="Disable"){const j=r.data;this.metadata.sections.flatMap(O=>O.fieldGroups).flatMap(O=>O.lines).flatMap(O=>O.fields).filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.fieldsMap.map.get(O)).forEach(O=>{O.setEnabled(!1)})}if(r.action=="RunAction"){const j=r.data;this.doRunActionId(j)}if(r.action=="HideAction"){const j=r.data;this.metadata.actions.filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.actionsMap.map.get(O.id)).forEach(O=>{O.style.display="none"})}if(r.action=="DisableAction"){const j=r.data;this.metadata.actions.filter(O=>j==null?void 0:j.includes(O.id)).map(O=>this.actionsMap.map.get(O.id)).forEach(O=>{O.disabled=!0})}return!0}}catch(j){}return!1}buildJs(j){let O="";for(let F in this.data)O+="const "+F+' = this.getValue("'+F+'");';return O+=""+j,O=O.replace("hasChanged(","this.hasChanged("),O}async updated(j){j.has("metadata")&&this.setUp()}setUp(){this.activeTab=this.metadata.tabs.length>0?this.metadata.tabs.filter(j=>j.active).map(j=>j.id)[0]:"",this.metadata.sections.flatMap(j=>j.fieldGroups).flatMap(j=>j.lines).flatMap(j=>j.fields).forEach(j=>this.fieldsMap.map.set(j,new FieldWrapper(j))),this.metadata.actions.map(j=>j.id).forEach(j=>{const O=this.renderRoot.querySelector('vaadin-button[actionid="'+j+'"]');this.actionsMap.map.set(j,O)}),this.metadata.mainActions.map(j=>j.id).forEach(j=>{const O=this.renderRoot.querySelector('vaadin-button[actionid="'+j+'"]');this.actionsMap.map.set(j,O)}),this.metadata.actions.filter(j=>j.timeoutMillis).forEach(j=>{setTimeout(()=>{this.askForActionRun(j)},j.timeoutMillis)}),this.metadata.mainActions.filter(j=>j.timeoutMillis).forEach(j=>{setTimeout(()=>{this.askForActionRun(j)},j.timeoutMillis)}),setTimeout(()=>this.runRules())}connectedCallback(){super.connectedCallback(),this.setUp(),this.addEventListener("edit-field",this.editFieldListener)}disconnectedCallback(){this.removeEventListener("edit-field",this.editFieldListener),super.disconnectedCallback()}async runAction(j){const F=j.target.getAttribute("actionId");if(!F){console.log("Attribute actionId is missing for "+j.target);return}setTimeout(async()=>{await this.doRunActionId(F)})}async captureRunActionEvent(j){await this.doRunAction(j.detail.action)}async doRunActionId(j){var F;const O=this.findAction(j);O?await this.doRunAction(O):this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.componentId,componentType:(F=this.component)==null?void 0:F.className,actionId:j,action:void 0,data:{...this.data,__activeTabId:this.activeTab}},bubbles:!0,composed:!0}))}async doRunAction(j){if(j!=null&&j.validationRequired){const F=this.metadata.sections.flatMap(U=>U.fieldGroups.flatMap(q=>q.lines).flatMap(q=>q.fields)).map(U=>this.getFieldWrapper(U)).filter(U=>{var q;return(q=U==null?void 0:U.component)==null?void 0:q.isInvalid()}).map(U=>U==null?void 0:U.field);if(F.length){const U=F.map(q=>q==null?void 0:q.caption);this.notificationMessage="Several fields have errors ("+U+"). Please fix.",this.notificationOpened=!0,setTimeout(()=>this.notificationOpened=!1,3e3);return}}j!=null&&j.confirmationRequired?(this.confirmationAction=async()=>{this.askForActionRun(j)},this.confirmationTexts=j.confirmationTexts,this.confirmationOpened=!0):this.askForActionRun(j)}askForActionRun(j){var O;this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.componentId,componentType:(O=this.component)==null?void 0:O.className,actionId:j.id,action:j,data:{...this.data,__activeTabId:this.activeTab}},bubbles:!0,composed:!0}))}findAction(j){let O=this.metadata.actions.find(F=>F.id.endsWith("__"+j)||F.id==j);return O||(O=this.metadata.mainActions.find(F=>F.id.endsWith("__"+j)||F.id==j)),O}buildItemsForActions(j){const O=j.map(F=>({text:F.caption,action:F}));return[{component:this.createRootActionsComponent(),children:O}]}actionItemSelected(j){setTimeout(async()=>{await this.doRunActionId(j.detail.value.action.id)})}createRootActionsComponent(){const j=document.createElement("vaadin-menu-bar-item"),O=document.createElement("vaadin-icon");return j.setAttribute("aria-label","Other save options"),O.setAttribute("icon","vaadin:ellipsis-dots-v"),j.appendChild(O),j}render(){var j;return x`
       <div>
 
         <vaadin-horizontal-layout class="header" style="align-items: baseline;">
@@ -15983,14 +16126,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </vaadin-horizontal-layout>
           
         ${this.metadata.status||this.metadata.badges?x`
-            <div class="badges">
+            <vaadin-horizontal-layout class="badges" theme="spacing-s">
               ${this.metadata.status?x`<span 
                   theme="badge ${this.getThemeForStatusType(this.metadata.status.type)}"
               >${this.metadata.status.message}</span>`:""}
               ${this.metadata.badges.map(O=>x`<span 
-                  theme="badge ${this.getThemeForBadgetType(O.type)}"
+                  theme="badge ${this.getThemeForBadgetType(O.theme)}"
               >${O.message}</span>`)}
-            </div>        
+            </vaadin-horizontal-layout>        
         `:""}
 
         ${this.metadata.sections.filter(O=>!O.tabId).map(O=>x`<mateu-section .section="${O}" .form="${this.metadata}"
@@ -16155,124 +16298,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         text-align: right;
         flex: auto;
     }
-  `;__decorateClass$7([n$2()],MateuCard.prototype,"baseUrl",2);__decorateClass$7([n$2()],MateuCard.prototype,"metadata",2);__decorateClass$7([n$2()],MateuCard.prototype,"data",2);__decorateClass$7([n$2()],MateuCard.prototype,"journeyTypeId",2);__decorateClass$7([n$2()],MateuCard.prototype,"journeyId",2);__decorateClass$7([n$2()],MateuCard.prototype,"stepId",2);__decorateClass$7([n$2()],MateuCard.prototype,"fieldsMap",2);MateuCard=__decorateClass$7([e$1("mateu-card")],MateuCard);registerStyles("vaadin-grid-sorter",i$4`
-    :host {
-      justify-content: flex-start;
-      align-items: baseline;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      user-select: none;
-      cursor: var(--lumo-clickable-cursor);
-    }
-
-    [part='content'] {
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    [part='indicators'] {
-      margin-left: var(--lumo-space-s);
-    }
-
-    [part='indicators']::before {
-      transform: scale(0.8);
-    }
-
-    :host(:not([direction]):not(:hover)) [part='indicators'] {
-      color: var(--lumo-tertiary-text-color);
-    }
-
-    :host([direction]) {
-      color: var(--lumo-primary-text-color);
-    }
-
-    [part='order'] {
-      font-size: var(--lumo-font-size-xxs);
-      line-height: 1;
-    }
-
-    /* RTL specific styles */
-
-    :host([dir='rtl']) [part='indicators'] {
-      margin-right: var(--lumo-space-s);
-      margin-left: 0;
-    }
-  `,{moduleId:"lumo-grid-sorter"});/**
- * @license
- * Copyright (c) 2000 - 2024 Vaadin Ltd.
- *
- * This program is available under Vaadin Commercial License and Service Terms.
- *
- *
- * See https://vaadin.com/commercial-license-and-service-terms for the full
- * license.
- */const template=document.createElement("template");template.innerHTML=`
-  <style>
-    @font-face {
-      font-family: 'vaadin-grid-sorter-icons';
-      src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAAAQwAA0AAAAABuwAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAAEFAAAABkAAAAcfep+mUdERUYAAAP4AAAAHAAAAB4AJwAOT1MvMgAAAZgAAAA/AAAAYA8TBPpjbWFwAAAB7AAAAFUAAAFeF1fZ4mdhc3AAAAPwAAAACAAAAAgAAAAQZ2x5ZgAAAlgAAABcAAAAnMvguMloZWFkAAABMAAAAC8AAAA2C5Ap72hoZWEAAAFgAAAAHQAAACQGbQPHaG10eAAAAdgAAAAUAAAAHAoAAABsb2NhAAACRAAAABIAAAASAIwAYG1heHAAAAGAAAAAFgAAACAACwAKbmFtZQAAArQAAAECAAACZxWCgKhwb3N0AAADuAAAADUAAABZCrApUXicY2BkYGAA4rDECVrx/DZfGbhZGEDgyqNPOxH0/wNMq5kPALkcDEwgUQBWRA0dAHicY2BkYGA+8P8AAwMLAwgwrWZgZEAFbABY4QM8AAAAeJxjYGRgYOAAQiYGEICQSAAAAi8AFgAAeJxjYGY6yziBgZWBgWkm0xkGBoZ+CM34msGYkZMBFTAKoAkwODAwvmRiPvD/AIMDMxCD1CDJKjAwAgBktQsXAHicY2GAAMZQCM0EwqshbAALxAEKeJxjYGBgZoBgGQZGBhCIAPIYwXwWBhsgzcXAwcAEhIwMCi+Z/v/9/x+sSuElA4T9/4k4K1gHFwMMMILMY2QDYmaoABOQYGJABUA7WBiGNwAAJd4NIQAAAAAAAAAACAAIABAAGAAmAEAATgAAeJyNjLENgDAMBP9tIURJwQCMQccSZgk2i5fIYBDAidJjycXr7x5EPwE2wY8si7jmyBNXGo/bNBerxJNrpxhbO3/fEFpx8ZICpV+ghxJ74fAMe+h7Ox14AbrsHB14nK2QQWrDMBRER4mTkhQK3ZRQKOgCNk7oGQqhhEIX2WSlWEI1BAlkJ5CDdNsj5Ey9Rncdi38ES+jzNJo/HwTgATcoDEthhY3wBHc4CE+pfwsX5F/hGe7Vo/AcK/UhvMSz+mGXKhZU6pww8ISz3oWn1BvhgnwTnuEJf8Jz1OpFeIlX9YULDLdFi4ASHolkSR0iuYdjLak1vAequBhj21D61Nqyi6l3qWybGPjySbPHGScGJl6dP58MYcQRI0bts7mjebBqrFENH7t3qWtj0OuqHnXcW7b0HOTZFnKryRGW2hFX1m0O2vEM3opNMfTau+CS6Z3Vx6veNnEXY6jwDxhsc2gAAHicY2BiwA84GBgYmRiYGJkZmBlZGFkZ2djScyoLMgzZS/MyDQwMwLSrpYEBlIbxjQDrzgsuAAAAAAEAAf//AA94nGNgZGBg4AFiMSBmYmAEQnYgZgHzGAAD6wA2eJxjYGBgZACCKyoz1cD0o087YTQATOcIewAAAA==) format('woff');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
-`;document.head.appendChild(template.content);class GridSorter extends ThemableMixin(DirMixin$1(PolymerElement)){static get template(){return html`
-      <style>
-        :host {
-          display: inline-flex;
-          cursor: pointer;
-          max-width: 100%;
-        }
-
-        [part='content'] {
-          flex: 1 1 auto;
-        }
-
-        [part='indicators'] {
-          position: relative;
-          align-self: center;
-          flex: none;
-        }
-
-        [part='order'] {
-          display: inline;
-          vertical-align: super;
-        }
-
-        [part='indicators']::before {
-          font-family: 'vaadin-grid-sorter-icons';
-          display: inline-block;
-        }
-
-        :host(:not([direction])) [part='indicators']::before {
-          content: '\\e901';
-        }
-
-        :host([direction='asc']) [part='indicators']::before {
-          content: '\\e900';
-        }
-
-        :host([direction='desc']) [part='indicators']::before {
-          content: '\\e902';
-        }
-      </style>
-
-      <div part="content">
-        <slot></slot>
-      </div>
-      <div part="indicators">
-        <span part="order">[[_getDisplayOrder(_order)]]</span>
-      </div>
-    `}static get is(){return"vaadin-grid-sorter"}static get properties(){return{path:String,direction:{type:String,reflectToAttribute:!0,notify:!0,value:null},_order:{type:Number,value:null},_isConnected:{type:Boolean,observer:"__isConnectedChanged"}}}static get observers(){return["_pathOrDirectionChanged(path, direction)"]}ready(){super.ready(),this.addEventListener("click",this._onClick.bind(this))}connectedCallback(){super.connectedCallback(),this._isConnected=!0}disconnectedCallback(){super.disconnectedCallback(),this._isConnected=!1,!this.parentNode&&this._grid&&this._grid.__removeSorters([this])}_pathOrDirectionChanged(){this.__dispatchSorterChangedEvenIfPossible()}__isConnectedChanged(O,F){F!==!1&&this.__dispatchSorterChangedEvenIfPossible()}__dispatchSorterChangedEvenIfPossible(){this.path===void 0||this.direction===void 0||!this._isConnected||(this.dispatchEvent(new CustomEvent("sorter-changed",{detail:{shiftClick:!!this._shiftClick,fromSorterClick:!!this._fromSorterClick},bubbles:!0,composed:!0})),this._fromSorterClick=!1,this._shiftClick=!1)}_getDisplayOrder(O){return O===null?"":O+1}_onClick(O){if(O.defaultPrevented)return;const F=this.getRootNode().activeElement;this!==F&&this.contains(F)||(O.preventDefault(),this._shiftClick=O.shiftKey,this._fromSorterClick=!0,this.direction==="asc"?this.direction="desc":this.direction==="desc"?this.direction=null:this.direction="asc")}}customElements.define(GridSorter.is,GridSorter);/**
- * @license
- * Copyright (c) 2000 - 2024 Vaadin Ltd.
- *
- * This program is available under Vaadin Commercial License and Service Terms.
- *
- *
- * See https://vaadin.com/commercial-license-and-service-terms for the full
- * license.
- */class GridSortColumn extends GridColumn{static get is(){return"vaadin-grid-sort-column"}static get properties(){return{path:String,direction:{type:String,notify:!0}}}static get observers(){return["_onHeaderRendererOrBindingChanged(_headerRenderer, _headerCell, path, header, direction)"]}constructor(){super(),this.__boundOnDirectionChanged=this.__onDirectionChanged.bind(this)}_defaultHeaderRenderer(O,F){let U=O.firstElementChild;U||(U=document.createElement("vaadin-grid-sorter"),U.addEventListener("direction-changed",this.__boundOnDirectionChanged),O.appendChild(U)),U.path=this.path,U.__rendererDirection=this.direction,U.direction=this.direction,U.textContent=this.__getHeader(this.header,this.path)}_computeHeaderRenderer(){return this._defaultHeaderRenderer}__onDirectionChanged(O){O.detail.value!==O.target.__rendererDirection&&(this.direction=O.detail.value)}__getHeader(O,F){if(O)return O;if(F)return this._generateHeader(F)}}customElements.define(GridSortColumn.is,GridSortColumn);var __defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$6(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$6(O,F,q),q};let MateuPaginator=class extends s$1{constructor(){super(...arguments),this.count=0,this.pageSize=100,this.page=0,this.pages=[]}setUp(){}connectedCallback(){super.connectedCallback(),this.setUp()}async updated(j){if(j.has("count")||j.has("page")){const O=[],U=Math.ceil(this.count/this.pageSize)-1;if(this.count>0){if(this.page>0&&O.push({page:0,text:"first",clickable:!0}),this.page>1&&O.push({page:this.page-1,text:"prev",clickable:!0}),O.push({page:this.page,text:`${this.page}`,clickable:!1}),this.page<U-1){const q=+this.page+1;O.push({page:q,text:"next",clickable:!0})}this.page<U&&O.push({page:U,text:"last",clickable:!0})}this.pages=O}}clickOnPage(j){const O=j.target.getAttribute("page");this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:O}}))}render(){return x`
+  `;__decorateClass$7([n$2()],MateuCard.prototype,"baseUrl",2);__decorateClass$7([n$2()],MateuCard.prototype,"metadata",2);__decorateClass$7([n$2()],MateuCard.prototype,"data",2);__decorateClass$7([n$2()],MateuCard.prototype,"journeyTypeId",2);__decorateClass$7([n$2()],MateuCard.prototype,"journeyId",2);__decorateClass$7([n$2()],MateuCard.prototype,"stepId",2);__decorateClass$7([n$2()],MateuCard.prototype,"fieldsMap",2);MateuCard=__decorateClass$7([e$1("mateu-card")],MateuCard);var __defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$6(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$6(O,F,q),q};let MateuPaginator=class extends s$1{constructor(){super(...arguments),this.count=0,this.pageSize=100,this.page=0,this.pages=[]}setUp(){}connectedCallback(){super.connectedCallback(),this.setUp()}async updated(j){if(j.has("count")||j.has("page")){const O=[],U=Math.ceil(this.count/this.pageSize)-1;if(this.count>0){if(this.page>0&&O.push({page:0,text:"first",clickable:!0}),this.page>1&&O.push({page:this.page-1,text:"prev",clickable:!0}),O.push({page:this.page,text:`${this.page}`,clickable:!1}),this.page<U-1){const q=+this.page+1;O.push({page:q,text:"next",clickable:!0})}this.page<U&&O.push({page:U,text:"last",clickable:!0})}this.pages=O}}clickOnPage(j){const O=j.target.getAttribute("page");this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:O}}))}render(){return x`
       <div class="paginator">
         ${this.pages.length==1?x``:x`
           Page:
@@ -16760,7 +16786,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             
             
           `:""}
-        `;class FetchRowsQueryHandler{async handle(O){return await mateuApiClient.fetchRows(O.uiId,O.journeyTypeId,O.journeyId,O.stepId,O.listId,O.page,O.pageSize,O.sortOrders,O.filters,O.component,O.data)}}const fetchRowsQueryHandler=new FetchRowsQueryHandler;class CrudService{async fetch(O,F,U,q,W){const G=await fetchRowsQueryHandler.handle({uiId:O.uiId,journeyTypeId:O.journeyTypeId,journeyId:O.journeyId,stepId:O.stepId,listId:U.listId,filters:U.filters,page:U.page,pageSize:U.pageSize,sortOrders:U.sortOrders,component:q,data:W}),K=G.content,Y=G.totalElements;G.message?(O.message=G.message,O.items=[],O.count=0):(O.count=Y,O.message=O.count>0?`${O.count} elements found.`:"",K.forEach((J,X)=>{J.__index=X+U.page*U.pageSize}),O.items=K),F.next({...O})}}var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$5(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$5(O,F,q),q};let MateuCrud=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.message="",this.canDownload=!0,this.confirmationOpened=!1,this.closeConfirmation=()=>{this.confirmationOpened=!1},this.confirmationAction=()=>{},this.runConfirmedAction=()=>{this.confirmationAction(),this.confirmationOpened=!1},this.count=0,this.pageSize=10,this.page=0,this.items=[],this.detailsOpenedItem=[],this.state={uiId:"",journeyTypeId:"",journeyId:"",stepId:"",listId:"",items:[],count:0,page:0,filters:{},sorting:[],message:""},this.crudUpstream=new Subject,this.crudService=new CrudService,this.filtersOpened=!1,this.closeFilters=()=>{this.filtersOpened=!1},this.filtersText=""}openedChangedForConfirmation(j){j.detail.value||(this.confirmationOpened=!1)}openedChangedForFilters(j){j.detail.value||(this.filtersOpened=!1)}update(j){super.update(j),j.has("component")&&(this.page=0,this.doSearch().then())}async doSearch(){const j=this.page,O=this.pageSize,F=this.getSortOrders();await this.fetchData({listId:this.component.id,page:j,pageSize:O,sortOrders:F,filters:this.data}),this.updateFiltersText()}getSortOrders(){const j=this.grid.querySelectorAll("vaadin-grid-sort-column"),O=Array.from(j);return gBase64.encode(JSON.stringify(O.filter(U=>U.direction).map(U=>{let q="None";return U.direction=="asc"&&(q="Ascending"),U.direction=="desc"&&(q="Descending"),{column:U.path,order:q}})))}async fetchData(j){this.state.uiId=this.uiId,this.state.journeyTypeId=this.journeyTypeId,this.state.journeyId=this.journeyId,this.state.stepId=this.stepId,this.state.listId=this.component.id,this.state.filters=j.filters,await this.crudService.fetch(this.state,this.crudUpstream,j,this.component,this.data)}connectedCallback(){super.connectedCallback(),this.data0=this.data,this.data.data0&&(this.data0={...this.data.data0}),this.data.data0={...this.data0},this.addEventListener("keydown",this.handleKey),this.upstreamSubscription=this.crudUpstream.subscribe(j=>this.stampState(j))}stampState(j){this.state=j,this.items=j.items,j.count>-1&&(this.count=j.count),this.message=j.message}disconnectedCallback(){var j;this.removeEventListener("keydown",this.handleKey),super.disconnectedCallback(),(j=this.upstreamSubscription)==null||j.unsubscribe()}handleKey(j){j.code=="Enter"&&this.clickedOnSearch()}clickedOnSearch(){this.filtersOpened=!1,this.page?this.page=0:setTimeout(()=>this.doSearch())}clickedOnFilters(){this.filtersOpened=!0}clickedOnClearFilters(){console.log("clear filters",this.data,this.data0),this.data=this.data0,setTimeout(()=>this.doSearch())}filterChanged(j){const O=j.currentTarget,F={};let U=null;j.detail&&j.detail.value?U=j.detail.value:U=O.value,F[O.id]=U||null,this.data={...this.data,...F}}updateFiltersText(){var O,F;let j="";for(const U in(O=this.metadata)==null?void 0:O.searchForm.fields){const q=(F=this.metadata)==null?void 0:F.searchForm.fields[U];this.data[q.id]&&U!="action"&&(j&&(j+=", "),j+=this.data[q.id])}this.filtersText="Applied filters: "+(j||"None")}async edit(j){const O=j.currentTarget,F={_selectedRow:O.row,__index:O.row.__index,__count:this.count};this.data={...this.data,...F},this.askForActionRun("__list__"+this.component.id+"__edit",this.data)}async runAction(j){const O=j.currentTarget,F=O.getAttribute("actionid");if(!F){console.log("Attribute actionId is missing for "+O);return}this.doRunAction(F)}async doRunAction(j){const O=this.findAction(j);if(!O){console.log("No action with id "+j);return}if(O.rowsSelectedRequired&&this.grid.selectedItems.length==0){this.confirmationTexts={message:"You need to first select some rows",action:"",title:"Ey"},this.confirmationOpened=!0;return}const U={componentId:this.component.id,componentType:this.component.className,_selectedRows:this.grid.selectedItems,_clickedRow:this.clickedRow},q={...this.data,...U};O.confirmationRequired?(this.confirmationAction=async()=>{this.askForActionRun(j,q)},this.confirmationTexts=O.confirmationTexts,this.confirmationOpened=!0):this.askForActionRun(j,q)}askForActionRun(j,O){var U;let F=this.findAction(j);F||(F={target:ActionTarget.View,id:j}),this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.component.id,componentType:(U=this.component)==null?void 0:U.className,actionId:j,action:F,data:O},bubbles:!0,composed:!0}))}findAction(j){return this.metadata.actions.find(F=>F.id==j)}async itemSelected(j){const O={_clickedRow:j.target.row},F={...this.data,...O};this.askForActionRun("__list__"+this.component.id+"__row__"+j.detail.value.methodNameInCrud,F)}getThemeForBadgetType(j){switch(j){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn(j){return j.type=="Status"?x`
+        `;class FetchRowsQueryHandler{async handle(O){return await mateuApiClient.fetchRows(O.uiId,O.journeyTypeId,O.journeyId,O.stepId,O.listId,O.page,O.pageSize,O.sortOrders,O.searchText,O.filters,O.component,O.data)}}const fetchRowsQueryHandler=new FetchRowsQueryHandler;class CrudService{async fetch(O,F,U,q,W){const G=await fetchRowsQueryHandler.handle({uiId:O.uiId,journeyTypeId:O.journeyTypeId,journeyId:O.journeyId,stepId:O.stepId,listId:U.listId,filters:U.filters,page:U.page,pageSize:U.pageSize,sortOrders:U.sortOrders,searchText:U.searchText,component:q,data:W}),K=G.content,Y=G.totalElements;G.message?(O.message=G.message,O.items=[],O.count=0):(O.count=Y,O.message=O.count>0?`${O.count} elements found.`:"",K.forEach((J,X)=>{J.__index=X+U.page*U.pageSize}),O.items=K),F.next({...O})}}var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$5(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$5(O,F,q),q};let MateuCrud=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.message="",this.canDownload=!0,this.confirmationOpened=!1,this.closeConfirmation=()=>{this.confirmationOpened=!1},this.confirmationAction=()=>{},this.runConfirmedAction=()=>{this.confirmationAction(),this.confirmationOpened=!1},this.count=0,this.pageSize=10,this.page=0,this.items=[],this.detailsOpenedItem=[],this.state={uiId:"",journeyTypeId:"",journeyId:"",stepId:"",listId:"",items:[],count:0,page:0,searchText:"",filters:{},sorting:[],message:""},this.crudUpstream=new Subject,this.crudService=new CrudService,this.filtersOpened=!1,this.closeFilters=()=>{this.filtersOpened=!1},this.filtersText=""}openedChangedForConfirmation(j){j.detail.value||(this.confirmationOpened=!1)}openedChangedForFilters(j){j.detail.value||(this.filtersOpened=!1)}update(j){super.update(j),j.has("component")&&(this.page=0,this.doSearch().then())}async doSearch(){const j=this.page,O=this.pageSize,F=this.getSortOrders();await this.fetchData({listId:this.component.id,page:j,pageSize:O,sortOrders:F,searchText:this.searchText,filters:this.data}),this.updateFiltersText()}getSortOrders(){const j=this.grid.querySelectorAll("vaadin-grid-sort-column"),O=Array.from(j);return gBase64.encode(JSON.stringify(O.filter(U=>U.direction).map(U=>{let q="None";return U.direction=="asc"&&(q="Ascending"),U.direction=="desc"&&(q="Descending"),{column:U.path,order:q}})))}async fetchData(j){this.state.uiId=this.uiId,this.state.journeyTypeId=this.journeyTypeId,this.state.journeyId=this.journeyId,this.state.stepId=this.stepId,this.state.listId=this.component.id,this.state.searchText=j.searchText,this.state.filters=j.filters,await this.crudService.fetch(this.state,this.crudUpstream,j,this.component,this.data)}connectedCallback(){super.connectedCallback(),this.data0=this.data,this.data.data0&&(this.data0={...this.data.data0}),this.data.data0={...this.data0},this.addEventListener("keydown",this.handleKey),this.upstreamSubscription=this.crudUpstream.subscribe(j=>this.stampState(j))}stampState(j){this.state=j,this.items=j.items,j.count>-1&&(this.count=j.count),this.message=j.message}disconnectedCallback(){var j;this.removeEventListener("keydown",this.handleKey),super.disconnectedCallback(),(j=this.upstreamSubscription)==null||j.unsubscribe()}handleKey(j){j.code=="Enter"&&this.clickedOnSearch()}clickedOnSearch(){this.filtersOpened=!1,this.page?this.page=0:setTimeout(()=>this.doSearch())}clickedOnFilters(){this.filtersOpened=!0}clickedOnClearFilters(){console.log("clear filters",this.data,this.data0),this.data=this.data0,setTimeout(()=>this.doSearch())}searchTextChanged(j){const O=j.target;this.searchText=O.value}filterChanged(j){const O=j.currentTarget,F={};let U=null;j.detail&&j.detail.value?U=j.detail.value:U=O.value,F[O.id]=U||null,this.data={...this.data,...F}}updateFiltersText(){var O,F;let j=this.searchText?this.searchText:"";for(const U in(O=this.metadata)==null?void 0:O.searchForm.fields){const q=(F=this.metadata)==null?void 0:F.searchForm.fields[U];this.data[q.id]&&U!="action"&&(j&&(j+=", "),j+=this.data[q.id])}this.filtersText="Applied filters: "+(j||"None")}async edit(j){const O=j.currentTarget,F={_selectedRow:O.row,__index:O.row.__index,__count:this.count};this.data={...this.data,...F},this.askForActionRun("__list__"+this.component.id+"__edit",this.data)}async runAction(j){const O=j.currentTarget,F=O.getAttribute("actionid");if(!F){console.log("Attribute actionId is missing for "+O);return}this.doRunAction(F)}async doRunAction(j){const O=this.findAction(j);if(!O){console.log("No action with id "+j);return}if(O.rowsSelectedRequired&&this.grid.selectedItems.length==0){this.confirmationTexts={message:"You need to first select some rows",action:"",title:"Ey"},this.confirmationOpened=!0;return}const U={componentId:this.component.id,componentType:this.component.className,_selectedRows:this.grid.selectedItems,_clickedRow:this.clickedRow},q={...this.data,...U};O.confirmationRequired?(this.confirmationAction=async()=>{this.askForActionRun(j,q)},this.confirmationTexts=O.confirmationTexts,this.confirmationOpened=!0):this.askForActionRun(j,q)}askForActionRun(j,O){var U;let F=this.findAction(j);F||(F={target:ActionTarget.View,id:j}),this.dispatchEvent(new CustomEvent("runaction",{detail:{componentId:this.component.id,componentType:(U=this.component)==null?void 0:U.className,actionId:j,action:F,data:O},bubbles:!0,composed:!0}))}findAction(j){return this.metadata.actions.find(F=>F.id==j)}async itemSelected(j){const O={_clickedRow:j.target.row},F={...this.data,...O};this.askForActionRun("__list__"+this.component.id+"__row__"+j.detail.value.methodNameInCrud,F)}getThemeForBadgetType(j){switch(j){case StatusType.SUCCESS:return"success";case StatusType.WARNING:return"warning";case StatusType.DANGER:return"error";case StatusType.NONE:return"contrast"}return""}getColumn(j){return j.type=="Status"?x`
             <vaadin-grid-sort-column  path="${j.id}" header="${j.caption}" resizable
                                       id="${this.component.id}-${j.id}"
                                       width="${l(j.width?j.width:void 0)}"
@@ -16789,7 +16815,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                      id="${this.component.id}-${j.id}"
                                      ${columnBodyRenderer((O,F,U)=>{const q=""+O[U.path];return x`${o$3(q)}`},[])}
             ></vaadin-grid-sort-column>
-        `}hasDetail(){return this.metadata.columns.find(j=>j.detail)}exportItemSelected(j){let O=j.detail.value;O.text=="Excel"?mateuApiClient.getXls(this.uiId,this.journeyTypeId,this.journeyId,this.stepId,this.component.id,this.getSortOrders(),this.data):O.text=="Csv"&&mateuApiClient.getCsv(this.uiId,this.journeyTypeId,this.journeyId,this.stepId,this.component.id,this.getSortOrders(),this.data)}pageChanged(j){this.page=j.detail.page,this.doSearch().then()}buildItemsForActions(j){const O=j.map(F=>({text:F.caption,action:F}));return[{component:this.createRootActionsComponent(),children:O}]}actionItemSelected(j){setTimeout(async()=>{await this.doRunAction(j.detail.value.action.id)})}createRootActionsComponent(){const j=document.createElement("vaadin-menu-bar-item"),O=document.createElement("vaadin-icon");return j.setAttribute("aria-label","Other save options"),O.setAttribute("icon","vaadin:ellipsis-dots-v"),j.appendChild(O),j}render(){var j,O,F,U,q,W,G,K,Y;return x`
+        `}hasDetail(){return this.metadata.columns.find(j=>j.detail)}exportItemSelected(j){let O=j.detail.value;O.text=="Excel"?mateuApiClient.getXls(this.uiId,this.journeyTypeId,this.journeyId,this.stepId,this.component.id,this.getSortOrders(),this.searchText,this.data):O.text=="Csv"&&mateuApiClient.getCsv(this.uiId,this.journeyTypeId,this.journeyId,this.stepId,this.component.id,this.getSortOrders(),this.searchText,this.data)}pageChanged(j){this.page=j.detail.page,this.doSearch().then()}buildItemsForActions(j){const O=j.map(F=>({text:F.caption,action:F}));return[{component:this.createRootActionsComponent(),children:O}]}actionItemSelected(j){setTimeout(async()=>{await this.doRunAction(j.detail.value.action.id)})}createRootActionsComponent(){const j=document.createElement("vaadin-menu-bar-item"),O=document.createElement("vaadin-icon");return j.setAttribute("aria-label","Other save options"),O.setAttribute("icon","vaadin:ellipsis-dots-v"),j.appendChild(O),j}render(){var j,O,F,U,q,W,G,K,Y,J,X;return x`
 
       <vaadin-horizontal-layout class="header" style="align-items: baseline;">
         <div style=" flex-grow: 1;">
@@ -16805,33 +16831,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           `:""}
           `}
         </div>
-        ${!((j=this.metadata)!=null&&j.searchForm.fields)||((O=this.metadata)==null?void 0:O.searchForm.fields.length)==0?x`
+        ${!((j=this.metadata)!=null&&j.searchable)&&(!((O=this.metadata)!=null&&O.searchForm.fields)||((F=this.metadata)==null?void 0:F.searchForm.fields.length)==0)?x`
             <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
           `:""}
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
-          ${this.metadata.actions.filter(J=>J.visible).slice(0,2).map(J=>x`
-            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${J.rowsSelectedRequired}  actionId=${J.id} data-testid="action-${J.id}">${J.caption}</vaadin-button>
+          ${this.metadata.actions.filter(Q=>Q.visible).slice(0,2).map(Q=>x`
+            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${Q.rowsSelectedRequired}  actionId=${Q.id} data-testid="action-${Q.id}">${Q.caption}</vaadin-button>
           `)}
-          ${this.metadata.actions.filter(J=>J.visible).length>2?x`
+          ${this.metadata.actions.filter(Q=>Q.visible).length>2?x`
               <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
-                               .items="${this.buildItemsForActions(this.metadata.actions.filter(J=>J.visible).slice(2))}"></vaadin-menu-bar>
+                               .items="${this.buildItemsForActions(this.metadata.actions.filter(Q=>Q.visible).slice(2))}"></vaadin-menu-bar>
             `:""}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
-      ${(F=this.metadata)!=null&&F.searchForm.fields&&((U=this.metadata)==null?void 0:U.searchForm.fields.length)>0?x`
+      ${(U=this.metadata)!=null&&U.searchable||(q=this.metadata)!=null&&q.searchForm.fields&&((W=this.metadata)==null?void 0:W.searchForm.fields.length)>0?x`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
-          ${(q=this.metadata)==null?void 0:q.searchForm.fields.slice(0,1).map(J=>x`
-          <vaadin-text-field id="${J.id}" 
-                             data-testid="filter-${J.id}" 
-                             placeholder="${J.caption}" 
-                             @change=${this.filterChanged}
-                             xplaceholder="${J.placeholder}"
-                             value="${this.data[J.id]}"
-                             style="flex-grow: 1;" autofocus="true"
-                             autoselect="on"></vaadin-text-field>
-        `)}
-          <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
-          ${(W=this.metadata)!=null&&W.searchForm.fields&&((G=this.metadata)==null?void 0:G.searchForm.fields.length)>1?x`
+          ${(G=this.metadata)!=null&&G.searchable?x`
+            <vaadin-text-field id="searchText"
+                               data-testid="searchText"
+                               placeholder="Search"
+                               value="${this.searchText}"
+                               @change="${this.searchTextChanged}"
+                               style="flex-grow: 1;" autofocus="true"
+                               autoselect="on"></vaadin-text-field>
+            <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
+          `:""}
+          ${(K=this.metadata)!=null&&K.searchForm.fields&&((Y=this.metadata)==null?void 0:Y.searchForm.fields.length)>0?x`
             <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
           `:""}
@@ -16842,15 +16867,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       
       <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible
                    .detailsOpenedItems="${this.detailsOpenedItem}"
-                   @active-item-changed="${l(this.hasDetail()?J=>{if(this.metadata.columns.filter(X=>X.detail)){const X=J.detail.value;X?this.detailsOpenedItem=[X]:this.detailsOpenedItem=[]}}:void 0)}"
-                   ${gridRowDetailsRenderer(J=>x`
+                   @active-item-changed="${l(this.hasDetail()?Q=>{if(this.metadata.columns.filter(te=>te.detail)){const te=Q.detail.value;te?this.detailsOpenedItem=[te]:this.detailsOpenedItem=[]}}:void 0)}"
+                   ${gridRowDetailsRenderer(Q=>x`
             <vaadin-vertical-layout>
-              ${this.metadata.columns.filter(X=>X.detail).map(X=>x`<div>${J[X.id]}</div>`)}  
+              ${this.metadata.columns.filter(te=>te.detail).map(te=>x`<div>${Q[te.id]}</div>`)}  
             </vaadin-vertical-layout>
           `,[])}>
         <vaadin-grid-selection-column></vaadin-grid-selection-column>
 
-      ${(K=this.metadata)==null?void 0:K.columns.filter(J=>!J.detail).map(J=>this.getColumn(J))}
+      ${(J=this.metadata)==null?void 0:J.columns.filter(Q=>!Q.detail).map(Q=>this.getColumn(Q))}
 
 
         ${this.metadata.canEdit?x`
@@ -16858,7 +16883,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               frozen-to-end
               auto-width
               flex-grow="0"
-              ${columnBodyRenderer(J=>x`<vaadin-button theme="tertiary-inline" .row="${J}" @click="${this.edit}" data-testid="edit-${this.getRowId(J)}">Edit</vaadin-button>`,[])}></vaadin-grid-column>
+              ${columnBodyRenderer(Q=>x`<vaadin-button theme="tertiary-inline" .row="${Q}" @click="${this.edit}" data-testid="edit-${this.getRowId(Q)}">Edit</vaadin-button>`,[])}></vaadin-grid-column>
         `:""}
         
         
@@ -16891,11 +16916,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           header-title="Filters"
           .opened="${this.filtersOpened}"
           @opened-changed="${this.openedChangedForFilters}"
-          ${dialogRenderer(()=>{var J;return x`
+          ${dialogRenderer(()=>{var Q;return x`
 
-            <vaadin-vertical-layout theme="spacing">
-              ${(J=this.metadata)==null?void 0:J.searchForm.fields.slice(1).map(X=>mapField(X,this.filterChanged,this.baseUrl,this.data))}
-            </vaadin-vertical-layout>
+            <vaadin-form-layout>
+              ${(Q=this.metadata)==null?void 0:Q.searchForm.fields.map(te=>mapField(te,this.filterChanged,this.baseUrl,this.data))}
+            </vaadin-form-layout>
           `},[])}
           ${dialogFooterRenderer(()=>x`
                 <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-right: auto;" data-testid="dialog-confirm">
@@ -16907,18 +16932,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
       <vaadin-dialog
-          header-title="${(Y=this.confirmationTexts)==null?void 0:Y.title}"
+          header-title="${(X=this.confirmationTexts)==null?void 0:X.title}"
           .opened="${this.confirmationOpened}"
           @opened-changed="${this.openedChangedForConfirmation}"
-          ${dialogRenderer(()=>{var J;return x`${(J=this.confirmationTexts)==null?void 0:J.message}`},[])}
-          ${dialogFooterRenderer(()=>{var J,X,Q,te;return x`
-                ${(J=this.confirmationTexts)!=null&&J.action?x`
+          ${dialogRenderer(()=>{var Q;return x`${(Q=this.confirmationTexts)==null?void 0:Q.message}`},[])}
+          ${dialogFooterRenderer(()=>{var Q,te,re,ee;return x`
+                ${(Q=this.confirmationTexts)!=null&&Q.action?x`
                   <vaadin-button theme="primary error" @click="${this.runConfirmedAction}" style="margin-right: auto;" data-testid="dialog-confirm">
-                    ${(X=this.confirmationTexts)==null?void 0:X.action}
+                    ${(te=this.confirmationTexts)==null?void 0:te.action}
                   </vaadin-button>
                 `:""}
       
-      <vaadin-button theme="${(Q=this.confirmationTexts)!=null&&Q.action?"tertiary":"primary"}" @click="${this.closeConfirmation}" data-testid="dialog-cancel">${(te=this.confirmationTexts)!=null&&te.action?"Cancel":"Ok. Got it"}</vaadin-button>
+      <vaadin-button theme="${(re=this.confirmationTexts)!=null&&re.action?"tertiary":"primary"}" @click="${this.closeConfirmation}" data-testid="dialog-cancel">${(ee=this.confirmationTexts)!=null&&ee.action?"Cancel":"Ok. Got it"}</vaadin-button>
     `},[])}
       ></vaadin-dialog>
     `}getRowId(j){return j.id}};MateuCrud.styles=i$4`
@@ -16943,7 +16968,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     }
 
-  `;__decorateClass$5([i("vaadin-grid")],MateuCrud.prototype,"grid",2);__decorateClass$5([n$2()],MateuCrud.prototype,"baseUrl",2);__decorateClass$5([n$2()],MateuCrud.prototype,"uiId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"journeyTypeId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"journeyId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"stepId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"previousStepId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"metadata",2);__decorateClass$5([n$2()],MateuCrud.prototype,"data",2);__decorateClass$5([n$2()],MateuCrud.prototype,"component",2);__decorateClass$5([t()],MateuCrud.prototype,"clickedRow",2);__decorateClass$5([t()],MateuCrud.prototype,"message",2);__decorateClass$5([t()],MateuCrud.prototype,"canDownload",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationOpened",2);__decorateClass$5([n$2()],MateuCrud.prototype,"closeConfirmation",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationAction",2);__decorateClass$5([n$2()],MateuCrud.prototype,"runConfirmedAction",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationTexts",2);__decorateClass$5([n$2()],MateuCrud.prototype,"count",2);__decorateClass$5([n$2()],MateuCrud.prototype,"pageSize",2);__decorateClass$5([n$2()],MateuCrud.prototype,"page",2);__decorateClass$5([n$2()],MateuCrud.prototype,"items",2);__decorateClass$5([t()],MateuCrud.prototype,"detailsOpenedItem",2);__decorateClass$5([t()],MateuCrud.prototype,"filtersOpened",2);__decorateClass$5([n$2()],MateuCrud.prototype,"closeFilters",2);__decorateClass$5([t()],MateuCrud.prototype,"filtersText",2);MateuCrud=__decorateClass$5([e$1("mateu-crud")],MateuCrud);var __defProp$4=Object.defineProperty,__getOwnPropDesc$4=Object.getOwnPropertyDescriptor,__decorateClass$4=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$4(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$4(O,F,q),q};let MateuResult=class extends s$1{constructor(){super(...arguments),this.baseUrl=""}connectedCallback(){super.connectedCallback()}async runAction(j){const O=j.currentTarget;this.askForActionRun(O.destination)}askForActionRun(j){console.log(j),this.dispatchEvent(new CustomEvent("replace-component",{detail:{target:this.component,replacement:j.value},bubbles:!0,composed:!0}))}getIcon(j){switch(j){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass(j){switch(j){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){var j;return x`
+  `;__decorateClass$5([i("vaadin-grid")],MateuCrud.prototype,"grid",2);__decorateClass$5([n$2()],MateuCrud.prototype,"baseUrl",2);__decorateClass$5([n$2()],MateuCrud.prototype,"uiId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"journeyTypeId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"journeyId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"stepId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"previousStepId",2);__decorateClass$5([n$2()],MateuCrud.prototype,"metadata",2);__decorateClass$5([n$2()],MateuCrud.prototype,"searchText",2);__decorateClass$5([n$2()],MateuCrud.prototype,"data",2);__decorateClass$5([n$2()],MateuCrud.prototype,"component",2);__decorateClass$5([t()],MateuCrud.prototype,"clickedRow",2);__decorateClass$5([t()],MateuCrud.prototype,"message",2);__decorateClass$5([t()],MateuCrud.prototype,"canDownload",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationOpened",2);__decorateClass$5([n$2()],MateuCrud.prototype,"closeConfirmation",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationAction",2);__decorateClass$5([n$2()],MateuCrud.prototype,"runConfirmedAction",2);__decorateClass$5([n$2()],MateuCrud.prototype,"confirmationTexts",2);__decorateClass$5([n$2()],MateuCrud.prototype,"count",2);__decorateClass$5([n$2()],MateuCrud.prototype,"pageSize",2);__decorateClass$5([n$2()],MateuCrud.prototype,"page",2);__decorateClass$5([n$2()],MateuCrud.prototype,"items",2);__decorateClass$5([t()],MateuCrud.prototype,"detailsOpenedItem",2);__decorateClass$5([t()],MateuCrud.prototype,"filtersOpened",2);__decorateClass$5([n$2()],MateuCrud.prototype,"closeFilters",2);__decorateClass$5([t()],MateuCrud.prototype,"filtersText",2);MateuCrud=__decorateClass$5([e$1("mateu-crud")],MateuCrud);var __defProp$4=Object.defineProperty,__getOwnPropDesc$4=Object.getOwnPropertyDescriptor,__decorateClass$4=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$4(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$4(O,F,q),q};let MateuResult=class extends s$1{constructor(){super(...arguments),this.baseUrl=""}connectedCallback(){super.connectedCallback()}async runAction(j){const O=j.currentTarget;this.askForActionRun(O.destination)}askForActionRun(j){console.log(j),this.dispatchEvent(new CustomEvent("replace-component",{detail:{target:this.component,replacement:j.value},bubbles:!0,composed:!0}))}getIcon(j){switch(j){case ResultType.Success:return"vaadin:check-circle";case ResultType.Info:return"vaadin:info-circle";case ResultType.Warning:return"vaadin:warning";case ResultType.Error:return"lumo:error"}return"vaadin:question"}getClass(j){switch(j){case ResultType.Success:return"success";case ResultType.Info:return"info";case ResultType.Warning:return"warning";case ResultType.Error:return"error"}return""}render(){var j;return x`
 
       <vaadin-horizontal-layout class="header">
         <div>
@@ -17022,24 +17047,177 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       color: red;
     }
 
-  `;__decorateClass$4([n$2()],MateuResult.prototype,"baseUrl",2);__decorateClass$4([n$2()],MateuResult.prototype,"journeyTypeId",2);__decorateClass$4([n$2()],MateuResult.prototype,"journeyId",2);__decorateClass$4([n$2()],MateuResult.prototype,"stepId",2);__decorateClass$4([n$2()],MateuResult.prototype,"previousStepId",2);__decorateClass$4([n$2()],MateuResult.prototype,"metadata",2);__decorateClass$4([n$2()],MateuResult.prototype,"data",2);__decorateClass$4([n$2()],MateuResult.prototype,"component",2);MateuResult=__decorateClass$4([e$1("mateu-result")],MateuResult);var __defProp$3=Object.defineProperty,__getOwnPropDesc$3=Object.getOwnPropertyDescriptor,__decorateClass$3=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$3(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$3(O,F,q),q};let MateuComponent=class extends s$1{constructor(){super(...arguments),this.baseUrl=""}render(){var j,O,F,U,q,W,G,K,Y,J;return x`
+  `;__decorateClass$4([n$2()],MateuResult.prototype,"baseUrl",2);__decorateClass$4([n$2()],MateuResult.prototype,"journeyTypeId",2);__decorateClass$4([n$2()],MateuResult.prototype,"journeyId",2);__decorateClass$4([n$2()],MateuResult.prototype,"stepId",2);__decorateClass$4([n$2()],MateuResult.prototype,"previousStepId",2);__decorateClass$4([n$2()],MateuResult.prototype,"metadata",2);__decorateClass$4([n$2()],MateuResult.prototype,"data",2);__decorateClass$4([n$2()],MateuResult.prototype,"component",2);MateuResult=__decorateClass$4([e$1("mateu-result")],MateuResult);registerStyles("vaadin-split-layout",i$4`
+    [part='splitter'] {
+      min-width: var(--lumo-space-s);
+      min-height: var(--lumo-space-s);
+      background-color: var(--lumo-contrast-5pct);
+      transition: 0.1s background-color;
+    }
 
-            ${((j=this.component)==null?void 0:j.metadata.type)==ComponentMetadataType.Element?this.renderElement(this.component.metadata):x``}
+    [part='handle'] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--lumo-size-m);
+      height: var(--lumo-size-m);
+    }
 
-            ${((O=this.component)==null?void 0:O.metadata.type)==ComponentMetadataType.HorizontalLayout?x`<vaadin-horizontal-layout>${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
-                        .component=${X}
-                        .components=${this.components}
-                        uiId="${this.uiId}"
-                        journeyTypeId="${this.journeyTypeId}"
-                        journeyId="${this.journeyId}"
-                        stepId="${this.stepId}"
-                        baseUrl="${this.baseUrl}"
-                        previousStepId="${this.previousStepId}"
-                >
-                    <slot></slot></mateu-component>
-                `)}</vaadin-horizontal-layout>`:x``}
+    [part='handle']::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: var(--lumo-border-radius-s);
+      background-color: var(--lumo-contrast-30pct);
+      transition: 0.1s opacity, 0.1s background-color;
+    }
 
-            ${((F=this.component)==null?void 0:F.metadata.type)==ComponentMetadataType.VerticalLayout?x`<vaadin-horizontal-layout>${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
+    :host([orientation='vertical']) [part='handle']::after {
+      width: 100%;
+      height: 4px;
+    }
+
+    /* Hover style */
+    [part='splitter']:hover [part='handle']::after {
+      background-color: var(--lumo-contrast-40pct);
+    }
+
+    /* Disable hover for touch devices */
+    @media (pointer: coarse) {
+      [part='splitter']:hover [part='handle']::after {
+        background-color: var(--lumo-contrast-30pct);
+      }
+    }
+
+    /* Active style */
+    [part='splitter']:active [part='handle']::after {
+      background-color: var(--lumo-contrast-50pct);
+    }
+
+    /* Small/minimal */
+    :host([theme~='small']) > [part='splitter'] {
+      border-left: 1px solid var(--lumo-contrast-10pct);
+      border-top: 1px solid var(--lumo-contrast-10pct);
+    }
+
+    :host([theme~='small']) > [part='splitter'],
+    :host([theme~='minimal']) > [part='splitter'] {
+      min-width: 0;
+      min-height: 0;
+      background-color: transparent;
+    }
+
+    :host([theme~='small']) > [part='splitter']::after,
+    :host([theme~='minimal']) > [part='splitter']::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      bottom: -4px;
+      left: -4px;
+    }
+
+    :host([theme~='small']) > [part='splitter'] > [part='handle']::after,
+    :host([theme~='minimal']) > [part='splitter'] > [part='handle']::after {
+      opacity: 0;
+    }
+
+    :host([theme~='small']) > [part='splitter']:hover > [part='handle']::after,
+    :host([theme~='small']) > [part='splitter']:active > [part='handle']::after,
+    :host([theme~='minimal']) > [part='splitter']:hover > [part='handle']::after,
+    :host([theme~='minimal']) > [part='splitter']:active > [part='handle']::after {
+      opacity: 1;
+    }
+
+    /* RTL specific styles */
+    :host([theme~='small'][dir='rtl']) > [part='splitter'] {
+      border-left: auto;
+      border-right: 1px solid var(--lumo-contrast-10pct);
+    }
+  `,{moduleId:"lumo-split-layout"});/**
+ * @license
+ * Copyright (c) 2000 - 2024 Vaadin Ltd.
+ *
+ * This program is available under Vaadin Commercial License and Service Terms.
+ *
+ *
+ * See https://vaadin.com/commercial-license-and-service-terms for the full
+ * license.
+ */class SplitLayout extends ElementMixin(ThemableMixin(PolymerElement)){static get template(){return html`
+      <style>
+        :host {
+          display: flex;
+          overflow: hidden !important;
+          transform: translateZ(0);
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+
+        :host([orientation='vertical']) {
+          flex-direction: column;
+        }
+
+        :host ::slotted(*) {
+          flex: 1 1 auto;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        [part='splitter'] {
+          flex: none;
+          position: relative;
+          z-index: 1;
+          overflow: visible;
+          min-width: 8px;
+          min-height: 8px;
+        }
+
+        :host(:not([orientation='vertical'])) > [part='splitter'] {
+          cursor: ew-resize;
+        }
+
+        :host([orientation='vertical']) > [part='splitter'] {
+          cursor: ns-resize;
+        }
+
+        [part='handle'] {
+          width: 40px;
+          height: 40px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate3d(-50%, -50%, 0);
+        }
+      </style>
+      <slot id="primary" name="primary"></slot>
+      <div part="splitter" id="splitter">
+        <div part="handle"></div>
+      </div>
+      <slot id="secondary" name="secondary"></slot>
+    `}static get is(){return"vaadin-split-layout"}static get properties(){return{orientation:{type:String,reflectToAttribute:!0,value:"horizontal"},_previousPrimaryPointerEvents:String,_previousSecondaryPointerEvents:String}}ready(){super.ready(),this.__observer=new FlattenedNodesObserver(this,F=>{this._cleanupNodes(F.removedNodes),this._processChildren()});const O=this.$.splitter;addListener$1(O,"track",this._onHandleTrack.bind(this)),addListener$1(O,"down",this._setPointerEventsNone.bind(this)),addListener$1(O,"up",this._restorePointerEvents.bind(this))}_cleanupNodes(O){O.forEach(F=>{F.parentElement instanceof SplitLayout||F.removeAttribute("slot")})}_processChildren(){const O=[...this.children];O.filter(F=>F.hasAttribute("slot")).forEach(F=>this._processChildWithSlot(F)),O.filter(F=>!F.hasAttribute("slot")).forEach((F,U)=>this._processChildWithoutSlot(F,U))}_processChildWithSlot(O){const F=O.getAttribute("slot");O.__autoSlotted?(this[`_${F}Child`]=null,O.removeAttribute("slot")):this[`_${F}Child`]=O}_processChildWithoutSlot(O,F){let U;this._primaryChild||this._secondaryChild?U=this._primaryChild?"secondary":"primary":U=F===0?"primary":"secondary",this[`_${U}Child`]=O,O.setAttribute("slot",U),O.__autoSlotted=!0}_setFlexBasis(O,F,U){F=Math.max(0,Math.min(F,U)),F===0&&(F=1e-6),O.style.flex=`1 1 ${F}px`}_setPointerEventsNone(O){!this._primaryChild||!this._secondaryChild||(this._previousPrimaryPointerEvents=this._primaryChild.style.pointerEvents,this._previousSecondaryPointerEvents=this._secondaryChild.style.pointerEvents,this._primaryChild.style.pointerEvents="none",this._secondaryChild.style.pointerEvents="none",O.preventDefault())}_restorePointerEvents(){!this._primaryChild||!this._secondaryChild||(this._primaryChild.style.pointerEvents=this._previousPrimaryPointerEvents,this._secondaryChild.style.pointerEvents=this._previousSecondaryPointerEvents)}_onHandleTrack(O){if(!this._primaryChild||!this._secondaryChild)return;const F=this.orientation==="vertical"?"height":"width";if(O.detail.state==="start"){this._startSize={container:this.getBoundingClientRect()[F]-this.$.splitter.getBoundingClientRect()[F],primary:this._primaryChild.getBoundingClientRect()[F],secondary:this._secondaryChild.getBoundingClientRect()[F]};return}const U=this.orientation==="vertical"?O.detail.dy:O.detail.dx,W=this.orientation!=="vertical"&&this.getAttribute("dir")==="rtl"?-U:U;this._setFlexBasis(this._primaryChild,this._startSize.primary+W,this._startSize.container),this._setFlexBasis(this._secondaryChild,this._startSize.secondary-W,this._startSize.container),O.detail.state==="end"&&(this.dispatchEvent(new CustomEvent("splitter-dragend")),delete this._startSize)}notifyResize(){console.warn("WARNING: Since Vaadin 23, notifyResize() is deprecated. The component uses a ResizeObserver internally and doesn't need to be explicitly notified of resizes.")}}customElements.define(SplitLayout.is,SplitLayout);var __defProp$3=Object.defineProperty,__getOwnPropDesc$3=Object.getOwnPropertyDescriptor,__decorateClass$3=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$3(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$3(O,F,q),q};let MateuComponent=class extends s$1{constructor(){super(...arguments),this.baseUrl=""}render(){var j,O,F,U,q,W,G,K,Y,J;return x`
+
+    ${((j=this.component)==null?void 0:j.metadata.type)==ComponentMetadataType.Element?this.renderElement(this.component.metadata):x``}
+
+    ${((O=this.component)==null?void 0:O.metadata.type)==ComponentMetadataType.HorizontalLayout?x`<vaadin-horizontal-layout theme="spacing">
+                ${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
+                .component=${X}
+                .components=${this.components}
+                uiId="${this.uiId}"
+                journeyTypeId="${this.journeyTypeId}"
+                journeyId="${this.journeyId}"
+                stepId="${this.stepId}"
+                baseUrl="${this.baseUrl}"
+                previousStepId="${this.previousStepId}"
+        >
+            <slot></slot></mateu-component>
+        `)}</vaadin-horizontal-layout>`:x``}
+
+            ${((F=this.component)==null?void 0:F.metadata.type)==ComponentMetadataType.VerticalLayout?x`<vaadin-vertical-layout theme="spacing">${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
                                     .component=${X}
                                     .components=${this.components}
                         uiId="${this.uiId}"
@@ -17050,9 +17228,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         previousStepId="${this.previousStepId}"
                 >
                     <slot></slot></mateu-component>
-                `)}</vaadin-horizontal-layout>`:x``}
+                `)}</vaadin-vertical-layout>`:x``}
 
-            ${((U=this.component)==null?void 0:U.metadata.type)==ComponentMetadataType.SplitLayout?x`<vaadin-spl>${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
+            ${((U=this.component)==null?void 0:U.metadata.type)==ComponentMetadataType.SplitLayout?x`<vaadin-split-layout>${this.component.childComponentIds.map(X=>this.components[X]).map(X=>x`<mateu-component
                                     .component=${X}
                                     .components=${this.components}
                         uiId="${this.uiId}"
@@ -17063,7 +17241,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         previousStepId="${this.previousStepId}"
                 >
                     <slot></slot></mateu-component>
-                `)}</vaadin-spl>`:x``}
+                `)}</vaadin-split-layout>`:x``}
 
             ${((q=this.component)==null?void 0:q.metadata.type)==ComponentMetadataType.Stepper?x`<mateu-stepper
                             .component=${this.component}
@@ -17146,7 +17324,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     display: block;
   }
     
-  `;__decorateClass$3([n$2()],MateuComponent.prototype,"baseUrl",2);__decorateClass$3([n$2()],MateuComponent.prototype,"component",2);__decorateClass$3([n$2()],MateuComponent.prototype,"components",2);__decorateClass$3([n$2()],MateuComponent.prototype,"uiId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"journeyTypeId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"journeyId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"stepId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"service",2);__decorateClass$3([n$2()],MateuComponent.prototype,"previousStepId",2);MateuComponent=__decorateClass$3([e$1("mateu-component")],MateuComponent);var __defProp$2=Object.defineProperty,__getOwnPropDesc$2=Object.getOwnPropertyDescriptor,__decorateClass$2=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$2(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$2(O,F,q),q};let MateuView=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.instant="",this.maincssclasses=""}updated(j){if(super.updated(j),this.components){let O="";for(let F in this.view.main.componentIds){const U=this.components[this.view.main.componentIds[F]];U.metadata.type==ComponentMetadataType.Crud&&U.metadata.columns.length>4&&(O="fullwidth")}this.maincssclasses=O}}render(){var j,O,F,U,q,W,G,K,Y,J,X,Q,te,re,ee,ie,ae,ne,oe,le,ue,ve,be,ge,pe;return x`
+  `;__decorateClass$3([n$2()],MateuComponent.prototype,"baseUrl",2);__decorateClass$3([n$2()],MateuComponent.prototype,"component",2);__decorateClass$3([n$2()],MateuComponent.prototype,"components",2);__decorateClass$3([n$2()],MateuComponent.prototype,"uiId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"journeyTypeId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"journeyId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"stepId",2);__decorateClass$3([n$2()],MateuComponent.prototype,"service",2);__decorateClass$3([n$2()],MateuComponent.prototype,"previousStepId",2);MateuComponent=__decorateClass$3([e$1("mateu-component")],MateuComponent);var __defProp$2=Object.defineProperty,__getOwnPropDesc$2=Object.getOwnPropertyDescriptor,__decorateClass$2=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$2(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$2(O,F,q),q};let MateuView=class extends s$1{constructor(){super(...arguments),this.baseUrl="",this.instant="",this.maincssclasses=""}updated(j){if(super.updated(j),this.components){let O="";for(let F in this.view.main.componentIds){const U=this.components[this.view.main.componentIds[F]];if(U.metadata.type==ComponentMetadataType.Crud&&U.metadata.columns.length>4){O="fullwidth";break}if(U.metadata.type==ComponentMetadataType.Form){for(let q of U.metadata.sections)if(q.columns>2){O="fullwidth";break}}}this.maincssclasses=O}}render(){var j,O,F,U,q,W,G,K,Y,J,X,Q,te,re,ee,ie,ae,ne,oe,le,ue,ve,be,ge,pe;return x`
             ${((F=(O=(j=this.view)==null?void 0:j.header)==null?void 0:O.componentIds)==null?void 0:F.length)>0?x`
         <header>
             <vaadin-vertical-layout>
@@ -17169,6 +17347,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <vaadin-vertical-layout>
         ${(J=(Y=this.view)==null?void 0:Y.left)==null?void 0:J.componentIds.map(ce=>this.components[ce]).map(ce=>x`<mateu-component
             .component=${ce}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
@@ -17186,6 +17365,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <vaadin-vertical-layout style="width: 100%" theme="spacing-xs">
         ${(ee=(re=this.view)==null?void 0:re.main)==null?void 0:ee.componentIds.map(ce=>this.components[ce]).map(ce=>ce).map(ce=>x`<mateu-component 
             .component=${ce}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -17201,6 +17381,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <vaadin-vertical-layout>
         ${(le=(oe=this.view)==null?void 0:oe.right)==null?void 0:le.componentIds.map(ce=>this.components[ce]).map(ce=>x`<mateu-component 
             .component=${ce}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -17216,6 +17397,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <vaadin-vertical-layout>
                 ${(pe=(ge=this.view)==null?void 0:ge.footer)==null?void 0:pe.componentIds.map(ce=>this.components[ce]).map(ce=>x`<mateu-component
             .component=${ce}
+            .components=${this.components}
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
@@ -17254,7 +17436,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           max-width: unset;
       }
     
-    header {
+    header, footer {
         flex-basis: 100%;
     }
     
@@ -17301,7 +17483,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }  
     }
   
-    `;__decorateClass$2([n$2()],MateuView.prototype,"baseUrl",2);__decorateClass$2([n$2()],MateuView.prototype,"view",2);__decorateClass$2([n$2()],MateuView.prototype,"components",2);__decorateClass$2([n$2()],MateuView.prototype,"uiId",2);__decorateClass$2([n$2()],MateuView.prototype,"journeyTypeId",2);__decorateClass$2([n$2()],MateuView.prototype,"journeyId",2);__decorateClass$2([n$2()],MateuView.prototype,"stepId",2);__decorateClass$2([n$2()],MateuView.prototype,"service",2);__decorateClass$2([n$2()],MateuView.prototype,"instant",2);__decorateClass$2([t()],MateuView.prototype,"maincssclasses",2);MateuView=__decorateClass$2([e$1("mateu-view")],MateuView);var ContentType=(j=>(j.SingleComponent="SingleComponent",j.View="View",j))(ContentType||{}),__defProp$1=Object.defineProperty,__getOwnPropDesc$1=Object.getOwnPropertyDescriptor,__decorateClass$1=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$1(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$1(O,F,q),q};let JourneyStarter=class extends s$1{constructor(){super(),this.baseUrl="",this.uiId=void 0,this.journeyTypeId=void 0,this.journeyId=void 0,this.instant=void 0,this.inModal=void 0,this.contextData=void 0,this.initialUiIncrement=void 0,this.remote=!1,this.modalStepId=void 0,this.modalInstant=void 0,this.modalStyle=void 0,this.modalClass=void 0,this.loading=!1,this.error=void 0,this.view=void 0,this.components={},this.upstream=new Subject,this.apiController=new ApiController(this),this.modalOpened=!1,this.service=new Service$1(this.upstream)}runAction(j){this.service.runAction(this.baseUrl,this.uiId,this.journeyTypeId,this.journeyId,"notInUse",j.detail.componentId,j.detail.actionId,j.detail.componentType,j.detail.data).then()}replaceComponent(j){const O=j.detail.target,F=j.detail.replacement;F.id=O.id;const U={};U[O.id]=F;const q={commands:[],messages:[],uiFragments:[{target:ActionTarget.Component,targetId:O.id,modalStyle:void 0,content:F,components:U}]};this.upstream.next(q)}async connectedCallback(){super.connectedCallback(),this.upstreamSubscription=this.upstream.subscribe(j=>this.stampState(j))}disconnectedCallback(){var j;super.disconnectedCallback(),(j=this.upstreamSubscription)==null||j.unsubscribe()}stampState(j){var O,F,U;(O=j.commands)==null||O.forEach(q=>this.runCommand(q)),(F=j.messages)==null||F.forEach(q=>this.showMessage(q)),(U=j.uiFragments)==null||U.forEach(q=>{if(ActionTarget.NewTab==q.target){const W=window.open();W==null||W.document.write(`${this.renderModal()}`)}else if(ActionTarget.NewWindow==q.target){const W=window.open("","A window","width=800,height=400,screenX=200,screenY=200");W==null||W.document.write(`${this.renderModal()}`)}else ActionTarget.NewModal==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class",""),W==null||W.setAttribute("style",this.modalStyle?this.modalStyle:"")})):ActionTarget.LeftDrawer==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="modal-left",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class","modal-left"),W==null||W.setAttribute("style","left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;"+(this.modalStyle?this.modalStyle:""))})):ActionTarget.RightDrawer==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="modal-right",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class","modal-right"),W==null||W.setAttribute("style","right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;"+(this.modalStyle?this.modalStyle:""))})):(this.stampFragment(q),this.requestUpdate("view"))})}stampFragment(j){if(j.content.contentType==ContentType.View)this.view=j.content;else if(j.target==ActionTarget.Component&&j.content.contentType==ContentType.SingleComponent)for(let O in j.components)this.components[j.targetId]=j.components[O];else if(j.content.contentType==ContentType.SingleComponent){const O=j.content;this.view={contentType:ContentType.View,header:{componentIds:[],cssClasses:void 0},left:{componentIds:[],cssClasses:void 0},main:{componentIds:[O.componentId],cssClasses:void 0},right:{componentIds:[],cssClasses:void 0},footer:{componentIds:[],cssClasses:void 0}}}if(j.components){this.components||(this.components={});for(let O in j.components)this.components[O]=j.components[O]}}runCommand(j){try{switch(j.type){case UICommandType.SetWindowTitle:document.title=j.data;return;case UICommandType.UpdateUrl:var O="#"+j.data.url;this.journeyTypeId=="____home____"&&(O=""),window.history.pushState({},"",O);return;case UICommandType.CloseModal:this.closeModalAndStay(j.data);return;case UICommandType.SetLocation:window.location=j.data;return;case UICommandType.ReplaceWithUrl:window.close(),window.open(j.data,"A window","width=800,height=400,screenX=200,screenY=200");return;case UICommandType.OpenNewTab:window.open(j.data,"_blank");return;case UICommandType.OpenNewWindow:window.open(j.data,"A window","width=800,height=400,screenX=200,screenY=200");return;case UICommandType.ReplaceJourney:this.replaceJourney(j.data);return}}catch(F){console.error(F)}}showMessage(j){const O={notification:Notification,close:Function},F=()=>x`
+    `;__decorateClass$2([n$2()],MateuView.prototype,"baseUrl",2);__decorateClass$2([n$2()],MateuView.prototype,"view",2);__decorateClass$2([n$2()],MateuView.prototype,"components",2);__decorateClass$2([n$2()],MateuView.prototype,"uiId",2);__decorateClass$2([n$2()],MateuView.prototype,"journeyTypeId",2);__decorateClass$2([n$2()],MateuView.prototype,"journeyId",2);__decorateClass$2([n$2()],MateuView.prototype,"stepId",2);__decorateClass$2([n$2()],MateuView.prototype,"service",2);__decorateClass$2([n$2()],MateuView.prototype,"instant",2);__decorateClass$2([t()],MateuView.prototype,"maincssclasses",2);MateuView=__decorateClass$2([e$1("mateu-view")],MateuView);var ContentType=(j=>(j.SingleComponent="SingleComponent",j.View="View",j))(ContentType||{}),__defProp$1=Object.defineProperty,__getOwnPropDesc$1=Object.getOwnPropertyDescriptor,__decorateClass$1=(j,O,F,U)=>{for(var q=U>1?void 0:U?__getOwnPropDesc$1(O,F):O,W=j.length-1,G;W>=0;W--)(G=j[W])&&(q=(U?G(O,F,q):G(q))||q);return U&&q&&__defProp$1(O,F,q),q};let JourneyStarter=class extends s$1{constructor(){super(),this.baseUrl="",this.uiId=void 0,this.journeyTypeId=void 0,this.journeyId=void 0,this.instant=void 0,this.inModal=void 0,this.contextData=void 0,this.initialUiIncrement=void 0,this.remote=!1,this.modalStepId=void 0,this.modalInstant=void 0,this.modalStyle=void 0,this.modalClass=void 0,this.loading=!1,this.error=void 0,this.view=void 0,this.components={},this.upstream=new Subject,this.apiController=new ApiController(this),this.modalOpened=!1,this.service=new Service$1(this.upstream)}runAction(j){this.service.runAction(this.baseUrl,this.uiId,this.journeyTypeId,this.journeyId,"notInUse",j.detail.componentId,j.detail.actionId,j.detail.componentType,j.detail.data).then()}replaceComponent(j){const O=j.detail.target,F=j.detail.replacement;F.id=O.id;const U={};U[O.id]=F;const q={commands:[],messages:[],uiFragments:[{target:ActionTarget.Component,targetId:O.id,modalStyle:void 0,content:F,components:U}]};this.upstream.next(q)}async connectedCallback(){super.connectedCallback(),this.upstreamSubscription=this.upstream.subscribe(j=>this.stampState(j))}disconnectedCallback(){var j;super.disconnectedCallback(),(j=this.upstreamSubscription)==null||j.unsubscribe()}stampState(j){var O,F,U;(O=j.commands)==null||O.forEach(q=>this.runCommand(q)),(F=j.messages)==null||F.forEach(q=>this.showMessage(q)),(U=j.uiFragments)==null||U.forEach(q=>{if(ActionTarget.NewTab==q.target){const W=window.open();W==null||W.document.write(`${this.renderModal()}`)}else if(ActionTarget.NewWindow==q.target){const W=window.open("","A window","width=800,height=400,screenX=200,screenY=200");W==null||W.document.write(`${this.renderModal()}`)}else ActionTarget.NewModal==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class",""),W==null||W.setAttribute("style",this.modalStyle?this.modalStyle:"")})):ActionTarget.LeftDrawer==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="modal-left",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class","modal-left"),W==null||W.setAttribute("style","left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;"+(this.modalStyle?this.modalStyle:""))})):ActionTarget.RightDrawer==q.target?(this.modalOpened=!0,this.modalInstant=nanoid(),this.modalInitialUiIncrement={modalStyle:void 0,content:q.content,targetId:"",target:ActionTarget.View,components:q.components},this.modalStyle=q.modalStyle,this.modalClass="modal-right",setTimeout(()=>{var G,K;const W=(K=(G=document.querySelector("vaadin-dialog-overlay"))==null?void 0:G.shadowRoot)==null?void 0:K.querySelector("#overlay");W==null||W.setAttribute("class","modal-right"),W==null||W.setAttribute("style","right:0;position:absolute;height:100vh;max-height:unset;max-width:unset;;margin-right:-15px;border-top-right-radius:0px;border-bottom-right-radius:0px;"+(this.modalStyle?this.modalStyle:""))})):(this.stampFragment(q),this.requestUpdate("view"))})}stampFragment(j){if(j.content.contentType==ContentType.View)this.view=j.content;else if(j.target==ActionTarget.Component&&j.content.contentType==ContentType.SingleComponent)for(let O in j.components)this.components[j.targetId]=j.components[O],this.components[j.targetId].id=j.targetId,this.components={...this.components};else if(j.content.contentType==ContentType.SingleComponent){const O=j.content;this.view={contentType:ContentType.View,header:{componentIds:[],cssClasses:void 0},left:{componentIds:[],cssClasses:void 0},main:{componentIds:[O.componentId],cssClasses:void 0},right:{componentIds:[],cssClasses:void 0},footer:{componentIds:[],cssClasses:void 0}}}if(j.components){this.components||(this.components={});for(let O in j.components)this.components[O]=j.components[O]}}runCommand(j){try{switch(j.type){case UICommandType.SetWindowTitle:document.title=j.data;return;case UICommandType.UpdateUrl:var O="#"+j.data.url;this.journeyTypeId=="____home____"&&(O=""),window.history.pushState({},"",O);return;case UICommandType.CloseModal:this.closeModalAndStay(j.data);return;case UICommandType.SetLocation:window.location=j.data;return;case UICommandType.ReplaceWithUrl:window.close(),window.open(j.data,"A window","width=800,height=400,screenX=200,screenY=200");return;case UICommandType.OpenNewTab:window.open(j.data,"_blank");return;case UICommandType.OpenNewWindow:window.open(j.data,"A window","width=800,height=400,screenX=200,screenY=200");return;case UICommandType.ReplaceJourney:this.replaceJourney(j.data);return}}catch(F){console.error(F)}}showMessage(j){const O={notification:Notification,close:Function},F=()=>x`
   <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
     <div>${j.title}
       ${j.text?x`
@@ -17512,7 +17694,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 
                 ${this.ui.menu&&this.ui.menu.length>0?x`
                     <vaadin-app-layout>
-                        <vaadin-horizontal-layout slot="navbar" theme="spacing" style="align-items: center;">
+                        <vaadin-horizontal-layout style="width: 100%" slot="navbar">
+                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                             <h3 class="title ml-l" @click=${this.goHome}>${this.ui.title}</h3>
                             ${this.ui.apps&&this.ui.apps.length>0?x`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
@@ -17520,7 +17703,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
                             `:""}
                         </vaadin-horizontal-layout>
-                        <div class="container" slot="navbar" style="flex-grow: 1;">
+                        <div class="container" style="/*flex-grow: 1;*/">
                             ${this.ui.menu?x`
                                 <vaadin-menu-bar id="main-menu"
                                         .items="${this.items}"
@@ -17529,7 +17712,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                 ></vaadin-menu-bar>
                             `:""}
                         </div>                         
-                        <div slot="navbar" style="text-align: right; padding-right: 10px;">
+                        <div style="text-align: right; padding-right: 10px;">
                                 ${this.ui.loginUrl?x`
                                     <vaadin-button theme="tertiary" 
                                                    @click="${this.login}"
@@ -17541,6 +17724,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                     >Logout</vaadin-button>
                             `:""}
                         </div>
+                        </vaadin-horizontal-layout>
                     </vaadin-app-layout>
                 `:""}
                 
@@ -17612,10 +17796,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
 
         .container {
-            flex: 1 1 0;
+            /* flex: 1 1 0; */
             padding-left: 2rem;
             padding-right: 2rem;
-            width: clamp(45ch, 90%, 75ch);
+            /*width: clamp(45ch, 20%, 75ch);*/
+            width: 50%;
             max-width: 955px;
             margin: auto;
         }

@@ -6,6 +6,8 @@ import '@vaadin/vaadin-text-field'
 import '@vaadin/vaadin-grid'
 import '@vaadin/vaadin-grid/vaadin-grid-selection-column'
 import '@vaadin/vaadin-grid/vaadin-grid-filter-column'
+import '@vaadin/vaadin-grid/vaadin-grid-sort-column'
+import '@vaadin/vaadin-grid/vaadin-grid-column'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import {columnBodyRenderer} from "lit-vaadin-helpers";
 import {GridActiveItemChangedEvent} from "@vaadin/vaadin-grid";
@@ -300,6 +302,8 @@ export class FieldCrud extends LitElement implements Component {
     }
 
     render() {
+        const searchable = this.field?.attributes.filter(a => a.key == 'searchable').length;
+        const editable = this.field?.attributes.filter(a => a.key == 'editable').length;
         return html`
 
             <vaadin-custom-field
@@ -308,41 +312,57 @@ export class FieldCrud extends LitElement implements Component {
                     ?required=${this.required}
                     placeholder="${this.placeholder}"
             >
+                ${this.value?.length?html`
                 <vaadin-grid .items="${this.value}"
                              .selectedItems="${this.selectedItems}"
                              @active-item-changed="${(e: GridActiveItemChangedEvent<never>) => {
-                                 const item = e.detail.value;
-                                 this.selectedItems = item ? [item] : [];
-                             }}"
+                    const item = e.detail.value;
+                    this.selectedItems = item ? [item] : [];
+                }}"
+                             all-rows-visible
+                             class="${!this.value?.length?'no-rows':''}"
                 >
-                    ${this.field?.attributes.filter(a => a.key == 'column').map(a => a.value as {id: string})
-                            .map(c => html`
-                        <vaadin-grid-filter-column path="${c.id}" resizable></vaadin-grid-filter-column>
+                        ${this.field?.attributes.filter(a => a.key == 'column').map(a => a.value as {id: string})
+                        .map(c => html`
+                                                        ${searchable?html`
+                                                            <vaadin-grid-filter-column path="${c.id}" resizable></vaadin-grid-filter-column>
+`:html`
+                                                            <vaadin-grid-sort-column path="${c.id}" resizable></vaadin-grid-sort-column>
+                                                        `}
                     `)}
-                    <vaadin-grid-column
-                            frozen-to-end
-                            auto-width
-                            flex-grow="0"
-                            ${columnBodyRenderer(
-                                    (row, index) => html`
+                    ${editable?html`
+                        <vaadin-grid-column
+                                frozen-to-end
+                                auto-width
+                                flex-grow="0"
+                                ${columnBodyRenderer(
+                        (row, index) => html`
                                         <vaadin-button theme="tertiary-inline" 
                                                        .index="${index}" 
                                                        .row="${row}" 
                                                        @click="${this.edit}" 
                                         >Edit</vaadin-button>`,
-                                    []
-                            )}
-                    ></vaadin-grid-column>
+                        []
+                )}
+                        ></vaadin-grid-column>
+                    `:''}
                 </vaadin-grid>
-                <div class="toolbar">
-                    <vaadin-horizontal-layout class="botones">
-                        <div class="delete-button">
-                            <vaadin-button theme="tertiary error" ?disabled="${!this.selectedItems.length}"
-                                           @click="${this.delete}">Delete...</vaadin-button>
-                        </div>
-                        <vaadin-button theme="primary" @click="${this.new}">New item</vaadin-button>
-                    </vaadin-horizontal-layout>
-                </div>
+                `:html`
+                    <div class="no-rows">
+                        No value
+                    </div>
+                `}
+                ${editable?html`
+                    <div class="toolbar">
+                        <vaadin-horizontal-layout class="botones">
+                            <div class="delete-button">
+                                <vaadin-button theme="tertiary error" ?disabled="${!this.selectedItems.length}"
+                                               @click="${this.delete}">Delete...</vaadin-button>
+                            </div>
+                            <vaadin-button theme="primary" @click="${this.new}">New item</vaadin-button>
+                        </vaadin-horizontal-layout>
+                    </div>
+                `:''}
             </vaadin-custom-field>
 
             <vaadin-dialog
@@ -373,6 +393,16 @@ export class FieldCrud extends LitElement implements Component {
             flex-shrink: 0;
             align-items: baseline;
             justify-content: flex-end;
+        }
+        
+        .no-rows {
+            padding: var(--lumo-space-s) var(--lumo-space-m);
+            border: 1px solid var(--lumo-contrast-10pct);
+
+            display: flex;
+            flex-shrink: 0;
+            align-items: baseline;
+            justify-content: center;
         }
         
         .botones {
