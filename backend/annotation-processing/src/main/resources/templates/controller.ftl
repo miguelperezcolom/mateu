@@ -77,13 +77,15 @@ public class ${simpleClassName}MateuController {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;
         String componentType = null;
+        String searchText = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
             data = (Map<String, Object>) body.get("__data");
             componentType = (String) body.get("__componentType");
+            searchText = (String) body.get("__searchText");
         }
         return service.getListRows(componentType, page, page_size,
-                            data, filters, ordering, serverHttpRequest);
+                            data, searchText, filters, ordering, serverHttpRequest);
     }
 
     @GetMapping("v3/itemproviders/{itemProviderId}/items")
@@ -128,16 +130,18 @@ public class ${simpleClassName}MateuController {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;
         String componentType = null;
+        String searchText = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
             data = (Map<String, Object>) body.get("__data");
             componentType = (String) body.get("__componentType");
+            searchText = (String) body.get("__searchText");
         }
         String fileName = String.format("%s.csv", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateCsv(componentType, data, filters, ordering, serverHttpRequest)
+            .body(service.generateCsv(componentType, data, searchText, filters, ordering, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);
@@ -159,16 +163,18 @@ public class ${simpleClassName}MateuController {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;
         String componentType = null;
+        String searchText = null;
         if (body != null) {
             filters = (Map<String, Object>) body.get("__filters");
             data = (Map<String, Object>) body.get("__data");
             componentType = (String) body.get("__componentType");
+            searchText = (String) body.get("__searchText");
         }
         String fileName = String.format("%s.xls", RandomStringUtils.randomAlphabetic(10));
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,  "attachment; filename=" + fileName)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .body(service.generateExcel(componentType, data, filters, ordering, serverHttpRequest)
+            .body(service.generateExcel(componentType, data, searchText, filters, ordering, serverHttpRequest)
             .flatMap(x -> {
                 Resource resource = new InputStreamResource(x);
                 return Mono.just(resource);

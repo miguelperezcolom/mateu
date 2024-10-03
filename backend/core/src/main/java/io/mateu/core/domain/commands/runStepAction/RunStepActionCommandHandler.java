@@ -38,7 +38,13 @@ public class RunStepActionCommandHandler {
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId, command.contextData())) {
         return actionRunner.run(
-            viewInstance, stepId, actionId, componentId, data, command.contextData(), serverHttpRequest);
+            viewInstance,
+            stepId,
+            actionId,
+            componentId,
+            data,
+            command.contextData(),
+            serverHttpRequest);
       }
     }
 

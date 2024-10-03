@@ -9,6 +9,7 @@ export interface FetchRowsQuery {
     listId: string
     page: number
     pageSize: number
+    searchText: string | undefined
     filters: object
     sortOrders: string
     component: Component

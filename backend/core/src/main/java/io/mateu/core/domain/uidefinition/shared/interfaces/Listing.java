@@ -14,7 +14,8 @@ public interface Listing<FiltersForm, Row> {
     return true;
   }
 
-  Flux<Row> fetchRows(String searchText, FiltersForm filters, List<SortCriteria> sortOrders, int offset, int limit)
+  Flux<Row> fetchRows(
+      String searchText, FiltersForm filters, List<SortCriteria> sortOrders, int offset, int limit)
       throws Throwable;
 
   Mono<Long> fetchCount(String searchText, FiltersForm filters) throws Throwable;

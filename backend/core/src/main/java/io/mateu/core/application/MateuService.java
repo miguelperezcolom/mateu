@@ -103,17 +103,15 @@ public class MateuService {
       int page,
       int page_size,
       Map<String, Object> data,
+      String searchText,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return fetchListUseCase
-        .fetchPage(componentType, data, page, page_size,
-                (String) data.getOrDefault("__searchText", ""),
-                filters,
-                ordering,
-                serverHttpRequest)
+        .fetchPage(
+            componentType, data, page, page_size, searchText, filters, ordering, serverHttpRequest)
         .subscribeOn(Schedulers.boundedElastic());
   }
 
@@ -143,13 +141,15 @@ public class MateuService {
       String componentType,
       // urlencoded form of filters json serialized
       Map<String, Object> data,
+      String searchText,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    return getListRows(componentType, 0, 500, data, filters, ordering, serverHttpRequest)
+    return getListRows(
+            componentType, 0, 500, data, searchText, filters, ordering, serverHttpRequest)
         .map(Page::content)
         .map(
             list -> {
@@ -192,13 +192,15 @@ public class MateuService {
       String componentType,
       // urlencoded form of filters json serialized
       Map<String, Object> data,
+      String searchText,
       Map<String, Object> filters,
       // urlencoded form of orders json serialized
       String ordering,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
-    return getListRows(componentType, 0, 500, data, filters, ordering, serverHttpRequest)
+    return getListRows(
+            componentType, 0, 500, data, searchText, filters, ordering, serverHttpRequest)
         .map(Page::content)
         .map(
             list ->

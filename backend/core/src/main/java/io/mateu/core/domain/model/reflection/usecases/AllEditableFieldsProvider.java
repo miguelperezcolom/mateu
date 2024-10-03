@@ -158,8 +158,7 @@ public class AllEditableFieldsProvider {
     List<Field> r = new ArrayList<>();
     for (Field f : allFields) {
       if (!f.isAnnotationPresent(Autowired.class)
-          && (f.getDeclaringClass().isRecord()
-              || !(Modifier.isFinal(f.getModifiers())))) r.add(f);
+          && (f.getDeclaringClass().isRecord() || !(Modifier.isFinal(f.getModifiers())))) r.add(f);
     }
     return r;
   }

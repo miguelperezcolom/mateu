@@ -33,20 +33,21 @@ public class ViewInstancePartsExtractor {
     List<Field> partCandidates = new ArrayList<>();
     List<Field> leftFields = new ArrayList<>();
     partCandidates.addAll(fields);
-    if (false) fields.forEach(
-        f -> {
-          if (Crud.class.isAssignableFrom(f.getType())
-              || Card.class.isAssignableFrom(f.getType())
-              || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
-              || (Form.class.isAssignableFrom(f.getType()))
-              || formMetadataBuilder.isOwner(f)
-              || !SlotName.main.equals(slotName)
-              || viewInstance instanceof Container) {
-            partCandidates.add(f);
-          } else {
-            leftFields.add(f);
-          }
-        });
+    if (false)
+      fields.forEach(
+          f -> {
+            if (Crud.class.isAssignableFrom(f.getType())
+                || Card.class.isAssignableFrom(f.getType())
+                || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
+                || (Form.class.isAssignableFrom(f.getType()))
+                || formMetadataBuilder.isOwner(f)
+                || !SlotName.main.equals(slotName)
+                || viewInstance instanceof Container) {
+              partCandidates.add(f);
+            } else {
+              leftFields.add(f);
+            }
+          });
 
     for (Field f : partCandidates) {
       parts.add(buildPart(f, viewInstance, slotName));

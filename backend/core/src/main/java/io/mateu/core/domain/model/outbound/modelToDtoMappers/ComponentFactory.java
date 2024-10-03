@@ -221,11 +221,13 @@ public class ComponentFactory {
     return value;
   }
 
-  private String getComponentId(Field field, Object componentInstance, AtomicInteger componentCounter) {
+  private String getComponentId(
+      Field field, Object componentInstance, AtomicInteger componentCounter) {
     if (field != null && field.isAnnotationPresent(ComponentId.class)) {
       return field.getAnnotation(ComponentId.class).value();
     }
-    if (componentInstance != null && componentInstance.getClass().isAnnotationPresent(ComponentId.class)) {
+    if (componentInstance != null
+        && componentInstance.getClass().isAnnotationPresent(ComponentId.class)) {
       return componentInstance.getClass().getAnnotation(ComponentId.class).value();
     }
     return "component-" + componentCounter.getAndIncrement();

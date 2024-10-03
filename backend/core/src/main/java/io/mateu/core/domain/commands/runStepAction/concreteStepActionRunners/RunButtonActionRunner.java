@@ -8,8 +8,6 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
@@ -17,22 +15,14 @@ import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.Message;
-import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
-import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.dtos.*;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -44,9 +34,36 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   private final ValueProvider valueProvider;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
 
-  public RunButtonActionRunner(Merger merger, ActualValueExtractor actualValueExtractor, ReflectionHelper reflectionHelper, Serializer serializer, ValidationService validationService, ComponentFactory componentFactory, UIIncrementFactory uIIncrementFactory, BasicTypeChecker basicTypeChecker, MethodParametersEditorHandler methodParametersEditorHandler, MethodProvider methodProvider, ViewMapper viewMapper, ValueProvider valueProvider, DataExtractor dataExtractor, AllEditableFieldsProvider allEditableFieldsProvider) {
-    super(merger, actualValueExtractor, reflectionHelper, serializer, validationService, componentFactory, uIIncrementFactory, basicTypeChecker, methodParametersEditorHandler, methodProvider, viewMapper, dataExtractor, allEditableFieldsProvider);
-      this.valueProvider = valueProvider;
+  public RunButtonActionRunner(
+      Merger merger,
+      ActualValueExtractor actualValueExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      ValidationService validationService,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory,
+      BasicTypeChecker basicTypeChecker,
+      MethodParametersEditorHandler methodParametersEditorHandler,
+      MethodProvider methodProvider,
+      ViewMapper viewMapper,
+      ValueProvider valueProvider,
+      DataExtractor dataExtractor,
+      AllEditableFieldsProvider allEditableFieldsProvider) {
+    super(
+        merger,
+        actualValueExtractor,
+        reflectionHelper,
+        serializer,
+        validationService,
+        componentFactory,
+        uIIncrementFactory,
+        basicTypeChecker,
+        methodParametersEditorHandler,
+        methodProvider,
+        viewMapper,
+        dataExtractor,
+        allEditableFieldsProvider);
+    this.valueProvider = valueProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
   }
 
@@ -81,7 +98,8 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
       Object actualViewInstance,
       Field m,
       Map<String, Object> data,
-      ServerHttpRequest serverHttpRequest, String componentId)
+      ServerHttpRequest serverHttpRequest,
+      String componentId)
       throws Throwable {
 
     {
@@ -128,6 +146,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
       }
     }
   }
+
   @Override
   protected String getModalStyle(AnnotatedElement m) {
     if (m.isAnnotationPresent(Button.class)) {
@@ -154,5 +173,4 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
     }
     return null;
   }
-
 }

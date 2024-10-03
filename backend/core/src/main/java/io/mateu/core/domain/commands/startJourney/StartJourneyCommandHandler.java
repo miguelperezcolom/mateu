@@ -93,16 +93,17 @@ public class StartJourneyCommandHandler {
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
     io.mateu.core.domain.uidefinition.core.interfaces.View view =
-            (formInstance instanceof io.mateu.core.domain.uidefinition.core.interfaces.View v)?
-                    v
-                    :new SingleComponentView(formInstance);
+        (formInstance instanceof io.mateu.core.domain.uidefinition.core.interfaces.View v)
+            ? v
+            : new SingleComponentView(formInstance);
     View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
 
     return Mono.just(
         new UIIncrement(
             List.of(),
             List.of(),
-            List.of(new UIFragment(io.mateu.dtos.ActionTarget.View, "", "", viewDto, allComponents))));
+            List.of(
+                new UIFragment(io.mateu.dtos.ActionTarget.View, "", "", viewDto, allComponents))));
   }
 
   public Object resolveJourneyTypeId(

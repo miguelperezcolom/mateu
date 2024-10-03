@@ -45,8 +45,8 @@ public class AllTransferrableFieldsProvider {
     List<Field> r = new ArrayList<>();
     for (Field f : allFields) {
       if (!f.isAnnotationPresent(Autowired.class)
-              && !Modifier.isFinal(f.getModifiers())
-              && !Modifier.isTransient(f.getModifiers())) r.add(f);
+          && !Modifier.isFinal(f.getModifiers())
+          && !Modifier.isTransient(f.getModifiers())) r.add(f);
     }
     return r;
   }

@@ -7,7 +7,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromType;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
@@ -183,7 +182,8 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Flux fetchRows(String searchText, Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
+  public Flux fetchRows(
+      String searchText, Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
     return rowsQueryHandler.run(
         new RowsQuery(
             action,

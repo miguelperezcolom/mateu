@@ -283,6 +283,11 @@ export class MateuCrud extends LitElement {
     this.filtersOpened = false
   };
 
+  searchTextChanged(e:CustomEvent) {
+    const input = e.target as HTMLInputElement;
+    this.searchText = input.value
+  }
+
 
   filterChanged(e:Event) {
     const input = e.currentTarget as HTMLInputElement;
@@ -501,9 +506,9 @@ export class MateuCrud extends LitElement {
   exportItemSelected(event: MenuBarItemSelectedEvent) {
     let item = event.detail.value
     if (item.text == 'Excel') {
-      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.data)
+      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     } else if (item.text == 'Csv') {
-      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.data)
+      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     }
   }
 
@@ -570,16 +575,18 @@ export class MateuCrud extends LitElement {
               .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
             `:''}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
-      ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
+      ${this.metadata?.searchable || (this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0)?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
-          <vaadin-text-field id="searchText" 
-                             data-testid="searchText" 
-                             placeholder="Search" 
-                             @change=${this.filterChanged}
-                             value="${this.searchText}"
-                             style="flex-grow: 1;" autofocus="true"
-                             autoselect="on"></vaadin-text-field>
-          <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
+          ${this.metadata?.searchable?html`
+            <vaadin-text-field id="searchText"
+                               data-testid="searchText"
+                               placeholder="Search"
+                               value="${this.searchText}"
+                               @change="${this.searchTextChanged}"
+                               style="flex-grow: 1;" autofocus="true"
+                               autoselect="on"></vaadin-text-field>
+            <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
+          `:''}
           ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
             <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>

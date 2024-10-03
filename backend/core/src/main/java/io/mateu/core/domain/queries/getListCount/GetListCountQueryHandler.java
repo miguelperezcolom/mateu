@@ -44,7 +44,7 @@ public class GetListCountQueryHandler {
     }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
-    String searchText = (String) query.data().getOrDefault("__searchText", "");
+    String searchText = query.searchText();
 
     return listing.fetchCount(searchText, filters);
   }

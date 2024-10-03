@@ -111,7 +111,9 @@ public class InstanceProvider {
         params.add(convert(data.get(parameter.getName()), parameter.getType()));
       } else {
         params.add(
-            newInstance(parameter.getType(), (Map<String, Object>) data.getOrDefault(parameter.getName(), Map.of())));
+            newInstance(
+                parameter.getType(),
+                (Map<String, Object>) data.getOrDefault(parameter.getName(), Map.of())));
       }
     }
     return params.toArray();

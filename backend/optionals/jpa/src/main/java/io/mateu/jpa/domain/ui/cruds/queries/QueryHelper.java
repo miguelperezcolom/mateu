@@ -157,9 +157,9 @@ public class QueryHelper {
     if (!Strings.isNullOrEmpty(query.getSearchtext())) {
 
       var stringFields =
-              reflectionHelper.getAllEditableFields(entityClass).stream()
-                      .filter(field -> String.class.equals(field.getType()))
-                      .collect(Collectors.toList());
+          reflectionHelper.getAllEditableFields(entityClass).stream()
+              .filter(field -> String.class.equals(field.getType()))
+              .collect(Collectors.toList());
 
       if (stringFields.size() > 0) {
         if (!"".equals(ql)) ql += " and ";
@@ -169,12 +169,12 @@ public class QueryHelper {
             or += " or ";
           }
           or +=
-                  " lower(x."
-                          + stringField.getName()
-                          + (stringField.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
-                          + ") like :"
-                          + "_searchtext"
-                          + " ";
+              " lower(x."
+                  + stringField.getName()
+                  + (stringField.isAnnotationPresent(LiteralSearchFilter.class) ? ".es" : "")
+                  + ") like :"
+                  + "_searchtext"
+                  + " ";
         }
         ql += "(" + or + ")";
         parameterValues.put("_searchtext", "%" + query.getSearchtext().toLowerCase() + "%");

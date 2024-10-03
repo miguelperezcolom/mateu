@@ -14,6 +14,7 @@ export class FetchRowsQueryHandler {
             query.page,
             query.pageSize,
             query.sortOrders,
+            query.searchText,
             query.filters,
             query.component,
             query.data

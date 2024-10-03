@@ -28,13 +28,11 @@ public class FormIdentifier {
         || Crud.class.isAssignableFrom(f.getType())
         || Card.class.equals(f.getType())
         || Stepper.class.equals(f.getType())
-            || (
-                    value instanceof Container
-                            || value instanceof Crud
-                            || value instanceof Card
-                            || value instanceof Stepper
-                            || value instanceof Result
-            )
+        || (value instanceof Container
+            || value instanceof Crud
+            || value instanceof Card
+            || value instanceof Stepper
+            || value instanceof Result)
         || f.isAnnotationPresent(HorizontalLayout.class)
         || f.isAnnotationPresent(VerticalLayout.class)
         || f.isAnnotationPresent(SplitLayout.class)

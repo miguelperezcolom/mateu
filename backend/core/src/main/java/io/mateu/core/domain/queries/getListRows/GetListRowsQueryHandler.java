@@ -41,7 +41,7 @@ public class GetListRowsQueryHandler {
     }
 
     var filters = filtersDeserializer.deserialize(listing, query.data(), query.serverHttpRequest());
-    String searchText = (String) query.data().getOrDefault("__searchText", "");
+    String searchText = query.searchText();
 
     return listing.fetchRows(
         searchText, filters, query.ordering(), query.page() * query.pageSize(), query.pageSize());

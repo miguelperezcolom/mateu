@@ -62,7 +62,10 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
 
   @Override
   public List<Badge> getBadges() {
-    return List.of(new Badge(BadgeTheme.WARNING, "It works!"));
+    return List.of(
+            new Badge(BadgeTheme.INFO, "It works!"),
+            new Badge(BadgeTheme.WARNING, "Again :)")
+    );
   }
 
   @Override

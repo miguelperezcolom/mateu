@@ -45,5 +45,4 @@ public @interface MainAction {
   int timeoutMillis() default 0;
 
   boolean closeModalWindow() default false;
-
 }

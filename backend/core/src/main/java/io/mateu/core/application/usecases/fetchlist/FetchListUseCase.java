@@ -49,7 +49,7 @@ public class FetchListUseCase {
                 componentType,
                 data,
                 serverHttpRequest,
-                    searchText,
+                searchText,
                 filters,
                 page,
                 page_size,
@@ -59,7 +59,7 @@ public class FetchListUseCase {
             page > 0
                 ? Mono.just(-1L)
                 : getListCountQueryHandler.run(
-                    new GetListCountQuery(componentType, data, serverHttpRequest)))
+                    new GetListCountQuery(componentType, searchText, data, serverHttpRequest)))
         .map(tuple -> new Page(tuple.getT1(), tuple.getT2()));
   }
 }

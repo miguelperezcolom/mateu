@@ -22,4 +22,9 @@ public class MyReadOnlyPojoWithCrudCrud implements Crud<MyReadOnlyPojoWithCrudCr
     public Mono<Long> fetchCount(String searchText, MyReadOnlyPojoWithCrudCrudSearchForm filters) {
         return Mono.just(2L);
     }
+
+    @Override
+    public boolean isSearchable() {
+        return false;
+    }
 }

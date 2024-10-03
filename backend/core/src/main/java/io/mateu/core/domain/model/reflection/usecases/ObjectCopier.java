@@ -66,8 +66,7 @@ public class ObjectCopier {
     List<Field> r = new ArrayList<>();
     var allFields = allFieldsProvider.getAllFields(type);
     for (Field f : allFields) {
-      if (f.isAnnotationPresent(Autowired.class)
-              || Modifier.isFinal(f.getModifiers())) r.add(f);
+      if (f.isAnnotationPresent(Autowired.class) || Modifier.isFinal(f.getModifiers())) r.add(f);
     }
     return r;
   }

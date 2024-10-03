@@ -28,7 +28,6 @@ import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
-
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -175,11 +174,13 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Method m,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest,
-      Object result, String componentId) {
+      Object result,
+      String componentId) {
     if (result == null) {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data), componentId));
+              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data),
+              componentId));
     }
 
     if (result instanceof JourneyStarter journeyStarter) {
@@ -218,7 +219,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   @SneakyThrows
   protected UIIncrement getUiIncrement(
-          AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r, String componentId) {
+      AnnotatedElement m,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      Object r,
+      String componentId) {
 
     var commands = getCommands(m, data, serverHttpRequest, r);
     var messages = getMessages(r, m);
@@ -228,70 +233,80 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   @SneakyThrows
-  private List<UIFragment> getFragments(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r, String componentId) {
+  private List<UIFragment> getFragments(
+      AnnotatedElement m,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      Object r,
+      String componentId) {
     List<UIFragment> fragments = new ArrayList<>();
     if (mustCloseModal(m) || r instanceof CloseModal) {
     } else if (isTargetMessage(m) || r instanceof Message || r instanceof io.mateu.dtos.Message) {
 
     } else if (r instanceof URL url) {
-      if (!ActionTarget.NewTab.equals(getActionTarget(m)) && !ActionTarget.NewWindow.equals(getActionTarget(m))) {
+      if (!ActionTarget.NewTab.equals(getActionTarget(m))
+          && !ActionTarget.NewWindow.equals(getActionTarget(m))) {
         var component =
-                componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
-        fragments.add(new UIFragment(
-                                mapActionTarget(getActionTarget(m)),
-                                getTargetId(m, componentId),
-                                getModalStyle(m),
-                                new SingleComponent(component.id()),
-                                Map.of(component.id(), component)));
+            componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
+        fragments.add(
+            new UIFragment(
+                mapActionTarget(getActionTarget(m)),
+                getTargetId(m, componentId),
+                getModalStyle(m),
+                new SingleComponent(component.id()),
+                Map.of(component.id(), component)));
       }
     } else if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
-              componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
-      fragments.add(new UIFragment(
-                              mapActionTarget(getActionTarget(m)),
-                              getTargetId(m, componentId),
-                              getModalStyle(m),
-                              new SingleComponent(component.id()),
-                              Map.of(component.id(), component)));
+          componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
+      fragments.add(
+          new UIFragment(
+              mapActionTarget(getActionTarget(m)),
+              getTargetId(m, componentId),
+              getModalStyle(m),
+              new SingleComponent(component.id()),
+              Map.of(component.id(), component)));
     } else if (r instanceof ResponseWrapper responseWrapper) {
       var component =
-              componentFactory.createFormComponent(
-                      responseWrapper.getResponse(), serverHttpRequest, data);
-      fragments.add(new UIFragment(
-                              mapActionTarget(getActionTarget(m)),
-                              getTargetId(m, componentId),
-                              getModalStyle(m),
-                              new SingleComponent(component.id()),
-                              Map.of(component.id(), component)));
+          componentFactory.createFormComponent(
+              responseWrapper.getResponse(), serverHttpRequest, data);
+      fragments.add(
+          new UIFragment(
+              mapActionTarget(getActionTarget(m)),
+              getTargetId(m, componentId),
+              getModalStyle(m),
+              new SingleComponent(component.id()),
+              Map.of(component.id(), component)));
     } else if (r instanceof io.mateu.core.domain.uidefinition.core.interfaces.View view) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
       fragments.add(
-              new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m, componentId),
-                      getModalStyle(m),
-                      viewDto,
-                      allComponents));
+          new UIFragment(
+              mapActionTarget(getActionTarget(m)),
+              getTargetId(m, componentId),
+              getModalStyle(m),
+              viewDto,
+              allComponents));
     } else if (r instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
-      View viewDto = viewMapper.map(new SingleComponentView(r), serverHttpRequest, allComponents, Map.of());
+      View viewDto =
+          viewMapper.map(new SingleComponentView(r), serverHttpRequest, allComponents, Map.of());
       fragments.add(
-              new UIFragment(
-                      mapActionTarget(getActionTarget(m)),
-                      getTargetId(m, componentId),
-                      getModalStyle(m),
-                      viewDto,
-                      allComponents));
+          new UIFragment(
+              mapActionTarget(getActionTarget(m)),
+              getTargetId(m, componentId),
+              getModalStyle(m),
+              viewDto,
+              allComponents));
     } else {
       var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
       fragments.add(
-                      new UIFragment(
-                              mapActionTarget(getActionTarget(m)),
-                              getTargetId(m, componentId),
-                              getModalStyle(m),
-                              new SingleComponent(component.id()),
-                              Map.of(component.id(), component)));
+          new UIFragment(
+              mapActionTarget(getActionTarget(m)),
+              getTargetId(m, componentId),
+              getModalStyle(m),
+              new SingleComponent(component.id()),
+              Map.of(component.id(), component)));
     }
 
     return fragments;
@@ -310,12 +325,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return false;
   }
 
-  private List<UICommand> getCommands(AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
+  private List<UICommand> getCommands(
+      AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r) {
     List<UICommand> commands = new ArrayList<>();
     if (mustCloseModal(m)) {
       commands.add(createCloseCommand(m, r, dataExtractor.getData(r), serverHttpRequest));
     } else if (r instanceof CloseModal closeModal) {
-      commands.add(createCloseCommand(m, closeModal.getResult(), dataExtractor.getData(closeModal.getResult()), serverHttpRequest));
+      commands.add(
+          createCloseCommand(
+              m,
+              closeModal.getResult(),
+              dataExtractor.getData(closeModal.getResult()),
+              serverHttpRequest));
     }
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m))) {
@@ -328,20 +349,20 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return commands;
   }
 
-  private UICommand createCloseCommand(AnnotatedElement m, Object r, Map<String, Object> data, ServerHttpRequest serverHttpRequest) {
-    var component =
-            componentFactory.createFormComponent(r, serverHttpRequest, data);
+  private UICommand createCloseCommand(
+      AnnotatedElement m, Object r, Map<String, Object> data, ServerHttpRequest serverHttpRequest) {
+    var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
     var uiIncrement =
-            new UIIncrement(
-                    List.of(),
-                    List.of(),
-                    List.of(
-                            new UIFragment(
-                                    mapActionTarget(getActionTarget(m)),
-                                    getTargetId(m, null),
-                                    getModalStyle(m),
-                                    new SingleComponent(component.id()),
-                                    Map.of(component.id(), component))));
+        new UIIncrement(
+            List.of(),
+            List.of(),
+            List.of(
+                new UIFragment(
+                    mapActionTarget(getActionTarget(m)),
+                    getTargetId(m, null),
+                    getModalStyle(m),
+                    new SingleComponent(component.id()),
+                    Map.of(component.id(), component))));
     return new UICommand(UICommandType.CloseModal, uiIncrement);
   }
 

@@ -11,6 +11,7 @@ export class CrudService {
         listId: string
         page: number
         pageSize: number
+        searchText: string | undefined
         filters: object
         sortOrders: string
     },  component: Component, data: unknown) {
@@ -25,6 +26,7 @@ export class CrudService {
             page: params.page,
             pageSize: params.pageSize,
             sortOrders: params.sortOrders,
+            searchText: params.searchText,
             component: component,
             data: data
         })

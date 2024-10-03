@@ -21,12 +21,13 @@ public class SimpleCrud implements Crud<SearchForm, Row> {
 
   @Override
   public Flux<Row> fetchRows(
-      SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) throws Throwable {
+      String searchText, SearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
+      throws Throwable {
     return service.fetchRows(filters, sortOrders, offset, limit);
   }
 
   @Override
-  public Mono<Long> fetchCount(SearchForm filters) throws Throwable {
+  public Mono<Long> fetchCount(String searchText, SearchForm filters) throws Throwable {
     return service.fetchCount(filters);
   }
 

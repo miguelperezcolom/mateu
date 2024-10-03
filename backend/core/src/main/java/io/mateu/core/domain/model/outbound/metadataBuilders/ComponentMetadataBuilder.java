@@ -59,8 +59,8 @@ public class ComponentMetadataBuilder {
         && field.isAnnotationPresent(HorizontalLayout.class)) {
       metadata = getHorizontalLayout(list, componentInstance, field);
     } else if (componentInstance != null
-            && field != null
-            && field.isAnnotationPresent(HorizontalLayout.class)) {
+        && field != null
+        && field.isAnnotationPresent(HorizontalLayout.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
         && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
@@ -73,19 +73,19 @@ public class ComponentMetadataBuilder {
         && field.isAnnotationPresent(VerticalLayout.class)) {
       metadata = getVerticalLayout(list, componentInstance, field);
     } else if (componentInstance != null
-            && field != null
-            && field.isAnnotationPresent(VerticalLayout.class)) {
+        && field != null
+        && field.isAnnotationPresent(VerticalLayout.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
         && field.isAnnotationPresent(SplitLayout.class)) {
       metadata = getSplitLayout(list, componentInstance, field);
     } else if (componentInstance != null
-            && field != null
-            && field.isAnnotationPresent(SplitLayout.class)) {
+        && field != null
+        && field.isAnnotationPresent(SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance != null
-            && componentInstance.getClass().isAnnotationPresent(SplitLayout.class)) {
+        && componentInstance.getClass().isAnnotationPresent(SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance
         instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {

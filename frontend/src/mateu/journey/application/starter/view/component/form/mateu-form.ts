@@ -450,14 +450,14 @@ export class MateuForm extends LitElement implements FormElement {
         </vaadin-horizontal-layout>
           
         ${this.metadata.status || this.metadata.badges?html`
-            <div class="badges">
+            <vaadin-horizontal-layout class="badges" theme="spacing-s">
               ${this.metadata.status?html`<span 
                   theme="badge ${this.getThemeForStatusType(this.metadata.status.type)}"
               >${this.metadata.status.message}</span>`:''}
               ${this.metadata.badges.map(b => html`<span 
-                  theme="badge ${this.getThemeForBadgetType(b.type)}"
+                  theme="badge ${this.getThemeForBadgetType(b.theme)}"
               >${b.message}</span>`)}
-            </div>        
+            </vaadin-horizontal-layout>        
         `:''}
 
         ${this.metadata.sections

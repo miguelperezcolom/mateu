@@ -160,11 +160,12 @@ class MateuApiClient {
 
     async fetchRows(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
-                    sortOrders: string, filters: object, component: Component, data: unknown
+                    sortOrders: string, searchText: string | undefined, filters: object, component: Component, data: unknown
                     ): Promise<Page> {
         const payload = {
             __filters: filters,
             __data: data,
+            __searchText: searchText,
             __componentType: component.className
         }
         return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + '/journeys/' + journeyType
@@ -178,8 +179,9 @@ class MateuApiClient {
     }
 
     async getCsv(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
-                 sortOrders: string, filters: string): Promise<void> {
+                 sortOrders: string, searchText: string | undefined, filters: string): Promise<void> {
         const data = {
+            __searchText: searchText,
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
@@ -200,8 +202,9 @@ class MateuApiClient {
     }
 
     async getXls(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
-                 sortOrders: string, filters: any): Promise<void> {
+                 sortOrders: string, searchText: string | undefined, filters: any): Promise<void> {
         const data = {
+            __searchText: searchText,
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }

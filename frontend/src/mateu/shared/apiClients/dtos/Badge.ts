@@ -4,7 +4,7 @@ import {BadgeIconPosition} from "./BadgeIconPosition";
 
 export default interface Badge {
 
-    type: BadgeTheme
+    theme: BadgeTheme
     message: string | undefined
     icon: string
     badgeStyle: BadgeStyle
