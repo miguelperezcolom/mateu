@@ -146,7 +146,7 @@ export class MateuForm extends LitElement implements FormElement {
         }
         if ("RunAction" == r.action) {
           const actionId = r.data as string;
-          this.doRunActionId(actionId)
+          this.doRunActionId(actionId, undefined)
         }
         if ("HideAction" == r.action) {
           const actionIds = r.data as string[];
@@ -292,7 +292,7 @@ export class MateuForm extends LitElement implements FormElement {
   editFieldListener = async (event: Event) => {
     const customEvent = event as CustomEvent
     const fieldId = customEvent.detail.fieldId;
-    await this.doRunActionId('__editfield__' + fieldId)
+    await this.doRunActionId('__editfield__' + fieldId, undefined)
   }
 
   connectedCallback() {
@@ -314,26 +314,34 @@ export class MateuForm extends LitElement implements FormElement {
       return
     }
     setTimeout(async () => {
-      await this.doRunActionId(actionId);
+      await this.doRunActionId(actionId, undefined);
     })
   }
 
   async captureRunActionEvent(event: CustomEvent) {
-    await this.doRunAction(event.detail.action)
+    if (event.detail.actionId) {
+      await this.doRunActionId(event.detail.actionId, event.detail.eventName, event.detail.event);
+    } else {
+      await this.doRunAction(event.detail.action)
+    }
   }
 
-  async doRunActionId(actionId: string) {
+  async doRunActionId(actionId: string, eventName: string, event: unknown) {
     const action = this.findAction(actionId!)
     if (action) {
       await this.doRunAction(action)
     } else {
+      let effectiveData: any = {...this.data, __activeTabId: this.activeTab}
+      if (event) {
+        effectiveData = {...effectiveData, __eventName: eventName, __event: JSON.parse(JSON.stringify(event))}
+      }
       this.dispatchEvent(new CustomEvent('runaction', {
         detail: {
           componentId: this.componentId,
           componentType: this.component?.className,
           actionId: actionId,
           action: undefined,
-          data: {...this.data, __activeTabId: this.activeTab}
+          data: effectiveData
         },
         bubbles: true,
         composed: true
@@ -490,6 +498,7 @@ export class MateuForm extends LitElement implements FormElement {
                                                               baseUrl="${this.baseUrl}"
                                                               .formElement=${this}
                                           @run-action="${this.captureRunActionEvent}"
+                                          runactioninform
                                           style="display: ${!this.activeTab || this.activeTab == s.tabId?'unset':'none'};"
             ></mateu-section>`)}
 

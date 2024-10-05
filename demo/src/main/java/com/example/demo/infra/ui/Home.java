@@ -15,7 +15,6 @@ import java.util.Map;
 @ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 @Slf4j
-@KeycloakSecured(url = "https://lemur-10.cloud-iam.com/auth", realm = "mateu", clientId = "cliente", jsUrl = "/js/keycloak.min.js")
 public class Home extends DemoApp implements ConsumesContextData {
 
   @Section(value = "", leftSideImageUrl = "/myassets/background.svg")

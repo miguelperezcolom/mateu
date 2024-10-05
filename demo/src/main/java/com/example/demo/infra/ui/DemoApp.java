@@ -8,10 +8,8 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Private;
 import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Slf4j
@@ -21,13 +19,9 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
 
   @Submenu private FormsSubmenu forms;
 
-  @Submenu private CollectionsSubmenu collections;
-
-  @Submenu private RefsSubmenu refs;
-
   @Submenu private CrudsSubmenu cruds;
 
-  @Submenu private ActionsSubmenu actions;
+  @Submenu private OtherComponentsSubmenu otherComponents;
 
   @Submenu private LayoutsSubmenu layouts;
 
@@ -39,7 +33,7 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
 
   @Override
   public String getLoginUrl() {
-    return "/login";
+    return "/secured";
   }
 
   @Override

@@ -41,6 +41,7 @@ import './fields/field-button'
 import './fields/field-password'
 import './fields/field-email'
 import FieldWrapper from "../../../FieldWrapper";
+import Listener from "../../../../../../../../../shared/apiClients/dtos/Listener";
 
 /**
  * An example element.
@@ -105,11 +106,54 @@ export class MateuField extends LitElement {
 
   setupElement() {
     if (this.element) {
+      const contentValue = this.field.attributes.find(p => p.key == 'contentField');
       for (const a in this.value) {
-        // @ts-ignore
-        this.element.setAttribute(a, this.value[a])
+        if (contentValue && a == contentValue.value) {
+          // @ts-ignore
+          this.element.innerHTML = this.value[a]
+        } else {
+          // @ts-ignore
+          this.element.setAttribute(a, this.value[a])
+        }
+      }
+      for (const p of this.field.attributes.filter(p => p.key == 'listener')) {
+        const def = p.value as Listener
+        this.element.addEventListener(def.eventName, e => {
+          if (def.js) {
+            eval(def.js)
+          } else if (def.actionName) {
+            this.dispatchEvent(new CustomEvent('run-action', {
+              detail: {
+                actionId: def.actionName,
+                eventName: def.eventName,
+                event: JSON.parse(this.stringify_object(e))
+              },
+              bubbles: true,
+              composed: true
+            }))
+          }
+        });
       }
     }
+  }
+
+  stringify_object(object: any): string {
+    const obj = {};
+    for (let key in object) {
+      let value = object[key];
+      if (value instanceof Node)
+          // specify which properties you want to see from the node
+        { // @ts-ignore
+          value = {id: value.id};
+        }
+      else if (value instanceof Window)
+        value = 'Window';
+      else if (value instanceof Object)
+        value = 'Object';
+      // @ts-ignore
+      obj[key] = value;
+    }
+    return JSON.stringify(obj);
   }
 
   firstUpdated() {
@@ -152,7 +196,6 @@ export class MateuField extends LitElement {
     return html`
       <div id="wrapper">
         <div id="container"></div>
-        
         <slot></slot>
       </div>
     `

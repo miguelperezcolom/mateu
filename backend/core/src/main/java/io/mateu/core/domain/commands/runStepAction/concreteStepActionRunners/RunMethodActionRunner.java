@@ -22,12 +22,18 @@ import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,11 +41,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -68,10 +69,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return getActions(viewInstance).containsKey(actionId);
   }
 
-  private Map<Object, Method> getActions(Object viewInstance) {
-    return reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
+  private Map<String, Method> getActions(Object viewInstance) {
+    Map<String, Method> methodMap = new LinkedHashMap<>();
+    methodMap.putAll(reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
-        .collect(Collectors.toMap(m -> m.getName(), m -> m));
+        .collect(Collectors.toMap(m -> m.getName(), m -> m)));
+    reflectionHelper.getAllFields(viewInstance.getClass()).forEach(f -> {
+      methodMap.putAll(reflectionHelper.getAllMethods(f.getType()).stream()
+              .filter(m -> m.isAnnotationPresent(On.class))
+              .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
+    });
+    return methodMap;
   }
 
   @Override
@@ -95,9 +103,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       return processResult(targetInstance, m, data, serverHttpRequest, result, componentId);
     }
 
-    Method m = getActions(viewInstance).get(actionId);
-
-    return runMethod(viewInstance, m, data, serverHttpRequest, componentId);
+    return runMethod(viewInstance, data, serverHttpRequest, componentId, actionId);
   }
 
   @SneakyThrows
@@ -110,6 +116,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         values.add(serverHttpRequest);
         continue;
       }
+      if (ClientSideEvent.class.equals(m.getParameterTypes()[i])) {
+        values.add(new ClientSideEvent((String) data.get("__eventName"), (Map<String, Object>) data.get("__event")));
+        continue;
+      }
       values.add(
           actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
     }
@@ -118,11 +128,19 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
-      Method m,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest,
-      String componentId)
-      throws Throwable {
+      String componentId,
+      String actionId) throws Throwable {
+
+    Method m = getActions(actualViewInstance).get(actionId);
+
+    var methodOwner = actualViewInstance;
+    if (actionId.contains(".")) {
+      methodOwner = reflectionHelper.getValue(actionId.substring(0, actionId.indexOf(".")), actualViewInstance);
+    }
+
+
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
@@ -156,7 +174,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
       try {
 
-        Object result = m.invoke(actualViewInstance, injectParameters(m, serverHttpRequest));
+        Object result = m.invoke(methodOwner, injectParameters(m, serverHttpRequest, data));
 
         return processResult(actualViewInstance, m, data, serverHttpRequest, result, componentId);
 
@@ -491,6 +509,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     boolean anyNotInjected = false;
     for (Parameter parameter : m.getParameters()) {
       if (parameter.getType().equals(ServerHttpRequest.class)) {
+        continue;
+      }
+      if (parameter.getType().equals(ClientSideEvent.class)) {
         continue;
       }
       anyNotInjected = true;

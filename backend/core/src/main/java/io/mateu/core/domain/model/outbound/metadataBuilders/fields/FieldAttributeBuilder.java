@@ -7,13 +7,12 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.Content;
+import io.mateu.core.domain.uidefinition.shared.annotations.Element;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import io.mateu.core.domain.uidefinition.shared.data.ValuesListProvider;
-import io.mateu.dtos.Column;
-import io.mateu.dtos.Pair;
-import io.mateu.dtos.TelephonePrefix;
-import io.mateu.dtos.Value;
+import io.mateu.dtos.*;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -160,6 +159,23 @@ public class FieldAttributeBuilder {
                     List.of(),
                     columnField.isAnnotationPresent(Detail.class))));
       }
+    }
+    if (field.getType().isAnnotationPresent(Element.class)) {
+      reflectionHelper.getAllFields(field.getType()).stream()
+              .filter(m -> m.isAnnotationPresent(Content.class))
+              .forEach(m -> {
+                attributes.add(new Pair("contentField", m.getName()));
+              });
+      reflectionHelper.getAllMethods(field.getType()).stream()
+              .filter(m -> m.isAnnotationPresent(On.class))
+              .forEach(m -> {
+                var on = m.getAnnotation(On.class);
+                attributes.add(new Pair("listener", new Listener(
+                        on.value(),
+                        field.getName() + "." + m.getName(),
+                        on.js()
+                )));
+      });
     }
     return attributes;
   }

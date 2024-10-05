@@ -5,7 +5,10 @@ import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public record GetListCountQuery(
-    String componentType, String searchText, Map<String, Object> data, ServerHttpRequest serverHttpRequest) {
+    String componentType,
+    String searchText,
+    Map<String, Object> data,
+    ServerHttpRequest serverHttpRequest) {
 
   public GetListCountQuery {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();
