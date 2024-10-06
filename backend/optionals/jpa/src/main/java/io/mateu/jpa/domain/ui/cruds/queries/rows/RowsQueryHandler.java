@@ -4,6 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.Status;
+import io.mateu.dtos.SortCriteria;
+import io.mateu.dtos.SortType;
 import io.mateu.dtos.StatusType;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
@@ -11,6 +13,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -39,10 +42,10 @@ public class RowsQueryHandler {
                   query.getSelectColumnsForList(),
                   query.getSearchtext(),
                   query.getFilters(),
-                  query.getSortOrders(),
+                  toSortOrders(query.getPageable().getSort()),
                   null,
-                  query.getOffset(),
-                  query.getLimit(),
+                      (int) query.getPageable().getOffset(),
+                  query.getPageable().toLimit().max(),
                   true);
 
       return Flux.fromStream(
@@ -51,6 +54,12 @@ public class RowsQueryHandler {
     } catch (Exception e) {
       return Flux.error(e);
     }
+  }
+
+  private List<SortCriteria> toSortOrders(Sort sort) {
+    return sort.stream()
+            .map(s -> new SortCriteria(s.getProperty(), s.isDescending()?SortType.Descending:SortType.Ascending))
+            .toList();
   }
 
   private Map toMap(RowsQuery query, Object[] values, List<Field> columnFields) {

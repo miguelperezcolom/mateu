@@ -8,6 +8,7 @@ import io.mateu.jpa.domain.ui.cruds.queries.Query;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 public class CountQuery extends Query {
@@ -16,9 +17,7 @@ public class CountQuery extends Query {
       MDDOpenCRUDAction action,
       String searchtext,
       Object filters,
-      List<SortCriteria> sortOrders,
-      int offset,
-      int limit,
+      Pageable pageable,
       Map<String, String> aliasedColumnNamesByColId,
       String queryFilters,
       ExtraFilters extraFilters,
@@ -34,9 +33,7 @@ public class CountQuery extends Query {
         action,
         searchtext,
         filters,
-        sortOrders,
-        offset,
-        limit,
+        pageable,
         aliasedColumnNamesByColId,
         queryFilters,
         extraFilters,

@@ -1,5 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
+import com.example.demo.infra.ui.menus.useCases.intermediaries.IntermediariesRow;
+import com.example.demo.infra.ui.menus.useCases.intermediaries.IntermediariesSearchForm;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
@@ -8,6 +10,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,18 +42,14 @@ public class SalesAgentsCrud implements Crud<SalesAgentsSearchForm, SalesAgentsR
   public SalesAgentsCrud() {}
 
   @Override
-  public Flux<SalesAgentsRow> fetchRows(
-      String searchText, SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
-    return getFilteredList();
+  public Mono<Page<SalesAgentsRow>> fetchRows(
+          String searchText, SalesAgentsSearchForm filters, Pageable pageable) {
+    return getFilteredList().collectList()
+            .map(items ->new PageImpl<>(items, pageable, items.size()));
   }
 
   private Flux<SalesAgentsRow> getFilteredList() {
     return repo.findAll().filter(r -> r.getIntermediaryId().equals(intermediaryId));
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, SalesAgentsSearchForm filters) {
-    return getFilteredList().count();
   }
 
   @Override

@@ -20,20 +20,14 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -41,6 +35,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -71,14 +70,20 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   private Map<String, Method> getActions(Object viewInstance) {
     Map<String, Method> methodMap = new LinkedHashMap<>();
-    methodMap.putAll(reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
-        .filter(m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
-        .collect(Collectors.toMap(m -> m.getName(), m -> m)));
-    reflectionHelper.getAllFields(viewInstance.getClass()).forEach(f -> {
-      methodMap.putAll(reflectionHelper.getAllMethods(f.getType()).stream()
-              .filter(m -> m.isAnnotationPresent(On.class))
-              .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
-    });
+    methodMap.putAll(
+        reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
+            .filter(
+                m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
+            .collect(Collectors.toMap(m -> m.getName(), m -> m)));
+    reflectionHelper
+        .getAllFields(viewInstance.getClass())
+        .forEach(
+            f -> {
+              methodMap.putAll(
+                  reflectionHelper.getAllMethods(f.getType()).stream()
+                      .filter(m -> m.isAnnotationPresent(On.class))
+                      .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
+            });
     return methodMap;
   }
 
@@ -117,7 +122,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         continue;
       }
       if (ClientSideEvent.class.equals(m.getParameterTypes()[i])) {
-        values.add(new ClientSideEvent((String) data.get("__eventName"), (Map<String, Object>) data.get("__event")));
+        values.add(
+            new ClientSideEvent(
+                (String) data.get("__eventName"), (Map<String, Object>) data.get("__event")));
         continue;
       }
       values.add(
@@ -131,16 +138,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest,
       String componentId,
-      String actionId) throws Throwable {
+      String actionId)
+      throws Throwable {
 
     Method m = getActions(actualViewInstance).get(actionId);
 
     var methodOwner = actualViewInstance;
     if (actionId.contains(".")) {
-      methodOwner = reflectionHelper.getValue(actionId.substring(0, actionId.indexOf(".")), actualViewInstance);
+      methodOwner =
+          reflectionHelper.getValue(
+              actionId.substring(0, actionId.indexOf(".")), actualViewInstance);
     }
-
-
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
@@ -340,6 +348,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (m.isAnnotationPresent(Button.class)) {
       return ActionTarget.Message.equals(m.getAnnotation(Button.class).target());
     }
+    if (m.isAnnotationPresent(On.class)) {
+      return ActionTarget.Message.equals(m.getAnnotation(On.class).target());
+    }
     return false;
   }
 
@@ -394,6 +405,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).closeModalWindow();
     }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).closeModalWindow();
+    }
     return false;
   }
 
@@ -406,6 +420,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).modalStyle();
+    }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).modalStyle();
     }
     return null;
   }
@@ -422,6 +439,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).targetId();
+    }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).targetId();
     }
     return null;
   }
@@ -445,6 +465,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).target();
+    }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).target();
     }
     return null;
   }
@@ -487,6 +510,9 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).validateBefore();
+    }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).validateBefore();
     }
     return false;
   }

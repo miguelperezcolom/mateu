@@ -319,7 +319,11 @@ export class JourneyStarter extends LitElement {
           <p>${c.text}</p>
       `:''}
     </div>
-    <vaadin-button theme="tertiary-inline" @click="${() => closer.close()}" aria-label="Close">
+    <vaadin-button theme="tertiary-inline" 
+                   @click="${() => closer.close()}" 
+                   aria-label="Close"
+                   autofocus
+    >
       <vaadin-icon icon="lumo:cross"></vaadin-icon>
     </vaadin-button>
   </vaadin-horizontal-layout>

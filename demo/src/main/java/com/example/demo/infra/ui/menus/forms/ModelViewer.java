@@ -1,7 +1,11 @@
 package com.example.demo.infra.ui.menus.forms;
 
+import io.mateu.core.domain.uidefinition.core.interfaces.Message;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
 import io.mateu.core.domain.uidefinition.shared.annotations.Element;
+import io.mateu.core.domain.uidefinition.shared.annotations.On;
+import io.mateu.dtos.ResultType;
 import lombok.Data;
 
 /*
@@ -30,4 +34,17 @@ public class ModelViewer {
 
   @Attribute("camera-controls")
   private String cameraControls = "camera-controls";
+
+  @On(value = "load", target = ActionTarget.Message)
+  String onLoad() {
+    return "Loaded :)";
+  }
+
+  /*
+  @On(value = "load")
+  Message onLoad() {
+    return new Message(ResultType.Success, "It happened", "Loaded :)", 5000);
+  }
+  */
+
 }

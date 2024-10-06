@@ -19,6 +19,7 @@ public record Crud(
     String title,
     String subtitle,
     boolean canEdit,
+    boolean selectionListened,
     boolean searchable,
     SearchForm searchForm,
     List<Column> columns,

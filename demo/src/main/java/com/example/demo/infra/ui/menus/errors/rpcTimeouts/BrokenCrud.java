@@ -1,10 +1,15 @@
 package com.example.demo.infra.ui.menus.errors.rpcTimeouts;
 
+import com.example.demo.infra.ui.menus.layouts.shared.crud.Row;
+import com.example.demo.infra.ui.menus.layouts.shared.crud.SearchForm;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,15 +27,10 @@ public class BrokenCrud implements Crud<BrokenSearchForm, BrokenRow> {
   public BrokenCrud() {}
 
   @Override
-  public Flux<BrokenRow> fetchRows(
-          String searchText, BrokenSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit)
-      throws Throwable {
-    return repo.findAll();
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, BrokenSearchForm filters) throws Throwable {
-    return repo.findAll().count();
+  public Mono<Page<BrokenRow>> fetchRows(
+          String searchText, BrokenSearchForm filters, Pageable pageable) throws InterruptedException {
+    return repo.findAll().collectList()
+            .map(items ->new PageImpl<>(items, pageable, items.size()));
   }
 
   @Override

@@ -1,9 +1,5 @@
 package com.example.demo.infra.ui.menus.layouts.shared.crud;
-import lombok.Data;
 
-@Data
-public class SearchForm {
-
-    String text;
+public record SearchForm(int minAge) {
 
 }

@@ -1,15 +1,13 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.dtos.SortCriteria;
-import io.mateu.dtos.SortType;
+import org.springframework.data.domain.Sort;
 
 import java.util.Comparator;
-import java.util.List;
 
 public class RowComparator implements Comparator<LanguageRow> {
-  private final List<SortCriteria> sortOrders;
+  private final Sort sortOrders;
 
-  public RowComparator(List<SortCriteria> sortOrders) {
+  public RowComparator(Sort sortOrders) {
     this.sortOrders = sortOrders;
   }
 
@@ -17,9 +15,9 @@ public class RowComparator implements Comparator<LanguageRow> {
   public int compare(LanguageRow o1, LanguageRow o2) {
     int result = 0;
     if (sortOrders != null) {
-      for (SortCriteria sortOrder : sortOrders) {
-        result = compare(sortOrder.getColumn(), o1, o2);
-        if (SortType.Descending.equals(sortOrder.getOrder())) result *= -1;
+      for (Sort.Order sortOrder : sortOrders) {
+        result = compare(sortOrder.getProperty(), o1, o2);
+        if (sortOrder.isDescending()) result *= -1;
         if (result != 0) break;
       }
     }

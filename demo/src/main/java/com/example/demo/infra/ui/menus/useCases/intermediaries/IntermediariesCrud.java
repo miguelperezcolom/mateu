@@ -1,10 +1,15 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
+import com.example.demo.infra.ui.menus.useCases.leads.LeadsRow;
+import com.example.demo.infra.ui.menus.useCases.leads.LeadsSearchForm;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,14 +27,10 @@ public class IntermediariesCrud implements Crud<IntermediariesSearchForm, Interm
   public IntermediariesCrud() {}
 
   @Override
-  public Flux<IntermediariesRow> fetchRows(
-          String searchText, IntermediariesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
-    return repo.findAll();
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, IntermediariesSearchForm filters) {
-    return repo.findAll().count();
+  public Mono<Page<IntermediariesRow>> fetchRows(
+          String searchText, IntermediariesSearchForm filters, Pageable pageable) {
+    return repo.findAll().collectList()
+            .map(items ->new PageImpl<>(items, pageable, items.size()));
   }
 
   @Override

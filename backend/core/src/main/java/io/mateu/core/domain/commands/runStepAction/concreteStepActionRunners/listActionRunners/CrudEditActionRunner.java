@@ -17,6 +17,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -67,12 +70,11 @@ public class CrudEditActionRunner implements ListActionRunner {
 
       // todo: recover ordering
       var ordering = List.of(); // store.getLastUsedOrders(journeyContainer, stepId, listId);
+      var pageable = PageRequest.of(__index, 1, Sort.unsorted());
 
-      row =
-          crud.fetchRows(searchText, filtersDeserialized, ordering, __index, 1)
-              .next()
-              .toFuture()
-              .get();
+      Page page = (Page) crud.fetchRows(searchText, filtersDeserialized, pageable).toFuture().get();
+
+      row = page.get().findFirst().get();
     }
 
     Object editor = null;

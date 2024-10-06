@@ -17,6 +17,9 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -51,30 +54,19 @@ public class ProgrammingLanguages
   private DatesRange born;
 
   @Override
-  public Flux<LanguageRow> fetchRows(
-          String searchText, ProgrammingLanguages filters, List<SortCriteria> sortOrders, int offset, int limit) {
-    //Thread.sleep(500);
-    RowComparator comparator = new RowComparator(sortOrders);
+  public Mono<Page<LanguageRow>> fetchRows(
+          String searchText, ProgrammingLanguages filters, Pageable pageable) {
+    RowComparator comparator = new RowComparator(pageable.getSort());
     return repo.findAll()
-        .filter(
-            p ->
-                Strings.isNullOrEmpty(filters.getName())
-                    || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
-        .filter(p -> filters.getTarget() == null || filters.getTarget().equals(p.getTarget()))
-        .sort(comparator)
-        .skip(offset)
-        .take(limit);
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, ProgrammingLanguages filters) {
-    return repo.findAll()
-        .filter(
-            p ->
-                Strings.isNullOrEmpty(filters.getName())
-                    || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
-        .filter(p -> filters.getTarget() == null || filters.getTarget().equals(p.getTarget()))
-        .count();
+            .filter(
+                    p ->
+                            Strings.isNullOrEmpty(filters.getName())
+                                    || p.getName().toLowerCase().contains(filters.getName().toLowerCase()))
+            .filter(p -> filters.getTarget() == null || filters.getTarget().equals(p.getTarget()))
+            .sort(comparator)
+            .skip(pageable.getOffset())
+            .take(pageable.toLimit().max())
+            .collectList().map(filtered -> new PageImpl<>(filtered, pageable, filtered.size()));
   }
 
   @Override

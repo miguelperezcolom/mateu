@@ -9,22 +9,17 @@ import io.mateu.jpa.domain.ui.cruds.queries.Query;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class RowsQuery extends Query {
 
-  private final int offset;
-  private final int limit;
-  private final List<SortCriteria> sortOrders;
-
   public RowsQuery(
       MDDOpenCRUDAction action,
       String searchText,
       Object filters,
-      List<SortCriteria> sortOrders,
-      int offset,
-      int limit,
+      Pageable pageable,
       Map<String, String> aliasedColumnNamesByColId,
       String queryFilters,
       ExtraFilters extraFilters,
@@ -40,9 +35,7 @@ public class RowsQuery extends Query {
         action,
         searchText,
         filters,
-        sortOrders,
-        offset,
-        limit,
+            pageable,
         aliasedColumnNamesByColId,
         queryFilters,
         extraFilters,
@@ -54,8 +47,5 @@ public class RowsQuery extends Query {
         aliasedColumnNamesList,
         filterFields,
         columnFields);
-    this.offset = offset;
-    this.limit = limit;
-    this.sortOrders = sortOrders;
   }
 }

@@ -1,6 +1,8 @@
 package com.example.demo.infra.ircs.environments.services;
 
 import com.example.demo.infra.ircs.services.ServiceRow;
+import com.example.demo.infra.ircs.users.UserRow;
+import com.example.demo.infra.ircs.users.UsersSearchForm;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
 import io.mateu.core.domain.uidefinition.shared.annotations.Child;
@@ -8,6 +10,9 @@ import io.mateu.core.domain.uidefinition.shared.data.Status;
 import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.dtos.SortCriteria;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,17 +34,14 @@ public class ContractedServicesCrud implements Crud<ContractedServicesSearchForm
     }
 
     @Override
-    public Flux<ContractedServiceRow> fetchRows(String searchText, ContractedServicesSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
-        return Flux.just(
+    public Mono<Page<ContractedServiceRow>> fetchRows(
+            String searchText, ContractedServicesSearchForm filters, Pageable pageable) {
+        var items = List.of(
                 new ContractedServiceRow("PAS", new Status(StatusType.SUCCESS, "Active")),
                 new ContractedServiceRow("HIM", new Status(StatusType.SUCCESS, "Active")),
                 new ContractedServiceRow("RevElate", new Status(StatusType.SUCCESS, "Active"))
-                );
-    }
-
-    @Override
-    public Mono<Long> fetchCount(String searchText, ContractedServicesSearchForm filters) {
-        return Mono.just(2L);
+        );
+        return Mono.just(new PageImpl<>(items, pageable, items.size()));
     }
 
     @Override

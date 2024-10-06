@@ -26,8 +26,6 @@ import io.mateu.jpa.domain.ui.cruds.queries.findById.FindByIdQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.findById.FindByIdQueryHandler;
 import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQueryHandler;
-import io.mateu.jpa.domain.ui.cruds.queries.sums.SumsQuery;
-import io.mateu.jpa.domain.ui.cruds.queries.sums.SumsQueryHandler;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -45,9 +43,13 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 @Getter
 @Setter
@@ -83,7 +85,6 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @JsonIgnore @Autowired CountQueryHandler countQueryHandler;
   @JsonIgnore @Autowired RowsQueryHandler rowsQueryHandler;
-  @JsonIgnore @Autowired SumsQueryHandler sumsQueryHandler;
   @JsonIgnore @Autowired FindByIdQueryHandler findByIdQueryHandler;
   @JsonIgnore @Autowired ReflectionHelper reflectionHelper;
   @JsonIgnore @Autowired Humanizer humanizer;
@@ -182,16 +183,14 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Flux fetchRows(
-      String searchText, Object filters, List<SortCriteria> sortOrders, int offset, int limit) {
+  public Mono<Page<Object>> fetchRows(
+          String searchText, Object filters, Pageable pageable) {
     return rowsQueryHandler.run(
         new RowsQuery(
             action,
             searchText,
             filters,
-            sortOrders,
-            offset,
-            limit,
+            pageable,
             aliasedColumnNamesByColId,
             action.getQueryFilters(),
             action.getExtraFilters(),
@@ -202,53 +201,28 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
             aliasedColumnNamesList,
             columnNames,
             filterFields,
-            columnFields));
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, Object filters) {
-    sums =
-        sumFields.isEmpty()
-            ? List.of()
-            : sumsQueryHandler.run(
-                new SumsQuery(
-                    action,
-                    searchText,
-                    filters,
-                    null,
-                    0,
-                    0,
-                    aliasedColumnNamesByColId,
-                    action.getQueryFilters(),
-                    action.getExtraFilters(),
-                    selectColumnsForCount,
-                    selectColumnsForList,
-                    alias,
-                    aliasedColumnNames,
-                    aliasedColumnNamesList,
-                    columnNames,
-                    filterFields,
-                    sumFields,
-                    columnFields));
-    return countQueryHandler.run(
-        new CountQuery(
-            action,
-            searchText,
-            filters,
-            null,
-            0,
-            0,
-            aliasedColumnNamesByColId,
-            action.getQueryFilters(),
-            action.getExtraFilters(),
-            selectColumnsForCount,
-            selectColumnsForList,
-            alias,
-            aliasedColumnNames,
-            aliasedColumnNamesList,
-            columnNames,
-            filterFields,
-            columnFields));
+            columnFields)).collectList()
+            .zipWith(countQueryHandler.run(
+                    new CountQuery(
+                            action,
+                            searchText,
+                            filters,
+                            pageable,
+                            aliasedColumnNamesByColId,
+                            action.getQueryFilters(),
+                            action.getExtraFilters(),
+                            selectColumnsForCount,
+                            selectColumnsForList,
+                            alias,
+                            aliasedColumnNames,
+                            aliasedColumnNamesList,
+                            columnNames,
+                            filterFields,
+                            columnFields)))
+            .map(items -> new PageImpl<>(
+                    (List) ((Tuple2)items).getT1(),
+                    pageable,
+                    (long) ((Tuple2)items).getT2()));
   }
 
   @JsonIgnore

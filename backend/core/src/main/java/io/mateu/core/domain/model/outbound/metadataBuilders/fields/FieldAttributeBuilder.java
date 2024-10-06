@@ -162,20 +162,21 @@ public class FieldAttributeBuilder {
     }
     if (field.getType().isAnnotationPresent(Element.class)) {
       reflectionHelper.getAllFields(field.getType()).stream()
-              .filter(m -> m.isAnnotationPresent(Content.class))
-              .forEach(m -> {
+          .filter(m -> m.isAnnotationPresent(Content.class))
+          .forEach(
+              m -> {
                 attributes.add(new Pair("contentField", m.getName()));
               });
       reflectionHelper.getAllMethods(field.getType()).stream()
-              .filter(m -> m.isAnnotationPresent(On.class))
-              .forEach(m -> {
+          .filter(m -> m.isAnnotationPresent(On.class))
+          .forEach(
+              m -> {
                 var on = m.getAnnotation(On.class);
-                attributes.add(new Pair("listener", new Listener(
-                        on.value(),
-                        field.getName() + "." + m.getName(),
-                        on.js()
-                )));
-      });
+                attributes.add(
+                    new Pair(
+                        "listener",
+                        new Listener(on.value(), field.getName() + "." + m.getName(), on.js())));
+              });
     }
     return attributes;
   }

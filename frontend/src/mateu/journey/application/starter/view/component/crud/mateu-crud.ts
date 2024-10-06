@@ -594,12 +594,14 @@ export class MateuCrud extends LitElement {
         </vaadin-horizontal-layout>
         <p style="margin-block-start: 0;">${this.filtersText}</p>
       `:''}
-      
-      
+
       <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible
                    .detailsOpenedItems="${this.detailsOpenedItem}"
-                   @active-item-changed="${ifDefined(this.hasDetail()?(event: GridActiveItemChangedEvent<any>) => {
+                   @active-item-changed="${ifDefined(this.metadata.selectionListened || this.hasDetail()?(event: GridActiveItemChangedEvent<any>) => {
                      //this.detailsOpenedItem = [event.detail.value]
+                     if (this.metadata.selectionListened) {
+                        this.askForActionRun("__itemSelected", event.detail.value);                       
+                     }
                      if (this.metadata.columns.filter(c => c.detail)) {
                        const row = event.detail.value
                        if (row) {

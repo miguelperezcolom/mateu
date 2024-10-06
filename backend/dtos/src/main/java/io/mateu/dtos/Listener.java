@@ -7,5 +7,4 @@ package io.mateu.dtos;
  * @param actionName the action to trigger
  * @param js the js to run
  */
-public record Listener(String eventName, String actionName, String js) {
-}
+public record Listener(String eventName, String actionName, String js) {}

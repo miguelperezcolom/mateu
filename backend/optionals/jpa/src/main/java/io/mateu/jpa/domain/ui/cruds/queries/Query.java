@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.data.domain.Pageable;
 
 @AllArgsConstructor
 @Getter
@@ -18,9 +19,7 @@ public abstract class Query {
   private MDDOpenCRUDAction action;
   private String searchtext;
   private Object filters;
-  private List<SortCriteria> sortOrders;
-  private int offset;
-  private int limit;
+  private Pageable pageable;
   private Map<String, String> aliasedColumnNamesByColId;
   private String queryFilters;
   private ExtraFilters extraFilters;

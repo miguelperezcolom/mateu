@@ -1,11 +1,16 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.passwordResets;
 
+import com.example.demo.infra.ui.menus.forms.MyReadOnlyPojoWithCrudCrudRow;
+import com.example.demo.infra.ui.menus.forms.MyReadOnlyPojoWithCrudCrudSearchForm;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.dtos.SortCriteria;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,9 +29,10 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
   public PasswordResetsCrud() {}
 
   @Override
-  public Flux<PasswordResetsRow> fetchRows(
-      String searchText, SalesAgentsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
-    return getFilteredList();
+  public Mono<Page<PasswordResetsRow>> fetchRows(
+          String searchText, SalesAgentsSearchForm filters, Pageable pageable) {
+    return getFilteredList().collectList()
+            .map(items ->new PageImpl<>(items, pageable, items.size()));
   }
 
   private Flux<PasswordResetsRow> getFilteredList() {
@@ -37,8 +43,4 @@ public class PasswordResetsCrud implements Crud<SalesAgentsSearchForm, PasswordR
         .filter(r -> r.getId().equals(salesAgentId));
   }
 
-  @Override
-  public Mono<Long> fetchCount(String searchText, SalesAgentsSearchForm filters) {
-    return getFilteredList().count();
-  }
 }

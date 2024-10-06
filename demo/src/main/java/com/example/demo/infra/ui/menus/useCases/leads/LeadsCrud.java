@@ -1,10 +1,17 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
+import com.example.demo.infra.ircs.users.UserRow;
+import com.example.demo.infra.ircs.users.UsersSearchForm;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinition.shared.data.Status;
+import io.mateu.core.domain.uidefinition.shared.data.StatusType;
 import io.mateu.dtos.SortCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,14 +29,10 @@ public class LeadsCrud implements Crud<LeadsSearchForm, LeadsRow> {
   public LeadsCrud() {}
 
   @Override
-  public Flux<LeadsRow> fetchRows(
-          String searchText, LeadsSearchForm filters, List<SortCriteria> sortOrders, int offset, int limit) {
-    return repo.findAll();
-  }
-
-  @Override
-  public Mono<Long> fetchCount(String searchText, LeadsSearchForm filters) {
-    return repo.findAll().count();
+  public Mono<Page<LeadsRow>> fetchRows(
+          String searchText, LeadsSearchForm filters, Pageable pageable) {
+    return repo.findAll().collectList()
+            .map(items ->new PageImpl<>(items, pageable, items.size()));
   }
 
   @Override

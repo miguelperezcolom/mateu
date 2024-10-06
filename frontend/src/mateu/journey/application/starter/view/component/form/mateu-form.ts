@@ -146,7 +146,7 @@ export class MateuForm extends LitElement implements FormElement {
         }
         if ("RunAction" == r.action) {
           const actionId = r.data as string;
-          this.doRunActionId(actionId, undefined)
+          this.doRunActionId(actionId, undefined, undefined)
         }
         if ("HideAction" == r.action) {
           const actionIds = r.data as string[];
@@ -292,7 +292,7 @@ export class MateuForm extends LitElement implements FormElement {
   editFieldListener = async (event: Event) => {
     const customEvent = event as CustomEvent
     const fieldId = customEvent.detail.fieldId;
-    await this.doRunActionId('__editfield__' + fieldId, undefined)
+    await this.doRunActionId('__editfield__' + fieldId, undefined, undefined)
   }
 
   connectedCallback() {
@@ -314,7 +314,7 @@ export class MateuForm extends LitElement implements FormElement {
       return
     }
     setTimeout(async () => {
-      await this.doRunActionId(actionId, undefined);
+      await this.doRunActionId(actionId, undefined, undefined);
     })
   }
 
@@ -326,7 +326,7 @@ export class MateuForm extends LitElement implements FormElement {
     }
   }
 
-  async doRunActionId(actionId: string, eventName: string, event: unknown) {
+  async doRunActionId(actionId: string, eventName: string | undefined, event: unknown | undefined) {
     const action = this.findAction(actionId!)
     if (action) {
       await this.doRunAction(action)
