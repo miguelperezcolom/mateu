@@ -44,7 +44,7 @@ public class RowsQueryHandler {
                   query.getFilters(),
                   toSortOrders(query.getPageable().getSort()),
                   null,
-                      (int) query.getPageable().getOffset(),
+                  (int) query.getPageable().getOffset(),
                   query.getPageable().toLimit().max(),
                   true);
 
@@ -58,8 +58,11 @@ public class RowsQueryHandler {
 
   private List<SortCriteria> toSortOrders(Sort sort) {
     return sort.stream()
-            .map(s -> new SortCriteria(s.getProperty(), s.isDescending()?SortType.Descending:SortType.Ascending))
-            .toList();
+        .map(
+            s ->
+                new SortCriteria(
+                    s.getProperty(), s.isDescending() ? SortType.Descending : SortType.Ascending))
+        .toList();
   }
 
   private Map toMap(RowsQuery query, Object[] values, List<Field> columnFields) {

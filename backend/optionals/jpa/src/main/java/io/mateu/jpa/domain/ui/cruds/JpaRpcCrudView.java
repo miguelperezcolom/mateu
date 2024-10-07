@@ -17,7 +17,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
 import io.mateu.core.domain.uidefinition.shared.data.SumData;
 import io.mateu.core.domain.uidefinition.shared.interfaces.IResource;
-import io.mateu.dtos.SortCriteria;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommand;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommandHandler;
 import io.mateu.jpa.domain.ui.cruds.queries.count.CountQuery;
@@ -47,7 +46,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -183,46 +181,48 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   @Override
-  public Mono<Page<Object>> fetchRows(
-          String searchText, Object filters, Pageable pageable) {
-    return rowsQueryHandler.run(
-        new RowsQuery(
-            action,
-            searchText,
-            filters,
-            pageable,
-            aliasedColumnNamesByColId,
-            action.getQueryFilters(),
-            action.getExtraFilters(),
-            selectColumnsForCount,
-            selectColumnsForList,
-            alias,
-            aliasedColumnNames,
-            aliasedColumnNamesList,
-            columnNames,
-            filterFields,
-            columnFields)).collectList()
-            .zipWith(countQueryHandler.run(
-                    new CountQuery(
-                            action,
-                            searchText,
-                            filters,
-                            pageable,
-                            aliasedColumnNamesByColId,
-                            action.getQueryFilters(),
-                            action.getExtraFilters(),
-                            selectColumnsForCount,
-                            selectColumnsForList,
-                            alias,
-                            aliasedColumnNames,
-                            aliasedColumnNamesList,
-                            columnNames,
-                            filterFields,
-                            columnFields)))
-            .map(items -> new PageImpl<>(
-                    (List) ((Tuple2)items).getT1(),
+  public Mono<Page<Object>> fetchRows(String searchText, Object filters, Pageable pageable) {
+    return rowsQueryHandler
+        .run(
+            new RowsQuery(
+                action,
+                searchText,
+                filters,
+                pageable,
+                aliasedColumnNamesByColId,
+                action.getQueryFilters(),
+                action.getExtraFilters(),
+                selectColumnsForCount,
+                selectColumnsForList,
+                alias,
+                aliasedColumnNames,
+                aliasedColumnNamesList,
+                columnNames,
+                filterFields,
+                columnFields))
+        .collectList()
+        .zipWith(
+            countQueryHandler.run(
+                new CountQuery(
+                    action,
+                    searchText,
+                    filters,
                     pageable,
-                    (long) ((Tuple2)items).getT2()));
+                    aliasedColumnNamesByColId,
+                    action.getQueryFilters(),
+                    action.getExtraFilters(),
+                    selectColumnsForCount,
+                    selectColumnsForList,
+                    alias,
+                    aliasedColumnNames,
+                    aliasedColumnNamesList,
+                    columnNames,
+                    filterFields,
+                    columnFields)))
+        .map(
+            items ->
+                new PageImpl<>(
+                    (List) ((Tuple2) items).getT1(), pageable, (long) ((Tuple2) items).getT2()));
   }
 
   @JsonIgnore

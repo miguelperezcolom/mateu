@@ -44,5 +44,4 @@ public interface Listing<FiltersForm, Row> {
   default Object onRowSelected(Row row) throws Throwable {
     return null;
   }
-
 }
