@@ -86,7 +86,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
             });
     reflectionHelper
-            .getAllFields(viewInstance.getClass())
+            .getAllEditableFields(viewInstance.getClass())
             .stream().filter(f -> !managedTypeChecker.isManaged(f))
             .forEach(
                     f -> {
