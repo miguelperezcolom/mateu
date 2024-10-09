@@ -21,25 +21,24 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
+import java.lang.reflect.*;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.lang.reflect.*;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -85,25 +84,27 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       .filter(m -> m.isAnnotationPresent(On.class))
                       .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
             });
-    reflectionHelper
-            .getAllEditableFields(viewInstance.getClass())
-            .stream().filter(f -> !managedTypeChecker.isManaged(f))
-            .forEach(
-                    f -> {
-                        try {
-                            var value = reflectionHelper.getValue(f, viewInstance);
-                            if (value == null) {
-                              value = reflectionHelper.newInstance(f.getType());
-                            }
-                          getActions(value).forEach((k,v) -> methodMap.put(f.getName() + "." + k, v));
-                        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
-                                 InstantiationException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-    if (viewInstance instanceof Listing<?,?>) {
+    reflectionHelper.getAllEditableFields(viewInstance.getClass()).stream()
+        .filter(f -> !managedTypeChecker.isManaged(f))
+        .forEach(
+            f -> {
+              try {
+                var value = reflectionHelper.getValue(f, viewInstance);
+                if (value == null) {
+                  value = reflectionHelper.newInstance(f.getType());
+                }
+                getActions(value).forEach((k, v) -> methodMap.put(f.getName() + "." + k, v));
+              } catch (NoSuchMethodException
+                  | IllegalAccessException
+                  | InvocationTargetException
+                  | InstantiationException e) {
+                throw new RuntimeException(e);
+              }
+            });
+    if (viewInstance instanceof Listing<?, ?>) {
       if (!methodMap.containsKey("itemSelected")) {
-        methodMap.put("itemSelected", reflectionHelper.getMethod(viewInstance.getClass(), "onRowSelected"));
+        methodMap.put(
+            "itemSelected", reflectionHelper.getMethod(viewInstance.getClass(), "onRowSelected"));
       }
     }
     return methodMap;
@@ -126,7 +127,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Method m =
           methodProvider.getMethod(targetInstance.getClass(), methodParametersEditor.getMethodId());
       if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-      Object result = m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
+      Object result =
+          m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
       return processResult(targetInstance, m, data, serverHttpRequest, result, componentId);
     }
 
@@ -148,10 +150,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 (String) data.get("__eventName"), (Map<String, Object>) data.get("__event")));
         continue;
       }
-      if (instance instanceof Listing<?,?> listing) {
-        if (m.getGenericParameterTypes()[i] instanceof ParameterizedType &&
-                isSelectionParameter((ParameterizedType) m.getGenericParameterTypes()[i], listing)) {
-          List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
+      if (instance instanceof Listing<?, ?> listing) {
+        if (m.getGenericParameterTypes()[i] instanceof ParameterizedType
+            && isSelectionParameter((ParameterizedType) m.getGenericParameterTypes()[i], listing)) {
+          List<Map<String, Object>> rowsData =
+              (List<Map<String, Object>>) data.get("_selectedRows");
           List<Object> selectedRows = new ArrayList<>();
           for (Map<String, Object> row : rowsData) {
             selectedRows.add(reflectionHelper.newInstance(listing.getRowClass(), row));
@@ -160,19 +163,18 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
           continue;
         }
         if (listing.getRowClass().equals(m.getGenericParameterTypes()[i])) {
-          List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
+          List<Map<String, Object>> rowsData =
+              (List<Map<String, Object>>) data.get("_selectedRows");
           if (!rowsData.isEmpty()) {
             Map<String, Object> selectedRow = rowsData.get(0);
-            values.add(
-                    reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
+            values.add(reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
           } else {
             values.add(null);
           }
           continue;
         }
         if (m.getName().equals("onRowSelected")) {
-          values.add(
-                  reflectionHelper.newInstance(listing.getRowClass(), data));
+          values.add(reflectionHelper.newInstance(listing.getRowClass(), data));
           continue;
         }
       }
@@ -183,8 +185,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   boolean isSelectionParameter(ParameterizedType type, Listing listing) {
-    return List.class.equals(type.getRawType()) &&
-            reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
+    return List.class.equals(type.getRawType())
+        && reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
   }
 
   public Mono<UIIncrement> runMethod(
@@ -231,7 +233,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
       try {
 
-        Object result = m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
+        Object result =
+            m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
 
         return processResult(actualViewInstance, m, data, serverHttpRequest, result, componentId);
 
@@ -248,9 +251,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private Object getMethodOwner(String actionId, Object actualViewInstance) {
     var methodOwner = actualViewInstance;
     if (actionId.contains(".")) {
-      methodOwner = getMethodOwner(actionId.substring(actionId.indexOf(".") + 1),
+      methodOwner =
+          getMethodOwner(
+              actionId.substring(actionId.indexOf(".") + 1),
               reflectionHelper.getValue(
-                      actionId.substring(0, actionId.indexOf(".")), actualViewInstance));
+                  actionId.substring(0, actionId.indexOf(".")), actualViewInstance));
     }
     return methodOwner;
   }
@@ -587,20 +592,25 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       if (parameter.getType().equals(ClientSideEvent.class)) {
         continue;
       }
-      if (instance instanceof Listing<?,?> listing) {
+      if (instance instanceof Listing<?, ?> listing) {
         if (m.getName().equals("onRowSelected")) {
           continue;
         }
-        var isMultipleSelectionParameter = Arrays.stream(m.getGenericParameterTypes())
+        var isMultipleSelectionParameter =
+            Arrays.stream(m.getGenericParameterTypes())
                 .filter(t -> t instanceof ParameterizedType)
                 .map(t -> (ParameterizedType) t)
-                .anyMatch(type -> List.class.equals(type.getRawType())
-                        && reflectionHelper.getGenericClass(type, List.class, "E")
-                        .equals(listing.getRowClass()));
+                .anyMatch(
+                    type ->
+                        List.class.equals(type.getRawType())
+                            && reflectionHelper
+                                .getGenericClass(type, List.class, "E")
+                                .equals(listing.getRowClass()));
         if (isMultipleSelectionParameter) {
           continue;
         }
-        var isSingleSelectionParameter = Arrays.stream(m.getGenericParameterTypes())
+        var isSingleSelectionParameter =
+            Arrays.stream(m.getGenericParameterTypes())
                 .anyMatch(type -> listing.getRowClass().equals(type));
         if (isSingleSelectionParameter) {
           continue;

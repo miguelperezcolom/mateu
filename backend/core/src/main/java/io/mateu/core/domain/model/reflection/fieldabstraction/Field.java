@@ -40,5 +40,4 @@ public interface Field extends AnnotatedElement {
   int getModifiers();
 
   Annotation[] getDeclaredAnnotations();
-
 }

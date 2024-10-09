@@ -34,6 +34,9 @@ public class AllEditableFieldsProvider {
 
   public List<Field> getAllEditableFilteredFields(
       Class modelType, String fieldsFilter, List<Field> editableFields) {
+    if (Class.class.equals(modelType) || Object.class.equals(modelType)) {
+      return new ArrayList<>();
+    }
     List<Field> l =
         editableFields != null ? editableFields : getAllEditableFields(modelType, null, true);
     if (!Strings.isNullOrEmpty(fieldsFilter)) {

@@ -2,14 +2,12 @@ package io.mateu.core.domain.uidefinition.shared.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import java.awt.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
-
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Mono;
@@ -25,31 +23,28 @@ public interface Listing<FiltersForm, Row> {
 
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
     return reflectionHelper.getAllMethods(getClass()).stream()
-            .filter(m -> m.isAnnotationPresent(Action.class))
-            .anyMatch(m -> hasSelectionParameter(m, reflectionHelper));
+        .filter(m -> m.isAnnotationPresent(Action.class))
+        .anyMatch(m -> hasSelectionParameter(m, reflectionHelper));
   }
 
   default boolean hasSelectionParameter(Method m, ReflectionHelper reflectionHelper) {
     return Arrays.stream(m.getGenericParameterTypes())
-            .filter(t -> t instanceof ParameterizedType)
-            .map(t -> (ParameterizedType) t)
-            .anyMatch(type ->
-                    type.getRawType().equals(getRowClass())
-                    || (
-                    List.class.equals(type.getRawType())
-                            && reflectionHelper.getGenericClass(type, List.class, "E")
-                            .equals(getRowClass())
-                    )
-            );
+        .filter(t -> t instanceof ParameterizedType)
+        .map(t -> (ParameterizedType) t)
+        .anyMatch(
+            type ->
+                type.getRawType().equals(getRowClass())
+                    || (List.class.equals(type.getRawType())
+                        && reflectionHelper
+                            .getGenericClass(type, List.class, "E")
+                            .equals(getRowClass())));
   }
 
   default boolean hasActionOnSelectedRow(ReflectionHelper reflectionHelper) {
     return reflectionHelper.getAllMethods(this.getClass()).stream()
-            .filter(m -> m.isAnnotationPresent(Action.class))
-            .flatMap(m -> Arrays.stream(m.getGenericParameterTypes()))
-            .anyMatch(type ->
-                    type.equals(getRowClass())
-            );
+        .filter(m -> m.isAnnotationPresent(Action.class))
+        .flatMap(m -> Arrays.stream(m.getGenericParameterTypes()))
+        .anyMatch(type -> type.equals(getRowClass()));
   }
 
   default Class<FiltersForm> getSearchFormClass() {
@@ -76,7 +71,6 @@ public interface Listing<FiltersForm, Row> {
   default Class<Row> getRowClass() {
     return (Class<Row>) getActualTypeArgument(getClass(), 1);
   }
-
 
   @JsonIgnore
   default String getCaptionForEdit() {

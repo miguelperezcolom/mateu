@@ -12,10 +12,12 @@ public interface Crud<FiltersForm, Row> extends Listing<FiltersForm, Row> {
 
   @Override
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
-    var hasAnyMethodWithSelectionAsParameter = reflectionHelper.getAllMethods(getClass()).stream()
+    var hasAnyMethodWithSelectionAsParameter =
+        reflectionHelper.getAllMethods(getClass()).stream()
             .filter(m -> m.isAnnotationPresent(Action.class))
             .anyMatch(m -> hasSelectionParameter(m, reflectionHelper));
-    return hasAnyMethodWithSelectionAsParameter || !reflectionHelper.getMethod(getClass(), "delete").getDeclaringClass().isInterface();
+    return hasAnyMethodWithSelectionAsParameter
+        || !reflectionHelper.getMethod(getClass(), "delete").getDeclaringClass().isInterface();
   }
 
   @JsonIgnore

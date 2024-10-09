@@ -44,7 +44,10 @@ public class FieldMetadataBuilder {
             getDescription(fieldInterfaced),
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
-            completeAttributes(view, fieldInterfaced, fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)),
+            completeAttributes(
+                view,
+                fieldInterfaced,
+                fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)),
             getColspan(fieldInterfaced));
     return field;
   }
@@ -52,9 +55,9 @@ public class FieldMetadataBuilder {
   @SneakyThrows
   private List<Pair> completeAttributes(Object view, Field field, List<Pair> pairs) {
     if (Collection.class.isAssignableFrom(field.getType())
-            && !reflectionHelper.isBasic(field.getType())
-            && !ExternalReference.class.equals(field.getGenericClass())
-            && !field.getGenericClass().isEnum()) {
+        && !reflectionHelper.isBasic(field.getType())
+        && !ExternalReference.class.equals(field.getGenericClass())
+        && !field.getGenericClass().isEnum()) {
       if (field.isAnnotationPresent(Table.class) && field.getAnnotation(Table.class).editable()) {
         var formClass = field.getAnnotation(Table.class).formClass();
         if (Void.class.equals(formClass)) {
@@ -62,11 +65,7 @@ public class FieldMetadataBuilder {
         }
         var form = reflectionHelper.newInstance(formClass);
         for (Field columnField : reflectionHelper.getAllEditableFields(formClass)) {
-          pairs.add(
-                  new Pair(
-                          "field",
-                          getField(form, columnField)
-                  ));
+          pairs.add(new Pair("field", getField(form, columnField)));
         }
       }
     }

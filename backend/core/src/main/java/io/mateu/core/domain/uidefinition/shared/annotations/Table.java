@@ -15,5 +15,4 @@ public @interface Table {
   boolean editable() default false;
 
   Class formClass() default Void.class;
-
 }

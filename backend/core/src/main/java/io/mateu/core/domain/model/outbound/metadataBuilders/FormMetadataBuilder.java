@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.RulesBuilder;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectionField;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
@@ -26,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -265,7 +265,8 @@ public class FormMetadataBuilder {
   }
 
   private List<Field> getAllEditableFields(Object uiInstance, List<Field> slotFields) {
-    var allFields = reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+    var allFields =
+        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
             .flatMap(f -> plain(f))
@@ -275,10 +276,9 @@ public class FormMetadataBuilder {
 
   private Stream<Field> plain(Field field) {
     if (!managedTypeChecker.isManaged(field)) {
-      return reflectionHelper
-              .getAllFields(field.getType())
-              .stream()
-              .peek(f -> f.setId(field.getId() + "." + f.getId()));
+      return reflectionHelper.getAllFields(field.getType()).stream()
+              .map(f -> (Field) new FieldFromReflectionField(f))
+          .peek(f -> f.setId(field.getId() + "." + f.getId()));
     }
     return Stream.of(field);
   }

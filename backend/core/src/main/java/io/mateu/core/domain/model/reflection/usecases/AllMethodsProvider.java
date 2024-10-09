@@ -15,7 +15,7 @@ public class AllMethodsProvider {
   @Cacheable(value = "all-methods-per-class")
   public List<Method> getAllMethods(Class c) {
 
-    if (c == null || c.equals(Class.class) || c.equals(Object.class) ||  c.equals(Record.class)) {
+    if (c == null || c.equals(Class.class) || c.equals(Object.class) || c.equals(Record.class)) {
       return new ArrayList<>();
     }
 

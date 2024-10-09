@@ -97,9 +97,13 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   getValueInside(data: any, key: string): object | undefined {
+    console.log(data, key)
+    if (!data) {
+      return undefined
+    }
     if (key.indexOf('.') > 0) {
       // @ts-ignore
-      return this.getValueinside(data[key.substring(0, key.indexOf('.'))], key.substring(key.indexOf('.') + 1))
+      return this.getValueInside(data[key.substring(0, key.indexOf('.'))], key.substring(key.indexOf('.') + 1))
     }
     return data[key];
   }

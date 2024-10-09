@@ -32,21 +32,21 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   private final AllEditableFieldsProvider allEditableFieldsProvider;
 
   public RunButtonActionRunner(
-          Merger merger,
-          ActualValueExtractor actualValueExtractor,
-          ReflectionHelper reflectionHelper,
-          Serializer serializer,
-          ValidationService validationService,
-          ComponentFactory componentFactory,
-          UIIncrementFactory uIIncrementFactory,
-          BasicTypeChecker basicTypeChecker,
-          MethodParametersEditorHandler methodParametersEditorHandler,
-          MethodProvider methodProvider,
-          ViewMapper viewMapper,
-          ValueProvider valueProvider,
-          DataExtractor dataExtractor,
-          AllEditableFieldsProvider allEditableFieldsProvider,
-          ManagedTypeChecker managedTypeChecker) {
+      Merger merger,
+      ActualValueExtractor actualValueExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      ValidationService validationService,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory,
+      BasicTypeChecker basicTypeChecker,
+      MethodParametersEditorHandler methodParametersEditorHandler,
+      MethodProvider methodProvider,
+      ViewMapper viewMapper,
+      ValueProvider valueProvider,
+      DataExtractor dataExtractor,
+      AllEditableFieldsProvider allEditableFieldsProvider,
+      ManagedTypeChecker managedTypeChecker) {
     super(
         merger,
         actualValueExtractor,
@@ -61,7 +61,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         viewMapper,
         dataExtractor,
         allEditableFieldsProvider,
-            managedTypeChecker);
+        managedTypeChecker);
     this.valueProvider = valueProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
   }

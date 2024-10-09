@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableJpaRepositories(
     basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
 @EntityScan(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
-//@EnableCaching
+@EnableCaching
 public class DemoRemoteApplication {
 
   public static void main(String[] args) {

@@ -16,13 +16,22 @@ public class MethodProvider {
   @Cacheable(value = "method-per-class-and-name")
   public Method getMethod(Class<?> c, String methodName) {
     Method m = null;
-    if (c != null)
+    if (c != null) {
       for (Method q : allMethodsProvider.getAllMethods(c)) {
         if (methodName.equals(q.getName())) {
           m = q;
           break;
         }
       }
+      if (m == null) {
+        for (Method q : c.getMethods()) {
+          if (methodName.equals(q.getName())) {
+            m = q;
+            break;
+          }
+        }
+      }
+    }
     return m;
   }
 }

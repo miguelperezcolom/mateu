@@ -14,7 +14,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.dtos.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,7 +116,8 @@ public class ComponentFactory {
                 Map.of(),
                 List.of());
       } else if (isLayout(field, actualComponentInstance)) {
-        var childComponents = getChildComponents(
+        var childComponents =
+            getChildComponents(
                 form,
                 actualComponentInstance,
                 field,
@@ -130,12 +130,11 @@ public class ComponentFactory {
           for (int i = 0; i < tabLayout.tabs().size(); i++) {
             componentIdPerTabId.put(tabLayout.tabs().get(i).id(), childComponents.get(i));
           }
-          metadata = new io.mateu.dtos.TabLayout(tabLayout.tabs().stream()
-                  .map(t -> new Tab(
-                          componentIdPerTabId.get(t.id()),
-                          t.active(),
-                          t.caption()))
-                  .toList());
+          metadata =
+              new io.mateu.dtos.TabLayout(
+                  tabLayout.tabs().stream()
+                      .map(t -> new Tab(componentIdPerTabId.get(t.id()), t.active(), t.caption()))
+                      .toList());
         }
         component =
             new GenericComponent(
