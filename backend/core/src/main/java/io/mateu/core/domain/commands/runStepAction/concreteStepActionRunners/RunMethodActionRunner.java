@@ -142,12 +142,13 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         }
         if (listing.getRowClass().equals(m.getGenericParameterTypes()[i])) {
           List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
-          Map<String, Object> selectedRow = new HashMap<>();
           if (!rowsData.isEmpty()) {
-            selectedRow = rowsData.get(0);
+            Map<String, Object> selectedRow = rowsData.get(0);
+            values.add(
+                    reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
+          } else {
+            values.add(null);
           }
-          values.add(
-                  reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
           continue;
         }
         if (m.getName().equals("onRowSelected")) {

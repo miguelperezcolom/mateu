@@ -20,4 +20,9 @@ public class SimpleCrudWithActionOnSelectedRow extends SimpleCrud {
         return new Message(ResultType.Success, "row received", "" + row, 5000);
     }
 
+    @Action
+    public Object selectionNotRequired(Row row) throws Throwable {
+        return new Message(ResultType.Success, "row received", "" + row, 5000);
+    }
+
 }
