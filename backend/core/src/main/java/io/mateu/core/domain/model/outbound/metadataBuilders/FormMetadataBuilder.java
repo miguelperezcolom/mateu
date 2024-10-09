@@ -4,6 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.RulesBuilder;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.FormColumns;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
@@ -23,6 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,8 @@ public class FormMetadataBuilder {
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
   final RulesBuilder rulesBuilder;
+  private final BasicTypeChecker basicTypeChecker;
+  private final ManagedTypeChecker managedTypeChecker;
   private Section s;
 
   @SneakyThrows
@@ -59,7 +65,7 @@ public class FormMetadataBuilder {
         getTabs(uiInstance, data),
         getBanners(uiInstance),
         getSections(uiInstance, slotFields),
-        actionMetadataBuilder.getActions("", uiInstance),
+        actionMetadataBuilder.getActions(uiInstance),
         getMainActions(uiInstance),
         List.of(),
         rulesBuilder.buildRules(uiInstance));
@@ -243,23 +249,38 @@ public class FormMetadataBuilder {
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
             .sorted(Comparator.comparingInt(m -> m.getAnnotation(MainAction.class).order()))
-            .map(m -> actionMetadataBuilder.getAction(m))
+            .map(m -> actionMetadataBuilder.getAction("", m))
             .collect(Collectors.toList());
     return actions;
   }
 
   public List<Section> getSections(Object uiInstance, List<Field> slotFields) {
-    List<Field> allEditableFields =
-        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-            .filter(f -> !isOwner(f))
-            .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
-            .toList();
+    List<Field> allEditableFields = getAllEditableFields(uiInstance, slotFields);
 
     var sections = createSections(uiInstance, allEditableFields);
 
     sections = fillSectionIds(sections);
 
     return sections;
+  }
+
+  private List<Field> getAllEditableFields(Object uiInstance, List<Field> slotFields) {
+    var allFields = reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+            .filter(f -> !isOwner(f))
+            .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
+            .flatMap(f -> plain(f))
+            .toList();
+    return allFields;
+  }
+
+  private Stream<Field> plain(Field field) {
+    if (!managedTypeChecker.isManaged(field)) {
+      return reflectionHelper
+              .getAllFields(field.getType())
+              .stream()
+              .peek(f -> f.setId(field.getId() + "." + f.getId()));
+    }
+    return Stream.of(field);
   }
 
   public List<Section> createSections(Object uiInstance, List<Field> allEditableFields) {

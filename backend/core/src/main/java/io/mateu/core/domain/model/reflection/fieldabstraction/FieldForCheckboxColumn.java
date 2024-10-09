@@ -14,6 +14,7 @@ import java.util.Collection;
 public class FieldForCheckboxColumn implements Field {
 
   @ManyToOne private final Class type;
+  String id;
   private final String name;
   private final Field collectionField;
   private final Object value;
@@ -23,6 +24,7 @@ public class FieldForCheckboxColumn implements Field {
   public FieldForCheckboxColumn(
       String name, Field collectionField, Object value, ReflectionHelper reflectionHelper) {
     this.type = boolean.class;
+    this.id = name;
     this.name = name;
     this.collectionField = collectionField;
     this.value = value;
@@ -98,7 +100,12 @@ public class FieldForCheckboxColumn implements Field {
 
   @Override
   public String getId() {
-    return getName();
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
   }
 
   @Override

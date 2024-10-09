@@ -7,13 +7,16 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapp
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadgesOnFields;
 import io.mateu.dtos.*;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,7 +30,7 @@ public class FieldMetadataBuilder {
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
 
-  protected io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
+  public io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
     io.mateu.dtos.Field field =
         new io.mateu.dtos.Field(
             fieldInterfaced.getId(),
@@ -41,9 +44,33 @@ public class FieldMetadataBuilder {
             getDescription(fieldInterfaced),
             getBadges(view, fieldInterfaced),
             getValidations(fieldInterfaced),
-            fieldAttributeBuilder.buildAttributes(view, fieldInterfaced),
+            completeAttributes(view, fieldInterfaced, fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)),
             getColspan(fieldInterfaced));
     return field;
+  }
+
+  @SneakyThrows
+  private List<Pair> completeAttributes(Object view, Field field, List<Pair> pairs) {
+    if (Collection.class.isAssignableFrom(field.getType())
+            && !reflectionHelper.isBasic(field.getType())
+            && !ExternalReference.class.equals(field.getGenericClass())
+            && !field.getGenericClass().isEnum()) {
+      if (field.isAnnotationPresent(Table.class) && field.getAnnotation(Table.class).editable()) {
+        var formClass = field.getAnnotation(Table.class).formClass();
+        if (Void.class.equals(formClass)) {
+          formClass = field.getGenericClass();
+        }
+        var form = reflectionHelper.newInstance(formClass);
+        for (Field columnField : reflectionHelper.getAllEditableFields(formClass)) {
+          pairs.add(
+                  new Pair(
+                          "field",
+                          getField(form, columnField)
+                  ));
+        }
+      }
+    }
+    return pairs;
   }
 
   private int getColspan(Field field) {

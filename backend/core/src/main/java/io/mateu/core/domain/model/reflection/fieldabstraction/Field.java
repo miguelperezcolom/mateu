@@ -21,6 +21,8 @@ public interface Field extends AnnotatedElement {
 
   String getId();
 
+  void setId(String id);
+
   <T extends Annotation> T getAnnotation(Class<T> annotationClass);
 
   Object getValue(Object o)
@@ -38,4 +40,5 @@ public interface Field extends AnnotatedElement {
   int getModifiers();
 
   Annotation[] getDeclaredAnnotations();
+
 }

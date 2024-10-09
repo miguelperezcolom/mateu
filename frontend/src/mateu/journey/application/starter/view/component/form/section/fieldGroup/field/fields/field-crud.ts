@@ -302,7 +302,7 @@ export class FieldCrud extends LitElement implements Component {
     }
 
     render() {
-        const searchable = this.field?.attributes.filter(a => a.key == 'searchable').length;
+        const searchable = this.field?.attributes.filter(a => a.key == 'filterable').length;
         const editable = this.field?.attributes.filter(a => a.key == 'editable').length;
         return html`
 

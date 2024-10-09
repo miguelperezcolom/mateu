@@ -12,6 +12,7 @@ import java.util.Map;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldFromParameter implements Field {
 
+  private String id;
   private final Parameter p;
   private final Executable m;
 
@@ -47,6 +48,7 @@ public class FieldFromParameter implements Field {
   public FieldFromParameter(Executable m, Parameter f) {
     this.p = f;
     this.m = m;
+    this.id = f.getName();
   }
 
   @Override
@@ -105,7 +107,12 @@ public class FieldFromParameter implements Field {
 
   @Override
   public String getId() {
-    return p.getName();
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
   }
 
   @Override

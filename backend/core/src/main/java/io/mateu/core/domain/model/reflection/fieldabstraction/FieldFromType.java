@@ -14,11 +14,13 @@ public class FieldFromType implements Field {
 
   @ManyToOne private final Class type;
   private final String name;
+  private String id;
   private final ReflectionHelper reflectionHelper;
 
   public FieldFromType(Class type, String name, ReflectionHelper reflectionHelper) {
     this.type = type;
     this.name = name;
+    this.id = name;
     this.reflectionHelper = reflectionHelper;
   }
 
@@ -91,7 +93,12 @@ public class FieldFromType implements Field {
 
   @Override
   public String getId() {
-    return getName();
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
   }
 
   @Override

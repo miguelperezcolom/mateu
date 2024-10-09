@@ -10,10 +10,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
-import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
-import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
+import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
@@ -35,20 +32,21 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   private final AllEditableFieldsProvider allEditableFieldsProvider;
 
   public RunButtonActionRunner(
-      Merger merger,
-      ActualValueExtractor actualValueExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
-      ValidationService validationService,
-      ComponentFactory componentFactory,
-      UIIncrementFactory uIIncrementFactory,
-      BasicTypeChecker basicTypeChecker,
-      MethodParametersEditorHandler methodParametersEditorHandler,
-      MethodProvider methodProvider,
-      ViewMapper viewMapper,
-      ValueProvider valueProvider,
-      DataExtractor dataExtractor,
-      AllEditableFieldsProvider allEditableFieldsProvider) {
+          Merger merger,
+          ActualValueExtractor actualValueExtractor,
+          ReflectionHelper reflectionHelper,
+          Serializer serializer,
+          ValidationService validationService,
+          ComponentFactory componentFactory,
+          UIIncrementFactory uIIncrementFactory,
+          BasicTypeChecker basicTypeChecker,
+          MethodParametersEditorHandler methodParametersEditorHandler,
+          MethodProvider methodProvider,
+          ViewMapper viewMapper,
+          ValueProvider valueProvider,
+          DataExtractor dataExtractor,
+          AllEditableFieldsProvider allEditableFieldsProvider,
+          ManagedTypeChecker managedTypeChecker) {
     super(
         merger,
         actualValueExtractor,
@@ -62,7 +60,8 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         methodProvider,
         viewMapper,
         dataExtractor,
-        allEditableFieldsProvider);
+        allEditableFieldsProvider,
+            managedTypeChecker);
     this.valueProvider = valueProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
   }

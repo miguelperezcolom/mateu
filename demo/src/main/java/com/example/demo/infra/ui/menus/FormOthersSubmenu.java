@@ -33,4 +33,5 @@ public class FormOthersSubmenu {
 
   @MenuOption private WizardPage1 wizard;
 
+  @MenuOption private DecomposedForm decomposed;
 }

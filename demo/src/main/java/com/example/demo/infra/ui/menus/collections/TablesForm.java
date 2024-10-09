@@ -14,7 +14,7 @@ import java.util.List;
 
 @Data
 @Caption("Complex collections")
-public class ComplexCollectionsForm {
+public class TablesForm {
 
   @Section("Complex collections")
   private List<Address> addresses;

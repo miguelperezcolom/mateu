@@ -14,31 +14,32 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URL
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
-import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
 import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
 import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
-import java.lang.reflect.*;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.lang.reflect.*;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private final ViewMapper viewMapper;
   private final DataExtractor dataExtractor;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final ManagedTypeChecker managedTypeChecker;
 
   @Override
   public boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData) {
@@ -83,6 +85,22 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       .filter(m -> m.isAnnotationPresent(On.class))
                       .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
             });
+    reflectionHelper
+            .getAllFields(viewInstance.getClass())
+            .stream().filter(f -> !managedTypeChecker.isManaged(f))
+            .forEach(
+                    f -> {
+                        try {
+                            var value = reflectionHelper.getValue(f, viewInstance);
+                            if (value == null) {
+                              value = reflectionHelper.newInstance(f.getType());
+                            }
+                          getActions(value).forEach((k,v) -> methodMap.put(f.getName() + "." + k, v));
+                        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                                 InstantiationException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
     if (viewInstance instanceof Listing<?,?>) {
       if (!methodMap.containsKey("itemSelected")) {
         methodMap.put("itemSelected", reflectionHelper.getMethod(viewInstance.getClass(), "onRowSelected"));
@@ -131,7 +149,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         continue;
       }
       if (instance instanceof Listing<?,?> listing) {
-        if (m.getGenericParameterTypes()[i] instanceof ParameterizedType && isSelectionParameter((ParameterizedType) m.getGenericParameterTypes()[i], listing)) {
+        if (m.getGenericParameterTypes()[i] instanceof ParameterizedType &&
+                isSelectionParameter((ParameterizedType) m.getGenericParameterTypes()[i], listing)) {
           List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
           List<Object> selectedRows = new ArrayList<>();
           for (Map<String, Object> row : rowsData) {
@@ -164,7 +183,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   boolean isSelectionParameter(ParameterizedType type, Listing listing) {
-    return List.class.equals(type.getRawType()) && reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
+    return List.class.equals(type.getRawType()) &&
+            reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
   }
 
   public Mono<UIIncrement> runMethod(
@@ -177,12 +197,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
     Method m = getActions(actualViewInstance).get(actionId);
 
-    var methodOwner = actualViewInstance;
-    if (actionId.contains(".")) {
-      methodOwner =
-          reflectionHelper.getValue(
-              actionId.substring(0, actionId.indexOf(".")), actualViewInstance);
-    }
+    var methodOwner = getMethodOwner(actionId, actualViewInstance);
 
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
@@ -227,6 +242,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         throw targetException;
       }
     }
+  }
+
+  @SneakyThrows
+  private Object getMethodOwner(String actionId, Object actualViewInstance) {
+    var methodOwner = actualViewInstance;
+    if (actionId.contains(".")) {
+      methodOwner = getMethodOwner(actionId.substring(actionId.indexOf(".") + 1),
+              reflectionHelper.getValue(
+                      actionId.substring(0, actionId.indexOf(".")), actualViewInstance));
+    }
+    return methodOwner;
   }
 
   private Mono processResult(

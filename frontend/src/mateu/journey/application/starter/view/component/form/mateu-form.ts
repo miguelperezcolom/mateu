@@ -60,9 +60,7 @@ export class MateuForm extends LitElement implements FormElement {
   component: Component | undefined
 
   valueChanged(key: string, value: object): void {
-    const obj = {};
-    // @ts-ignore
-    obj[key] = value;
+    const obj = this.fill(key, value, this.data)
     this.valueChangedKey = key
     this.data = { ...this.data, ...obj}
     try {
@@ -73,9 +71,37 @@ export class MateuForm extends LitElement implements FormElement {
     this.valueChangedKey = undefined
   }
 
+  fill(key: string, value: object, data: any): object {
+    const obj = {...data}
+    if (key.indexOf('.') > 0) {
+      const prefix = key.substring(0, key.indexOf('.'))
+      const sufix = key.substring(key.indexOf('.') + 1)
+      const partialData = data[prefix]
+      // @ts-ignore
+      obj[prefix] = this.fill(sufix, value, partialData)
+    } else {
+      // @ts-ignore
+      obj[key] = value
+    }
+    return obj
+  }
+
   getValue(key: string): object | undefined {
     // @ts-ignore
+    if (key.indexOf('.') > 0) {
+      // @ts-ignore
+      return this.getValueInside(this.data[key.substring(0, key.indexOf('.'))], key.substring(key.indexOf('.') + 1))
+    }
+    // @ts-ignore
     return this.data[key];
+  }
+
+  getValueInside(data: any, key: string): object | undefined {
+    if (key.indexOf('.') > 0) {
+      // @ts-ignore
+      return this.getValueinside(data[key.substring(0, key.indexOf('.'))], key.substring(key.indexOf('.') + 1))
+    }
+    return data[key];
   }
 
   runRules() {

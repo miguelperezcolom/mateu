@@ -17,8 +17,15 @@ public class CollectionsSubmenu {
 
   @MenuOption private ObjectsForm objects;
 
-  @MenuOption private ComplexCollectionsForm complexCollections;
+  @MenuOption private RefsForm refsCollections;
 
+  @MenuOption private TablesForm tables;
+
+  @MenuOption private FilterableTableForm filterableTables;
+
+  @MenuOption private EditableTableForm editableTables;
+
+  @MenuOption private EditableCustomFormTableForm editableTablesWithCustomForm;
   /*
 
   @MenuOption private SimpleMapsForm simpleMaps;

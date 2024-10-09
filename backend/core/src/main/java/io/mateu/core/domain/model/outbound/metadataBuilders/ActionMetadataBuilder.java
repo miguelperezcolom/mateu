@@ -3,10 +3,15 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
+import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
 import io.mateu.dtos.*;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -24,11 +29,13 @@ public class ActionMetadataBuilder {
 
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
+  private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final ManagedTypeChecker managedTypeChecker;
 
-  protected Action getAction(Method m) {
+  protected Action getAction(String prefix, Method m) {
     Action action =
         new Action(
-            m.getName(),
+            prefix + m.getName(),
             getIcon(m),
             captionProvider.getCaption(m),
             getActionType(m),
@@ -256,30 +263,7 @@ public class ActionMetadataBuilder {
   }
 
   protected List<Action> getActions(String listId, Object uiInstance) {
-    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
-    List<Action> actions =
-        allMethods.stream()
-            .filter(
-                m ->
-                    m.isAnnotationPresent(
-                        io.mateu.core.domain.uidefinition.shared.annotations.Action.class))
-            .filter(
-                m ->
-                    (!"JpaRpcCrudView".equals(uiInstance.getClass().getSimpleName()))
-                        || (Modifier.isStatic(m.getModifiers())))
-            .sorted(
-                Comparator.comparingInt(
-                    m ->
-                        m.getAnnotation(
-                                io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
-                            .order()))
-            .map(m -> getAction(m))
-            .collect(Collectors.toList());
-    if (uiInstance instanceof HasActions) {
-      actions.addAll(
-          ((HasActions) uiInstance)
-              .getActionMethods().stream().map(m -> getAction(m)).collect(Collectors.toList()));
-    }
+    List<Action> actions = getActions(uiInstance);
     if (!Strings.isNullOrEmpty(listId))
       actions =
           actions.stream()
@@ -348,6 +332,51 @@ public class ActionMetadataBuilder {
               0);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
+    return actions;
+  }
+  public List<Action> getActions(Object uiInstance) {
+    return getActionsWithPrefix("", uiInstance);
+  }
+
+  private List<Action> getActionsWithPrefix(String prefix, Object uiInstance) {
+    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
+    List<Action> actions =
+            allMethods.stream()
+                    .filter(
+                            m ->
+                                    m.isAnnotationPresent(
+                                            io.mateu.core.domain.uidefinition.shared.annotations.Action.class))
+                    .filter(
+                            m ->
+                                    (!"JpaRpcCrudView".equals(uiInstance.getClass().getSimpleName()))
+                                            || (Modifier.isStatic(m.getModifiers())))
+                    .sorted(
+                            Comparator.comparingInt(
+                                    m ->
+                                            m.getAnnotation(
+                                                            io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+                                                    .order()))
+                    .map(m -> getAction(prefix, m))
+                    .collect(Collectors.toList());
+    if (uiInstance instanceof HasActions) {
+      actions.addAll(
+              ((HasActions) uiInstance)
+                      .getActionMethods().stream().map(m -> getAction(prefix, m)).collect(Collectors.toList()));
+    }
+    allEditableFieldsProvider.getAllEditableFields(uiInstance.getClass()).stream()
+            .filter(f -> !managedTypeChecker.isManaged(f))
+            .forEach(f -> {
+                try {
+                    var value = reflectionHelper.getValue(f, uiInstance);
+                    if (value == null) {
+                      value = reflectionHelper.newInstance(f.getType());
+                    }
+                  actions.addAll(getActionsWithPrefix(f.getName() + ".", value));
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                         InstantiationException e) {
+                    throw new RuntimeException(e);
+                }
+            });
     return actions;
   }
 

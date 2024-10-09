@@ -2,6 +2,8 @@ package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.uidefinition.shared.annotations.GenericClass;
+import lombok.SneakyThrows;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import java.util.Map;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class FieldFromReflectionField implements Field {
 
+  private String id;
   private final java.lang.reflect.Field f;
   private final Field ff;
 
@@ -36,11 +39,13 @@ public class FieldFromReflectionField implements Field {
   public FieldFromReflectionField(Field f) {
     this.ff = f;
     this.f = f.getField();
+    id = ff.getId();
   }
 
   public FieldFromReflectionField(java.lang.reflect.Field f) {
     this.ff = null;
     this.f = f;
+    id = f.getName();
   }
 
   @Override
@@ -102,7 +107,12 @@ public class FieldFromReflectionField implements Field {
 
   @Override
   public String getId() {
-    return (ff != null) ? ff.getId() : f.getName();
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
   }
 
   @Override
@@ -145,6 +155,7 @@ public class FieldFromReflectionField implements Field {
     return "set" + getFirstUpper(f.getName());
   }
 
+  @SneakyThrows
   @Override
   public void setValue(Object o, Object v) throws IllegalAccessException {
     try {

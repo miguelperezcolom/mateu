@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ButtonMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
+import io.mateu.core.domain.model.outbound.metadataBuilders.FieldMetadataBuilder;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,6 +36,7 @@ public class FieldAttributeBuilder {
   final CaptionProvider captionProvider;
   final ButtonMetadataBuilder buttonMetadataBuilder;
 
+  @SneakyThrows
   public List<Pair> buildAttributes(Object view, Field field) {
     List<Pair> attributes = new ArrayList<>();
     if (TelephoneNumber.class.equals(field.getType())) {
@@ -158,6 +161,15 @@ public class FieldAttributeBuilder {
                     fieldTypeMapper.getWidth(columnField),
                     List.of(),
                     columnField.isAnnotationPresent(Detail.class))));
+      }
+      if (field.isAnnotationPresent(Table.class)) {
+        var table = field.getAnnotation(Table.class);
+        if (table.editable()) {
+          attributes.add(new Pair("editable", "true"));
+        }
+        if (table.filterable()) {
+          attributes.add(new Pair("filterable", "true"));
+        }
       }
     }
     if (field.getType().isAnnotationPresent(Element.class)) {

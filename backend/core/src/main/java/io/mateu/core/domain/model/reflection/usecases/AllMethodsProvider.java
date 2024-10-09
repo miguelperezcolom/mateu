@@ -14,6 +14,11 @@ public class AllMethodsProvider {
 
   @Cacheable(value = "all-methods-per-class")
   public List<Method> getAllMethods(Class c) {
+
+    if (c == null || c.equals(Class.class) || c.equals(Object.class) ||  c.equals(Record.class)) {
+      return new ArrayList<>();
+    }
+
     List<Method> l = new ArrayList<>();
 
     if (c.getSuperclass() != null
@@ -22,7 +27,7 @@ public class AllMethodsProvider {
             || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
       l.addAll(getAllMethods(c.getSuperclass()));
 
-    for (Method f : c.getMethods()) {
+    for (Method f : c.getDeclaredMethods()) {
       if (!f.getDeclaringClass().equals(Object.class)) {
         l.removeIf(m -> getSignature(m).equals(getSignature(f)));
         l.add(f);
