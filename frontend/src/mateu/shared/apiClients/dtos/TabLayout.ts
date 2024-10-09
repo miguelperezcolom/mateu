@@ -1,5 +1,5 @@
 import ComponentMetadata from "./ComponentMetadata";
-import Tab from "../../../../../types/shared/apiClients/dtos/Tab";
+import Tab from "./Tab";
 
 export default interface TabLayout extends ComponentMetadata {
 
