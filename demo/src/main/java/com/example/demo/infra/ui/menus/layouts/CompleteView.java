@@ -5,10 +5,7 @@ import com.example.demo.infra.ui.menus.layouts.shared.MyForm1;
 import com.example.demo.infra.ui.menus.layouts.shared.RightSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.View;
-import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.Slot;
-import io.mateu.core.domain.uidefinition.shared.annotations.SlotName;
-import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.elements.Element;
 
 import java.util.List;
@@ -34,6 +31,10 @@ public class CompleteView implements View {
 
     @HorizontalLayout
     private SimpleContainer simpleContainer;
+
+    @TabLayout
+    SimpleContainer tabs;
+
 
     private SimpleCrud simpleCrud;
 

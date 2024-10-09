@@ -11,8 +11,11 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.ComponentId;
 import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.dtos.*;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -114,6 +117,26 @@ public class ComponentFactory {
                 Map.of(),
                 List.of());
       } else if (isLayout(field, actualComponentInstance)) {
+        var childComponents = getChildComponents(
+                form,
+                actualComponentInstance,
+                field,
+                serverHttpRequest,
+                allComponentsInStep,
+                componentCounter,
+                data);
+        if (metadata instanceof io.mateu.dtos.TabLayout tabLayout) {
+          Map<String, String> componentIdPerTabId = new HashMap<>();
+          for (int i = 0; i < tabLayout.tabs().size(); i++) {
+            componentIdPerTabId.put(tabLayout.tabs().get(i).id(), childComponents.get(i));
+          }
+          metadata = new io.mateu.dtos.TabLayout(tabLayout.tabs().stream()
+                  .map(t -> new Tab(
+                          componentIdPerTabId.get(t.id()),
+                          t.active(),
+                          t.caption()))
+                  .toList());
+        }
         component =
             new GenericComponent(
                 metadata,
@@ -121,14 +144,7 @@ public class ComponentFactory {
                 getComponentClassName(actualComponentInstance),
                 Map.of(),
                 Map.of(),
-                getChildComponents(
-                    form,
-                    actualComponentInstance,
-                    field,
-                    serverHttpRequest,
-                    allComponentsInStep,
-                    componentCounter,
-                    data));
+                childComponents);
       } else {
         component =
             new GenericComponent(
@@ -159,7 +175,8 @@ public class ComponentFactory {
         || (field != null
             && (field.isAnnotationPresent(HorizontalLayout.class)
                 || field.isAnnotationPresent(VerticalLayout.class)
-                || field.isAnnotationPresent(SplitLayout.class)));
+                || field.isAnnotationPresent(SplitLayout.class)
+                || field.isAnnotationPresent(TabLayout.class)));
   }
 
   private List<String> getChildComponents(
@@ -189,11 +206,13 @@ public class ComponentFactory {
         || (field != null
             && (field.isAnnotationPresent(HorizontalLayout.class)
                 || field.isAnnotationPresent(VerticalLayout.class)
-                || field.isAnnotationPresent(SplitLayout.class)))
+                || field.isAnnotationPresent(SplitLayout.class)
+                || field.isAnnotationPresent(TabLayout.class)))
         || (actualComponentInstance != null
             && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)
                 || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayout.class)))) {
+                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayout.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(TabLayout.class)))) {
       return reflectionHelper.getAllFields(actualComponentInstance.getClass()).stream()
           .map(f -> new Pair<>(f, getValue(f, actualComponentInstance)))
           .map(

@@ -7,29 +7,8 @@ import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 
 public class FormFieldsSubmenu {
 
-  @MenuOption
-  BasicFieldsForm basicFields;
-  @MenuOption private TextFieldsForm text;
-
-  @MenuOption private VaadinRichTextFieldForm richTextUsingVaadin;
-
-  @MenuOption private NumberFieldsForm numbers;
-
-  @MenuOption private BooleanFieldsForm checks;
-
-  @MenuOption private DatesFieldsForm dates;
-
-  @MenuOption private PatternValidatedFieldForm pattern;
-
-  @MenuOption private TelephoneFieldForm telephone;
-
-  @MenuOption private EnumFieldsForm enums;
-
-  @MenuOption private NestedDropdownsForm nestedDropdowns;
-
-  @MenuOption private WrappersFieldsForm wrappersFieldsForm;
-
-  @MenuOption private UrlAndTextForm urlAndText;
+  @Submenu
+  FormUsualFieldsSubmenu usualFields;
 
   @MenuOption private HideFieldForm hideField;
 

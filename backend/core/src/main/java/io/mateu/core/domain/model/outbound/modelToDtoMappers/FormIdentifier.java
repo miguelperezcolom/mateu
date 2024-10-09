@@ -8,6 +8,7 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
@@ -36,9 +37,11 @@ public class FormIdentifier {
         || f.isAnnotationPresent(HorizontalLayout.class)
         || f.isAnnotationPresent(VerticalLayout.class)
         || f.isAnnotationPresent(SplitLayout.class)
+        || f.isAnnotationPresent(TabLayout.class)
         || f.getType().isAnnotationPresent(HorizontalLayout.class)
         || f.getType().isAnnotationPresent(VerticalLayout.class)
         || f.getType().isAnnotationPresent(SplitLayout.class)
+        || f.getType().isAnnotationPresent(TabLayout.class)
         || reflectionHelper.isBasic(f.getType()));
   }
 }

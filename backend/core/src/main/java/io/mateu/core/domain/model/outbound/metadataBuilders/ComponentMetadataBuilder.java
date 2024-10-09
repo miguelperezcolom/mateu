@@ -11,6 +11,7 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
 import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
@@ -18,11 +19,13 @@ import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +50,10 @@ public class ComponentMetadataBuilder {
   @Autowired private DataExtractor dataExtractor;
   @Autowired private BasicTypeChecker basicTypeChecker;
 
+  @Qualifier("captionProvider")
+  @Autowired
+  private CaptionProvider captionProvider;
+
   public ComponentMetadata getMetadata(
       boolean form,
       Object componentInstance,
@@ -62,6 +69,13 @@ public class ComponentMetadataBuilder {
         && field != null
         && field.isAnnotationPresent(HorizontalLayout.class)) {
       metadata = getHorizontalLayout(componentInstance);
+    } else if (componentInstance != null
+        && field != null
+        && field.isAnnotationPresent(TabLayout.class)) {
+      metadata = getTabLayout(componentInstance);
+    } else if (componentInstance != null
+        && componentInstance.getClass().isAnnotationPresent(TabLayout.class)) {
+      metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
         && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
       metadata = getHorizontalLayout(componentInstance);
@@ -154,6 +168,19 @@ public class ComponentMetadataBuilder {
 
   private ComponentMetadata getHorizontalLayout(Object componentInstance) {
     return new io.mateu.dtos.HorizontalLayout();
+  }
+
+  private ComponentMetadata getTabLayout(Object componentInstance) {
+    List<Tab> tabs = new ArrayList<>();
+    if (componentInstance != null) {
+      reflectionHelper
+          .getAllFields(componentInstance.getClass())
+          .forEach(
+              f -> {
+                tabs.add(new Tab(f.getName(), false, captionProvider.getCaption(f)));
+              });
+    }
+    return new io.mateu.dtos.TabLayout(tabs);
   }
 
   private ComponentMetadata getSplitLayout(Object componentInstance) {

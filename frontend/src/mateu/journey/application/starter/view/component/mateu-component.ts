@@ -11,11 +11,13 @@ import '../../journey-starter'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/split-layout'
+import '@vaadin/tabsheet'
 import JourneyStarter from "../../../../../shared/apiClients/dtos/JourneyStarter";
 import {Service} from "../../../../domain/service";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
 import CustomElement from "../../../../../shared/apiClients/dtos/CustomElement";
 import Form from "../../../../../shared/apiClients/dtos/Form";
+import TabLayout from "../../../../../shared/apiClients/dtos/TabLayout";
 
 
 @customElement('mateu-component')
@@ -55,6 +57,33 @@ export class MateuComponent extends LitElement {
     ${this.component?.metadata.type == ComponentMetadataType.Element?
             this.renderElement(this.component.metadata as CustomElement)
             :html``}
+
+    ${this.component?.metadata.type == ComponentMetadataType.TabLayout?
+            html`<vaadin-tabsheet>
+                <vaadin-tabs slot="tabs">
+                ${(this.component?.metadata as TabLayout).tabs.map(t => html`
+                    <vaadin-tab id="${t.id}" ?selected="${t.active}">${t.caption}</vaadin-tab>
+                `)}
+                </vaadin-tabs>
+                ${this.component?.childComponentIds
+                        .map(id => this.components[id])
+                        .map(c => html`<div tab="${c.id}"><mateu-component
+                                .component=${c}
+                                .components=${this.components}
+                                uiId="${this.uiId}"
+                                journeyTypeId="${this.journeyTypeId}"
+                                journeyId="${this.journeyId}"
+                                stepId="${this.stepId}"
+                                baseUrl="${this.baseUrl}"
+                                previousStepId="${this.previousStepId}"
+                        >
+                            <slot></slot></mateu-component
+                                id="${c.id}"></div>
+                        `)}
+
+            </vaadin-tabsheet>`
+            :html``}
+
 
     ${this.component?.metadata.type == ComponentMetadataType.HorizontalLayout?
             html`<vaadin-horizontal-layout theme="spacing">

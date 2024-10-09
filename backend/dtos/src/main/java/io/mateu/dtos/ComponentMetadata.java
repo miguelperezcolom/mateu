@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = HorizontalLayout.class, name = "HorizontalLayout"),
   @JsonSubTypes.Type(value = VerticalLayout.class, name = "VerticalLayout"),
   @JsonSubTypes.Type(value = SplitLayout.class, name = "SplitLayout"),
+  @JsonSubTypes.Type(value = TabLayout.class, name = "TabLayout"),
   @JsonSubTypes.Type(value = Element.class, name = "Element")
 })
 public interface ComponentMetadata {}

@@ -83,7 +83,8 @@ public class MethodParametersEditorMetadataBuilder {
             .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
 
-    List<Section> sections = formMetadataBuilder.createSections(methodParametersEditor, allEditableFields);
+    List<Section> sections =
+        formMetadataBuilder.createSections(methodParametersEditor, allEditableFields);
 
     sections = fillSectionIds(sections);
 

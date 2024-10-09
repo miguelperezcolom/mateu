@@ -9,6 +9,7 @@ export enum ComponentMetadataType {
     HorizontalLayout = "HorizontalLayout",
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
+    TabLayout = "TabLayout",
     Element = "Element"
 
 }

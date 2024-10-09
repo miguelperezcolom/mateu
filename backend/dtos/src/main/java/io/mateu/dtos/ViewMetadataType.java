@@ -11,4 +11,5 @@ public enum ViewMetadataType {
   HorizontalLayout,
   VerticalLayout,
   SplitLayout,
+  TabLayout,
 }
