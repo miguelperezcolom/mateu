@@ -3,6 +3,7 @@ package io.mateu.core.domain.uidefinition.core.interfaces;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,10 @@ public interface Crud<FiltersForm, Row> extends Listing<FiltersForm, Row> {
 
   @Override
   default boolean showCheckboxForSelection(ReflectionHelper reflectionHelper) {
-    return !reflectionHelper.getMethod(getClass(), "delete").getDeclaringClass().isInterface();
+    var hasAnyMethodWithSelectionAsParameter = reflectionHelper.getAllMethods(getClass()).stream()
+            .filter(m -> m.isAnnotationPresent(Action.class))
+            .anyMatch(m -> hasSelectionParameter(m, reflectionHelper));
+    return hasAnyMethodWithSelectionAsParameter || !reflectionHelper.getMethod(getClass(), "delete").getDeclaringClass().isInterface();
   }
 
   @JsonIgnore

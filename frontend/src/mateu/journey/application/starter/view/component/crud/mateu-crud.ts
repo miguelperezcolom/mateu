@@ -138,6 +138,9 @@ export class MateuCrud extends LitElement {
   @property()
   items:any[] = []
 
+  @property()
+  selectedItems:any[] = []
+
   @state()
   detailsOpenedItem: any[] = [];
 
@@ -597,12 +600,17 @@ export class MateuCrud extends LitElement {
 
       <vaadin-grid id="grid-${this.component.id}" .items="${this.items}" all-rows-visible
                    .detailsOpenedItems="${this.detailsOpenedItem}"
-                   @active-item-changed="${ifDefined(this.metadata.selectionListened || this.hasDetail()?(event: GridActiveItemChangedEvent<any>) => {
+                   .selectedItems="${this.selectedItems}"
+                   @active-item-changed="${ifDefined(this.metadata.selectionListened || this.metadata.hasActionOnSelectedRow || this.hasDetail()?(event: GridActiveItemChangedEvent<any>) => {
                      //this.detailsOpenedItem = [event.detail.value]
-                     if (this.metadata.selectionListened) {
-                        this.askForActionRun("__itemSelected", event.detail.value);                       
+                     if (this.metadata.selectionListened || this.metadata.hasActionOnSelectedRow) {
+                       const item = event.detail.value;
+                       this.selectedItems = item ? [item] : [];
+                        if (this.metadata.selectionListened && item) {
+                          this.askForActionRun("__itemSelected", item);
+                        }                       
                      }
-                     if (this.metadata.columns.filter(c => c.detail)) {
+                     if (this.hasDetail() && this.metadata.columns.filter(c => c.detail)) {
                        const row = event.detail.value
                        if (row) {
                          this.detailsOpenedItem = [row]
@@ -621,7 +629,7 @@ export class MateuCrud extends LitElement {
           `,
           []
       )}>
-        <vaadin-grid-selection-column></vaadin-grid-selection-column>
+        ${this.metadata.multipleRowSelectionEnabled?html`<vaadin-grid-selection-column></vaadin-grid-selection-column>`:''}
 
       ${this.metadata?.columns.filter(c => !c.detail).map(c => {
         return this.getColumn(c)

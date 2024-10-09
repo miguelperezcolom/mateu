@@ -9,6 +9,8 @@ export default interface Crud extends ComponentMetadata {
     subtitle: string
     canEdit: boolean
     selectionListened: boolean
+    hasActionOnSelectedRow: boolean
+    multipleRowSelectionEnabled: boolean
     searchable: boolean
     searchForm: SearchForm
     columns: Column[]

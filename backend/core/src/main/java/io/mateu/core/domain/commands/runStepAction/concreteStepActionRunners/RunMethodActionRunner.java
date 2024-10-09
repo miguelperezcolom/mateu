@@ -15,6 +15,7 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
+import io.mateu.core.domain.model.reflection.usecases.ValueWriter;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.Message;
@@ -27,13 +28,11 @@ import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
 import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
 import io.mateu.core.domain.uidefinition.shared.data.GoBack;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import java.lang.reflect.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -84,6 +83,11 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                       .filter(m -> m.isAnnotationPresent(On.class))
                       .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
             });
+    if (viewInstance instanceof Listing<?,?>) {
+      if (!methodMap.containsKey("itemSelected")) {
+        methodMap.put("itemSelected", reflectionHelper.getMethod(viewInstance.getClass(), "onRowSelected"));
+      }
+    }
     return methodMap;
   }
 
@@ -104,7 +108,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Method m =
           methodProvider.getMethod(targetInstance.getClass(), methodParametersEditor.getMethodId());
       if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-      Object result = m.invoke(targetInstance, injectParameters(m, serverHttpRequest, data));
+      Object result = m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
       return processResult(targetInstance, m, data, serverHttpRequest, result, componentId);
     }
 
@@ -113,8 +117,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   @SneakyThrows
   private Object[] injectParameters(
-      Method m, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
-
+      Object instance, Method m, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
     List<Object> values = new ArrayList<>();
     for (int i = 0; i < m.getParameterCount(); i++) {
       if (ServerHttpRequest.class.equals(m.getParameterTypes()[i])) {
@@ -127,10 +130,40 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 (String) data.get("__eventName"), (Map<String, Object>) data.get("__event")));
         continue;
       }
+      if (instance instanceof Listing<?,?> listing) {
+        if (m.getGenericParameterTypes()[i] instanceof ParameterizedType && isSelectionParameter((ParameterizedType) m.getGenericParameterTypes()[i], listing)) {
+          List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
+          List<Object> selectedRows = new ArrayList<>();
+          for (Map<String, Object> row : rowsData) {
+            selectedRows.add(reflectionHelper.newInstance(listing.getRowClass(), row));
+          }
+          values.add(selectedRows);
+          continue;
+        }
+        if (listing.getRowClass().equals(m.getGenericParameterTypes()[i])) {
+          List<Map<String, Object>> rowsData = (List<Map<String, Object>>) data.get("_selectedRows");
+          Map<String, Object> selectedRow = new HashMap<>();
+          if (!rowsData.isEmpty()) {
+            selectedRow = rowsData.get(0);
+          }
+          values.add(
+                  reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
+          continue;
+        }
+        if (m.getName().equals("onRowSelected")) {
+          values.add(
+                  reflectionHelper.newInstance(listing.getRowClass(), data));
+          continue;
+        }
+      }
       values.add(
           actualValueExtractor.getActualValue(m.getParameterTypes()[i], data.get("param_" + i)));
     }
     return values.toArray();
+  }
+
+  boolean isSelectionParameter(ParameterizedType type, Listing listing) {
+    return List.class.equals(type.getRawType()) && reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
   }
 
   public Mono<UIIncrement> runMethod(
@@ -153,7 +186,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
 
     // todo: inject parameters (ServerHttpRequest, selection for jpacrud)
-    if (needsParameters(m)) {
+    if (needsParameters(actualViewInstance, m)) {
 
       if (Modifier.isStatic(m.getModifiers())) {
 
@@ -182,7 +215,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
       try {
 
-        Object result = m.invoke(methodOwner, injectParameters(m, serverHttpRequest, data));
+        Object result = m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
 
         return processResult(actualViewInstance, m, data, serverHttpRequest, result, componentId);
 
@@ -517,20 +550,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     return false;
   }
 
-  private Object[] injectParameters(Method m, ServerHttpRequest serverHttpRequest) {
-    Object[] values = new Object[m.getParameterCount()];
-    for (int i = 0; i < m.getParameters().length; i++) {
-      Parameter parameter = m.getParameters()[i];
-      Object value = null;
-      if (ServerHttpRequest.class.equals(parameter.getType())) {
-        value = serverHttpRequest;
-      }
-      values[i] = value;
-    }
-    return values;
-  }
-
-  private boolean needsParameters(Method m) {
+  private boolean needsParameters(Object instance, Method m) {
     if (m.getParameterCount() == 0) return false;
     boolean anyNotInjected = false;
     for (Parameter parameter : m.getParameters()) {
@@ -539,6 +559,25 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       }
       if (parameter.getType().equals(ClientSideEvent.class)) {
         continue;
+      }
+      if (instance instanceof Listing<?,?> listing) {
+        if (m.getName().equals("onRowSelected")) {
+          continue;
+        }
+        var isMultipleSelectionParameter = Arrays.stream(m.getGenericParameterTypes())
+                .filter(t -> t instanceof ParameterizedType)
+                .map(t -> (ParameterizedType) t)
+                .anyMatch(type -> List.class.equals(type.getRawType())
+                        && reflectionHelper.getGenericClass(type, List.class, "E")
+                        .equals(listing.getRowClass()));
+        if (isMultipleSelectionParameter) {
+          continue;
+        }
+        var isSingleSelectionParameter = Arrays.stream(m.getGenericParameterTypes())
+                .anyMatch(type -> listing.getRowClass().equals(type));
+        if (isSingleSelectionParameter) {
+          continue;
+        }
       }
       anyNotInjected = true;
     }

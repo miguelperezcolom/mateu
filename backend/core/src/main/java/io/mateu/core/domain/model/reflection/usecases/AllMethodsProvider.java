@@ -22,9 +22,11 @@ public class AllMethodsProvider {
             || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class)))
       l.addAll(getAllMethods(c.getSuperclass()));
 
-    for (Method f : c.getDeclaredMethods()) {
-      l.removeIf(m -> getSignature(m).equals(getSignature(f)));
-      l.add(f);
+    for (Method f : c.getMethods()) {
+      if (!f.getDeclaringClass().equals(Object.class)) {
+        l.removeIf(m -> getSignature(m).equals(getSignature(f)));
+        l.add(f);
+      }
     }
 
     return l;

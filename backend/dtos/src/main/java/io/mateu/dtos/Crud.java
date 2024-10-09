@@ -20,6 +20,8 @@ public record Crud(
     String subtitle,
     boolean canEdit,
     boolean selectionListened,
+    boolean hasActionOnSelectedRow,
+    boolean multipleRowSelectionEnabled,
     boolean searchable,
     SearchForm searchForm,
     List<Column> columns,

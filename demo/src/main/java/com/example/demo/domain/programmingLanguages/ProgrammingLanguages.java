@@ -96,14 +96,14 @@ public class ProgrammingLanguages
   }
 
   @Action("Do something great, please")
-  public void doSomething() {
-    System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
+  public void doSomething(List<LanguageRow> selection) {
+    System.out.println("Hola!!!!" + selection.size() + "...." + selection);
   }
 
   @Action()
   @Caption("Do something again, please")
-  public void doSomethingAgain() {
-    System.out.println("Hola!!!!" + getSelection().size() + "...." + getSelection());
+  public void doSomethingAgain(List<LanguageRow> selection) {
+    System.out.println("Hola!!!!" + selection.size() + "...." + selection);
   }
 
   @Action()

@@ -15,7 +15,6 @@ import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinition.shared.interfaces.SelectedRowsContext;
 import io.mateu.dtos.UIIncrement;
 import java.util.List;
 import java.util.Map;
@@ -90,9 +89,6 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
       throws Throwable {
 
     Listing rpcView = (Listing) viewInstance;
-
-    List selectedRows = (List) data.get("_selectedRows");
-    new SelectedRowsContext(selectedRows);
 
     if (rpcView instanceof Crud) {
       Crud crud = (Crud) rpcView;
