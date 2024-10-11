@@ -97,7 +97,6 @@ export class MateuForm extends LitElement implements FormElement {
   }
 
   getValueInside(data: any, key: string): object | undefined {
-    console.log(data, key)
     if (!data) {
       return undefined
     }
