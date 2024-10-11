@@ -277,7 +277,7 @@ public class FormMetadataBuilder {
   private Stream<Field> plain(Field field) {
     if (!managedTypeChecker.isManaged(field)) {
       return reflectionHelper.getAllFields(field.getType()).stream()
-              .map(f -> (Field) new FieldFromReflectionField(f))
+          .map(f -> (Field) new FieldFromReflectionField(f))
           .peek(f -> f.setId(field.getId() + "." + f.getId()));
     }
     return Stream.of(field);

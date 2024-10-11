@@ -38,6 +38,44 @@ public class FieldAttributeBuilder {
   @SneakyThrows
   public List<Pair> buildAttributes(Object view, Field field) {
     List<Pair> attributes = new ArrayList<>();
+    if (field.isAnnotationPresent(CallActionOnClick.class)) {
+      CallActionOnClick clickable = field.getAnnotation(CallActionOnClick.class);
+      attributes.add(new Pair("action", clickable.value()));
+    }
+    if (field.isAnnotationPresent(Image.class)) {
+      Image image = field.getAnnotation(Image.class);
+      if (!image.cssClasses().isEmpty()) {
+        attributes.add(new Pair("cssClasses", image.cssClasses()));
+      }
+      if (!image.style().isEmpty()) {
+        attributes.add(new Pair("style", image.style()));
+      }
+      if (!image.action().isEmpty()) {
+        attributes.add(new Pair("action", image.action()));
+      }
+    }
+    if (field.isAnnotationPresent(Icon.class)) {
+      Icon icon = field.getAnnotation(Icon.class);
+      attributes.add(new Pair("icon-src", "icon-src"));
+      if (!icon.cssClasses().isEmpty()) {
+        attributes.add(new Pair("cssClasses", icon.cssClasses()));
+      }
+      if (!icon.style().isEmpty()) {
+        attributes.add(new Pair("style", icon.style()));
+      }
+      if (!icon.action().isEmpty()) {
+        attributes.add(new Pair("action", icon.action()));
+      }
+    }
+    if (field.isAnnotationPresent(Styled.class)) {
+      Styled styled = field.getAnnotation(Styled.class);
+      if (!styled.cssClasses().isEmpty()) {
+        attributes.add(new Pair("cssClasses", styled.cssClasses()));
+      }
+      if (!styled.style().isEmpty()) {
+        attributes.add(new Pair("style", styled.style()));
+      }
+    }
     if (TelephoneNumber.class.equals(field.getType())) {
       List<TelephonePrefix> prefixes =
           List.of(
@@ -74,6 +112,15 @@ public class FieldAttributeBuilder {
     }
     if (field.isAnnotationPresent(Width.class)) {
       attributes.add(new Pair("width", field.getAnnotation(Width.class).value()));
+    }
+    if (field.isAnnotationPresent(Height.class)) {
+      attributes.add(new Pair("height", field.getAnnotation(Height.class).value()));
+    }
+    if (field.isAnnotationPresent(Style.class)) {
+      attributes.add(new Pair("style", field.getAnnotation(Style.class).value()));
+    }
+    if (field.isAnnotationPresent(CssClasses.class)) {
+      attributes.add(new Pair("cssClasses", field.getAnnotation(CssClasses.class).value()));
     }
     if (field.isAnnotationPresent(ItemsProvider.class)) {
       attributes.add(

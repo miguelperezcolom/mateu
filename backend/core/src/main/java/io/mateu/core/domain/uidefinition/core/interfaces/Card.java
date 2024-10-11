@@ -11,7 +11,7 @@ public record Card(
     String media,
     String supportingText,
     List<Button> buttons,
-    List<Icon> icons) {
+    List<CallableIcon> icons) {
 
   public Card(String headerText, String subhead, String supportingText) {
     this(CardLayout.Layout1, "", headerText, subhead, "", supportingText, List.of(), List.of());
@@ -28,7 +28,7 @@ public record Card(
   }
 
   @Override
-  public List<Icon> icons() {
+  public List<CallableIcon> icons() {
     return Collections.unmodifiableList(icons);
   }
 }

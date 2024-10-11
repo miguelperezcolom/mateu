@@ -5,6 +5,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import jakarta.persistence.*;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +35,7 @@ public class AllEditableFieldsProvider {
 
   public List<Field> getAllEditableFilteredFields(
       Class modelType, String fieldsFilter, List<Field> editableFields) {
-    if (Class.class.equals(modelType) || Object.class.equals(modelType)) {
+    if (Class.class.equals(modelType) || Object.class.equals(modelType) || URL.class.equals(modelType)) {
       return new ArrayList<>();
     }
     List<Field> l =

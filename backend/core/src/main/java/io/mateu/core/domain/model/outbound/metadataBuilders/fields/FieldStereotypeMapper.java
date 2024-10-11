@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
+import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.*;
@@ -41,6 +42,15 @@ public class FieldStereotypeMapper {
     }
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";
+    }
+    if (field.isAnnotationPresent(Image.class)) {
+      return "image";
+    }
+    if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Icon.class)) {
+      return "icon";
+    }
+    if (Icon.class.equals(field.getType())) {
+      return "icon";
     }
     if (view != null
         && methodProvider.getMethod(

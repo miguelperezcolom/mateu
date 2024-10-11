@@ -40,6 +40,8 @@ import './fields/field-externalrefclosedlist'
 import './fields/field-button'
 import './fields/field-password'
 import './fields/field-email'
+import './fields/field-icon'
+import './fields/field-image'
 import FieldWrapper from "../../../FieldWrapper";
 import Listener from "../../../../../../../../../shared/apiClients/dtos/Listener";
 

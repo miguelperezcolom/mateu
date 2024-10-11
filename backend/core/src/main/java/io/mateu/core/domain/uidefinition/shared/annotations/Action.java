@@ -1,5 +1,7 @@
 package io.mateu.core.domain.uidefinition.shared.annotations;
 
+import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,7 +14,7 @@ public @interface Action {
 
   String value() default "";
 
-  String icon() default "";
+  Icon icon() default Icon.None;
 
   String confirmationTitle() default "";
 

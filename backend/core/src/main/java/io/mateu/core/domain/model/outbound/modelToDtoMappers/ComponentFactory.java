@@ -74,6 +74,8 @@ public class ComponentFactory {
       AtomicInteger componentCounter,
       Map<String, Object> data) {
 
+    //todo: s no es componente reconocido, meter en un form sin caption y sin márgenes?
+
     String componentId = getComponentId(field, componentInstance, componentCounter);
     ComponentMetadata metadata =
         componentMetadataBuilder.getMetadata(form, componentInstance, field, fields, data);

@@ -9,24 +9,30 @@ import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.Card;
 import io.mateu.core.domain.uidefinition.core.interfaces.Container;
 import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinition.shared.annotations.Content;
 import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
 import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.Stepper;
 import io.mateu.core.domain.uidefinition.shared.elements.Element;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.dtos.Tab;
 import io.mateu.dtos.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -109,6 +115,8 @@ public class ComponentMetadataBuilder {
                   componentInstance);
     } else if (componentInstance instanceof Element) {
       metadata = getElement((Element) componentInstance);
+    } else if (componentInstance.getClass().isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Element.class)) {
+      metadata = buildElement(componentInstance);
     } else if (componentInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
     } else if (componentInstance instanceof Result) {
@@ -192,6 +200,44 @@ public class ComponentMetadataBuilder {
       return new io.mateu.dtos.VerticalLayout();
     }
     return new io.mateu.dtos.Element("div", Map.of(), "" + componentInstance);
+  }
+
+  private ComponentMetadata buildElement(Object componentInstance) {
+    return new io.mateu.dtos.Element(getElementName(componentInstance), getElementAttributes(componentInstance), getElementContent(componentInstance));
+  }
+
+  private String getElementContent(Object componentInstance) {
+    return reflectionHelper.getAllFields(componentInstance.getClass())
+            .stream().filter(f -> f.isAnnotationPresent(Content.class))
+            .map(f -> {
+                try {
+                    return "" + reflectionHelper.getValue(f, componentInstance);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            }).findAny().orElse("");
+  }
+
+  private Map<String, String> getElementAttributes(Object componentInstance) {
+    Map<String, String> attributes = new HashMap<>();
+    reflectionHelper.getAllFields(componentInstance.getClass())
+            .stream().filter(f -> f.isAnnotationPresent(Attribute.class))
+            .forEach(f -> {
+                try {
+                  String name = f.getAnnotation(Attribute.class).value();
+                  if (name.isEmpty()) {
+                    name = f.getName();
+                  }
+                    attributes.put(name, "" + reflectionHelper.getValue(f, componentInstance));
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+    return attributes;
+  }
+
+  private String getElementName(Object componentInstance) {
+    return componentInstance.getClass().getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Element.class).value();
   }
 
   private ComponentMetadata getElement(Element element) {

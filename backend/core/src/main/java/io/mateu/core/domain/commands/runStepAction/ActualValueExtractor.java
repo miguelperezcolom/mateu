@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.files.StorageService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
 import jakarta.persistence.Entity;
 import java.io.IOException;

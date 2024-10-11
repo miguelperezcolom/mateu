@@ -4,6 +4,7 @@ import com.example.demo.infra.ui.menus.layouts.shared.LeftSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.MyForm1;
 import com.example.demo.infra.ui.menus.layouts.shared.RightSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleCrud;
+import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleSlowCrud;
 import io.mateu.core.domain.uidefinition.core.interfaces.View;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.elements.Element;
@@ -36,7 +37,9 @@ public class CompleteView implements View {
     SimpleContainer tabs;
 
 
-    private SimpleCrud simpleCrud;
+    private SimpleSlowCrud simpleCrud;
+
+    private SimpleSlowCrud anotherCrud;
 
     @Slot(SlotName.right)
     private RightSideContent rightSideContent;

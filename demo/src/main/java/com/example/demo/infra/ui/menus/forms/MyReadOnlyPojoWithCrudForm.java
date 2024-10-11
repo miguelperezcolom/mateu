@@ -1,7 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
+import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinition.shared.annotations.Section;
 import io.mateu.core.domain.uidefinition.shared.data.Badge;
 import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
 import io.mateu.core.domain.uidefinition.shared.data.Status;
@@ -58,7 +63,7 @@ public class MyReadOnlyPojoWithCrudForm
     return new Status(StatusType.SUCCESS, "This is the status!");
   }
 
-  @Action(icon = "vaadin:refresh", target = ActionTarget.Component, order = -1)
+  @Action(icon = Icon.Refresh, target = ActionTarget.Component, order = -1)
   @Caption("")
   public void refresh() {
     assessment = "reloaded";

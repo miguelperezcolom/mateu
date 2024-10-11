@@ -40,7 +40,7 @@ public class AllFieldsProvider {
     List<Field> l = new ArrayList<>();
 
     if (c.getSuperclass() != null
-            && !Object.class.equals(c.getSuperclass())
+        && !Object.class.equals(c.getSuperclass())
         && (!c.isAnnotationPresent(Entity.class)
             || c.getSuperclass().isAnnotationPresent(Entity.class)
             || c.getSuperclass().isAnnotationPresent(MappedSuperclass.class))) {

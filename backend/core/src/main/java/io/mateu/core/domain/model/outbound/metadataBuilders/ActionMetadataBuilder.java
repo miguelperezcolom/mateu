@@ -57,13 +57,13 @@ public class ActionMetadataBuilder {
     if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.Action action =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
-      return action.icon();
+      return action.icon().iconName;
     }
     if (m.isAnnotationPresent(
         io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
       io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
           m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
-      return action.icon();
+      return action.icon().iconName;
     }
     return null;
   }
@@ -346,9 +346,9 @@ public class ActionMetadataBuilder {
     if (Class.class.equals(uiInstance)) {
       type = (Class) uiInstance;
     } else {
-        type = uiInstance.getClass();
+      type = uiInstance.getClass();
     }
-      List<Method> allMethods = reflectionHelper.getAllMethods(type);
+    List<Method> allMethods = reflectionHelper.getAllMethods(type);
     List<Action> actions =
         allMethods.stream()
             .filter(

@@ -10,6 +10,8 @@ export const mapInputTypeToFieldType =  (type: string, stereotype: string):strin
         return 'field-multi-select-combobox';
     }
     switch (stereotype) {
+        case 'image': return 'field-image';
+        case 'icon': return 'field-icon';
         case 'readonly': return 'field-readonly';
         case 'password': return 'field-password';
         case 'email': return 'field-email';
