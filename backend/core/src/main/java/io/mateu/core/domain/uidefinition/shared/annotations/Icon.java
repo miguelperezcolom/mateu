@@ -15,5 +15,4 @@ public @interface Icon {
   String cssClasses() default "";
 
   String action() default "";
-
 }

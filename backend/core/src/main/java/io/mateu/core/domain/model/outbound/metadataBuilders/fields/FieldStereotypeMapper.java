@@ -46,7 +46,8 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(Image.class)) {
       return "image";
     }
-    if (field.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Icon.class)) {
+    if (field.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.Icon.class)) {
       return "icon";
     }
     if (Icon.class.equals(field.getType())) {

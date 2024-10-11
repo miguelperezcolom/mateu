@@ -13,5 +13,4 @@ public @interface Styled {
   String style() default "";
 
   String cssClasses() default "";
-
 }

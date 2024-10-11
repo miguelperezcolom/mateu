@@ -15,5 +15,4 @@ public @interface Image {
   String cssClasses() default "";
 
   String action() default "";
-
 }

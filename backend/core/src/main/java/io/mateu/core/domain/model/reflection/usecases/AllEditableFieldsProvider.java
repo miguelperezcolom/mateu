@@ -35,7 +35,9 @@ public class AllEditableFieldsProvider {
 
   public List<Field> getAllEditableFilteredFields(
       Class modelType, String fieldsFilter, List<Field> editableFields) {
-    if (Class.class.equals(modelType) || Object.class.equals(modelType) || URL.class.equals(modelType)) {
+    if (Class.class.equals(modelType)
+        || Object.class.equals(modelType)
+        || URL.class.equals(modelType)) {
       return new ArrayList<>();
     }
     List<Field> l =

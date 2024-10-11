@@ -1,7 +1,6 @@
 package io.mateu.core.domain.uidefinition.shared.annotations;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
