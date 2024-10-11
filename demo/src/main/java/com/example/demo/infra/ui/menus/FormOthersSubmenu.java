@@ -9,9 +9,9 @@ public class FormOthersSubmenu {
   @MenuOption private FailingForm failingForm;
 
   @MenuOption private JourneyStarter remoteForm = new JourneyStarter(
-          "com.example.mateuarticle1.ui.HelloWorld",
-          "crud",
-          "http://localhost:8080/mateu/v3",
+          "com.example.demo.infra.ui.helloworld.HelloWorld",
+          "",
+          "/mateu/v3",
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 

@@ -37,9 +37,9 @@ public class CompleteView implements View {
     SimpleContainer tabs;
 
 
-    private SimpleSlowCrud simpleCrud;
+    private SimpleCrud simpleCrud;
 
-    private SimpleSlowCrud anotherCrud;
+    private SimpleCrud anotherCrud;
 
     @Slot(SlotName.right)
     private RightSideContent rightSideContent;

@@ -25,9 +25,9 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
 
   @Submenu private LayoutsSubmenu layouts;
 
-  @Submenu private UtilSubmenu util;
+  //@Submenu private UtilSubmenu util;
 
-  @Submenu private UseCasesSubmenu useCases;
+  //@Submenu private UseCasesSubmenu useCases;
 
   @MenuOption @Private private BasicFieldsForm eyesOnly;
 
