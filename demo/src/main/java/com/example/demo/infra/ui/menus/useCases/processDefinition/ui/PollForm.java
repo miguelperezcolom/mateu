@@ -18,6 +18,13 @@ public class PollForm {
   @MainAction
   public Result pollFromInsuranceProduct() {
     poller.pollAll();
-    return new Result(ResultType.Success, "All products polled", null, null, null);
+    return new Result(
+            "Poll all",
+            ResultType.Success,
+            "All products polled",
+            null,
+            null,
+            null,
+            null);
   }
 }

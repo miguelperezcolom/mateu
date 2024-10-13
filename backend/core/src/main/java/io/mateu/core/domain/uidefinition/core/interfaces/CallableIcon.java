@@ -2,4 +2,4 @@ package io.mateu.core.domain.uidefinition.core.interfaces;
 
 import java.util.concurrent.Callable;
 
-public record CallableIcon(Icon icon, String description, Callable callable) {}
+public record CallableIcon(String id, Icon icon, String description) {}

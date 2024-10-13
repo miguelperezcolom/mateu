@@ -77,28 +77,19 @@ public class CrudDeleteActionRunner implements ListActionRunner {
                       .collect(Collectors.toList()));
       crud.delete(targetSet);
 
-      Map<String, Component> backToComponents = new HashMap<>();
-      String backToComponentId =
-          componentFactory.createComponent(
-              false,
-              crud,
-              serverHttpRequest,
-              null,
-              List.of(),
-              backToComponents,
-              new AtomicInteger(),
-              data);
-
       Result whatToShow =
           new Result(
+              "Rows deleted",
               ResultType.Success,
               getMessage(targetSet),
               List.of(),
               new Destination(
+                      "backToCrud",
                   DestinationType.Component,
                   "Back to " + captionProvider.getCaption(crud),
-                  backToComponents.get(backToComponentId)),
-              null);
+                      null),
+                  null,
+                  new CrudDeleteResultActionHandler(crud));
 
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(

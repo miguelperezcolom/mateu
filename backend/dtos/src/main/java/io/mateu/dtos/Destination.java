@@ -3,8 +3,8 @@ package io.mateu.dtos;
 /**
  * A link
  *
+ * @param id The destination id. Used later to link to the real action on the backend
  * @param type The destination type: action targetId, url, custom event
  * @param description A link description
- * @param value Data to be used when clicking: the action targetId, url, event detail
  */
-public record Destination(DestinationType type, String description, Object value) {}
+public record Destination(String id, DestinationType type, String description) {}

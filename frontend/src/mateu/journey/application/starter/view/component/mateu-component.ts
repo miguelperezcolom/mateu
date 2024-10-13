@@ -1,5 +1,5 @@
 import {customElement, property} from "lit/decorators.js";
-import {css, html, LitElement, TemplateResult} from "lit";
+import {css, html, LitElement, PropertyValues, TemplateResult} from "lit";
 import Component from "../../../../../shared/apiClients/dtos/Component";
 import {ComponentMetadataType} from "../../../../../shared/apiClients/dtos/ComponentMetadataType";
 import './form/mateu-form'
@@ -18,10 +18,20 @@ import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
 import CustomElement from "../../../../../shared/apiClients/dtos/CustomElement";
 import Form from "../../../../../shared/apiClients/dtos/Form";
 import TabLayout from "../../../../../shared/apiClients/dtos/TabLayout";
+import Action from "../../../../../shared/apiClients/dtos/Action";
+import ConfirmationTexts from "../../../../../shared/apiClients/dtos/ConfirmationTexts";
+import {dialogRenderer} from "lit-vaadin-helpers";
+import {dialogFooterRenderer} from "@vaadin/dialog/lit";
+import Card from "../../../../../shared/apiClients/dtos/Card";
+import Result from "../../../../../shared/apiClients/dtos/Result";
+import Listener from "../../../../../shared/apiClients/dtos/Listener";
 
 
 @customElement('mateu-component')
 export class MateuComponent extends LitElement {
+
+    @property()
+    componentId = ''
 
     @property()
     baseUrl = ''
@@ -50,12 +60,140 @@ export class MateuComponent extends LitElement {
     @property()
     previousStepId: string | undefined
 
+    @property()
+    confirmationOpened = false;
+
+
+    @property()
+    closeConfirmation = () => {
+        this.confirmationOpened = false
+    };
+
+    @property()
+    confirmationAction = () => {};
+
+    @property()
+    runConfirmedAction = () => {
+        this.confirmationAction()
+        this.confirmationOpened = false
+    };
+
+    @property()
+    confirmationTexts: ConfirmationTexts | undefined;
+
+
+    async captureRunActionEvent(event: CustomEvent) {
+        console.log('event', event)
+        if (event.detail.actionId) {
+            await this.doRunActionId(event.detail.actionId, event.detail.eventName, event.detail.event);
+        } else {
+            await this.doRunAction(event.detail.action, event.detail.eventName, event.detail.event)
+        }
+    }
+
+    async doRunActionId(actionId: string, eventName: string | undefined, event: unknown | undefined) {
+        const action = this.findAction(actionId!)
+        if (action) {
+            await this.doRunAction(action, eventName, event)
+        } else {
+            await this.doRunAction(<Action>{
+                id: actionId
+            }, eventName, event)
+        }
+    }
+
+    private findAction(actionId: string) {
+        let actions: Action[] = []
+        if (this.component?.metadata.type == ComponentMetadataType.Card) {
+            const md = this.component?.metadata as Card;
+            actions = md.buttons.concat(md.icons)
+        }
+        if (this.component?.metadata.type == ComponentMetadataType.Result) {
+            const md = this.component?.metadata as Result;
+            actions = md.interestingLinks.map(d => <Action>{
+                id: d.value,
+            }).concat([md.nowTo].map(d => <Action>{
+                id: d.value
+            }))
+        }
+        let action = actions.find(a => a.id.endsWith('__' + actionId) || a.id == actionId);
+        return action
+    }
+
+    async doRunAction(action: Action | undefined, eventName: string | undefined, event: unknown | undefined) {
+        if (action?.confirmationRequired) {
+            this.confirmationAction = async () => {
+                this.askForActionRun(action, eventName, event)
+            }
+            this.confirmationTexts = action.confirmationTexts
+            this.confirmationOpened = true;
+        } else {
+            this.askForActionRun(action!, eventName, event)
+        }
+    }
+
+    private askForActionRun(action: Action, eventName: string | undefined, event: unknown | undefined) {
+        console.log('action', action,this.componentId)
+        this.dispatchEvent(new CustomEvent('runaction', {
+            detail: {
+                componentId: this.componentId,
+                componentType: this.component?.className,
+                actionId: action.id,
+                action: action,
+                data: {
+                    ...this.component?.data,
+                    __eventName: eventName,
+                    __event: event
+                }
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        if (this.component?.metadata.type == ComponentMetadataType.Element) {
+            const element = this.component.metadata as CustomElement;
+            // @ts-ignore
+            for (const p of element.attributes.listeners.filter(p => p.key == 'listener')) {
+                const def = p.value as Listener
+                this.shadowRoot?.querySelector('#' + this.component.id)?.addEventListener(def.eventName, e => {
+                    if (def.js) {
+                        eval(def.js)
+                    } else if (def.actionName) {
+                        this.doRunActionId(def.actionName, def.eventName, JSON.parse(this.stringify_object(e)))
+                    }
+                });
+            }
+
+        }
+    }
+
+    stringify_object(object: any): string {
+        const obj = {};
+        for (let key in object) {
+            let value = object[key];
+            if (value instanceof Node)
+                // specify which properties you want to see from the node
+            { // @ts-ignore
+                value = {id: value.id};
+            }
+            else if (value instanceof Window)
+                value = 'Window';
+            else if (value instanceof Object)
+                value = 'Object';
+            // @ts-ignore
+            obj[key] = value;
+        }
+        return JSON.stringify(obj);
+    }
 
     render() {
         return html`
 
     ${this.component?.metadata.type == ComponentMetadataType.Element?
-            this.renderElement(this.component.metadata as CustomElement)
+            this.renderElement(this.component.id, this.component.metadata as CustomElement)
             :html``}
 
     ${this.component?.metadata.type == ComponentMetadataType.TabLayout?
@@ -163,6 +301,7 @@ export class MateuComponent extends LitElement {
                             stepId="${this.stepId}"
                             baseUrl="${this.baseUrl}"
                             previousStepId="${this.previousStepId}"
+                            @run-action="${this.captureRunActionEvent}"
                     ><slot></slot></mateu-card>`
                     :html``}
         
@@ -223,6 +362,23 @@ export class MateuComponent extends LitElement {
                             contextData="${(this.component.metadata as JourneyStarter).contextData}"
                     ></journey-starter>`
                     :html``}
+
+    <vaadin-dialog
+            header-title="${this.confirmationTexts?.title}"
+            .opened="${this.confirmationOpened}"
+            ${dialogRenderer(() => html`${this.confirmationTexts?.message}`, [])}
+            ${dialogFooterRenderer(
+                    () => html`
+      <vaadin-button theme="primary error" @click="${this.runConfirmedAction}"
+                     data-testid="dialog-confirm" style="margin-right: auto;">
+        ${this.confirmationTexts?.action}
+      </vaadin-button>
+      <vaadin-button theme="tertiary" @click="${this.closeConfirmation}"
+            data-testid="dialog-cancel">Cancel</vaadin-button>
+    `,
+                    []
+            )}
+    ></vaadin-dialog>
         `
     }
 
@@ -235,13 +391,13 @@ export class MateuComponent extends LitElement {
     
   `
 
-    private renderElement(component: CustomElement): TemplateResult  {
+    private renderElement(componentId: string, component: CustomElement): TemplateResult  {
         let attributes = '';
         for (let attributesKey in component.attributes) {
             // @ts-ignore
             attributes += ' ' + attributesKey + '="' + component.attributes[attributesKey] + '"'
         }
-        const markup = `<${component.name} ${attributes}>${component.content?component.content:''}</${component.name}>`
+        const markup = `<${component.name} id="${componentId}" ${attributes}>${component.content?component.content:''}</${component.name}>`
         return html`${unsafeHTML(markup)}`;
     }
 }

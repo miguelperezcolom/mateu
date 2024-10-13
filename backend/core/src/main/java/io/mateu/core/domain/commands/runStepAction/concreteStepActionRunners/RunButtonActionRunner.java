@@ -17,6 +17,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Button;
 import io.mateu.dtos.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -30,23 +31,24 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
 
   private final ValueProvider valueProvider;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final ResultMapper resultMapper;
 
   public RunButtonActionRunner(
-      Merger merger,
-      ActualValueExtractor actualValueExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
-      ValidationService validationService,
-      ComponentFactory componentFactory,
-      UIIncrementFactory uIIncrementFactory,
-      BasicTypeChecker basicTypeChecker,
-      MethodParametersEditorHandler methodParametersEditorHandler,
-      MethodProvider methodProvider,
-      ViewMapper viewMapper,
-      ValueProvider valueProvider,
-      DataExtractor dataExtractor,
-      AllEditableFieldsProvider allEditableFieldsProvider,
-      ManagedTypeChecker managedTypeChecker) {
+          Merger merger,
+          ActualValueExtractor actualValueExtractor,
+          ReflectionHelper reflectionHelper,
+          Serializer serializer,
+          ValidationService validationService,
+          ComponentFactory componentFactory,
+          UIIncrementFactory uIIncrementFactory,
+          BasicTypeChecker basicTypeChecker,
+          MethodParametersEditorHandler methodParametersEditorHandler,
+          MethodProvider methodProvider,
+          ViewMapper viewMapper,
+          ValueProvider valueProvider,
+          DataExtractor dataExtractor,
+          AllEditableFieldsProvider allEditableFieldsProvider,
+          ManagedTypeChecker managedTypeChecker, ResultMapper resultMapper) {
     super(
         merger,
         actualValueExtractor,
@@ -55,15 +57,13 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         validationService,
         componentFactory,
         uIIncrementFactory,
-        basicTypeChecker,
-        methodParametersEditorHandler,
-        methodProvider,
-        viewMapper,
-        dataExtractor,
-        allEditableFieldsProvider,
-        managedTypeChecker);
+            methodParametersEditorHandler,
+            methodProvider,
+            managedTypeChecker,
+            resultMapper);
     this.valueProvider = valueProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
+    this.resultMapper = resultMapper;
   }
 
   @Override
@@ -106,36 +106,23 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
 
         Object logicToRun = valueProvider.getValue(m, actualViewInstance);
         Object result = null;
+        Method method = null;
         if (logicToRun instanceof Runnable runnable) {
           runnable.run();
+          method = Runnable.class.getMethod("run");
         } else if (logicToRun instanceof Callable<?> callable) {
           result = callable.call();
+          method = Callable.class.getMethod("call");
         }
 
-        if (result == null) {
-          return Mono.just(
-              uIIncrementFactory.createForSingleComponent(
-                  componentFactory.createFormComponent(
-                      actualViewInstance, serverHttpRequest, data)));
-        }
-
-        if (Mono.class.isAssignableFrom(result.getClass())) {
-
-          var mono = (Mono) result;
-
-          return mono.map(
-              r -> {
-                try {
-                  return getUiIncrement(m, data, serverHttpRequest, r, componentId);
-                } catch (Throwable e) {
-                  return Mono.error(new RuntimeException(e));
-                }
-              });
-
-        } else {
-
-          return Mono.just(getUiIncrement(m, data, serverHttpRequest, result, componentId));
-        }
+        return resultMapper.processResult(
+                actualViewInstance,
+                method,
+                data,
+                serverHttpRequest,
+                result,
+                componentId
+                        );
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();
@@ -146,30 +133,5 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
     }
   }
 
-  @Override
-  protected String getModalStyle(AnnotatedElement m) {
-    if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class).modalStyle();
-    }
-    return null;
-  }
 
-  @Override
-  protected String getTargetId(AnnotatedElement m, String componentId) {
-    if (ActionTarget.Self.equals(getActionTarget(m))) {
-      return componentId;
-    }
-    if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class).targetId();
-    }
-    return null;
-  }
-
-  @Override
-  protected ActionTarget getActionTarget(AnnotatedElement m) {
-    if (m.isAnnotationPresent(Button.class)) {
-      return m.getAnnotation(Button.class).target();
-    }
-    return null;
-  }
 }

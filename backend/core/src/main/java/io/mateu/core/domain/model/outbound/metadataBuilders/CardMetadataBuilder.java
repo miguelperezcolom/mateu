@@ -28,6 +28,7 @@ public class CardMetadataBuilder {
   final FieldMetadataBuilder fieldMetadataBuilder;
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
+  private final ServerSideObjectMapper serverSideObjectMapper;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(
@@ -36,11 +37,53 @@ public class CardMetadataBuilder {
         new Card(
             CardLayout.Layout1,
             card.thumbnail(),
-            List.of(), // todo: create actions
-            List.of() // todo: create actions
+            createActionsForButtons(card.buttons()),
+            createActionsForIcons(card.icons()),
+                serverSideObjectMapper.toDto(card.actionHandler())
             );
     return metadata;
   }
+
+  private List<Action> createActionsForIcons(List<CallableIcon> icons) {
+    return icons.stream().map(i -> new Action(
+            i.id(),
+            i.icon().iconName,
+            i.description(),
+            ActionType.Primary,
+            true,
+            false,
+            false,
+            false,
+            null,
+            ActionTarget.Self,
+            null,
+            null,
+            null,
+            false,
+            ActionPosition.Left,
+            0
+    )).toList();
+  }
+
+  private List<Action> createActionsForButtons(List<Button> buttons) {
+    return buttons.stream().map(i -> new Action(
+            i.id(),
+            Icon.None.iconName,
+            i.caption(),
+            ActionType.Primary,
+            true,
+            false,
+            false,
+            false,
+            null,
+            ActionTarget.Self,
+            null,
+            null,
+            null,
+            false,
+            ActionPosition.Right,
+            0
+    )).toList();  }
 
   private String getIcon(Object uiInstance) {
     if (uiInstance instanceof HasIcon) {

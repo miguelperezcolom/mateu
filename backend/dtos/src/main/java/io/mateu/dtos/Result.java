@@ -2,10 +2,12 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Result metadata
  *
+ * @param title The title
  * @param resultType The result type: error, success, info
  * @param message The message
  * @param interestingLinks A list of interesting links
@@ -13,11 +15,13 @@ import java.util.List;
  * @param leftSideImageUrl An image to be shown on the left side
  */
 public record Result(
-    ResultType resultType,
-    String message,
-    List<Destination> interestingLinks,
-    Destination nowTo,
-    String leftSideImageUrl)
+        String title,
+        ResultType resultType,
+        String message,
+        List<Destination> interestingLinks,
+        Destination nowTo,
+        String leftSideImageUrl,
+        ServerSideObject actionHandler)
     implements ComponentMetadata {
 
   public Result {

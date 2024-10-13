@@ -43,6 +43,12 @@ public abstract class Test {
       ) {
     // System.out.println(selection);
     return new io.mateu.core.domain.uidefinition.shared.data.Result(
-        ResultType.Success, "Tests have been deployed and scheduled for run", null, null, null);
+        "Deploy and run",
+            ResultType.Success,
+            "Tests have been deployed and scheduled for run",
+            null,
+            null,
+            null,
+            null);
   }
 }

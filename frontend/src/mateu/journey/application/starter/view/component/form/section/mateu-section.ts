@@ -157,7 +157,7 @@ export class MateuSection extends LitElement {
   static styles = css`
     .mateu-section {
       text-align: left;
-      border: 1px solid var(--lumo-contrast-10pct);
+      border: 2px solid var(--lumo-contrast-10pct);
       border-radius: 8px;
       padding: 2rem;  
       margin-bottom: 16px;       

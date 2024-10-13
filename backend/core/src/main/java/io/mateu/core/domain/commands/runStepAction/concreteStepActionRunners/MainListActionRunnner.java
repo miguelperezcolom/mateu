@@ -34,23 +34,21 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   final Serializer serializer;
   final ValidationService validationService;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
+  private final ResultMapper resultMapper;
 
   public MainListActionRunnner(
-      List<ListActionRunner> listActionRunners,
-      Merger merger,
-      ActualValueExtractor actualValueExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
-      ValidationService validationService,
-      ViewMapper viewMapper,
-      ComponentFactory componentFactory,
-      UIIncrementFactory uIIncrementFactory,
-      BasicTypeChecker basicTypeChecker,
-      MethodParametersEditorHandler methodParametersEditorHandler,
-      MethodProvider methodProvider,
-      DataExtractor dataExtractor,
-      AllEditableFieldsProvider allEditableFieldsProvider,
-      ManagedTypeChecker managedTypeChecker) {
+          List<ListActionRunner> listActionRunners,
+          Merger merger,
+          ActualValueExtractor actualValueExtractor,
+          ReflectionHelper reflectionHelper,
+          Serializer serializer,
+          ValidationService validationService,
+          ComponentFactory componentFactory,
+          UIIncrementFactory uIIncrementFactory,
+          MethodParametersEditorHandler methodParametersEditorHandler,
+          MethodProvider methodProvider,
+          AllEditableFieldsProvider allEditableFieldsProvider,
+          ManagedTypeChecker managedTypeChecker, ResultMapper resultMapper) {
     super(
         merger,
         actualValueExtractor,
@@ -59,13 +57,10 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         validationService,
         componentFactory,
         uIIncrementFactory,
-        basicTypeChecker,
         methodParametersEditorHandler,
         methodProvider,
-        viewMapper,
-        dataExtractor,
-        allEditableFieldsProvider,
-        managedTypeChecker);
+            managedTypeChecker,
+            resultMapper);
     this.listActionRunners = listActionRunners;
     this.merger = merger;
     this.actualValueExtractor = actualValueExtractor;
@@ -73,6 +68,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
     this.serializer = serializer;
     this.validationService = validationService;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
+    this.resultMapper = resultMapper;
   }
 
   @Override

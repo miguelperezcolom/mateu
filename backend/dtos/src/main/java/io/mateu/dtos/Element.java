@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /** Metadata for a html element */
-public record Element(String name, Map<String, String> attributes, String content)
+public record Element(String name, Map<String, Object> attributes, String content)
     implements ComponentMetadata {
 
   public Element {
@@ -12,7 +12,7 @@ public record Element(String name, Map<String, String> attributes, String conten
   }
 
   @Override
-  public Map<String, String> attributes() {
+  public Map<String, Object> attributes() {
     return Collections.unmodifiableMap(attributes);
   }
 }

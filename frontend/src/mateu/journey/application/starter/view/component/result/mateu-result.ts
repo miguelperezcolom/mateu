@@ -4,10 +4,8 @@ import "@vaadin/horizontal-layout";
 import "@vaadin/button";
 import "@vaadin/icons";
 import "@vaadin/icon";
-import {Button} from "@vaadin/button";
 import Result from "../../../../../../shared/apiClients/dtos/Result";
 import {ResultType} from "../../../../../../shared/apiClients/dtos/ResultType";
-import Destination from "../../../../../../shared/apiClients/dtos/Destination";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
 
 /**
@@ -44,26 +42,40 @@ export class MateuResult extends LitElement {
   data: object | undefined;
 
   @property()
+  componentId!: string
+
+  @property()
   component!: Component
 
   connectedCallback() {
     super.connectedCallback();
   }
 
-  async runAction(e:Event) {
-      const button = e.currentTarget as Button;
-      // @ts-ignore
-    this.askForActionRun(button.destination)
+  async runAction(event: Event) {
+    const boton = (event.target as HTMLElement)
+    const actionId = boton.getAttribute('actionId');
+    if (!actionId) {
+      console.log('Attribute actionId is missing for ' + event.target)
+      return
+    }
+    setTimeout(async () => {
+      await this.doRunActionId(actionId, undefined, undefined);
+    })
   }
 
-  private askForActionRun(destination: Destination) {
-
-    console.log(destination)
-
-    this.dispatchEvent(new CustomEvent('replace-component', {
+  async doRunActionId(actionId: string, eventName: string | undefined, event: unknown | undefined) {
+    let effectiveData: any = {...this.data}
+    if (event) {
+      effectiveData = {...effectiveData, __eventName: eventName, __event: JSON.parse(JSON.stringify(event))}
+    }
+    effectiveData = {...effectiveData, __actionHandler: this.metadata.actionHandler}
+    this.dispatchEvent(new CustomEvent('runaction', {
       detail: {
-        target: this.component,
-        replacement: destination.value
+        componentId: this.componentId,
+        componentType: this.component?.className,
+        actionId: actionId,
+        action: undefined,
+        data: effectiveData
       },
       bubbles: true,
       composed: true
@@ -95,14 +107,14 @@ export class MateuResult extends LitElement {
 
       <vaadin-horizontal-layout class="header">
         <div>
-          <h1>Result</h1>
+          <h1>${this.metadata.title}</h1>
         </div>
       </vaadin-horizontal-layout>
 
       <div class="mateu-section">
       
       <vaadin-vertical-layout style="align-items: center;">
-        <vaadin-icon icon="${this.getIcon(this.metadata.resultType)}" class="${this.getClass(this.metadata.resultType)}" size="64"></vaadin-icon>
+        <vaadin-icon icon="${this.getIcon(this.metadata.resultType)}" class="${this.getClass(this.metadata.resultType)}"></vaadin-icon>
         <div><h3 data-testid="message">${this.metadata.message}</h3></div>
         
         ${this.metadata.interestingLinks?.length > 0?html`
@@ -114,8 +126,10 @@ export class MateuResult extends LitElement {
             
             ${this.metadata.interestingLinks.map(l => html`
 
-    <div class="link"><vaadin-button theme="tertiary" @click=${this.runAction}
-                                               data-testid="link-${l.value}"
+    <div class="link"><vaadin-button theme="tertiary small" @click=${this.runAction}
+                                               data-testid="link-${l.id}"
+                                     id="${l.id}"
+                                     actionId=${l.id}
                                      .destination=${l}>${l.description}</vaadin-button></div>                   
 
 `)}
@@ -133,7 +147,9 @@ export class MateuResult extends LitElement {
         ${this.metadata.nowTo?html`
           <vaadin-button theme="primary" @click=${this.runAction} 
                          data-testid="action-nowto"
-                         .destination=${this.metadata.nowTo}>${this.metadata.nowTo.description}</vaadin-button>
+                         actionId=${this.metadata.nowTo.id}
+                         .destination=${this.metadata.nowTo}
+          >${this.metadata.nowTo.description}</vaadin-button>
         `:''}
       </vaadin-horizontal-layout>
     `
@@ -146,7 +162,7 @@ export class MateuResult extends LitElement {
     
     .mateu-section {
       text-align: left;
-      border: 1px solid lightgrey;
+      border: 2px solid var(--lumo-contrast-10pct);
       border-radius: 8px;
       padding: 2rem;  
       margin-bottom: 16px;       
@@ -155,6 +171,20 @@ export class MateuResult extends LitElement {
     
     .mateu-section:has(h1) {
       padding-top: 0px;
+    }
+
+    vaadin-icon {
+      width: var(--lumo-size-xl);
+      height: var(--lumo-size-xl);
+    }
+    
+    .youmayalso h5 {
+      margin-block-end: 5px;
+    }
+
+    .link vaadin-button {
+      padding: 0px;
+      margin: 0px;
     }
     
     .success {

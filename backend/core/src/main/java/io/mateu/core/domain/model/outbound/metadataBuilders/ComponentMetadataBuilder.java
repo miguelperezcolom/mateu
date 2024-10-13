@@ -58,6 +58,8 @@ public class ComponentMetadataBuilder {
   @Qualifier("captionProvider")
   @Autowired
   private CaptionProvider captionProvider;
+    @Autowired
+    private ServerSideObjectMapper serverSideObjectMapper;
 
   public ComponentMetadata getMetadata(
       boolean form,
@@ -141,11 +143,13 @@ public class ComponentMetadataBuilder {
       metadata =
           getResult(
               new Result(
+                  "Result",
                   io.mateu.core.domain.uidefinition.shared.data.ResultType.Success,
                   "" + componentInstance,
                   List.of(),
                   null,
-                  null));
+                  null,
+                      null));
     } else {
       if (form) {
         metadata = getForm(componentInstance, slotFields, data);
@@ -227,8 +231,8 @@ public class ComponentMetadataBuilder {
         .orElse("");
   }
 
-  private Map<String, String> getElementAttributes(Object componentInstance) {
-    Map<String, String> attributes = new HashMap<>();
+  private Map<String, Object> getElementAttributes(Object componentInstance) {
+    Map<String, Object> attributes = new HashMap<>();
     reflectionHelper.getAllFields(componentInstance.getClass()).stream()
         .filter(f -> f.isAnnotationPresent(Attribute.class))
         .forEach(
@@ -245,6 +249,20 @@ public class ComponentMetadataBuilder {
                 throw new RuntimeException(e);
               }
             });
+    List<Pair> listeners = new ArrayList<>();
+    reflectionHelper.getAllMethods(componentInstance.getClass()).stream()
+            .filter(m -> m.isAnnotationPresent(On.class))
+            .forEach(
+                    m -> {
+                      var on = m.getAnnotation(On.class);
+                      listeners.add(
+                              new Pair(
+                                      "listener",
+                                      new Listener(on.value(), m.getName(), on.js())));
+                    });
+    if (!listeners.isEmpty()) {
+      attributes.put("listeners", listeners);
+    }
     return attributes;
   }
 
@@ -256,7 +274,7 @@ public class ComponentMetadataBuilder {
   }
 
   private ComponentMetadata getElement(Element element) {
-    return new io.mateu.dtos.Element(element.name(), element.attributes(), element.content());
+    return new io.mateu.dtos.Element(element.name(), element.attributes(), element.content() );
   }
 
   private ComponentMetadata getHorizontalLayout(List<?> list, Object model, Field field) {

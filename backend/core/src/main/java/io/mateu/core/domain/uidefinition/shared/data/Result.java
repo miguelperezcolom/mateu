@@ -1,20 +1,25 @@
 package io.mateu.core.domain.uidefinition.shared.data;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.uidefinition.shared.interfaces.ActionHandler;
+import jakarta.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
-public class Result {
+public record Result(
+    @NotNull String title,
+    @NotNull ResultType type,
+    @NotNull String message,
+    @NotNull List<Destination> interestingLinks,
+    Destination nowTo,
+    String leftSideImageUrl,
+    ActionHandler actionHandler) {
 
-  private ResultType type;
-  private String message;
-  private List<Destination> interestingLinks;
-  private Destination nowTo;
-  private String leftSideImageUrl;
+  public Result {
+    interestingLinks = Collections.unmodifiableList(interestingLinks);
+  }
+
+  @Override
+  public List<Destination> interestingLinks() {
+    return Collections.unmodifiableList(interestingLinks);
+  }
 }

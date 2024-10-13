@@ -20,11 +20,11 @@ public class ReturnsResult {
       confirmationMessage = "Are you sure you want to do something?",
       confirmationAction = "Yes, I want!")
   public Result doSomething() {
-    return new Result(ResultType.Success, "It worked!", null, null, null);
+    return new Result("You did something", ResultType.Success, "It worked!", null, null, null, null);
   }
 
   @MainAction(confirmationMessage = "Are you sure you want to do something BIG?")
   public Result doSomethingBig() {
-    return new Result(ResultType.Info, "It worked, also!", null, null, null);
+    return new Result("You did something big", ResultType.Info, "It worked, also!", null, null, null, null);
   }
 }

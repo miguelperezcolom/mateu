@@ -17,13 +17,15 @@ public class MyDiv {
     @Content
     String content = "Hola!";
 
-    @On(value = "click", js = "this.dispatchEvent(new CustomEvent('run-action', {\n" +
-            "              detail: {\n" +
-            "                actionId: 'xx',\n" +
-            "              },\n" +
-            "              bubbles: true,\n" +
-            "              composed: true\n" +
-            "            }))")
+    @On(value = "click"
+//            , js = "this.dispatchEvent(new CustomEvent('run-action', {\n" +
+//            "              detail: {\n" +
+//            "                actionId: 'xx',\n" +
+//            "              },\n" +
+//            "              bubbles: true,\n" +
+//            "              composed: true\n" +
+//            "            }))"
+    )
     public void clicked(ClientSideEvent event) throws JsonProcessingException { //
         content = "Clicked at " + LocalTime.now() + " " + new ObjectMapper().writeValueAsString(event);
     }
