@@ -24,17 +24,15 @@ public class ResultMetadataBuilder {
             .map(
                 l ->
                     new Destination(
-                            l.id(),
-                        DestinationType.valueOf(l.type().toString()),
-                        l.description()))
+                        l.id(), DestinationType.valueOf(l.type().toString()), l.description()))
             .toList(),
         result.nowTo() != null
             ? new Destination(
-                    result.nowTo().id(),
+                result.nowTo().id(),
                 DestinationType.valueOf(result.nowTo().type().toString()),
                 result.nowTo().description())
             : null,
         result.leftSideImageUrl(),
-            serverSideObjectMapper.toDto(result.actionHandler()));
+        serverSideObjectMapper.toDto(result.actionHandler()));
   }
 }

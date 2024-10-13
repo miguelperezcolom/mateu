@@ -10,10 +10,8 @@ import io.mateu.core.domain.uidefinition.shared.data.Destination;
 import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
 import io.mateu.core.domain.uidefinition.shared.data.Result;
 import io.mateu.core.domain.uidefinition.shared.data.ResultType;
-import io.mateu.dtos.Component;
 import io.mateu.dtos.UIIncrement;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -84,12 +82,12 @@ public class CrudDeleteActionRunner implements ListActionRunner {
               getMessage(targetSet),
               List.of(),
               new Destination(
-                      "backToCrud",
+                  "backToCrud",
                   DestinationType.Component,
                   "Back to " + captionProvider.getCaption(crud),
-                      null),
-                  null,
-                  new CrudDeleteResultActionHandler(crud));
+                  null),
+              null,
+              new CrudDeleteResultActionHandler(crud));
 
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(

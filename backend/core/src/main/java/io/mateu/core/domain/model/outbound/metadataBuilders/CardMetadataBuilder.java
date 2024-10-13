@@ -39,51 +39,57 @@ public class CardMetadataBuilder {
             card.thumbnail(),
             createActionsForButtons(card.buttons()),
             createActionsForIcons(card.icons()),
-                serverSideObjectMapper.toDto(card.actionHandler())
-            );
+            serverSideObjectMapper.toDto(card.actionHandler()));
     return metadata;
   }
 
   private List<Action> createActionsForIcons(List<CallableIcon> icons) {
-    return icons.stream().map(i -> new Action(
-            i.id(),
-            i.icon().iconName,
-            i.description(),
-            ActionType.Primary,
-            true,
-            false,
-            false,
-            false,
-            null,
-            ActionTarget.Self,
-            null,
-            null,
-            null,
-            false,
-            ActionPosition.Left,
-            0
-    )).toList();
+    return icons.stream()
+        .map(
+            i ->
+                new Action(
+                    i.id(),
+                    i.icon().iconName,
+                    i.description(),
+                    ActionType.Primary,
+                    true,
+                    false,
+                    false,
+                    false,
+                    null,
+                    ActionTarget.Self,
+                    null,
+                    null,
+                    null,
+                    false,
+                    ActionPosition.Left,
+                    0))
+        .toList();
   }
 
   private List<Action> createActionsForButtons(List<Button> buttons) {
-    return buttons.stream().map(i -> new Action(
-            i.id(),
-            Icon.None.iconName,
-            i.caption(),
-            ActionType.Primary,
-            true,
-            false,
-            false,
-            false,
-            null,
-            ActionTarget.Self,
-            null,
-            null,
-            null,
-            false,
-            ActionPosition.Right,
-            0
-    )).toList();  }
+    return buttons.stream()
+        .map(
+            i ->
+                new Action(
+                    i.id(),
+                    Icon.None.iconName,
+                    i.caption(),
+                    ActionType.Primary,
+                    true,
+                    false,
+                    false,
+                    false,
+                    null,
+                    ActionTarget.Self,
+                    null,
+                    null,
+                    null,
+                    false,
+                    ActionPosition.Right,
+                    0))
+        .toList();
+  }
 
   private String getIcon(Object uiInstance) {
     if (uiInstance instanceof HasIcon) {

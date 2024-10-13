@@ -35,21 +35,26 @@ public class RunStepActionCommandHandler {
     Map<String, Object> data = command.data();
     ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
-
     if (data.containsKey("__actionHandler")) {
-      ServerSideObject serverSideObject = (ServerSideObject) reflectionHelper.newInstance(ServerSideObject.class, (Map<String, Object>) data.get("__actionHandler"));
-      ActionHandler actionHandler = (ActionHandler) reflectionHelper.newInstance(Class.forName(serverSideObject.className()), serverSideObject.data());
+      ServerSideObject serverSideObject =
+          (ServerSideObject)
+              reflectionHelper.newInstance(
+                  ServerSideObject.class, (Map<String, Object>) data.get("__actionHandler"));
+      ActionHandler actionHandler =
+          (ActionHandler)
+              reflectionHelper.newInstance(
+                  Class.forName(serverSideObject.className()), serverSideObject.data());
       return resultMapper.processResult(
-              actionHandler,
-              reflectionHelper.getMethod(actionHandler.getClass(), "handle"),
-              data,
-              serverHttpRequest,
-              actionHandler.handle(actionId),
-              componentId
-              );
+          actionHandler,
+          reflectionHelper.getMethod(actionHandler.getClass(), "handle"),
+          data,
+          serverHttpRequest,
+          actionHandler.handle(actionId),
+          componentId);
     }
 
-    Object viewInstance = reflectionHelper.newInstance(Class.forName(command.componentType()), data);
+    Object viewInstance =
+        reflectionHelper.newInstance(Class.forName(command.componentType()), data);
 
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId, command.contextData())) {

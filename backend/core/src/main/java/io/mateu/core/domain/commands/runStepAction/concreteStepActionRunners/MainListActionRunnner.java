@@ -6,11 +6,8 @@ import io.mateu.core.domain.commands.runStepAction.ActualValueExtractor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
-import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
@@ -37,18 +34,19 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   private final ResultMapper resultMapper;
 
   public MainListActionRunnner(
-          List<ListActionRunner> listActionRunners,
-          Merger merger,
-          ActualValueExtractor actualValueExtractor,
-          ReflectionHelper reflectionHelper,
-          Serializer serializer,
-          ValidationService validationService,
-          ComponentFactory componentFactory,
-          UIIncrementFactory uIIncrementFactory,
-          MethodParametersEditorHandler methodParametersEditorHandler,
-          MethodProvider methodProvider,
-          AllEditableFieldsProvider allEditableFieldsProvider,
-          ManagedTypeChecker managedTypeChecker, ResultMapper resultMapper) {
+      List<ListActionRunner> listActionRunners,
+      Merger merger,
+      ActualValueExtractor actualValueExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      ValidationService validationService,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory,
+      MethodParametersEditorHandler methodParametersEditorHandler,
+      MethodProvider methodProvider,
+      AllEditableFieldsProvider allEditableFieldsProvider,
+      ManagedTypeChecker managedTypeChecker,
+      ResultMapper resultMapper) {
     super(
         merger,
         actualValueExtractor,
@@ -59,8 +57,8 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         uIIncrementFactory,
         methodParametersEditorHandler,
         methodProvider,
-            managedTypeChecker,
-            resultMapper);
+        managedTypeChecker,
+        resultMapper);
     this.listActionRunners = listActionRunners;
     this.merger = merger;
     this.actualValueExtractor = actualValueExtractor;

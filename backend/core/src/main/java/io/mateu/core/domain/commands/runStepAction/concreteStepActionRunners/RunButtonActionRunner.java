@@ -12,10 +12,8 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
 import io.mateu.core.domain.uidefinition.shared.annotations.Button;
 import io.mateu.dtos.*;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -34,21 +32,22 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   private final ResultMapper resultMapper;
 
   public RunButtonActionRunner(
-          Merger merger,
-          ActualValueExtractor actualValueExtractor,
-          ReflectionHelper reflectionHelper,
-          Serializer serializer,
-          ValidationService validationService,
-          ComponentFactory componentFactory,
-          UIIncrementFactory uIIncrementFactory,
-          BasicTypeChecker basicTypeChecker,
-          MethodParametersEditorHandler methodParametersEditorHandler,
-          MethodProvider methodProvider,
-          ViewMapper viewMapper,
-          ValueProvider valueProvider,
-          DataExtractor dataExtractor,
-          AllEditableFieldsProvider allEditableFieldsProvider,
-          ManagedTypeChecker managedTypeChecker, ResultMapper resultMapper) {
+      Merger merger,
+      ActualValueExtractor actualValueExtractor,
+      ReflectionHelper reflectionHelper,
+      Serializer serializer,
+      ValidationService validationService,
+      ComponentFactory componentFactory,
+      UIIncrementFactory uIIncrementFactory,
+      BasicTypeChecker basicTypeChecker,
+      MethodParametersEditorHandler methodParametersEditorHandler,
+      MethodProvider methodProvider,
+      ViewMapper viewMapper,
+      ValueProvider valueProvider,
+      DataExtractor dataExtractor,
+      AllEditableFieldsProvider allEditableFieldsProvider,
+      ManagedTypeChecker managedTypeChecker,
+      ResultMapper resultMapper) {
     super(
         merger,
         actualValueExtractor,
@@ -57,10 +56,10 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         validationService,
         componentFactory,
         uIIncrementFactory,
-            methodParametersEditorHandler,
-            methodProvider,
-            managedTypeChecker,
-            resultMapper);
+        methodParametersEditorHandler,
+        methodProvider,
+        managedTypeChecker,
+        resultMapper);
     this.valueProvider = valueProvider;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
     this.resultMapper = resultMapper;
@@ -116,13 +115,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         }
 
         return resultMapper.processResult(
-                actualViewInstance,
-                method,
-                data,
-                serverHttpRequest,
-                result,
-                componentId
-                        );
+            actualViewInstance, method, data, serverHttpRequest, result, componentId);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();
@@ -132,6 +125,4 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
       }
     }
   }
-
-
 }

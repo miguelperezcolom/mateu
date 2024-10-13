@@ -8,21 +8,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class ServerSideObjectMapper {
 
-    private final Serializer serializer;
+  private final Serializer serializer;
 
-    public ServerSideObjectMapper(Serializer serializer) {
-        this.serializer = serializer;
+  public ServerSideObjectMapper(Serializer serializer) {
+    this.serializer = serializer;
+  }
+
+  @SneakyThrows
+  public ServerSideObject toDto(Object object) {
+    if (object == null) {
+      return null;
     }
-
-    @SneakyThrows
-    public ServerSideObject toDto(Object object) {
-        if (object == null) {
-            return null;
-        }
-        return new ServerSideObject(
-                object.getClass().getName(),
-                serializer.toMap(object)
-        );
-    }
-
+    return new ServerSideObject(object.getClass().getName(), serializer.toMap(object));
+  }
 }

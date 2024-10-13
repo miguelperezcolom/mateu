@@ -304,15 +304,15 @@ public class ReflectionHelper {
     } else {
       if (data != null) {
         data.entrySet()
-                .forEach(
-                        entry -> {
-                          try {
-                            Object actualValue = actualValueExtractor.getActualValue(entry, instance);
-                            setValue(entry.getKey(), instance, actualValue);
-                          } catch (Exception ex) {
-                            System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
-                          }
-                        });
+            .forEach(
+                entry -> {
+                  try {
+                    Object actualValue = actualValueExtractor.getActualValue(entry, instance);
+                    setValue(entry.getKey(), instance, actualValue);
+                  } catch (Exception ex) {
+                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                  }
+                });
       }
     }
     return instance;

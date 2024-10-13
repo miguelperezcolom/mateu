@@ -2,7 +2,6 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Result metadata
@@ -15,13 +14,13 @@ import java.util.Map;
  * @param leftSideImageUrl An image to be shown on the left side
  */
 public record Result(
-        String title,
-        ResultType resultType,
-        String message,
-        List<Destination> interestingLinks,
-        Destination nowTo,
-        String leftSideImageUrl,
-        ServerSideObject actionHandler)
+    String title,
+    ResultType resultType,
+    String message,
+    List<Destination> interestingLinks,
+    Destination nowTo,
+    String leftSideImageUrl,
+    ServerSideObject actionHandler)
     implements ComponentMetadata {
 
   public Result {

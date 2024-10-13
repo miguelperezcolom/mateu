@@ -12,12 +12,12 @@ import java.util.List;
  * @param icons List of icons to show
  */
 public record Card(
-        CardLayout layout,
-        String thumbnail,
-        List<Action> buttons,
-        List<Action> icons,
-        ServerSideObject actionHandler
-) implements ComponentMetadata {
+    CardLayout layout,
+    String thumbnail,
+    List<Action> buttons,
+    List<Action> icons,
+    ServerSideObject actionHandler)
+    implements ComponentMetadata {
 
   public Card {
     buttons = Collections.unmodifiableList(buttons);
