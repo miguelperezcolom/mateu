@@ -23,7 +23,7 @@ public record Crud(
     boolean hasActionOnSelectedRow,
     boolean multipleRowSelectionEnabled,
     boolean searchable,
-    SearchForm searchForm,
+    Component searchForm,
     List<Column> columns,
     List<Action> actions,
     boolean child)

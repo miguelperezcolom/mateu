@@ -23,7 +23,6 @@ import ConfirmationTexts from "../../../../../../shared/apiClients/dtos/Confirma
 import {dialogRenderer, gridRowDetailsRenderer} from 'lit-vaadin-helpers';
 import {dialogFooterRenderer} from '@vaadin/dialog/lit';
 import {MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
-import {mapField} from "./crudFieldMapping";
 import {CrudState} from "./crudstate";
 import {Subject, Subscription} from "rxjs";
 import {CrudService} from "./crudservice";
@@ -32,6 +31,7 @@ import Component from "../../../../../../shared/apiClients/dtos/Component";
 import {ActionTarget} from "../../../../../../shared/apiClients/dtos/ActionTarget";
 import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
 import {ifDefined} from "lit/directives/if-defined.js";
+import Form from "../../../../../../shared/apiClients/dtos/Form";
 
 
 /**
@@ -261,6 +261,7 @@ export class MateuCrud extends LitElement {
 
   private clickedOnSearch() {
     this.filtersOpened = false
+
     if (this.page) {
       this.page = 0
     } else {
@@ -292,34 +293,25 @@ export class MateuCrud extends LitElement {
   }
 
 
-  filterChanged(e:Event) {
-    const input = e.currentTarget as HTMLInputElement;
-    const obj = {};
-    // @ts-ignore
-    let newValue = null;
-    // @ts-ignore
-    if (e.detail && e.detail.value) {
-      // @ts-ignore
-      newValue = e.detail.value;
-    } else {
-      newValue  = input.value;
-    }
-    // @ts-ignore
-    obj[input.id] = newValue || null;
-    this.data = { ...this.data, ...obj}
+  filterChanged(e:CustomEvent) {
+    console.log('e.detail.data', e.detail.data)
+    this.data = { ...e.detail.data}
   }
 
   updateFiltersText() {
     let text = this.searchText?this.searchText:'';
-    for (const k in this.metadata?.searchForm.fields) {
-      const f = this.metadata?.searchForm.fields[k]
+    const filterFields = (this.metadata?.searchForm.metadata as Form).sections
+        .flatMap(s => s.fieldGroups)
+        .flatMap(g => g.lines)
+        .flatMap(l => l.fields)
+    filterFields.forEach(f => {
       if (this.data[f.id]) {
-        if (k != 'action') {
+        if (f.id != 'action') {
           if (text) text += ', ';
           text += this.data[f.id];
         }
       }
-    }
+    })
     this.filtersText = 'Applied filters: ' + (text?text:'None')
   }
 
@@ -564,7 +556,7 @@ export class MateuCrud extends LitElement {
           `:''}
           `}
         </div>
-        ${!this.metadata?.searchable && (!this.metadata?.searchForm.fields || this.metadata?.searchForm.fields.length == 0)?html`
+        ${!this.metadata?.searchable && !((this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0)?html`
             <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
           `:''}
         <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
@@ -578,7 +570,7 @@ export class MateuCrud extends LitElement {
               .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
             `:''}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
-      ${this.metadata?.searchable || (this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0)?html`
+      ${this.metadata?.searchable || ((this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0)?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
           ${this.metadata?.searchable?html`
             <vaadin-text-field id="searchText"
@@ -590,7 +582,7 @@ export class MateuCrud extends LitElement {
                                autoselect="on"></vaadin-text-field>
             <vaadin-button theme="primary" @click="${this.clickedOnSearch}" data-testid="search">Search</vaadin-button>
           `:''}
-          ${this.metadata?.searchForm.fields && this.metadata?.searchForm.fields.length > 0?html`
+          ${(this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0?html`
             <vaadin-button theme="secondary" @click="${this.clickedOnFilters}" data-testid="filters">Filters</vaadin-button>
             <vaadin-button theme="secondary" @click="${this.clickedOnClearFilters}" data-testid="clearfilters">Clear filters</vaadin-button>
           `:''}
@@ -681,10 +673,21 @@ export class MateuCrud extends LitElement {
           .opened="${this.filtersOpened}"
           @opened-changed="${this.openedChangedForFilters}"
           ${dialogRenderer(() => html`
-
-            <vaadin-form-layout>
-              ${this.metadata?.searchForm.fields.map(f => mapField(f, this.filterChanged, this.baseUrl, this.data))}
-            </vaadin-form-layout>
+                <mateu-form
+                            .component=${(this.metadata?.searchForm.metadata as Form)}
+                            .components=${[]}
+                            .metadata=${(this.metadata?.searchForm.metadata as Form)} 
+                            .data=${this.metadata?.searchForm.data}
+                            journeyTypeId="${this.journeyTypeId}"
+                            journeyId="${this.journeyId}" 
+                            stepId="${this.stepId}"
+                            componentId="${this.metadata?.searchForm.id}"
+                            .rules=${(this.metadata?.searchForm.metadata as Form).rules}
+                            .service=${this.crudService}
+                            baseUrl="${this.baseUrl}"
+                            previousStepId="${this.previousStepId}"
+                            @data-changed="${this.filterChanged}"
+                    ><slot></slot></mateu-form>            
           `, [])}
           ${dialogFooterRenderer(
               () => html`

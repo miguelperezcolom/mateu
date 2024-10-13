@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
+import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
@@ -11,12 +12,9 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Child;
 import io.mateu.core.domain.uidefinition.shared.annotations.Detail;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
-import io.mateu.dtos.Column;
-import io.mateu.dtos.Crud;
-import io.mateu.dtos.SearchForm;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import io.mateu.dtos.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +31,7 @@ public class CrudMetadataBuilder {
   final FieldTypeMapper fieldTypeMapper;
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
+  private final FormMetadataBuilder formMetadataBuilder;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
@@ -102,8 +101,48 @@ public class CrudMetadataBuilder {
         field.isAnnotationPresent(Detail.class));
   }
 
-  private SearchForm buildSearchForm(Listing rpcView, String listId) {
-    return new SearchForm(buildSearchFields(rpcView, listId));
+  @SneakyThrows
+  private Component buildSearchForm(Listing rpcView, String listId) {
+    List<String> allComponents = new ArrayList<>();
+    var form = formMetadataBuilder.build(
+            reflectionHelper.newInstance(rpcView.getSearchFormClass()),
+            List.of(),
+            Map.of()
+    );
+    var component = new GenericComponent(
+            new Form(
+                    form.icon(),
+                    "",
+                    false,
+                    "",
+                    null,
+                    form.badges(),
+                    form.tabs(),
+                    form.banners(),
+                    form.sections().stream().map(s -> new Section(
+                            s.id(),
+                            s.tabId(),
+                            s.caption(),
+                            s.description(),
+                            s.readOnly(),
+                            SectionType.Transparent,
+                            s.leftSideImageUrl(),
+                            s.topImageUrl(),
+                            s.fieldGroups(),
+                            s.columns()
+                    )).toList(),
+                    List.of(), //form.actions(),
+                    List.of(), //form.mainActions(),
+                    form.validations(),
+                    form.rules()
+            ),
+            "filtersForm",
+            rpcView.getSearchFormClass().getName(),
+            Map.of(),
+            Map.of(),
+            allComponents
+            );
+    return component;
   }
 
   private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {

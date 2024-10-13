@@ -1,7 +1,7 @@
 import ComponentMetadata from "./ComponentMetadata";
-import SearchForm from "./SearchForm";
 import Column from "./Column";
 import Action from "./Action";
+import Component from "./Component";
 
 export default interface Crud extends ComponentMetadata {
 
@@ -12,7 +12,7 @@ export default interface Crud extends ComponentMetadata {
     hasActionOnSelectedRow: boolean
     multipleRowSelectionEnabled: boolean
     searchable: boolean
-    searchForm: SearchForm
+    searchForm: Component
     columns: Column[]
     actions: Action[]
     child: boolean

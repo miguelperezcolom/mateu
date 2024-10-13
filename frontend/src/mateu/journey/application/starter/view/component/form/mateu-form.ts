@@ -69,6 +69,13 @@ export class MateuForm extends LitElement implements FormElement {
       console.log(e);
     }
     this.valueChangedKey = undefined
+    this.dispatchEvent(new CustomEvent('data-changed', {
+      bubbles: true,
+      composed: true,
+      detail: {
+        data: this.data
+      }
+    }))
   }
 
   fill(key: string, value: object, data: any): object {
