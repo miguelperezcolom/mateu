@@ -2,7 +2,6 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.uidefinition.core.interfaces.DynamicCrud;
@@ -13,7 +12,6 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Detail;
 import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
 import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
 import io.mateu.dtos.*;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,44 +102,44 @@ public class CrudMetadataBuilder {
   @SneakyThrows
   private Component buildSearchForm(Listing rpcView, String listId) {
     List<String> allComponents = new ArrayList<>();
-    var form = formMetadataBuilder.build(
-            reflectionHelper.newInstance(rpcView.getSearchFormClass()),
-            List.of(),
-            Map.of()
-    );
-    var component = new GenericComponent(
+    var form =
+        formMetadataBuilder.build(
+            reflectionHelper.newInstance(rpcView.getSearchFormClass()), List.of(), Map.of());
+    var component =
+        new GenericComponent(
             new Form(
-                    form.icon(),
-                    "",
-                    false,
-                    "",
-                    null,
-                    form.badges(),
-                    form.tabs(),
-                    form.banners(),
-                    form.sections().stream().map(s -> new Section(
-                            s.id(),
-                            s.tabId(),
-                            s.caption(),
-                            s.description(),
-                            s.readOnly(),
-                            SectionType.Transparent,
-                            s.leftSideImageUrl(),
-                            s.topImageUrl(),
-                            s.fieldGroups(),
-                            s.columns()
-                    )).toList(),
-                    List.of(), //form.actions(),
-                    List.of(), //form.mainActions(),
-                    form.validations(),
-                    form.rules()
-            ),
+                form.icon(),
+                "",
+                false,
+                "",
+                null,
+                form.badges(),
+                form.tabs(),
+                form.banners(),
+                form.sections().stream()
+                    .map(
+                        s ->
+                            new Section(
+                                s.id(),
+                                s.tabId(),
+                                s.caption(),
+                                s.description(),
+                                s.readOnly(),
+                                SectionType.Transparent,
+                                s.leftSideImageUrl(),
+                                s.topImageUrl(),
+                                s.fieldGroups(),
+                                s.columns()))
+                    .toList(),
+                List.of(), // form.actions(),
+                List.of(), // form.mainActions(),
+                form.validations(),
+                form.rules()),
             "filtersForm",
             rpcView.getSearchFormClass().getName(),
             Map.of(),
             Map.of(),
-            allComponents
-            );
+            allComponents);
     return component;
   }
 
