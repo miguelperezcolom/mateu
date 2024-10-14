@@ -15,7 +15,8 @@ public record Result(
     ActionHandler actionHandler) {
 
   public Result {
-    interestingLinks = interestingLinks != null?Collections.unmodifiableList(interestingLinks):List.of();
+    interestingLinks =
+        interestingLinks != null ? Collections.unmodifiableList(interestingLinks) : List.of();
   }
 
   @Override
