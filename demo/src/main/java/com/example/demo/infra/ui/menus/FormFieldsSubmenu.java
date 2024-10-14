@@ -27,4 +27,6 @@ public class FormFieldsSubmenu {
 
   @MenuOption private ElementForm htmlElement;
 
+  @MenuOption private ReusableFieldsForm reusableFields;
+
 }
