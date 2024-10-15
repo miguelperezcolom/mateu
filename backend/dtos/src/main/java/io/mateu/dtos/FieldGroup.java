@@ -10,7 +10,10 @@ import java.util.List;
  * @param caption Field group title
  * @param lines Lines which are contained in this group
  */
-public record FieldGroup(String id, String caption, List<FieldGroupLine> lines) {
+public record FieldGroup(String id,
+                         String caption,
+                         List<FieldGroupLine> lines,
+                         int columns) {
 
   public FieldGroup {
     lines = Collections.unmodifiableList(lines);

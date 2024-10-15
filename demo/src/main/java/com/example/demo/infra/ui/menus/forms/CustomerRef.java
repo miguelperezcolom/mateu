@@ -6,17 +6,19 @@ public class CustomerRef {
 
     @CallActionOnChange("customer.onCodeChange")
     @FlexGrow("0")
+            @ReplaceableCaption
     String code;
 
     @SameLine
     @ReadOnly
-    String name;
+            @SuffixableCaption
+    String nameOf;
 
 
 
     @Action(visible = false)
     void onCodeChange() {
-        name = "" + code + "xxxx";
+        nameOf = "" + code + "xxxx";
     }
 
 }

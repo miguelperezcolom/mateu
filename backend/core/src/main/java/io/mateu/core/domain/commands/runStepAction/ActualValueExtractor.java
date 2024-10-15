@@ -6,7 +6,9 @@ import io.mateu.core.domain.model.files.StorageService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
 import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -92,6 +94,8 @@ public class ActualValueExtractor {
         targetValue = Enum.valueOf(targetType, "" + value);
       } else if (Class.class.equals(targetType)) {
         targetValue = Class.forName("" + value);
+      } else if (IconChooser.class.equals(targetType)) {
+        targetValue = new IconChooser(Icon.valueOf("" + value));
       }
     }
     return targetValue;

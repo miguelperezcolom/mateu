@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
 import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import java.util.Collection;
@@ -77,6 +78,9 @@ public class FieldStereotypeMapper {
     }
     if (field.isAnnotationPresent(Toggle.class)) {
       return "toggle";
+    }
+    if (IconChooser.class.equals(field.getType())) {
+      return "combobox";
     }
     if (field.getType().isEnum()) {
       return "combobox";

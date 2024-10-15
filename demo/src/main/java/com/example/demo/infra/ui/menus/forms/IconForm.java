@@ -2,12 +2,16 @@ package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Caption("Icons")
 public class IconForm {
+
+    @CallActionOnChange("changeIcon")
+    IconChooser chooseIcon;
 
     @Style("height: var(--lumo-icon-size-l); width: var(--lumo-icon-size-l);")
     Icon icon = Icon.Abacus;
@@ -58,6 +62,11 @@ public class IconForm {
 
     @ReadOnly
     String assessment;
+
+    @Action(visible = false)
+    void changeIcon() {
+        icon = chooseIcon.getIcon();
+    }
 
 
     @Action

@@ -1,9 +1,11 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.forms.*;
+import io.mateu.core.domain.uidefinition.shared.annotations.FormColumns;
 import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
 import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
 
+@FormColumns(2)
 public class FormOthersSubmenu {
 
   @MenuOption private FailingForm failingForm;
@@ -34,4 +36,6 @@ public class FormOthersSubmenu {
   @MenuOption private WizardPage1 wizard;
 
   @MenuOption private DecomposedForm decomposed;
+
+  @MenuOption private FormStructureForm formStructure;
 }

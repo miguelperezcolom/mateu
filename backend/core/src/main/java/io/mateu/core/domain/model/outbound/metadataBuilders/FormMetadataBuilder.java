@@ -8,18 +8,22 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectio
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.FormColumns;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
-import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinition.shared.data.FakeCaptionAnnotation;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasBanners;
 import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
+import io.mateu.dtos.Action;
+import io.mateu.dtos.FieldGroup;
 import io.mateu.dtos.Section;
+import io.mateu.dtos.Status;
+import io.mateu.dtos.Tab;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -277,10 +281,26 @@ public class FormMetadataBuilder {
   private Stream<Field> plain(Field field) {
     if (!managedTypeChecker.isManaged(field)) {
       return reflectionHelper.getAllFields(field.getType()).stream()
-          .map(f -> (Field) new FieldFromReflectionField(f))
+          .map(f -> (Field) new FieldFromReflectionField(f, createCaptionAnnotation(field, f)))
           .peek(f -> f.setId(field.getId() + "." + f.getId()));
     }
     return Stream.of(field);
+  }
+
+  private Annotation createCaptionAnnotation(Field field, Field f) {
+    String parentCaption = captionProvider.getCaption(field);
+    String caption = captionProvider.getCaption(f);
+    String effectiveCaption = caption;
+    if (f.isAnnotationPresent(ReplaceableCaption.class)) {
+      effectiveCaption = parentCaption;
+    }
+    if (f.isAnnotationPresent(PrefixableCaption.class)) {
+      effectiveCaption = parentCaption + " " + caption;
+    }
+    if (f.isAnnotationPresent(SuffixableCaption.class)) {
+      effectiveCaption = caption + " " + parentCaption;
+    }
+    return new FakeCaptionAnnotation(effectiveCaption);
   }
 
   public List<Section> createSections(Object uiInstance, List<Field> allEditableFields) {
@@ -348,8 +368,9 @@ public class FormMetadataBuilder {
             card ? SectionType.Card : SectionType.Transparent,
             leftSideImageUrl,
             topImageUrl,
-            createFieldGroups(uiInstance, fields),
+            createFieldGroups(uiInstance, fields, numberOfColumns),
             numberOfColumns);
+
     sections.add(section);
   }
 
@@ -392,39 +413,84 @@ public class FormMetadataBuilder {
     return fieldsByTabId;
   }
 
-  private List<FieldGroup> createFieldGroups(Object formInstance, List<Field> allEditableFields) {
+  private List<FieldGroup> createFieldGroups(Object formInstance, List<Field> allEditableFields, int numberOfColumnsInSection) {
     List<FieldGroup> groups = new ArrayList<>();
     List<FieldGroupLine> lines = new ArrayList<>();
     List<io.mateu.dtos.Field> fields = new ArrayList<>();
     String currentGroupCaption = "";
+    int currentGroupColumns = 0;
 
     for (Field field : allEditableFields) {
+      if (field.isAnnotationPresent(
+              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+
+        if (!lines.isEmpty()) {
+          addGroup(groups, lines, fields, numberOfColumnsInSection, currentGroupCaption, currentGroupColumns);
+        }
+        String caption =
+                field
+                        .getAnnotation(
+                                io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                        .value();
+        int columns = field.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                .columns();
+        currentGroupCaption = caption;
+        currentGroupColumns = columns;
+        lines.clear();
+      }
       if (!field.isAnnotationPresent(SameLine.class)) {
         if (!fields.isEmpty()) {
           lines.add(new FieldGroupLine(fields));
           fields = new ArrayList<>();
-          if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
-            String caption =
-                field
-                    .getAnnotation(
-                        io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
-                    .value();
-            groups.add(new FieldGroup("" + groups.size(), currentGroupCaption, lines));
-            currentGroupCaption = caption;
-            lines = new ArrayList<>();
-          }
         }
       }
       fields.add(fieldMetadataBuilder.getField(formInstance, field));
     }
+
+    addGroup(groups, lines, fields, numberOfColumnsInSection, currentGroupCaption, currentGroupColumns);
+
+    return groups;
+  }
+
+  private void addGroup(List<FieldGroup> groups,
+                        List<FieldGroupLine> lines,
+                        List<io.mateu.dtos.Field> fields,
+                        int numberOfColumnsInSection,
+                        String currentGroupCaption,
+                        int currentGroupColumns) {
     if (!fields.isEmpty()) {
-      lines.add(new FieldGroupLine(fields));
+      lines.add(new FieldGroupLine(new ArrayList<>(fields)));
+      fields.clear();
+
+      int totalCols = fields.stream().map(f -> f.colspan()).reduce(Integer::sum).orElse(0);
+      int requiredCols = currentGroupColumns;
+      if (requiredCols == 0) {
+        requiredCols = numberOfColumnsInSection;
+      }
+      if (requiredCols > totalCols) {
+        fields.add(new io.mateu.dtos.Field(
+                "void",
+                "string",
+                "element:div",
+                false,
+                false,
+                "",
+                "",
+                "",
+                "",
+                List.of(),
+                List.of(),
+                List.of(),
+                requiredCols - totalCols - 1
+        ));
+      }
+      lines.add(new FieldGroupLine(new ArrayList<>(fields)));
     }
     if (!lines.isEmpty()) {
-      groups.add(new FieldGroup("" + groups.size(), currentGroupCaption, lines));
+      groups.add(new FieldGroup("" + groups.size(), currentGroupCaption, new ArrayList<>(lines), currentGroupColumns));
     }
-    return groups;
+    lines.clear();
+    fields.clear();
   }
 
   private List<Section> fillSectionIds(List<Section> sections) {
@@ -447,7 +513,8 @@ public class FormMetadataBuilder {
                                 new FieldGroup(
                                     "fieldgroup_" + i + "_" + j,
                                     s.fieldGroups().get(j).caption(),
-                                    s.fieldGroups().get(j).lines()))
+                                    s.fieldGroups().get(j).lines(),
+                                        s.fieldGroups().get(j).columns()))
                         .toList(),
                     s.columns()))
         .toList();

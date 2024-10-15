@@ -51,8 +51,9 @@ export class MateuSection extends LitElement {
     }
 
     getFieldHtml(f: Field) {
+        const colspan = f.colspan?f.colspan:1
           if (f.stereotype == 'rawcontent') {
-              return unsafeHTML(`<div class="fullWidth">${this.formElement.getValue(f.id)}</div>`)
+              return unsafeHTML(`<div class="fullWidth" colspan="${colspan}">${this.formElement.getValue(f.id)}</div>`)
           }
         return html`
                   <mateu-field .field="${f}"
@@ -60,7 +61,7 @@ export class MateuSection extends LitElement {
                                                     baseUrl=${this.baseUrl}
                                                     name="${f.id}"
                                                     id="${f.id}"
-                               colspan="${f.colspan}"
+                               colspan="${colspan}"
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(f.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(f)}
@@ -105,12 +106,18 @@ export class MateuSection extends LitElement {
            ${this.section.caption?html`<h3>${this.section.caption}</h3>`:''}
           ${this.section.description?html`<p>${this.section.description}</p>`:''}
            
-           <vaadin-form-layout .responsiveSteps="${this.responsiveSteps(this.section.columns)}">
                ${this.section.fieldGroups.map(g => html`
-              ${g.caption?html`<h4>${g.caption}</h4>`:''}
+                   
+                   ${g.caption?html`<h4>${g.caption}</h4>`:''}
+
+                   <vaadin-form-layout .responsiveSteps="${this.responsiveSteps(
+                           g.columns?g.columns:this.section.columns
+                   )}">
+
               ${g.lines.map(f => this.getLineHtml(f))}
-          `)}
-           </vaadin-form-layout>
+
+                   </vaadin-form-layout>
+               `)}
         
     `
     }

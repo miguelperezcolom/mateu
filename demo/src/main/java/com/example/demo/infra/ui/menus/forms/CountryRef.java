@@ -6,16 +6,18 @@ public class CountryRef {
 
         @CallActionOnChange("country.onCodeChange")
         @FlexGrow("0")
-        String code;
+                @SuffixableCaption
+        String codeOf;
 
         @SameLine
         @ReadOnly
+                @PrefixableCaption
         String name;
 
 
         @Action(visible = false)
         void onCodeChange() {
-                name = "" + code + "zzzz";
+                name = "" + codeOf + "zzzz";
         }
 
 }

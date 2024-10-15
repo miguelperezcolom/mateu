@@ -2,6 +2,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
+import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ButtonMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
@@ -10,6 +11,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.*;
 import io.mateu.core.domain.uidefinition.shared.annotations.Content;
 import io.mateu.core.domain.uidefinition.shared.annotations.Element;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import io.mateu.core.domain.uidefinition.shared.data.ValuesListProvider;
 import io.mateu.dtos.*;
@@ -34,6 +36,7 @@ public class FieldAttributeBuilder {
   final ReflectionHelper reflectionHelper;
   final CaptionProvider captionProvider;
   final ButtonMetadataBuilder buttonMetadataBuilder;
+  private final Humanizer humanizer;
 
   @SneakyThrows
   public List<Pair> buildAttributes(Object view, Field field) {
@@ -171,7 +174,12 @@ public class FieldAttributeBuilder {
         attributes.add(new Pair("maxfiles", 1));
       }
     }
-    if (field.getType().isEnum()
+    if (field.getType().equals(IconChooser.class)) {
+      for (Object enumConstant : io.mateu.core.domain.uidefinition.core.interfaces.Icon.values()) {
+        attributes.add(new Pair("choice", new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
+      }
+    }
+    if ((field.getType().isEnum() && !io.mateu.core.domain.uidefinition.core.interfaces.Icon.class.equals(field.getType()))
         || (field.getType().isArray() && field.getType().getComponentType().isEnum())
         || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())) {
       Class enumType = field.getType();

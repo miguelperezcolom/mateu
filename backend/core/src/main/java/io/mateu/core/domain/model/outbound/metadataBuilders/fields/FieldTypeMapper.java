@@ -7,6 +7,7 @@ import io.mateu.core.domain.uidefinition.shared.annotations.Status;
 import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
 import io.mateu.core.domain.uidefinition.shared.annotations.Width;
 import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
 import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
@@ -24,6 +25,9 @@ public class FieldTypeMapper {
     Class<?> type = field.getType();
     if (field.isAnnotationPresent(Button.class)) {
       return "button";
+    }
+    if (IconChooser.class.equals(type)) {
+      return "enum";
     }
     if (Icon.class.equals(type)) {
       return "icon";
