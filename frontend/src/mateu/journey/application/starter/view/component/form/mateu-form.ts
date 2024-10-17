@@ -471,7 +471,7 @@ export class MateuForm extends LitElement implements FormElement {
     return html`
       <div>
 
-        <vaadin-horizontal-layout class="header" style="align-items: baseline;">
+        <vaadin-horizontal-layout class="header xx" style="align-items: baseline;">
           <div style="flex-grow: 1; ">
             <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
             ${this.metadata.subtitle?html`
@@ -637,6 +637,12 @@ export class MateuForm extends LitElement implements FormElement {
     
     vaadin-tabs {
       margin-bottom: 10px;
+    }
+    
+    @media(max-width: 600px) {
+      .xx {
+        display: unset;
+      }
     }
     
   `

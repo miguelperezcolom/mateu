@@ -645,13 +645,11 @@ public enum Icon {
   Workplace("vaadin:workplace"),
   Wrench("vaadin:wrench"),
   YoutubeSquare("vaadin:youtube-square"),
-  Youtube("vaadin:youtube")
-  ;
+  Youtube("vaadin:youtube");
 
   public final String iconName;
 
   Icon(String iconName) {
     this.iconName = iconName;
   }
-
 }

@@ -52,6 +52,9 @@ public class OtherComponentsSubmenu implements ActionHandler {
   MyDiv element;
 
   @MenuOption
+  FormsSubmenu directory;
+
+  @MenuOption
   JourneyStarter remote = new JourneyStarter(
           "com.example.demo.infra.ui.helloworld.HelloWorld",
           "",

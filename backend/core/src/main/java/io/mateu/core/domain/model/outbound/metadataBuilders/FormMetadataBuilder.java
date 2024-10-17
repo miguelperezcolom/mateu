@@ -22,7 +22,6 @@ import io.mateu.dtos.Tab;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -413,7 +412,8 @@ public class FormMetadataBuilder {
     return fieldsByTabId;
   }
 
-  private List<FieldGroup> createFieldGroups(Object formInstance, List<Field> allEditableFields, int numberOfColumnsInSection) {
+  private List<FieldGroup> createFieldGroups(
+      Object formInstance, List<Field> allEditableFields, int numberOfColumnsInSection) {
     List<FieldGroup> groups = new ArrayList<>();
     List<FieldGroupLine> lines = new ArrayList<>();
     List<io.mateu.dtos.Field> fields = new ArrayList<>();
@@ -422,17 +422,26 @@ public class FormMetadataBuilder {
 
     for (Field field : allEditableFields) {
       if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
 
         if (!lines.isEmpty()) {
-          addGroup(groups, lines, fields, numberOfColumnsInSection, currentGroupCaption, currentGroupColumns);
+          addGroup(
+              groups,
+              lines,
+              fields,
+              numberOfColumnsInSection,
+              currentGroupCaption,
+              currentGroupColumns);
         }
         String caption =
-                field
-                        .getAnnotation(
-                                io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
-                        .value();
-        int columns = field.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+            field
+                .getAnnotation(
+                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                .value();
+        int columns =
+            field
+                .getAnnotation(
+                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                 .columns();
         currentGroupCaption = caption;
         currentGroupColumns = columns;
@@ -447,17 +456,19 @@ public class FormMetadataBuilder {
       fields.add(fieldMetadataBuilder.getField(formInstance, field));
     }
 
-    addGroup(groups, lines, fields, numberOfColumnsInSection, currentGroupCaption, currentGroupColumns);
+    addGroup(
+        groups, lines, fields, numberOfColumnsInSection, currentGroupCaption, currentGroupColumns);
 
     return groups;
   }
 
-  private void addGroup(List<FieldGroup> groups,
-                        List<FieldGroupLine> lines,
-                        List<io.mateu.dtos.Field> fields,
-                        int numberOfColumnsInSection,
-                        String currentGroupCaption,
-                        int currentGroupColumns) {
+  private void addGroup(
+      List<FieldGroup> groups,
+      List<FieldGroupLine> lines,
+      List<io.mateu.dtos.Field> fields,
+      int numberOfColumnsInSection,
+      String currentGroupCaption,
+      int currentGroupColumns) {
     if (!fields.isEmpty()) {
       lines.add(new FieldGroupLine(new ArrayList<>(fields)));
       fields.clear();
@@ -468,7 +479,8 @@ public class FormMetadataBuilder {
         requiredCols = numberOfColumnsInSection;
       }
       if (requiredCols > totalCols) {
-        fields.add(new io.mateu.dtos.Field(
+        fields.add(
+            new io.mateu.dtos.Field(
                 "void",
                 "string",
                 "element:div",
@@ -481,13 +493,17 @@ public class FormMetadataBuilder {
                 List.of(),
                 List.of(),
                 List.of(),
-                requiredCols - totalCols - 1
-        ));
+                requiredCols - totalCols - 1));
       }
       lines.add(new FieldGroupLine(new ArrayList<>(fields)));
     }
     if (!lines.isEmpty()) {
-      groups.add(new FieldGroup("" + groups.size(), currentGroupCaption, new ArrayList<>(lines), currentGroupColumns));
+      groups.add(
+          new FieldGroup(
+              "" + groups.size(),
+              currentGroupCaption,
+              new ArrayList<>(lines),
+              currentGroupColumns));
     }
     lines.clear();
     fields.clear();
@@ -514,7 +530,7 @@ public class FormMetadataBuilder {
                                     "fieldgroup_" + i + "_" + j,
                                     s.fieldGroups().get(j).caption(),
                                     s.fieldGroups().get(j).lines(),
-                                        s.fieldGroups().get(j).columns()))
+                                    s.fieldGroups().get(j).columns()))
                         .toList(),
                     s.columns()))
         .toList();

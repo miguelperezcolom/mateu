@@ -10,5 +10,4 @@ import java.lang.annotation.Target;
 @Target({
   ElementType.FIELD,
 }) // can use in method only.
-public @interface ReplaceableCaption {
-}
+public @interface ReplaceableCaption {}

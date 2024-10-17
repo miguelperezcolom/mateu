@@ -252,6 +252,14 @@ export class MateuView extends LitElement {
           transition: 0.2s linear;
       }  
     }
+
+      @media(max-width: 600px) {
+          main {
+              max-width: 90%;
+              padding-left: 1rem;
+              padding-right: 1rem;
+          }
+      }
   
     `
 }

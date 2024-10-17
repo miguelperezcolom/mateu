@@ -542,7 +542,7 @@ export class MateuCrud extends LitElement {
     // @ts-ignore
     return html`
 
-      <vaadin-horizontal-layout class="header" style="align-items: baseline;">
+      <vaadin-horizontal-layout class="header xx" style="align-items: baseline;">
         <div style=" flex-grow: 1;">
           ${this.metadata.child?html`
             <h4>${this.metadata.title}</h4>
@@ -571,7 +571,7 @@ export class MateuCrud extends LitElement {
             `:''}
         </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
       ${this.metadata?.searchable || ((this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0)?html`
-        <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing">
+        <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing" class="xx">
           ${this.metadata?.searchable?html`
             <vaadin-text-field id="searchText"
                                data-testid="searchText"
@@ -747,6 +747,12 @@ export class MateuCrud extends LitElement {
   
     :host {
 
+    }
+
+    @media(max-width: 600px) {
+      .xx {
+        display: unset;
+      }
     }
 
   `

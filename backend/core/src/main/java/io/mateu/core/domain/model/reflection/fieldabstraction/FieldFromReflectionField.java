@@ -117,7 +117,8 @@ public class FieldFromReflectionField implements Field {
   @Override
   public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     if (extraAnnotations.size() > 0) {
-      for (Annotation a : extraAnnotations) if (a.annotationType().equals(annotationClass)) return (T) a;
+      for (Annotation a : extraAnnotations)
+        if (a.annotationType().equals(annotationClass)) return (T) a;
     }
     return (ff != null) ? ff.getAnnotation(annotationClass) : f.getAnnotation(annotationClass);
   }

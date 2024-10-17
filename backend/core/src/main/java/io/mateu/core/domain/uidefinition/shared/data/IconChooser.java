@@ -4,16 +4,15 @@ import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
 
 public class IconChooser {
 
-    private Icon icon;
+  private Icon icon;
 
-    public IconChooser() {
-    }
+  public IconChooser() {}
 
-    public IconChooser(Icon icon) {
-        this.icon = icon;
-    }
+  public IconChooser(Icon icon) {
+    this.icon = icon;
+  }
 
-    public Icon getIcon() {
-        return icon;
-    }
+  public Icon getIcon() {
+    return icon;
+  }
 }

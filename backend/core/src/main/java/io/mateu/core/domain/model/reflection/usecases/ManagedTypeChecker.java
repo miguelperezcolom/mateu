@@ -32,7 +32,7 @@ public class ManagedTypeChecker {
         || Collection.class.isAssignableFrom(type)
         || ExternalReference.class.isAssignableFrom(type)
         || TelephoneNumber.class.isAssignableFrom(type)
-            || IconChooser.class.isAssignableFrom(type)
+        || IconChooser.class.isAssignableFrom(type)
         || Callable.class.isAssignableFrom(type)
         || Runnable.class.isAssignableFrom(type)
         || LocalDate.class.equals(type)

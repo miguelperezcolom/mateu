@@ -13,5 +13,4 @@ public @interface FieldGroup {
   String value();
 
   int columns() default 0;
-
 }

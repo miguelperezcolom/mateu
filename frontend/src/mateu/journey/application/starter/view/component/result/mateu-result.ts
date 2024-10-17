@@ -107,7 +107,7 @@ export class MateuResult extends LitElement {
 
       <vaadin-horizontal-layout class="header">
         <div>
-          <h1>${this.metadata.title}</h1>
+          <h2>${this.metadata.title}</h2>
         </div>
       </vaadin-horizontal-layout>
 
@@ -162,7 +162,7 @@ export class MateuResult extends LitElement {
     
     .mateu-section {
       text-align: left;
-      border: 2px solid var(--lumo-contrast-10pct);
+      background-color: var(--lumo-shade-5pct);
       border-radius: 8px;
       padding: 2rem;  
       margin-bottom: 16px;       

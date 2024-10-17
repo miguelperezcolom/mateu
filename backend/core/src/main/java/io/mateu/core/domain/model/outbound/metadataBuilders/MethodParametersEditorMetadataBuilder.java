@@ -137,8 +137,7 @@ public class MethodParametersEditorMetadataBuilder {
                                                                     f.colspan()))
                                                         .toList()))
                                         .toList(),
-                                        s.fieldGroups().get(j).columns()
-                                        ))
+                                    s.fieldGroups().get(j).columns()))
                         .toList(),
                     s.columns()))
         .toList();

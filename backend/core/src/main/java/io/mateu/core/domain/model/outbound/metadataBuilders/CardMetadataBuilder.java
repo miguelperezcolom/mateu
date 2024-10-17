@@ -160,16 +160,21 @@ public class CardMetadataBuilder {
                 .getAnnotation(
                     io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                 .value();
-        int columns = field
+        int columns =
+            field
                 .getAnnotation(
-                        io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
                 .columns();
         if (fieldGroupLines.size() > 0) {
           fieldGroups.add(
               new FieldGroup(
-                  UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines, field
+                  UUID.randomUUID().toString(),
+                  currentFieldGroupCaption,
+                  fieldGroupLines,
+                  field
                       .getAnnotation(
-                              io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class).columns()));
+                          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                      .columns()));
         }
         currentFieldGroupCaption = caption;
         currentFieldGroupColumns = columns;
@@ -183,7 +188,11 @@ public class CardMetadataBuilder {
     }
     if (fieldGroupLines.size() > 0) {
       fieldGroups.add(
-          new FieldGroup(UUID.randomUUID().toString(), currentFieldGroupCaption, fieldGroupLines, currentFieldGroupColumns));
+          new FieldGroup(
+              UUID.randomUUID().toString(),
+              currentFieldGroupCaption,
+              fieldGroupLines,
+              currentFieldGroupColumns));
     }
 
     fillGroupIds(fieldGroups);
@@ -194,7 +203,10 @@ public class CardMetadataBuilder {
   private void fillGroupIds(List<FieldGroup> fieldGroups) {
     AtomicInteger j = new AtomicInteger();
     fieldGroups.stream()
-        .map(g -> new FieldGroup("fieldgroup_" + j.getAndIncrement(), g.caption(), g.lines(), g.columns()))
+        .map(
+            g ->
+                new FieldGroup(
+                    "fieldgroup_" + j.getAndIncrement(), g.caption(), g.lines(), g.columns()))
         .toList();
   }
 }

@@ -146,7 +146,7 @@ export class MateuCard extends LitElement {
               <div>${this.data.supportingText}</div>
           </div>
           ${this.metadata.buttons?.length > 0?html`
-              <vaadin-horizontal-layout style="justify-content: end; width: 100%; padding-left: 20px; padding-right: 20px; padding-bottom: 10px; padding-top: 10px; border-top: 2px solid var(--lumo-contrast-10pct); background-color: var(--lumo-contrast-10pct);" theme="spacing">
+              <vaadin-horizontal-layout style="justify-content: end; width: 100%; padding-left: 20px; padding-right: 20px; padding-bottom: 10px; padding-top: 10px; background-color: var(--lumo-shade-5pct);" theme="spacing">
                   <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;" theme="spacing">
                       ${this.metadata.buttons.filter(a => a.position == ActionPosition.Left).map(a => html`
               <vaadin-button theme="${this.getThemeForAction(a.type)}"
@@ -169,9 +169,14 @@ export class MateuCard extends LitElement {
 
   static styles = css`    
     
+    .card {
+      min-width: 15.25rem;
+      max-width: 25.4375rem;
+    }
+    
     .Layout1 {
       border-radius: 8px;
-      border: 2px solid var(--lumo-contrast-10pct);
+      border: 2px solid var(--lumo-shade-5pct);
     }
     
     .content {

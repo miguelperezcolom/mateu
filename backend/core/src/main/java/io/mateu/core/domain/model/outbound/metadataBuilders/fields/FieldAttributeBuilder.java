@@ -176,10 +176,15 @@ public class FieldAttributeBuilder {
     }
     if (field.getType().equals(IconChooser.class)) {
       for (Object enumConstant : io.mateu.core.domain.uidefinition.core.interfaces.Icon.values()) {
-        attributes.add(new Pair("choice", new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
+        attributes.add(
+            new Pair(
+                "choice",
+                new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
       }
     }
-    if ((field.getType().isEnum() && !io.mateu.core.domain.uidefinition.core.interfaces.Icon.class.equals(field.getType()))
+    if ((field.getType().isEnum()
+            && !io.mateu.core.domain.uidefinition.core.interfaces.Icon.class.equals(
+                field.getType()))
         || (field.getType().isArray() && field.getType().getComponentType().isEnum())
         || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())) {
       Class enumType = field.getType();
