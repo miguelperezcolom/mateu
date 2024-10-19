@@ -529,7 +529,7 @@ export class JourneyStarter extends LitElement {
 
     static styles = css`
     :host {
-        /* width: clamp(45ch, 100%, 1400px); */
+        width: clamp(45ch, 100%, 1400px);
         max-width: 100%;
     }
 

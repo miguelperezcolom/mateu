@@ -259,7 +259,12 @@ export class MateuSection extends LitElement {
         flex: auto;
     }
 
-
+      @media(max-width: 600px) {
+          .line {
+              display: unset;
+          }
+      }
+      
   `
 }
 

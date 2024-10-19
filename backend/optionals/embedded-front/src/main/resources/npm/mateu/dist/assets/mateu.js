@@ -16082,7 +16082,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         flex: auto;
     }
 
-
+      @media(max-width: 600px) {
+          .line {
+              display: unset;
+          }
+      }
+      
   `;__decorateClass$a([n$8()],MateuSection.prototype,"baseUrl",2);__decorateClass$a([n$8()],MateuSection.prototype,"section",2);__decorateClass$a([n$8()],MateuSection.prototype,"form",2);__decorateClass$a([n$8()],MateuSection.prototype,"formElement",2);MateuSection=__decorateClass$a([e$5("mateu-section")],MateuSection);/**
  * @license
  * Copyright (c) 2000 - 2024 Vaadin Ltd.
@@ -19526,7 +19531,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             
         <slot></slot>`}};JourneyStarter.styles=i$8`
     :host {
-        /* width: clamp(45ch, 100%, 1400px); */
+        width: clamp(45ch, 100%, 1400px);
         max-width: 100%;
     }
 

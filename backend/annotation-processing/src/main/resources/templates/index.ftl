@@ -4,6 +4,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import io.mateu.core.domain.model.util.InputStreamReader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ import java.util.Map;
 @Slf4j
 public class ${simpleClassName}Controller {
 
+    @Value("${r"${spring.devtools.livereload.enabled:false}"}")
+    private boolean liveReloadEnabled;
     @Autowired
     private UIMapper uiMapper;
     @Autowired
@@ -93,7 +96,9 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
     //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
-    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>");
+    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
+                            + (liveReloadEnabled?
+                                    "<script src='http://localhost:35729/livereload.js'></script>":""));
     html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v3'></mateu-ui>");
 </#if>
         return html;
