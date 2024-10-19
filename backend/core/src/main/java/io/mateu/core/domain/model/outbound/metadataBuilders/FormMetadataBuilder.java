@@ -251,9 +251,10 @@ public class FormMetadataBuilder {
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
-            .sorted(Comparator.comparingInt(m -> m.getAnnotation(MainAction.class).order()))
             .map(m -> actionMetadataBuilder.getAction("", m))
             .collect(Collectors.toList());
+    actions.sort(Comparator.comparing(Action::caption));
+    actions.sort(Comparator.comparing(Action::order));
     return actions;
   }
 

@@ -25,7 +25,7 @@ public @interface MainAction {
 
   boolean rowsSelectedRequired() default false;
 
-  int order() default 100;
+  int order() default Integer.MAX_VALUE;
 
   ActionType type() default ActionType.Primary;
 

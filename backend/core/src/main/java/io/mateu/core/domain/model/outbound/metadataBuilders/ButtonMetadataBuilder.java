@@ -37,8 +37,16 @@ public class ButtonMetadataBuilder {
             getHref(m),
             getRunEonEnter(m),
             ActionPosition.Right,
-            0);
+            0,
+            getOrder(m));
     return action;
+  }
+
+  private int getOrder(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).order();
+    }
+    return Integer.MAX_VALUE;
   }
 
   private boolean getRunEonEnter(Field m) {

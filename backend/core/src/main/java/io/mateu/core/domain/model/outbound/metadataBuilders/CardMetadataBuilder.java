@@ -63,7 +63,8 @@ public class CardMetadataBuilder {
                     null,
                     false,
                     ActionPosition.Left,
-                    0))
+                    0,
+                    Integer.MAX_VALUE))
         .toList();
   }
 
@@ -87,7 +88,8 @@ public class CardMetadataBuilder {
                     null,
                     false,
                     ActionPosition.Right,
-                    0))
+                    0,
+                    Integer.MAX_VALUE))
         .toList();
   }
 

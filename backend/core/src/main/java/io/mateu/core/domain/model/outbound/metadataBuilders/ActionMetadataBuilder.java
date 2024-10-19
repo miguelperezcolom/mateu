@@ -49,8 +49,29 @@ public class ActionMetadataBuilder {
             getHref(m),
             isRunOnEnter(m),
             getPosition(m),
-            getTimeoutMillis(m));
+            getTimeoutMillis(m),
+            getOrder(m));
     return action;
+  }
+
+  private int getOrder(Method m) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+      return action.order();
+    }
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+      return action.order();
+    }
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Button.class)) {
+      io.mateu.core.domain.uidefinition.shared.annotations.Button action =
+          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Button.class);
+      return action.order();
+    }
+    return Integer.MAX_VALUE;
   }
 
   private String getIcon(Method m) {
@@ -284,7 +305,8 @@ public class ActionMetadataBuilder {
                           a.href(),
                           false,
                           ActionPosition.Right,
-                          a.timeoutMillis()))
+                          a.timeoutMillis(),
+                          a.order()))
               .toList();
     if (canAdd(uiInstance)) {
       Action action =
@@ -304,7 +326,8 @@ public class ActionMetadataBuilder {
               null,
               false,
               ActionPosition.Right,
-              0);
+              0,
+              Integer.MAX_VALUE);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
@@ -328,7 +351,8 @@ public class ActionMetadataBuilder {
               null,
               false,
               ActionPosition.Right,
-              0);
+              0,
+              Integer.MAX_VALUE);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     return actions;
@@ -359,12 +383,6 @@ public class ActionMetadataBuilder {
                 m ->
                     (!"JpaRpcCrudView".equals(type.getSimpleName()))
                         || (Modifier.isStatic(m.getModifiers())))
-            .sorted(
-                Comparator.comparingInt(
-                    m ->
-                        m.getAnnotation(
-                                io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
-                            .order()))
             .map(m -> getAction(prefix, m))
             .collect(Collectors.toList());
     if (uiInstance instanceof HasActions) {
@@ -391,6 +409,8 @@ public class ActionMetadataBuilder {
                 throw new RuntimeException(e);
               }
             });
+    actions.sort(Comparator.comparing(Action::caption));
+    actions.sort(Comparator.comparing(Action::order));
     return actions;
   }
 
