@@ -43,7 +43,7 @@
     "@vaadin/password-field": "^23.2.1",
     "@vaadin/radio-group": "^23.3.8",
     "@vaadin/rich-text-editor": "^23.3.8",
-    "@vaadin/router": "^1.7.4",
+    "@vaadin/router": "^2.0.0",
     "@vaadin/select": "^23.2.1",
     "@vaadin/tabs": "^23.2.1",
     "@vaadin/tabsheet": "^24.0.0",
