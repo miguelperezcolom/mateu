@@ -1,0 +1,15 @@
+{
+  "componentType" : "GenericComponent",
+  "className" : "io.mateu.core.domain.uidefinition.shared.elements.Element",
+  "metadata" : {
+    "type" : "Element",
+    "name" : "h2",
+    "attributes" : { }
+  },
+  "id" : "component-2",
+  "attributes" : { },
+  "data" : {
+    "content" : "This is the subtitle"
+  },
+  "childComponentIds" : [ ]
+}

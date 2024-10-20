@@ -1,0 +1,739 @@
+[ {
+  "url" : "https://swapi.dev/api/people/1/",
+  "name" : "Luke Skywalker",
+  "height" : "172",
+  "mass" : "77",
+  "hair_color" : "blond",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/2/",
+  "name" : "C-3PO",
+  "height" : "167",
+  "mass" : "75",
+  "hair_color" : "n/a",
+  "gender" : "n/a",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/3/",
+  "name" : "R2-D2",
+  "height" : "96",
+  "mass" : "32",
+  "hair_color" : "n/a",
+  "gender" : "n/a",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/4/",
+  "name" : "Darth Vader",
+  "height" : "202",
+  "mass" : "136",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/5/",
+  "name" : "Leia Organa",
+  "height" : "150",
+  "mass" : "49",
+  "hair_color" : "brown",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/2/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/6/",
+  "name" : "Owen Lars",
+  "height" : "178",
+  "mass" : "120",
+  "hair_color" : "brown, grey",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/7/",
+  "name" : "Beru Whitesun lars",
+  "height" : "165",
+  "mass" : "75",
+  "hair_color" : "brown",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/8/",
+  "name" : "R5-D4",
+  "height" : "97",
+  "mass" : "32",
+  "hair_color" : "n/a",
+  "gender" : "n/a",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/9/",
+  "name" : "Biggs Darklighter",
+  "height" : "183",
+  "mass" : "84",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/1/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/10/",
+  "name" : "Obi-Wan Kenobi",
+  "height" : "182",
+  "mass" : "77",
+  "hair_color" : "auburn, white",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/20/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/11/",
+  "name" : "Anakin Skywalker",
+  "height" : "188",
+  "mass" : "84",
+  "hair_color" : "blond",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/12/",
+  "name" : "Wilhuff Tarkin",
+  "height" : "180",
+  "mass" : "unknown",
+  "hair_color" : "auburn, grey",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/21/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/13/",
+  "name" : "Chewbacca",
+  "height" : "228",
+  "mass" : "112",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/14/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/14/",
+  "name" : "Han Solo",
+  "height" : "180",
+  "mass" : "80",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/22/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/15/",
+  "name" : "Greedo",
+  "height" : "173",
+  "mass" : "74",
+  "hair_color" : "n/a",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/23/",
+  "films" : [ "https://swapi.dev/api/films/1/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/16/",
+  "name" : "Jabba Desilijic Tiure",
+  "height" : "175",
+  "mass" : "1,358",
+  "hair_color" : "n/a",
+  "gender" : "hermaphrodite",
+  "homeworld" : "https://swapi.dev/api/planets/24/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/18/",
+  "name" : "Wedge Antilles",
+  "height" : "170",
+  "mass" : "77",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/22/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/19/",
+  "name" : "Jek Tono Porkins",
+  "height" : "180",
+  "mass" : "110",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/26/",
+  "films" : [ "https://swapi.dev/api/films/1/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/20/",
+  "name" : "Yoda",
+  "height" : "66",
+  "mass" : "17",
+  "hair_color" : "white",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/28/",
+  "films" : [ "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/21/",
+  "name" : "Palpatine",
+  "height" : "170",
+  "mass" : "75",
+  "hair_color" : "grey",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/22/",
+  "name" : "Boba Fett",
+  "height" : "183",
+  "mass" : "78.2",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/10/",
+  "films" : [ "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/", "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/23/",
+  "name" : "IG-88",
+  "height" : "200",
+  "mass" : "140",
+  "hair_color" : "none",
+  "gender" : "none",
+  "homeworld" : "https://swapi.dev/api/planets/28/",
+  "films" : [ "https://swapi.dev/api/films/2/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/24/",
+  "name" : "Bossk",
+  "height" : "190",
+  "mass" : "113",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/29/",
+  "films" : [ "https://swapi.dev/api/films/2/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/25/",
+  "name" : "Lando Calrissian",
+  "height" : "177",
+  "mass" : "79",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/30/",
+  "films" : [ "https://swapi.dev/api/films/2/", "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/26/",
+  "name" : "Lobot",
+  "height" : "175",
+  "mass" : "79",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/6/",
+  "films" : [ "https://swapi.dev/api/films/2/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/27/",
+  "name" : "Ackbar",
+  "height" : "180",
+  "mass" : "83",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/31/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/28/",
+  "name" : "Mon Mothma",
+  "height" : "150",
+  "mass" : "unknown",
+  "hair_color" : "auburn",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/32/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/29/",
+  "name" : "Arvel Crynyd",
+  "height" : "unknown",
+  "mass" : "unknown",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/28/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/30/",
+  "name" : "Wicket Systri Warrick",
+  "height" : "88",
+  "mass" : "20",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/7/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/31/",
+  "name" : "Nien Nunb",
+  "height" : "160",
+  "mass" : "68",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/33/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/32/",
+  "name" : "Qui-Gon Jinn",
+  "height" : "193",
+  "mass" : "89",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/28/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/33/",
+  "name" : "Nute Gunray",
+  "height" : "191",
+  "mass" : "90",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/18/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/34/",
+  "name" : "Finis Valorum",
+  "height" : "170",
+  "mass" : "unknown",
+  "hair_color" : "blond",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/9/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/35/",
+  "name" : "PadmÃ© Amidala",
+  "height" : "185",
+  "mass" : "45",
+  "hair_color" : "brown",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/36/",
+  "name" : "Jar Jar Binks",
+  "height" : "196",
+  "mass" : "66",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/37/",
+  "name" : "Roos Tarpals",
+  "height" : "224",
+  "mass" : "82",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/38/",
+  "name" : "Rugor Nass",
+  "height" : "206",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/39/",
+  "name" : "Ric OliÃ©",
+  "height" : "183",
+  "mass" : "unknown",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/40/",
+  "name" : "Watto",
+  "height" : "137",
+  "mass" : "unknown",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/34/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/41/",
+  "name" : "Sebulba",
+  "height" : "112",
+  "mass" : "40",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/35/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/42/",
+  "name" : "Quarsh Panaka",
+  "height" : "183",
+  "mass" : "unknown",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/43/",
+  "name" : "Shmi Skywalker",
+  "height" : "163",
+  "mass" : "unknown",
+  "hair_color" : "black",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/44/",
+  "name" : "Darth Maul",
+  "height" : "175",
+  "mass" : "80",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/36/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/45/",
+  "name" : "Bib Fortuna",
+  "height" : "180",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/37/",
+  "films" : [ "https://swapi.dev/api/films/3/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/46/",
+  "name" : "Ayla Secura",
+  "height" : "178",
+  "mass" : "55",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/37/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/47/",
+  "name" : "Ratts Tyerel",
+  "height" : "79",
+  "mass" : "15",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/38/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/48/",
+  "name" : "Dud Bolt",
+  "height" : "94",
+  "mass" : "45",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/39/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/49/",
+  "name" : "Gasgano",
+  "height" : "122",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/40/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/50/",
+  "name" : "Ben Quadinaros",
+  "height" : "163",
+  "mass" : "65",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/41/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/51/",
+  "name" : "Mace Windu",
+  "height" : "188",
+  "mass" : "84",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/42/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/52/",
+  "name" : "Ki-Adi-Mundi",
+  "height" : "198",
+  "mass" : "82",
+  "hair_color" : "white",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/43/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/53/",
+  "name" : "Kit Fisto",
+  "height" : "196",
+  "mass" : "87",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/44/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/54/",
+  "name" : "Eeth Koth",
+  "height" : "171",
+  "mass" : "unknown",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/45/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/55/",
+  "name" : "Adi Gallia",
+  "height" : "184",
+  "mass" : "50",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/9/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/56/",
+  "name" : "Saesee Tiin",
+  "height" : "188",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/47/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/57/",
+  "name" : "Yarael Poof",
+  "height" : "264",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/48/",
+  "films" : [ "https://swapi.dev/api/films/4/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/58/",
+  "name" : "Plo Koon",
+  "height" : "188",
+  "mass" : "80",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/49/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/59/",
+  "name" : "Mas Amedda",
+  "height" : "196",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/50/",
+  "films" : [ "https://swapi.dev/api/films/4/", "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/60/",
+  "name" : "Gregar Typho",
+  "height" : "185",
+  "mass" : "85",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/61/",
+  "name" : "CordÃ©",
+  "height" : "157",
+  "mass" : "unknown",
+  "hair_color" : "brown",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/62/",
+  "name" : "Cliegg Lars",
+  "height" : "183",
+  "mass" : "unknown",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/1/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/63/",
+  "name" : "Poggle the Lesser",
+  "height" : "183",
+  "mass" : "80",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/11/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/64/",
+  "name" : "Luminara Unduli",
+  "height" : "170",
+  "mass" : "56.2",
+  "hair_color" : "black",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/51/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/65/",
+  "name" : "Barriss Offee",
+  "height" : "166",
+  "mass" : "50",
+  "hair_color" : "black",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/51/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/66/",
+  "name" : "DormÃ©",
+  "height" : "165",
+  "mass" : "unknown",
+  "hair_color" : "brown",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/8/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/67/",
+  "name" : "Dooku",
+  "height" : "193",
+  "mass" : "80",
+  "hair_color" : "white",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/52/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/68/",
+  "name" : "Bail Prestor Organa",
+  "height" : "191",
+  "mass" : "unknown",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/2/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/69/",
+  "name" : "Jango Fett",
+  "height" : "183",
+  "mass" : "79",
+  "hair_color" : "black",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/53/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/70/",
+  "name" : "Zam Wesell",
+  "height" : "168",
+  "mass" : "55",
+  "hair_color" : "blonde",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/54/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/71/",
+  "name" : "Dexter Jettster",
+  "height" : "198",
+  "mass" : "102",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/55/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/72/",
+  "name" : "Lama Su",
+  "height" : "229",
+  "mass" : "88",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/10/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/73/",
+  "name" : "Taun We",
+  "height" : "213",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/10/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/74/",
+  "name" : "Jocasta Nu",
+  "height" : "167",
+  "mass" : "unknown",
+  "hair_color" : "white",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/9/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/75/",
+  "name" : "R4-P17",
+  "height" : "96",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/28/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/76/",
+  "name" : "Wat Tambor",
+  "height" : "193",
+  "mass" : "48",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/56/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/77/",
+  "name" : "San Hill",
+  "height" : "191",
+  "mass" : "unknown",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/57/",
+  "films" : [ "https://swapi.dev/api/films/5/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/78/",
+  "name" : "Shaak Ti",
+  "height" : "178",
+  "mass" : "57",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/58/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/79/",
+  "name" : "Grievous",
+  "height" : "216",
+  "mass" : "159",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/59/",
+  "films" : [ "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/80/",
+  "name" : "Tarfful",
+  "height" : "234",
+  "mass" : "136",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/14/",
+  "films" : [ "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/81/",
+  "name" : "Raymus Antilles",
+  "height" : "188",
+  "mass" : "79",
+  "hair_color" : "brown",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/2/",
+  "films" : [ "https://swapi.dev/api/films/1/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/82/",
+  "name" : "Sly Moore",
+  "height" : "178",
+  "mass" : "48",
+  "hair_color" : "none",
+  "gender" : "female",
+  "homeworld" : "https://swapi.dev/api/planets/60/",
+  "films" : [ "https://swapi.dev/api/films/5/", "https://swapi.dev/api/films/6/" ]
+}, {
+  "url" : "https://swapi.dev/api/people/83/",
+  "name" : "Tion Medon",
+  "height" : "206",
+  "mass" : "80",
+  "hair_color" : "none",
+  "gender" : "male",
+  "homeworld" : "https://swapi.dev/api/planets/12/",
+  "films" : [ "https://swapi.dev/api/films/6/" ]
+} ]

@@ -1,0 +1,1943 @@
+{
+    "key": "wefox-germany-TermLife",
+    "version_key": "2023_1",
+    "status": "active",
+    "product_label": "Term Life Germany",
+    "product_description": " 1st Draft of Term Life Insurance Product for German Market to be launched in Q3 2023",
+    "version_label": "Term Life Germany 2023_1",
+    "version_description": " 1st Draft version of Term Life Insurance Product",
+    "product_type": "term_life",
+    "product_group": "life",
+    "reporting_level_1": "reporting_level_1",
+    "reporting_level_2": "reporting_level_2",
+    "created_by": "7b5854de-79ca-420b-b7f9-4a751314a44c",
+    "updated_by": "7b5854de-79ca-420b-b7f9-4a751314a44c",
+    "countries": [
+        "DE"
+    ],
+    "languages": [
+        "de"
+    ],
+    "journeys": [
+        {
+            "type": "calculation",
+            "inputs": [
+                {
+                    "key": "product.life.package",
+                    "type": "string",
+                    "label": "Product Package",
+                    "validations": [
+                        "required",
+                        "string",
+                        "in:Basic, Premium"
+                    ]
+                },
+                {
+                    "key": "product-variant",
+                    "type": "string",
+                    "label": "product-variant",
+                    "validations": [
+                        "string",
+                        "in:CH, CL, IPT, QL, BNP"
+                    ]
+                },
+                {
+                    "key": "product.life.number-of-insured-persons",
+                    "type": "integer",
+                    "label": "Number of insured persons",
+                    "validations": [
+                        "required",
+                        "integer",
+                        "between:1,2"
+                    ]
+                },
+                {
+                    "key": "product.life.start-date",
+                    "type": "date",
+                    "label": "The start date of the contract",
+                    "validations": [
+                        "dateFormat:YYYY-MM-01"
+                    ]
+                },
+                {
+                    "key": "product.life.end-date",
+                    "type": "date",
+                    "label": "The end date of the contract",
+                    "validations": [
+                        "dateFormat:YYYY-MM-01"
+                    ]
+                },
+                {
+                    "key": "product.life.capital-flow.type",
+                    "type": "string",
+                    "label": "Capital flow step(type-of-cover)",
+                    "validations": [
+                        "required",
+                        "string",
+                        "in:level-term, annuity-decrease, straight-line-decrease, annuity-increase, straight-line-increase"
+                    ]
+                },
+                {
+                    "key": "product.life.capital-flow.percentage",
+                    "type": "decimal",
+                    "label": "Capital flow step",
+                    "validations": [
+                        "requiredIf:product.life.capital-flow.type; annuity_decrease",
+                        "decimal",
+                        "between:0.01, 0.08 in steps of 0.001"
+                    ]
+                },
+                {
+                    "key": "product.life.premium-split",
+                    "type": "boolean",
+                    "label": "premiumSplit",
+                    "validations": [
+                        "requiredIf:product.life.number-of-insured-persons, 2",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "object.person.person-first.birthdate",
+                    "type": "date",
+                    "label": "birhdate of first IP",
+                    "validations": [
+                        "required",
+                        "dateFormat:YYYY-MM-DD"
+                    ]
+                },
+                {
+                    "key": "object.person.person-second.birthdate",
+                    "type": "date",
+                    "label": "birhdate of second IP",
+                    "validations": [
+                        "requiredIf:product.life.number-of-insured-persons, 2",
+                        "dateFormat:YYYY-MM-DD"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.smoker.status",
+                    "type": "boolean",
+                    "label": "First Smoker",
+                    "validations": [
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.smoker.status",
+                    "type": "boolean",
+                    "label": "Second smoker",
+                    "validations": [
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.contract-duration",
+                    "type": "integer",
+                    "label": "Contract duration in month",
+                    "validations": [
+                        "required",
+                        "integer",
+                        "min:60",
+                        "max:600"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.occupation.type",
+                    "type": "string",
+                    "label": "Occupation type",
+                    "validations": [
+                        "required",
+                        "string"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.occupation.type",
+                    "type": "string",
+                    "label": "Occupation type",
+                    "validations": [
+                        "requiredIf:product.life.number-of-insured-persons, 2",
+                        "string"
+                    ]
+                },
+                {
+                    "key": "product.life.premium-payment.duration-reduction.is-included",
+                    "type": "boolean",
+                    "label": "Reduction of payment duration",
+                    "validations": [
+                        "requiredIf:product.life.capital-flow.type; annuity_decrease, straight_line_decrease",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.sum-insured",
+                    "type": "integer",
+                    "label": "Lump sum",
+                    "validations": [
+                        "required",
+                        "integer",
+                        "min:10000",
+                        "max:5000000"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.sum-insured",
+                    "type": "integer",
+                    "label": "Lump sum",
+                    "validations": [
+                        "requiredIf:product.life.number-of-insured-persons, 2",
+                        "integer",
+                        "min:10000",
+                        "max:5000000"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.sum-insured-end",
+                    "type": "integer",
+                    "label": "Lump sum",
+                    "validations": [
+                        "requiredIf:product.life.capital-flow.type; annuity_decrease, straight_line_decrease",
+                        "integer",
+                        "min:10000",
+                        "max:5000000"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.sum-insured-end",
+                    "type": "integer",
+                    "label": "Lump sum",
+                    "validations": [
+                        "requiredIf:product.life.capital-flow.type; annuity_decrease, straight_line_decrease",
+                        "requiredIf:product.life.number-of-insured-persons, 2",
+                        "integer",
+                        "min:10000",
+                        "max:5000000"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.accident.is-included",
+                    "type": "boolean",
+                    "label": "Accident",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.disability-premium-waiver.is-included",
+                    "type": "boolean",
+                    "label": "Disability waiver",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.payment-surrender-value.is-included",
+                    "type": "boolean",
+                    "label": "Payment surrender value",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.child-coverage.is-included",
+                    "type": "boolean",
+                    "label": "Child coverage included",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.terminal-illness.is-included",
+                    "type": "boolean",
+                    "label": "Terminal illness",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.option-right-event.is-included",
+                    "type": "boolean",
+                    "label": "Option right event",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.option-right-plus.is-included",
+                    "type": "boolean",
+                    "label": "Option right plus",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.extension-option.is-included",
+                    "type": "boolean",
+                    "label": "Extension option",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.construction-bonus.is-included",
+                    "type": "boolean",
+                    "label": "Construction plus",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.coverage.immediate-help.is-included",
+                    "type": "boolean",
+                    "label": "Immediate help",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.premium-payment.end-date",
+                    "type": "date",
+                    "label": "Payment End Date",
+                    "validations": [
+                        "required",
+                        "dateFormat:YYYY-MM-DD"
+                    ]
+                },
+                {
+                    "key": "person.birthday",
+                    "type": "string",
+                    "label": "The birthday of the person being looked up",
+                    "validations": []
+                },
+                {
+                    "key": "product.life.product_type",
+                    "type": "string",
+                    "label": "product.life.product_type",
+                    "validations": [
+                        "required",
+                        "string",
+                        "in:ORV, term_life_iptiq"
+                    ]
+                },
+                {
+                    "key": "date-of-commencement",
+                    "type": "date",
+                    "label": "date-of-commencement",
+                    "validations": [
+                        "required"
+                    ]
+                },
+                {
+                    "key": "payment-method",
+                    "type": "string",
+                    "label": "payment-method",
+                    "validations": [
+                        "required",
+                        "string",
+                        "in:MONTHLY, ANNUALLY, SINGLE"
+                    ]
+                },
+                {
+                    "key": "insured1-cover.start-date",
+                    "type": "date",
+                    "label": "insured1-cover.start-date",
+                    "validations": []
+                },
+                {
+                    "key": "insured1-cover.end-date",
+                    "type": "date",
+                    "label": "insured1-cover.end-date",
+                    "validations": []
+                },
+                {
+                    "key": "product.life.day-of-month",
+                    "type": "integer",
+                    "label": "Day of month",
+                    "validations": [
+                        "integer"
+                    ]
+                },
+                {
+                    "key": "insured1-cover.type-of-cover",
+                    "type": "string",
+                    "label": "insured1-cover.type-of-cover",
+                    "validations": [
+                        "string",
+                        "in:level-term, annuity-decrease, straight-line-decrease, annuity-increase, straight-line-increase"
+                    ]
+                },
+                {
+                    "key": "insured1-cover.annuity-rate",
+                    "type": "integer",
+                    "label": "insured1-cover.annuity-rate",
+                    "validations": []
+                },
+                {
+                    "key": "insured2-cover.start-date",
+                    "type": "date",
+                    "label": "insured2-cover.start-date",
+                    "validations": []
+                },
+                {
+                    "key": "insured2-cover.end-date",
+                    "type": "date",
+                    "label": "insured2-cover.end-date",
+                    "validations": []
+                },
+                {
+                    "key": "insured2-cover.type-of-cover",
+                    "type": "string",
+                    "label": "insured2-cover.type-of-cover",
+                    "validations": [
+                        "string",
+                        "in:level-term, annuity-decrease, straight-line-decrease, annuity-increase, straight-line-increase"
+                    ]
+                },
+                {
+                    "key": "insured2-cover.annuity-rate",
+                    "type": "integer",
+                    "label": "insured2-cover.annuity-rate",
+                    "validations": []
+                }
+            ],
+            "tasks": [
+                {
+                    "task_key": "TAF-TEST-EndDateCalculation",
+                    "version_key": "02.2023",
+                    "logics": [
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.end-date",
+                                    "conditional": "<=",
+                                    "value": "${product.life.start-date}",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected payment end date is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.premium-payment.end-date",
+                                    "conditional": ">",
+                                    "value": "2030-09-01",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected payment end date is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.capital-flow.type",
+                                    "conditional": "=",
+                                    "value": "annuity_decrease,straight_line_decrease",
+                                    "operations": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task_key": "TAF-TEST-AgeCalculation",
+                    "version_key": "02.2023",
+                    "logics": [
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.contract-duration",
+                                    "conditional": "<",
+                                    "value": "60",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.contract-duration",
+                                    "conditional": ">",
+                                    "value": "600",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "We cannot insure a person of this age",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.person-first.birthdate",
+                                    "conditional": ">",
+                                    "value": "1992-01-01",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "We cannot insure a person of this age",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.person-first.birthdate",
+                                    "conditional": "<",
+                                    "value": "1950-01-01",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.capital-flow.type",
+                                    "conditional": "=",
+                                    "value": "annuity_decrease",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted ",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.contract-duration",
+                                    "conditional": "<",
+                                    "value": "60",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.capital-flow.type",
+                                    "conditional": "=",
+                                    "value": "straight-line-decrease",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "Selected duration is not accepted",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.contract-duration",
+                                    "conditional": ">",
+                                    "value": "60",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "premium end date error",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.premium-payment.end-date",
+                                    "conditional": ">",
+                                    "value": "${product.life.premium-payment.end-date}",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "skip",
+                            "message": "task_logic_message",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.number-of-insured-persons",
+                                    "conditional": "=",
+                                    "value": "1",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "insured person 1 vs 2 calculation amount exceeded",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.insured-person-1.sum-insured",
+                                    "conditional": ">",
+                                    "value": "${object.person.insured-person-2.sum-insured}",
+                                    "operations": [
+                                        {
+                                            "target": "value",
+                                            "operator": "*",
+                                            "argument": "2"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "action": "stop",
+                            "message": "insured person 1 vs 2 calculation amount exceeded",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.insured-person-2.sum-insured",
+                                    "conditional": ">",
+                                    "value": "${object.person.insured-person-1.sum-insured}",
+                                    "operations": [
+                                        {
+                                            "target": "value",
+                                            "operator": "*",
+                                            "argument": "2"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task_key": "TAF-TEST-OccupationTypes",
+                    "version_key": "02.2023",
+                    "logics": [
+                        {
+                            "action": "skip",
+                            "message": "task_logic_message",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.insured-person-1.occupation.type",
+                                    "conditional": "=",
+                                    "value": "string",
+                                    "operations": []
+                                }
+                            ]
+                        },
+                        {
+                            "action": "skip",
+                            "message": "task_logic_message",
+                            "action_conditions": [
+                                {
+                                    "parameter": "object.person.insured-person-2.occupation.type",
+                                    "conditional": "=",
+                                    "value": "string",
+                                    "operations": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task_key": "taf-netherlands-calculation",
+                    "version_key": "2023-april-tafcalculation",
+                    "logics": [
+                        {
+                            "action": "stop",
+                            "message": "task_logic_message",
+                            "action_conditions": [
+                                {
+                                    "parameter": "product.life.premium-split",
+                                    "conditional": "=",
+                                    "value": "string",
+                                    "operations": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "quotation",
+            "inputs": [
+                {
+                    "key": "product.life.package",
+                    "type": "string",
+                    "label": "Product Package",
+                    "validations": [
+                        "required",
+                        "string",
+                        "in:Basic, Premium"
+                    ]
+                },
+                {
+                    "key": "premium-with-tax",
+                    "type": "integer",
+                    "label": "Premium with Tax",
+                    "validations": []
+                }
+            ],
+            "tasks": [
+                {
+                    "task_key": "TAF_MOCK-GetPriceStoplight",
+                    "version_key": "02.2023",
+                    "logics": [
+                        {
+                            "action": "stop",
+                            "message": "Could not calculate the price from TAF",
+                            "action_conditions": [
+                                {
+                                    "parameter": "premium-with-tax",
+                                    "conditional": "=",
+                                    "value": "0",
+                                    "operations": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "payment_options": {
+        "payment_required": true,
+        "frequencies": {
+            "default": "yearly",
+            "available": [
+                "yearly",
+                "monthly"
+            ]
+        },
+        "methods": {
+            "default": "sepa",
+            "available": [
+                "sepa"
+            ]
+        }
+    },
+    "insured_objects": [
+        {
+            "type": "person",
+            "inputs": [
+                {
+                    "key": "product.life.policyholder.number-of-policyholders",
+                    "type": "integer",
+                    "label": "number of policyholders",
+                    "validations": [
+                        "required",
+                        "integer",
+                        "1,2"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.is-policyholder",
+                    "type": "boolean",
+                    "label": "Insured Person",
+                    "validations": [
+                        "required",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.is-policyholder",
+                    "type": "boolean",
+                    "label": "Insured Person",
+                    "validations": [
+                        "requiredIf:product.life.product-type:joint-life",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-1.type",
+                    "type": "string",
+                    "label": "Insured Person",
+                    "validations": [
+                        "in:IP, IP_PH_PP",
+                        "required"
+                    ]
+                },
+                {
+                    "key": "object.person.insured-person-2.type",
+                    "type": "string",
+                    "label": "Insured Person",
+                    "validations": [
+                        "requiredIf:object.person.number-of-insured-persons; 2",
+                        "in:IP, IP_PH"
+                    ]
+                },
+                {
+                    "key": "product.life.policyholder.additional-policyholder-1",
+                    "type": "boolean",
+                    "label": "is the policyholder one of the insured persons",
+                    "validations": [
+                        "in:IP, IP_PP",
+                        "requiredIf:object.person.insured-person-1.type; IP",
+                        "requiredIf:product.life.policyholder.number-of-policyholders == 2",
+                        "boolean"
+                    ]
+                },
+                {
+                    "key": "product.life.policyholder.additional-policyholder-2",
+                    "type": "boolean",
+                    "label": "is the policyholder one of the insured persons",
+                    "validations": [
+                        "requiredIf:product.life.product-type:joint-life",
+                        "requiredIf:object.person.number-of-insured-persons: 2",
+                        "boolean"
+                    ]
+                }
+            ],
+            "coverages": [
+                {
+                    "type": "static",
+                    "inclusions": [
+                        {
+                            "label": "Sum insured",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.1.sum-insured",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Sum insured",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.1.sum-insured",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "static",
+                    "inclusions": [
+                        {
+                            "label": "Sum insured",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.2.sum-insured",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Sum insured",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.2.sum-insured",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Additional payment in the event of an accident",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.1.accident",
+                                    "value": 50000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional payment in the event of an accident",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.1.accident",
+                                            "value": 50000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "inclusions": [
+                        {
+                            "label": "Additional payment in the event of an accident",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.2.accident",
+                                    "value": 50000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional payment in the event of an accident",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.2.accident",
+                                            "value": 50000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Premium exemption in the event of disability",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.disability-premium-waiver.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Premium exemption in the event of disability",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.disability-premium-waiver.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Reimbursement of cover capital",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.payment-surrender-value.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Reimbursement of cover capital",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.payment-surrender-value.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Additional cover for children",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.child-cover.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional cover for children",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.child-cover.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Coverage in the event of a fatal illness",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.terminal-illness.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Coverage in the event of a fatal illness",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.terminal-illness.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Increasing option event",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.option-right-event.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Increasing option event",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.option-right-event.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Increasing option independent",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.option-right-plus.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Increasing option independent",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.option-right-plus.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Extension option",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.extension-option.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Extension option",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.extension-option.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Construction bonus",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.construction-bonus.is-included",
+                                    "value": 30000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Construction bonus",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.construction-bonus.is-included",
+                                            "value": 30000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Immediate help",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.immediate-help.is-included",
+                                    "value": 10000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Immediate help",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.immediate-help.is-included",
+                                            "value": 10000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "packages": [
+        {
+            "params": [
+                {
+                    "key": "packages_params_key",
+                    "value": "packages_params_value"
+                }
+            ],
+            "documents": {
+                "static_documents": [
+                    {
+                        "type": "calculation",
+                        "label": "documents_static_documents_label",
+                        "name": "documents_static_documents_name",
+                        "url": "documents_static_documents_url",
+                        "language": "documents_static_documents_language"
+                    }
+                ],
+                "dynamic_documents": [
+                    {
+                        "type": "calculation",
+                        "label": "documents_dynamic_documents_label",
+                        "name": "documents_dynamic_documents_name",
+                        "template_id": "documents_dynamic_documents_template_id",
+                        "language": "documents_dynamic_documents_language"
+                    }
+                ]
+            },
+            "coverages": [
+                {
+                    "type": "static",
+                    "inclusions": [
+                        {
+                            "label": "Sum insured",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.1.sum-insured",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Sum insured",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.1.sum-insured",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "static",
+                    "inclusions": [
+                        {
+                            "label": "Sum insured",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.2.sum-insured",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Sum insured",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.2.sum-insured",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Additional payment in the event of an accident",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.1.accident",
+                                    "value": 50000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional payment in the event of an accident",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.1.accident",
+                                            "value": 50000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "string",
+                    "inclusions": [
+                        {
+                            "label": "Additional payment in the event of an accident",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.insured-person.2.accident",
+                                    "value": 50000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional payment in the event of an accident",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.insured-person.2.accident",
+                                            "value": 50000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Premium exemption in the event of disability",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.disability-premium-waiver.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Premium exemption in the event of disability",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.disability-premium-waiver.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Reimbursement of cover capital",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.payment-surrender-value.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Reimbursement of cover capital",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.payment-surrender-value.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Additional cover for children",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.child-cover.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Additional cover for children",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.child-cover.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Coverage in the event of a fatal illness",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.terminal-illness.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Coverage in the event of a fatal illness",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.terminal-illness.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Increasing option event",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.option-right-event.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Increasing option event",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.option-right-event.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Increasing option independent",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.option-right-plus.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Increasing option independent",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.option-right-plus.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Extension option",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.extension-option.is-included",
+                                    "value": 0
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Extension option",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.extension-option.is-included",
+                                            "value": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Construction bonus",
+                            "value": "string",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.construction-bonus.is-included",
+                                    "value": 30000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Construction bonus",
+                                    "value": "string",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.construction-bonus.is-included",
+                                            "value": 30000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "dynamic",
+                    "inclusions": [
+                        {
+                            "label": "Immediate help",
+                            "value": "included",
+                            "type": "string",
+                            "comment": "string",
+                            "claims_type": "string",
+                            "start_rule": "string",
+                            "deductibles": [
+                                {
+                                    "key": "product.life.coverage.immediate-help.is-included",
+                                    "value": 10000
+                                }
+                            ],
+                            "sub_inclusions": [
+                                {
+                                    "label": "Immediate help",
+                                    "value": "included",
+                                    "type": "string",
+                                    "comment": "string",
+                                    "claims_type": "string",
+                                    "deductibles": [
+                                        {
+                                            "key": "product.life.coverage.immediate-help.is-included",
+                                            "value": 10000
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "exclusions": [
+                        {
+                            "label": "string",
+                            "value": "string",
+                            "comment": "string"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "documents": {
+        "static_documents": [
+            {
+                "type": "calculation",
+                "label": "documents_static_documents_label",
+                "name": "documents_static_documents_name",
+                "url": "documents_static_documents_url",
+                "language": "documents_static_documents_language"
+            }
+        ],
+        "dynamic_documents": [
+            {
+                "type": "calculation",
+                "label": "documents_dynamic_documents_label",
+                "name": "documents_dynamic_documents_name",
+                "template_id": "documents_dynamic_documents_template_id",
+                "language": "documents_dynamic_documents_language"
+            }
+        ]
+    },
+    "commissions": {
+        "constraints_by_type": {
+            "upfront": {
+                "min_percentage": 31.56,
+                "max_percentage": 20.2
+            },
+            "recurrent": {
+                "min_percentage": 45.85,
+                "max_percentage": 5.13
+            }
+        }
+    },
+    "timing": {
+        "journey_definitions": {
+            "calculation_validity_period_hours": 3,
+            "quote_validity_period_hours": 4,
+            "application_validity_period_hours": 5,
+            "policy_revocation_validity_period_hours": 6
+        },
+        "product_definitions": {
+            "end_of_term": "timing_end_of_term",
+            "start_date_validation": "timing_start_date_validation"
+        }
+    }
+}

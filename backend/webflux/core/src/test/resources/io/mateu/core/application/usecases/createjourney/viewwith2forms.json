@@ -1,0 +1,121 @@
+{
+  "commands" : [ ],
+  "content" : {
+    "contentType" : "View",
+    "header" : {
+      "cssClasses" : null,
+      "componentIds" : [ ]
+    },
+    "left" : {
+      "cssClasses" : null,
+      "componentIds" : [ ]
+    },
+    "main" : {
+      "cssClasses" : null,
+      "componentIds" : [ "component-0", "component-1" ]
+    },
+    "right" : {
+      "cssClasses" : null,
+      "componentIds" : [ ]
+    },
+    "footer" : {
+      "cssClasses" : null,
+      "componentIds" : [ ]
+    }
+  },
+  "messages" : [ ],
+  "components" : {
+    "component-0" : {
+      "componentType" : "GenericComponent",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Simple form",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "submit",
+          "icon" : null,
+          "caption" : "Submit",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : {
+            "title" : "Please confirm",
+            "message" : "",
+            "action" : "Submit"
+          },
+          "target" : "View",
+          "modalStyle" : "",
+          "customEvent" : "",
+          "href" : "",
+          "runOnEnter" : true
+        } ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "component-0",
+      "className" : "io.mateu.demo.SimpleForm",
+      "attributes" : { },
+      "data" : {
+        "name" : "Mateu",
+        "age" : 16
+      },
+      "childComponentIds" : [ ]
+    },
+    "component-1" : {
+      "componentType" : "GenericComponent",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Another simple form",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "badges" : [ ],
+        "tabs" : [ ],
+        "banners" : [ ],
+        "sections" : [ ],
+        "actions" : [ ],
+        "mainActions" : [ {
+          "id" : "submit",
+          "icon" : null,
+          "caption" : "Submit",
+          "type" : "Primary",
+          "visible" : true,
+          "validationRequired" : true,
+          "confirmationRequired" : false,
+          "rowsSelectedRequired" : false,
+          "confirmationTexts" : {
+            "title" : "Please confirm",
+            "message" : "",
+            "action" : "Submit"
+          },
+          "target" : "Component",
+          "modalStyle" : "",
+          "customEvent" : "",
+          "href" : "",
+          "runOnEnter" : true
+        } ],
+        "validations" : [ ],
+        "rules" : [ ]
+      },
+      "id" : "component-1",
+      "className" : "io.mateu.demo.AnotherSimpleForm",
+      "attributes" : { },
+      "data" : {
+        "name" : "Antonia",
+        "age" : 47
+      },
+      "childComponentIds" : [ ]
+    }
+  }
+}

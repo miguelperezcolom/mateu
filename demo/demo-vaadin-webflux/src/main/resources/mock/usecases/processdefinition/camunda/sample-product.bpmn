@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1lbrwpr" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <bpmn:process id="termLife" name="Term-life" isExecutable="true" camunda:historyTimeToLive="1">
+    <bpmn:documentation>Term Life product description</bpmn:documentation>
+    <bpmn:startEvent id="startTermLife">
+      <bpmn:outgoing>Flow_14k3gvq</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_14k3gvq" sourceRef="startTermLife" targetRef="insuredInformation" />
+    <bpmn:userTask id="insuredInformation" name="Insured Information" camunda:formRef="insured-information" camunda:formRefBinding="latest">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_14k3gvq</bpmn:incoming>
+      <bpmn:incoming>backToInsuredInformationFlow</bpmn:incoming>
+      <bpmn:outgoing>calculateFlow</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="calculateFlow" name="Calculate" sourceRef="insuredInformation" targetRef="priceSelection">
+      <bpmn:documentation>calculate</bpmn:documentation>
+      <bpmn:extensionElements />
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'calculate'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="priceSelection" name="Price Selection" camunda:formRef="price-selection" camunda:formRefBinding="latest">
+      <bpmn:incoming>calculateFlow</bpmn:incoming>
+      <bpmn:incoming>backToPriceSelectionFlow</bpmn:incoming>
+      <bpmn:outgoing>Flow_1h4op1v</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="application" name="Application" camunda:formRef="application" camunda:formRefBinding="latest">
+      <bpmn:incoming>contractFlow</bpmn:incoming>
+      <bpmn:incoming>backToApplicationFlow</bpmn:incoming>
+      <bpmn:outgoing>Flow_02ggq9f</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1h4op1v" sourceRef="priceSelection" targetRef="Gateway_1wxipo8" />
+    <bpmn:userTask id="summary" name="Summary" camunda:formRef="summary" camunda:formRefBinding="latest">
+      <bpmn:incoming>summaryFlow</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pvjcyk</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_02ggq9f" sourceRef="application" targetRef="Gateway_0zizfuu" />
+    <bpmn:endEvent id="endTermLife">
+      <bpmn:incoming>concludeFlow</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1pvjcyk" sourceRef="summary" targetRef="Gateway_0zpamf3" />
+    <bpmn:exclusiveGateway id="Gateway_1wxipo8">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_1h4op1v</bpmn:incoming>
+      <bpmn:outgoing>contractFlow</bpmn:outgoing>
+      <bpmn:outgoing>backToInsuredInformationFlow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="contractFlow" name="Contract&#10;" sourceRef="Gateway_1wxipo8" targetRef="application">
+      <bpmn:extensionElements />
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'contract'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="backToInsuredInformationFlow" name="Back" sourceRef="Gateway_1wxipo8" targetRef="insuredInformation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'back'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_0zizfuu">
+      <bpmn:incoming>Flow_02ggq9f</bpmn:incoming>
+      <bpmn:outgoing>summaryFlow</bpmn:outgoing>
+      <bpmn:outgoing>backToPriceSelectionFlow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="summaryFlow" name="Summary" sourceRef="Gateway_0zizfuu" targetRef="summary">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'summary'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="backToPriceSelectionFlow" name="Back" sourceRef="Gateway_0zizfuu" targetRef="priceSelection">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'back'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_0zpamf3">
+      <bpmn:incoming>Flow_1pvjcyk</bpmn:incoming>
+      <bpmn:outgoing>concludeFlow</bpmn:outgoing>
+      <bpmn:outgoing>backToApplicationFlow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="concludeFlow" name="Conclude" sourceRef="Gateway_0zpamf3" targetRef="endTermLife">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'conclude'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="backToApplicationFlow" name="Back" sourceRef="Gateway_0zpamf3" targetRef="application">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{mainActions == 'back'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="termLife">
+      <bpmndi:BPMNShape id="Activity_0ksr8qd_di" bpmnElement="insuredInformation">
+        <dc:Bounds x="230" y="157" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xe5lh2_di" bpmnElement="priceSelection">
+        <dc:Bounds x="410" y="157" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1wxipo8_di" bpmnElement="Gateway_1wxipo8" isMarkerVisible="true">
+        <dc:Bounds x="535" y="172" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_066bz87_di" bpmnElement="application">
+        <dc:Bounds x="650" y="157" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0zizfuu_di" bpmnElement="Gateway_0zizfuu" isMarkerVisible="true">
+        <dc:Bounds x="775" y="172" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_036py59_di" bpmnElement="summary">
+        <dc:Bounds x="890" y="157" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0zpamf3_di" bpmnElement="Gateway_0zpamf3" isMarkerVisible="true">
+        <dc:Bounds x="1015" y="172" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0hkwliy_di" bpmnElement="endTermLife">
+        <dc:Bounds x="1132" y="179" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="startTermLife">
+        <dc:Bounds x="142" y="179" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_14k3gvq_di" bpmnElement="Flow_14k3gvq">
+        <di:waypoint x="178" y="197" />
+        <di:waypoint x="230" y="197" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0kaw0n0_di" bpmnElement="backToInsuredInformationFlow">
+        <di:waypoint x="560" y="222" />
+        <di:waypoint x="560" y="270" />
+        <di:waypoint x="280" y="270" />
+        <di:waypoint x="280" y="237" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="408" y="252" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04y7sst_di" bpmnElement="calculateFlow">
+        <di:waypoint x="330" y="197" />
+        <di:waypoint x="410" y="197" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="348" y="179" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h4op1v_di" bpmnElement="Flow_1h4op1v">
+        <di:waypoint x="510" y="197" />
+        <di:waypoint x="535" y="197" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pvjcyk_di" bpmnElement="Flow_1pvjcyk">
+        <di:waypoint x="990" y="197" />
+        <di:waypoint x="1015" y="197" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mut7qg_di" bpmnElement="contractFlow">
+        <di:waypoint x="585" y="197" />
+        <di:waypoint x="650" y="197" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="597" y="179" width="42" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02ggq9f_di" bpmnElement="Flow_02ggq9f">
+        <di:waypoint x="750" y="197" />
+        <di:waypoint x="775" y="197" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08t9qb6_di" bpmnElement="summaryFlow">
+        <di:waypoint x="825" y="197" />
+        <di:waypoint x="890" y="197" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="834" y="179" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0fucyyr_di" bpmnElement="backToPriceSelectionFlow">
+        <di:waypoint x="800" y="172" />
+        <di:waypoint x="800" y="130" />
+        <di:waypoint x="460" y="130" />
+        <di:waypoint x="460" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="618" y="112" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xe816t_di" bpmnElement="concludeFlow">
+        <di:waypoint x="1065" y="197" />
+        <di:waypoint x="1132" y="197" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1075" y="179" width="47" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vryabw_di" bpmnElement="backToApplicationFlow">
+        <di:waypoint x="1040" y="222" />
+        <di:waypoint x="1040" y="270" />
+        <di:waypoint x="700" y="270" />
+        <di:waypoint x="700" y="237" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="858" y="252" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

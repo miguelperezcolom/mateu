@@ -1,0 +1,11 @@
+{
+  "componentType" : "GenericComponent",
+  "className" : "java.util.ImmutableCollections$List12",
+  "metadata" : {
+    "type" : "HorizontalLayout"
+  },
+  "id" : "component-11",
+  "attributes" : { },
+  "data" : { },
+  "childComponentIds" : [ "component-12", "component-13" ]
+}

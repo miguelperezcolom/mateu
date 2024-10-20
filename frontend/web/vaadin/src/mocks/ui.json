@@ -1,0 +1,54 @@
+{
+  "title": "Demo app",
+  "subtitle": "Working on Mateu Remote",
+  "menu": [
+    {
+      "type": "MenuOption",
+      "caption": "Menu 1",
+      "data": null,
+      "submenus": null,
+      "roles": null,
+      "users": null
+    },
+    {
+      "type": "MenuOption",
+      "caption": "Menu 2",
+      "data": null,
+      "submenus": null,
+      "roles": null,
+      "users": null
+    }
+  ],
+  "home": {
+    "metadata": {
+      "type": "Form",
+      "title": "A simple form",
+      "subtitle": "Here it will be the home of our demo",
+      "sections": [
+        {
+          "caption": "",
+          "actions": null,
+          "fieldGroups": [
+            {
+              "caption": "",
+              "fields": [
+                {
+                  "id": "mainContent",
+                  "type": "html",
+                  "caption": "",
+                  "description": null,
+                  "validations": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": null,
+      "mainActions": null
+    },
+    "data": {
+      "mainContent": "<h1>Hello Mateu!</h1>"
+    }
+  }
+}
