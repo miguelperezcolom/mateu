@@ -2,11 +2,11 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
-import io.mateu.core.domain.uidefinition.shared.annotations.UseRadioButtons;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.UseRadioButtons;
 import lombok.Data;
 
 @Data

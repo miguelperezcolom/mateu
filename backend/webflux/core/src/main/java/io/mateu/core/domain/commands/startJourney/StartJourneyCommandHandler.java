@@ -3,14 +3,14 @@ package io.mateu.core.domain.commands.startJourney;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenEditorAction;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenListViewAction;
-import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenEditorAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenListViewAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ConsumesContextData;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinitionlanguage.core.views.SingleComponentView;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,8 +92,8 @@ public class StartJourneyCommandHandler {
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
-    io.mateu.core.domain.uidefinition.core.interfaces.View view =
-        (formInstance instanceof io.mateu.core.domain.uidefinition.core.interfaces.View v)
+    io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View view =
+        (formInstance instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View v)
             ? v
             : new SingleComponentView(formInstance);
     View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());

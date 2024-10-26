@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.queries.FiltersDeserializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
 import io.mateu.dtos.UIIncrement;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

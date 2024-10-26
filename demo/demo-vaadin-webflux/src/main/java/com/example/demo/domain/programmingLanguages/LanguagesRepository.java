@@ -1,8 +1,8 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
 import io.mateu.core.domain.model.util.Serializer;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;

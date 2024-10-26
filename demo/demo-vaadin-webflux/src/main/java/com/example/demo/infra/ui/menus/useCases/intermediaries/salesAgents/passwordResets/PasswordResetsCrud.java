@@ -1,9 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.passwordResets;
 
-import com.example.demo.infra.ui.menus.forms.MyReadOnlyPojoWithCrudCrudRow;
-import com.example.demo.infra.ui.menus.forms.MyReadOnlyPojoWithCrudCrudSearchForm;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.dtos.SortCriteria;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Service
 @Scope("prototype")

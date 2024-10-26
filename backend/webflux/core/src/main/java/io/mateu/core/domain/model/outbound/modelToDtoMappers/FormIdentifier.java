@@ -3,15 +3,15 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.Card;
-import io.mateu.core.domain.uidefinition.core.interfaces.Container;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.core.domain.uidefinition.shared.data.Stepper;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TabLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VerticalLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Stepper;
 import org.springframework.stereotype.Service;
 
 @Service

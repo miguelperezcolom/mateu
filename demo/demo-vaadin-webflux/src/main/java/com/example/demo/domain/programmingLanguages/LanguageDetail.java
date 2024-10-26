@@ -2,10 +2,8 @@ package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import lombok.Data;
-import lombok.Getter;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

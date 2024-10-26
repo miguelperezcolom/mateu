@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.forms.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
 
 public class FormFieldsSubmenu {
 

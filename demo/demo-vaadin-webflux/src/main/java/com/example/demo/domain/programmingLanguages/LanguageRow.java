@@ -1,11 +1,11 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.core.domain.uidefinition.core.app.ColumnAction;
-import io.mateu.core.domain.uidefinition.core.app.ColumnActionGroup;
-import io.mateu.core.domain.uidefinition.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinition.shared.annotations.Width;
-import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnActionGroup;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Width;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

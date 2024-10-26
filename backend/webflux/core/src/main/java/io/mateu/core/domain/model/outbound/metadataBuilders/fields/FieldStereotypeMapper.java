@@ -7,11 +7,11 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
-import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
-import io.mateu.core.domain.uidefinition.shared.interfaces.ComplexKeyChoice;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ComplexKeyChoice;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class FieldStereotypeMapper {
       return "image";
     }
     if (field.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.Icon.class)) {
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Icon.class)) {
       return "icon";
     }
     if (Icon.class.equals(field.getType())) {

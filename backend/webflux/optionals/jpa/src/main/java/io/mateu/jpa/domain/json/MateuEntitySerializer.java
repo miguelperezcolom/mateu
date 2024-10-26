@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.reflection.usecases.AllTransferrableFieldsProv
 import io.mateu.core.domain.model.reflection.usecases.IdProvider;
 import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
-import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;

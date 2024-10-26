@@ -1,14 +1,14 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.othercomponents.MyDiv;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.data.Destination;
-import io.mateu.core.domain.uidefinition.shared.data.DestinationType;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.core.domain.uidefinition.shared.data.ResultType;
-import io.mateu.core.domain.uidefinition.shared.interfaces.ActionHandler;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Destination;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.DestinationType;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ResultType;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ActionHandler;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

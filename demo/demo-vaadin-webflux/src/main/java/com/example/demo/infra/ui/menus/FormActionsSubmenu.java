@@ -4,8 +4,7 @@ import com.example.demo.infra.ui.menus.actions.ActionReturnsForm;
 import com.example.demo.infra.ui.menus.actions.ActionTargetForm;
 import com.example.demo.infra.ui.menus.actions.ActionsAsButtonsForm;
 import com.example.demo.infra.ui.menus.forms.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
 
 public class FormActionsSubmenu {
 

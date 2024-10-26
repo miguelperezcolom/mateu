@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
 import lombok.Getter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

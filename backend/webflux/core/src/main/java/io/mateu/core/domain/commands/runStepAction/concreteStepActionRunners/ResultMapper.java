@@ -9,17 +9,17 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URL
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.uidefinition.core.interfaces.Container;
-import io.mateu.core.domain.uidefinition.core.interfaces.Message;
-import io.mateu.core.domain.uidefinition.core.interfaces.ResponseWrapper;
-import io.mateu.core.domain.uidefinition.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.annotations.On;
-import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
-import io.mateu.core.domain.uidefinition.shared.data.GoBack;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ResponseWrapper;
+import io.mateu.core.domain.uidefinitionlanguage.core.views.SingleComponentView;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.On;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.CloseModal;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.GoBack;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -170,7 +170,7 @@ public class ResultMapper {
               getModalStyle(m),
               new SingleComponent(component.id()),
               Map.of(component.id(), component)));
-    } else if (r instanceof io.mateu.core.domain.uidefinition.core.interfaces.View view) {
+    } else if (r instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View view) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
       fragments.add(
@@ -209,9 +209,9 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target());
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
       return ActionTarget.Message.equals(
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
               .target());
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -268,8 +268,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).closeModalWindow();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .closeModalWindow();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -285,8 +285,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).modalStyle();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .modalStyle();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -305,8 +305,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).targetId();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .targetId();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -332,8 +332,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).target();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .target();
     }
     if (m.isAnnotationPresent(Button.class)) {

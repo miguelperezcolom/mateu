@@ -3,7 +3,7 @@ package io.mateu.jpa.domain.ui.cruds.queries.rows;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import io.mateu.dtos.StatusType;

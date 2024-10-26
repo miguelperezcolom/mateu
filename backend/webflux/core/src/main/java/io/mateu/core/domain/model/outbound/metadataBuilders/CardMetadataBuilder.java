@@ -3,10 +3,10 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.SameLine;
-import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SameLine;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Card;
 import io.mateu.dtos.CardLayout;
@@ -32,7 +32,7 @@ public class CardMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(
-      io.mateu.core.domain.uidefinition.core.interfaces.Card card, List<Field> slotFields) {
+          io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card card, List<Field> slotFields) {
     Card metadata =
         new Card(
             CardLayout.Layout1,
@@ -131,7 +131,7 @@ public class CardMetadataBuilder {
         mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
   }
 
-  private StatusType mapStatusType(io.mateu.core.domain.uidefinition.shared.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -156,16 +156,16 @@ public class CardMetadataBuilder {
 
     for (Field field : allEditableFields) {
       if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)) {
         String caption =
             field
                 .getAnnotation(
-                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
                 .value();
         int columns =
             field
                 .getAnnotation(
-                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
                 .columns();
         if (fieldGroupLines.size() > 0) {
           fieldGroups.add(
@@ -175,7 +175,7 @@ public class CardMetadataBuilder {
                   fieldGroupLines,
                   field
                       .getAnnotation(
-                          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
                       .columns()));
         }
         currentFieldGroupCaption = caption;

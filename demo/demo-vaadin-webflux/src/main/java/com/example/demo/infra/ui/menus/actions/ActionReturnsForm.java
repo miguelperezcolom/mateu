@@ -1,14 +1,12 @@
 package com.example.demo.infra.ui.menus.actions;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-
-import static io.mateu.core.infra.Utils.exit;
 
 @Service
 @Getter

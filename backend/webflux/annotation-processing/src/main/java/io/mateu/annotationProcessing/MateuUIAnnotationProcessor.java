@@ -3,10 +3,10 @@ package io.mateu.annotationProcessing;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.ExternalScripts;
-import io.mateu.core.domain.uidefinition.shared.annotations.KeycloakSecured;
-import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ExternalScripts;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.KeycloakSecured;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -16,7 +16,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes({"io.mateu.core.domain.uidefinition.shared.annotations.MateuUI"})
+@SupportedAnnotationTypes({"io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {

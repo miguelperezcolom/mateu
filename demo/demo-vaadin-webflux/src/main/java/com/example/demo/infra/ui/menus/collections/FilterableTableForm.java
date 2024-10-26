@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.pojos.Address;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import lombok.Data;
 
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
 
 @Caption("Decomposed")
 public record DecomposedForm(PersonalData personalData, Address address) {

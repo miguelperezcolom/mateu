@@ -5,7 +5,7 @@ import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.UseCrud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.UseCrud;
 import io.mateu.dtos.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
 import java.net.URL;
 
 @Caption("")

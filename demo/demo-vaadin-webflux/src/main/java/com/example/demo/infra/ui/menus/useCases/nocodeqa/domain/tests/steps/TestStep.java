@@ -23,7 +23,7 @@ public abstract class TestStep {
 
   String name;
 
-  @io.mateu.core.domain.uidefinition.shared.annotations.Status
+  @io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status
   Status status;
 
   String comments;

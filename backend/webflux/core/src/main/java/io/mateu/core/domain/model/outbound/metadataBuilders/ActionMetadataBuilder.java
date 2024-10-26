@@ -5,9 +5,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -55,35 +55,35 @@ public class ActionMetadataBuilder {
   }
 
   private int getOrder(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.order();
     }
     if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class);
       return action.order();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Button.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Button action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Button.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button.class);
       return action.order();
     }
     return Integer.MAX_VALUE;
   }
 
   private String getIcon(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.icon().iconName;
     }
     if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class);
       return action.icon().iconName;
     }
     return null;
@@ -91,48 +91,48 @@ public class ActionMetadataBuilder {
 
   private ActionPosition getPosition(Method m) {
     if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class);
       return ActionPosition.valueOf(action.position().name());
     }
     return ActionPosition.Right;
   }
 
   private boolean isRunOnEnter(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.runOnEnter();
     }
     if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class);
       return action.runOnEnter();
     }
     return true;
   }
 
   private int getTimeoutMillis(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.timeoutMillis();
     }
     if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.MainAction action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.MainAction.class);
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction.class);
       return action.timeoutMillis();
     }
     return 0;
   }
 
   private String getModalStyle(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.modalStyle();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -146,44 +146,44 @@ public class ActionMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(
+  private io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget getRealTarget(
       Method m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+    var target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.View;
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
       target =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
               .target();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       target = m.getAnnotation(MainAction.class).target();
     }
     if (URL.class.equals(m.getReturnType())) {
-      if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewTab.equals(target)) {
-        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewTab;
-      } else if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewWindow.equals(
+      if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewWindow.equals(
           target)) {
         target =
-            io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewWindow;
+            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.DeferredNewWindow;
       } else {
-        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.Deferred;
+        target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.Deferred;
       }
     }
     return target;
   }
 
   private boolean isVisible(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return action.visible();
     }
     return true;
   }
 
   private ActionType getActionType(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return ActionType.valueOf(action.type().name());
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -194,9 +194,9 @@ public class ActionMetadataBuilder {
   }
 
   private ConfirmationTexts getConfirmationTexts(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Action action =
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action action =
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class);
       return new ConfirmationTexts(
           getConfirmationTitle(action.confirmationTitle(), m),
           action.confirmationMessage(),
@@ -227,9 +227,9 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getConfirmationRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
       return !Strings.isNullOrEmpty(
-          m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
               .confirmationMessage());
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -239,8 +239,8 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getRowsSelectedRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .rowsSelectedRequired();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -250,8 +250,8 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getValidationRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .validateBefore();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -261,8 +261,8 @@ public class ActionMetadataBuilder {
   }
 
   private String getCustomEvent(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .customEvent();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -272,8 +272,8 @@ public class ActionMetadataBuilder {
   }
 
   private String getHref(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .href();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -378,7 +378,7 @@ public class ActionMetadataBuilder {
             .filter(
                 m ->
                     m.isAnnotationPresent(
-                        io.mateu.core.domain.uidefinition.shared.annotations.Action.class))
+                        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class))
             .filter(
                 m ->
                     (!"JpaRpcCrudView".equals(type.getSimpleName()))

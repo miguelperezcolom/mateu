@@ -6,20 +6,20 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Obj
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.uidefinition.core.interfaces.Card;
-import io.mateu.core.domain.uidefinition.core.interfaces.Container;
-import io.mateu.core.domain.uidefinition.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.Content;
-import io.mateu.core.domain.uidefinition.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.TabLayout;
-import io.mateu.core.domain.uidefinition.shared.annotations.VerticalLayout;
-import io.mateu.core.domain.uidefinition.shared.data.Result;
-import io.mateu.core.domain.uidefinition.shared.data.Stepper;
-import io.mateu.core.domain.uidefinition.shared.elements.Element;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Content;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SplitLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TabLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VerticalLayout;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Stepper;
+import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Tab;
 import java.lang.reflect.InvocationTargetException;
@@ -112,23 +112,23 @@ public class ComponentMetadataBuilder {
         && componentInstance.getClass().isAnnotationPresent(SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance
-        instanceof io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter) {
+        instanceof io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter) {
       metadata =
           getJourneyStarter(
-              (io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter)
+              (io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter)
                   componentInstance);
     } else if (componentInstance instanceof Element) {
       metadata = getElement((Element) componentInstance);
     } else if (componentInstance
         .getClass()
-        .isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Element.class)) {
+        .isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)) {
       metadata = buildElement(componentInstance);
     } else if (componentInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
     } else if (componentInstance instanceof Result) {
       metadata = getResult((Result) componentInstance);
     } else if (componentInstance
-        instanceof io.mateu.core.domain.uidefinition.core.interfaces.Directory directory) {
+        instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory) {
       metadata = getDirectory(directory, serverHttpRequest);
     } else if (componentInstance instanceof Listing) {
       metadata = getCrud("main", (Listing) componentInstance);
@@ -150,7 +150,7 @@ public class ComponentMetadataBuilder {
           getResult(
               new Result(
                   "Result",
-                  io.mateu.core.domain.uidefinition.shared.data.ResultType.Success,
+                  io.mateu.core.domain.uidefinitionlanguage.shared.data.ResultType.Success,
                   "" + componentInstance,
                   List.of(),
                   null,
@@ -168,7 +168,7 @@ public class ComponentMetadataBuilder {
   }
 
   private ComponentMetadata getDirectory(
-      io.mateu.core.domain.uidefinition.core.interfaces.Directory directory,
+      io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory,
       ServerHttpRequest serverHttpRequest) {
     return directoryMetadataBuilder.build(directory, serverHttpRequest);
   }
@@ -278,7 +278,7 @@ public class ComponentMetadataBuilder {
   private String getElementName(Object componentInstance) {
     return componentInstance
         .getClass()
-        .getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Element.class)
+        .getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)
         .value();
   }
 
@@ -310,7 +310,7 @@ public class ComponentMetadataBuilder {
   }
 
   private JourneyStarter getJourneyStarter(
-      io.mateu.core.domain.uidefinition.shared.interfaces.JourneyStarter journeyStarter) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter journeyStarter) {
     return new JourneyStarter(
         journeyStarter.uiId(),
         journeyStarter.baseUrl(),

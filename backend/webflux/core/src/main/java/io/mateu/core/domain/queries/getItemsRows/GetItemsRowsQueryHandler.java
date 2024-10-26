@@ -3,7 +3,7 @@ package io.mateu.core.domain.queries.getItemsRows;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.queries.EntitiesFinder;
-import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ItemsListProvider;
 import io.mateu.dtos.Value;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;

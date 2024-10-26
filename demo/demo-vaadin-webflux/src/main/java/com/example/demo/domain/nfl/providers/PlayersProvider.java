@@ -1,7 +1,7 @@
 package com.example.demo.domain.nfl.providers;
 
 import com.example.demo.domain.nfl.entities.PlayerRepository;
-import io.mateu.core.domain.uidefinition.shared.data.ItemsListProvider;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ItemsListProvider;
 import io.mateu.dtos.Value;
 import org.springframework.stereotype.Service;
 

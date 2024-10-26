@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
-import io.mateu.core.domain.uidefinition.core.app.ColumnAction;
-import io.mateu.core.domain.uidefinition.core.app.ColumnActionGroup;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnActionGroup;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

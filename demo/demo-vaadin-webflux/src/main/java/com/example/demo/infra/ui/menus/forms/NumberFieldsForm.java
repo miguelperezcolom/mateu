@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;

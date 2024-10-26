@@ -4,8 +4,8 @@ import com.example.demo.infra.ui.menus.useCases.school.entities.Classroom;
 import com.example.demo.infra.ui.menus.useCases.school.entities.School;
 import com.example.demo.infra.ui.menus.useCases.school.entities.Student;
 import com.example.demo.infra.ui.menus.useCases.school.entities.Teacher;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
 
 public class SchoolMenu {
 

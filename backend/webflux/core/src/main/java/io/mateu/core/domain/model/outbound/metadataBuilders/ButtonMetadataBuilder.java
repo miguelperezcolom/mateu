@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
 import io.mateu.dtos.*;
 import java.net.URL;
 import java.util.concurrent.Callable;
@@ -67,21 +67,21 @@ public class ButtonMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget getRealTarget(Field m) {
-    var target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.View;
+  private io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget getRealTarget(Field m) {
+    var target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(Button.class)) {
       target = m.getAnnotation(Button.class).target();
     }
     if (Callable.class.isAssignableFrom(m.getType())
         && URL.class.equals(reflectionHelper.getGenericClass(m, Callable.class, "V"))) {
-      if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewTab.equals(target)) {
-        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewTab;
-      } else if (io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.NewWindow.equals(
+      if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewWindow.equals(
           target)) {
         target =
-            io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.DeferredNewWindow;
+            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.DeferredNewWindow;
       } else {
-        target = io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget.Deferred;
+        target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.Deferred;
       }
     }
     return target;

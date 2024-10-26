@@ -2,8 +2,8 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.core.interfaces.DynamicUI;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.DynamicUI;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 

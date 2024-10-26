@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Lis
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
 import io.mateu.dtos.UIIncrement;
 import java.lang.reflect.Method;
 import java.util.Map;

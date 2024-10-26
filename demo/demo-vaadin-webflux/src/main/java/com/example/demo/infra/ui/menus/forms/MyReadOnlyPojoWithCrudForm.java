@@ -1,20 +1,19 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinition.core.interfaces.Icon;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
-import io.mateu.core.domain.uidefinition.shared.data.Badge;
-import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Badge;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 

@@ -7,13 +7,13 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.ButtonMetadataBuilde
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.Content;
-import io.mateu.core.domain.uidefinition.shared.annotations.Element;
-import io.mateu.core.domain.uidefinition.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinition.shared.data.IconChooser;
-import io.mateu.core.domain.uidefinition.shared.data.TelephoneNumber;
-import io.mateu.core.domain.uidefinition.shared.data.ValuesListProvider;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Content;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.TelephoneNumber;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ValuesListProvider;
 import io.mateu.dtos.*;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
@@ -175,7 +175,7 @@ public class FieldAttributeBuilder {
       }
     }
     if (field.getType().equals(IconChooser.class)) {
-      for (Object enumConstant : io.mateu.core.domain.uidefinition.core.interfaces.Icon.values()) {
+      for (Object enumConstant : io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.values()) {
         attributes.add(
             new Pair(
                 "choice",
@@ -183,7 +183,7 @@ public class FieldAttributeBuilder {
       }
     }
     if ((field.getType().isEnum()
-            && !io.mateu.core.domain.uidefinition.core.interfaces.Icon.class.equals(
+            && !io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.class.equals(
                 field.getType()))
         || (field.getType().isArray() && field.getType().getComponentType().isEnum())
         || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())) {

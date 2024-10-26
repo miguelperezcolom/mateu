@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.queries.FiltersDeserializer;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.SortType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

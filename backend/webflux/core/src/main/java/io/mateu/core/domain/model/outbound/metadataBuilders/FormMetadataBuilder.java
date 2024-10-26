@@ -7,12 +7,12 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectionField;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.FakeCaptionAnnotation;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasBanners;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.FakeCaptionAnnotation;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBanners;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.FieldGroup;
@@ -104,14 +104,14 @@ public class FormMetadataBuilder {
             .filter(
                 f ->
                     f.isAnnotationPresent(
-                        io.mateu.core.domain.uidefinition.shared.annotations.Tab.class))
+                        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class))
             .map(
                 f ->
                     new Tab(
                         "tab_" + f.getId(),
                         isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
                         f.getAnnotation(
-                                io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)
+                                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class)
                             .value()))
             .collect(Collectors.toList()));
     return tabs;
@@ -142,7 +142,7 @@ public class FormMetadataBuilder {
   }
 
   private BannerTheme mapBannerTheme(
-      io.mateu.core.domain.uidefinition.shared.data.BannerTheme theme) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.BannerTheme theme) {
     return BannerTheme.valueOf(theme.toString());
   }
 
@@ -151,7 +151,7 @@ public class FormMetadataBuilder {
         && uiInstance
             .getClass()
             .isAnnotationPresent(
-                io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly.class);
+                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly.class);
   }
 
   public boolean isOwner(Field f) {
@@ -185,7 +185,7 @@ public class FormMetadataBuilder {
         mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
   }
 
-  private StatusType mapStatusType(io.mateu.core.domain.uidefinition.shared.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -226,12 +226,12 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.core.domain.uidefinition.shared.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 
   private BadgeStyle mapBadgeStyle(
-      io.mateu.core.domain.uidefinition.shared.data.BadgeStyle badgeStyle) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeStyle badgeStyle) {
     if (badgeStyle == null) {
       return BadgeStyle.ROUND;
     }
@@ -239,7 +239,7 @@ public class FormMetadataBuilder {
   }
 
   private BadgeIconPosition mapBadgePosition(
-      io.mateu.core.domain.uidefinition.shared.data.BadgeIconPosition iconPosition) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeIconPosition iconPosition) {
     if (iconPosition == null) {
       return BadgeIconPosition.RIGHT;
     }
@@ -344,10 +344,10 @@ public class FormMetadataBuilder {
     boolean card = true;
     int numberOfColumns = defaultColumnsNumber;
     if (firstField.isAnnotationPresent(
-        io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
-      io.mateu.core.domain.uidefinition.shared.annotations.Section annotation =
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class)) {
+      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section annotation =
           firstField.getAnnotation(
-              io.mateu.core.domain.uidefinition.shared.annotations.Section.class);
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class);
       caption = annotation.value();
       card = annotation.card();
       description = annotation.description();
@@ -380,7 +380,7 @@ public class FormMetadataBuilder {
     fieldsInTab.forEach(
         field -> {
           if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinition.shared.annotations.Section.class)) {
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class)) {
             if (!fieldsInSection.isEmpty()) {
               fieldsBySection.add(new ArrayList<>(fieldsInSection));
               fieldsInSection.clear();
@@ -400,11 +400,11 @@ public class FormMetadataBuilder {
 
     for (Field field : allEditableFields) {
       if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinition.shared.annotations.Tab.class)) {
+          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class)) {
         tabId = "tab_" + field.getId();
       }
       if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinition.shared.annotations.NoTab.class)) {
+          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.NoTab.class)) {
         tabId = "";
       }
       fieldsByTabId.putIfAbsent(tabId, new ArrayList<>());
@@ -423,7 +423,7 @@ public class FormMetadataBuilder {
 
     for (Field field : allEditableFields) {
       if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)) {
+          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)) {
 
         if (!lines.isEmpty()) {
           addGroup(
@@ -437,12 +437,12 @@ public class FormMetadataBuilder {
         String caption =
             field
                 .getAnnotation(
-                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
                 .value();
         int columns =
             field
                 .getAnnotation(
-                    io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup.class)
+                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
                 .columns();
         currentGroupCaption = caption;
         currentGroupColumns = columns;

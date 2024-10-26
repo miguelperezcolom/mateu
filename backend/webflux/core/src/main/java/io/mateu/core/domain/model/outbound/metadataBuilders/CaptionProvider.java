@@ -5,10 +5,10 @@ import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldForCheckboxColumn;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
 import java.lang.reflect.Method;
 import org.springframework.stereotype.Service;
 

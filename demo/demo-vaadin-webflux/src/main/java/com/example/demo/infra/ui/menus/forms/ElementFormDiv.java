@@ -2,11 +2,11 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mateu.core.domain.uidefinition.shared.annotations.Attribute;
-import io.mateu.core.domain.uidefinition.shared.annotations.Content;
-import io.mateu.core.domain.uidefinition.shared.annotations.Element;
-import io.mateu.core.domain.uidefinition.shared.annotations.On;
-import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Attribute;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Content;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.On;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ClientSideEvent;
 
 import java.time.LocalTime;
 

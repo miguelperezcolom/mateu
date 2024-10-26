@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import jakarta.persistence.*;

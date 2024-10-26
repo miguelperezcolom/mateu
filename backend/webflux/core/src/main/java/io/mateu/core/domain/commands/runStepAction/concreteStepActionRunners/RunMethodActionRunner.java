@@ -11,12 +11,12 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.annotations.On;
-import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
-import io.mateu.core.domain.uidefinition.shared.interfaces.Listing;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.On;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ClientSideEvent;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.UIIncrement;
 import java.lang.reflect.*;
 import java.util.*;
@@ -289,8 +289,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private boolean needsValidation(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinition.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .validateBefore();
     }
     if (m.isAnnotationPresent(MainAction.class)) {

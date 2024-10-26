@@ -1,9 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
-import lombok.Data;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.server.reactive.ServerHttpRequest;

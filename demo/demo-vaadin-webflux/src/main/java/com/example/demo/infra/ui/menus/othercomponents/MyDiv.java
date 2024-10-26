@@ -2,10 +2,9 @@ package com.example.demo.infra.ui.menus.othercomponents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.ClientSideEvent;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.ClientSideEvent;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Element("div")

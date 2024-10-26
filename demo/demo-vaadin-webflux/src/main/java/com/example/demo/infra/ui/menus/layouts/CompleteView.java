@@ -4,10 +4,9 @@ import com.example.demo.infra.ui.menus.layouts.shared.LeftSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.MyForm1;
 import com.example.demo.infra.ui.menus.layouts.shared.RightSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleCrud;
-import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleSlowCrud;
-import io.mateu.core.domain.uidefinition.core.interfaces.View;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.elements.Element;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
 
 import java.util.List;
 

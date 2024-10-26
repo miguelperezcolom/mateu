@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.processDefinition.main.sale;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;

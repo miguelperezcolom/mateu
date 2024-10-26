@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests.steps;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.ReadOnly;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

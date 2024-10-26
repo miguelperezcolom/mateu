@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.nfl;
 
 import com.example.demo.domain.nfl.entities.Team;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
 import io.mateu.jpa.domain.ui.cruds.JpaRpcCrudView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

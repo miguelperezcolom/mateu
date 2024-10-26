@@ -12,7 +12,7 @@ import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinition.shared.annotations.Button;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
 import io.mateu.dtos.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

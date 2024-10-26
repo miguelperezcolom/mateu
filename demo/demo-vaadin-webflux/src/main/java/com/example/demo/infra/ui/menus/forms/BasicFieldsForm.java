@@ -1,14 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinition.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.data.Badge;
-import io.mateu.core.domain.uidefinition.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinition.shared.data.Status;
-import io.mateu.core.domain.uidefinition.shared.data.StatusType;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinition.shared.interfaces.HasStatus;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasSubtitle;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasTitle;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Badge;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

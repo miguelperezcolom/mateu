@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinition.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinition.shared.data.CloseModal;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
+import io.mateu.core.domain.uidefinitionlanguage.shared.data.CloseModal;
 import lombok.Getter;
 import lombok.Setter;
 

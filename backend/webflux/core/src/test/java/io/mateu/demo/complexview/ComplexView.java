@@ -1,9 +1,9 @@
 package io.mateu.demo.complexview;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.Card;
-import io.mateu.core.domain.uidefinition.core.interfaces.Container;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
-import io.mateu.core.domain.uidefinition.shared.elements.Element;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
 import io.mateu.demo.AnotherSimpleForm;
 import io.mateu.demo.complexview.crud.SimpleCrud;
 import java.util.List;

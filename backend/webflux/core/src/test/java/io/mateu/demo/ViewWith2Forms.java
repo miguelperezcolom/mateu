@@ -1,6 +1,6 @@
 package io.mateu.demo;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI;
 import lombok.Getter;
 import lombok.Setter;
 

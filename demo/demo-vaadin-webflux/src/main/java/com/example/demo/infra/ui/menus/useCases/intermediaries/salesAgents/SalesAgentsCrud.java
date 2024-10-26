@@ -1,11 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
-import com.example.demo.infra.ui.menus.useCases.intermediaries.IntermediariesRow;
-import com.example.demo.infra.ui.menus.useCases.intermediaries.IntermediariesSearchForm;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinition.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinition.shared.annotations.Action;
-import io.mateu.dtos.SortCriteria;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +14,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service

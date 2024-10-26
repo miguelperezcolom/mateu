@@ -1,8 +1,8 @@
 package io.mateu.core.infra;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.Private;
-import io.mateu.core.domain.uidefinition.shared.interfaces.MateuSecurityManager;
-import io.mateu.core.domain.uidefinition.shared.interfaces.UserPrincipal;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Private;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.MateuSecurityManager;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.UserPrincipal;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.FieldGroup;
-import io.mateu.core.domain.uidefinition.shared.annotations.FormColumns;
-import io.mateu.core.domain.uidefinition.shared.annotations.Section;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FormColumns;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
 
 @FormColumns(3)
 public class FormStructureForm {

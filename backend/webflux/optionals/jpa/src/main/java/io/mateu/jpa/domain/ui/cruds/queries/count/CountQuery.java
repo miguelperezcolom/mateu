@@ -1,8 +1,8 @@
 package io.mateu.jpa.domain.ui.cruds.queries.count;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinition.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinition.core.views.ExtraFilters;
+import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
+import io.mateu.core.domain.uidefinitionlanguage.core.views.ExtraFilters;
 import io.mateu.jpa.domain.ui.cruds.queries.Query;
 import java.util.List;
 import java.util.Map;

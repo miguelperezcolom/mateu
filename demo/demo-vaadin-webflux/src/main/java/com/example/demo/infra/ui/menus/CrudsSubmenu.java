@@ -4,10 +4,10 @@ import com.example.demo.domain.cities.City;
 import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
 import com.example.demo.infra.ui.menus.errors.rpcTimeouts.BrokenCrud;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.*;
-import io.mateu.core.domain.uidefinition.core.interfaces.Directory;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
-import io.mateu.core.domain.uidefinition.shared.interfaces.JpaCrud;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
 
 import java.util.List;
 

@@ -2,10 +2,10 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.*;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
-import io.mateu.core.domain.uidefinition.core.interfaces.*;
-import io.mateu.core.domain.uidefinition.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinition.shared.annotations.Private;
-import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Private;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

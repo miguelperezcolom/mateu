@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.Directory;
-import io.mateu.core.domain.uidefinition.shared.annotations.Submenu;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
 
 public class FormsSubmenu implements Directory {
 

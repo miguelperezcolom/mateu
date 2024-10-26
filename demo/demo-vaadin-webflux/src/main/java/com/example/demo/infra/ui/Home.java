@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui;
 
-import io.mateu.core.domain.uidefinition.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinition.shared.annotations.*;
+import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ConsumesContextData;
+import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;

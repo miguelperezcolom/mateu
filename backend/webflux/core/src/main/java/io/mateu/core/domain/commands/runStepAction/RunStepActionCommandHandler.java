@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ResultMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinition.shared.interfaces.ActionHandler;
+import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ActionHandler;
 import io.mateu.dtos.*;
 import java.util.List;
 import java.util.Map;
