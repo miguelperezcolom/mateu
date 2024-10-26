@@ -4,7 +4,7 @@ import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/password-field'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
-import {TextField} from "@vaadin/vaadin-text-field";
+import {TextField} from "@vaadin/text-field";
 
 
 @customElement('field-password')

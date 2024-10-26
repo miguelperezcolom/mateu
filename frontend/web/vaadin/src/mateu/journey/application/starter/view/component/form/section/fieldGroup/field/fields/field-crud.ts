@@ -2,12 +2,12 @@ import {customElement, property, state} from "lit/decorators.js";
 import {html, css, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import '@vaadin/custom-field'
-import '@vaadin/vaadin-text-field'
-import '@vaadin/vaadin-grid'
-import '@vaadin/vaadin-grid/vaadin-grid-selection-column'
-import '@vaadin/vaadin-grid/vaadin-grid-filter-column'
-import '@vaadin/vaadin-grid/vaadin-grid-sort-column'
-import '@vaadin/vaadin-grid/vaadin-grid-column'
+import '@vaadin/text-field'
+import '@vaadin/grid'
+import '@vaadin/grid/vaadin-grid-selection-column'
+import '@vaadin/grid/vaadin-grid-filter-column'
+import '@vaadin/grid/vaadin-grid-sort-column'
+import '@vaadin/grid/vaadin-grid-column'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import {columnBodyRenderer} from "lit-vaadin-helpers";
 import {GridActiveItemChangedEvent} from "@vaadin/vaadin-grid";

@@ -3,7 +3,7 @@ import {html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/checkbox-group'
-import '@vaadin/vaadin-checkbox'
+import '@vaadin/checkbox'
     import type {CheckboxGroup, CheckboxGroupValueChangedEvent} from '@vaadin/checkbox-group';
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../shared/apiClients/dtos/Value";

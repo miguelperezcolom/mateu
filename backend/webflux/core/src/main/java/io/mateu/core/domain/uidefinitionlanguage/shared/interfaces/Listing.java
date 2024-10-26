@@ -3,7 +3,6 @@ package io.mateu.core.domain.uidefinitionlanguage.shared.interfaces;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.core.domain.model.reflection.ReflectionHelper;
 import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;

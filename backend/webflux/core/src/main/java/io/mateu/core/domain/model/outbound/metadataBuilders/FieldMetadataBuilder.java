@@ -100,7 +100,8 @@ public class FieldMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 

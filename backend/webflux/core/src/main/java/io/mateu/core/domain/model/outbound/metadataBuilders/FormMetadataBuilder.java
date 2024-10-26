@@ -111,7 +111,8 @@ public class FormMetadataBuilder {
                         "tab_" + f.getId(),
                         isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
                         f.getAnnotation(
-                                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class)
+                                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab
+                                    .class)
                             .value()))
             .collect(Collectors.toList()));
     return tabs;
@@ -185,7 +186,8 @@ public class FormMetadataBuilder {
         mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
   }
 
-  private StatusType mapStatusType(io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
+  private StatusType mapStatusType(
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -226,7 +228,8 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 

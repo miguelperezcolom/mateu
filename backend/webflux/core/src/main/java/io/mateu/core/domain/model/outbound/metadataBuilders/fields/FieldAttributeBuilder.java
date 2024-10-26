@@ -175,7 +175,8 @@ public class FieldAttributeBuilder {
       }
     }
     if (field.getType().equals(IconChooser.class)) {
-      for (Object enumConstant : io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.values()) {
+      for (Object enumConstant :
+          io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.values()) {
         attributes.add(
             new Pair(
                 "choice",

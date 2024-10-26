@@ -2,7 +2,6 @@ import {customElement, property, query} from "lit/decorators.js";
 import {html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
-import '@vaadin/vaadin-radio-button'
 import '@vaadin/radio-group'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../shared/apiClients/dtos/Value";

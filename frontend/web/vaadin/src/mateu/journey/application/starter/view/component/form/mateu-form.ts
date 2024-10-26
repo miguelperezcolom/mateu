@@ -3,7 +3,7 @@ import {customElement, property, state} from 'lit/decorators.js'
 import Form from "../../../../../../shared/apiClients/dtos/Form";
 import './section/mateu-section'
 import '@vaadin/horizontal-layout'
-import '@vaadin/vaadin-notification'
+import '@vaadin/notification'
 import '@vaadin/button'
 import '@vaadin/dialog'
 import '@vaadin/tabs'

@@ -121,7 +121,8 @@ public class ComponentMetadataBuilder {
       metadata = getElement((Element) componentInstance);
     } else if (componentInstance
         .getClass()
-        .isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)) {
+        .isAnnotationPresent(
+            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)) {
       metadata = buildElement(componentInstance);
     } else if (componentInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);

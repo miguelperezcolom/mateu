@@ -2,7 +2,7 @@ import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
-import '@vaadin/vaadin-text-field'
+import '@vaadin/text-field'
 import '@vaadin/item';
 import '@vaadin/list-box';
 import '@vaadin/select';

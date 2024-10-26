@@ -289,8 +289,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private boolean needsValidation(Method m) {
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .validateBefore();
     }
     if (m.isAnnotationPresent(MainAction.class)) {

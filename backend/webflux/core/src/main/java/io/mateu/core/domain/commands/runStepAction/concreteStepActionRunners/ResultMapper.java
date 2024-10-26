@@ -209,7 +209,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target());
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
       return ActionTarget.Message.equals(
           m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
               .target());
@@ -268,8 +269,10 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).closeModalWindow();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .closeModalWindow();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -285,8 +288,10 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).modalStyle();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .modalStyle();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -305,8 +310,10 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).targetId();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .targetId();
     }
     if (m.isAnnotationPresent(Button.class)) {
@@ -332,8 +339,10 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).target();
     }
-    if (m.isAnnotationPresent(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
+    if (m.isAnnotationPresent(
+        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+      return m.getAnnotation(
+              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
           .target();
     }
     if (m.isAnnotationPresent(Button.class)) {

@@ -5,8 +5,8 @@ import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
 import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/vaadin-tabs'
-import '@vaadin/vaadin-tabs/vaadin-tab'
+import '@vaadin/tabs'
+import '@vaadin/tabs/vaadin-tab'
 import '../../journey/application/starter/journey-starter'
 import {notificationRenderer} from 'lit-vaadin-helpers';
 import {MenuBarItem, MenuBarItemSelectedEvent} from "@vaadin/menu-bar";

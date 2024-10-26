@@ -1,7 +1,7 @@
 import {css, html, LitElement} from 'lit'
 import {customElement, property} from 'lit/decorators.js'
 import '@vaadin/horizontal-layout'
-import '@vaadin/vaadin-notification'
+import '@vaadin/notification'
 import '@vaadin/button'
 import '@vaadin/dialog'
 import Field from "../../../../../../shared/apiClients/dtos/Field";

@@ -3,7 +3,6 @@ import {html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@polymer/paper-toggle-button'
-import '@vaadin/input-container'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 
 

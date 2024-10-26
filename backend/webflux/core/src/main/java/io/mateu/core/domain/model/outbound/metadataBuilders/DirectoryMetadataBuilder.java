@@ -40,7 +40,8 @@ public class DirectoryMetadataBuilder {
     return "";
   }
 
-  private String getTitle(io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory) {
+  private String getTitle(
+      io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory) {
     if (directory instanceof HasTitle hasTitle) {
       return hasTitle.getTitle();
     }

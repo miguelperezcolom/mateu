@@ -2,12 +2,12 @@ import {customElement, property, state, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
-import '@vaadin/vaadin-upload'
+import '@vaadin/upload'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import File from "../../../../../../../../../../shared/apiClients/dtos/File";
 import {nanoid} from "nanoid";
-import {UploadElement} from "@vaadin/vaadin-upload/src/vaadin-upload";
-import {UploadFile} from "@vaadin/vaadin-upload";
+import {UploadElement} from "@vaadin/upload/src/vaadin-upload";
+import {UploadFile} from "@vaadin/upload";
 import {CustomField} from "@vaadin/custom-field";
 
 

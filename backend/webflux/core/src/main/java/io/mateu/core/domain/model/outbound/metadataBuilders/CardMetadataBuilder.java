@@ -32,7 +32,7 @@ public class CardMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Card build(
-          io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card card, List<Field> slotFields) {
+      io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card card, List<Field> slotFields) {
     Card metadata =
         new Card(
             CardLayout.Layout1,
@@ -131,7 +131,8 @@ public class CardMetadataBuilder {
         mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
   }
 
-  private StatusType mapStatusType(io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
+  private StatusType mapStatusType(
+      io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -175,7 +176,8 @@ public class CardMetadataBuilder {
                   fieldGroupLines,
                   field
                       .getAnnotation(
-                          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
+                          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup
+                              .class)
                       .columns()));
         }
         currentFieldGroupCaption = caption;

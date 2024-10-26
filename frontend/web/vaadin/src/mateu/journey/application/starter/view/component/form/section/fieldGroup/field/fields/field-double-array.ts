@@ -2,9 +2,9 @@ import {customElement, property, query} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import Component from "./interfaces/Component";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
-import '@vaadin/vaadin-text-field'
+import '@vaadin/text-field'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
-import {TextField} from "@vaadin/vaadin-text-field";
+import {TextField} from "@vaadin/text-field";
 
 
 @customElement('field-double-array')

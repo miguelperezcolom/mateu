@@ -3,10 +3,10 @@ import {customElement, property, query, state} from 'lit/decorators.js'
 import Crud from "../../../../../../shared/apiClients/dtos/Crud";
 import "@vaadin/horizontal-layout";
 import "@vaadin/button";
-import "@vaadin/vaadin-grid";
-import "@vaadin/vaadin-grid/vaadin-grid-selection-column";
-import "@vaadin/vaadin-grid/vaadin-grid-sort-column";
-import "@vaadin/vaadin-grid/vaadin-grid-column";
+import "@vaadin/grid";
+import "@vaadin/grid/vaadin-grid-selection-column";
+import "@vaadin/grid/vaadin-grid-sort-column";
+import "@vaadin/grid/vaadin-grid-column";
 import "../form/section/fieldGroup/field/fields/field-externalref"
 import "./mateu-paginator"
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
