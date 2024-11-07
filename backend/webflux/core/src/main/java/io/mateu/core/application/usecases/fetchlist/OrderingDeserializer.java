@@ -1,7 +1,7 @@
 package io.mateu.core.application.usecases.fetchlist;
 
 import com.google.common.base.Strings;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import java.nio.charset.Charset;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class OrderingDeserializer {
 
-  private final Serializer serializer;
+  private final SerializerService serializerService;
 
-  public OrderingDeserializer(Serializer serializer) {
-    this.serializer = serializer;
+  public OrderingDeserializer(SerializerService serializerService) {
+    this.serializerService = serializerService;
   }
 
   public List<SortCriteria> deserialize(String raw) {
@@ -27,7 +27,7 @@ public class OrderingDeserializer {
     try {
       List<Map<String, Object>> data =
           (List<Map<String, Object>>)
-              serializer.fromJson(
+              serializerService.fromJson(
                   new String(Base64.getDecoder().decode(raw), Charset.defaultCharset()),
                   ArrayList.class);
       return data.stream()

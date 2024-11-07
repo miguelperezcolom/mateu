@@ -3,10 +3,10 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.UseCrud;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.UseCrud;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class MethodParametersEditorMetadataBuilder {
 
   final FormMetadataBuilder formMetadataBuilder;
   final FieldMetadataBuilder fieldMetadataBuilder;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final Humanizer humanizer;
 
   public Form build(MethodParametersEditor uiInstance) {
@@ -75,11 +75,11 @@ public class MethodParametersEditorMetadataBuilder {
 
   private List<Section> getSections(MethodParametersEditor methodParametersEditor) {
     Method m =
-        reflectionHelper.getMethod(
+        reflectionService.getMethod(
             methodParametersEditor.getType(), methodParametersEditor.getMethodId());
 
     List<Field> allEditableFields =
-        reflectionHelper.getAllFields(m).stream()
+        reflectionService.getAllFields(m).stream()
             .filter(f -> !f.isAnnotationPresent(UseCrud.class))
             .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());

@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.inbound.editors;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -14,9 +14,9 @@ public class ObjectEditor {
 
   @SneakyThrows
   public ObjectEditor(
-      Object entity, int __index, int __count, Serializer serializer, String listId) {
+      Object entity, int __index, int __count, SerializerService serializerService, String listId) {
     this.type = entity.getClass();
-    this.data = serializer.toMap(entity);
+    this.data = serializerService.toMap(entity);
     if (__index >= 0) {
       this.data.put("__index", __index);
     }

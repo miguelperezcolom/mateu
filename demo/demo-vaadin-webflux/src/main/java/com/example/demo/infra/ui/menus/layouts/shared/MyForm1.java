@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.layouts.shared;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
-import io.mateu.dtos.ResultType;
+import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.core.interfaces.Message;
+import io.mateu.uidl.core.annotations.MainAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

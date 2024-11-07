@@ -1,6 +1,6 @@
 package com.example.demo.domain.agnostic.providers;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ValuesListProvider;
+import io.mateu.uidl.core.data.ValuesListProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

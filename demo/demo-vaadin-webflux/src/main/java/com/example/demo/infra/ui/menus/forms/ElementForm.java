@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.Caption;
 import lombok.Getter;
 import lombok.Setter;
 

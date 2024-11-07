@@ -4,13 +4,13 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Lis
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Destination;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.DestinationType;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ResultType;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.uidl.core.data.Destination;
+import io.mateu.uidl.core.data.DestinationType;
+import io.mateu.uidl.core.data.Result;
+import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.core.interfaces.Crud;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -20,17 +20,17 @@ import reactor.core.publisher.Mono;
 @Service
 public class CrudDeleteActionRunner implements ListActionRunner {
 
-  private final Serializer serializer;
+  private final SerializerService serializerService;
   private final ComponentFactory componentFactory;
   private final CaptionProvider captionProvider;
   private final UIIncrementFactory uIIncrementFactory;
 
   public CrudDeleteActionRunner(
-      Serializer serializer,
+      SerializerService serializerService,
       ComponentFactory componentFactory,
       CaptionProvider captionProvider,
       UIIncrementFactory uIIncrementFactory) {
-    this.serializer = serializer;
+    this.serializerService = serializerService;
     this.componentFactory = componentFactory;
     this.captionProvider = captionProvider;
     this.uIIncrementFactory = uIIncrementFactory;
@@ -66,7 +66,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
                       .map(
                           m -> {
                             try {
-                              return crud.getRow((Map<String, Object>) m, serializer);
+                              return crud.getRow((Map<String, Object>) m, serializerService);
                             } catch (Throwable e) {
                               e.printStackTrace();
                             }

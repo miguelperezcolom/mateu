@@ -1,17 +1,16 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.inbound.dynamic.DynamicCrud;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.DynamicCrud;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.RpcCrudViewExtended;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Child;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Detail;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.Child;
+import io.mateu.uidl.core.annotations.Detail;
+import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.core.interfaces.HasSubtitle;
+import io.mateu.uidl.core.interfaces.Listing;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +26,7 @@ public class CrudMetadataBuilder {
   final ActionMetadataBuilder actionMetadataBuilder;
   final FieldMetadataBuilder fieldMetadataBuilder;
   final FieldTypeMapper fieldTypeMapper;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
   private final FormMetadataBuilder formMetadataBuilder;
 
@@ -44,10 +43,10 @@ public class CrudMetadataBuilder {
     return new Crud(
         captionProvider.getCaption(rpcView),
         getSubtitle(rpcView),
-        reflectionHelper.isOverridden(rpcView, "getDetail"),
-        reflectionHelper.isOverridden(rpcView, "onRowSelected"),
-        rpcView.hasActionOnSelectedRow(reflectionHelper),
-        rpcView.showCheckboxForSelection(reflectionHelper),
+        reflectionService.isOverridden(rpcView, "getDetail"),
+        reflectionService.isOverridden(rpcView, "onRowSelected"),
+        rpcView.hasActionOnSelectedRow(reflectionService),
+        rpcView.showCheckboxForSelection(reflectionService),
         rpcView.isSearchable(),
         rpcView.isShowCards(),
         buildSearchForm(rpcView, listId),
@@ -73,7 +72,7 @@ public class CrudMetadataBuilder {
       columnIdsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnIdsPerField());
       columnCaptionsPerField.putAll(((RpcCrudViewExtended) rpcView).getColumnCaptionsPerField());
     } else {
-      allRowFields = reflectionHelper.getAllFields(rowClass);
+      allRowFields = reflectionService.getAllFields(rowClass);
     }
     return allRowFields.stream()
         .filter(f -> f != null)
@@ -105,7 +104,7 @@ public class CrudMetadataBuilder {
     List<String> allComponents = new ArrayList<>();
     var form =
         formMetadataBuilder.build(
-            reflectionHelper.newInstance(rpcView.getSearchFormClass()), List.of(), Map.of());
+            reflectionService.newInstance(rpcView.getSearchFormClass()), List.of(), Map.of());
     var component =
         new GenericComponent(
             new Form(
@@ -146,7 +145,7 @@ public class CrudMetadataBuilder {
 
   private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {
     Class searchFormClass = rpcView.getSearchFormClass();
-    List<Field> allEditableFields = reflectionHelper.getAllEditableFields(searchFormClass);
+    List<Field> allEditableFields = reflectionService.getAllEditableFields(searchFormClass);
     if (rpcView instanceof RpcCrudViewExtended) {
       List<String> validFieldIds =
           ((RpcCrudViewExtended) rpcView)

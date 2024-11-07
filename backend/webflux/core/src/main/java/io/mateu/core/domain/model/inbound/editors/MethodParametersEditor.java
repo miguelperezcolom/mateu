@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.inbound.editors;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import java.util.Map;
 import lombok.SneakyThrows;
 
@@ -19,9 +19,10 @@ public class MethodParametersEditor {
   }
 
   @SneakyThrows
-  public MethodParametersEditor(Object entity, String methodId, Serializer serializer) {
+  public MethodParametersEditor(
+      Object entity, String methodId, SerializerService serializerService) {
     this.type = entity.getClass();
-    this.data = serializer.toMap(entity);
+    this.data = serializerService.toMap(entity);
     this.methodId = methodId;
   }
 

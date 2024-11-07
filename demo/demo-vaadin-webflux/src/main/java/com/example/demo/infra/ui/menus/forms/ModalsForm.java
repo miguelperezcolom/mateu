@@ -1,17 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasSubtitle;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasTitle;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ResponseWrapper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Badge;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
-import io.mateu.dtos.ResultType;
+import io.mateu.uidl.core.data.*;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.interfaces.HasSubtitle;
+import io.mateu.uidl.core.interfaces.HasTitle;
+import io.mateu.uidl.core.interfaces.Message;
+import io.mateu.uidl.core.interfaces.ResponseWrapper;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.interfaces.HasBadges;
+import io.mateu.uidl.core.interfaces.HasStatus;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

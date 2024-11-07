@@ -1,10 +1,10 @@
 package io.mateu.core.domain.queries.getItemsRows;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.queries.EntitiesFinder;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ItemsListProvider;
 import io.mateu.dtos.Value;
+import io.mateu.uidl.core.data.ItemsListProvider;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetItemsRowsQueryHandler {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
 
   public List<Value> run(GetItemsRowsQuery query) throws Throwable {
     String itemsProviderId = query.getItemsProviderId();
@@ -28,8 +28,10 @@ public class GetItemsRowsQueryHandler {
 
     Class type = Class.forName(itemsProviderId);
     if (ItemsListProvider.class.isAssignableFrom(type)) {
-      return ((ItemsListProvider) reflectionHelper.newInstance(type))
-          .find(searchText, page, pageSize);
+      return ((ItemsListProvider) reflectionService.newInstance(type))
+          .find(searchText, page, pageSize).stream()
+              .map(v -> new Value(v.key(), v.value()))
+              .toList();
     }
     if (type.isAnnotationPresent(Entity.class)) {
       return findEntities(type, searchText, page, pageSize);
@@ -42,7 +44,7 @@ public class GetItemsRowsQueryHandler {
           NoSuchMethodException,
           IllegalAccessException,
           InstantiationException {
-    return reflectionHelper
+    return reflectionService
         .newInstance(EntitiesFinder.class)
         .findEntities(entityClass, searchText, page, pageSize);
   }

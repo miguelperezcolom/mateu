@@ -1,12 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.RawContent;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Badge;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.RawContent;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Section;
+import io.mateu.uidl.core.data.Badge;
+import io.mateu.uidl.core.data.BadgeTheme;
+import io.mateu.uidl.core.interfaces.HasBadges;
 import lombok.Data;
 
 import java.net.MalformedURLException;

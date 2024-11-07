@@ -1,7 +1,8 @@
 package ${pkgName};
 
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.uidl.core.interfaces.ReflectionHelper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;

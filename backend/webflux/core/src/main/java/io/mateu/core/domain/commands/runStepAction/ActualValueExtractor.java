@@ -5,10 +5,10 @@ import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.files.StorageService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
+import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.core.data.ExternalReference;
+import io.mateu.uidl.core.data.IconChooser;
+import io.mateu.uidl.core.interfaces.Icon;
 import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -33,7 +33,7 @@ public class ActualValueExtractor {
 
   final FileChecker fileChecker;
   final StorageService storageService;
-  final Serializer serializer;
+  final SerializerService serializerService;
   private final FieldByNameProvider fieldByNameProvider;
   private final ValueProvider valueProvider;
   private final AllEditableFieldsProvider allEditableFieldsProvider;
@@ -218,7 +218,8 @@ public class ActualValueExtractor {
               .map(
                   m -> {
                     try {
-                      return serializer.fromJson(serializer.toJson(m), f.getGenericClass());
+                      return serializerService.fromJson(
+                          serializerService.toJson(m), f.getGenericClass());
                     } catch (Exception e) {
                       e.printStackTrace();
                     }
@@ -307,7 +308,8 @@ public class ActualValueExtractor {
             Object id = ((Map<String, Object>) entry.getValue()).get("value");
             valueWriter.setValue(idFieldProvider.getIdField(f.getType()), targetValue, id);
           } else {
-            targetValue = serializer.fromMap((Map<String, Object>) entry.getValue(), f.getType());
+            targetValue =
+                serializerService.fromMap((Map<String, Object>) entry.getValue(), f.getType());
           }
         }
       }

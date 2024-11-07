@@ -1,8 +1,8 @@
 package io.mateu.demo.complexview;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
 import io.mateu.demo.SimpleForm;
+import io.mateu.uidl.core.annotations.HorizontalLayout;
+import io.mateu.uidl.core.interfaces.Card;
 
 @HorizontalLayout
 public class HorizontalLayoutContainer {

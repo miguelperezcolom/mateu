@@ -2,9 +2,9 @@ package com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.executions;
 
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.environments.Environment;
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests.Test;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

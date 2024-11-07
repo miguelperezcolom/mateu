@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests;
 
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TextArea;
+import io.mateu.uidl.core.annotations.Section;
+import io.mateu.uidl.core.annotations.TextArea;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -21,7 +21,7 @@ public class TestProject {
 
   String name;
 
-  @io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status
+  @io.mateu.uidl.core.annotations.Status
   Status status;
 
   @TextArea String comments;

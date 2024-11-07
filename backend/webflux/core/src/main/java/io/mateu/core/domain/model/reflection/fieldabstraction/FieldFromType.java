@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -15,13 +15,13 @@ public class FieldFromType implements Field {
   @ManyToOne private final Class type;
   private final String name;
   private String id;
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
 
-  public FieldFromType(Class type, String name, ReflectionHelper reflectionHelper) {
+  public FieldFromType(Class type, String name, ReflectionService reflectionService) {
     this.type = type;
     this.name = name;
     this.id = name;
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
   }
 
   @Override
@@ -73,7 +73,7 @@ public class FieldFromType implements Field {
 
   @Override
   public Class<?> getGenericClass() {
-    return reflectionHelper.getGenericClass(type);
+    return reflectionService.getGenericClass(type);
   }
 
   @Override
@@ -83,7 +83,7 @@ public class FieldFromType implements Field {
 
   @Override
   public Type getGenericType() {
-    return reflectionHelper.getGenericClass(type);
+    return reflectionService.getGenericClass(type);
   }
 
   @Override
@@ -126,13 +126,13 @@ public class FieldFromType implements Field {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return reflectionHelper.getValue(this, o);
+    return reflectionService.getValue(this, o);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    reflectionHelper.setValue(this, o, v);
+    reflectionService.setValue(this, o, v);
   }
 
   @Override

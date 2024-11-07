@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.inbound.menuResolvers;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.MenuEntry;
+import io.mateu.uidl.core.interfaces.MenuEntry;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 

@@ -4,11 +4,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.uidl.core.interfaces.Crud;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -20,8 +20,8 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CrudNewActionRunner implements ListActionRunner {
 
-  final ReflectionHelper reflectionHelper;
-  final Serializer serializer;
+  final ReflectionService reflectionService;
+  final SerializerService serializerService;
   final FiltersDeserializer filtersDeserializer;
   final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;

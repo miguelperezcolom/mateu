@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests;
 
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ResultType;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.data.ResultType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -24,10 +24,10 @@ public abstract class Test {
 
   String name;
 
-  @io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status
+  @io.mateu.uidl.core.annotations.Status
   Status status;
 
-  @ReadOnly @io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status
+  @ReadOnly @io.mateu.uidl.core.annotations.Status
   Result lastResult;
 
   String comments;
@@ -38,11 +38,11 @@ public abstract class Test {
   }
 
   @Action
-  public static io.mateu.core.domain.uidefinitionlanguage.shared.data.Result deployAndRun(
+  public static io.mateu.uidl.core.data.Result deployAndRun(
       // List<Test> selection
       ) {
     // System.out.println(selection);
-    return new io.mateu.core.domain.uidefinitionlanguage.shared.data.Result(
+    return new io.mateu.uidl.core.data.Result(
         "Deploy and run",
             ResultType.Success,
             "Tests have been deployed and scheduled for run",

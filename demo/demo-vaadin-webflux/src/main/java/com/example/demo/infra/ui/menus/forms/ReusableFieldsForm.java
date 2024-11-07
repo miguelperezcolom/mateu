@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.FieldGroup;
+import io.mateu.uidl.core.annotations.ReadOnly;
 
 public class ReusableFieldsForm {
 

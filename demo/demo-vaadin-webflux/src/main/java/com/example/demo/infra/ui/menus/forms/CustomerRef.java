@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.uidl.core.annotations.*;
 
 public class CustomerRef {
 

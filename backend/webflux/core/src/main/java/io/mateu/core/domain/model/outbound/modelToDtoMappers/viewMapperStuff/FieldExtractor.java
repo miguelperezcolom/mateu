@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.uidl.core.annotations.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FieldExtractor {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
 
   public List<Field> getFields(Object uiInstance, SlotName slot) {
-    return reflectionHelper.getAllFields(uiInstance.getClass()).stream()
+    return reflectionService.getAllFields(uiInstance.getClass()).stream()
         .filter(f -> !f.isAnnotationPresent(Ignored.class))
         .filter(f -> !f.isAnnotationPresent(MenuOption.class))
         .filter(f -> !f.isAnnotationPresent(Submenu.class))

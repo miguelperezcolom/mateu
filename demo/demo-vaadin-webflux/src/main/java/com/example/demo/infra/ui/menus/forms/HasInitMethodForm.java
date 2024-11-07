@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.interfaces.HasInitMethod;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -12,7 +12,8 @@ public class HasInitMethodForm implements HasInitMethod {
 
   private String someText;
 
-  @ReadOnly private String assessment;
+  @ReadOnly
+  private String assessment;
 
   @Action
   public void printHtpRequest(ServerHttpRequest serverHttpRequest) {

@@ -1,11 +1,11 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnActionGroup;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Width;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
+import io.mateu.uidl.core.app.ColumnAction;
+import io.mateu.uidl.core.app.ColumnActionGroup;
+import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.core.annotations.Width;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.data.StatusType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,7 +42,7 @@ public class LanguageRow {
   private ColumnActionGroup actions;
 
   public ColumnActionGroup getActions() {
-    if (status != null && StatusType.DANGER.equals(status.getType())) {
+    if (status != null && StatusType.DANGER.equals(status.type())) {
       return new ColumnActionGroup(
           new ColumnAction[] {
             new ColumnAction("unblockRow", "Unblock", null),

@@ -1,13 +1,13 @@
 package io.mateu.core.domain.model.inbound.menuResolvers;
 
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Home;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.PrivateHome;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.PublicHome;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyRunner;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.MenuEntry;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.uidl.core.annotations.Home;
+import io.mateu.uidl.core.annotations.PrivateHome;
+import io.mateu.uidl.core.annotations.PublicHome;
+import io.mateu.uidl.core.app.*;
+import io.mateu.uidl.core.interfaces.JourneyRunner;
+import io.mateu.uidl.core.interfaces.Listing;
+import io.mateu.uidl.core.interfaces.MenuEntry;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultMenuEntryFactory implements MenuEntryFactory {
 
-  public final ReflectionHelper reflectionHelper;
+  public final ReflectionService reflectionService;
 
-  public ReflectionHelper getReflectionHelper() {
-    return reflectionHelper;
+  public ReflectionService getReflectionService() {
+    return reflectionService;
   }
 
   @Override
@@ -32,14 +32,15 @@ public class DefaultMenuEntryFactory implements MenuEntryFactory {
     if (JourneyRunner.class.isAssignableFrom(app.getClass())) {
       return new MDDOpenUserJourneyAction(caption, (JourneyRunner) app);
     } else if (List.class.isAssignableFrom(app.getClass())
-        && MenuEntry.class.equals(reflectionHelper.getGenericClass(reflectionHelper.getType(f)))) {
+        && MenuEntry.class.equals(
+            reflectionService.getGenericClass(reflectionService.getType(f)))) {
       return new AbstractMenu(caption) {
         @Override
         public List<MenuEntry> buildEntries() {
           List<MenuEntry> l = new ArrayList<>();
           try {
 
-            l = (List<MenuEntry>) reflectionHelper.getValue(f, app);
+            l = (List<MenuEntry>) reflectionService.getValue(f, app);
 
           } catch (Throwable e) {
             e.printStackTrace();
@@ -49,7 +50,7 @@ public class DefaultMenuEntryFactory implements MenuEntryFactory {
       };
     } else if (URL.class.equals(app.getClass())) {
       return new MDDOpenUrlAction(caption, (URL) app);
-    } else if (reflectionHelper.isBasic(app.getClass()) || String.class.equals(app.getClass())) {
+    } else if (reflectionService.isBasic(app.getClass()) || String.class.equals(app.getClass())) {
       if (f.isAnnotationPresent(Home.class)
           || f.isAnnotationPresent(PublicHome.class)
           || f.isAnnotationPresent(PrivateHome.class))

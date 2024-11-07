@@ -4,13 +4,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.FormMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.FormIdentifier;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SlotName;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Stepper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Form;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
+import io.mateu.uidl.core.annotations.SlotName;
+import io.mateu.uidl.core.data.Stepper;
+import io.mateu.uidl.core.interfaces.*;
+import io.mateu.uidl.core.interfaces.Form;
+import io.mateu.uidl.core.interfaces.Listing;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class ViewInstancePartsExtractor {
 
   final FormMetadataBuilder formMetadataBuilder;
   final JpaRpcCrudFactory jpaRpcCrudFactory;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   private final FormIdentifier formIdentifier;
 
   public List<ViewInstancePart> getUiParts(
@@ -65,9 +65,9 @@ public class ViewInstancePartsExtractor {
 
   private ViewInstancePart buildPart(Field f, Object uiInstance, SlotName slotName)
       throws Exception {
-    Object partInstance = reflectionHelper.getValue(f, uiInstance);
+    Object partInstance = reflectionService.getValue(f, uiInstance);
     if (partInstance == null) {
-      partInstance = reflectionHelper.newInstance(f.getType());
+      partInstance = reflectionService.newInstance(f.getType());
     }
     if (false && partInstance instanceof Listing<?, ?> listing) {
       partInstance = new RpcViewWrapper(listing, f.getId());

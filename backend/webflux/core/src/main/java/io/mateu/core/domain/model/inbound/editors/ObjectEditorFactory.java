@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.inbound.editors;
 
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +12,10 @@ public class ObjectEditorFactory {
 
   @PersistenceContext EntityManager em;
 
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Transactional
   public ObjectEditor create(Object pojo, int __index, int __count, String listId) {
-    return new ObjectEditor(pojo, __index, __count, serializer, listId);
+    return new ObjectEditor(pojo, __index, __count, serializerService, listId);
   }
 }

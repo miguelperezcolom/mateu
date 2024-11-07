@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import jakarta.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.jdom2.Document;
@@ -10,7 +10,6 @@ import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.io.StringReader;
 public class IconsetTest {
 
     @Inject
-    Serializer s;
+    SerializerService s;
     @Inject
     Humanizer h;
 

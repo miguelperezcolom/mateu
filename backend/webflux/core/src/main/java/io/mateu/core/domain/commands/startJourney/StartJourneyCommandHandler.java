@@ -2,16 +2,16 @@ package io.mateu.core.domain.commands.startJourney;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenEditorAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenListViewAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
-import io.mateu.core.domain.uidefinitionlanguage.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.app.MDDOpenCRUDAction;
+import io.mateu.uidl.core.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.uidl.core.app.MDDOpenEditorAction;
+import io.mateu.uidl.core.app.MDDOpenListViewAction;
+import io.mateu.uidl.core.interfaces.ConsumesContextData;
+import io.mateu.uidl.core.interfaces.HasInitMethod;
+import io.mateu.uidl.core.interfaces.JourneyStarter;
+import io.mateu.uidl.core.views.SingleComponentView;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,19 +26,19 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class StartJourneyCommandHandler {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
   private final MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder;
   private final MenuResolver menuResolver;
   private final UiInstantiator uiInstantiator;
   private final ViewMapper viewMapper;
 
   public StartJourneyCommandHandler(
-      ReflectionHelper reflectionHelper,
+      ReflectionService reflectionService,
       MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
       MenuResolver menuResolver,
       UiInstantiator uiInstantiator,
       ViewMapper viewMapper) {
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.menuResolver = menuResolver;
     this.uiInstantiator = uiInstantiator;
@@ -92,8 +92,8 @@ public class StartJourneyCommandHandler {
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
-    io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View view =
-        (formInstance instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View v)
+    io.mateu.uidl.core.interfaces.View view =
+        (formInstance instanceof io.mateu.uidl.core.interfaces.View v)
             ? v
             : new SingleComponentView(formInstance);
     View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
@@ -125,14 +125,14 @@ public class StartJourneyCommandHandler {
       if (action.getSupplier() != null) {
         return action.getSupplier().get();
       }
-      return reflectionHelper.newInstance(action.getViewClass());
+      return reflectionService.newInstance(action.getViewClass());
     } else if (menuEntry instanceof MDDOpenCRUDAction action) {
       return mddOpenCRUDActionViewBuilder.buildView(action);
     } else if (menuEntry instanceof MDDOpenListViewAction action) {
       if (action.getSupplier() != null) {
         return action.getSupplier().get();
       }
-      return reflectionHelper.newInstance(action.getListViewClass());
+      return reflectionService.newInstance(action.getListViewClass());
     }
     return null;
   }

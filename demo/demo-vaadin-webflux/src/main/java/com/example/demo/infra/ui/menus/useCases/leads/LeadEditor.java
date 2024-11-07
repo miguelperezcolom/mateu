@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.TelephoneNumber;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;

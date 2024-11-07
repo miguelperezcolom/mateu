@@ -1,9 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SameLine;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.StyleClassNames;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.StyleClassNameConstants;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.SameLine;
+import io.mateu.uidl.core.annotations.StyleClassNames;
 import lombok.Data;
 
 @Data
@@ -13,7 +12,6 @@ public class SameLineForm {
   private String name;
 
   @SameLine
-  @StyleClassNames(StyleClassNameConstants.ColDesktop2)
   private int age;
 
   private String newLine;

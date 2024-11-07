@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.mateu.core.application.usecases.CreateJourneyUseCase;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.complexview.ComplexView;
 import io.mateu.dtos.Component;
 import io.mateu.dtos.JourneyCreationRq;
@@ -28,7 +28,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class CreateComplexViewHomeJourneyTest {
 
   @Autowired CreateJourneyUseCase createJourneyUseCase;
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Test
   @Disabled
@@ -53,7 +53,7 @@ public class CreateComplexViewHomeJourneyTest {
   @SneakyThrows
   private void assertUIIncrement(UIIncrement uiIncrement) {
     assertNotNull(uiIncrement);
-    log.info(serializer.toJson(uiIncrement));
+    log.info(serializerService.toJson(uiIncrement));
     var componentsJsons = new HashMap<String, String>();
 
     var maxComponents = 20;
@@ -77,7 +77,7 @@ public class CreateComplexViewHomeJourneyTest {
                 getClass().getResourceAsStream("complexform.json").readAllBytes(),
                 StandardCharsets.UTF_8)
             .replace("\"----herethecomponents----\"", componentsJson);
-    JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
+    JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 
   private String assertComponent(String componentId, Component component) throws Exception {
@@ -93,6 +93,6 @@ public class CreateComplexViewHomeJourneyTest {
   }
 
   private String getJsonForComponent(Component component) throws Exception {
-    return serializer.toJson(component);
+    return serializerService.toJson(component);
   }
 }

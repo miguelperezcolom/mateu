@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.mateu.core.application.usecases.CreateJourneyUseCase;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.SimpleForm;
 import io.mateu.dtos.JourneyCreationRq;
 import io.mateu.dtos.UIIncrement;
@@ -26,7 +26,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class CreateSimpleFormHomeJourneyTest {
 
   @Autowired CreateJourneyUseCase createJourneyUseCase;
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Test
   @Disabled
@@ -51,11 +51,11 @@ public class CreateSimpleFormHomeJourneyTest {
   @SneakyThrows
   private void assertUIIncrement(UIIncrement uiIncrement) {
     assertNotNull(uiIncrement);
-    log.info(serializer.toJson(uiIncrement));
+    log.info(serializerService.toJson(uiIncrement));
     var json =
         new String(
             getClass().getResourceAsStream("simpleform.json").readAllBytes(),
             StandardCharsets.UTF_8);
-    JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
+    JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

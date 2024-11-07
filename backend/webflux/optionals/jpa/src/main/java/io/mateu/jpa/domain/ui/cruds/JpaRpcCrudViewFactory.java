@@ -2,15 +2,11 @@ package io.mateu.jpa.domain.ui.cruds;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.core.domain.uidefinitionlanguage.core.views.ExtraFilters;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.uidl.core.app.MDDOpenCRUDAction;
+import io.mateu.uidl.core.interfaces.JpaCrud;
+import io.mateu.uidl.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.uidl.core.interfaces.Listing;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -21,31 +17,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
 
-  final ReflectionHelper reflectionHelper;
-
-  @Override
-  public Listing create(Object parentEntity, Field field) throws Exception {
-    MDDOpenCRUDAction action = new MDDOpenCRUDAction(field.getGenericClass());
-    if (field.isAnnotationPresent(OneToMany.class)
-        && !Strings.isNullOrEmpty(field.getAnnotation(OneToMany.class).mappedBy())) {
-      action.setExtraFilters(
-          new ExtraFilters(
-              "x." + field.getAnnotation(OneToMany.class).mappedBy() + " = :p", "p", parentEntity));
-    } else if (field.isAnnotationPresent(ManyToMany.class)
-        && !Strings.isNullOrEmpty(field.getAnnotation(ManyToMany.class).mappedBy())) {
-      action.setExtraFilters(
-          new ExtraFilters(
-              "x." + field.getAnnotation(ManyToMany.class).mappedBy() + " = :p",
-              "p",
-              parentEntity));
-    } else {
-      action.setExtraFilters(
-          new ExtraFilters("x in :p", "p", reflectionHelper.getValue(field, parentEntity)));
-    }
-    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
-    jpaRpcCrudView.setAction(action);
-    return jpaRpcCrudView;
-  }
+  final ReflectionService reflectionService;
 
   @Override
   public Listing create(JpaCrud v) throws Exception {
@@ -59,7 +31,7 @@ public class JpaRpcCrudViewFactory implements JpaRpcCrudFactory {
     a.setCanDelete(v.canDelete());
     a.setReadOnly(v.isReadOnly());
     if (!Strings.isNullOrEmpty(v.getExtraWhereFilter())) a.setQueryFilters(v.getExtraWhereFilter());
-    var jpaRpcCrudView = reflectionHelper.newInstance(JpaRpcCrudView.class);
+    var jpaRpcCrudView = reflectionService.newInstance(JpaRpcCrudView.class);
     jpaRpcCrudView.setAction(a);
     return jpaRpcCrudView;
   }

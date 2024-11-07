@@ -1,14 +1,15 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.inbound.dynamic.DynamicUI;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
 import io.mateu.dtos.App;
 import io.mateu.dtos.UI;
+import io.mateu.uidl.core.annotations.MenuOption;
+import io.mateu.uidl.core.annotations.Submenu;
+import io.mateu.uidl.core.interfaces.*;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class UIMapper {
 
   final ApplicationContext applicationContext;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final MenuBuilder menuCreator;
   final CaptionProvider captionProvider;
 
@@ -70,7 +71,7 @@ public class UIMapper {
   }
 
   public boolean isForm(Object uiInstance) {
-    for (Field field : reflectionHelper.getAllFields(uiInstance.getClass())) {
+    for (Field field : reflectionService.getAllFields(uiInstance.getClass())) {
       if (field.isAnnotationPresent(MenuOption.class) || field.isAnnotationPresent(Submenu.class)) {
         return false;
       }

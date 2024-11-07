@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.inbound.persistence;
 
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.model.util.persistence.EntityDeserializer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class Merger {
 
   @PersistenceContext EntityManager em;
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Autowired EntityDeserializer entityDeserializer;
 
@@ -36,7 +36,7 @@ public class Merger {
   }
 
   public Object getEntity(Map<String, Object> data, Class entityClass) throws Exception {
-    return entityDeserializer.fromJson(em, serializer.toJson(data), entityClass);
+    return entityDeserializer.fromJson(em, serializerService.toJson(data), entityClass);
   }
 
   public Object loadEntity(Map<String, Object> data, Class entityClass) {

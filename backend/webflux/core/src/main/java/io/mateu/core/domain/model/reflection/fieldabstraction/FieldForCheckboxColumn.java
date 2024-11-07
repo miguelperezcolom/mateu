@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.lang.annotation.Annotation;
@@ -19,16 +19,16 @@ public class FieldForCheckboxColumn implements Field {
   private final Field collectionField;
   private final Object value;
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
 
   public FieldForCheckboxColumn(
-      String name, Field collectionField, Object value, ReflectionHelper reflectionHelper) {
+      String name, Field collectionField, Object value, ReflectionService reflectionService) {
     this.type = boolean.class;
     this.id = name;
     this.name = name;
     this.collectionField = collectionField;
     this.value = value;
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
   }
 
   @Override
@@ -80,7 +80,7 @@ public class FieldForCheckboxColumn implements Field {
 
   @Override
   public Class<?> getGenericClass() {
-    return reflectionHelper.getGenericClass(type);
+    return reflectionService.getGenericClass(type);
   }
 
   @Override
@@ -90,7 +90,7 @@ public class FieldForCheckboxColumn implements Field {
 
   @Override
   public Type getGenericType() {
-    return reflectionHelper.getGenericClass(type);
+    return reflectionService.getGenericClass(type);
   }
 
   @Override
@@ -123,13 +123,13 @@ public class FieldForCheckboxColumn implements Field {
   @Override
   public Object getValue(Object o)
       throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    return ((Collection) reflectionHelper.getValue(collectionField, o)).contains(value);
+    return ((Collection) reflectionService.getValue(collectionField, o)).contains(value);
   }
 
   @Override
   public void setValue(Object o, Object v)
       throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    Collection col = (Collection) reflectionHelper.getValue(collectionField, o);
+    Collection col = (Collection) reflectionService.getValue(collectionField, o);
     if (((Boolean) v)) {
       if (!col.contains(value)) col.add(value);
     }

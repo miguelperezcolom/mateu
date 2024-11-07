@@ -2,11 +2,11 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.File;
-import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.core.annotations.File;
+import io.mateu.uidl.core.data.Element;
+import io.mateu.uidl.core.interfaces.Card;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class DataExtractor {
 
-  final ReflectionHelper reflectionHelper;
-  final Serializer serializer;
+  final ReflectionService reflectionService;
+  final SerializerService serializerService;
 
   public Map<String, Object> getData(Object uiInstance, Object actualUiInstance) {
     if (uiInstance instanceof ObjectEditor) {
@@ -50,20 +50,20 @@ public class DataExtractor {
       data.putAll(((ObjectEditor) uiInstance).getData());
       data.put("__entityClassName__", ((ObjectEditor) uiInstance).getType().getName());
     }
-    data.putAll(serializer.toMap(uiInstance));
+    data.putAll(serializerService.toMap(uiInstance));
     convertStringsToFiles(uiInstance, data);
     addStringValueForObjects(uiInstance, data);
     return data;
   }
 
   private void convertStringsToFiles(Object uiInstance, Map<String, Object> data) {
-    reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+    reflectionService.getAllEditableFields(uiInstance.getClass()).stream()
         .filter(f -> String.class.equals(f.getType()))
         .filter(f -> f.isAnnotationPresent(File.class))
         .forEach(
             f -> {
               try {
-                var value = (String) reflectionHelper.getValue(f, uiInstance);
+                var value = (String) reflectionService.getValue(f, uiInstance);
                 if (value != null) {
                   var url = new URL(value);
                   var targetUrl = url.toString().substring(0, url.toString().lastIndexOf("/"));
@@ -83,14 +83,14 @@ public class DataExtractor {
                 e.printStackTrace();
               }
             });
-    reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+    reflectionService.getAllEditableFields(uiInstance.getClass()).stream()
         .filter(f -> List.class.isAssignableFrom(f.getType()))
-        .filter(f -> String.class.equals(reflectionHelper.getGenericClass(f.getGenericType())))
+        .filter(f -> String.class.equals(reflectionService.getGenericClass(f.getGenericType())))
         .filter(f -> f.isAnnotationPresent(File.class))
         .forEach(
             f -> {
               try {
-                var value = (List<String>) reflectionHelper.getValue(f, uiInstance);
+                var value = (List<String>) reflectionService.getValue(f, uiInstance);
                 if (value != null) {
                   var targetList = new ArrayList<>();
                   value.forEach(
@@ -132,8 +132,8 @@ public class DataExtractor {
   }
 
   private void addStringValueForObjects(Object uiInstance, Map<String, Object> data) {
-    reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
-        .filter(f -> !reflectionHelper.isBasic(f.getType()))
+    reflectionService.getAllEditableFields(uiInstance.getClass()).stream()
+        .filter(f -> !reflectionService.isBasic(f.getType()))
         .filter(f -> !f.getType().isArray())
         .filter(f -> !f.getType().isEnum())
         .filter(f -> !Collection.class.isAssignableFrom(f.getType()))
@@ -143,7 +143,7 @@ public class DataExtractor {
             f -> {
               try {
                 ((Map) data.get(f.getId()))
-                    .put("__toString", "" + reflectionHelper.getValue(f, uiInstance));
+                    .put("__toString", "" + reflectionService.getValue(f, uiInstance));
               } catch (Exception e) {
                 e.printStackTrace();
               }

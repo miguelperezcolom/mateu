@@ -1,12 +1,12 @@
 package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.nfl.providers.TeamsProvider;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ItemsProvider;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ItemsProvider;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Section;
+import io.mateu.uidl.core.data.ExternalReference;
 import lombok.Data;
 
 import java.util.Arrays;

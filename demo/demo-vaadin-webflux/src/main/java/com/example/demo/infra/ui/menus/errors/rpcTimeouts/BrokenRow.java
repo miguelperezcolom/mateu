@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.errors.rpcTimeouts;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.ColumnActionGroup;
+import io.mateu.uidl.core.app.ColumnAction;
+import io.mateu.uidl.core.app.ColumnActionGroup;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

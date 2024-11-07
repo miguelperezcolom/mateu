@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.layouts.shared.crud;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI;
+import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.core.annotations.MateuUI;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -15,7 +15,7 @@ public class ResultMetadataBuilder {
     this.serverSideObjectMapper = serverSideObjectMapper;
   }
 
-  public Result build(io.mateu.core.domain.uidefinitionlanguage.shared.data.Result result) {
+  public Result build(io.mateu.uidl.core.data.Result result) {
     return new Result(
         result.title(),
         ResultType.valueOf(result.type().toString()),

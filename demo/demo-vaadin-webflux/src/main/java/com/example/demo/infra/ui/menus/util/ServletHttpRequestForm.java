@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.util;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +14,13 @@ import org.springframework.stereotype.Service;
 @Setter
 public class ServletHttpRequestForm {
 
-  @Autowired Serializer serializer;
-  @ReadOnly String rq;
+  @Autowired
+  SerializerService serializerService;
+  @ReadOnly
+  String rq;
 
   @Action
   public void readRequest(ServerHttpRequest serverHttpRequest) throws Exception {
-    this.rq = serializer.toJson(serverHttpRequest);
+    this.rq = serializerService.toJson(serverHttpRequest);
   }
 }

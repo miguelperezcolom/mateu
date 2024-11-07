@@ -3,25 +3,22 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.JpaRpcCrudFactory;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Content;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TabLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VerticalLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Stepper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.*;
+import io.mateu.dtos.Element;
 import io.mateu.dtos.Tab;
+import io.mateu.uidl.core.annotations.Attribute;
+import io.mateu.uidl.core.annotations.Content;
+import io.mateu.uidl.core.annotations.On;
+import io.mateu.uidl.core.data.Result;
+import io.mateu.uidl.core.data.Stepper;
+import io.mateu.uidl.core.interfaces.Card;
+import io.mateu.uidl.core.interfaces.Container;
+import io.mateu.uidl.core.interfaces.JpaCrud;
+import io.mateu.uidl.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.uidl.core.interfaces.Listing;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +49,7 @@ public class ComponentMetadataBuilder {
 
   @Autowired MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
 
-  @Autowired ReflectionHelper reflectionHelper;
+  @Autowired ReflectionService reflectionService;
   @Autowired private DataExtractor dataExtractor;
   @Autowired private BasicTypeChecker basicTypeChecker;
 
@@ -73,63 +70,66 @@ public class ComponentMetadataBuilder {
     ComponentMetadata metadata;
     if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(HorizontalLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.HorizontalLayout.class)) {
       metadata = getHorizontalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(HorizontalLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.HorizontalLayout.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(TabLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.TabLayout.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(TabLayout.class)) {
+        && componentInstance
+            .getClass()
+            .isAnnotationPresent(io.mateu.uidl.core.annotations.TabLayout.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)) {
+        && componentInstance
+            .getClass()
+            .isAnnotationPresent(io.mateu.uidl.core.annotations.HorizontalLayout.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(VerticalLayout.class)) {
+        && componentInstance
+            .getClass()
+            .isAnnotationPresent(io.mateu.uidl.core.annotations.VerticalLayout.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(VerticalLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.VerticalLayout.class)) {
       metadata = getVerticalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(VerticalLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.VerticalLayout.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(SplitLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.SplitLayout.class)) {
       metadata = getSplitLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(SplitLayout.class)) {
+        && field.isAnnotationPresent(io.mateu.uidl.core.annotations.SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(SplitLayout.class)) {
+        && componentInstance
+            .getClass()
+            .isAnnotationPresent(io.mateu.uidl.core.annotations.SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
-    } else if (componentInstance
-        instanceof io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter) {
+    } else if (componentInstance instanceof io.mateu.uidl.core.interfaces.JourneyStarter) {
       metadata =
-          getJourneyStarter(
-              (io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter)
-                  componentInstance);
+          getJourneyStarter((io.mateu.uidl.core.interfaces.JourneyStarter) componentInstance);
     } else if (componentInstance instanceof Element) {
       metadata = getElement((Element) componentInstance);
     } else if (componentInstance
         .getClass()
-        .isAnnotationPresent(
-            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)) {
+        .isAnnotationPresent(io.mateu.uidl.core.annotations.Element.class)) {
       metadata = buildElement(componentInstance);
     } else if (componentInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
     } else if (componentInstance instanceof Result) {
       metadata = getResult((Result) componentInstance);
-    } else if (componentInstance
-        instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory) {
+    } else if (componentInstance instanceof io.mateu.uidl.core.interfaces.Directory directory) {
       metadata = getDirectory(directory, serverHttpRequest);
     } else if (componentInstance instanceof Listing) {
       metadata = getCrud("main", (Listing) componentInstance);
@@ -151,7 +151,7 @@ public class ComponentMetadataBuilder {
           getResult(
               new Result(
                   "Result",
-                  io.mateu.core.domain.uidefinitionlanguage.shared.data.ResultType.Success,
+                  io.mateu.uidl.core.data.ResultType.Success,
                   "" + componentInstance,
                   List.of(),
                   null,
@@ -169,8 +169,7 @@ public class ComponentMetadataBuilder {
   }
 
   private ComponentMetadata getDirectory(
-      io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory directory,
-      ServerHttpRequest serverHttpRequest) {
+      io.mateu.uidl.core.interfaces.Directory directory, ServerHttpRequest serverHttpRequest) {
     return directoryMetadataBuilder.build(directory, serverHttpRequest);
   }
 
@@ -199,7 +198,7 @@ public class ComponentMetadataBuilder {
   private ComponentMetadata getTabLayout(Object componentInstance) {
     List<Tab> tabs = new ArrayList<>();
     if (componentInstance != null) {
-      reflectionHelper
+      reflectionService
           .getAllFields(componentInstance.getClass())
           .forEach(
               f -> {
@@ -228,12 +227,12 @@ public class ComponentMetadataBuilder {
   }
 
   private String getElementContent(Object componentInstance) {
-    return reflectionHelper.getAllFields(componentInstance.getClass()).stream()
+    return reflectionService.getAllFields(componentInstance.getClass()).stream()
         .filter(f -> f.isAnnotationPresent(Content.class))
         .map(
             f -> {
               try {
-                return "" + reflectionHelper.getValue(f, componentInstance);
+                return "" + reflectionService.getValue(f, componentInstance);
               } catch (NoSuchMethodException
                   | IllegalAccessException
                   | InvocationTargetException e) {
@@ -246,7 +245,7 @@ public class ComponentMetadataBuilder {
 
   private Map<String, Object> getElementAttributes(Object componentInstance) {
     Map<String, Object> attributes = new HashMap<>();
-    reflectionHelper.getAllFields(componentInstance.getClass()).stream()
+    reflectionService.getAllFields(componentInstance.getClass()).stream()
         .filter(f -> f.isAnnotationPresent(Attribute.class))
         .forEach(
             f -> {
@@ -255,7 +254,7 @@ public class ComponentMetadataBuilder {
                 if (name.isEmpty()) {
                   name = f.getName();
                 }
-                attributes.put(name, "" + reflectionHelper.getValue(f, componentInstance));
+                attributes.put(name, "" + reflectionService.getValue(f, componentInstance));
               } catch (NoSuchMethodException
                   | IllegalAccessException
                   | InvocationTargetException e) {
@@ -263,7 +262,7 @@ public class ComponentMetadataBuilder {
               }
             });
     List<Pair> listeners = new ArrayList<>();
-    reflectionHelper.getAllMethods(componentInstance.getClass()).stream()
+    reflectionService.getAllMethods(componentInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(On.class))
         .forEach(
             m -> {
@@ -279,7 +278,7 @@ public class ComponentMetadataBuilder {
   private String getElementName(Object componentInstance) {
     return componentInstance
         .getClass()
-        .getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element.class)
+        .getAnnotation(io.mateu.uidl.core.annotations.Element.class)
         .value();
   }
 
@@ -311,7 +310,7 @@ public class ComponentMetadataBuilder {
   }
 
   private JourneyStarter getJourneyStarter(
-      io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter journeyStarter) {
+      io.mateu.uidl.core.interfaces.JourneyStarter journeyStarter) {
     return new JourneyStarter(
         journeyStarter.uiId(),
         journeyStarter.baseUrl(),
@@ -349,7 +348,7 @@ public class ComponentMetadataBuilder {
         true,
         form,
         null,
-        reflectionHelper.getAllEditableFields(form.getClass()),
+        reflectionService.getAllEditableFields(form.getClass()),
         data,
         serverHttpRequest);
   }

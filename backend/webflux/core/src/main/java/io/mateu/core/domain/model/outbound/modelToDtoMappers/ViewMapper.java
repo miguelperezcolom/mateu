@@ -3,8 +3,8 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.*;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SlotName;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.SlotName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class ViewMapper {
   }
 
   public View map(
-      io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View view,
+      io.mateu.uidl.core.interfaces.View view,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
       Map<String, Object> data)

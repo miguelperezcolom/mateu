@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.DynamicUI;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasInitMethod;
+import io.mateu.core.domain.model.inbound.dynamic.DynamicUI;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.uidl.core.interfaces.HasInitMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
@@ -11,16 +11,16 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class UiInstantiator {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
 
-  public UiInstantiator(ReflectionHelper reflectionHelper) {
-    this.reflectionHelper = reflectionHelper;
+  public UiInstantiator(ReflectionService reflectionService) {
+    this.reflectionService = reflectionService;
   }
 
   public Object instantiateUi(String uiId, ServerHttpRequest serverHttpRequest) {
     try {
       Class uiClass = Class.forName(uiId);
-      Object uiInstance = reflectionHelper.newInstance(uiClass);
+      Object uiInstance = reflectionService.newInstance(uiClass);
 
       if (uiInstance == null) {
         throw new Exception();

@@ -1,9 +1,9 @@
 package io.mateu.core.domain.queries.getItemsCount;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.queries.EntitiesFinder;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ItemsListProvider;
+import io.mateu.uidl.core.data.ItemsListProvider;
 import jakarta.persistence.Entity;
 import java.lang.reflect.InvocationTargetException;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetItemsCountQueryHandler {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
 
   public int run(GetItemsCountQuery query) throws Throwable {
     String itemsProviderId = query.getItemsProviderId();
@@ -24,7 +24,7 @@ public class GetItemsCountQueryHandler {
 
     Class type = Class.forName(itemsProviderId);
     if (ItemsListProvider.class.isAssignableFrom(type)) {
-      return ((ItemsListProvider) reflectionHelper.newInstance(type)).count(searchText);
+      return ((ItemsListProvider) reflectionService.newInstance(type)).count(searchText);
     }
     if (type.isAnnotationPresent(Entity.class)) {
       return countEntities(type, searchText);
@@ -37,7 +37,7 @@ public class GetItemsCountQueryHandler {
           NoSuchMethodException,
           IllegalAccessException,
           InstantiationException {
-    return reflectionHelper
+    return reflectionService
         .newInstance(EntitiesFinder.class)
         .countEntities(entityClass, searchText);
   }

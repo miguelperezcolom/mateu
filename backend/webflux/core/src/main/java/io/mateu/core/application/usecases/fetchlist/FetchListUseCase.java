@@ -1,6 +1,6 @@
 package io.mateu.core.application.usecases.fetchlist;
 
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQueryHandler;
 import io.mateu.dtos.Page;
@@ -14,15 +14,15 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class FetchListUseCase {
 
-  private final Serializer serializer;
+  private final SerializerService serializerService;
   private final GetListRowsQueryHandler getListRowsQueryHandler;
   private final OrderingDeserializer orderingDeserializer;
 
   public FetchListUseCase(
-      Serializer serializer,
+      SerializerService serializerService,
       GetListRowsQueryHandler getListRowsQueryHandler,
       OrderingDeserializer orderingDeserializer) {
-    this.serializer = serializer;
+    this.serializerService = serializerService;
     this.getListRowsQueryHandler = getListRowsQueryHandler;
     this.orderingDeserializer = orderingDeserializer;
   }

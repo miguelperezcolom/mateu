@@ -2,14 +2,13 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Badge;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.Badge;
+import io.mateu.uidl.core.data.BadgeTheme;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.data.StatusType;
+import io.mateu.uidl.core.interfaces.HasBadges;
+import io.mateu.uidl.core.interfaces.HasStatus;
 import lombok.Data;
 
 import java.time.LocalDate;

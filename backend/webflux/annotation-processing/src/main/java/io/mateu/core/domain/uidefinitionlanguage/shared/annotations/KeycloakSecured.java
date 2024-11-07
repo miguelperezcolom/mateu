@@ -1,4 +1,4 @@
-package io.mateu.core.domain.uidefinitionlanguage.shared.annotations;
+package io.mateu.uidl.core.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

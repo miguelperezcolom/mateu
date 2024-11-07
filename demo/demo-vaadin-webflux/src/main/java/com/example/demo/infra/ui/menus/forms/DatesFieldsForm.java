@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.core.annotations.Section;
 import lombok.Data;
 
 import java.time.LocalDate;

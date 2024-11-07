@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ConsumesContextData;
+import io.mateu.uidl.core.interfaces.ConsumesContextData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;

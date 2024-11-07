@@ -1,6 +1,6 @@
 package io.mateu.jpa.domain.ui.cruds.queries.count;
 
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class CountQueryHandler {
 
   @PersistenceContext private EntityManager em;
-  @Autowired ReflectionHelper reflectionHelper;
+  @Autowired ReflectionService reflectionService;
 
   @Transactional
   public Mono<Long> run(CountQuery query) {
@@ -24,7 +24,7 @@ public class CountQueryHandler {
 
     try {
       Query q =
-          new QueryHelper(reflectionHelper)
+          new QueryHelper(reflectionService)
               .buildJpaQuery(
                   query,
                   em,

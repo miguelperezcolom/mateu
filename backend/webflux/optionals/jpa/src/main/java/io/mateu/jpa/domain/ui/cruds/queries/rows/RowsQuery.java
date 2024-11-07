@@ -2,9 +2,9 @@ package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.views.ExtraFilters;
 import io.mateu.jpa.domain.ui.cruds.queries.Query;
+import io.mateu.uidl.core.app.MDDOpenCRUDAction;
+import io.mateu.uidl.core.views.ExtraFilters;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;

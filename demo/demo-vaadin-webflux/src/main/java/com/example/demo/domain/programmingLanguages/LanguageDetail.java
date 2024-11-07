@@ -1,9 +1,9 @@
 package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.ReadOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -14,11 +14,12 @@ import org.springframework.stereotype.Service;
 public class LanguageDetail extends LanguageDetailDefinition {
 
   @Autowired LanguagesRepository repo;
-  @Autowired @JsonIgnore ReflectionHelper reflectionHelper;
+  @Autowired @JsonIgnore
+  ReflectionService reflectionService;
   @Autowired LanguageForm form;
 
   public void load(Object id) {
-    reflectionHelper.copy(repo.findById((String) id), this);
+    reflectionService.copy(repo.findById((String) id), this);
   }
 
   public Object retrieveId() {

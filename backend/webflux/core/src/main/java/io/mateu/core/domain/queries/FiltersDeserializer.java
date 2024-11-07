@@ -2,11 +2,11 @@ package io.mateu.core.domain.queries;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.DatesRange;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
+import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.core.data.DatesRange;
+import io.mateu.uidl.core.interfaces.Listing;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,20 +17,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class FiltersDeserializer {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
 
-  private final Serializer serializer;
+  private final SerializerService serializerService;
 
-  public FiltersDeserializer(ReflectionHelper reflectionHelper, Serializer serializer) {
-    this.reflectionHelper = reflectionHelper;
-    this.serializer = serializer;
+  public FiltersDeserializer(
+      ReflectionService reflectionService, SerializerService serializerService) {
+    this.reflectionService = reflectionService;
+    this.serializerService = serializerService;
   }
 
   public Object deserialize(
       Listing<?, ?> listing, Map<String, Object> raw, ServerHttpRequest serverHttpRequest)
       throws Exception {
     Map<String, Object> map = new HashMap<>();
-    for (Field field : reflectionHelper.getAllEditableFields(listing.getSearchFormClass())) {
+    for (Field field : reflectionService.getAllEditableFields(listing.getSearchFormClass())) {
       if (DatesRange.class.equals(field.getType())) {
         String rawDatesRangeValue = "";
         if (raw.containsKey(field.getId() + "_from") && raw.get(field.getId() + "_from") != null) {
@@ -65,6 +66,6 @@ public class FiltersDeserializer {
         map.put(field.getId(), raw.get(field.getId()));
       }
     }
-    return serializer.fromJson(serializer.toJson(map), listing.getSearchFormClass());
+    return serializerService.fromJson(serializerService.toJson(map), listing.getSearchFormClass());
   }
 }

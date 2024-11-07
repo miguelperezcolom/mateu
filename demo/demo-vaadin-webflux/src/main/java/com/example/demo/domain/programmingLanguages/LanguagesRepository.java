@@ -1,9 +1,9 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.data.StatusType;
+import io.mateu.core.domain.model.util.SerializerService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.List;
 public class LanguagesRepository {
 
   @Autowired@Ignored
-  Serializer serializer;
+  SerializerService serializerService;
 
   private final List<LanguageRow> all =
       new ArrayList<>();
@@ -57,7 +57,7 @@ public class LanguagesRepository {
   }
 
   public void save(LanguageForm form) throws Exception {
-    LanguageRow language = serializer.fromJson(serializer.toJson(form), LanguageRow.class);
+    LanguageRow language = serializerService.fromJson(serializerService.toJson(form), LanguageRow.class);
     if (all.contains(language)) {
       all.set(all.indexOf(language), language);
     } else {

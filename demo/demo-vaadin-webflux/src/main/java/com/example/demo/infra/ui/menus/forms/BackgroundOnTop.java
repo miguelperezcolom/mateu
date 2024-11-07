@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.RawContent;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
+import io.mateu.uidl.core.annotations.RawContent;
+import io.mateu.uidl.core.annotations.Section;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 

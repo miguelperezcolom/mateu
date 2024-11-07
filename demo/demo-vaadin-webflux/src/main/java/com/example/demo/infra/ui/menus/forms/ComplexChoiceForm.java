@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ComplexKey;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ComplexKeyChoice;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ComplexKeyOption;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.data.ComplexKey;
+import io.mateu.uidl.core.interfaces.ComplexKeyChoice;
+import io.mateu.uidl.core.interfaces.ComplexKeyOption;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;

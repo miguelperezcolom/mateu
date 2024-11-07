@@ -1,13 +1,13 @@
 package io.mateu.jpa.domain.ui.cruds.queries.rows;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import io.mateu.dtos.StatusType;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
+import io.mateu.uidl.core.annotations.Status;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;
@@ -29,13 +29,13 @@ public class RowsQueryHandler {
   private static final String dangerStatuses = "inactive,off,false,danger,fail";
 
   @PersistenceContext private EntityManager em;
-  @Autowired ReflectionHelper reflectionHelper;
+  @Autowired ReflectionService reflectionService;
 
   @Transactional
   public Flux run(RowsQuery query) {
     try {
       jakarta.persistence.Query q =
-          new QueryHelper(reflectionHelper)
+          new QueryHelper(reflectionService)
               .buildJpaQuery(
                   query,
                   em,
@@ -83,7 +83,7 @@ public class RowsQueryHandler {
       Status statusAnnotation = field.getAnnotation(Status.class);
       return new io.mateu.dtos.Status(getStatusType(statusAnnotation, "" + value), "" + value);
     }
-    if (reflectionHelper.isBasic(value.getClass())) {
+    if (reflectionService.isBasic(value.getClass())) {
       return value;
     }
     return "" + value;

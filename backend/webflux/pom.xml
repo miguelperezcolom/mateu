@@ -50,6 +50,7 @@
     <module>optionals/jpa</module>
       <module>optionals/springboot-security</module>
       <module>optionals/embedded-front</module>
+      <module>uidl</module>
   </modules>
 
   <dependencyManagement>

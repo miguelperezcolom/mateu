@@ -7,17 +7,17 @@ import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.inbound.persistence.Merger;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.On;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ClientSideEvent;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.Button;
+import io.mateu.uidl.core.annotations.MainAction;
+import io.mateu.uidl.core.annotations.On;
+import io.mateu.uidl.core.data.ClientSideEvent;
+import io.mateu.uidl.core.interfaces.Listing;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,8 +34,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   final Merger merger;
   final ActualValueExtractor actualValueExtractor;
-  final ReflectionHelper reflectionHelper;
-  final Serializer serializer;
+  final ReflectionService reflectionService;
+  final SerializerService serializerService;
   final ValidationService validationService;
   final ComponentFactory componentFactory;
   final UIIncrementFactory uIIncrementFactory;
@@ -55,30 +55,30 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   private Map<String, Method> getActions(Object viewInstance) {
     Map<String, Method> methodMap = new LinkedHashMap<>();
     methodMap.putAll(
-        reflectionHelper.getAllMethods(viewInstance.getClass()).stream()
+        reflectionService.getAllMethods(viewInstance.getClass()).stream()
             .filter(
                 m ->
                     m.isAnnotationPresent(Action.class)
                         || m.isAnnotationPresent(MainAction.class)
                         || m.isAnnotationPresent(On.class))
             .collect(Collectors.toMap(m -> m.getName(), m -> m)));
-    reflectionHelper
+    reflectionService
         .getAllFields(viewInstance.getClass())
         .forEach(
             f -> {
               methodMap.putAll(
-                  reflectionHelper.getAllMethods(f.getType()).stream()
+                  reflectionService.getAllMethods(f.getType()).stream()
                       .filter(m -> m.isAnnotationPresent(On.class))
                       .collect(Collectors.toMap(m -> f.getName() + "." + m.getName(), m -> m)));
             });
-    reflectionHelper.getAllEditableFields(viewInstance.getClass()).stream()
+    reflectionService.getAllEditableFields(viewInstance.getClass()).stream()
         .filter(f -> !managedTypeChecker.isManaged(f))
         .forEach(
             f -> {
               try {
-                var value = reflectionHelper.getValue(f, viewInstance);
+                var value = reflectionService.getValue(f, viewInstance);
                 if (value == null) {
-                  value = reflectionHelper.newInstance(f.getType());
+                  value = reflectionService.newInstance(f.getType());
                 }
                 getActions(value).forEach((k, v) -> methodMap.put(f.getName() + "." + k, v));
               } catch (NoSuchMethodException
@@ -91,7 +91,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
     if (viewInstance instanceof Listing<?, ?>) {
       if (!methodMap.containsKey("itemSelected")) {
         methodMap.put(
-            "itemSelected", reflectionHelper.getMethod(viewInstance.getClass(), "onRowSelected"));
+            "itemSelected", reflectionService.getMethod(viewInstance.getClass(), "onRowSelected"));
       }
     }
     return methodMap;
@@ -145,7 +145,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               (List<Map<String, Object>>) data.get("_selectedRows");
           List<Object> selectedRows = new ArrayList<>();
           for (Map<String, Object> row : rowsData) {
-            selectedRows.add(reflectionHelper.newInstance(listing.getRowClass(), row));
+            selectedRows.add(reflectionService.newInstance(listing.getRowClass(), row));
           }
           values.add(selectedRows);
           continue;
@@ -155,14 +155,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
               (List<Map<String, Object>>) data.get("_selectedRows");
           if (!rowsData.isEmpty()) {
             Map<String, Object> selectedRow = rowsData.get(0);
-            values.add(reflectionHelper.newInstance(listing.getRowClass(), selectedRow));
+            values.add(reflectionService.newInstance(listing.getRowClass(), selectedRow));
           } else {
             values.add(null);
           }
           continue;
         }
         if (m.getName().equals("onRowSelected")) {
-          values.add(reflectionHelper.newInstance(listing.getRowClass(), data));
+          values.add(reflectionService.newInstance(listing.getRowClass(), data));
           continue;
         }
       }
@@ -174,7 +174,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
   boolean isSelectionParameter(ParameterizedType type, Listing listing) {
     return List.class.equals(type.getRawType())
-        && reflectionHelper.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
+        && reflectionService.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
   }
 
   public Mono<UIIncrement> runMethod(
@@ -208,7 +208,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         return Mono.just(
             uIIncrementFactory.createForSingleComponent(
                 componentFactory.createFormComponent(
-                    new MethodParametersEditor(actualViewInstance, m.getName(), serializer),
+                    new MethodParametersEditor(actualViewInstance, m.getName(), serializerService),
                     serverHttpRequest,
                     data)));
       }
@@ -243,7 +243,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       methodOwner =
           getMethodOwner(
               actionId.substring(actionId.indexOf(".") + 1),
-              reflectionHelper.getValue(
+              reflectionService.getValue(
                   actionId.substring(0, actionId.indexOf(".")), actualViewInstance));
     }
     return methodOwner;
@@ -270,7 +270,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 .anyMatch(
                     type ->
                         List.class.equals(type.getRawType())
-                            && reflectionHelper
+                            && reflectionService
                                 .getGenericClass(type, List.class, "E")
                                 .equals(listing.getRowClass()));
         if (isMultipleSelectionParameter) {
@@ -289,11 +289,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   private boolean needsValidation(Method m) {
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-          .validateBefore();
+    if (m.isAnnotationPresent(Action.class)) {
+      return m.getAnnotation(Action.class).validateBefore();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).validateBefore();

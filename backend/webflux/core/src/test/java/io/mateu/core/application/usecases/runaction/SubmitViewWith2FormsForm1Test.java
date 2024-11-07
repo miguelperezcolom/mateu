@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.mateu.core.application.usecases.RunStepUseCase;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.SimpleForm;
 import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.SingleComponent;
@@ -27,7 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class SubmitViewWith2FormsForm1Test {
 
   @Autowired RunStepUseCase runStepUseCase;
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Test
   @Disabled
@@ -62,7 +62,7 @@ public class SubmitViewWith2FormsForm1Test {
   @SneakyThrows
   private void assertUIIncrement(UIIncrement uiIncrement) {
     assertNotNull(uiIncrement);
-    log.info(serializer.toJson(uiIncrement));
+    log.info(serializerService.toJson(uiIncrement));
     var json =
         new String(
                 getClass().getResourceAsStream("viewwith2forms-submit1.json").readAllBytes(),
@@ -70,6 +70,6 @@ public class SubmitViewWith2FormsForm1Test {
             .replaceAll(
                 "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e",
                 ((SingleComponent) uiIncrement.uiFragments().get(0).content()).componentId());
-    JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
+    JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

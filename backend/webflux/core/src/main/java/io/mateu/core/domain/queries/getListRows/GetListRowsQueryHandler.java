@@ -2,10 +2,10 @@ package io.mateu.core.domain.queries.getListRows;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
 import io.mateu.dtos.SortType;
+import io.mateu.uidl.core.interfaces.Listing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,12 +19,12 @@ import reactor.core.publisher.Mono;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class GetListRowsQueryHandler {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
   private final FiltersDeserializer filtersDeserializer;
 
   public GetListRowsQueryHandler(
-      ReflectionHelper reflectionHelper, FiltersDeserializer filtersDeserializer) {
-    this.reflectionHelper = reflectionHelper;
+      ReflectionService reflectionService, FiltersDeserializer filtersDeserializer) {
+    this.reflectionService = reflectionService;
     this.filtersDeserializer = filtersDeserializer;
   }
 
@@ -32,7 +32,7 @@ public class GetListRowsQueryHandler {
   public Mono<Page<Object>> run(GetListRowsQuery query) throws Throwable {
 
     Object instance =
-        reflectionHelper.newInstance(Class.forName(query.componentType()), query.data());
+        reflectionService.newInstance(Class.forName(query.componentType()), query.data());
 
     if (instance == null) {
       return Mono.empty();

@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.passwordResets;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.uidl.core.interfaces.Crud;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

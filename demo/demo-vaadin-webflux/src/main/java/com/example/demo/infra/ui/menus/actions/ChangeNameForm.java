@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.actions;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
+import io.mateu.uidl.core.annotations.ActionTarget;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.MainAction;
 
 @Caption("Change name")
 public class ChangeNameForm {

@@ -5,16 +5,17 @@ import io.mateu.core.domain.model.files.FileChecker;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ButtonMetadataBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Content;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Element;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.TelephoneNumber;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ValuesListProvider;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.annotations.Content;
+import io.mateu.uidl.core.annotations.Element;
+import io.mateu.uidl.core.data.ExternalReference;
+import io.mateu.uidl.core.data.IconChooser;
+import io.mateu.uidl.core.data.TelephoneNumber;
+import io.mateu.uidl.core.data.ValuesListProvider;
+import io.mateu.uidl.core.interfaces.Icon;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -33,7 +34,7 @@ public class FieldAttributeBuilder {
 
   final FileChecker fileChecker;
   final FieldTypeMapper fieldTypeMapper;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
   final ButtonMetadataBuilder buttonMetadataBuilder;
   private final Humanizer humanizer;
@@ -57,8 +58,9 @@ public class FieldAttributeBuilder {
         attributes.add(new Pair("action", image.action()));
       }
     }
-    if (field.isAnnotationPresent(Icon.class)) {
-      Icon icon = field.getAnnotation(Icon.class);
+    if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Icon.class)) {
+      io.mateu.uidl.core.annotations.Icon icon =
+          field.getAnnotation(io.mateu.uidl.core.annotations.Icon.class);
       attributes.add(new Pair("icon-src", "icon-src"));
       if (!icon.cssClasses().isEmpty()) {
         attributes.add(new Pair("cssClasses", icon.cssClasses()));
@@ -141,7 +143,7 @@ public class FieldAttributeBuilder {
       try {
         ValuesListProvider provider =
             (ValuesListProvider)
-                reflectionHelper.newInstance(field.getAnnotation(ValuesProvider.class).value());
+                reflectionService.newInstance(field.getAnnotation(ValuesProvider.class).value());
         provider
             .getAll()
             .forEach(
@@ -155,7 +157,7 @@ public class FieldAttributeBuilder {
     if (field.isAnnotationPresent(ValuesProviderMethod.class)) {
       try {
         Method m =
-            reflectionHelper.getMethod(
+            reflectionService.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
         List<Value> choices = (List<Value>) m.invoke(view);
         choices.forEach(
@@ -175,17 +177,14 @@ public class FieldAttributeBuilder {
       }
     }
     if (field.getType().equals(IconChooser.class)) {
-      for (Object enumConstant :
-          io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.values()) {
+      for (Object enumConstant : Icon.values()) {
         attributes.add(
             new Pair(
                 "choice",
                 new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
       }
     }
-    if ((field.getType().isEnum()
-            && !io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon.class.equals(
-                field.getType()))
+    if ((field.getType().isEnum() && !Icon.class.equals(field.getType()))
         || (field.getType().isArray() && field.getType().getComponentType().isEnum())
         || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())) {
       Class enumType = field.getType();
@@ -205,10 +204,10 @@ public class FieldAttributeBuilder {
       }
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && !reflectionHelper.isBasic(field.getType())
+        && !reflectionService.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
-      for (Field columnField : reflectionHelper.getAllEditableFields(field.getGenericClass())) {
+      for (Field columnField : reflectionService.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
             new Pair(
                 "column",
@@ -233,13 +232,13 @@ public class FieldAttributeBuilder {
       }
     }
     if (field.getType().isAnnotationPresent(Element.class)) {
-      reflectionHelper.getAllFields(field.getType()).stream()
+      reflectionService.getAllFields(field.getType()).stream()
           .filter(m -> m.isAnnotationPresent(Content.class))
           .forEach(
               m -> {
                 attributes.add(new Pair("contentField", m.getName()));
               });
-      reflectionHelper.getAllMethods(field.getType()).stream()
+      reflectionService.getAllMethods(field.getType()).stream()
           .filter(m -> m.isAnnotationPresent(On.class))
           .forEach(
               m -> {

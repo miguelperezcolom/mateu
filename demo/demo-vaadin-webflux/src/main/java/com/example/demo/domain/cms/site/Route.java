@@ -1,6 +1,6 @@
 package com.example.demo.domain.cms.site;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Status;
+import io.mateu.uidl.core.annotations.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -2,10 +2,13 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.*;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Private;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Submenu;
+import io.mateu.uidl.core.annotations.MenuOption;
+import io.mateu.uidl.core.annotations.Private;
+import io.mateu.uidl.core.annotations.Submenu;
+import io.mateu.uidl.core.interfaces.App;
+import io.mateu.uidl.core.interfaces.HasAppTitle;
+import io.mateu.uidl.core.interfaces.HasApps;
+import io.mateu.uidl.core.interfaces.HasLogin;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +20,8 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
 // , IncludesRemoteUIs
 {
 
-  @Submenu private FormsSubmenu forms;
+  @Submenu
+  private FormsSubmenu forms;
 
   @Submenu private CrudsSubmenu cruds;
 
@@ -29,7 +33,9 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
 
   //@Submenu private UseCasesSubmenu useCases;
 
-  @MenuOption @Private private BasicFieldsForm eyesOnly;
+  @MenuOption
+  @Private
+  private BasicFieldsForm eyesOnly;
 
   @Override
   public String getLoginUrl() {

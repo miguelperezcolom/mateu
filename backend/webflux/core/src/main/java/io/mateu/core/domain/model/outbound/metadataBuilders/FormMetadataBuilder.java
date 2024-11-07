@@ -1,24 +1,26 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.model.inbound.dynamic.DynamicForm;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.RulesBuilder;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectionField;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.FakeCaptionAnnotation;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadges;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBanners;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Action;
 import io.mateu.dtos.FieldGroup;
 import io.mateu.dtos.Section;
 import io.mateu.dtos.Status;
 import io.mateu.dtos.Tab;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.interfaces.HasBadges;
+import io.mateu.uidl.core.interfaces.HasBanners;
+import io.mateu.uidl.core.interfaces.HasIcon;
+import io.mateu.uidl.core.interfaces.HasStatus;
+import io.mateu.uidl.core.interfaces.HasSubtitle;
+import io.mateu.uidl.core.interfaces.JpaRpcCrudFactory;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
@@ -44,7 +46,7 @@ public class FormMetadataBuilder {
   final ActionMetadataBuilder actionMetadataBuilder;
   final FieldMetadataBuilder fieldMetadataBuilder;
   final JpaRpcCrudFactory jpaRpcCrudFactory;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
   final RulesBuilder rulesBuilder;
   private final BasicTypeChecker basicTypeChecker;
@@ -97,23 +99,17 @@ public class FormMetadataBuilder {
     }
     String activeTabId = (String) data.get("__activeTabId");
     List<Tab> tabs = new ArrayList<>();
-    var editableFields = reflectionHelper.getAllEditableFields(uiInstance.getClass());
+    var editableFields = reflectionService.getAllEditableFields(uiInstance.getClass());
     AtomicBoolean first = new AtomicBoolean(true);
     tabs.addAll(
         editableFields.stream()
-            .filter(
-                f ->
-                    f.isAnnotationPresent(
-                        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class))
+            .filter(f -> f.isAnnotationPresent(io.mateu.uidl.core.annotations.Tab.class))
             .map(
                 f ->
                     new Tab(
                         "tab_" + f.getId(),
                         isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
-                        f.getAnnotation(
-                                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab
-                                    .class)
-                            .value()))
+                        f.getAnnotation(io.mateu.uidl.core.annotations.Tab.class).value()))
             .collect(Collectors.toList()));
     return tabs;
   }
@@ -134,25 +130,20 @@ public class FormMetadataBuilder {
             .map(
                 banner ->
                     new Banner(
-                        mapBannerTheme(banner.getTheme()),
-                        banner.getHasIcon(),
-                        banner.getHasCloseButton(),
-                        banner.getTitle(),
-                        banner.getDescription()))
+                        mapBannerTheme(banner.theme()),
+                        banner.hasIcon(),
+                        banner.hasCloseButton(),
+                        banner.title(),
+                        banner.description()))
             .collect(Collectors.toList());
   }
 
-  private BannerTheme mapBannerTheme(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BannerTheme theme) {
+  private BannerTheme mapBannerTheme(io.mateu.uidl.core.data.BannerTheme theme) {
     return BannerTheme.valueOf(theme.toString());
   }
 
   private boolean isReadOnly(Object uiInstance) {
-    return uiInstance != null
-        && uiInstance
-            .getClass()
-            .isAnnotationPresent(
-                io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ReadOnly.class);
+    return uiInstance != null && uiInstance.getClass().isAnnotationPresent(ReadOnly.class);
   }
 
   public boolean isOwner(Field f) {
@@ -182,12 +173,10 @@ public class FormMetadataBuilder {
     }
     HasStatus hasStatus = (HasStatus) uiInstance;
     if (hasStatus.getStatus() == null) return null;
-    return new Status(
-        mapStatusType(hasStatus.getStatus().getType()), hasStatus.getStatus().getMessage());
+    return new Status(mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
   }
 
-  private StatusType mapStatusType(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.uidl.core.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -199,11 +188,11 @@ public class FormMetadataBuilder {
         .getBadges().stream()
             .map(
                 b -> {
-                  BadgeTheme theme = mapBadgeTheme(b.getTheme());
-                  String label = b.getLabel();
-                  String icon = b.getIcon();
-                  BadgeStyle badgeStyle = mapBadgeStyle(b.getBadgeStyle());
-                  BadgeIconPosition iconPosition = mapBadgePosition(b.getIconPosition());
+                  BadgeTheme theme = mapBadgeTheme(b.theme());
+                  String label = b.label();
+                  String icon = b.icon();
+                  BadgeStyle badgeStyle = mapBadgeStyle(b.badgeStyle());
+                  BadgeIconPosition iconPosition = mapBadgePosition(b.iconPosition());
 
                   if (theme != null
                       && label != null
@@ -228,13 +217,11 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(io.mateu.uidl.core.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeStyle badgeStyle) {
+  private BadgeStyle mapBadgeStyle(io.mateu.uidl.core.data.BadgeStyle badgeStyle) {
     if (badgeStyle == null) {
       return BadgeStyle.ROUND;
     }
@@ -242,7 +229,7 @@ public class FormMetadataBuilder {
   }
 
   private BadgeIconPosition mapBadgePosition(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeIconPosition iconPosition) {
+      io.mateu.uidl.core.data.BadgeIconPosition iconPosition) {
     if (iconPosition == null) {
       return BadgeIconPosition.RIGHT;
     }
@@ -250,7 +237,7 @@ public class FormMetadataBuilder {
   }
 
   private List<Action> getMainActions(Object uiInstance) {
-    List<Method> allMethods = reflectionHelper.getAllMethods(uiInstance.getClass());
+    List<Method> allMethods = reflectionService.getAllMethods(uiInstance.getClass());
     List<Action> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
@@ -273,7 +260,7 @@ public class FormMetadataBuilder {
 
   private List<Field> getAllEditableFields(Object uiInstance, List<Field> slotFields) {
     var allFields =
-        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+        reflectionService.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
             .flatMap(f -> plain(f))
@@ -283,7 +270,7 @@ public class FormMetadataBuilder {
 
   private Stream<Field> plain(Field field) {
     if (!managedTypeChecker.isManaged(field)) {
-      return reflectionHelper.getAllFields(field.getType()).stream()
+      return reflectionService.getAllFields(field.getType()).stream()
           .map(f -> (Field) new FieldFromReflectionField(f, createCaptionAnnotation(field, f)))
           .peek(f -> f.setId(field.getId() + "." + f.getId()));
     }
@@ -346,11 +333,9 @@ public class FormMetadataBuilder {
     String topImageUrl = "";
     boolean card = true;
     int numberOfColumns = defaultColumnsNumber;
-    if (firstField.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class)) {
-      io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section annotation =
-          firstField.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class);
+    if (firstField.isAnnotationPresent(io.mateu.uidl.core.annotations.Section.class)) {
+      io.mateu.uidl.core.annotations.Section annotation =
+          firstField.getAnnotation(io.mateu.uidl.core.annotations.Section.class);
       caption = annotation.value();
       card = annotation.card();
       description = annotation.description();
@@ -382,8 +367,7 @@ public class FormMetadataBuilder {
     List<Field> fieldsInSection = new ArrayList<>();
     fieldsInTab.forEach(
         field -> {
-          if (field.isAnnotationPresent(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section.class)) {
+          if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Section.class)) {
             if (!fieldsInSection.isEmpty()) {
               fieldsBySection.add(new ArrayList<>(fieldsInSection));
               fieldsInSection.clear();
@@ -402,12 +386,10 @@ public class FormMetadataBuilder {
     String tabId = "";
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Tab.class)) {
+      if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Tab.class)) {
         tabId = "tab_" + field.getId();
       }
-      if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.NoTab.class)) {
+      if (field.isAnnotationPresent(NoTab.class)) {
         tabId = "";
       }
       fieldsByTabId.putIfAbsent(tabId, new ArrayList<>());
@@ -425,8 +407,7 @@ public class FormMetadataBuilder {
     int currentGroupColumns = 0;
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(
-          io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)) {
+      if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.FieldGroup.class)) {
 
         if (!lines.isEmpty()) {
           addGroup(
@@ -438,15 +419,9 @@ public class FormMetadataBuilder {
               currentGroupColumns);
         }
         String caption =
-            field
-                .getAnnotation(
-                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
-                .value();
+            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).value();
         int columns =
-            field
-                .getAnnotation(
-                    io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FieldGroup.class)
-                .columns();
+            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).columns();
         currentGroupCaption = caption;
         currentGroupColumns = columns;
         lines.clear();

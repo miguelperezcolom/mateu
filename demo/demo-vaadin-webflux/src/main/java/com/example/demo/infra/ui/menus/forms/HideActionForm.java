@@ -1,13 +1,13 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.RawContent;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VisibleIf;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.StatusType;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasStatus;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.core.annotations.RawContent;
+import io.mateu.uidl.core.annotations.VisibleIf;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.data.StatusType;
+import io.mateu.uidl.core.interfaces.HasStatus;
 import lombok.Data;
 
 @Data

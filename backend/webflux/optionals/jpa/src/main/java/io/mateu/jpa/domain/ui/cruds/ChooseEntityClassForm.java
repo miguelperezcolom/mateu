@@ -2,12 +2,12 @@ package io.mateu.jpa.domain.ui.cruds;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Ignored;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ValuesProviderMethod;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.Value;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.core.annotations.MainAction;
+import io.mateu.uidl.core.annotations.ValuesProviderMethod;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 public class ChooseEntityClassForm {
 
   @Ignored private Map<String, String> subclasses;
-  @Ignored @Autowired ReflectionHelper reflectionHelper;
+  @Ignored @Autowired ReflectionService reflectionService;
   @Ignored @Autowired Humanizer humanizer;
 
   public ChooseEntityClassForm(Set<Class> subclasses) {
@@ -50,6 +50,6 @@ public class ChooseEntityClassForm {
 
   @MainAction
   public Object create() throws Exception {
-    return reflectionHelper.newInstance(Class.forName(type));
+    return reflectionService.newInstance(Class.forName(type));
   }
 }

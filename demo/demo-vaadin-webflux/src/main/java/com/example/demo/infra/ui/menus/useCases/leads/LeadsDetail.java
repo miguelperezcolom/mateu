@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
+import io.mateu.uidl.core.annotations.Action;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

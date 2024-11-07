@@ -5,18 +5,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.outbound.metadataBuilders.RpcCrudViewExtended;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.model.util.Serializer;
 import io.mateu.core.domain.model.util.data.Pair;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.MDDOpenCRUDAction;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasActions;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.RpcCrudViewExtended;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Status;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.SumData;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.IResource;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommand;
 import io.mateu.jpa.domain.ui.cruds.commands.DeleteRowsCommandHandler;
 import io.mateu.jpa.domain.ui.cruds.queries.count.CountQuery;
@@ -25,6 +17,14 @@ import io.mateu.jpa.domain.ui.cruds.queries.findById.FindByIdQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.findById.FindByIdQueryHandler;
 import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQuery;
 import io.mateu.jpa.domain.ui.cruds.queries.rows.RowsQueryHandler;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.app.MDDOpenCRUDAction;
+import io.mateu.uidl.core.data.Status;
+import io.mateu.uidl.core.data.SumData;
+import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.core.interfaces.HasActions;
+import io.mateu.uidl.core.interfaces.IResource;
+import io.mateu.uidl.core.interfaces.Serializer;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -84,7 +84,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   @JsonIgnore @Autowired CountQueryHandler countQueryHandler;
   @JsonIgnore @Autowired RowsQueryHandler rowsQueryHandler;
   @JsonIgnore @Autowired FindByIdQueryHandler findByIdQueryHandler;
-  @JsonIgnore @Autowired ReflectionHelper reflectionHelper;
+  @JsonIgnore @Autowired ReflectionService reflectionService;
   @JsonIgnore @Autowired Humanizer humanizer;
 
   public JpaRpcCrudView() {}
@@ -282,7 +282,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
 
   @Override
   public void delete(List<Object> selection) throws Throwable {
-    reflectionHelper
+    reflectionService
         .newInstance(DeleteRowsCommandHandler.class)
         .run(
             DeleteRowsCommand.builder()
@@ -313,7 +313,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
         } else p = null;
         if (!"".equals(pathAcumulado)) pathAcumulado += ".";
         pathAcumulado += s;
-        fx = reflectionHelper.getFieldByName(type, s);
+        fx = reflectionService.getFieldByName(type, s);
         if (fx != null) {
           type = fx.getType();
           if (type.isAnnotationPresent(Entity.class) && !fx.isAnnotationPresent(NotNull.class)) {
@@ -338,7 +338,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
       List<String> columnNames,
       Map<String, Field> fieldsByColumnName) {
     Field idField = null;
-    for (Field f : reflectionHelper.getAllFields(targetType)) {
+    for (Field f : reflectionService.getAllFields(targetType)) {
       if (f.isAnnotationPresent(Id.class)) idField = f;
     }
     if (idField != null) columnNames.add(0, idField.getName());
@@ -359,7 +359,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (Strings.isNullOrEmpty(fieldsFilter)) {
 
       explicitColumns =
-          reflectionHelper.getAllFields(objectType).stream()
+          reflectionService.getAllFields(objectType).stream()
               .filter(
                   f ->
                       !f.isAnnotationPresent(OneToMany.class)
@@ -394,7 +394,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           fns.stream()
               .map(
                   n -> {
-                    Field f = reflectionHelper.getFieldByName(objectType, n);
+                    Field f = reflectionService.getFieldByName(objectType, n);
                     if (columNames != null && fieldsByColumnName != null) {
                       columNames.add(n);
                       fieldsByColumnName.put(n, f);
@@ -410,7 +410,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     } else {
 
       List<Field> cols =
-          reflectionHelper.getAllFields(objectType).stream()
+          reflectionService.getAllFields(objectType).stream()
               .filter(
                   (f) ->
                       !"_proxied".equalsIgnoreCase(f.getName())
@@ -432,7 +432,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
                                   && f.getAnnotation(UseCheckboxes.class).editableInline()))
                           && !Map.class.isAssignableFrom(f.getType())
                           && !f.isAnnotationPresent(GeneratedValue.class)
-                          && (reflectionHelper.isBasic(f.getType())
+                          && (reflectionService.isBasic(f.getType())
                               || BigDecimal.class.equals(f.getType())
                               || f.getType().isEnum()
                               || f.getType().isAnnotationPresent(Entity.class)
@@ -474,7 +474,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (Strings.isNullOrEmpty(action.getFilters())) {
 
       List<Field> filterFields =
-          reflectionHelper.getAllFields(filtersType).stream()
+          reflectionService.getAllFields(filtersType).stream()
               .filter(
                   (f) ->
                       !f.isAnnotationPresent(Password.class)
@@ -485,7 +485,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
               .collect(Collectors.toList());
       if (filterFields.size() == 0) {
         filterFields =
-            reflectionHelper.getAllFields(filtersType).stream()
+            reflectionService.getAllFields(filtersType).stream()
                 .filter(
                     (f) ->
                         !f.isAnnotationPresent(Password.class)
@@ -522,7 +522,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
           fns.stream()
               .map(
                   n -> {
-                    Field f = reflectionHelper.getFieldByName(filtersType, n);
+                    Field f = reflectionService.getFieldByName(filtersType, n);
                     if (f != null) {
                       filterNames.add(n);
                       fieldsByFilterName.put(n, f);
@@ -567,7 +567,7 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
   }
 
   public Object getDetail(Object id) throws Throwable {
-    return reflectionHelper
+    return reflectionService
         .newInstance(FindByIdQueryHandler.class)
         .run(FindByIdQuery.builder().id(getId(id)).entityClass(action.getEntityClass()).build());
   }
@@ -576,22 +576,22 @@ public class JpaRpcCrudView implements Crud<Object, Object>, RpcCrudViewExtended
     if (row instanceof Map) {
       return ((Map) row).get("col0");
     }
-    return reflectionHelper.getId(row);
+    return reflectionService.getId(row);
   }
 
   @JsonIgnore
   public Object getNewRecordForm() throws Throwable {
-    Set<Class> subclasses = reflectionHelper.getSubclasses(getEntityClass());
+    Set<Class> subclasses = reflectionService.getSubclasses(getEntityClass());
     if (subclasses.size() > 1) {
       return new ChooseEntityClassForm(subclasses);
     }
-    return reflectionHelper.newInstance(getEntityClass());
+    return reflectionService.newInstance(getEntityClass());
   }
 
   @JsonIgnore
   @Override
   public List<Method> getActionMethods() {
-    return reflectionHelper.getAllMethods(getEntityClass()).stream()
+    return reflectionService.getAllMethods(getEntityClass()).stream()
         .filter(m -> m.isAnnotationPresent(Action.class))
         .filter(m -> Modifier.isStatic(m.getModifiers()))
         .collect(Collectors.toList());

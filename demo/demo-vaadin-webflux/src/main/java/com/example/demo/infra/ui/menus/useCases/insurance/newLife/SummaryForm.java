@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.*;
 import lombok.Getter;
 import lombok.Setter;
 

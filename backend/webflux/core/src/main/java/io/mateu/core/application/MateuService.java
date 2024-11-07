@@ -3,7 +3,7 @@ package io.mateu.core.application;
 import com.opencsv.CSVWriter;
 import io.mateu.core.application.usecases.*;
 import io.mateu.core.application.usecases.fetchlist.FetchListUseCase;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
 import io.mateu.dtos.*;
 import io.mateu.dtos.UIIncrement;
@@ -48,7 +48,7 @@ public class MateuService {
 
   private final ServeFileUseCase serveFileUseCase;
 
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   public MateuService(
       GetUiUseCase getUiUseCase,
@@ -180,7 +180,7 @@ public class MateuService {
       return (Map<String, Object>) o;
     } else {
       try {
-        return serializer.toMap(o);
+        return serializerService.toMap(o);
       } catch (Exception e) {
         e.printStackTrace();
         return Map.of();

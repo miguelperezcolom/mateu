@@ -2,10 +2,10 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.Button;
 import java.net.URL;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class ButtonMetadataBuilder {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
 
   public Action getAction(Field m) {
@@ -67,26 +67,19 @@ public class ButtonMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget getRealTarget(
-      Field m) {
-    var target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.View;
+  private io.mateu.uidl.core.annotations.ActionTarget getRealTarget(Field m) {
+    var target = io.mateu.uidl.core.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(Button.class)) {
       target = m.getAnnotation(Button.class).target();
     }
     if (Callable.class.isAssignableFrom(m.getType())
-        && URL.class.equals(reflectionHelper.getGenericClass(m, Callable.class, "V"))) {
-      if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewTab.equals(
-          target)) {
-        target =
-            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget
-                .DeferredNewTab;
-      } else if (io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.NewWindow
-          .equals(target)) {
-        target =
-            io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget
-                .DeferredNewWindow;
+        && URL.class.equals(reflectionService.getGenericClass(m, Callable.class, "V"))) {
+      if (io.mateu.uidl.core.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.uidl.core.annotations.ActionTarget.NewWindow.equals(target)) {
+        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewWindow;
       } else {
-        target = io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget.Deferred;
+        target = io.mateu.uidl.core.annotations.ActionTarget.Deferred;
       }
     }
     return target;

@@ -8,12 +8,12 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.Button;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -34,8 +34,8 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   public RunButtonActionRunner(
       Merger merger,
       ActualValueExtractor actualValueExtractor,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer,
+      ReflectionService reflectionService,
+      SerializerService serializerService,
       ValidationService validationService,
       ComponentFactory componentFactory,
       UIIncrementFactory uIIncrementFactory,
@@ -51,8 +51,8 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
     super(
         merger,
         actualValueExtractor,
-        reflectionHelper,
-        serializer,
+        reflectionService,
+        serializerService,
         validationService,
         componentFactory,
         uIIncrementFactory,
@@ -71,7 +71,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   }
 
   private Map<Object, Field> getActions(Object viewInstance) {
-    return reflectionHelper.getAllFields(viewInstance.getClass()).stream()
+    return reflectionService.getAllFields(viewInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(Button.class))
         .collect(Collectors.toMap(m -> m.getName(), m -> m));
   }

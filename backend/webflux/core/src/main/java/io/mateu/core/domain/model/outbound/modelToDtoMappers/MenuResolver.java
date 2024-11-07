@@ -5,12 +5,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.menuResolvers.MenuEntryFactory;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.app.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.MateuSecurityManager;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.MenuEntry;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.app.MDDOpenEditorAction;
+import io.mateu.uidl.core.interfaces.MateuSecurityManager;
+import io.mateu.uidl.core.interfaces.MenuEntry;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class MenuResolver {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
   private final MateuSecurityManager mateuSecurityManager;
   private final MenuEntryFactory menuEntryFactory;
   private final Humanizer humanizer;
@@ -48,7 +48,7 @@ public class MenuResolver {
   private MenuEntry resolve(
       Object menuHolder, String prefix, String actionId, ServerHttpRequest serverHttpRequest) {
 
-    for (Field f : reflectionHelper.getAllFields(menuHolder.getClass())) {
+    for (Field f : reflectionService.getAllFields(menuHolder.getClass())) {
 
       if (actionId.startsWith(prefix + f.getName())) {
 
@@ -179,9 +179,9 @@ public class MenuResolver {
   private Object getValue(Object object, AnnotatedElement e) {
     if (e instanceof Field) {
       var field = (Field) e;
-      Object value = reflectionHelper.getValue(field, object);
+      Object value = reflectionService.getValue(field, object);
       if (value == null) {
-        value = reflectionHelper.newInstance(field.getType());
+        value = reflectionService.newInstance(field.getType());
       }
       return value;
     } else if (e instanceof Method) {

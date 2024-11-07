@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.forms.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.FormColumns;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
+import io.mateu.uidl.core.annotations.FormColumns;
+import io.mateu.uidl.core.annotations.MenuOption;
+import io.mateu.uidl.core.interfaces.JourneyStarter;
 
 @FormColumns(2)
 public class FormOthersSubmenu {

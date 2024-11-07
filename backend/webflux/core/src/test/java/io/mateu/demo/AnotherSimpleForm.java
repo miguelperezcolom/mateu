@@ -1,11 +1,11 @@
 package io.mateu.demo;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Form;
-import io.mateu.dtos.ResultType;
+import io.mateu.uidl.core.annotations.ActionTarget;
+import io.mateu.uidl.core.annotations.MainAction;
+import io.mateu.uidl.core.annotations.MateuUI;
+import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.core.interfaces.Form;
+import io.mateu.uidl.core.interfaces.Message;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.uidl.core.interfaces.Crud;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;

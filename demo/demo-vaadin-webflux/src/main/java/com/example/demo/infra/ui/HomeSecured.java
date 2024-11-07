@@ -2,9 +2,9 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
 import com.example.demo.infra.ui.menus.forms.TextFieldsForm;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ConsumesContextData;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.HasLogout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.uidl.core.interfaces.ConsumesContextData;
+import io.mateu.uidl.core.interfaces.HasLogout;
+import io.mateu.uidl.core.annotations.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;

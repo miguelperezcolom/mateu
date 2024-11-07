@@ -3,9 +3,9 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.uidl.core.interfaces.Crud;
 import java.lang.reflect.Method;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -15,15 +15,15 @@ import reactor.core.publisher.Mono;
 @Service
 public class CrudRowActionRunner implements ListActionRunner {
 
-  private final Serializer serializer;
+  private final SerializerService serializerService;
   private final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
 
   public CrudRowActionRunner(
-      Serializer serializer,
+      SerializerService serializerService,
       ComponentFactory componentFactory,
       UIIncrementFactory uIIncrementFactory) {
-    this.serializer = serializer;
+    this.serializerService = serializerService;
     this.componentFactory = componentFactory;
     this.uIIncrementFactory = uIIncrementFactory;
   }
@@ -55,7 +55,9 @@ public class CrudRowActionRunner implements ListActionRunner {
     try {
 
       Method method = crud.getClass().getMethod(methodName, crud.getRowClass());
-      var r = method.invoke(crud, serializer.fromJson(serializer.toJson(row), crud.getRowClass()));
+      var r =
+          method.invoke(
+              crud, serializerService.fromJson(serializerService.toJson(row), crud.getRowClass()));
 
       if (r == null) {
         return Mono.just(

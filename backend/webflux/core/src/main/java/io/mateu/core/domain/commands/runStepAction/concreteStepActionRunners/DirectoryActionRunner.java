@@ -4,9 +4,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.MenuResolver;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Directory;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.UIIncrement;
+import io.mateu.uidl.core.interfaces.Directory;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -18,18 +18,18 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
 
   private final MenuResolver menuResolver;
   private final ResultMapper resultMapper;
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
   private final StartJourneyCommandHandler startJourneyCommandHandler;
 
   public DirectoryActionRunner(
       MenuResolver menuResolver,
       ResultMapper resultMapper,
-      ReflectionHelper reflectionHelper,
+      ReflectionService reflectionService,
       StartJourneyCommandHandler startJourneyCommandHandler) {
     super();
     this.menuResolver = menuResolver;
     this.resultMapper = resultMapper;
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
     this.startJourneyCommandHandler = startJourneyCommandHandler;
   }
 
@@ -52,7 +52,7 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
     var result = startJourneyCommandHandler.createInstanceFromMenuMapping(menuEntry);
     return resultMapper.processResult(
         viewInstance,
-        reflectionHelper.getMethod(DirectoryActionRunner.class, "run"),
+        reflectionService.getMethod(DirectoryActionRunner.class, "run"),
         data,
         serverHttpRequest,
         result,

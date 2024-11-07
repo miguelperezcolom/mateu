@@ -1,11 +1,11 @@
 package io.mateu.demo.complexview;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.elements.Element;
 import io.mateu.demo.AnotherSimpleForm;
 import io.mateu.demo.complexview.crud.SimpleCrud;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.Element;
+import io.mateu.uidl.core.interfaces.Card;
+import io.mateu.uidl.core.interfaces.Container;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;

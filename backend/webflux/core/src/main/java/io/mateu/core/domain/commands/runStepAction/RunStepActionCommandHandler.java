@@ -3,9 +3,9 @@ package io.mateu.core.domain.commands.runStepAction;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ResultMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ActionHandler;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.interfaces.ActionHandler;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class RunStepActionCommandHandler {
 
   final List<ActionRunner> actionRunners;
   final ActualValueExtractor actualValueExtractor;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final ViewMapper viewMapper;
   private final ResultMapper resultMapper;
 
@@ -38,15 +38,15 @@ public class RunStepActionCommandHandler {
     if (data.containsKey("__actionHandler")) {
       ServerSideObject serverSideObject =
           (ServerSideObject)
-              reflectionHelper.newInstance(
+              reflectionService.newInstance(
                   ServerSideObject.class, (Map<String, Object>) data.get("__actionHandler"));
       ActionHandler actionHandler =
           (ActionHandler)
-              reflectionHelper.newInstance(
+              reflectionService.newInstance(
                   Class.forName(serverSideObject.className()), serverSideObject.data());
       return resultMapper.processResult(
           actionHandler,
-          reflectionHelper.getMethod(actionHandler.getClass(), "handle"),
+          reflectionService.getMethod(actionHandler.getClass(), "handle"),
           data,
           serverHttpRequest,
           actionHandler.handle(serverSideObject, actionId, serverHttpRequest),
@@ -54,7 +54,7 @@ public class RunStepActionCommandHandler {
     }
 
     Object viewInstance =
-        reflectionHelper.newInstance(Class.forName(command.componentType()), data);
+        reflectionService.newInstance(Class.forName(command.componentType()), data);
 
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId, command.contextData())) {

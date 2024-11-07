@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.layouts.shared.crud.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.uidl.core.annotations.MenuOption;
 
 public class CardCrudsSubmenu {
 

@@ -2,8 +2,8 @@ package com.example.demo.infra.ui.menus.useCases.nocodeqa.ui;
 
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests.Test;
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests.steps.TestStep;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JpaCrud;
+import io.mateu.uidl.core.annotations.MenuOption;
+import io.mateu.uidl.core.interfaces.JpaCrud;
 
 import java.util.List;
 

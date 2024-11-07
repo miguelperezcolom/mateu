@@ -1,13 +1,13 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectionField;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.annotations.Action;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class RulesBuilder {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   private final ManagedTypeChecker managedTypeChecker;
 
   public List<Rule> buildRules(Object form) {
@@ -37,7 +37,7 @@ public class RulesBuilder {
 
   private void addRulesForActions(Object actualUiInstance, List<Rule> rules) {
     List<Method> allActions =
-        reflectionHelper.getAllMethods(actualUiInstance.getClass()).stream()
+        reflectionService.getAllMethods(actualUiInstance.getClass()).stream()
             .filter(
                 m -> m.isAnnotationPresent(Action.class) || m.isAnnotationPresent(MainAction.class))
             .collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class RulesBuilder {
 
   private List<Field> getAllEditableFields(Object uiInstance, List<Field> slotFields) {
     var allFields =
-        reflectionHelper.getAllEditableFields(uiInstance.getClass()).stream()
+        reflectionService.getAllEditableFields(uiInstance.getClass()).stream()
             .filter(f -> !isOwner(f))
             .filter(f -> slotFields.size() == 0 || slotFields.contains(f))
             .flatMap(f -> plain(f))
@@ -114,7 +114,7 @@ public class RulesBuilder {
 
   private Stream<Field> plain(Field field) {
     if (!managedTypeChecker.isManaged(field)) {
-      return reflectionHelper.getAllFields(field.getType()).stream()
+      return reflectionService.getAllFields(field.getType()).stream()
           .map(f -> (Field) new FieldFromReflectionField(f))
           .peek(f -> f.setId(field.getId() + "." + f.getId()));
     }

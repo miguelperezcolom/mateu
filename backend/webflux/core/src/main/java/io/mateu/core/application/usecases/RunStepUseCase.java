@@ -2,7 +2,7 @@ package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.UIIncrement;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +16,13 @@ import reactor.core.scheduler.Schedulers;
 public class RunStepUseCase {
 
   private final RunStepActionCommandHandler runStepActionCommandHandler;
-  private final Serializer serializer;
+  private final SerializerService serializerService;
 
   public RunStepUseCase(
-      RunStepActionCommandHandler runStepActionCommandHandler, Serializer serializer) {
+      RunStepActionCommandHandler runStepActionCommandHandler,
+      SerializerService serializerService) {
     this.runStepActionCommandHandler = runStepActionCommandHandler;
-    this.serializer = serializer;
+    this.serializerService = serializerService;
   }
 
   public Mono<UIIncrement> runStep(

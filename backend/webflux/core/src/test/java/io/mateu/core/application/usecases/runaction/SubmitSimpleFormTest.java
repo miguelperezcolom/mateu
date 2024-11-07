@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.mateu.core.application.usecases.RunStepUseCase;
-import io.mateu.core.domain.model.util.Serializer;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.SimpleForm;
 import io.mateu.dtos.RunActionRq;
 import io.mateu.dtos.SingleComponent;
@@ -27,7 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class SubmitSimpleFormTest {
 
   @Autowired RunStepUseCase runStepUseCase;
-  @Autowired Serializer serializer;
+  @Autowired SerializerService serializerService;
 
   @Test
   @Disabled
@@ -63,7 +63,7 @@ public class SubmitSimpleFormTest {
   @SneakyThrows
   private void assertUIIncrement(UIIncrement uiIncrement) {
     assertNotNull(uiIncrement);
-    log.info(serializer.toJson(uiIncrement));
+    log.info(serializerService.toJson(uiIncrement));
     var json =
         new String(
                 getClass().getResourceAsStream("simpleform-submit.json").readAllBytes(),
@@ -71,6 +71,6 @@ public class SubmitSimpleFormTest {
             .replaceAll(
                 "58234d75-7333-46ff-bdca-650edc6574b7",
                 ((SingleComponent) uiIncrement.uiFragments().get(0).content()).componentId());
-    JSONAssert.assertEquals(json, serializer.toJson(uiIncrement), JSONCompareMode.STRICT);
+    JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

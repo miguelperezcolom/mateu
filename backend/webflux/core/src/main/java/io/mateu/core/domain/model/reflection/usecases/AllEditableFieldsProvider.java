@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.reflection.usecases;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
+import io.mateu.uidl.core.annotations.*;
 import jakarta.persistence.*;
 import java.lang.reflect.Modifier;
 import java.net.URL;

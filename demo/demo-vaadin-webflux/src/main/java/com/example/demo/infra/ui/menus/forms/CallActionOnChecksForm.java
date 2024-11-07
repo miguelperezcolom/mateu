@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.infra.ui.menus.useCases.leads.QuestionsProvider;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
+import io.mateu.uidl.core.annotations.*;
 import lombok.Data;
 
 import java.util.List;

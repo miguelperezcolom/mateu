@@ -6,21 +6,21 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.ObjectWrapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URLWrapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.ResponseWrapper;
-import io.mateu.core.domain.uidefinitionlanguage.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ActionTarget;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Button;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MainAction;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.On;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.CloseModal;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.GoBack;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.JourneyStarter;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.ActionTarget;
+import io.mateu.uidl.core.annotations.Button;
+import io.mateu.uidl.core.annotations.MainAction;
+import io.mateu.uidl.core.annotations.On;
+import io.mateu.uidl.core.data.CloseModal;
+import io.mateu.uidl.core.data.GoBack;
+import io.mateu.uidl.core.interfaces.Container;
+import io.mateu.uidl.core.interfaces.JourneyStarter;
+import io.mateu.uidl.core.interfaces.Message;
+import io.mateu.uidl.core.interfaces.ResponseWrapper;
+import io.mateu.uidl.core.views.SingleComponentView;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -42,7 +42,7 @@ public class ResultMapper {
   final ViewMapper viewMapper;
   final DataExtractor dataExtractor;
   final AllEditableFieldsProvider allEditableFieldsProvider;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
 
   public ResultMapper(
       ComponentFactory componentFactory,
@@ -51,14 +51,14 @@ public class ResultMapper {
       ViewMapper viewMapper,
       DataExtractor dataExtractor,
       AllEditableFieldsProvider allEditableFieldsProvider,
-      ReflectionHelper reflectionHelper) {
+      ReflectionService reflectionService) {
     this.componentFactory = componentFactory;
     this.uIIncrementFactory = uIIncrementFactory;
     this.basicTypeChecker = basicTypeChecker;
     this.viewMapper = viewMapper;
     this.dataExtractor = dataExtractor;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
   }
 
   public Mono<UIIncrement> processResult(
@@ -161,8 +161,7 @@ public class ResultMapper {
               Map.of(component.id(), component)));
     } else if (r instanceof ResponseWrapper responseWrapper) {
       var component =
-          componentFactory.createFormComponent(
-              responseWrapper.getResponse(), serverHttpRequest, data);
+          componentFactory.createFormComponent(responseWrapper.response(), serverHttpRequest, data);
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m)),
@@ -170,7 +169,7 @@ public class ResultMapper {
               getModalStyle(m),
               new SingleComponent(component.id()),
               Map.of(component.id(), component)));
-    } else if (r instanceof io.mateu.core.domain.uidefinitionlanguage.core.interfaces.View view) {
+    } else if (r instanceof io.mateu.uidl.core.interfaces.View view) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
       fragments.add(
@@ -209,11 +208,9 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return ActionTarget.Message.equals(m.getAnnotation(MainAction.class).target());
     }
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
+    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
       return ActionTarget.Message.equals(
-          m.getAnnotation(io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-              .target());
+          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).target());
     }
     if (m.isAnnotationPresent(Button.class)) {
       return ActionTarget.Message.equals(m.getAnnotation(Button.class).target());
@@ -269,11 +266,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).closeModalWindow();
     }
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-          .closeModalWindow();
+    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).closeModalWindow();
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).closeModalWindow();
@@ -288,11 +282,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).modalStyle();
     }
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-          .modalStyle();
+    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).modalStyle();
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).modalStyle();
@@ -310,11 +301,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).targetId();
     }
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-          .targetId();
+    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).targetId();
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).targetId();
@@ -339,11 +327,8 @@ public class ResultMapper {
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).target();
     }
-    if (m.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)) {
-      return m.getAnnotation(
-              io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action.class)
-          .target();
+    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).target();
     }
     if (m.isAnnotationPresent(Button.class)) {
       return m.getAnnotation(Button.class).target();
@@ -356,7 +341,10 @@ public class ResultMapper {
 
   private List<io.mateu.dtos.Message> getMessages(Object r, AnnotatedElement m) {
     return extractMessages(r, m).stream()
-        .map(msg -> new io.mateu.dtos.Message(msg.type(), msg.title(), msg.text(), msg.duration()))
+        .map(
+            msg ->
+                new io.mateu.dtos.Message(
+                    ResultType.valueOf(msg.type().name()), msg.title(), msg.text(), msg.duration()))
         .toList();
   }
 
@@ -365,20 +353,25 @@ public class ResultMapper {
       return List.of((Message) response);
     }
     if (response instanceof List
-        && Message.class.equals(reflectionHelper.getGenericClass(response.getClass()))) {
+        && Message.class.equals(reflectionService.getGenericClass(response.getClass()))) {
       return (List<Message>) response;
     }
     if (response instanceof ResponseWrapper) {
-      return ((ResponseWrapper) response).getMessages();
+      return ((ResponseWrapper) response).messages();
     }
     if (ActionTarget.Message.equals(getActionTarget(method))) {
-      return List.of(new Message(ResultType.Success, "", "" + response, 0));
+      return List.of(
+          new Message(
+              io.mateu.uidl.core.data.ResultType.valueOf(ResultType.Success.name()),
+              "",
+              "" + response,
+              0));
     }
     if (response instanceof GoBack goBack) {
-      if (ResultType.Ignored.equals(goBack.getResultType()) || goBack.getMessage() == null) {
+      if (ResultType.Ignored.equals(goBack.resultType()) || goBack.message() == null) {
         return List.of();
       }
-      return List.of(new Message(goBack.getResultType(), "", goBack.getMessage(), 0));
+      return List.of(new Message(goBack.resultType(), "", goBack.message(), 0));
     }
     return List.of();
   }

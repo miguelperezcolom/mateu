@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.collections;
 
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Caption;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Section;
+import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.core.annotations.Section;
 import lombok.Data;
 
 import java.util.Map;

@@ -2,16 +2,16 @@ package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.files.FileChecker;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.GetterProvider;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.reflection.usecases.SetterProvider;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.ComplexKeyChoice;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.ExternalReference;
+import io.mateu.uidl.core.data.IconChooser;
+import io.mateu.uidl.core.interfaces.ComplexKeyChoice;
+import io.mateu.uidl.core.interfaces.Icon;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import java.util.Collection;
@@ -33,7 +33,7 @@ public class FieldStereotypeMapper {
           RichTextComponent.Ckeditor, "rich-text-ckeditor");
 
   final FileChecker fileChecker;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final SetterProvider setterProvider;
   final MethodProvider methodProvider;
   private final GetterProvider getterProvider;
@@ -48,8 +48,7 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(Image.class)) {
       return "image";
     }
-    if (field.isAnnotationPresent(
-        io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Icon.class)) {
+    if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Icon.class)) {
       return "icon";
     }
     if (Icon.class.equals(field.getType())) {
@@ -91,7 +90,7 @@ public class FieldStereotypeMapper {
     }
     if (field.isAnnotationPresent(Id.class)) {
       try {
-        Object initialValue = reflectionHelper.getValue(field, view);
+        Object initialValue = reflectionService.getValue(field, view);
         if (initialValue != null) {
           return "readonly";
         }
@@ -147,7 +146,7 @@ public class FieldStereotypeMapper {
       return "field-complexkeychoice";
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && !reflectionHelper.isBasic(field.getGenericClass())
+        && !reflectionService.isBasic(field.getGenericClass())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
       return "crud";

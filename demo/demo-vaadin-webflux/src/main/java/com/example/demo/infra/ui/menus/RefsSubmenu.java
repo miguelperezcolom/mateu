@@ -3,7 +3,7 @@ package com.example.demo.infra.ui.menus;
 import com.example.demo.infra.ui.menus.collections.OneToManyForm;
 import com.example.demo.infra.ui.menus.refs.ExternalRefs;
 import com.example.demo.infra.ui.menus.refs.FilesForm;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MenuOption;
+import io.mateu.uidl.core.annotations.MenuOption;
 
 public class RefsSubmenu {
 

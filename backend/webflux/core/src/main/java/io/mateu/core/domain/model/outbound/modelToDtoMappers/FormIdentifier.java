@@ -1,27 +1,27 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Card;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TabLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VerticalLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Result;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.Stepper;
+import io.mateu.uidl.core.annotations.HorizontalLayout;
+import io.mateu.uidl.core.annotations.SplitLayout;
+import io.mateu.uidl.core.annotations.TabLayout;
+import io.mateu.uidl.core.annotations.VerticalLayout;
+import io.mateu.uidl.core.data.Result;
+import io.mateu.uidl.core.data.Stepper;
+import io.mateu.uidl.core.interfaces.Card;
+import io.mateu.uidl.core.interfaces.Container;
+import io.mateu.uidl.core.interfaces.Crud;
 import org.springframework.stereotype.Service;
 
 @Service
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class FormIdentifier {
 
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
 
-  public FormIdentifier(ReflectionHelper reflectionHelper) {
-    this.reflectionHelper = reflectionHelper;
+  public FormIdentifier(ReflectionService reflectionService) {
+    this.reflectionService = reflectionService;
   }
 
   public boolean isForm(Field f, Object value) {
@@ -42,6 +42,6 @@ public class FormIdentifier {
         || f.getType().isAnnotationPresent(VerticalLayout.class)
         || f.getType().isAnnotationPresent(SplitLayout.class)
         || f.getType().isAnnotationPresent(TabLayout.class)
-        || reflectionHelper.isBasic(f.getType()));
+        || reflectionService.isBasic(f.getType()));
   }
 }

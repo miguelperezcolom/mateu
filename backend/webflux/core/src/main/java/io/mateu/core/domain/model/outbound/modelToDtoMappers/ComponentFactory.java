@@ -3,17 +3,17 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.ComponentMetadataBuilder;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.DataExtractor;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.data.Pair;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Container;
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Crud;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.ComponentId;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.HorizontalLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.SplitLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.TabLayout;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.VerticalLayout;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.ComponentId;
+import io.mateu.uidl.core.annotations.HorizontalLayout;
+import io.mateu.uidl.core.annotations.SplitLayout;
+import io.mateu.uidl.core.annotations.TabLayout;
+import io.mateu.uidl.core.annotations.VerticalLayout;
+import io.mateu.uidl.core.interfaces.Container;
+import io.mateu.uidl.core.interfaces.Crud;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,19 +32,19 @@ public class ComponentFactory {
   private final ComponentMetadataBuilder componentMetadataBuilder;
   private final DataExtractor dataExtractor;
   private final ActualUiInstanceProvider actualUiInstanceProvider;
-  private final ReflectionHelper reflectionHelper;
+  private final ReflectionService reflectionService;
   private final FormIdentifier formIdentifier;
 
   public ComponentFactory(
       ComponentMetadataBuilder componentMetadataBuilder,
       DataExtractor dataExtractor,
       ActualUiInstanceProvider actualUiInstanceProvider,
-      ReflectionHelper reflectionHelper,
+      ReflectionService reflectionService,
       FormIdentifier formIdentifier) {
     this.componentMetadataBuilder = componentMetadataBuilder;
     this.dataExtractor = dataExtractor;
     this.actualUiInstanceProvider = actualUiInstanceProvider;
-    this.reflectionHelper = reflectionHelper;
+    this.reflectionService = reflectionService;
     this.formIdentifier = formIdentifier;
   }
 
@@ -216,7 +216,7 @@ public class ComponentFactory {
                 || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayout.class)
                 || actualComponentInstance.getClass().isAnnotationPresent(SplitLayout.class)
                 || actualComponentInstance.getClass().isAnnotationPresent(TabLayout.class)))) {
-      return reflectionHelper.getAllFields(actualComponentInstance.getClass()).stream()
+      return reflectionService.getAllFields(actualComponentInstance.getClass()).stream()
           .map(f -> new Pair<>(f, getValue(f, actualComponentInstance)))
           .map(
               p ->
@@ -236,9 +236,9 @@ public class ComponentFactory {
 
   @SneakyThrows
   private Object getValue(Field f, Object actualComponentInstance) {
-    var value = reflectionHelper.getValue(f, actualComponentInstance);
+    var value = reflectionService.getValue(f, actualComponentInstance);
     if (value == null) {
-      value = reflectionHelper.newInstance(f.getType());
+      value = reflectionService.newInstance(f.getType());
     }
     return value;
   }

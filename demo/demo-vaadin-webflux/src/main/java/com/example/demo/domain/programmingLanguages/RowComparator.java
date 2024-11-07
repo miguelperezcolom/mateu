@@ -32,7 +32,7 @@ public class RowComparator implements Comparator<LanguageRow> {
       return o1.getTarget().compareTo(o2.getTarget());
     }
     if ("status".equals(sorted)) {
-      return o1.getStatus().getMessage().compareTo(o2.getStatus().getMessage());
+      return o1.getStatus().message().compareTo(o2.getStatus().message());
     }
     return 0;
   }

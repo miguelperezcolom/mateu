@@ -4,12 +4,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldAttributeBuilder;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldStereotypeMapper;
 import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapper;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.ExternalReference;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.HasBadgesOnFields;
 import io.mateu.dtos.*;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.ExternalReference;
+import io.mateu.uidl.core.interfaces.HasBadgesOnFields;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +27,7 @@ public class FieldMetadataBuilder {
   final FieldAttributeBuilder fieldAttributeBuilder;
   final FieldTypeMapper fieldTypeMapper;
   final FieldStereotypeMapper fieldStereotypeMapper;
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
 
   public io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
@@ -55,7 +55,7 @@ public class FieldMetadataBuilder {
   @SneakyThrows
   private List<Pair> completeAttributes(Object view, Field field, List<Pair> pairs) {
     if (Collection.class.isAssignableFrom(field.getType())
-        && !reflectionHelper.isBasic(field.getType())
+        && !reflectionService.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
         && !field.getGenericClass().isEnum()) {
       if (field.isAnnotationPresent(Table.class) && field.getAnnotation(Table.class).editable()) {
@@ -63,8 +63,8 @@ public class FieldMetadataBuilder {
         if (Void.class.equals(formClass)) {
           formClass = field.getGenericClass();
         }
-        var form = reflectionHelper.newInstance(formClass);
-        for (Field columnField : reflectionHelper.getAllEditableFields(formClass)) {
+        var form = reflectionService.newInstance(formClass);
+        for (Field columnField : reflectionService.getAllEditableFields(formClass)) {
           pairs.add(new Pair("field", getField(form, columnField)));
         }
       }
@@ -92,26 +92,24 @@ public class FieldMetadataBuilder {
             .map(
                 b ->
                     new Badge(
-                        mapBadgeTheme(b.getTheme()),
-                        b.getLabel(),
-                        b.getIcon(),
-                        mapBadgeStyle(b.getBadgeStyle()),
-                        mapBadgePosition(b.getIconPosition())))
+                        mapBadgeTheme(b.theme()),
+                        b.label(),
+                        b.icon(),
+                        mapBadgeStyle(b.badgeStyle()),
+                        mapBadgePosition(b.iconPosition())))
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(io.mateu.uidl.core.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeStyle badgeStyle) {
+  private BadgeStyle mapBadgeStyle(io.mateu.uidl.core.data.BadgeStyle badgeStyle) {
     return BadgeStyle.valueOf(badgeStyle.toString());
   }
 
   private BadgeIconPosition mapBadgePosition(
-      io.mateu.core.domain.uidefinitionlanguage.shared.data.BadgeIconPosition iconPosition) {
+      io.mateu.uidl.core.data.BadgeIconPosition iconPosition) {
     return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 

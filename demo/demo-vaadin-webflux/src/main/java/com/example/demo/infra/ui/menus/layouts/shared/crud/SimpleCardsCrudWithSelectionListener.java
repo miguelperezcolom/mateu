@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.layouts.shared.crud;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Message;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Action;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.MateuUI;
-import io.mateu.dtos.ResultType;
+import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.core.interfaces.Message;
+import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.core.annotations.MateuUI;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 

@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.core.domain.uidefinitionlanguage.core.interfaces.Icon;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
-import io.mateu.core.domain.uidefinitionlanguage.shared.data.IconChooser;
+import io.mateu.uidl.core.interfaces.Icon;
+import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.core.data.IconChooser;
 
 @Caption("Icons")
 public class IconForm {
@@ -17,7 +17,7 @@ public class IconForm {
     @Style("height: 48px; width: 48px;color: red;")
     Icon clickableIcon = Icon.Airplane;
 
-    @io.mateu.core.domain.uidefinitionlanguage.shared.annotations.Icon(style = "height: var(--lumo-icon-size-l); width: var(--lumo-icon-size-l);")
+    @io.mateu.uidl.core.annotations.Icon(style = "height: var(--lumo-icon-size-l); width: var(--lumo-icon-size-l);")
     //String iconFromSvg = "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tISBGb250IEF3ZXNvbWUgRnJlZSA2LjQuMiBieSBAZm9udGF3ZXNvbWUgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbSBMaWNlbnNlIC0gaHR0cHM6Ly9mb250YXdlc29tZS5jb20vbGljZW5zZS9mcmVlIChJY29uczogQ0MgQlkgNC4wLCBGb250czogU0lMIE9GTCAxLjEsIENvZGU6IE1JVCBMaWNlbnNlKSBDb3B5cmlnaHQgMjAyMyBGb250aWNvbnMsIEluYy4gLS0+PHBhdGggZD0iTTgwIDEwNGEyNCAyNCAwIDEgMCAwLTQ4IDI0IDI0IDAgMSAwIDAgNDh6bTgwLTI0YzAgMzIuOC0xOS43IDYxLTQ4IDczLjN2ODcuOGMxOC44LTEwLjkgNDAuNy0xNy4xIDY0LTE3LjFoOTZjMzUuMyAwIDY0LTI4LjcgNjQtNjR2LTYuN0MzMDcuNyAxNDEgMjg4IDExMi44IDI4OCA4MGMwLTQ0LjIgMzUuOC04MCA4MC04MHM4MCAzNS44IDgwIDgwYzAgMzIuOC0xOS43IDYxLTQ4IDczLjNWMTYwYzAgNzAuNy01Ny4zIDEyOC0xMjggMTI4SDE3NmMtMzUuMyAwLTY0IDI4LjctNjQgNjR2Ni43YzI4LjMgMTIuMyA0OCA0MC41IDQ4IDczLjNjMCA0NC4yLTM1LjggODAtODAgODBzLTgwLTM1LjgtODAtODBjMC0zMi44IDE5LjctNjEgNDgtNzMuM1YzNTIgMTUzLjNDMTkuNyAxNDEgMCAxMTIuOCAwIDgwQzAgMzUuOCAzNS44IDAgODAgMHM4MCAzNS44IDgwIDgwem0yMzIgMGEyNCAyNCAwIDEgMCAtNDggMCAyNCAyNCAwIDEgMCA0OCAwek04MCA0NTZhMjQgMjQgMCAxIDAgMC00OCAyNCAyNCAwIDEgMCAwIDQ4eiIvPjwvc3ZnPg==";
     String iconFromSvg = "<path d=\"M218.71 73.85v0.06C137.14 76.36 71.46 187.32 71.46 " +
             "323.85s65.67 247.49 147.24 249.94v0.06h582.62v-500z\" fill=\"#DFEDFF\" /><path d=\"M808.82 " +

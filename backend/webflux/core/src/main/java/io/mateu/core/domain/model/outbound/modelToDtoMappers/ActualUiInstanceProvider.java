@@ -3,10 +3,10 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.inbound.editors.MethodParametersEditor;
 import io.mateu.core.domain.model.inbound.editors.ObjectEditor;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
-import io.mateu.core.domain.model.util.Serializer;
-import io.mateu.core.domain.uidefinitionlanguage.core.views.SingleComponentView;
-import io.mateu.core.domain.uidefinitionlanguage.shared.interfaces.Listing;
+import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.core.interfaces.Listing;
+import io.mateu.uidl.core.views.SingleComponentView;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -20,18 +20,18 @@ public class ActualUiInstanceProvider {
 
   private final EntityProvider entityProvider;
   private final ApplicationContext applicationContext;
-  private final ReflectionHelper reflectionHelper;
-  private final Serializer serializer;
+  private final ReflectionService reflectionService;
+  private final SerializerService serializerService;
 
   public ActualUiInstanceProvider(
       EntityProvider entityProvider,
       ApplicationContext applicationContext,
-      ReflectionHelper reflectionHelper,
-      Serializer serializer) {
+      ReflectionService reflectionService,
+      SerializerService serializerService) {
     this.entityProvider = entityProvider;
     this.applicationContext = applicationContext;
-    this.reflectionHelper = reflectionHelper;
-    this.serializer = serializer;
+    this.reflectionService = reflectionService;
+    this.serializerService = serializerService;
   }
 
   @SneakyThrows
@@ -41,17 +41,18 @@ public class ActualUiInstanceProvider {
       actualUiInstance = singleComponentView.component();
     } else if (uiInstance instanceof ObjectEditor) {
       ObjectEditor objectEditor = (ObjectEditor) uiInstance;
-      actualUiInstance = reflectionHelper.newInstance(objectEditor.getType());
+      actualUiInstance = reflectionService.newInstance(objectEditor.getType());
       Object filled =
-          serializer.fromJson(serializer.toJson(objectEditor.getData()), objectEditor.getType());
-      reflectionHelper.copy(filled, actualUiInstance);
+          serializerService.fromJson(
+              serializerService.toJson(objectEditor.getData()), objectEditor.getType());
+      reflectionService.copy(filled, actualUiInstance);
     } else if (uiInstance instanceof MethodParametersEditor) {
       // MethodParametersEditor methodParametersEditor = (MethodParametersEditor) uiInstance;
       // actualUiInstance = Helper.fromJson(Helper.toJson(fieldEditor.getData()),
       // fieldEditor.getType());
     } else if (uiInstance instanceof Class
         && Listing.class.isAssignableFrom((Class<?>) uiInstance)) {
-      actualUiInstance = reflectionHelper.newInstance((Class) uiInstance);
+      actualUiInstance = reflectionService.newInstance((Class) uiInstance);
     }
     return actualUiInstance;
   }

@@ -2,11 +2,11 @@ package io.mateu.jpa.domain.ui.cruds.queries;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.core.domain.model.reflection.ReflectionHelper;
+import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.*;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
+import io.mateu.uidl.core.annotations.*;
 import jakarta.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class QueryHelper {
 
-  final ReflectionHelper reflectionHelper;
+  final ReflectionService reflectionService;
 
   public jakarta.persistence.Query buildJpaQuery(
       io.mateu.jpa.domain.ui.cruds.queries.Query query,
@@ -72,7 +72,7 @@ public class QueryHelper {
           }
         }
       List<Field> orderCols = new ArrayList<>();
-      for (Field f : reflectionHelper.getAllFields(entityClass)) {
+      for (Field f : reflectionService.getAllFields(entityClass)) {
         if (f.isAnnotationPresent(Order.class)) orderCols.add(f);
       }
       Collections.sort(
@@ -125,15 +125,14 @@ public class QueryHelper {
       ql += query.getQueryFilters();
     }
 
-    if (query.getExtraFilters() != null
-        && !Strings.isNullOrEmpty(query.getExtraFilters().getQl())) {
+    if (query.getExtraFilters() != null && !Strings.isNullOrEmpty(query.getExtraFilters().ql())) {
 
       if (!"".equals(ql)) ql += " and ";
 
-      ql += query.getExtraFilters().getQl();
+      ql += query.getExtraFilters().ql();
 
-      if (query.getExtraFilters().getParameters() != null)
-        parameterValues.putAll(query.getExtraFilters().getParameters());
+      if (query.getExtraFilters().parameters() != null)
+        parameterValues.putAll(query.getExtraFilters().parameters());
     }
 
     if (filters == null) return ql;
@@ -157,7 +156,7 @@ public class QueryHelper {
     if (!Strings.isNullOrEmpty(query.getSearchtext())) {
 
       var stringFields =
-          reflectionHelper.getAllEditableFields(entityClass).stream()
+          reflectionService.getAllEditableFields(entityClass).stream()
               .filter(field -> String.class.equals(field.getType()))
               .collect(Collectors.toList());
 
@@ -183,18 +182,18 @@ public class QueryHelper {
 
     for (Field f : allFields) {
 
-      Object v = reflectionHelper.getValue(f, filters);
+      Object v = reflectionService.getValue(f, filters);
 
       if (v != null) {
 
-        Field ef = reflectionHelper.getFieldByName(entityClass, f.getName());
+        Field ef = reflectionService.getFieldByName(entityClass, f.getName());
 
         if (ef != null && ef.getType().isAnnotationPresent(UseIdToSelect.class)) {
 
           boolean anadir = !String.class.equals(v.getClass()) || !Strings.isNullOrEmpty((String) v);
 
           if (anadir) {
-            Field idf = reflectionHelper.getIdField(entityClass);
+            Field idf = reflectionService.getIdField(entityClass);
 
             if (!"".equals(ql)) ql += " and ";
             ql += " x." + f.getName() + "." + idf.getName() + " = :" + f.getName() + " ";
@@ -274,7 +273,7 @@ public class QueryHelper {
 
         } else if (v instanceof Map && f.isAnnotationPresent(ManyToOne.class)) {
           v = ((Map) v).get("value");
-          Field idField = reflectionHelper.getIdField(f.getType());
+          Field idField = reflectionService.getIdField(f.getType());
 
           if (!"".equals(ql)) ql += " and ";
           ql +=

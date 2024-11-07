@@ -2,7 +2,7 @@ package io.mateu.core.domain.model.reflection.usecases;
 
 import com.google.common.collect.Lists;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.core.domain.uidefinitionlanguage.shared.annotations.GenericClass;
+import io.mateu.uidl.core.annotations.GenericClass;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
