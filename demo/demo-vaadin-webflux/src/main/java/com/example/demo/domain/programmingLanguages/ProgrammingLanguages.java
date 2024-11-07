@@ -49,8 +49,6 @@ public class ProgrammingLanguages
 
   private boolean jvm;
 
-  private DatesRange born;
-
   @Override
   public Mono<Page<LanguageRow>> fetchRows(
           String searchText, ProgrammingLanguages filters, Pageable pageable) {
