@@ -4,14 +4,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.app.MDDOpenCRUDAction;
-import io.mateu.uidl.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.uidl.core.app.MDDOpenEditorAction;
-import io.mateu.uidl.core.app.MDDOpenListViewAction;
-import io.mateu.uidl.core.interfaces.ConsumesContextData;
-import io.mateu.uidl.core.interfaces.HasInitMethod;
-import io.mateu.uidl.core.interfaces.JourneyStarter;
-import io.mateu.uidl.core.views.SingleComponentView;
+import io.mateu.uidl.app.MDDOpenCRUDAction;
+import io.mateu.uidl.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.uidl.app.MDDOpenEditorAction;
+import io.mateu.uidl.app.MDDOpenListViewAction;
+import io.mateu.uidl.interfaces.ConsumesContextData;
+import io.mateu.uidl.interfaces.HasInitMethod;
+import io.mateu.uidl.interfaces.JourneyStarter;
+import io.mateu.uidl.views.SingleComponentView;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,8 +92,8 @@ public class StartJourneyCommandHandler {
     }
 
     Map<String, Component> allComponents = new LinkedHashMap<>();
-    io.mateu.uidl.core.interfaces.View view =
-        (formInstance instanceof io.mateu.uidl.core.interfaces.View v)
+    io.mateu.uidl.interfaces.View view =
+        (formInstance instanceof io.mateu.uidl.interfaces.View v)
             ? v
             : new SingleComponentView(formInstance);
     View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());

@@ -2,11 +2,11 @@ package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.providers.ColorsProvider;
 import com.example.demo.domain.agnostic.providers.IntegersProvider;
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.annotations.ReadOnly;
-import io.mateu.uidl.core.annotations.Section;
-import io.mateu.uidl.core.annotations.ValuesProvider;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.ValuesProvider;
 import lombok.Data;
 
 import java.util.Arrays;

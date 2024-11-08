@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.uidl.core.interfaces.Crud;
-import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.interfaces.Crud;
+import io.mateu.uidl.annotations.Action;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

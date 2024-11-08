@@ -1,10 +1,10 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.MainAction;
-import io.mateu.uidl.core.data.Result;
-import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.data.Result;
+import io.mateu.uidl.data.ResultType;
 import lombok.Data;
 
 @Data

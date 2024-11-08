@@ -1,11 +1,11 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.uidl.core.annotations.Element;
-import io.mateu.uidl.core.data.ExternalReference;
-import io.mateu.uidl.core.data.IconChooser;
-import io.mateu.uidl.core.data.TelephoneNumber;
-import io.mateu.uidl.core.interfaces.ComplexKeyChoice;
+import io.mateu.uidl.annotations.Element;
+import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.data.IconChooser;
+import io.mateu.uidl.data.TelephoneNumber;
+import io.mateu.uidl.interfaces.ComplexKeyChoice;
 import java.io.File;
 import java.net.URL;
 import java.time.LocalDate;

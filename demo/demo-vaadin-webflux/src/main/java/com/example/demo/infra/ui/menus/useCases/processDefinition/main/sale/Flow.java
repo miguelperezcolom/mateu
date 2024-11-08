@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.processDefinition.main.sale;
 
-import io.mateu.uidl.core.annotations.Status;
+import io.mateu.uidl.annotations.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;

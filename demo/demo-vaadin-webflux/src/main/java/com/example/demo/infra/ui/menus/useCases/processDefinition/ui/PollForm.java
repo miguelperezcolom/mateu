@@ -1,10 +1,10 @@
 package com.example.demo.infra.ui.menus.useCases.processDefinition.ui;
 
 import com.example.demo.infra.ui.menus.useCases.processDefinition.poller.Poller;
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.MainAction;
-import io.mateu.uidl.core.data.Result;
-import io.mateu.uidl.core.data.ResultType;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.data.Result;
+import io.mateu.uidl.data.ResultType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

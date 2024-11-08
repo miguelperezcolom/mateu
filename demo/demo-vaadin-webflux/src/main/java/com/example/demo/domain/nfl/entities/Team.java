@@ -1,10 +1,10 @@
 package com.example.demo.domain.nfl.entities;
 
 import io.mateu.core.infra.MateuConfiguratorBean;
-import io.mateu.uidl.core.app.MDDOpenCRUDAction;
-import io.mateu.uidl.core.views.ExtraFilters;
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.interfaces.JpaCrud;
+import io.mateu.uidl.app.MDDOpenCRUDAction;
+import io.mateu.uidl.views.ExtraFilters;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.interfaces.JpaCrud;
 import io.mateu.jpa.domain.ui.cruds.JpaRpcCrudView;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

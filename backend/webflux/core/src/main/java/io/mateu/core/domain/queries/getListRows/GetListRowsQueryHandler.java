@@ -5,7 +5,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.dtos.SortType;
-import io.mateu.uidl.core.interfaces.Listing;
+import io.mateu.uidl.interfaces.Listing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

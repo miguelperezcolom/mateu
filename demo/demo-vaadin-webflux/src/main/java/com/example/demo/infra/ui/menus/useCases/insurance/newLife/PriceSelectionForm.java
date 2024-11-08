@@ -1,11 +1,12 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.ComplexKey;
-import io.mateu.uidl.core.data.Stepper;
-import io.mateu.uidl.core.data.StepperStep;
-import io.mateu.uidl.core.interfaces.ComplexKeyChoice;
-import io.mateu.uidl.core.interfaces.ComplexKeyOption;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.ComplexKey;
+import io.mateu.uidl.data.Stepper;
+import io.mateu.uidl.data.StepperStep;
+import io.mateu.uidl.interfaces.ComplexKeyChoice;
+import io.mateu.uidl.interfaces.ComplexKeyOption;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;

@@ -9,7 +9,7 @@ import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFactory;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.beanutils.MiURLConverter;
-import io.mateu.uidl.core.interfaces.ReflectionHelper;
+import io.mateu.uidl.interfaces.ReflectionHelper;
 import java.lang.reflect.*;
 import java.net.URL;
 import java.util.*;

@@ -2,10 +2,10 @@ package io.mateu.demo.complexview;
 
 import io.mateu.demo.AnotherSimpleForm;
 import io.mateu.demo.complexview.crud.SimpleCrud;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.Element;
-import io.mateu.uidl.core.interfaces.Card;
-import io.mateu.uidl.core.interfaces.Container;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Element;
+import io.mateu.uidl.interfaces.Card;
+import io.mateu.uidl.interfaces.Container;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;

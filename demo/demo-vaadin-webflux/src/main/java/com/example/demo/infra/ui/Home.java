@@ -1,9 +1,10 @@
 package com.example.demo.infra.ui;
 
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.annotations.RawContent;
-import io.mateu.uidl.core.annotations.Section;
-import io.mateu.uidl.core.interfaces.ConsumesContextData;
+import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.RawContent;
+import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.interfaces.ConsumesContextData;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-@Caption("")
+@io.mateu.uidl.annotations.Caption("")
 @MateuUI("")
-@ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
+@io.mateu.uidl.annotations.ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 @Slf4j
 public class Home extends DemoApp implements ConsumesContextData {

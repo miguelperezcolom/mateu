@@ -2,9 +2,11 @@ package com.example.demo.infra.ui;
 
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
 import com.example.demo.infra.ui.menus.forms.TextFieldsForm;
-import io.mateu.uidl.core.interfaces.ConsumesContextData;
-import io.mateu.uidl.core.interfaces.HasLogout;
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.interfaces.ConsumesContextData;
+import io.mateu.uidl.interfaces.HasLogout;
+import io.mateu.uidl.annotations.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -13,17 +15,19 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-@Caption("")
+@io.mateu.uidl.annotations.Caption("")
 @MateuUI("/secured")
-@ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
+@io.mateu.uidl.annotations.ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 @Slf4j
-@KeycloakSecured(url = "https://lemur-18.cloud-iam.com/auth", realm = "demomateu", clientId = "demo", jsUrl = "/js/keycloak.min.js")
+@io.mateu.uidl.annotations.KeycloakSecured(url = "https://lemur-18.cloud-iam.com/auth", realm = "demomateu", clientId = "demo", jsUrl = "/js/keycloak.min.js")
 public class HomeSecured implements ConsumesContextData, HasLogout {
 
-  @MenuOption TextFieldsForm textFields;
+  @MenuOption
+  TextFieldsForm textFields;
 
-  @MenuOption @Private BasicFieldsForm eyesOnly;
+  @MenuOption @Private
+  BasicFieldsForm eyesOnly;
 
   @Section(value = "")
   @RawContent

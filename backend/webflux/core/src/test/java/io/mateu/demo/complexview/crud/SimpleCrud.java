@@ -1,8 +1,8 @@
 package io.mateu.demo.complexview.crud;
 
 import io.mateu.core.domain.model.outbound.Humanizer;
-import io.mateu.uidl.core.annotations.MateuUI;
-import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.interfaces.Crud;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;

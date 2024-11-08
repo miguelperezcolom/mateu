@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.ActionTarget;
-import io.mateu.uidl.core.annotations.MainAction;
-import io.mateu.uidl.core.data.CloseModal;
+import io.mateu.uidl.annotations.ActionTarget;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.data.CloseModal;
 import lombok.Getter;
 import lombok.Setter;
 

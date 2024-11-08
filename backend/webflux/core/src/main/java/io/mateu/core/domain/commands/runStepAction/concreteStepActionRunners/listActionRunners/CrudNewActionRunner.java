@@ -8,7 +8,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.dtos.UIIncrement;
-import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.interfaces.Crud;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.server.reactive.ServerHttpRequest;

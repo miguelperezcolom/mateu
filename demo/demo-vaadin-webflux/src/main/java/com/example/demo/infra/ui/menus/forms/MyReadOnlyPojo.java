@@ -2,13 +2,15 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.Badge;
-import io.mateu.uidl.core.data.BadgeTheme;
-import io.mateu.uidl.core.data.Status;
-import io.mateu.uidl.core.data.StatusType;
-import io.mateu.uidl.core.interfaces.HasBadges;
-import io.mateu.uidl.core.interfaces.HasStatus;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Badge;
+import io.mateu.uidl.data.BadgeTheme;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
+import io.mateu.uidl.interfaces.HasBadges;
+import io.mateu.uidl.interfaces.HasStatus;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -53,7 +55,8 @@ public class MyReadOnlyPojo
   @UseRadioButtons
   private boolean usingRadioButtons;
 
-  @Toggle private boolean toggle;
+  @Toggle
+  private boolean toggle;
 
   @Section("Enums")
   @UseRadioButtons

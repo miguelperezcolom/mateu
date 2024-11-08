@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui;
 
-import io.mateu.uidl.core.annotations.ActionTarget;
-import io.mateu.uidl.core.annotations.ActionType;
-import io.mateu.uidl.core.annotations.MainAction;
-import io.mateu.uidl.core.annotations.MateuUI;
+import io.mateu.uidl.annotations.ActionTarget;
+import io.mateu.uidl.annotations.ActionType;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.annotations.MateuUI;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;

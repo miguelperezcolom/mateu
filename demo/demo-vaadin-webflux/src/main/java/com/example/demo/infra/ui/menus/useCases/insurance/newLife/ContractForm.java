@@ -1,9 +1,11 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.Stepper;
-import io.mateu.uidl.core.data.StepperStep;
-import io.mateu.uidl.core.data.TelephoneNumber;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Stepper;
+import io.mateu.uidl.data.StepperStep;
+import io.mateu.uidl.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -61,7 +63,7 @@ public class ContractForm {
       );
 
   @Section("Bookingholders")
-  @Caption("Is the bad person the bookingholder?")
+  @io.mateu.uidl.annotations.Caption("Is the bad person the bookingholder?")
   @UseRadioButtons
   boolean insuredPersonIsPolicyHolder = true;
 
@@ -103,7 +105,7 @@ public class ContractForm {
   PaymentFrequency paymentFrequency;
 
   // @NotNull
-  @Caption("IBAN")
+  @io.mateu.uidl.annotations.Caption("IBAN")
   String iban;
 
   // @NotNull

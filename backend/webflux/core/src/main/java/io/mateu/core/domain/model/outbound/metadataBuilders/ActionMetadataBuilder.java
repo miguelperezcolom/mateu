@@ -6,10 +6,10 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.Button;
-import io.mateu.uidl.core.annotations.MainAction;
-import io.mateu.uidl.core.interfaces.Crud;
-import io.mateu.uidl.core.interfaces.HasActions;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.interfaces.Crud;
+import io.mateu.uidl.interfaces.HasActions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -56,9 +56,9 @@ public class ActionMetadataBuilder {
   }
 
   private int getOrder(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.order();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -73,9 +73,9 @@ public class ActionMetadataBuilder {
   }
 
   private String getIcon(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.icon().iconName;
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -94,9 +94,9 @@ public class ActionMetadataBuilder {
   }
 
   private boolean isRunOnEnter(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.runOnEnter();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -107,9 +107,9 @@ public class ActionMetadataBuilder {
   }
 
   private int getTimeoutMillis(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.timeoutMillis();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -120,9 +120,9 @@ public class ActionMetadataBuilder {
   }
 
   private String getModalStyle(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.modalStyle();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -136,39 +136,39 @@ public class ActionMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.uidl.core.annotations.ActionTarget getRealTarget(Method m) {
-    var target = io.mateu.uidl.core.annotations.ActionTarget.View;
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      target = m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).target();
+  private io.mateu.uidl.annotations.ActionTarget getRealTarget(Method m) {
+    var target = io.mateu.uidl.annotations.ActionTarget.View;
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      target = m.getAnnotation(io.mateu.uidl.annotations.Action.class).target();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       target = m.getAnnotation(MainAction.class).target();
     }
     if (URL.class.equals(m.getReturnType())) {
-      if (io.mateu.uidl.core.annotations.ActionTarget.NewTab.equals(target)) {
-        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewTab;
-      } else if (io.mateu.uidl.core.annotations.ActionTarget.NewWindow.equals(target)) {
-        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewWindow;
+      if (io.mateu.uidl.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.uidl.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.uidl.annotations.ActionTarget.NewWindow.equals(target)) {
+        target = io.mateu.uidl.annotations.ActionTarget.DeferredNewWindow;
       } else {
-        target = io.mateu.uidl.core.annotations.ActionTarget.Deferred;
+        target = io.mateu.uidl.annotations.ActionTarget.Deferred;
       }
     }
     return target;
   }
 
   private boolean isVisible(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return action.visible();
     }
     return true;
   }
 
   private ActionType getActionType(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return ActionType.valueOf(action.type().name());
     }
     if (m.isAnnotationPresent(MainAction.class)) {
@@ -179,9 +179,9 @@ public class ActionMetadataBuilder {
   }
 
   private ConfirmationTexts getConfirmationTexts(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      io.mateu.uidl.core.annotations.Action action =
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class);
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
       return new ConfirmationTexts(
           getConfirmationTitle(action.confirmationTitle(), m),
           action.confirmationMessage(),
@@ -212,9 +212,9 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getConfirmationRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
       return !Strings.isNullOrEmpty(
-          m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).confirmationMessage());
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class).confirmationMessage());
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return !Strings.isNullOrEmpty(m.getAnnotation(MainAction.class).confirmationMessage());
@@ -223,8 +223,8 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getRowsSelectedRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).rowsSelectedRequired();
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.annotations.Action.class).rowsSelectedRequired();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).rowsSelectedRequired();
@@ -233,8 +233,8 @@ public class ActionMetadataBuilder {
   }
 
   private boolean getValidationRequired(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).validateBefore();
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.annotations.Action.class).validateBefore();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).validateBefore();
@@ -243,8 +243,8 @@ public class ActionMetadataBuilder {
   }
 
   private String getCustomEvent(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).customEvent();
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.annotations.Action.class).customEvent();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).customEvent();
@@ -253,8 +253,8 @@ public class ActionMetadataBuilder {
   }
 
   private String getHref(Method m) {
-    if (m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class)) {
-      return m.getAnnotation(io.mateu.uidl.core.annotations.Action.class).href();
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.annotations.Action.class).href();
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       return m.getAnnotation(MainAction.class).href();
@@ -355,7 +355,7 @@ public class ActionMetadataBuilder {
     List<Method> allMethods = reflectionService.getAllMethods(type);
     List<Action> actions =
         allMethods.stream()
-            .filter(m -> m.isAnnotationPresent(io.mateu.uidl.core.annotations.Action.class))
+            .filter(m -> m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
             .filter(
                 m ->
                     (!"JpaRpcCrudView".equals(type.getSimpleName()))

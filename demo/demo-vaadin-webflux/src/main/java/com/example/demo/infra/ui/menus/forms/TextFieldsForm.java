@@ -1,6 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 

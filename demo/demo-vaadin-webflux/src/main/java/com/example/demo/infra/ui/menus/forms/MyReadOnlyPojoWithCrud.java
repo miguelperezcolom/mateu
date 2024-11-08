@@ -1,7 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.interfaces.Container;
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.interfaces.Container;
+import io.mateu.uidl.annotations.*;
 import lombok.Data;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

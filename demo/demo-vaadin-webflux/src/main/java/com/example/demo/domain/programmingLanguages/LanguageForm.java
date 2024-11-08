@@ -1,10 +1,10 @@
 package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.uidl.core.annotations.ActionPosition;
-import io.mateu.uidl.core.annotations.ActionType;
-import io.mateu.uidl.core.annotations.MainAction;
+import io.mateu.uidl.annotations.ActionPosition;
+import io.mateu.uidl.annotations.ActionType;
+import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.interfaces.ReflectionHelper;
 import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class LanguageForm {
 
   @Autowired @JsonIgnore
-  ReflectionService reflectionService;
+  ReflectionHelper reflectionService;
   @Autowired LanguagesRepository repo;
   @Autowired
   @JsonIgnore ApplicationContext applicationContext;

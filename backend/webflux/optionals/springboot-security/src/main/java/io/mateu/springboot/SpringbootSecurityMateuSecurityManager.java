@@ -1,8 +1,8 @@
 package io.mateu.springboot;
 
-import io.mateu.uidl.core.annotations.Private;
-import io.mateu.uidl.core.interfaces.MateuSecurityManager;
-import io.mateu.uidl.core.interfaces.UserPrincipal;
+import io.mateu.uidl.annotations.Private;
+import io.mateu.uidl.interfaces.MateuSecurityManager;
+import io.mateu.uidl.interfaces.UserPrincipal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

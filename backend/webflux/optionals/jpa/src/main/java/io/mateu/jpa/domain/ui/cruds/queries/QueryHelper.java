@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
 import jakarta.persistence.*;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;

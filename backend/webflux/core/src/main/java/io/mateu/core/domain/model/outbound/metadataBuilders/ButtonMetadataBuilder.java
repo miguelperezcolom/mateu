@@ -5,7 +5,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.Button;
+import io.mateu.uidl.annotations.Button;
 import java.net.URL;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
@@ -67,19 +67,19 @@ public class ButtonMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  private io.mateu.uidl.core.annotations.ActionTarget getRealTarget(Field m) {
-    var target = io.mateu.uidl.core.annotations.ActionTarget.View;
+  private io.mateu.uidl.annotations.ActionTarget getRealTarget(Field m) {
+    var target = io.mateu.uidl.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(Button.class)) {
       target = m.getAnnotation(Button.class).target();
     }
     if (Callable.class.isAssignableFrom(m.getType())
         && URL.class.equals(reflectionService.getGenericClass(m, Callable.class, "V"))) {
-      if (io.mateu.uidl.core.annotations.ActionTarget.NewTab.equals(target)) {
-        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewTab;
-      } else if (io.mateu.uidl.core.annotations.ActionTarget.NewWindow.equals(target)) {
-        target = io.mateu.uidl.core.annotations.ActionTarget.DeferredNewWindow;
+      if (io.mateu.uidl.annotations.ActionTarget.NewTab.equals(target)) {
+        target = io.mateu.uidl.annotations.ActionTarget.DeferredNewTab;
+      } else if (io.mateu.uidl.annotations.ActionTarget.NewWindow.equals(target)) {
+        target = io.mateu.uidl.annotations.ActionTarget.DeferredNewWindow;
       } else {
-        target = io.mateu.uidl.core.annotations.ActionTarget.Deferred;
+        target = io.mateu.uidl.annotations.ActionTarget.Deferred;
       }
     }
     return target;

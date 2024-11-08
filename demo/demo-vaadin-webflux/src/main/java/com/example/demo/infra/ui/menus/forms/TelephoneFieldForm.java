@@ -1,10 +1,10 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.ReadOnly;
-import io.mateu.uidl.core.annotations.Section;
-import io.mateu.uidl.core.data.TelephoneNumber;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.data.TelephoneNumber;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 

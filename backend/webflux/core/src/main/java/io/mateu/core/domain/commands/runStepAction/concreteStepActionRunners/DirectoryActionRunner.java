@@ -6,7 +6,7 @@ import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.MenuResolver;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.UIIncrement;
-import io.mateu.uidl.core.interfaces.Directory;
+import io.mateu.uidl.interfaces.Directory;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;

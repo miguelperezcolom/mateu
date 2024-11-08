@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents;
 
-import io.mateu.uidl.core.annotations.Action;
+import io.mateu.uidl.annotations.Action;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 

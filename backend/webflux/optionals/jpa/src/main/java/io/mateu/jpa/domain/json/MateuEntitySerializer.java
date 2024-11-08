@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.reflection.usecases.AllTransferrableFieldsProv
 import io.mateu.core.domain.model.reflection.usecases.IdProvider;
 import io.mateu.core.domain.model.reflection.usecases.ValueProvider;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
-import io.mateu.uidl.core.data.ExternalReference;
+import io.mateu.uidl.data.ExternalReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
@@ -14,10 +14,12 @@ import jakarta.persistence.OneToMany;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Primary
 @SuppressFBWarnings({"EI_EXPOSE_REP2", "EI_EXPOSE_REP"})
 public class MateuEntitySerializer implements EntitySerializer {
 

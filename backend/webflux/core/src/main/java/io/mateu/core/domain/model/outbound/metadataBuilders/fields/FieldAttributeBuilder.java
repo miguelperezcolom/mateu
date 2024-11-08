@@ -8,14 +8,14 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.annotations.Content;
-import io.mateu.uidl.core.annotations.Element;
-import io.mateu.uidl.core.data.ExternalReference;
-import io.mateu.uidl.core.data.IconChooser;
-import io.mateu.uidl.core.data.TelephoneNumber;
-import io.mateu.uidl.core.data.ValuesListProvider;
-import io.mateu.uidl.core.interfaces.Icon;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Content;
+import io.mateu.uidl.annotations.Element;
+import io.mateu.uidl.annotations.Icon;
+import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.data.IconChooser;
+import io.mateu.uidl.data.TelephoneNumber;
+import io.mateu.uidl.data.ValuesListProvider;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -58,9 +58,8 @@ public class FieldAttributeBuilder {
         attributes.add(new Pair("action", image.action()));
       }
     }
-    if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Icon.class)) {
-      io.mateu.uidl.core.annotations.Icon icon =
-          field.getAnnotation(io.mateu.uidl.core.annotations.Icon.class);
+    if (field.isAnnotationPresent(Icon.class)) {
+      Icon icon = field.getAnnotation(Icon.class);
       attributes.add(new Pair("icon-src", "icon-src"));
       if (!icon.cssClasses().isEmpty()) {
         attributes.add(new Pair("cssClasses", icon.cssClasses()));
@@ -177,14 +176,14 @@ public class FieldAttributeBuilder {
       }
     }
     if (field.getType().equals(IconChooser.class)) {
-      for (Object enumConstant : Icon.values()) {
+      for (Object enumConstant : io.mateu.uidl.interfaces.Icon.values()) {
         attributes.add(
             new Pair(
                 "choice",
                 new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
       }
     }
-    if ((field.getType().isEnum() && !Icon.class.equals(field.getType()))
+    if ((field.getType().isEnum() && !io.mateu.uidl.interfaces.Icon.class.equals(field.getType()))
         || (field.getType().isArray() && field.getType().getComponentType().isEnum())
         || (List.class.isAssignableFrom(field.getType()) && field.getGenericClass().isEnum())) {
       Class enumType = field.getType();

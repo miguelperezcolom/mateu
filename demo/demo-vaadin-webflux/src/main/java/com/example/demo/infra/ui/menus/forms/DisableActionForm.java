@@ -1,13 +1,13 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.annotations.EnabledIf;
-import io.mateu.uidl.core.annotations.Ignored;
-import io.mateu.uidl.core.annotations.RawContent;
-import io.mateu.uidl.core.data.Status;
-import io.mateu.uidl.core.data.StatusType;
-import io.mateu.uidl.core.interfaces.HasStatus;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.EnabledIf;
+import io.mateu.uidl.annotations.Ignored;
+import io.mateu.uidl.annotations.RawContent;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
+import io.mateu.uidl.interfaces.HasStatus;
 import lombok.Data;
 
 @Data

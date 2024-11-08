@@ -4,13 +4,13 @@ import com.example.demo.infra.ui.menus.layouts.shared.LeftSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.MyForm1;
 import com.example.demo.infra.ui.menus.layouts.shared.RightSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleCrud;
-import io.mateu.uidl.core.annotations.HorizontalLayout;
-import io.mateu.uidl.core.annotations.Slot;
-import io.mateu.uidl.core.annotations.SlotName;
-import io.mateu.uidl.core.annotations.SplitLayout;
-import io.mateu.uidl.core.annotations.TabLayout;
-import io.mateu.uidl.core.data.Element;
-import io.mateu.uidl.core.interfaces.View;
+import io.mateu.uidl.annotations.HorizontalLayout;
+import io.mateu.uidl.annotations.Slot;
+import io.mateu.uidl.annotations.SlotName;
+import io.mateu.uidl.annotations.SplitLayout;
+import io.mateu.uidl.annotations.TabLayout;
+import io.mateu.uidl.data.Element;
+import io.mateu.uidl.interfaces.View;
 
 import java.util.List;
 

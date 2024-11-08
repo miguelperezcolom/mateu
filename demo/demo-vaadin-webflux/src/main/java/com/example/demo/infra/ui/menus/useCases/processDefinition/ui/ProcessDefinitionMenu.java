@@ -1,8 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.processDefinition.ui;
 
 import com.example.demo.infra.ui.menus.useCases.processDefinition.main.sale.*;
-import io.mateu.uidl.core.annotations.MenuOption;
-import io.mateu.uidl.core.interfaces.JpaCrud;
+import io.mateu.uidl.annotations.MenuOption;
+import io.mateu.uidl.interfaces.JpaCrud;
 
 import java.util.List;
 

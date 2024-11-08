@@ -1,8 +1,8 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.uidl.core.annotations.Ignored;
-import io.mateu.uidl.core.data.Status;
-import io.mateu.uidl.core.data.StatusType;
+import io.mateu.uidl.annotations.Ignored;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
 import io.mateu.core.domain.model.util.SerializerService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +15,16 @@ import java.util.List;
 @Service
 public class LanguagesRepository {
 
-  @Autowired@Ignored
-  SerializerService serializerService;
+  private final SerializerService serializerService;
 
   private final List<LanguageRow> all =
       new ArrayList<>();
 
-  @PostConstruct
+    public LanguagesRepository(SerializerService serializerService) {
+        this.serializerService = serializerService;
+    }
+
+    @PostConstruct
   public void reset() {
     all.clear();
     all.addAll(List.of(

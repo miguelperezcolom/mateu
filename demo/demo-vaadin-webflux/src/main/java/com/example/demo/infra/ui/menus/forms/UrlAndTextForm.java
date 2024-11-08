@@ -1,9 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.Placeholder;
-import io.mateu.uidl.core.annotations.RawContent;
-import io.mateu.uidl.core.annotations.Section;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Placeholder;
+import io.mateu.uidl.annotations.RawContent;
+import io.mateu.uidl.annotations.Section;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -7,9 +7,9 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapp
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.ExternalReference;
-import io.mateu.uidl.core.interfaces.HasBadgesOnFields;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.interfaces.HasBadgesOnFields;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,16 +100,15 @@ public class FieldMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.uidl.core.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(io.mateu.uidl.core.data.BadgeStyle badgeStyle) {
+  private BadgeStyle mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
     return BadgeStyle.valueOf(badgeStyle.toString());
   }
 
-  private BadgeIconPosition mapBadgePosition(
-      io.mateu.uidl.core.data.BadgeIconPosition iconPosition) {
+  private BadgeIconPosition mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
     return BadgeIconPosition.valueOf(iconPosition.toString());
   }
 

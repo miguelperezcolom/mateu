@@ -1,14 +1,14 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.uidl.core.annotations.Button;
-import io.mateu.uidl.core.annotations.Status;
-import io.mateu.uidl.core.annotations.UseCrud;
-import io.mateu.uidl.core.annotations.Width;
-import io.mateu.uidl.core.data.ExternalReference;
-import io.mateu.uidl.core.data.IconChooser;
-import io.mateu.uidl.core.data.TelephoneNumber;
-import io.mateu.uidl.core.interfaces.Icon;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Status;
+import io.mateu.uidl.annotations.UseCrud;
+import io.mateu.uidl.annotations.Width;
+import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.data.IconChooser;
+import io.mateu.uidl.data.TelephoneNumber;
+import io.mateu.uidl.interfaces.Icon;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;

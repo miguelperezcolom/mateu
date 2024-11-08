@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.UseCrud;
+import io.mateu.uidl.annotations.UseCrud;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;

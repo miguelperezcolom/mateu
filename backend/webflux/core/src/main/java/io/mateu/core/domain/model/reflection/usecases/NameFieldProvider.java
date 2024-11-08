@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.uidl.core.annotations.LabelFieldForLists;
+import io.mateu.uidl.annotations.LabelFieldForLists;
 import jakarta.persistence.Id;
 import java.lang.reflect.Method;
 import org.springframework.cache.annotation.Cacheable;

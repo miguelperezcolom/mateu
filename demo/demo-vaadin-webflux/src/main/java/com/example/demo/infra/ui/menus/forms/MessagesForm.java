@@ -1,14 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.data.*;
-import io.mateu.uidl.core.data.Status;
-import io.mateu.uidl.core.interfaces.HasSubtitle;
-import io.mateu.uidl.core.interfaces.HasTitle;
-import io.mateu.uidl.core.interfaces.Message;
-import io.mateu.uidl.core.interfaces.ResponseWrapper;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.interfaces.HasBadges;
-import io.mateu.uidl.core.interfaces.HasStatus;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.interfaces.HasSubtitle;
+import io.mateu.uidl.interfaces.HasTitle;
+import io.mateu.uidl.interfaces.Message;
+import io.mateu.uidl.interfaces.ResponseWrapper;
+import io.mateu.uidl.interfaces.HasBadges;
+import io.mateu.uidl.interfaces.HasStatus;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle
   @Action(order = 1)
   public Message showMessage() {
     return new Message(
-                      io.mateu.uidl.core.data.ResultType.Success,
+                      ResultType.Success,
                       "Sample message",
                       "Your name is " + name,
             5000

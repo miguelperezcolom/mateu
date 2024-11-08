@@ -1,8 +1,10 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.*;
 
-@Caption("Images")
+@io.mateu.uidl.annotations.Caption("Images")
 public record ImageForm(
         @Image(style = "height: 64px; width: 64px;")
                 @Caption("")

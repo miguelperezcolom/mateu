@@ -1,8 +1,8 @@
 package io.mateu.core.infra.jpa;
 
-import io.mateu.uidl.core.app.MDDOpenCRUDAction;
-import io.mateu.uidl.core.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.app.MDDOpenCRUDAction;
+import io.mateu.uidl.app.MDDOpenCRUDActionViewBuilder;
+import io.mateu.uidl.interfaces.Crud;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.stereotype.Service;
 

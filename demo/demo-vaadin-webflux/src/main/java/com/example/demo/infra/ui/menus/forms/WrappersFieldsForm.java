@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Action;
-import io.mateu.uidl.core.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.ReadOnly;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -6,11 +6,11 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapp
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.annotations.Child;
-import io.mateu.uidl.core.annotations.Detail;
-import io.mateu.uidl.core.annotations.Ignored;
-import io.mateu.uidl.core.interfaces.HasSubtitle;
-import io.mateu.uidl.core.interfaces.Listing;
+import io.mateu.uidl.annotations.Child;
+import io.mateu.uidl.annotations.Detail;
+import io.mateu.uidl.annotations.Ignored;
+import io.mateu.uidl.interfaces.HasSubtitle;
+import io.mateu.uidl.interfaces.Listing;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

@@ -1,6 +1,6 @@
 package io.mateu.demo;
 
-import io.mateu.uidl.core.annotations.MateuUI;
+import io.mateu.uidl.annotations.MateuUI;
 
 @MateuUI("/hello")
 public class HelloWorld {}

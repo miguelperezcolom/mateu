@@ -1,7 +1,8 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.data.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.data.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -85,7 +86,7 @@ public class SummaryForm {
   @CustomFieldStereotype("item")
   String smoker = "No";
 
-  @Caption("Sum Insured")
+  @io.mateu.uidl.annotations.Caption("Sum Insured")
   @CustomFieldStereotype("item")
   String sumInsured = "1.624,05 €";
 

@@ -14,13 +14,13 @@ import io.mateu.dtos.FieldGroup;
 import io.mateu.dtos.Section;
 import io.mateu.dtos.Status;
 import io.mateu.dtos.Tab;
-import io.mateu.uidl.core.annotations.*;
-import io.mateu.uidl.core.interfaces.HasBadges;
-import io.mateu.uidl.core.interfaces.HasBanners;
-import io.mateu.uidl.core.interfaces.HasIcon;
-import io.mateu.uidl.core.interfaces.HasStatus;
-import io.mateu.uidl.core.interfaces.HasSubtitle;
-import io.mateu.uidl.core.interfaces.JpaRpcCrudFactory;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.interfaces.HasBadges;
+import io.mateu.uidl.interfaces.HasBanners;
+import io.mateu.uidl.interfaces.HasIcon;
+import io.mateu.uidl.interfaces.HasStatus;
+import io.mateu.uidl.interfaces.HasSubtitle;
+import io.mateu.uidl.interfaces.JpaRpcCrudFactory;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
@@ -103,13 +103,13 @@ public class FormMetadataBuilder {
     AtomicBoolean first = new AtomicBoolean(true);
     tabs.addAll(
         editableFields.stream()
-            .filter(f -> f.isAnnotationPresent(io.mateu.uidl.core.annotations.Tab.class))
+            .filter(f -> f.isAnnotationPresent(io.mateu.uidl.annotations.Tab.class))
             .map(
                 f ->
                     new Tab(
                         "tab_" + f.getId(),
                         isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
-                        f.getAnnotation(io.mateu.uidl.core.annotations.Tab.class).value()))
+                        f.getAnnotation(io.mateu.uidl.annotations.Tab.class).value()))
             .collect(Collectors.toList()));
     return tabs;
   }
@@ -138,7 +138,7 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BannerTheme mapBannerTheme(io.mateu.uidl.core.data.BannerTheme theme) {
+  private BannerTheme mapBannerTheme(io.mateu.uidl.data.BannerTheme theme) {
     return BannerTheme.valueOf(theme.toString());
   }
 
@@ -176,7 +176,7 @@ public class FormMetadataBuilder {
     return new Status(mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
   }
 
-  private StatusType mapStatusType(io.mateu.uidl.core.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.uidl.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -217,19 +217,18 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.uidl.core.data.BadgeTheme theme) {
+  private BadgeTheme mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
     return BadgeTheme.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(io.mateu.uidl.core.data.BadgeStyle badgeStyle) {
+  private BadgeStyle mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
     if (badgeStyle == null) {
       return BadgeStyle.ROUND;
     }
     return BadgeStyle.valueOf(badgeStyle.toString());
   }
 
-  private BadgeIconPosition mapBadgePosition(
-      io.mateu.uidl.core.data.BadgeIconPosition iconPosition) {
+  private BadgeIconPosition mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
     if (iconPosition == null) {
       return BadgeIconPosition.RIGHT;
     }
@@ -333,9 +332,9 @@ public class FormMetadataBuilder {
     String topImageUrl = "";
     boolean card = true;
     int numberOfColumns = defaultColumnsNumber;
-    if (firstField.isAnnotationPresent(io.mateu.uidl.core.annotations.Section.class)) {
-      io.mateu.uidl.core.annotations.Section annotation =
-          firstField.getAnnotation(io.mateu.uidl.core.annotations.Section.class);
+    if (firstField.isAnnotationPresent(io.mateu.uidl.annotations.Section.class)) {
+      io.mateu.uidl.annotations.Section annotation =
+          firstField.getAnnotation(io.mateu.uidl.annotations.Section.class);
       caption = annotation.value();
       card = annotation.card();
       description = annotation.description();
@@ -367,7 +366,7 @@ public class FormMetadataBuilder {
     List<Field> fieldsInSection = new ArrayList<>();
     fieldsInTab.forEach(
         field -> {
-          if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Section.class)) {
+          if (field.isAnnotationPresent(io.mateu.uidl.annotations.Section.class)) {
             if (!fieldsInSection.isEmpty()) {
               fieldsBySection.add(new ArrayList<>(fieldsInSection));
               fieldsInSection.clear();
@@ -386,7 +385,7 @@ public class FormMetadataBuilder {
     String tabId = "";
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.Tab.class)) {
+      if (field.isAnnotationPresent(io.mateu.uidl.annotations.Tab.class)) {
         tabId = "tab_" + field.getId();
       }
       if (field.isAnnotationPresent(NoTab.class)) {
@@ -407,7 +406,7 @@ public class FormMetadataBuilder {
     int currentGroupColumns = 0;
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.FieldGroup.class)) {
+      if (field.isAnnotationPresent(io.mateu.uidl.annotations.FieldGroup.class)) {
 
         if (!lines.isEmpty()) {
           addGroup(
@@ -418,10 +417,8 @@ public class FormMetadataBuilder {
               currentGroupCaption,
               currentGroupColumns);
         }
-        String caption =
-            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).value();
-        int columns =
-            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).columns();
+        String caption = field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).value();
+        int columns = field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).columns();
         currentGroupCaption = caption;
         currentGroupColumns = columns;
         lines.clear();

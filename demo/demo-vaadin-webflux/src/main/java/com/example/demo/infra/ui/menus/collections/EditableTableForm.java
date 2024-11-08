@@ -1,7 +1,9 @@
 package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.pojos.Address;
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.*;
 import lombok.Data;
 
 import java.util.List;

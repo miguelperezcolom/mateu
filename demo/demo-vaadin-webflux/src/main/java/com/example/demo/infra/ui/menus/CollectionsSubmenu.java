@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.collections.*;
-import io.mateu.uidl.core.annotations.MenuOption;
+import io.mateu.uidl.annotations.MenuOption;
 
 public class CollectionsSubmenu {
 

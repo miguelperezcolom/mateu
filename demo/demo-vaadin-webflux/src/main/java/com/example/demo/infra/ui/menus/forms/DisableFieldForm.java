@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.EnabledIf;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.EnabledIf;
 import lombok.Data;
 
 @Data

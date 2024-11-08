@@ -5,7 +5,7 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Res
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
-import io.mateu.uidl.core.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.ActionHandler;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

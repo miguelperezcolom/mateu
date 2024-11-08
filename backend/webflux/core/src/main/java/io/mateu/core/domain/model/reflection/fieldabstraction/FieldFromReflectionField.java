@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.reflection.fieldabstraction;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.mateu.uidl.core.annotations.GenericClass;
+import io.mateu.uidl.annotations.GenericClass;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;

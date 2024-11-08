@@ -1,6 +1,8 @@
 package com.example.demo.infra.ui.menus.actions;
 
-import io.mateu.uidl.core.annotations.*;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.*;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;

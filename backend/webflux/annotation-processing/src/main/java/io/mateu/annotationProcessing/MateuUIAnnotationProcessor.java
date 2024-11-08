@@ -3,10 +3,10 @@ package io.mateu.annotationProcessing;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.uidl.core.annotations.Caption;
-import io.mateu.uidl.core.annotations.ExternalScripts;
-import io.mateu.uidl.core.annotations.KeycloakSecured;
-import io.mateu.uidl.core.annotations.MateuUI;
+import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.ExternalScripts;
+import io.mateu.uidl.annotations.KeycloakSecured;
+import io.mateu.uidl.annotations.MateuUI;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -16,7 +16,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes({"io.mateu.uidl.core.annotations.MateuUI"})
+@SupportedAnnotationTypes({"io.mateu.uidl.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {

@@ -5,7 +5,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UiInstantiator;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.UI;
-import io.mateu.uidl.core.interfaces.HasInitMethod;
+import io.mateu.uidl.interfaces.HasInitMethod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;

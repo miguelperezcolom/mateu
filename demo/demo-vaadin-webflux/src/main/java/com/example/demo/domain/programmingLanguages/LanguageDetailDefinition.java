@@ -1,6 +1,6 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.uidl.core.annotations.Ignored;
+import io.mateu.uidl.annotations.Ignored;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;

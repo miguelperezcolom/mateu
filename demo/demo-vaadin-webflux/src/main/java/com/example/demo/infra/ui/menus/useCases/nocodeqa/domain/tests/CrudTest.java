@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus.useCases.nocodeqa.domain.tests;
 
-import io.mateu.uidl.core.annotations.TextArea;
+import io.mateu.uidl.annotations.TextArea;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

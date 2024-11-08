@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
-import io.mateu.uidl.core.data.ExternalReference;
-import io.mateu.uidl.core.data.ValuesListProvider;
+import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.data.ValuesListProvider;
 
 import java.util.List;
 

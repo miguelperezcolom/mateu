@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
-import io.mateu.uidl.core.data.ItemsListProvider;
-import io.mateu.uidl.core.data.Value;
+import io.mateu.uidl.data.ItemsListProvider;
+import io.mateu.uidl.data.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;

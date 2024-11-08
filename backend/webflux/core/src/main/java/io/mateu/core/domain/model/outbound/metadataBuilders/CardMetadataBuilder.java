@@ -6,10 +6,9 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Card;
 import io.mateu.dtos.CardLayout;
-import io.mateu.uidl.core.annotations.SameLine;
-import io.mateu.uidl.core.annotations.UseCrud;
-import io.mateu.uidl.core.interfaces.*;
-import io.mateu.uidl.core.interfaces.HasStatus;
+import io.mateu.uidl.annotations.SameLine;
+import io.mateu.uidl.annotations.UseCrud;
+import io.mateu.uidl.interfaces.*;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class CardMetadataBuilder {
   private final ServerSideObjectMapper serverSideObjectMapper;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(io.mateu.uidl.core.interfaces.Card card, List<Field> slotFields) {
+  public Card build(io.mateu.uidl.interfaces.Card card, List<Field> slotFields) {
     Card metadata =
         new Card(
             CardLayout.Layout1,
@@ -129,7 +128,7 @@ public class CardMetadataBuilder {
     return new Status(mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
   }
 
-  private StatusType mapStatusType(io.mateu.uidl.core.data.StatusType type) {
+  private StatusType mapStatusType(io.mateu.uidl.data.StatusType type) {
     return StatusType.valueOf(type.toString());
   }
 
@@ -153,18 +152,16 @@ public class CardMetadataBuilder {
             .collect(Collectors.toList());
 
     for (Field field : allEditableFields) {
-      if (field.isAnnotationPresent(io.mateu.uidl.core.annotations.FieldGroup.class)) {
-        String caption =
-            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).value();
-        int columns =
-            field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).columns();
+      if (field.isAnnotationPresent(io.mateu.uidl.annotations.FieldGroup.class)) {
+        String caption = field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).value();
+        int columns = field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).columns();
         if (fieldGroupLines.size() > 0) {
           fieldGroups.add(
               new FieldGroup(
                   UUID.randomUUID().toString(),
                   currentFieldGroupCaption,
                   fieldGroupLines,
-                  field.getAnnotation(io.mateu.uidl.core.annotations.FieldGroup.class).columns()));
+                  field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).columns()));
         }
         currentFieldGroupCaption = caption;
         currentFieldGroupColumns = columns;

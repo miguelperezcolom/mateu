@@ -5,7 +5,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.UIIncrement;
-import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.interfaces.Crud;
 import java.lang.reflect.Method;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;

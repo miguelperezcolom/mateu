@@ -1,11 +1,11 @@
 package com.example.demo.domain.programmingLanguages;
 
-import io.mateu.uidl.core.app.ColumnAction;
-import io.mateu.uidl.core.app.ColumnActionGroup;
-import io.mateu.uidl.core.annotations.Ignored;
-import io.mateu.uidl.core.annotations.Width;
-import io.mateu.uidl.core.data.Status;
-import io.mateu.uidl.core.data.StatusType;
+import io.mateu.uidl.app.ColumnAction;
+import io.mateu.uidl.app.ColumnActionGroup;
+import io.mateu.uidl.annotations.Ignored;
+import io.mateu.uidl.annotations.Width;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

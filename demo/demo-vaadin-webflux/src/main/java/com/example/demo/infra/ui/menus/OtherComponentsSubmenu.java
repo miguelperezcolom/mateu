@@ -1,12 +1,12 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.othercomponents.MyDiv;
-import io.mateu.uidl.core.annotations.MenuOption;
-import io.mateu.uidl.core.data.Destination;
-import io.mateu.uidl.core.data.DestinationType;
-import io.mateu.uidl.core.data.Result;
-import io.mateu.uidl.core.data.ResultType;
-import io.mateu.uidl.core.interfaces.*;
+import io.mateu.uidl.annotations.MenuOption;
+import io.mateu.uidl.data.Destination;
+import io.mateu.uidl.data.DestinationType;
+import io.mateu.uidl.data.Result;
+import io.mateu.uidl.data.ResultType;
+import io.mateu.uidl.interfaces.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.util.List;

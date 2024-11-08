@@ -23,7 +23,7 @@ public abstract class TestStep {
 
   String name;
 
-  @io.mateu.uidl.core.annotations.Status
+  @io.mateu.uidl.annotations.Status
   Status status;
 
   String comments;

@@ -7,7 +7,7 @@ import io.mateu.dtos.SortCriteria;
 import io.mateu.dtos.SortType;
 import io.mateu.dtos.StatusType;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
-import io.mateu.uidl.core.annotations.Status;
+import io.mateu.uidl.annotations.Status;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.*;

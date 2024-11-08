@@ -7,11 +7,10 @@ import com.example.demo.domain.nfl.dtos.TargetPlayerDto;
 import com.example.demo.domain.nfl.entities.*;
 import com.example.demo.domain.swapi.dtos.*;
 import com.example.demo.domain.swapi.entities.*;
-import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.InputStreamReader;
 import io.mateu.core.domain.model.util.SerializerService;
+import io.mateu.uidl.interfaces.Serializer;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -25,27 +24,34 @@ import java.util.stream.Collectors;
 @Component
 public class Populator {
 
-  @Autowired private TeamRepository teamRepository;
+  private final TeamRepository teamRepository;
 
-  @Autowired private PlayerRepository playerRepository;
+  private final PlayerRepository playerRepository;
 
-  @Autowired private CityRepository cityRepository;
+  private final CityRepository cityRepository;
 
-  @Autowired private SWCharacterRepository swCharacterRepository;
+  private final SWCharacterRepository swCharacterRepository;
 
-  @Autowired private SWFilmRepository swFilmRepository;
+  private final SWFilmRepository swFilmRepository;
 
-  @Autowired private SWSpecieRepository swSpecieRepository;
+  private final SWSpecieRepository swSpecieRepository;
 
-  @Autowired private SWStarshipRepository swStarshipRepository;
+  private final SWStarshipRepository swStarshipRepository;
 
-  @Autowired
-  ReflectionService reflectionService;
+  private final Serializer serializerService;
 
-  @Autowired
-  SerializerService serializerService;
+    public Populator(TeamRepository teamRepository, PlayerRepository playerRepository, CityRepository cityRepository, SWCharacterRepository swCharacterRepository, SWFilmRepository swFilmRepository, SWSpecieRepository swSpecieRepository, SWStarshipRepository swStarshipRepository, Serializer serializerService) {
+        this.teamRepository = teamRepository;
+        this.playerRepository = playerRepository;
+        this.cityRepository = cityRepository;
+        this.swCharacterRepository = swCharacterRepository;
+        this.swFilmRepository = swFilmRepository;
+        this.swSpecieRepository = swSpecieRepository;
+        this.swStarshipRepository = swStarshipRepository;
+        this.serializerService = serializerService;
+    }
 
-  @PostConstruct
+    @PostConstruct
   public void populate() {
 
     try {

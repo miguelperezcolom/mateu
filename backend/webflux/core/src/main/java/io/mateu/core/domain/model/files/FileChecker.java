@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.files;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.GenericClassProvider;
-import io.mateu.uidl.core.annotations.File;
+import io.mateu.uidl.annotations.File;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

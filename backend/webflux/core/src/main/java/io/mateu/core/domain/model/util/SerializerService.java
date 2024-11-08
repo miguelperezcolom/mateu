@@ -13,9 +13,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
-import io.mateu.uidl.core.annotations.Attribute;
-import io.mateu.uidl.core.data.IconChooser;
-import io.mateu.uidl.core.interfaces.Serializer;
+import io.mateu.uidl.annotations.Attribute;
+import io.mateu.uidl.data.IconChooser;
+import io.mateu.uidl.interfaces.Serializer;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.io.StringReader;
@@ -54,6 +55,15 @@ public class SerializerService implements Serializer {
       InstanceProvider instanceProvider,
       ValueWriter valueWriter) {
     this.entitySerializer = entitySerializer;
+    this.valueProvider = valueProvider;
+    this.allFieldsProvider = allFieldsProvider;
+    this.basicTypeChecker = basicTypeChecker;
+    this.instanceProvider = instanceProvider;
+    this.valueWriter = valueWriter;
+  }
+
+  @PostConstruct
+  public void init() {
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.registerModule(new JavaTimeModule());
     SimpleModule module = new SimpleModule();
@@ -86,11 +96,6 @@ public class SerializerService implements Serializer {
     // Now you should use JavaTimeModule instead
     yamlMapper.registerModule(new JavaTimeModule());
     yamlMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    this.valueProvider = valueProvider;
-    this.allFieldsProvider = allFieldsProvider;
-    this.basicTypeChecker = basicTypeChecker;
-    this.instanceProvider = instanceProvider;
-    this.valueWriter = valueWriter;
   }
 
   public Map<String, Object> fromJson(String json) throws IOException {
@@ -104,7 +109,7 @@ public class SerializerService implements Serializer {
   }
 
   public <T> T pojoFromJson(String json, Class<T> c) throws Exception {
-    if (json == null || "".equals(json)) json = "{}";
+    if (json == null || json.isEmpty()) json = "{}";
     return mapper.readValue(json, c);
   }
 

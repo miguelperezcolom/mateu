@@ -3,15 +3,15 @@ package io.mateu.core.domain.model.outbound.modelToDtoMappers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.uidl.core.annotations.HorizontalLayout;
-import io.mateu.uidl.core.annotations.SplitLayout;
-import io.mateu.uidl.core.annotations.TabLayout;
-import io.mateu.uidl.core.annotations.VerticalLayout;
-import io.mateu.uidl.core.data.Result;
-import io.mateu.uidl.core.data.Stepper;
-import io.mateu.uidl.core.interfaces.Card;
-import io.mateu.uidl.core.interfaces.Container;
-import io.mateu.uidl.core.interfaces.Crud;
+import io.mateu.uidl.annotations.HorizontalLayout;
+import io.mateu.uidl.annotations.SplitLayout;
+import io.mateu.uidl.annotations.TabLayout;
+import io.mateu.uidl.annotations.VerticalLayout;
+import io.mateu.uidl.data.Result;
+import io.mateu.uidl.data.Stepper;
+import io.mateu.uidl.interfaces.Card;
+import io.mateu.uidl.interfaces.Container;
+import io.mateu.uidl.interfaces.Crud;
 import org.springframework.stereotype.Service;
 
 @Service

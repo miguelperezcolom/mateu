@@ -2,11 +2,11 @@ package com.example.demo.infra.ui.menus.othercomponents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mateu.uidl.core.annotations.Attribute;
-import io.mateu.uidl.core.annotations.Content;
-import io.mateu.uidl.core.annotations.Element;
-import io.mateu.uidl.core.annotations.On;
-import io.mateu.uidl.core.data.ClientSideEvent;
+import io.mateu.uidl.annotations.Attribute;
+import io.mateu.uidl.annotations.Content;
+import io.mateu.uidl.annotations.Element;
+import io.mateu.uidl.annotations.On;
+import io.mateu.uidl.data.ClientSideEvent;
 
 import java.time.LocalTime;
 

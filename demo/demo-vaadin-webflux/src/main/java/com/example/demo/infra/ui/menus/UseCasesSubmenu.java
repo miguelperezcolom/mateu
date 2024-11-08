@@ -7,8 +7,8 @@ import com.example.demo.infra.ui.menus.useCases.leads.LeadsCrud;
 import com.example.demo.infra.ui.menus.useCases.nocodeqa.ui.QAMenu;
 import com.example.demo.infra.ui.menus.useCases.processDefinition.ui.ProcessDefinitionMenu;
 import com.example.demo.infra.ui.menus.useCases.school.SchoolMenu;
-import io.mateu.uidl.core.annotations.MenuOption;
-import io.mateu.uidl.core.annotations.Submenu;
+import io.mateu.uidl.annotations.MenuOption;
+import io.mateu.uidl.annotations.Submenu;
 
 public class UseCasesSubmenu {
 

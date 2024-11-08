@@ -1,13 +1,13 @@
 package io.mateu.core.domain.model.inbound.menuResolvers;
 
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.uidl.core.annotations.Home;
-import io.mateu.uidl.core.annotations.PrivateHome;
-import io.mateu.uidl.core.annotations.PublicHome;
-import io.mateu.uidl.core.app.*;
-import io.mateu.uidl.core.interfaces.JourneyRunner;
-import io.mateu.uidl.core.interfaces.Listing;
-import io.mateu.uidl.core.interfaces.MenuEntry;
+import io.mateu.uidl.annotations.Home;
+import io.mateu.uidl.annotations.PrivateHome;
+import io.mateu.uidl.annotations.PublicHome;
+import io.mateu.uidl.app.*;
+import io.mateu.uidl.interfaces.JourneyRunner;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.MenuEntry;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;

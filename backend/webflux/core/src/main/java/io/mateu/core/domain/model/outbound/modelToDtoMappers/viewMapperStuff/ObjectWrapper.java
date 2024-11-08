@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.annotations.Caption;
 
 @Caption("")
 public class ObjectWrapper {

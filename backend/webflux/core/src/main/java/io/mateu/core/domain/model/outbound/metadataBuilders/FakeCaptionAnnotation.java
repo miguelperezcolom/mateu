@@ -1,6 +1,6 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.uidl.core.annotations.Caption;
+import io.mateu.uidl.annotations.Caption;
 import java.lang.annotation.Annotation;
 
 public class FakeCaptionAnnotation implements Caption {
