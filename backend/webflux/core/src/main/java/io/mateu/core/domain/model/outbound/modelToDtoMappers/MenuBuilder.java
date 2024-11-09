@@ -142,7 +142,8 @@ public class MenuBuilder {
     if (m.isAnnotationPresent(Home.class)
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
-      l.add(new Menu(
+      l.add(
+          new Menu(
               menuType,
               "home",
               "Home",
@@ -164,7 +165,7 @@ public class MenuBuilder {
               order,
               m.getAnnotation(Submenu.class).visible(),
               remoteBaseUrl,
-                  remoteUiId,
+              remoteUiId,
               remoteMenuId));
     } else {
       if (!MenuType.Remote.equals(menuType)) {

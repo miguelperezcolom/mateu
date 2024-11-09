@@ -1,6 +1,6 @@
 docker login
 docker build -t miguelperezcolom/mateu-demo .
-export VERSION=3.0-alpha.61
+export VERSION=3.0-alpha.62
 docker image tag miguelperezcolom/mateu-demo miguelperezcolom/mateu-demo:latest
 docker image tag miguelperezcolom/mateu-demo miguelperezcolom/mateu-demo:$VERSION
 echo "pushing latest"
