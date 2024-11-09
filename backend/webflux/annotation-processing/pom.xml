@@ -77,6 +77,17 @@
       <version>33.2.0-jre</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>uidl</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
   </dependencies>
 
