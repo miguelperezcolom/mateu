@@ -10,8 +10,8 @@ import "@vaadin/grid/vaadin-grid-column";
 import "../form/section/fieldGroup/field/fields/field-externalref"
 import "./mateu-paginator"
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
-import {Grid, GridActiveItemChangedEvent} from "@vaadin/vaadin-grid";
-import {GridSortColumn} from "@vaadin/vaadin-grid/vaadin-grid-sort-column";
+import {Grid, GridActiveItemChangedEvent} from "@vaadin/grid";
+import {GridSortColumn} from "@vaadin/grid/vaadin-grid-sort-column";
 import {Button} from "@vaadin/button";
 import {badge} from "@vaadin/vaadin-lumo-styles";
 import {StatusType} from "../../../../../../shared/apiClients/dtos/StatusType";

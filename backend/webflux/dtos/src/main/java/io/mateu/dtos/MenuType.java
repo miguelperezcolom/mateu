@@ -2,5 +2,6 @@ package io.mateu.dtos;
 
 public enum MenuType {
   MenuOption,
-  Submenu
+  Submenu,
+  Remote
 }

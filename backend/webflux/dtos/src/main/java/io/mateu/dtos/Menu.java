@@ -3,7 +3,6 @@ package io.mateu.dtos;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.List;
-import lombok.*;
 
 public record Menu(
     MenuType type,
@@ -12,7 +11,10 @@ public record Menu(
     String journeyTypeId,
     List<Menu> submenus,
     @JsonIgnore int order,
-    boolean visible) {
+    boolean visible,
+    String remoteBaseUrl,
+    String remoteUiId,
+    String remoteMenuId) {
 
   public Menu {
     submenus = Collections.unmodifiableList(submenus);

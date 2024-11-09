@@ -1,5 +1,5 @@
 export enum MenuType {
 
-    MenuOption = "MenuOption", Submenu = "Submenu"
+    MenuOption = "MenuOption", Submenu = "Submenu", Remote = "Remote"
 
 }

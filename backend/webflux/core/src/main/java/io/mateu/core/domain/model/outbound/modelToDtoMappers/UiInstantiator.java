@@ -38,7 +38,7 @@ public class UiInstantiator {
 
     } catch (Exception e) {
       //      log.error("error on getUi", e);
-      // throw new NotFoundException("No class with name " + uiId + " found");
+      // throw new NotFoundException("No class with name " + remoteUiId + " found");
       throw new RuntimeException(e);
     }
   }

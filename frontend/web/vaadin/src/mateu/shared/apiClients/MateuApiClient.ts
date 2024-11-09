@@ -131,7 +131,11 @@ class MateuApiClient {
     }
 
     async fetchUi(uiId: string): Promise<UI> {
-        return await this.wrap<UI>(this.get(this.baseUrl + '/uis/' + uiId)
+        return this.fetchRemoteUi(this.baseUrl, uiId)
+    }
+
+    async fetchRemoteUi(baseUrl: string, uiId: string): Promise<UI> {
+        return await this.wrap<UI>(this.get(baseUrl + '/uis/' + uiId)
             .then((response) => response.data))
     }
 

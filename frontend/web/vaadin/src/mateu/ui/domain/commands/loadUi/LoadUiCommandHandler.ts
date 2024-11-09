@@ -9,9 +9,10 @@ export class LoadUiCommandHandler {
 
     public async handle(command: LoadUiCommand): Promise<{ui: UI,items: any, journeyTypeId: string | undefined}> {
         const ui = await mateuApiClient.fetchUi(command.uiId)
+        const menu = await this.hydrate(ui?.menu)
         return {
             ui: ui,
-            items: ui?.menu?.filter(m => m.visible).map(m => this.mapToMenuBarItem(m)),
+            items: menu?.filter(m => m.visible).map(m => this.mapToMenuBarItem(m)),
             journeyTypeId: command.journeyTypeId
         };
     }
@@ -24,10 +25,46 @@ export class LoadUiCommandHandler {
         return {
             journeyTypeId: m.journeyTypeId,
             text: m.caption,
-            children: m.type == MenuType.Submenu?m.submenus?.map(s => this.mapToMenuBarItem(s)):undefined
+            children: m.type == MenuType.Submenu?m
+                .submenus!.filter(s => s.visible).map(s =>
+                    this.mapToMenuBarItem(s)):undefined
         }
     }
 
+    private async hydrate(menu: Menu[] | undefined): Promise<Menu[]> {
+        if (menu) {
+            const hydratedMenu: Menu[] = []
+            for (const m of menu) {
+                let hydratedItem: Menu | undefined = m
+                if (MenuType.Remote == m.type) {
+                    hydratedItem = await this.fetchMenu(m)
+                }
+                if (hydratedItem) {
+                    if (hydratedItem?.submenus) {
+                        hydratedItem.submenus = await this.hydrate(hydratedItem.submenus)
+                    }
+                    hydratedMenu.push(hydratedItem)
+                } else {
+                    hydratedMenu.push({
+                        ...m,
+                        caption: m.caption + ' (Unresolved)'
+                    } as Menu)
+                }
+            }
+
+            return hydratedMenu
+        }
+        return []
+    }
+
+    private async fetchMenu(m: Menu): Promise<Menu | undefined> {
+        const ui = await mateuApiClient.fetchRemoteUi(m.remoteBaseUrl!, m.remoteUiId!)
+        if (ui.menu) {
+            return ui.menu!.find(x => x.journeyTypeId == m.remoteMenuId)
+        }
+        console.log('Not able to resolve ' + m.remoteBaseUrl + ' ' + m.remoteUiId, ui)
+        return undefined
+    }
 }
 
 export const loadUiCommandHandler = new LoadUiCommandHandler()

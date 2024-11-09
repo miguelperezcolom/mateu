@@ -8,6 +8,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.Menu;
 import io.mateu.dtos.MenuType;
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.interfaces.MateuSecurityManager;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -124,24 +125,63 @@ public class MenuBuilder {
     else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();
     if (order == 0 || order == 10000) order = l.size();
 
+    String remoteBaseUrl = "";
+    String remoteUiId = "";
+    String remoteMenuId = "";
+    MenuType menuType = MenuType.Submenu;
+    if (m instanceof Field field && field.getType().equals(RemoteMenu.class)) {
+      RemoteMenu remoteMenu = (RemoteMenu) getValue(uiInstance, m);
+      if (remoteMenu != null) {
+        remoteBaseUrl = remoteMenu.remoteBaseUrl();
+        remoteUiId = remoteMenu.remoteUiId();
+        remoteMenuId = remoteMenu.remoteMenuId();
+        menuType = MenuType.Remote;
+      }
+    }
+
     if (m.isAnnotationPresent(Home.class)
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
-      l.add(new Menu(MenuType.Submenu, "home", "Home", "", List.of(), order, true));
+      l.add(new Menu(
+              menuType,
+              "home",
+              "Home",
+              "",
+              List.of(),
+              order,
+              true,
+              remoteBaseUrl,
+              remoteUiId,
+              remoteMenuId));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
           new Menu(
-              MenuType.Submenu,
+              menuType,
               icon,
               caption,
               journeyTypeId,
               buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
               order,
-              m.getAnnotation(Submenu.class).visible()));
+              m.getAnnotation(Submenu.class).visible(),
+              remoteBaseUrl,
+                  remoteUiId,
+              remoteMenuId));
     } else {
+      if (!MenuType.Remote.equals(menuType)) {
+        menuType = MenuType.MenuOption;
+      }
       l.add(
           new Menu(
-              MenuType.MenuOption, icon, caption, journeyTypeId, List.of(), order, isVisible(m)));
+              menuType,
+              icon,
+              caption,
+              journeyTypeId,
+              List.of(),
+              order,
+              isVisible(m),
+              remoteBaseUrl,
+              remoteUiId,
+              remoteMenuId));
     }
   }
 

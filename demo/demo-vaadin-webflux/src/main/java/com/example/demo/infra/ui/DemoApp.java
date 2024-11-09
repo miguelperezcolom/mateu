@@ -5,6 +5,7 @@ import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Private;
 import io.mateu.uidl.annotations.Submenu;
+import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.HasAppTitle;
 import io.mateu.uidl.interfaces.HasApps;
@@ -36,6 +37,12 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
   @MenuOption
   @Private
   private BasicFieldsForm eyesOnly;
+
+  @MenuOption
+  RemoteMenu remoteMenu = new RemoteMenu("/remoteapp/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
+
+  @MenuOption
+  RemoteMenu remoteBrokenMenu = new RemoteMenu("/xxxxx/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
 
   @Override
   public String getLoginUrl() {

@@ -10,7 +10,7 @@ import '@vaadin/grid/vaadin-grid-sort-column'
 import '@vaadin/grid/vaadin-grid-column'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import {columnBodyRenderer} from "lit-vaadin-helpers";
-import {GridActiveItemChangedEvent} from "@vaadin/vaadin-grid";
+import {GridActiveItemChangedEvent} from "@vaadin/grid";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogFooterRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Button} from "@vaadin/button";

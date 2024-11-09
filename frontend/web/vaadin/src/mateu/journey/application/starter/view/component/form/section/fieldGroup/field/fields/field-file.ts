@@ -6,8 +6,7 @@ import '@vaadin/upload'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import File from "../../../../../../../../../../shared/apiClients/dtos/File";
 import {nanoid} from "nanoid";
-import {UploadElement} from "@vaadin/upload/src/vaadin-upload";
-import {UploadFile} from "@vaadin/upload";
+import {Upload, UploadFile} from "@vaadin/upload";
 import {CustomField} from "@vaadin/custom-field";
 
 
@@ -18,7 +17,7 @@ export class FieldFile extends LitElement implements Component {
     customField : CustomField | undefined
 
     isInvalid(): boolean | undefined {
-        this.customField?.validate()
+        this.customField ? this.customField.validate() : undefined
         return this.customField?.invalid
     }
 
@@ -97,8 +96,9 @@ export class FieldFile extends LitElement implements Component {
 
     @property()
     onChange = (e:CustomEvent) => {
-        const input = e.target as UploadElement;
-        if (e.type == 'files-changed' && e.detail.value && e.detail.path?.indexOf('abort') > 0) {
+        console.log(e)
+        const input = e.target as Upload;
+        if (e.type == 'files-changed') {
             this.checkAndSendNotifyChanged(input)
         }
         if (e.type == 'upload-success') {
@@ -106,7 +106,7 @@ export class FieldFile extends LitElement implements Component {
         }
     }
 
-    private checkAndSendNotifyChanged(input: UploadElement) {
+    private checkAndSendNotifyChanged(input: Upload) {
         const newFileList = input.files.filter(uf => !uf.abort).map(uf => { return {
             targetUrl: uf.uploadTarget,
             id: this.getFileId(uf.uploadTarget),

@@ -23,6 +23,7 @@ export default defineConfig({
       '/ircs/mateu': 'http://localhost:8091',
       '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
+      '/remoteapp/mateu': 'http://localhost:8091',
     },
   },
 })
