@@ -156,18 +156,18 @@ export class MateuComponent extends LitElement {
         super.updated(_changedProperties);
         if (this.component?.metadata.type == ComponentMetadataType.Element) {
             const element = this.component.metadata as CustomElement;
-            // @ts-ignore
-            for (const p of element.attributes.listeners.filter(p => p.key == 'listener')) {
-                const def = p.value as Listener
-                this.shadowRoot?.querySelector('#' + this.component.id)?.addEventListener(def.eventName, e => {
-                    if (def.js) {
-                        eval(def.js)
-                    } else if (def.actionName) {
-                        this.doRunActionId(def.actionName, def.eventName, JSON.parse(this.stringify_object(e)))
-                    }
-                });
+            if (element.attributes.listeners) {
+                for (const p of element.attributes.listeners.filter(p => p.key == 'listener')) {
+                    const def = p.value as Listener
+                    this.shadowRoot?.querySelector('#' + this.component.id)?.addEventListener(def.eventName, e => {
+                        if (def.js) {
+                            eval(def.js)
+                        } else if (def.actionName) {
+                            this.doRunActionId(def.actionName, def.eventName, JSON.parse(this.stringify_object(e)))
+                        }
+                    });
+                }
             }
-
         }
     }
 

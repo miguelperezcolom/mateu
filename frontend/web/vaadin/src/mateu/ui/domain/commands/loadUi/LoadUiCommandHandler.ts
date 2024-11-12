@@ -19,11 +19,15 @@ export class LoadUiCommandHandler {
 
     private mapToMenuBarItem(m: Menu): {
         journeyTypeId: string | undefined
+        baseUrl: string | undefined
+        uiId: string | undefined
         children: MenuBarItem[] | undefined
         text: string
     } {
         return {
             journeyTypeId: m.journeyTypeId,
+            baseUrl: m.remoteBaseUrl,
+            uiId: m.remoteUiId,
             text: m.caption,
             children: m.type == MenuType.Submenu?m
                 .submenus!.filter(s => s.visible).map(s =>
@@ -42,8 +46,12 @@ export class LoadUiCommandHandler {
                 if (hydratedItem) {
                     if (hydratedItem?.submenus) {
                         hydratedItem.submenus = await this.hydrate(hydratedItem.submenus)
+                        hydratedItem.submenus.forEach(x => {
+                            x.remoteBaseUrl = m.remoteBaseUrl
+                            x.remoteUiId = m.remoteUiId
+                        })
                     }
-                    hydratedMenu.push(hydratedItem)
+                    hydratedMenu.push({...hydratedItem, remoteBaseUrl: m.remoteBaseUrl, remoteUiId: m.remoteUiId})
                 } else {
                     hydratedMenu.push({
                         ...m,
@@ -58,11 +66,15 @@ export class LoadUiCommandHandler {
     }
 
     private async fetchMenu(m: Menu): Promise<Menu | undefined> {
-        const ui = await mateuApiClient.fetchRemoteUi(m.remoteBaseUrl!, m.remoteUiId!)
-        if (ui.menu) {
-            return ui.menu!.find(x => x.journeyTypeId == m.remoteMenuId)
+        try {
+            const ui = await mateuApiClient.fetchRemoteUi(m.remoteBaseUrl!, m.remoteUiId!)
+            if (ui.menu) {
+                return ui.menu!.find(x => x.journeyTypeId == m.remoteMenuId)
+            }
+            console.log('Not able to resolve ' + m.remoteBaseUrl + ' ' + m.remoteUiId, ui)
+        } catch (e) {
+            console.log('Not able to resolve ' + m.remoteBaseUrl + ' ' + m.remoteUiId, e)
         }
-        console.log('Not able to resolve ' + m.remoteBaseUrl + ' ' + m.remoteUiId, ui)
         return undefined
     }
 }

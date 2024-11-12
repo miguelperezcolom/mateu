@@ -50,11 +50,8 @@ public class DefaultMenuEntryFactory implements MenuEntryFactory {
       };
     } else if (URL.class.equals(app.getClass())) {
       return new MDDOpenUrlAction(caption, (URL) app);
-    } else if (reflectionService.isBasic(app.getClass()) || String.class.equals(app.getClass())) {
-      if (f.isAnnotationPresent(Home.class)
-          || f.isAnnotationPresent(PublicHome.class)
-          || f.isAnnotationPresent(PrivateHome.class))
-        return new MDDOpenHtmlAction(caption, "" + app);
+    } else if (reflectionService.isBasic(app.getClass())) {
+      return new MDDOpenHtmlAction(caption, "" + app);
     } else if (Listing.class.isAssignableFrom(app.getClass())) {
       Object finalUiInstance = app;
       return new MDDOpenListViewAction(caption, () -> (Listing) finalUiInstance);
@@ -62,6 +59,5 @@ public class DefaultMenuEntryFactory implements MenuEntryFactory {
       Object finalUiInstance1 = app;
       return new MDDOpenEditorAction(caption, () -> finalUiInstance1);
     }
-    return null;
   }
 }

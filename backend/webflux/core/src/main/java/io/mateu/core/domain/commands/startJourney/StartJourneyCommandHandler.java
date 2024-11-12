@@ -4,10 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
-import io.mateu.uidl.app.MDDOpenCRUDAction;
-import io.mateu.uidl.app.MDDOpenCRUDActionViewBuilder;
-import io.mateu.uidl.app.MDDOpenEditorAction;
-import io.mateu.uidl.app.MDDOpenListViewAction;
+import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.ConsumesContextData;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import io.mateu.uidl.interfaces.JourneyStarter;
@@ -133,6 +130,8 @@ public class StartJourneyCommandHandler {
         return action.getSupplier().get();
       }
       return reflectionService.newInstance(action.getListViewClass());
+    } else if (menuEntry instanceof MDDOpenHtmlAction action) {
+      return action.html;
     }
     return null;
   }

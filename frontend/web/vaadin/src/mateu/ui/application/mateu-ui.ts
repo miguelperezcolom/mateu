@@ -23,6 +23,8 @@ import App from "../../shared/apiClients/dtos/App";
 
 interface MyMenuBarItem extends MenuBarItem {
 
+    baseUrl: string | undefined
+    uiId: string | undefined
     journeyTypeId: string | undefined
 
 }
@@ -151,8 +153,8 @@ export class MateuUi extends LitElement {
         this.instant = nanoid()
         let item = event.detail.value as MyMenuBarItem
         this.journeyTypeId = item.journeyTypeId
-        this.journeyUiId = this.uiId
-        this.journeyBaseUrl = this.baseUrl
+        this.journeyUiId = item.uiId?item.uiId:this.uiId
+        this.journeyBaseUrl = item.baseUrl?item.baseUrl:this.baseUrl
         this.journeyContextData = this.contextData
         this.label = item.text
     }

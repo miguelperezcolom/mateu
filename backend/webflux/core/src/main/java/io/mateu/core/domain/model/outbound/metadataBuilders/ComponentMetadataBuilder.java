@@ -145,7 +145,7 @@ public class ComponentMetadataBuilder {
       metadata = getCrud("main", (JpaCrud) componentInstance);
     } else if (componentInstance instanceof ObjectWrapper objectWrapper) {
       metadata = wrap(objectWrapper.getValue());
-    } else if (componentInstance != null && basicTypeChecker.isBasic(componentInstance)) {
+    } else if (basicTypeChecker.isBasic(componentInstance) && !(componentInstance instanceof String)) {
       metadata =
           getResult(
               new Result(

@@ -42,7 +42,7 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
   RemoteMenu remoteMenu = new RemoteMenu("/remoteapp/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
 
   @MenuOption
-  RemoteMenu remoteBrokenMenu = new RemoteMenu("/xxxxx/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
+  RemoteMenu remoteBrokenMenu = new RemoteMenu("https://demo.mateu.io/xxxxx/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
 
   @Override
   public String getLoginUrl() {

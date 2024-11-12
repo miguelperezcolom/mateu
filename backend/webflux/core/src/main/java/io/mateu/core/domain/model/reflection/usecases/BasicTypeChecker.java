@@ -34,6 +34,9 @@ public class BasicTypeChecker {
   }
 
   public boolean isBasic(Object o) {
+    if (o == null) {
+      return false;
+    }
     return isBasic(o.getClass());
   }
 }

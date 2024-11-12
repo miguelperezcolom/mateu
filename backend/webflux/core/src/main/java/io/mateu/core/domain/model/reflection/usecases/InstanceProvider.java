@@ -186,6 +186,45 @@ public class InstanceProvider {
           minParams = con.getParameterCount();
         }
       }
+    if (con == null) {
+      for (Constructor x : type.getConstructors())
+        if (Modifier.isProtected(x.getModifiers())) {
+          if (x.getParameterCount() < minParams) {
+            con = x;
+            minParams = con.getParameterCount();
+          }
+        }
+    }
+    if (con == null) {
+      for (Constructor x : type.getDeclaredConstructors())
+        if (Modifier.isPublic(x.getModifiers())) {
+          if (x.getParameterCount() < minParams) {
+            con = x;
+            minParams = con.getParameterCount();
+          }
+        }
+    }
+    if (con == null) {
+      for (Constructor x : type.getDeclaredConstructors())
+        if (Modifier.isProtected(x.getModifiers())) {
+          if (x.getParameterCount() < minParams) {
+            con = x;
+            minParams = con.getParameterCount();
+          }
+        }
+    }
+    if (con == null) {
+      for (Constructor x : type.getDeclaredConstructors())
+        if (x.getParameterCount() < minParams) {
+          con = x;
+          minParams = con.getParameterCount();
+        }
+    }
+    if (con != null) {
+      if (!Modifier.isPublic(con.getModifiers())) {
+        con.setAccessible(true);
+      }
+    }
     return con;
   }
 

@@ -8,6 +8,9 @@ import io.mateu.uidl.interfaces.JourneyStarter;
 @FormColumns(2)
 public class FormOthersSubmenu {
 
+  @MenuOption
+  private String justAnString = "Hello World!";
+
   @MenuOption private FailingForm failingForm;
 
   @MenuOption private JourneyStarter remoteForm = new JourneyStarter(
