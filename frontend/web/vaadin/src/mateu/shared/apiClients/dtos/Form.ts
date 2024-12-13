@@ -24,5 +24,6 @@ export default interface Form extends ComponentMetadata {
     mainActions: Action[]
     validations: Validation[]
     rules: Rule[]
+    attributes: Record<string, any>
 
 }

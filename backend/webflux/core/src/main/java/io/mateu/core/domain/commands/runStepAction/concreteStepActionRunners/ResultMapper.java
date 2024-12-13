@@ -71,7 +71,8 @@ public class ResultMapper {
     if (result == null) {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(actualViewInstance, serverHttpRequest, data),
+              componentFactory.createFormComponent(
+                  actualViewInstance, serverHttpRequest, data, true),
               componentId));
     }
 

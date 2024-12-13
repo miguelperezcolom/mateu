@@ -28,7 +28,9 @@ public record Section(
     String leftSideImageUrl,
     String topImageUrl,
     List<FieldGroup> fieldGroups,
-    int columns) {
+    int columns,
+    boolean sidePositionedLabel,
+    String itemLabelWidth) {
 
   public Section {
     fieldGroups = Collections.unmodifiableList(fieldGroups);

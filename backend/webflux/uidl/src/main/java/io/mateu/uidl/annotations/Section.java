@@ -21,4 +21,8 @@ public @interface Section {
   String topImageUrl() default "";
 
   int columns() default 0;
+
+  boolean sidePositionedLabel() default false;
+
+  String itemLabelWidth() default "120px";
 }

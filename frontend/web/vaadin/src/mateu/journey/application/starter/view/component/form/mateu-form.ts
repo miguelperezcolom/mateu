@@ -467,33 +467,51 @@ export class MateuForm extends LitElement implements FormElement {
     return item;
   }
 
+  getStyle() {
+    let s = '';
+    if (this.metadata.attributes['min-width']) {
+      s += 'min-width:' + this.metadata.attributes['min-width'] + ';'
+    }
+    if (this.metadata.attributes.width) {
+      s += 'width:' + this.metadata.attributes.width + ';'
+    }
+    if (this.metadata.attributes['max-width']) {
+      s += 'max-width:' + this.metadata.attributes['max-width'] + ';'
+    }
+    return s;
+  }
+
   render() {
     return html`
-      <div>
+      <div style="${this.getStyle()}">
+        
+        ${this.metadata.title || this.metadata.subtitle || this.metadata.actions.filter(a => a.visible).length > 0?html`
 
-        <vaadin-horizontal-layout class="header xx" style="align-items: baseline;">
-          <div style="flex-grow: 1; ">
-            <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
-            ${this.metadata.subtitle?html`
+          <vaadin-horizontal-layout class="header xx" style="align-items: baseline;">
+            <div style="flex-grow: 1; ">
+              <h2 style="margin-block-end: 0px;">${this.metadata.title}</h2>
+              ${this.metadata.subtitle?html`
             <p style="margin-top: -6px;">${this.metadata.subtitle}</p>
           `:''}
-          </div>
-          <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
-            ${this.metadata.actions.filter(a => a.visible).slice(0, (this.metadata.actions.filter(a => a.visible).length > 3)?2:3).map(a => html`
+            </div>
+            <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
+              ${this.metadata.actions.filter(a => a.visible).slice(0, (this.metadata.actions.filter(a => a.visible).length > 3)?2:3).map(a => html`
             <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.icon?html`
                 <vaadin-icon icon="${a.icon}" actionId=${a.id}></vaadin-icon>
             `:''}${a.caption}</vaadin-button>
           `)}
-            ${this.metadata.actions.filter(a => a.visible).length > 3?html`
+              ${this.metadata.actions.filter(a => a.visible).length > 3?html`
               <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                @item-selected="${this.actionItemSelected}"
                                .items="${this.buildItemsForActions(this.metadata.actions
                   .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
             `:''}
+            </vaadin-horizontal-layout>
           </vaadin-horizontal-layout>
-        </vaadin-horizontal-layout>
+        
+        `:``}
           
-        ${this.metadata.status || this.metadata.badges?html`
+        ${this.metadata.status || this.metadata.badges.length > 0?html`
             <vaadin-horizontal-layout class="badges" theme="spacing-s">
               ${this.metadata.status?html`<span 
                   theme="badge ${this.getThemeForStatusType(this.metadata.status.type)}"

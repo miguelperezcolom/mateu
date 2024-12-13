@@ -26,6 +26,7 @@ import {dialogFooterRenderer} from "@vaadin/dialog/lit";
 import Card from "../../../../../shared/apiClients/dtos/Card";
 import Result from "../../../../../shared/apiClients/dtos/Result";
 import Listener from "../../../../../shared/apiClients/dtos/Listener";
+import RemoteJourney from "../../../../../shared/apiClients/dtos/RemoteJourney";
 
 
 @customElement('mateu-component')
@@ -156,7 +157,9 @@ export class MateuComponent extends LitElement {
         super.updated(_changedProperties);
         if (this.component?.metadata.type == ComponentMetadataType.Element) {
             const element = this.component.metadata as CustomElement;
+            //@ts-ignore
             if (element.attributes.listeners) {
+                //@ts-ignore
                 for (const p of element.attributes.listeners.filter(p => p.key == 'listener')) {
                     const def = p.value as Listener
                     this.shadowRoot?.querySelector('#' + this.component.id)?.addEventListener(def.eventName, e => {
@@ -188,6 +191,20 @@ export class MateuComponent extends LitElement {
             obj[key] = value;
         }
         return JSON.stringify(obj);
+    }
+
+    getStyle(c:Component) {
+        let s = '';
+        if (c.attributes['min-width']) {
+            s += 'min-width:' + c.attributes['min-width'] + ';'
+        }
+        if (c.attributes['width']) {
+            s += 'width:' + c.attributes['width'] + ';'
+        }
+        if (c.attributes['max-width']) {
+            s += 'max-width:' + c.attributes['max-width'] + ';'
+        }
+        return s;
     }
 
     render() {
@@ -237,6 +254,7 @@ export class MateuComponent extends LitElement {
                 stepId="${this.stepId}"
                 baseUrl="${this.baseUrl}"
                 previousStepId="${this.previousStepId}"
+                style="${this.getStyle(c)}"
         >
             <slot></slot></mateu-component>
         `)}</vaadin-horizontal-layout>`
@@ -371,13 +389,22 @@ export class MateuComponent extends LitElement {
             ${this.component?.metadata.type == ComponentMetadataType.JourneyStarter?
                     html`<journey-starter
                             .component=${this.component}
-                            .components=${this.components}
                             uiId="${(this.component.metadata as JourneyStarter).uiId}"
                             baseUrl="${(this.component.metadata as JourneyStarter).baseUrl?(this.component.metadata as JourneyStarter).baseUrl:this.baseUrl}"
                             journeyTypeId="${(this.component.metadata as JourneyStarter).journeyTypeId}"
                             contextData="${(this.component.metadata as JourneyStarter).contextData}"
                     ></journey-starter>`
                     :html``}
+
+    ${this.component?.metadata.type == ComponentMetadataType.RemoteJourney?
+            html`<journey-starter
+                            .component=${this.component}
+                            uiId="${(this.component.metadata as RemoteJourney).remoteUiId}"
+                            baseUrl="${(this.component.metadata as RemoteJourney).remoteBaseUrl?(this.component.metadata as RemoteJourney).remoteBaseUrl:this.baseUrl}"
+                            journeyTypeId="${(this.component.metadata as RemoteJourney).remoteJourneyType}"
+                            contextData="${(this.component.metadata as RemoteJourney).contextData}"
+                    ></journey-starter>`
+            :html``}
 
     <vaadin-dialog
             header-title="${this.confirmationTexts?.title}"

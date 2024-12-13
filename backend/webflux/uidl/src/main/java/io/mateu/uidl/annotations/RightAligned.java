@@ -7,13 +7,5 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-  ElementType.TYPE,
-  ElementType.FIELD,
-  ElementType.METHOD,
-  ElementType.PARAMETER
-}) // can use in method only.
-public @interface Width {
-
-  String value();
-}
+@Target({ElementType.FIELD}) // can use in method only.
+public @interface RightAligned {}

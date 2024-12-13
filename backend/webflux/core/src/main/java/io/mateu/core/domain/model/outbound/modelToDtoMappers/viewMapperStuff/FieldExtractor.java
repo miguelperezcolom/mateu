@@ -19,6 +19,7 @@ public class FieldExtractor {
   public List<Field> getFields(Object uiInstance, SlotName slot) {
     return reflectionService.getAllFields(uiInstance.getClass()).stream()
         .filter(f -> !f.isAnnotationPresent(Ignored.class))
+        .filter(f -> !f.isAnnotationPresent(DataOnly.class))
         .filter(f -> !f.isAnnotationPresent(MenuOption.class))
         .filter(f -> !f.isAnnotationPresent(Submenu.class))
         .filter(f -> checkField(f, slot))

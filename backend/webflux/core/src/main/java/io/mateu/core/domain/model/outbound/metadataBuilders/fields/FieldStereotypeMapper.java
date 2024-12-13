@@ -45,6 +45,9 @@ public class FieldStereotypeMapper {
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";
     }
+    if (field.isAnnotationPresent(Money.class)) {
+      return "money";
+    }
     if (field.isAnnotationPresent(Image.class)) {
       return "image";
     }

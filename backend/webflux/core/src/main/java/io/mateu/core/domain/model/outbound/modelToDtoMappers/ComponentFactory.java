@@ -7,7 +7,8 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.dtos.*;
-import io.mateu.uidl.annotations.ComponentId;
+import io.mateu.dtos.Tab;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.HorizontalLayout;
 import io.mateu.uidl.annotations.SplitLayout;
 import io.mateu.uidl.annotations.TabLayout;
@@ -50,8 +51,17 @@ public class ComponentFactory {
 
   public Component createFormComponent(
       Object componentInstance, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
+    return createFormComponent(componentInstance, serverHttpRequest, data, true);
+  }
+
+  public Component createFormComponent(
+      Object componentInstance,
+      ServerHttpRequest serverHttpRequest,
+      Map<String, Object> data,
+      boolean autoFocusDisabled) {
     ComponentMetadata metadata =
-        componentMetadataBuilder.getFormMetadata(componentInstance, data, serverHttpRequest);
+        componentMetadataBuilder.getFormMetadata(
+            componentInstance, data, serverHttpRequest, autoFocusDisabled);
     return new GenericComponent(
         metadata,
         UUID.randomUUID().toString(),
@@ -63,6 +73,36 @@ public class ComponentFactory {
 
   private static String getComponentClassName(Object componentInstance) {
     return componentInstance.getClass().getName();
+  }
+
+  private Map<String, Object> getAttributes(Field field, Object componentInstance) {
+    Map<String, Object> attributes = new HashMap<>();
+    if (componentInstance == null) {
+      return Map.of();
+    }
+    var type = componentInstance.getClass();
+    if (type.isAnnotationPresent(Width.class)) {
+      attributes.put("width", type.getAnnotation(Width.class).value());
+    }
+    if (type.isAnnotationPresent(MaxWidth.class)) {
+      attributes.put("max-width", type.getAnnotation(MaxWidth.class).value());
+    }
+    if (type.isAnnotationPresent(MinWidth.class)) {
+      attributes.put("min-width", type.getAnnotation(MinWidth.class).value());
+    }
+
+    if (field != null) {
+      if (field.isAnnotationPresent(Width.class)) {
+        attributes.put("width", field.getAnnotation(Width.class).value());
+      }
+      if (field.isAnnotationPresent(MaxWidth.class)) {
+        attributes.put("max-width", field.getAnnotation(MaxWidth.class).value());
+      }
+      if (field.isAnnotationPresent(MinWidth.class)) {
+        attributes.put("min-width", field.getAnnotation(MinWidth.class).value());
+      }
+    }
+    return attributes;
   }
 
   public String createComponent(
@@ -80,7 +120,7 @@ public class ComponentFactory {
     String componentId = getComponentId(field, componentInstance, componentCounter);
     ComponentMetadata metadata =
         componentMetadataBuilder.getMetadata(
-            form, componentInstance, field, fields, data, serverHttpRequest);
+            form, componentInstance, field, fields, data, serverHttpRequest, false);
     var actualComponentInstance =
         actualUiInstanceProvider.getActualUiInstance(componentInstance, serverHttpRequest);
     Component component;
@@ -90,7 +130,7 @@ public class ComponentFactory {
               metadata,
               componentId,
               getComponentClassName(componentInstance),
-              Map.of(),
+              getAttributes(field, componentInstance),
               dataExtractor.getData(componentInstance, actualComponentInstance),
               getChildComponents(
                   form,

@@ -12,6 +12,7 @@ import io.mateu.dtos.Tab;
 import io.mateu.uidl.annotations.Attribute;
 import io.mateu.uidl.annotations.Content;
 import io.mateu.uidl.annotations.On;
+import io.mateu.uidl.data.RemoteJourney;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.Stepper;
 import io.mateu.uidl.interfaces.Card;
@@ -47,6 +48,8 @@ public class ComponentMetadataBuilder {
 
   @Autowired ResultMetadataBuilder resultMetadataBuilder;
 
+  @Autowired RemoteJourneyMetadataBuilder remoteJourneyMetadataBuilder;
+
   @Autowired MethodParametersEditorMetadataBuilder methodParametersEditorMetadataBuilder;
 
   @Autowired ReflectionService reflectionService;
@@ -66,7 +69,8 @@ public class ComponentMetadataBuilder {
       Field field,
       List<Field> slotFields,
       Map<String, Object> data,
-      ServerHttpRequest serverHttpRequest) {
+      ServerHttpRequest serverHttpRequest,
+      boolean autoFocusDisabled) {
     ComponentMetadata metadata;
     if (componentInstance instanceof List<?> list
         && field != null
@@ -128,6 +132,8 @@ public class ComponentMetadataBuilder {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);
     } else if (componentInstance instanceof Result) {
       metadata = getResult((Result) componentInstance);
+    } else if (componentInstance instanceof RemoteJourney remoteJourney) {
+      metadata = getRemoteJourney(remoteJourney, serverHttpRequest);
     } else if (componentInstance instanceof io.mateu.uidl.interfaces.Directory directory) {
       metadata = getDirectory(directory, serverHttpRequest);
     } else if (componentInstance instanceof Listing) {
@@ -145,7 +151,8 @@ public class ComponentMetadataBuilder {
       metadata = getCrud("main", (JpaCrud) componentInstance);
     } else if (componentInstance instanceof ObjectWrapper objectWrapper) {
       metadata = wrap(objectWrapper.getValue());
-    } else if (basicTypeChecker.isBasic(componentInstance) && !(componentInstance instanceof String)) {
+    } else if (basicTypeChecker.isBasic(componentInstance)
+        && !(componentInstance instanceof String)) {
       metadata =
           getResult(
               new Result(
@@ -158,13 +165,18 @@ public class ComponentMetadataBuilder {
                   null));
     } else {
       if (form) {
-        metadata = getForm(componentInstance, slotFields, data);
+        metadata = getForm(componentInstance, slotFields, data, autoFocusDisabled);
       } else {
         metadata = getNonForm(componentInstance);
       }
     }
 
     return metadata;
+  }
+
+  private ComponentMetadata getRemoteJourney(
+      RemoteJourney remoteJourney, ServerHttpRequest serverHttpRequest) {
+    return remoteJourneyMetadataBuilder.build(remoteJourney);
   }
 
   private ComponentMetadata getDirectory(
@@ -332,8 +344,12 @@ public class ComponentMetadataBuilder {
     return cardMetadataBuilder.build(uiInstance, slotFields);
   }
 
-  private Form getForm(Object uiInstance, List<Field> slotFields, Map<String, Object> data) {
-    return formMetadataBuilder.build(uiInstance, slotFields, data);
+  private Form getForm(
+      Object uiInstance,
+      List<Field> slotFields,
+      Map<String, Object> data,
+      boolean autoFocusDisabled) {
+    return formMetadataBuilder.build(uiInstance, slotFields, data, autoFocusDisabled);
   }
 
   private Crud getCrud(String listId, Listing rpcView) {
@@ -341,13 +357,17 @@ public class ComponentMetadataBuilder {
   }
 
   public ComponentMetadata getFormMetadata(
-      Object form, Map<String, Object> data, ServerHttpRequest serverHttpRequest) {
+      Object form,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      boolean autoFocusDisabled) {
     return getMetadata(
         true,
         form,
         null,
         reflectionService.getAllEditableFields(form.getClass()),
         data,
-        serverHttpRequest);
+        serverHttpRequest,
+        autoFocusDisabled);
   }
 }

@@ -11,6 +11,7 @@ export enum ComponentMetadataType {
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
     TabLayout = "TabLayout",
-    Element = "Element"
+    Element = "Element",
+    RemoteJourney = "RemoteJourney"
 
 }

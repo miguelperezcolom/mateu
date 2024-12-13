@@ -73,6 +73,9 @@ export class MateuField extends LitElement {
   @property()
   enabled!: boolean
 
+  @property()
+  sidePositionedLabel!: string
+
   component: Component | undefined;
 
   element: HTMLElement | undefined;
@@ -91,7 +94,7 @@ export class MateuField extends LitElement {
   setupComponent() {
     if (this.component) {
       try {
-        this.component.setLabel(this.field.caption);
+        this.component.setLabel(this.sidePositionedLabel == 'true'?'':this.field.caption);
         this.component.setPlaceholder(this.field.placeholder)
         this.component.setField(this.field);
         this.component.setValue(this.value)
@@ -167,7 +170,7 @@ export class MateuField extends LitElement {
     element.setAttribute('id', this.field.id)
     element.setAttribute('name', this.field.id)
     element.setAttribute('data-testid', 'field-' + this.field.id)
-    const container = this.shadowRoot!.getElementById('container')!;
+    let container = this.shadowRoot!.getElementById('container')!;
     if (this.field.stereotype.startsWith('element:')) {
       this.element = element;
       this.setupElement();

@@ -13,5 +13,7 @@ export default interface Section {
     topImageUrl: string
     fieldGroups: FieldGroup[]
     columns: number
+    sidePositionedLabel: boolean
+    itemLabelWidth: string
 
 }

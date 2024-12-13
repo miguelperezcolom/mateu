@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.uidl.annotations.File;
 import io.mateu.uidl.data.Element;
+import io.mateu.uidl.data.RemoteJourney;
 import io.mateu.uidl.interfaces.Card;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,6 +38,12 @@ public class DataExtractor {
   public Map<String, Object> getData(Object uiInstance) {
     if (uiInstance instanceof Element element) {
       return Map.of("content", element.content());
+    }
+    if (uiInstance instanceof RemoteJourney remoteJourney) {
+      return Map.of(
+          "baseUrl", remoteJourney.remoteBaseUrl(),
+          "uiId", remoteJourney.remoteUiId(),
+          "journeyType", remoteJourney.remoteJourneyType());
     }
     if (uiInstance instanceof Card card) {
       return Map.of(

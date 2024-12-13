@@ -1,6 +1,8 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.infra.ui.menus.layouts.*;
+import com.example.demo.infra.ui.menus.layouts.booking.BookingView;
+import com.example.demo.infra.ui.menus.layouts.booking.BookingsCrud;
 import io.mateu.uidl.annotations.MenuOption;
 
 public class LayoutsSubmenu {
@@ -20,4 +22,12 @@ public class LayoutsSubmenu {
   @MenuOption
   CompleteView completeView;
 
+  @MenuOption
+  ViewWithRemoteContent viewWithRemoteContent;
+
+  @MenuOption
+  BookingsCrud bookings;
+
+  @MenuOption
+  BookingView bookingView;
 }

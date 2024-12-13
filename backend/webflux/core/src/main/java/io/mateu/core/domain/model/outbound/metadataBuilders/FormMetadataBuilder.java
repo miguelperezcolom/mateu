@@ -55,7 +55,11 @@ public class FormMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Form build(Object uiInstance, List<Field> slotFields, Map<String, Object> data) {
+  public Form build(
+      Object uiInstance,
+      List<Field> slotFields,
+      Map<String, Object> data,
+      boolean autoFocusDisabled) {
     if (uiInstance instanceof DynamicForm) {
       return ((DynamicForm) uiInstance).build().toFuture().get();
     }
@@ -69,11 +73,30 @@ public class FormMetadataBuilder {
         getBadges(uiInstance),
         getTabs(uiInstance, data),
         getBanners(uiInstance),
-        getSections(uiInstance, slotFields),
+        getSections(uiInstance, slotFields, autoFocusDisabled),
         actionMetadataBuilder.getActions(uiInstance),
         getMainActions(uiInstance),
         List.of(),
-        rulesBuilder.buildRules(uiInstance));
+        rulesBuilder.buildRules(uiInstance),
+        getAttributes(uiInstance));
+  }
+
+  private Map<String, Object> getAttributes(Object uiInstance) {
+    if (uiInstance == null) {
+      return Map.of();
+    }
+    var type = uiInstance.getClass();
+    Map<String, Object> attributes = new HashMap<>();
+    if (type.isAnnotationPresent(Width.class)) {
+      attributes.put("width", type.getAnnotation(Width.class).value());
+    }
+    if (type.isAnnotationPresent(MaxWidth.class)) {
+      attributes.put("max-width", type.getAnnotation(MaxWidth.class).value());
+    }
+    if (type.isAnnotationPresent(MinWidth.class)) {
+      attributes.put("min-width", type.getAnnotation(MinWidth.class).value());
+    }
+    return attributes;
   }
 
   private int getNumberOfColumns(Object uiInstance) {
@@ -247,10 +270,11 @@ public class FormMetadataBuilder {
     return actions;
   }
 
-  public List<Section> getSections(Object uiInstance, List<Field> slotFields) {
+  public List<Section> getSections(
+      Object uiInstance, List<Field> slotFields, boolean autoFocusDisabled) {
     List<Field> allEditableFields = getAllEditableFields(uiInstance, slotFields);
 
-    var sections = createSections(uiInstance, allEditableFields);
+    var sections = createSections(uiInstance, allEditableFields, autoFocusDisabled);
 
     sections = fillSectionIds(sections);
 
@@ -292,7 +316,8 @@ public class FormMetadataBuilder {
     return new FakeCaptionAnnotation(effectiveCaption);
   }
 
-  public List<Section> createSections(Object uiInstance, List<Field> allEditableFields) {
+  public List<Section> createSections(
+      Object uiInstance, List<Field> allEditableFields, boolean autoFocusDisabled) {
     Map<String, List<Field>> fieldsByTabId = groupFieldsByTabId(allEditableFields);
 
     List<Section> sections = new ArrayList<>();
@@ -312,7 +337,8 @@ public class FormMetadataBuilder {
                           firstField,
                           tabId,
                           sections,
-                          getNumberOfColumns(uiInstance));
+                          getNumberOfColumns(uiInstance),
+                          autoFocusDisabled);
                     }
                   });
             });
@@ -325,13 +351,16 @@ public class FormMetadataBuilder {
       Field firstField,
       String tabId,
       List<Section> sections,
-      int defaultColumnsNumber) {
+      int defaultColumnsNumber,
+      boolean autoFocusDisabled) {
     String caption = "";
     String description = "";
     String leftSideImageUrl = "";
     String topImageUrl = "";
     boolean card = true;
     int numberOfColumns = defaultColumnsNumber;
+    boolean sidePositionedLabel = false;
+    String itemLabelWidth = "120px";
     if (firstField.isAnnotationPresent(io.mateu.uidl.annotations.Section.class)) {
       io.mateu.uidl.annotations.Section annotation =
           firstField.getAnnotation(io.mateu.uidl.annotations.Section.class);
@@ -344,6 +373,8 @@ public class FormMetadataBuilder {
       if (numberOfColumns <= 0) {
         numberOfColumns = defaultColumnsNumber;
       }
+      sidePositionedLabel = annotation.sidePositionedLabel();
+      itemLabelWidth = annotation.itemLabelWidth();
     }
     var section =
         new Section(
@@ -355,8 +386,10 @@ public class FormMetadataBuilder {
             card ? SectionType.Card : SectionType.Transparent,
             leftSideImageUrl,
             topImageUrl,
-            createFieldGroups(uiInstance, fields, numberOfColumns),
-            numberOfColumns);
+            createFieldGroups(uiInstance, fields, numberOfColumns, autoFocusDisabled),
+            numberOfColumns,
+            sidePositionedLabel,
+            itemLabelWidth);
 
     sections.add(section);
   }
@@ -398,7 +431,10 @@ public class FormMetadataBuilder {
   }
 
   private List<FieldGroup> createFieldGroups(
-      Object formInstance, List<Field> allEditableFields, int numberOfColumnsInSection) {
+      Object formInstance,
+      List<Field> allEditableFields,
+      int numberOfColumnsInSection,
+      boolean autoFocusDisabled) {
     List<FieldGroup> groups = new ArrayList<>();
     List<FieldGroupLine> lines = new ArrayList<>();
     List<io.mateu.dtos.Field> fields = new ArrayList<>();
@@ -429,7 +465,7 @@ public class FormMetadataBuilder {
           fields = new ArrayList<>();
         }
       }
-      fields.add(fieldMetadataBuilder.getField(formInstance, field));
+      fields.add(fieldMetadataBuilder.getField(formInstance, field, autoFocusDisabled));
     }
 
     addGroup(
@@ -469,7 +505,9 @@ public class FormMetadataBuilder {
                 List.of(),
                 List.of(),
                 List.of(),
-                requiredCols - totalCols - 1));
+                requiredCols - totalCols - 1,
+                false,
+                false));
       }
       lines.add(new FieldGroupLine(new ArrayList<>(fields)));
     }
@@ -508,7 +546,9 @@ public class FormMetadataBuilder {
                                     s.fieldGroups().get(j).lines(),
                                     s.fieldGroups().get(j).columns()))
                         .toList(),
-                    s.columns()))
+                    s.columns(),
+                    s.sidePositionedLabel(),
+                    s.itemLabelWidth()))
         .toList();
   }
 }

@@ -30,14 +30,15 @@ public class FieldMetadataBuilder {
   final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
 
-  public io.mateu.dtos.Field getField(Object view, Field fieldInterfaced) {
+  public io.mateu.dtos.Field getField(
+      Object view, Field fieldInterfaced, boolean autoFocusDisabled) {
     io.mateu.dtos.Field field =
         new io.mateu.dtos.Field(
             fieldInterfaced.getId(),
             fieldTypeMapper.mapFieldType(fieldInterfaced),
             fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
             isObserved(fieldInterfaced),
-            isFocusWanted(fieldInterfaced),
+            isFocusWanted(fieldInterfaced, autoFocusDisabled),
             captionProvider.getCaption(fieldInterfaced),
             getPlaceholder(fieldInterfaced),
             getCssClassNames(fieldInterfaced),
@@ -47,13 +48,25 @@ public class FieldMetadataBuilder {
             completeAttributes(
                 view,
                 fieldInterfaced,
-                fieldAttributeBuilder.buildAttributes(view, fieldInterfaced)),
-            getColspan(fieldInterfaced));
+                fieldAttributeBuilder.buildAttributes(view, fieldInterfaced),
+                autoFocusDisabled),
+            getColspan(fieldInterfaced),
+            getRightAligned(fieldInterfaced),
+            getBold(fieldInterfaced));
     return field;
   }
 
+  private boolean getBold(Field field) {
+    return field.isAnnotationPresent(Bold.class);
+  }
+
+  private boolean getRightAligned(Field field) {
+    return field.isAnnotationPresent(RightAligned.class);
+  }
+
   @SneakyThrows
-  private List<Pair> completeAttributes(Object view, Field field, List<Pair> pairs) {
+  private List<Pair> completeAttributes(
+      Object view, Field field, List<Pair> pairs, boolean autoFocusDisabled) {
     if (Collection.class.isAssignableFrom(field.getType())
         && !reflectionService.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())
@@ -65,7 +78,7 @@ public class FieldMetadataBuilder {
         }
         var form = reflectionService.newInstance(formClass);
         for (Field columnField : reflectionService.getAllEditableFields(formClass)) {
-          pairs.add(new Pair("field", getField(form, columnField)));
+          pairs.add(new Pair("field", getField(form, columnField, autoFocusDisabled)));
         }
       }
     }
@@ -79,7 +92,10 @@ public class FieldMetadataBuilder {
     return 1;
   }
 
-  private boolean isFocusWanted(Field fieldInterfaced) {
+  private boolean isFocusWanted(Field fieldInterfaced, boolean autoFocusDisabled) {
+    if (autoFocusDisabled) {
+      return false;
+    }
     return fieldInterfaced.isAnnotationPresent(RequestFocus.class);
   }
 

@@ -7,13 +7,10 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-  ElementType.TYPE,
-  ElementType.FIELD,
-  ElementType.METHOD,
-  ElementType.PARAMETER
-}) // can use in method only.
-public @interface Width {
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD}) // can use in method only.
+public @interface Output {
 
-  String value();
+  String[] roles() default {};
+
+  String[] users() default {};
 }

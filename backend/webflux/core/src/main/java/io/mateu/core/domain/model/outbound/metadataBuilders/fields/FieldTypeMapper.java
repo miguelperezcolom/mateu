@@ -1,10 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Status;
-import io.mateu.uidl.annotations.UseCrud;
-import io.mateu.uidl.annotations.Width;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ExternalReference;
 import io.mateu.uidl.data.IconChooser;
 import io.mateu.uidl.data.TelephoneNumber;
@@ -23,6 +20,9 @@ public class FieldTypeMapper {
 
   public String mapFieldType(Field field) {
     Class<?> type = field.getType();
+    if (field.isAnnotationPresent(Output.class)) {
+      return "output";
+    }
     if (field.isAnnotationPresent(Button.class)) {
       return "button";
     }

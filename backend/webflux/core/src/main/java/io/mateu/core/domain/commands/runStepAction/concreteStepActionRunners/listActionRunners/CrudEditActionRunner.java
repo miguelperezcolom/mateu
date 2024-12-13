@@ -2,6 +2,7 @@ package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.li
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ListActionRunner;
+import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ResultMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ViewMapper;
@@ -9,11 +10,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.queries.FiltersDeserializer;
 import io.mateu.dtos.*;
-import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.Crud;
-import io.mateu.uidl.interfaces.JourneyStarter;
-import io.mateu.uidl.views.SingleComponentView;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +32,7 @@ public class CrudEditActionRunner implements ListActionRunner {
   final ComponentFactory componentFactory;
   private final UIIncrementFactory uIIncrementFactory;
   private final ViewMapper viewMapper;
+  private final ResultMapper resultMapper;
 
   @Override
   public boolean applies(Crud crud, String actionId) {
@@ -92,35 +90,12 @@ public class CrudEditActionRunner implements ListActionRunner {
       throw new Exception("Crud getDetail returned null");
     }
 
-    if (editor instanceof JourneyStarter journeyStarter) {
-      return Mono.just(
-          new UIIncrement(
-              List.of(
-                  new UICommand(
-                      UICommandType.ReplaceJourney,
-                      new io.mateu.dtos.JourneyStarter(
-                          journeyStarter.uiId(),
-                          journeyStarter.baseUrl(),
-                          journeyStarter.journeyTypeId(),
-                          journeyStarter.contextData()))),
-              List.of(),
-              List.of()));
-    }
-
-    if (editor instanceof Container) {
-      Map<String, Component> allComponents = new LinkedHashMap<>();
-      View view =
-          viewMapper.map(
-              new SingleComponentView(editor), serverHttpRequest, allComponents, Map.of());
-      return Mono.just(
-          new UIIncrement(
-              List.of(),
-              List.of(),
-              List.of(new UIFragment(ActionTarget.View, "", "", view, allComponents))));
-    }
-
-    return Mono.just(
-        uIIncrementFactory.createForSingleComponent(
-            componentFactory.createFormComponent(editor, serverHttpRequest, data)));
+    return resultMapper.processResult(
+        crud,
+        reflectionService.getMethod(crud.getClass(), "getDetail"),
+        data,
+        serverHttpRequest,
+        editor,
+        "");
   }
 }

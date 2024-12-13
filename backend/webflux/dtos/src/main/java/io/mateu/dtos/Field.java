@@ -33,7 +33,9 @@ public record Field(
     List<Badge> badges,
     List<Validation> validations,
     List<Pair> attributes,
-    int colspan) {
+    int colspan,
+    boolean rightAligned,
+    boolean bold) {
 
   public Field {
     badges = Collections.unmodifiableList(badges);

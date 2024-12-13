@@ -88,6 +88,7 @@ public class AllEditableFieldsProvider {
                 (f) ->
                     !(f.isAnnotationPresent(Version.class)
                         || f.isAnnotationPresent(Ignored.class)
+                        || f.isAnnotationPresent(DataOnly.class)
                         || f.isAnnotationPresent(KPI.class)
                         || f.isAnnotationPresent(NotInEditor.class)
                         || (f.isAnnotationPresent(Id.class)

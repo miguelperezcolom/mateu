@@ -43,7 +43,7 @@ export class JourneyStarter extends LitElement {
     @property()
     initialUiIncrement: UIFragment | undefined = undefined;
     @property()
-    remote: boolean = false
+    main: boolean = false
 
     //reactive state (not properties)
     @state()
@@ -82,6 +82,8 @@ export class JourneyStarter extends LitElement {
     }
 
     runAction(event: CustomEvent) {
+        event.preventDefault()
+        event.stopPropagation()
         this.service.runAction(
             this.baseUrl,
             this.uiId!,
@@ -96,6 +98,9 @@ export class JourneyStarter extends LitElement {
     }
 
     replaceComponent(event: CustomEvent) {
+        event.preventDefault()
+        event.stopPropagation()
+
         const target = event.detail.target
         const replacement = event.detail.replacement
         replacement.id = target.id
@@ -113,7 +118,7 @@ export class JourneyStarter extends LitElement {
                     content: replacement,
                     components: components
                 }
-            ]
+            ] as UIFragment[]
         }
         this.upstream.next(state)
     }
@@ -269,11 +274,13 @@ export class JourneyStarter extends LitElement {
                     return
                 case UICommandType.UpdateUrl:
                     // @ts-ignore
-                    var url = '#' + c.data.url
+                    let url = '#' + c.data.url
                     if ('____home____' == this.journeyTypeId) {
                         url = ''
                     }
-                    window.history.pushState({},"", url)
+                    if (this.main) {
+                        window.history.pushState({},"", url)
+                    }
                     return
                 case UICommandType.CloseModal:
                     this.closeModalAndStay(c.data as UIIncrement)
@@ -380,8 +387,8 @@ export class JourneyStarter extends LitElement {
                         mateuApiClient.abortAll();
 
                         // @ts-ignore
-                        if (!this.remote || this.remote == 'false') {
-                            var url = '#' + this.journeyTypeId
+                        if (this.main || this.main == 'true') {
+                            let url = '#' + this.journeyTypeId
                             if ('____home____' == this.journeyTypeId) {
                                 url = ''
                             }

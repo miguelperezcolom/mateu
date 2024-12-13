@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
   ElementType.METHOD,
   ElementType.PARAMETER
 }) // can use in method only.
-public @interface Width {
+public @interface MinWidth {
 
   String value();
 }

@@ -1,9 +1,6 @@
 package io.mateu.core.domain.model.inbound.menuResolvers;
 
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.uidl.annotations.Home;
-import io.mateu.uidl.annotations.PrivateHome;
-import io.mateu.uidl.annotations.PublicHome;
 import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.JourneyRunner;
 import io.mateu.uidl.interfaces.Listing;

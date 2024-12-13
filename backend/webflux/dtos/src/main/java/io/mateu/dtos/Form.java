@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Form metadata
@@ -33,7 +34,8 @@ public record Form(
     List<Action> actions,
     List<Action> mainActions,
     List<Validation> validations,
-    List<Rule> rules)
+    List<Rule> rules,
+    Map<String, Object> attributes)
     implements ComponentMetadata {
 
   public Form {
@@ -45,6 +47,7 @@ public record Form(
     mainActions = Collections.unmodifiableList(mainActions);
     validations = Collections.unmodifiableList(validations);
     rules = Collections.unmodifiableList(rules);
+    attributes = Collections.unmodifiableMap(attributes);
   }
 
   @Override
@@ -85,5 +88,10 @@ public record Form(
   @Override
   public List<Rule> rules() {
     return Collections.unmodifiableList(rules);
+  }
+
+  @Override
+  public Map<String, Object> attributes() {
+    return Collections.unmodifiableMap(attributes);
   }
 }

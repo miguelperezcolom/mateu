@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.Child;
+import io.mateu.uidl.annotations.DataOnly;
 import io.mateu.uidl.annotations.Detail;
 import io.mateu.uidl.annotations.Ignored;
 import io.mateu.uidl.interfaces.HasSubtitle;
@@ -77,6 +78,7 @@ public class CrudMetadataBuilder {
     return allRowFields.stream()
         .filter(f -> f != null)
         .filter(fieldInterfaced -> !fieldInterfaced.isAnnotationPresent(Ignored.class))
+        .filter(fieldInterfaced -> !fieldInterfaced.isAnnotationPresent(DataOnly.class))
         .map(
             fieldInterfaced ->
                 getColumn(
@@ -104,7 +106,10 @@ public class CrudMetadataBuilder {
     List<String> allComponents = new ArrayList<>();
     var form =
         formMetadataBuilder.build(
-            reflectionService.newInstance(rpcView.getSearchFormClass()), List.of(), Map.of());
+            reflectionService.newInstance(rpcView.getSearchFormClass()),
+            List.of(),
+            Map.of(),
+            false);
     var component =
         new GenericComponent(
             new Form(
@@ -129,12 +134,15 @@ public class CrudMetadataBuilder {
                                 s.leftSideImageUrl(),
                                 s.topImageUrl(),
                                 s.fieldGroups(),
-                                s.columns()))
+                                s.columns(),
+                                s.sidePositionedLabel(),
+                                s.itemLabelWidth()))
                     .toList(),
                 List.of(), // form.actions(),
                 List.of(), // form.mainActions(),
                 form.validations(),
-                form.rules()),
+                form.rules(),
+                form.attributes()),
             "filtersForm",
             rpcView.getSearchFormClass().getName(),
             Map.of(),
@@ -143,7 +151,8 @@ public class CrudMetadataBuilder {
     return component;
   }
 
-  private List<io.mateu.dtos.Field> buildSearchFields(Listing rpcView, String listId) {
+  private List<io.mateu.dtos.Field> buildSearchFields(
+      Listing rpcView, String listId, boolean autoFocusDisabled) {
     Class searchFormClass = rpcView.getSearchFormClass();
     List<Field> allEditableFields = reflectionService.getAllEditableFields(searchFormClass);
     if (rpcView instanceof RpcCrudViewExtended) {
@@ -167,7 +176,9 @@ public class CrudMetadataBuilder {
 
     List<io.mateu.dtos.Field> filterFields =
         allEditableFields.stream()
-            .map(fieldInterfaced -> fieldMetadataBuilder.getField(rpcView, fieldInterfaced))
+            .map(
+                fieldInterfaced ->
+                    fieldMetadataBuilder.getField(rpcView, fieldInterfaced, autoFocusDisabled))
             .map(
                 f ->
                     new io.mateu.dtos.Field(
@@ -183,7 +194,9 @@ public class CrudMetadataBuilder {
                         f.badges(),
                         f.validations(),
                         f.attributes(),
-                        f.colspan()))
+                        f.colspan(),
+                        f.rightAligned(),
+                        f.bold()))
             .toList();
 
     if ("JpaRpcCrudView".equals(rpcView.getClass().getSimpleName()))
@@ -203,7 +216,9 @@ public class CrudMetadataBuilder {
                           List.of(),
                           List.of(),
                           List.of(),
-                          1)),
+                          1,
+                          false,
+                          false)),
                   filterFields.stream())
               .toList();
     return filterFields;

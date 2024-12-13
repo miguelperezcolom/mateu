@@ -6,7 +6,7 @@ export default interface Component {
     componentType: ComponentType
     id: string
     className: string
-    attributes: Map<string, any>
+    attributes: Record<string, any>
     childComponentIds: string[]
     metadata: ComponentMetadata;
     data: {

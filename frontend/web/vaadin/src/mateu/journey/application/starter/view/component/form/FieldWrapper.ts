@@ -24,7 +24,7 @@ export default class FieldWrapper {
         this.visible = visible;
         this.container?.setAttribute('style', 'display: block;');
         if (this.mateuField) {
-            this.mateuField.style.display = this.visible?'block':'none'
+            this.mateuField.style.display = this.visible?(this.mateuField.sidePositionedLabel == 'true'?'inline':'block'):'none'
         }
     }
 

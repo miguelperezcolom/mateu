@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js'
 import Section from "../../../../../../../shared/apiClients/dtos/Section";
 import './fieldGroup/mateu-fieldgroup'
 import '@vaadin/form-layout'
+import '@vaadin/form-layout/vaadin-form-item'
 import '@vaadin/horizontal-layout'
 import {FormElement} from "../mateu-form";
 import Field from "../../../../../../../shared/apiClients/dtos/Field";
@@ -50,12 +51,35 @@ export class MateuSection extends LitElement {
         return 'flex-grow: 1;'
     }
 
+    format(f: Field, value: any) {
+        if (f.stereotype == 'money') {
+            return (value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        return value
+    }
+
     getFieldHtml(f: Field) {
         const colspan = f.colspan?f.colspan:1
           if (f.stereotype == 'rawcontent') {
               return unsafeHTML(`<div class="fullWidth" colspan="${colspan}">${this.formElement.getValue(f.id)}</div>`)
           }
+        if (f.type == 'output') {
+            if (this.section.sidePositionedLabel) {
+                return unsafeHTML(`<vaadin-form-item>
+            <label slot="label"
+            style="${f.bold?'font-weight: bold;':''}" 
+            >${f.caption}</label>
+            <div class="fullWidth" 
+            style="${f.rightAligned || f.stereotype == 'money'?'text-align: right;':''}${f.bold?'font-weight: bold;':''}" 
+            colspan="${colspan}">${this.format(f, this.formElement.getValue(f.id))}</div></vaadin-form-item>`)
+            }
+            return unsafeHTML(`<div class="fullWidth" colspan="${colspan}">${this.format(f, this.formElement.getValue(f.id))}</div>`)
+        }
         return html`
+
+            ${this.section.sidePositionedLabel?html`
+          <vaadin-form-item>
+            <label slot="label">${f.caption}</label>
                   <mateu-field .field="${f}"
                                                   @change=${this.onValueChange}
                                                     baseUrl=${this.baseUrl}
@@ -65,8 +89,24 @@ export class MateuSection extends LitElement {
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(f.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(f)}
-            style="align-self: end;${this.getStyle(f)}">
+                               sidePositionedLabel="${this.section.sidePositionedLabel}"
+            style="display: inline-flex; align-self: end; ${this.getStyle(f)}">                    
             </mateu-field>
+          </vaadin-form-item>
+        `:html`
+                  <mateu-field .field="${f}"
+                                                  @change=${this.onValueChange}
+                                                    baseUrl=${this.baseUrl}
+                                                    name="${f.id}"
+                                                    id="${f.id}"
+                               colspan="${colspan}"
+                                                    .formElement=${this.formElement} 
+                                                    .value=${this.formElement.getValue(f.id)} 
+                                                    .fieldWrapper=${this.formElement.getFieldWrapper(f)}
+                               sidePositionedLabel="${this.section.sidePositionedLabel}"
+            style="align-self: end; ${this.getStyle(f)}">
+            </mateu-field>
+        `}
                   
               `
     }
@@ -110,7 +150,9 @@ export class MateuSection extends LitElement {
                    
                    ${g.caption?html`<h4>${g.caption}</h4>`:''}
 
-                   <vaadin-form-layout .responsiveSteps="${this.responsiveSteps(
+                   <vaadin-form-layout
+                           style="--vaadin-form-item-label-width: ${this.section.itemLabelWidth};"
+                           .responsiveSteps="${this.responsiveSteps(
                            g.columns?g.columns:this.section.columns
                    )}">
 
@@ -162,6 +204,7 @@ export class MateuSection extends LitElement {
   }
 
   static styles = css`
+      
     .mateu-section {
       text-align: left;
       /* background-color: var(--lumo-shade-5pct); */

@@ -10,6 +10,7 @@ import io.mateu.uidl.annotations.UseCrud;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,7 +42,8 @@ public class MethodParametersEditorMetadataBuilder {
         List.of(),
         getMainActions(uiInstance),
         List.of(),
-        List.of());
+        List.of(),
+        Map.of());
   }
 
   private String getSubtitle(Object uiInstance) {
@@ -85,7 +87,7 @@ public class MethodParametersEditorMetadataBuilder {
             .collect(Collectors.toList());
 
     List<Section> sections =
-        formMetadataBuilder.createSections(methodParametersEditor, allEditableFields);
+        formMetadataBuilder.createSections(methodParametersEditor, allEditableFields, false);
 
     sections = fillSectionIds(sections);
 
@@ -135,12 +137,16 @@ public class MethodParametersEditorMetadataBuilder {
                                                                     f.badges(),
                                                                     f.validations(),
                                                                     f.attributes(),
-                                                                    f.colspan()))
+                                                                    f.colspan(),
+                                                                    f.rightAligned(),
+                                                                    f.bold()))
                                                         .toList()))
                                         .toList(),
                                     s.fieldGroups().get(j).columns()))
                         .toList(),
-                    s.columns()))
+                    s.columns(),
+                    s.sidePositionedLabel(),
+                    s.itemLabelWidth()))
         .toList();
   }
 

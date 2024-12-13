@@ -17,5 +17,7 @@ export default interface Field {
     validations: Validation[]
     attributes: Pair[]
     colspan: number
+    rightAligned: boolean
+    bold: boolean
 
 }

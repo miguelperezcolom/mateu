@@ -133,7 +133,7 @@ public class CardMetadataBuilder {
   }
 
   private List<FieldGroup> getFieldGroups(
-      String stepId, Object uiInstance, List<Field> slotFields) {
+      String stepId, Object uiInstance, List<Field> slotFields, boolean autoFocusDisabled) {
     List<io.mateu.dtos.Field> fields = new ArrayList<>();
     List<FieldGroup> fieldGroups = new ArrayList<>();
     List<FieldGroupLine> fieldGroupLines = new ArrayList<>();
@@ -166,7 +166,7 @@ public class CardMetadataBuilder {
         currentFieldGroupCaption = caption;
         currentFieldGroupColumns = columns;
       }
-      fields.add(fieldMetadataBuilder.getField(uiInstance, field));
+      fields.add(fieldMetadataBuilder.getField(uiInstance, field, autoFocusDisabled));
       if (!field.isAnnotationPresent(SameLine.class)) {
         if (fields.size() > 0) {
           fieldGroupLines.add(new FieldGroupLine(fields));

@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.RpcViewWrapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.FormIdentifier;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.uidl.annotations.Slot;
 import io.mateu.uidl.annotations.SlotName;
 import io.mateu.uidl.data.Stepper;
 import io.mateu.uidl.interfaces.*;
@@ -30,22 +31,22 @@ public class ViewInstancePartsExtractor {
 
     List<Field> partCandidates = new ArrayList<>();
     List<Field> leftFields = new ArrayList<>();
-    partCandidates.addAll(fields);
-    if (false)
-      fields.forEach(
-          f -> {
-            if (Crud.class.isAssignableFrom(f.getType())
-                || Card.class.isAssignableFrom(f.getType())
-                || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
-                || (Form.class.isAssignableFrom(f.getType()))
-                || formMetadataBuilder.isOwner(f)
-                || !SlotName.main.equals(slotName)
-                || viewInstance instanceof Container) {
-              partCandidates.add(f);
-            } else {
-              leftFields.add(f);
-            }
-          });
+    // partCandidates.addAll(fields);
+    fields.forEach(
+        f -> {
+          if (Crud.class.isAssignableFrom(f.getType())
+              || Card.class.isAssignableFrom(f.getType())
+              || (Stepper.class.isAssignableFrom(f.getType()) && fields.size() == 1)
+              || (Form.class.isAssignableFrom(f.getType()))
+              || formMetadataBuilder.isOwner(f)
+              || !SlotName.main.equals(slotName)
+              || viewInstance instanceof Container
+              || f.isAnnotationPresent(Slot.class)) {
+            partCandidates.add(f);
+          } else {
+            leftFields.add(f);
+          }
+        });
 
     for (Field f : partCandidates) {
       parts.add(buildPart(f, viewInstance, slotName));

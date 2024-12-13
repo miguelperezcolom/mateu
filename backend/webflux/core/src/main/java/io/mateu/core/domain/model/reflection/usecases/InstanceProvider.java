@@ -7,10 +7,9 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.infra.MateuConfiguratorBean;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -108,7 +107,13 @@ public class InstanceProvider {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
       if (basicTypeChecker.isBasic(parameter.getType())) {
-        params.add(convert(data.get(parameter.getName()), parameter.getType()));
+        if (LocalDate.class.equals(parameter.getType())) {
+          params.add(LocalDate.parse(convert(data.get(parameter.getName()))));
+        } else if (LocalDateTime.class.equals(parameter.getType())) {
+          params.add(LocalDateTime.parse(convert(data.get(parameter.getName()))));
+        } else {
+          params.add(convert(data.get(parameter.getName()), parameter.getType()));
+        }
       } else {
         params.add(
             newInstance(
