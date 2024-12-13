@@ -6,7 +6,8 @@ export class CallActionCommandHandler {
 
     public async handle(command: CallActionCommand): Promise<UIIncrement> {
 
-        return await mateuApiClient.runStepActionAndReturn(
+        return mateuApiClient.runStepActionAndReturn(
+            command.baseUrl,
             command.uiId,
             command.journeyTypeId,
             command.journeyId,

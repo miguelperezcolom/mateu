@@ -107,7 +107,7 @@ class MateuApiClient {
         });
     }
 
-    async post(uri: string, data: unknown): Promise<void> {
+    async post(uri: string, data: unknown): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
 
@@ -116,7 +116,7 @@ class MateuApiClient {
         });
     }
 
-    async getUsingPost(uri: string, data: unknown): Promise<AxiosResponse> {
+    async getUsingPost(uri: string, data: unknown): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
 
@@ -147,9 +147,9 @@ class MateuApiClient {
             }
         ).then((response) => response.data))
     }
-    async runStepActionAndReturn(uiId: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
+    async runStepActionAndReturn(baseUrl: string, uiId: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
                         componentType: string, data: unknown): Promise<UIIncrement> {
-        return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/' +
+        return this.wrap<UIIncrement>(this.getUsingPost(baseUrl + '/' + uiId + '/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + componentId+ '/' + actionId, {
                 componentType: componentType,
