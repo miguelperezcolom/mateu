@@ -1,5 +1,6 @@
 package io.mateu.core.domain.model.reflection.usecases;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,6 +19,7 @@ public class BasicTypeChecker {
     basicTypes.add(Long.class);
     basicTypes.add(Float.class);
     basicTypes.add(Double.class);
+    basicTypes.add(BigDecimal.class);
     basicTypes.add(Boolean.class);
     basicTypes.add(LocalDate.class);
     basicTypes.add(LocalDateTime.class);

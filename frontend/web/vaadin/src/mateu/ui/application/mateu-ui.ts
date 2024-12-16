@@ -18,16 +18,9 @@ import {service} from "../domain/service";
 import {mateuApiClient} from "../../shared/apiClients/MateuApiClient";
 import {nanoid} from "nanoid";
 import "../../shared/apiClients/dtos/App";
-import "../../shared/apiClients/dtos/App";
 import App from "../../shared/apiClients/dtos/App";
-
-interface MyMenuBarItem extends MenuBarItem {
-
-    baseUrl: string | undefined
-    uiId: string | undefined
-    journeyTypeId: string | undefined
-
-}
+import Menu from "../../shared/apiClients/dtos/Menu";
+import {MyMenuBarItem} from "./my-menu-bar-item";
 
 
 @customElement('mateu-ui')
@@ -51,6 +44,8 @@ export class MateuUi extends LitElement {
     journeyContextData: string | undefined = undefined;
     @state()
     ui: UI | undefined = undefined;
+    @state()
+    remoteMenus: Menu[] = [];
     @property()
     journeyTypeId: string | undefined;
     @state()
@@ -60,7 +55,7 @@ export class MateuUi extends LitElement {
     @property()
     loading: boolean = false;
     @property()
-    items: MenuBarItem[] | undefined;
+    items: MyMenuBarItem[] | undefined;
     @property()
     selectedItem?: MenuBarItem;
     @property()
@@ -73,6 +68,28 @@ export class MateuUi extends LitElement {
     // upstream channel
     private upstreamSubscription: Subscription | undefined;
 
+    loadHash(w: Window) {
+        if (!w.location.hash.startsWith('#state=')) {
+            /*
+            this.journeyTypeId = w.location.hash.split('&')[0].substring(1)
+            this.journeyBaseUrl = this.baseUrl
+            this.journeyUiId = this.uiId
+            this.journeyContextData = this.contextData
+             */
+
+            const journeyTypeId = w.location.hash.split('&')[0].substring(1)
+
+            const item = this.findMenuBarItem(journeyTypeId)
+            if (item) {
+                this.myMenuBarItemSelected(item)
+            } else {
+                console.log('No menu item with journeyTypeId ' + journeyTypeId, this.items)
+            }
+
+        }
+
+    }
+
 
     connectedCallback() {
         super.connectedCallback()
@@ -80,24 +97,23 @@ export class MateuUi extends LitElement {
             this.stampState(state)
         )
 
-        if (window.location.hash) {
-            if (!window.location.hash.startsWith('#state=')) {
-                this.journeyTypeId = window.location.hash.split('&')[0].substring(1)
-                this.journeyBaseUrl = this.baseUrl
-                this.journeyUiId = this.uiId
-                this.journeyContextData = this.contextData
-            }
-        }
-
         window.onpopstate = (e) => {
             const w = e.target as Window
-            if (!w.location.hash.startsWith('#state=')) {
-                this.journeyTypeId = w.location.hash.split('&')[0].substring(1)
-                this.journeyBaseUrl = this.baseUrl
-                this.journeyUiId = this.uiId
-                this.journeyContextData = this.contextData
-            }
+            this.loadHash(w)
         };
+    }
+
+    findMenuBarItem(journeyTypeId: string): MyMenuBarItem | undefined {
+        return this.items?.
+        map(m => this.findMenuBarItemRecursively(m, journeyTypeId)).find(m => m)
+    }
+
+    findMenuBarItemRecursively(menu: MyMenuBarItem, journeyTypeId: string): MyMenuBarItem | undefined {
+        if (menu.journeyTypeId == journeyTypeId) {
+            return menu
+        }
+        return menu.children?.
+        map(m => this.findMenuBarItemRecursively(m as MyMenuBarItem, journeyTypeId)).find(m => m)
     }
 
     disconnectedCallback() {
@@ -141,6 +157,11 @@ export class MateuUi extends LitElement {
         this.journeyBaseUrl = this.baseUrl
         this.journeyUiId = this.uiId
         this.journeyContextData = this.contextData
+
+        if (window.location.hash) {
+            this.loadHash(window)
+        }
+
     }
 
 
@@ -150,8 +171,12 @@ export class MateuUi extends LitElement {
 
 
     itemSelected(event: MenuBarItemSelectedEvent) {
-        this.instant = nanoid()
         let item = event.detail.value as MyMenuBarItem
+        this.myMenuBarItemSelected(item)
+    }
+
+    myMenuBarItemSelected(item: MyMenuBarItem) {
+        this.instant = nanoid()
         this.journeyTypeId = item.journeyTypeId
         this.journeyUiId = item.uiId?item.uiId:this.uiId
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:this.baseUrl
@@ -232,11 +257,18 @@ export class MateuUi extends LitElement {
                     <vaadin-app-layout>
                         <vaadin-horizontal-layout style="width: 100%" slot="navbar">
                         <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+                            ${this.ui.icon?html`
+                                <vaadin-icon style="margin-left: 5px;" icon="${this.ui.icon}" @click=${this.goHome}></vaadin-icon>
+                            `:''}
+                            ${this.ui.logo?html`
+                                <img style="margin-left: 5px;" src="${this.ui.logo}" @click=${this.goHome}>
+                            `:''}
                             ${this.ui.apps && this.ui.apps.length > 0?html`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
                                                  @item-selected="${this.appSelected}"
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
                             `:''}
+                            ${this.ui.icon || this.ui.logo || (this.ui.apps && this.ui.apps.length > 0)?'':html`<div style="width: 5px;"></div>`}
                             <h3 class="title" @click=${this.goHome}>${this.ui.title}</h3>
                         </vaadin-horizontal-layout>
                         <div class="container xx" style="/*flex-grow: 1;*/">

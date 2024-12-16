@@ -496,7 +496,7 @@ export class MateuForm extends LitElement implements FormElement {
             </div>
             <vaadin-horizontal-layout style="justify-content: end; align-items: center;">
               ${this.metadata.actions.filter(a => a.visible).slice(0, (this.metadata.actions.filter(a => a.visible).length > 3)?2:3).map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.icon?html`
+            <vaadin-button theme="secondary ${this.getActionVariants(a)}" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.icon?html`
                 <vaadin-icon icon="${a.icon}" actionId=${a.id}></vaadin-icon>
             `:''}${a.caption}</vaadin-button>
           `)}
@@ -559,14 +559,14 @@ export class MateuForm extends LitElement implements FormElement {
         <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
           <vaadin-horizontal-layout  style="flex-grow: 1; justify-content: start;">
             ${this.metadata.mainActions.filter(a => a.position == ActionPosition.Left).map(a => html`
-              <vaadin-button theme="${this.getThemeForAction(a.type)}"
+              <vaadin-button theme="${this.getThemeForAction(a.type)} ${this.getActionVariants(a)}"
                              data-testid="action-${a.id}"
                              @click=${this.runAction} actionId=${a.id}>${a.caption}</vaadin-button>
             `)}
           </vaadin-horizontal-layout>
           <vaadin-horizontal-layout style="justify-content: end;">
           ${this.metadata.mainActions.filter(a => a.position == ActionPosition.Right).map(a => html`
-            <vaadin-button theme="${this.getThemeForAction(a.type)}"
+            <vaadin-button theme="${this.getThemeForAction(a.type)} ${this.getActionVariants(a)}"
                            data-testid="action-${a.id}"
                            @click=${this.runAction} actionId=${a.id}>${a.caption}</vaadin-button>
           `)}
@@ -601,6 +601,13 @@ export class MateuForm extends LitElement implements FormElement {
         
       </div>
     `
+  }
+
+  private getActionVariants(action: Action) {
+    if (action.variants) {
+      return action.variants.join(' ').toLowerCase()
+    }
+    return '';
   }
 
   private getThemeForAction(type: ActionType) {
@@ -649,9 +656,6 @@ export class MateuForm extends LitElement implements FormElement {
     vaadin-button {
         margin-left: 10px;
     }    
-    .badges {
-      margin-bottom: 10px;
-    }
     
     vaadin-tabs {
       margin-bottom: 10px;

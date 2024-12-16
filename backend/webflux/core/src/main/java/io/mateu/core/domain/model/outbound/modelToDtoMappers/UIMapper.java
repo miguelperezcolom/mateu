@@ -34,8 +34,9 @@ public class UIMapper {
 
     UI ui =
         new UI(
-            null,
-            null,
+            getFavIcon(uiInstance),
+            getIcon(uiInstance),
+            getLogo(uiInstance),
             getTitle(uiInstance),
             getSubtitle(uiInstance),
             menuCreator.buildMenuForUi(uiInstance, serverHttpRequest),
@@ -45,6 +46,27 @@ public class UIMapper {
             getApps(uiInstance));
 
     return ui;
+  }
+
+  private String getLogo(Object uiInstance) {
+    if (uiInstance instanceof HasLogo hasLogo) {
+      return hasLogo.getLogoUrl();
+    }
+    return null;
+  }
+
+  private String getFavIcon(Object uiInstance) {
+    if (uiInstance instanceof HasFavicon hasFavicon) {
+      return hasFavicon.getFavicon();
+    }
+    return null;
+  }
+
+  private String getIcon(Object uiInstance) {
+    if (uiInstance instanceof HasIcon hasIcon) {
+      return hasIcon.getIcon();
+    }
+    return null;
   }
 
   private List<App> getApps(Object uiInstance) {

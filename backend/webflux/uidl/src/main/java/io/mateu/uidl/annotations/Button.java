@@ -29,6 +29,8 @@ public @interface Button {
 
   ActionType type() default ActionType.Primary;
 
+  ActionThemeVariant[] variants() default {};
+
   boolean visible() default true;
 
   ActionTarget target() default ActionTarget.View;

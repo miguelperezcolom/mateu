@@ -1,6 +1,5 @@
 package io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.util.stream.Collectors;
@@ -21,7 +20,9 @@ public class ValidationService {
     var violations = validator.validate(bean);
     if (!violations.isEmpty()) {
       var msg =
-          violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(","));
+          violations.stream()
+              .map(v -> v.getPropertyPath() + " " + v.getMessage())
+              .collect(Collectors.joining(","));
       throw new Exception(msg);
     }
   }

@@ -29,6 +29,8 @@ public @interface MainAction {
 
   ActionType type() default ActionType.Primary;
 
+  ActionThemeVariant[] variants() default {};
+
   ActionTarget target() default ActionTarget.Self;
 
   String targetId() default "";

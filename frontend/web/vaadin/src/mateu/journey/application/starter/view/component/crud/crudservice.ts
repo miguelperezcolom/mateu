@@ -17,6 +17,7 @@ export class CrudService {
     },  component: Component, data: unknown) {
         // Pagination
         const page = await fetchRowsQueryHandler.handle({
+            baseUrl: crudState.baseUrl,
             uiId: crudState.uiId,
             journeyTypeId: crudState.journeyTypeId,
             journeyId: crudState.journeyId,

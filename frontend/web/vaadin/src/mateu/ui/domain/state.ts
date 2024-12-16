@@ -1,12 +1,12 @@
 import UI from "../../shared/apiClients/dtos/UI";
-import {MenuBarItem} from "@vaadin/menu-bar";
+import {MyMenuBarItem} from "../application/my-menu-bar-item";
 
 export class State {
     ui: UI | undefined = undefined
     journeyTypeId: string | undefined
     loading: boolean = false
-    items: MenuBarItem[] | undefined
-    selectedItem?: MenuBarItem
+    items: MyMenuBarItem[] | undefined
+    selectedItem?: MyMenuBarItem
     notificationOpened: boolean = false
     notificationMessage: string = ''
 }

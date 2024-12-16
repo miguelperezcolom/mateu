@@ -58,6 +58,7 @@ public class MethodParametersEditorMetadataBuilder {
             null,
             "Run",
             ActionType.Primary,
+            new ActionThemeVariant[0],
             true,
             true,
             false,

@@ -7,6 +7,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.Button;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ButtonMetadataBuilder {
             null,
             captionProvider.getCaption(m),
             getActionType(m),
+            getActionThemeVariants(m),
             isVisible(m),
             getValidationRequired(m),
             getConfirmationRequired(m),
@@ -97,6 +99,23 @@ public class ButtonMetadataBuilder {
       return ActionType.valueOf(m.getAnnotation(Button.class).type().name());
     }
     return ActionType.Primary;
+  }
+
+  private ActionThemeVariant[] getActionThemeVariants(Field m) {
+    if (m.isAnnotationPresent(Button.class)) {
+      return getActionThemeVariants(m.getAnnotation(Button.class).variants());
+    }
+    return new ActionThemeVariant[0];
+  }
+
+  private ActionThemeVariant[] getActionThemeVariants(
+      io.mateu.uidl.annotations.ActionThemeVariant[] variants) {
+    if (variants == null || variants.length == 0) {
+      return new ActionThemeVariant[0];
+    }
+    return Arrays.stream(variants)
+        .map(v -> ActionThemeVariant.valueOf(v.name()))
+        .toArray(ActionThemeVariant[]::new);
   }
 
   private ConfirmationTexts getConfirmationTexts(Field m) {

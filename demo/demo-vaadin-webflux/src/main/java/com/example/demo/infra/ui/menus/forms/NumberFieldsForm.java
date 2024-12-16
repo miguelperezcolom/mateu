@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @FormColumns(2)
 public class NumberFieldsForm {
@@ -35,6 +37,9 @@ public class NumberFieldsForm {
   @Placeholder("10<x<20")
   private int anotherIntWithValidations;
 
+  @JsonProperty("aBigDecimal")
+  private BigDecimal aBigDecimal;
+
   @Section("Assessment")
   @ReadOnly
   private String assessment;
@@ -55,6 +60,8 @@ public class NumberFieldsForm {
             + aDouble
             + ", "
             + aFloat
+                + ", "
+                + aBigDecimal
             + ", "
             + anotherIntWithValidations;
   }

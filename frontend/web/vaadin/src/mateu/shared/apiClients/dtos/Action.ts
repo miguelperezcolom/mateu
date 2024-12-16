@@ -9,6 +9,7 @@ export default interface Action {
     icon: string
     caption: string
     type: ActionType
+    variants: string[]
     visible: boolean
     validationRequired: boolean
     confirmationRequired: boolean

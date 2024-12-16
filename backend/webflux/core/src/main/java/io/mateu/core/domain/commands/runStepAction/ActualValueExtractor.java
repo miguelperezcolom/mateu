@@ -13,6 +13,7 @@ import jakarta.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -82,6 +83,8 @@ public class ActualValueExtractor {
         targetValue = Double.parseDouble("" + value);
       } else if (Float.class.equals(targetType)) {
         targetValue = Float.parseFloat("" + value);
+      } else if (BigDecimal.class.equals(targetType)) {
+        targetValue = new BigDecimal("" + value);
       } else if (Boolean.class.equals(targetType)) {
         targetValue = Boolean.parseBoolean("" + value);
       } else if (LocalDate.class.equals(targetType)) {
@@ -310,6 +313,27 @@ public class ActualValueExtractor {
           } else {
             targetValue =
                 serializerService.fromMap((Map<String, Object>) entry.getValue(), f.getType());
+          }
+        } else if (float.class.equals(f.getType())) {
+          if (entry.getValue() instanceof Double doubleValue) {
+            targetValue = doubleValue.floatValue();
+          }
+        } else if (Float.class.equals(f.getType())) {
+          if (entry.getValue() instanceof Double doubleValue) {
+            targetValue = doubleValue.floatValue();
+          }
+        } else if (BigDecimal.class.equals(f.getType())) {
+          if (entry.getValue() instanceof Double doubleValue) {
+            targetValue = BigDecimal.valueOf(doubleValue);
+          }
+          if (entry.getValue() instanceof Integer integer) {
+            targetValue = BigDecimal.valueOf(integer);
+          }
+          if (entry.getValue() instanceof Long longValue) {
+            targetValue = BigDecimal.valueOf(longValue);
+          }
+          if (entry.getValue() instanceof Float floatValue) {
+            targetValue = BigDecimal.valueOf(floatValue);
           }
         }
       }

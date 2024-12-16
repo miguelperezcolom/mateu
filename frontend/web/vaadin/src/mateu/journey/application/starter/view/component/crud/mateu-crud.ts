@@ -145,6 +145,7 @@ export class MateuCrud extends LitElement {
   detailsOpenedItem: any[] = [];
 
   state: CrudState = {
+    baseUrl: '',
     uiId: '',
     journeyTypeId: '',
     journeyId: '',
@@ -218,6 +219,7 @@ export class MateuCrud extends LitElement {
     filters: object
     sortOrders: string
   }) {
+      this.state.baseUrl = this.baseUrl
       this.state.uiId = this.uiId
       this.state.journeyTypeId = this.journeyTypeId
       this.state.journeyId = this.journeyId
@@ -488,11 +490,20 @@ export class MateuCrud extends LitElement {
                                      flex-grow="${ifDefined(c.width?'0':'1')}"
                                      data-testid="column-${c.id}"
                                      id="${this.component.id}-${c.id}"
+                                     text-align="${c.type == 'money'?'end':''}"
                                      ${columnBodyRenderer(
                                          // @ts-ignore
                                          (row, model, column) => {
                                            // @ts-ignore
-                                           const value = '' + row[column.path]
+                                           let value = '' + row[column.path]
+                                           if (c.type == 'money') {
+                                             const floatValue = parseFloat(value);
+                                             if (floatValue) {
+                                               value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                                             } else {
+                                               value = ''
+                                             }
+                                           }
                                            return html`${unsafeHTML(value)}`;
                                          },
                                          []
@@ -664,7 +675,9 @@ export class MateuCrud extends LitElement {
           []
       )}></vaadin-grid-column>
         `:''}
-        
+
+
+              <span slot="empty-state">No data found.</span>
         
         </vaadin-grid>
 

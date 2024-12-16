@@ -1,5 +1,5 @@
 export interface CrudState {
-
+    baseUrl: string
     uiId: string
     journeyTypeId: string
     journeyId: string

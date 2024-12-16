@@ -162,7 +162,7 @@ class MateuApiClient {
         }))
     }
 
-    async fetchRows(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
+    async fetchRows(baseUrl: string, uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
                     sortOrders: string, searchText: string | undefined, filters: object, component: Component, data: unknown
                     ): Promise<Page> {
@@ -172,7 +172,7 @@ class MateuApiClient {
             __searchText: searchText,
             __componentType: component.className
         }
-        return await this.wrap<Page>(this.postMax2(this.baseUrl + '/' + uiId + '/journeys/' + journeyType
+        return await this.wrap<Page>(this.postMax2(baseUrl + '/' + uiId + '/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             '/' + listId +

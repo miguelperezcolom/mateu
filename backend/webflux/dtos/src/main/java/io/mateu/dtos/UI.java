@@ -6,6 +6,7 @@ import lombok.*;
 
 public record UI(
     String favIcon,
+    String icon,
     String logo,
     String title,
     String subtitle,

@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class ActionMetadataBuilder {
             getIcon(m),
             captionProvider.getCaption(m),
             getActionType(m),
+            getActionThemeVariants(m),
             isVisible(m),
             getValidationRequired(m),
             getConfirmationRequired(m),
@@ -165,6 +167,29 @@ public class ActionMetadataBuilder {
     return true;
   }
 
+  private ActionThemeVariant[] getActionThemeVariants(Method m) {
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
+      return getActionThemeVariants(action.variants());
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      MainAction action = m.getAnnotation(MainAction.class);
+      return getActionThemeVariants(action.variants());
+    }
+    return new ActionThemeVariant[0];
+  }
+
+  private ActionThemeVariant[] getActionThemeVariants(
+      io.mateu.uidl.annotations.ActionThemeVariant[] variants) {
+    if (variants == null || variants.length == 0) {
+      return new ActionThemeVariant[0];
+    }
+    return Arrays.stream(variants)
+        .map(v -> ActionThemeVariant.valueOf(v.name()))
+        .toArray(ActionThemeVariant[]::new);
+  }
+
   private ActionType getActionType(Method m) {
     if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
       io.mateu.uidl.annotations.Action action =
@@ -274,6 +299,7 @@ public class ActionMetadataBuilder {
                           null,
                           a.caption(),
                           a.type(),
+                          a.variants(),
                           a.visible(),
                           a.validationRequired(),
                           a.confirmationRequired(),
@@ -295,6 +321,7 @@ public class ActionMetadataBuilder {
               null,
               getCaptionForNew(uiInstance),
               ActionType.Primary,
+              new ActionThemeVariant[0],
               true,
               false,
               false,
@@ -317,6 +344,7 @@ public class ActionMetadataBuilder {
               null,
               getCaptionForDelete(uiInstance),
               ActionType.Primary,
+              new ActionThemeVariant[0],
               true,
               false,
               true,

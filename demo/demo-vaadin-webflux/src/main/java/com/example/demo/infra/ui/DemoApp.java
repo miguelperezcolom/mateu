@@ -6,10 +6,7 @@ import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Private;
 import io.mateu.uidl.annotations.Submenu;
 import io.mateu.uidl.data.RemoteMenu;
-import io.mateu.uidl.interfaces.App;
-import io.mateu.uidl.interfaces.HasAppTitle;
-import io.mateu.uidl.interfaces.HasApps;
-import io.mateu.uidl.interfaces.HasLogin;
+import io.mateu.uidl.interfaces.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +14,7 @@ import java.util.List;
 
 @Getter
 @Slf4j
-public class DemoApp implements HasLogin, HasAppTitle, HasApps
+public class DemoApp implements HasLogin, HasAppTitle, HasIcon, HasApps
 // , IncludesRemoteUIs
 {
 
@@ -62,5 +59,10 @@ public class DemoApp implements HasLogin, HasAppTitle, HasApps
             new App("vaadin:factory", "Factory", "", "", true),
             new App("vaadin:doctor", "Health", "", "/simpleform", false)
     );
+  }
+
+  @Override
+  public String getIcon() {
+    return Icon.Home.iconName;
   }
 }

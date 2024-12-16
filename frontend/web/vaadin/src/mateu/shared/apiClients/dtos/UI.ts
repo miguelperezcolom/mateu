@@ -12,5 +12,6 @@ export default interface UI {
     loginUrl: string | undefined
     logoutUrl: string | undefined
     apps: App[] | undefined
+    icon: string | undefined
 
 }

@@ -9,6 +9,7 @@ import io.mateu.uidl.interfaces.Icon;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -54,6 +55,9 @@ public class FieldTypeMapper {
       return "int";
     }
     if (Double.class.equals(type)) {
+      return "double";
+    }
+    if (BigDecimal.class.equals(type)) {
       return "double";
     }
     if (Float.class.equals(type)) {
@@ -102,6 +106,9 @@ public class FieldTypeMapper {
   }
 
   public String mapColumnType(Field field) {
+    if (field.isAnnotationPresent(Money.class)) {
+      return "money";
+    }
     if (field.isAnnotationPresent(Status.class)) {
       return io.mateu.dtos.Status.class.getSimpleName();
     }

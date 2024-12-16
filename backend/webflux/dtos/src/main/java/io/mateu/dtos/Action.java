@@ -26,6 +26,7 @@ public record Action(
     String icon,
     String caption,
     ActionType type,
+    ActionThemeVariant[] variants,
     boolean visible,
     boolean validationRequired,
     boolean confirmationRequired,
