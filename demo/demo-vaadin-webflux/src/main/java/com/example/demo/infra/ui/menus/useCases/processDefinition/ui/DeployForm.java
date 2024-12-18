@@ -1,11 +1,12 @@
 package com.example.demo.infra.ui.menus.useCases.processDefinition.ui;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.ResultType;
 
-@Caption("Deploy to Camunda")
+@Title("Deploy to Camunda")
 public class DeployForm {
 
   @MainAction

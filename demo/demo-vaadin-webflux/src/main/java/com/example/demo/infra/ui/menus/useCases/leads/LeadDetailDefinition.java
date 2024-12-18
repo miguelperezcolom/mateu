@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.leads;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.TelephoneNumber;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +29,7 @@ public abstract class LeadDetailDefinition {
       value = "Requirements",
       description = "Please provide answers for the following questions")
   @ValuesProvider(QuestionsProvider.class)
-  @Caption("")
+  @Label("")
   @CallActionOnChange("questionsUpdated")
   private List<String> questions = List.of("1");
 

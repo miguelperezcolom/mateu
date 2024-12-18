@@ -7,13 +7,8 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-  ElementType.FIELD,
-  ElementType.METHOD,
-  ElementType.PARAMETER,
-  ElementType.TYPE
-}) // can use in method only.
-public @interface Caption {
+@Target({ElementType.TYPE})
+public @interface Title {
 
   String value();
 }

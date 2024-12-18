@@ -3,9 +3,9 @@ package io.mateu.annotationProcessing;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.uidl.annotations.Caption;
 import io.mateu.uidl.annotations.ExternalScripts;
 import io.mateu.uidl.annotations.KeycloakSecured;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -85,8 +85,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
   }
 
   private String getCaption(Element e, String simpleClassName) {
-    if (e.getAnnotation(Caption.class) != null) {
-      return e.getAnnotation(Caption.class).value();
+    if (e.getAnnotation(Label.class) != null) {
+      return e.getAnnotation(Label.class).value();
     }
     return Helper.capitalize(simpleClassName);
   }

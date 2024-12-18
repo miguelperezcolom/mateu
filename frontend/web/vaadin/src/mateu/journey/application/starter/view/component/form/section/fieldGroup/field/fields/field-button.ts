@@ -112,6 +112,15 @@ export class FieldButton extends LitElement implements Component {
         this.buttonMetadata = this.field?.attributes.find(a => a.key == 'buttonMetadata')?.value as Action
     }
 
+    getStyle() {
+        let s = '';
+        this.field?.attributes.forEach(p => {
+            if (p.key == 'width') {
+                s+= 'width: ' + p.value + ';'
+            }
+        })
+        return s;
+    }
 
     render() {
         return html`
@@ -120,6 +129,7 @@ export class FieldButton extends LitElement implements Component {
                    @click=${this.runAction}
                    theme="${ActionType.Primary == this.buttonMetadata?.type?'primary':'secondary'}"
                    data-testid="action-${this.buttonMetadata?.id}"
+                   style="${this.getStyle()}"
             >${this.buttonMetadata?.caption}</vaadin-button>
             `
     }

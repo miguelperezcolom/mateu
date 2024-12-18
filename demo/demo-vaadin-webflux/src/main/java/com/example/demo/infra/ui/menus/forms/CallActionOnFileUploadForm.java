@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import lombok.Data;
 
 import java.net.MalformedURLException;
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Caption("Call action on file upload")
+@Title("Call action on file upload")
 public class CallActionOnFileUploadForm {
 
   public CallActionOnFileUploadForm() throws MalformedURLException {}

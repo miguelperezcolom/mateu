@@ -1,11 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.VisibleIf;
 import lombok.Data;
 
 @Data
-@Caption("Hide field")
+@Title("Hide field")
 public class HideFieldForm {
 
   private boolean show;

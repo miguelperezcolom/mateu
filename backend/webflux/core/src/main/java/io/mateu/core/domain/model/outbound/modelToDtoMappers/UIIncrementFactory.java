@@ -27,6 +27,7 @@ public class UIIncrementFactory {
                 actionTarget,
                 targetId,
                 "",
+                "",
                 new SingleComponent(component.id()),
                 Map.of(component.id(), component))));
   }

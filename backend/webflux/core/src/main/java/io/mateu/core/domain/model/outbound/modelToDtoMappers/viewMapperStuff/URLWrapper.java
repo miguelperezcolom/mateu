@@ -1,12 +1,13 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Title;
 import java.net.URL;
 
-@Caption("")
+@Title("")
 public class URLWrapper {
 
-  @Caption("")
+  @Label("")
   URL url;
 
   public URL getUrl() {

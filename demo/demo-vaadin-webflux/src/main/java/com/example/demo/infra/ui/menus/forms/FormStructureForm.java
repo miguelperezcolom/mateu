@@ -1,6 +1,9 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.VGap;
+
+import java.util.concurrent.Callable;
 
 @FormColumns(3)
 public class FormStructureForm {
@@ -17,6 +20,13 @@ public class FormStructureForm {
             @RightAligned
             @Bold
     String total = "2.000,23 EUR";
+    String field05;
+    @Colspan(2)
+    VGap vgap = new VGap("60px");
+    @Button
+            @Width("100%")
+            @Colspan(2)
+    Callable<String> myButton;
     @Section(value = "Section 2")
     @FieldGroup(value = "Group 1", columns = 2)
     String field1;

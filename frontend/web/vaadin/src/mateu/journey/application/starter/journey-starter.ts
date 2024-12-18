@@ -51,6 +51,8 @@ export class JourneyStarter extends LitElement {
     @state()
     modalInstant: string | undefined = undefined;
     @state()
+    modalTitle: string | undefined = undefined;
+    @state()
     modalStyle: string | undefined = undefined;
     @state()
     modalClass: string | undefined = undefined
@@ -115,6 +117,7 @@ export class JourneyStarter extends LitElement {
                     target: ActionTarget.Component,
                     targetId: target.id,
                     modalStyle: undefined,
+                    modalTitle: undefined,
                     content: replacement,
                     components: components
                 }
@@ -162,12 +165,14 @@ export class JourneyStarter extends LitElement {
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
                     modalStyle: undefined,
+                    modalTitle: undefined,
                     content: f.content,
                     targetId: '',
                     target: ActionTarget.View,
                     components: f.components
                 }
                 this.modalStyle = f.modalStyle
+                this.modalTitle = f.modalTitle
                 this.modalClass = ''
                 setTimeout(() => {
                     const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
@@ -181,12 +186,14 @@ export class JourneyStarter extends LitElement {
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
                     modalStyle: undefined,
+                    modalTitle: undefined,
                     content: f.content,
                     targetId: '',
                     target: ActionTarget.View,
                     components: f.components
                 }
                 this.modalStyle = f.modalStyle
+                this.modalTitle = f.modalTitle
                 this.modalClass = 'modal-left'
                 setTimeout(() => {
                     const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
@@ -199,12 +206,14 @@ export class JourneyStarter extends LitElement {
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
                     modalStyle: undefined,
+                    modalTitle: undefined,
                     content: f.content,
                     targetId: '',
                     target: ActionTarget.View,
                     components: f.components
                 }
                 this.modalStyle = f.modalStyle
+                this.modalTitle = f.modalTitle
                 this.modalClass = 'modal-right'
                 setTimeout(() => {
                     const overlay = document.querySelector('vaadin-dialog-overlay')?.shadowRoot?.querySelector('#overlay');
@@ -509,7 +518,7 @@ export class JourneyStarter extends LitElement {
             `}
 
             <vaadin-dialog
-                    header-title=" "
+                    header-title="${this.modalTitle}"
                     .opened="${this.modalOpened}"
                     class="${this.modalClass}"
                     resizable
@@ -520,11 +529,11 @@ export class JourneyStarter extends LitElement {
                         }
                     }}"
                     ${dialogHeaderRenderer(
-                            () => html`
+                            () => this.modalTitle?html`
       <vaadin-button theme="tertiary" @click="${this.closeModal}">
         <vaadin-icon icon="lumo:cross"></vaadin-icon>
       </vaadin-button>
-    `,
+    `:html``,
                             []
                     )}
                     ${dialogRenderer(this.renderModal, [])}

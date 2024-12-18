@@ -99,6 +99,7 @@ export class FieldDouble extends LitElement implements Component {
                     ?required=${this.required}
                     placeholder="${this.placeholder}"
                     theme="align-right"
+                    autoselect="on"
             ></vaadin-number-field>
         `
     }

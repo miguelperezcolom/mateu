@@ -2,19 +2,18 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.infra.ui.menus.useCases.leads.QuestionsProvider;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@io.mateu.uidl.annotations.Caption("Call action on check/uncheck")
+@Title("Call action on check/uncheck")
 public class CallActionOnChecksForm {
 
   @Section("List")
   @ValuesProvider(QuestionsProvider.class)
-  @Caption("")
+  @Label("")
   @CallActionOnChange("assess")
   private List<String> questions = List.of("1");
 

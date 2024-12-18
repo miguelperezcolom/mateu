@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-@Caption("Messages")
+@Title("Messages")
 public class MessagesForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @NotEmpty

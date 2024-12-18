@@ -5,8 +5,10 @@ import io.mateu.uidl.annotations.Element;
 import io.mateu.uidl.data.ExternalReference;
 import io.mateu.uidl.data.IconChooser;
 import io.mateu.uidl.data.TelephoneNumber;
+import io.mateu.uidl.data.VGap;
 import io.mateu.uidl.interfaces.ComplexKeyChoice;
 import java.io.File;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +42,8 @@ public class ManagedTypeChecker {
         || LocalDateTime.class.equals(type)
         || LocalTime.class.equals(type)
         || Date.class.equals(type)
+        || BigDecimal.class.equals(type)
+        || VGap.class.equals(type)
         || File.class.equals(type)
         || URL.class.equals(type)
         || ComplexKeyChoice.class.equals(type)

@@ -63,6 +63,7 @@ public class ResultMapper {
 
   public Mono<UIIncrement> processResult(
       Object actualViewInstance,
+      AnnotatedElement trigger,
       Method m,
       Map<String, Object> data,
       ServerHttpRequest serverHttpRequest,
@@ -106,7 +107,7 @@ public class ResultMapper {
 
     } else {
 
-      return Mono.just(getUiIncrement(m, data, serverHttpRequest, result, componentId));
+      return Mono.just(getUiIncrement(trigger, data, serverHttpRequest, result, componentId));
     }
   }
 
@@ -147,6 +148,7 @@ public class ResultMapper {
                 mapActionTarget(getActionTarget(m)),
                 getTargetId(m, componentId),
                 getModalStyle(m),
+                getModalTitle(m),
                 new SingleComponent(component.id()),
                 Map.of(component.id(), component)));
       }
@@ -158,6 +160,7 @@ public class ResultMapper {
               mapActionTarget(getActionTarget(m)),
               getTargetId(m, componentId),
               getModalStyle(m),
+              getModalTitle(m),
               new SingleComponent(component.id()),
               Map.of(component.id(), component)));
     } else if (r instanceof ResponseWrapper responseWrapper) {
@@ -168,6 +171,7 @@ public class ResultMapper {
               mapActionTarget(getActionTarget(m)),
               getTargetId(m, componentId),
               getModalStyle(m),
+              getModalTitle(m),
               new SingleComponent(component.id()),
               Map.of(component.id(), component)));
     } else if (r instanceof io.mateu.uidl.interfaces.View view) {
@@ -178,6 +182,7 @@ public class ResultMapper {
               mapActionTarget(getActionTarget(m)),
               getTargetId(m, componentId),
               getModalStyle(m),
+              getModalTitle(m),
               viewDto,
               allComponents));
     } else if (r instanceof Container) {
@@ -189,6 +194,7 @@ public class ResultMapper {
               mapActionTarget(getActionTarget(m)),
               getTargetId(m, componentId),
               getModalStyle(m),
+              getModalTitle(m),
               viewDto,
               allComponents));
     } else {
@@ -198,6 +204,7 @@ public class ResultMapper {
               mapActionTarget(getActionTarget(m)),
               getTargetId(m, componentId),
               getModalStyle(m),
+              getModalTitle(m),
               new SingleComponent(component.id()),
               Map.of(component.id(), component)));
     }
@@ -258,6 +265,7 @@ public class ResultMapper {
                     mapActionTarget(getActionTarget(m)),
                     getTargetId(m, null),
                     getModalStyle(m),
+                    getModalTitle(m),
                     new SingleComponent(component.id()),
                     Map.of(component.id(), component))));
     return new UICommand(UICommandType.CloseModal, uiIncrement);
@@ -291,6 +299,22 @@ public class ResultMapper {
     }
     if (m.isAnnotationPresent(On.class)) {
       return m.getAnnotation(On.class).modalStyle();
+    }
+    return null;
+  }
+
+  protected String getModalTitle(AnnotatedElement m) {
+    if (m.isAnnotationPresent(MainAction.class)) {
+      return m.getAnnotation(MainAction.class).modalTitle();
+    }
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      return m.getAnnotation(io.mateu.uidl.annotations.Action.class).modalTitle();
+    }
+    if (m.isAnnotationPresent(Button.class)) {
+      return m.getAnnotation(Button.class).modalTitle();
+    }
+    if (m.isAnnotationPresent(On.class)) {
+      return m.getAnnotation(On.class).modalTitle();
     }
     return null;
   }

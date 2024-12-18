@@ -6,8 +6,9 @@ import io.mateu.core.domain.model.outbound.i18n.Translator;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.fieldabstraction.FieldForCheckboxColumn;
 import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Submenu;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.interfaces.HasTitle;
 import java.lang.reflect.Method;
 import org.springframework.stereotype.Service;
@@ -32,8 +33,11 @@ public class CaptionProvider {
     if (object instanceof HasTitle hasTitle) {
       return hasTitle.getTitle();
     }
-    if (object.getClass().isAnnotationPresent(Caption.class)) {
-      return object.getClass().getAnnotation(Caption.class).value();
+    if (object.getClass().isAnnotationPresent(Title.class)) {
+      return object.getClass().getAnnotation(Title.class).value();
+    }
+    if (object.getClass().isAnnotationPresent(Label.class)) {
+      return object.getClass().getAnnotation(Label.class).value();
     }
 
     try {
@@ -46,8 +50,8 @@ public class CaptionProvider {
   }
 
   public String getCaption(Field f) {
-    if (f.isAnnotationPresent(Caption.class)) {
-      return translator.translate(f.getAnnotation(Caption.class).value());
+    if (f.isAnnotationPresent(Label.class)) {
+      return translator.translate(f.getAnnotation(Label.class).value());
     } else {
       String caption = "";
       if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();
@@ -61,8 +65,8 @@ public class CaptionProvider {
   }
 
   public String getCaption(Method f) {
-    if (f.isAnnotationPresent(Caption.class)) {
-      return translator.translate(f.getAnnotation(Caption.class).value());
+    if (f.isAnnotationPresent(Label.class)) {
+      return translator.translate(f.getAnnotation(Label.class).value());
     } else {
       String caption = "";
       if (f.isAnnotationPresent(Submenu.class)) caption = f.getAnnotation(Submenu.class).value();

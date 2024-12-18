@@ -1,15 +1,14 @@
 package com.example.demo.infra.ui.menus.actions;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
 @Service
-@Caption("Actions")
+@Title("Actions")
 public class ActionsAsButtonsForm {
 
     String name = "Mateu";

@@ -2,12 +2,13 @@ package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.pojos.Movie;
 import com.example.demo.domain.agnostic.pojos.Profile;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.Title;
 import lombok.Data;
 
 @Data
-@Caption("Objects")
+@Title("Objects")
 public class ObjectsForm {
 
   @Section("Objects")

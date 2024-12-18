@@ -117,7 +117,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object result =
           m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
       return resultMapper.processResult(
-          targetInstance, m, data, serverHttpRequest, result, componentId);
+          targetInstance, m, m, data, serverHttpRequest, result, componentId);
     }
 
     return runMethod(viewInstance, data, serverHttpRequest, componentId, actionId);
@@ -225,7 +225,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
 
         return resultMapper.processResult(
-            actualViewInstance, m, data, serverHttpRequest, result, componentId);
+            actualViewInstance, m, m, data, serverHttpRequest, result, componentId);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();

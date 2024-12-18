@@ -50,12 +50,8 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
       throws Throwable {
     var menuEntry = menuResolver.resolve(viewInstance, actionId, serverHttpRequest).orElse(null);
     var result = startJourneyCommandHandler.createInstanceFromMenuMapping(menuEntry);
+    var method = reflectionService.getMethod(DirectoryActionRunner.class, "run");
     return resultMapper.processResult(
-        viewInstance,
-        reflectionService.getMethod(DirectoryActionRunner.class, "run"),
-        data,
-        serverHttpRequest,
-        result,
-        componentId);
+        viewInstance, method, method, data, serverHttpRequest, result, componentId);
   }
 }

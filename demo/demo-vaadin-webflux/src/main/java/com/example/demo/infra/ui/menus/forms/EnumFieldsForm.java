@@ -2,15 +2,11 @@ package com.example.demo.infra.ui.menus.forms;
 
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.UseRadioButtons;
+import io.mateu.uidl.annotations.*;
 import lombok.Data;
 
 @Data
-@Caption("Enums")
+@Title("Enums")
 public class EnumFieldsForm {
 
   @Section("Enums")

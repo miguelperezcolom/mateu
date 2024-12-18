@@ -1,16 +1,16 @@
 package com.example.demo.infra.ui.menus.layouts.booking;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.data.RemoteJourney;
+import io.mateu.uidl.data.VGap;
 import io.mateu.uidl.interfaces.View;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.concurrent.Callable;
 
-@Caption("")
+@Title("")
 record BookingInfoSection(
         @Ignored String id,
         String leadName,
@@ -38,7 +38,7 @@ record BookingInfoSection(
 
 }
 
-@Caption("")
+@Title("")
 record MyHorizontalLayout(
         BookingInfoSection bookingInfoSection,
         @Width("200px")
@@ -46,29 +46,39 @@ record MyHorizontalLayout(
 
 }
 
-@Caption("")
+@Title("")
 @MaxWidth("300px")
-record Report(
-        @DataOnly
-        String id,
+class Report {
+    @DataOnly
+    String id = "46464qsws";
 
-        @Section(value = "", sidePositionedLabel = true, itemLabelWidth = "80px")
-        @Output
-        @Money
-        double value,
+    @Section(value = "", sidePositionedLabel = true, itemLabelWidth = "80px")
+    @Output
+    @Money
+    double value = 1200.1;
 
-        @Output
-        @Money
-        double invoiced,
+    @Output
+    @Money
+    double invoiced = 20;
 
-        @Output
-        @Money
-        double paid,
+    @Output
+    @Money
+    double paid = 40000.213;
 
-        @Output
-        @Money
-        @Bold
-        double pending) {
+    @Output
+    @Money
+    @Bold
+    double pending = -3421.2;
+
+    VGap gap2 = new VGap("10px");
+
+    @Button(type = ActionType.Secondary, target = ActionTarget.NewModal, modalTitle = "Create invoice" )
+    @Width("100%")
+    Callable<String> createInvoice = () -> "Hola";
+
+    @Button(type = ActionType.Secondary, target = ActionTarget.NewModal)
+    @Width("100%")
+    Callable<String> registerPayment = () -> "Hola";
 
 }
 
@@ -81,7 +91,7 @@ public class BookingView implements View {
     String id = "4564564";
 
     @Slot(SlotName.main)
-            @HorizontalLayout
+    @HorizontalLayout
     MyHorizontalLayout main = new MyHorizontalLayout(new BookingInfoSection(
             "5454",
             "Mateu",
@@ -89,13 +99,7 @@ public class BookingView implements View {
             LocalDate.now(),
             LocalDate.now().plusDays(14),
             BigDecimal.valueOf(200.32)
-    ), new Report(
-            "wedwed",
-            12123.45,
-            100.01,
-            200
-            ,-1032.1
-    ));
+    ), new Report());
 
     @Override
     public String toString() {

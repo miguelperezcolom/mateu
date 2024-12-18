@@ -313,7 +313,7 @@ public class FormMetadataBuilder {
     if (f.isAnnotationPresent(SuffixableCaption.class)) {
       effectiveCaption = caption + " " + parentCaption;
     }
-    return new FakeCaptionAnnotation(effectiveCaption);
+    return new FakeLabelAnnotation(effectiveCaption);
   }
 
   public List<Section> createSections(

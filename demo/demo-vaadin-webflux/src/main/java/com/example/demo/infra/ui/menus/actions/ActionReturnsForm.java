@@ -1,10 +1,5 @@
 package com.example.demo.infra.ui.menus.actions;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.ActionTarget;
-import io.mateu.uidl.annotations.ActionType;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.MainAction;
 import io.mateu.uidl.annotations.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +11,7 @@ import java.net.URL;
 @Service
 @Getter
 @Setter
-@Caption("Action returns")
+@Title("Action returns")
 public class ActionReturnsForm {
 
     String name = "Mateu";

@@ -2,16 +2,17 @@ package com.example.demo.infra.ui.menus.collections;
 
 import com.example.demo.domain.agnostic.records.AddressRecord;
 import com.example.demo.domain.nfl.providers.TeamsProvider;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ItemsProvider;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.ExternalReference;
 import lombok.Data;
 
 import java.util.Map;
 
 @Data
-@Caption("Complex maps")
+@Title("Complex maps")
 public class ComplexMapsForm {
 
   @Section("Complex maps")

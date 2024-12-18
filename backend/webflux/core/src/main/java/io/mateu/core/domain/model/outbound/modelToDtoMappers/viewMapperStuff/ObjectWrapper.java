@@ -1,11 +1,12 @@
 package io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Title;
 
-@Caption("")
+@Title("")
 public class ObjectWrapper {
 
-  @Caption("")
+  @Label("")
   Object value;
 
   public Object getValue() {

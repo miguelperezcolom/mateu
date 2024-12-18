@@ -100,7 +100,8 @@ public class StartJourneyCommandHandler {
             List.of(),
             List.of(),
             List.of(
-                new UIFragment(io.mateu.dtos.ActionTarget.View, "", "", viewDto, allComponents))));
+                new UIFragment(
+                    io.mateu.dtos.ActionTarget.View, "", "", "", viewDto, allComponents))));
   }
 
   public Object resolveJourneyTypeId(

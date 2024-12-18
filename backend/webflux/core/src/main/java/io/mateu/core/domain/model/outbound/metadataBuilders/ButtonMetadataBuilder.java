@@ -35,6 +35,7 @@ public class ButtonMetadataBuilder {
             getConfirmationTexts(m),
             getTarget(m),
             getModalStyle(m),
+            getModalTitle(m),
             getCustomEvent(m),
             getHref(m),
             getRunEonEnter(m),
@@ -61,6 +62,13 @@ public class ButtonMetadataBuilder {
   private String getModalStyle(Field f) {
     if (f.isAnnotationPresent(Button.class)) {
       return f.getAnnotation(Button.class).modalStyle();
+    }
+    return "";
+  }
+
+  private String getModalTitle(Field f) {
+    if (f.isAnnotationPresent(Button.class)) {
+      return f.getAnnotation(Button.class).modalTitle();
     }
     return "";
   }

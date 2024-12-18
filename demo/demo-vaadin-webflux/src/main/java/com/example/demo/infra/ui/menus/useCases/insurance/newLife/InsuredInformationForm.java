@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.useCases.insurance.newLife;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Stepper;
 import io.mateu.uidl.data.StepperStep;
 import lombok.Getter;
@@ -13,7 +12,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@io.mateu.uidl.annotations.Caption("Bad life sale")
+@Title("Bad life sale")
 public class InsuredInformationForm {
 
   @Slot(SlotName.header)
@@ -56,13 +55,13 @@ public class InsuredInformationForm {
   @Section("Known Persons")
   LocalDate birthDate;
 
-  @io.mateu.uidl.annotations.Caption("Is yur customer a smoker?")
+  @Label("Is yur customer a smoker?")
   @UseRadioButtons
   boolean smoker = false;
 
   Double sumInsured;
 
-  @io.mateu.uidl.annotations.Caption("Would you like to add a co-habitant?")
+  @Label("Would you like to add a co-habitant?")
   @UseRadioButtons
   boolean addCoinsured = false;
 
@@ -78,7 +77,7 @@ public class InsuredInformationForm {
 
   CapitalFlowType capitalFlowType;
 
-  @Caption("Capital Flow %")
+  @Label("Capital Flow %")
   double capitalFlowPercent;
 
   @Slot(SlotName.right)

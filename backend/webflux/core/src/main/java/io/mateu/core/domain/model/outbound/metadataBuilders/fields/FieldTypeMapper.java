@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ExternalReference;
 import io.mateu.uidl.data.IconChooser;
 import io.mateu.uidl.data.TelephoneNumber;
+import io.mateu.uidl.data.VGap;
 import io.mateu.uidl.interfaces.Icon;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
@@ -21,6 +22,9 @@ public class FieldTypeMapper {
 
   public String mapFieldType(Field field) {
     Class<?> type = field.getType();
+    if (VGap.class.equals(field.getType())) {
+      return "vgap";
+    }
     if (field.isAnnotationPresent(Output.class)) {
       return "output";
     }

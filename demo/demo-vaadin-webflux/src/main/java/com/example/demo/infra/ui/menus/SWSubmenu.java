@@ -4,7 +4,7 @@ import com.example.demo.domain.swapi.entities.SWCharacter;
 import com.example.demo.domain.swapi.entities.SWFilm;
 import com.example.demo.domain.swapi.entities.SWSpecie;
 import com.example.demo.domain.swapi.entities.SWStarship;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.interfaces.JpaCrud;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class SWSubmenu {
 
   @MenuOption
-  @Caption("Star Wars Characters")
+  @Label("Star Wars Characters")
   private JpaCrud<SWCharacter> characters =
       new JpaCrud<SWCharacter>() {
 
@@ -29,7 +29,7 @@ public class SWSubmenu {
       };
 
   @MenuOption
-  @Caption("Star Wars Films")
+  @Label("Star Wars Films")
   private JpaCrud<SWFilm> films =
       new JpaCrud<SWFilm>() {
 
@@ -45,10 +45,10 @@ public class SWSubmenu {
       };
 
   @MenuOption
-  @Caption("Star Wars Starships")
+  @Label("Star Wars Starships")
   private JpaCrud<SWStarship> starships;
 
   @MenuOption
-  @Caption("Star Wars Species")
+  @Label("Star Wars Species")
   private JpaCrud<SWSpecie> species;
 }

@@ -1,9 +1,6 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.Placeholder;
-import io.mateu.uidl.annotations.RawContent;
-import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +9,7 @@ import java.net.URL;
 
 @Getter
 @Setter
-@Caption("Url and text")
+@Title("Url and text")
 public class UrlAndTextForm {
 
   @Placeholder("Google")

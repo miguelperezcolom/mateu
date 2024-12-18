@@ -1,15 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.dtos.Value;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@Caption("Nested dropdowns")
+@Title("Nested dropdowns")
 public class NestedDropdownsForm {
 
   @Section("Using @VisibleIf")

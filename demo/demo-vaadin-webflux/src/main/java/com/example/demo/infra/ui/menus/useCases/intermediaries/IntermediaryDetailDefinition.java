@@ -2,7 +2,7 @@ package com.example.demo.infra.ui.menus.useCases.intermediaries;
 
 import com.example.demo.infra.ui.menus.useCases.intermediaries.salesAgents.SalesAgentsCrud;
 import com.example.demo.infra.ui.menus.useCases.leads.QuestionsProvider;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.ValuesProvider;
 import io.mateu.uidl.data.ExternalReference;
@@ -27,7 +27,7 @@ public abstract class IntermediaryDetailDefinition {
 
   @Section(value = "Requirements", description = "Answers provided by the lead")
   @ValuesProvider(QuestionsProvider.class)
-  @Caption("")
+  @Label("")
   private List<ExternalReference> questions =
       List.of(
           new ExternalReference("1", "AVAD score"), new ExternalReference("2", "Another answer"));

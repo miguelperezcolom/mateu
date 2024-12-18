@@ -63,6 +63,14 @@ export class MateuSection extends LitElement {
           if (f.stereotype == 'rawcontent') {
               return unsafeHTML(`<div class="fullWidth" colspan="${colspan}">${this.formElement.getValue(f.id)}</div>`)
           }
+          if (f.stereotype == 'vgap') {
+              let s = '';
+              const height = f.attributes.find(a => a.key == 'height')?.value;
+              if (height) {
+                  s = 'height: ' + height + ';'
+              }
+              return unsafeHTML(`<div colspan="${colspan}" style="${s}"></div>`)
+          }
         if (f.type == 'output') {
             if (this.section.sidePositionedLabel) {
                 return unsafeHTML(`<vaadin-form-item>
@@ -77,7 +85,7 @@ export class MateuSection extends LitElement {
         }
         return html`
 
-            ${this.section.sidePositionedLabel?html`
+            ${f.type != 'button' && this.section.sidePositionedLabel?html`
           <vaadin-form-item>
             <label slot="label">${f.caption}</label>
                   <mateu-field .field="${f}"

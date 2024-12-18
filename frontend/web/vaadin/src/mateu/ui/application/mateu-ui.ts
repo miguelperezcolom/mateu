@@ -256,7 +256,7 @@ export class MateuUi extends LitElement {
                 ${this.ui.menu && this.ui.menu.length > 0?html`
                     <vaadin-app-layout>
                         <vaadin-horizontal-layout style="width: 100%" slot="navbar">
-                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;margin-left: 10px;">
                             ${this.ui.icon?html`
                                 <vaadin-icon style="margin-left: 5px;" icon="${this.ui.icon}" @click=${this.goHome}></vaadin-icon>
                             `:''}
@@ -268,7 +268,6 @@ export class MateuUi extends LitElement {
                                                  @item-selected="${this.appSelected}"
                                                  .items="${this.buildItemsForApps(this.ui.apps)}"></vaadin-menu-bar>
                             `:''}
-                            ${this.ui.icon || this.ui.logo || (this.ui.apps && this.ui.apps.length > 0)?'':html`<div style="width: 5px;"></div>`}
                             <h3 class="title" @click=${this.goHome}>${this.ui.title}</h3>
                         </vaadin-horizontal-layout>
                         <div class="container xx" style="/*flex-grow: 1;*/">

@@ -11,6 +11,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Icon;
 import io.mateu.uidl.data.ExternalReference;
 import io.mateu.uidl.data.IconChooser;
+import io.mateu.uidl.data.VGap;
 import io.mateu.uidl.interfaces.ComplexKeyChoice;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -41,6 +42,9 @@ public class FieldStereotypeMapper {
   public String mapStereotype(Object view, Field field) {
     if (field.isAnnotationPresent(CustomFieldStereotype.class)) {
       return field.getAnnotation(CustomFieldStereotype.class).value();
+    }
+    if (VGap.class.equals(field.getType())) {
+      return "vgap";
     }
     if (field.isAnnotationPresent(RawContent.class)) {
       return "rawcontent";

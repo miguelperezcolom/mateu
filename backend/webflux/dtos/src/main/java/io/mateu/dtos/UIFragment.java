@@ -15,6 +15,7 @@ public record UIFragment(
     ActionTarget target,
     String targetId,
     String modalStyle,
+    String modalTitle,
     Content content,
     Map<String, Component> components) {
 

@@ -2,11 +2,12 @@ package com.example.demo.domain.programmingLanguages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.interfaces.Crud;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Placeholder;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -23,7 +24,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-@Caption("Some programming languages")
+@Title("Some programming languages")
 @Getter
 @Setter
 @Service
@@ -96,7 +97,7 @@ public class ProgrammingLanguages
   }
 
   @Action()
-  @Caption("Do something again, please")
+  @Label("Do something again, please")
   public void doSomethingAgain(List<LanguageRow> selection) {
     System.out.println("Hola!!!!" + selection.size() + "...." + selection);
   }

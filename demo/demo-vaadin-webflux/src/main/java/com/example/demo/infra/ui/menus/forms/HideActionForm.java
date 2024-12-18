@@ -1,17 +1,13 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Ignored;
-import io.mateu.uidl.annotations.RawContent;
-import io.mateu.uidl.annotations.VisibleIf;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.HasStatus;
 import lombok.Data;
 
 @Data
-@Caption("Hide action")
+@Title("Hide action")
 public class HideActionForm implements HasStatus {
 
   @VisibleIf("!active")

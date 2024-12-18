@@ -1,16 +1,12 @@
 package com.example.demo.infra.ui.menus.refs;
 
-import io.mateu.uidl.annotations.File;
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.*;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@Caption("External refs and files")
+@Title("External refs and files")
 public class FilesForm {
 
   /*

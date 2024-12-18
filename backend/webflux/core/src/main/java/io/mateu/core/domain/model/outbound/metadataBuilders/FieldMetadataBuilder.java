@@ -9,6 +9,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ExternalReference;
+import io.mateu.uidl.data.VGap;
 import io.mateu.uidl.interfaces.HasBadgesOnFields;
 import jakarta.validation.constraints.*;
 import java.util.ArrayList;
@@ -67,6 +68,12 @@ public class FieldMetadataBuilder {
   @SneakyThrows
   private List<Pair> completeAttributes(
       Object view, Field field, List<Pair> pairs, boolean autoFocusDisabled) {
+    if (VGap.class.equals(field.getType())) {
+      VGap vgap = (VGap) reflectionService.getValue(field, view);
+      if (vgap != null) {
+        pairs.add(new Pair("height", vgap.height()));
+      }
+    }
     if (Collection.class.isAssignableFrom(field.getType())
         && !reflectionService.isBasic(field.getType())
         && !ExternalReference.class.equals(field.getGenericClass())

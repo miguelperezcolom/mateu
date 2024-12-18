@@ -1,12 +1,8 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.Icon;
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.ActionTarget;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BadgeTheme;
 import io.mateu.uidl.data.Status;
@@ -20,7 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Data
-@Caption("Read only pojo with crud")
+@Title("Read only pojo with crud")
 @Component
 @Scope("prototype")
 @ReadOnly
@@ -63,7 +59,7 @@ public class MyReadOnlyPojoWithCrudForm
   }
 
   @Action(icon = Icon.Refresh, target = ActionTarget.Component, order = -1)
-  @Caption("")
+  @Label("")
   public void refresh() {
     assessment = "reloaded";
   }

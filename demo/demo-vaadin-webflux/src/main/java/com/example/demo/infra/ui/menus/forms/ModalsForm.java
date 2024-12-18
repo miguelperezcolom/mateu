@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
-@Caption("Modals")
+@Title("Modals")
 public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
 
   @NotEmpty

@@ -39,6 +39,8 @@ public @interface Button {
 
   String modalStyle() default "";
 
+  String modalTitle() default "";
+
   String customEvent() default "";
 
   String href() default "";

@@ -44,9 +44,11 @@ public class RunStepActionCommandHandler {
           (ActionHandler)
               reflectionService.newInstance(
                   Class.forName(serverSideObject.className()), serverSideObject.data());
+      var method = reflectionService.getMethod(actionHandler.getClass(), "handle");
       return resultMapper.processResult(
           actionHandler,
-          reflectionService.getMethod(actionHandler.getClass(), "handle"),
+          method,
+          method,
           data,
           serverHttpRequest,
           actionHandler.handle(serverSideObject, actionId, serverHttpRequest),

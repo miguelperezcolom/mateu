@@ -36,6 +36,8 @@ public @interface On {
 
   String modalStyle() default "";
 
+  String modalTitle() default "";
+
   String customEvent() default "";
 
   String href() default "";

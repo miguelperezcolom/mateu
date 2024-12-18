@@ -1,12 +1,11 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import lombok.Data;
 
 @Data
-@Caption("Booleans")
+@Title("Booleans")
 @FormColumns(2)
 public class BooleanFieldsForm {
 

@@ -6,7 +6,6 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.interfaces.ConsumesContextData;
 import io.mateu.uidl.interfaces.HasLogout;
-import io.mateu.uidl.annotations.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-@io.mateu.uidl.annotations.Caption("")
+@Title("")
 @MateuUI("/secured")
 @io.mateu.uidl.annotations.ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter

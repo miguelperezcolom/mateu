@@ -3,8 +3,7 @@ package com.example.demo.infra.ui.menus.forms;
 import com.example.demo.domain.nfl.dtos.Conference;
 import com.example.demo.domain.nfl.dtos.Division;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BadgeTheme;
 import io.mateu.uidl.data.Status;
@@ -19,7 +18,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Data
-@Caption("Read only pojo")
+@Title("Read only pojo")
 @ReadOnly
 public class MyReadOnlyPojo
     implements HasBadges, HasStatus {

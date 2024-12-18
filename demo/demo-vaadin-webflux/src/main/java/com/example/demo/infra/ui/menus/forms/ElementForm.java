@@ -1,13 +1,14 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Title;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Caption("Html element")
+@Title("Html element")
 public class ElementForm {
 
   private ElementFormDiv div = new ElementFormDiv();

@@ -48,6 +48,7 @@ public class ActionMetadataBuilder {
             getConfirmationTexts(m),
             getTarget(m),
             getModalStyle(m),
+            getModalTitle(m),
             getCustomEvent(m),
             getHref(m),
             isRunOnEnter(m),
@@ -130,6 +131,19 @@ public class ActionMetadataBuilder {
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
       return action.modalStyle();
+    }
+    return "";
+  }
+
+  private String getModalTitle(Method m) {
+    if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
+      io.mateu.uidl.annotations.Action action =
+          m.getAnnotation(io.mateu.uidl.annotations.Action.class);
+      return action.modalTitle();
+    }
+    if (m.isAnnotationPresent(MainAction.class)) {
+      MainAction action = m.getAnnotation(MainAction.class);
+      return action.modalTitle();
     }
     return "";
   }
@@ -307,6 +321,7 @@ public class ActionMetadataBuilder {
                           a.confirmationTexts(),
                           a.target(),
                           a.modalStyle(),
+                          a.modalTitle(),
                           a.customEvent(),
                           a.href(),
                           false,
@@ -328,6 +343,7 @@ public class ActionMetadataBuilder {
               false,
               null,
               ActionTarget.View,
+              null,
               null,
               null,
               null,
@@ -354,6 +370,7 @@ public class ActionMetadataBuilder {
                   "Are you sure you want to delete the selected rows",
                   "Yes, delete them"),
               ActionTarget.View,
+              null,
               null,
               null,
               null,

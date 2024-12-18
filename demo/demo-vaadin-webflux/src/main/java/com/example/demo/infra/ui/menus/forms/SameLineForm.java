@@ -1,11 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.SameLine;
+import io.mateu.uidl.annotations.Title;
 import lombok.Data;
 
 @Data
-@Caption("Same line")
+@Title("Same line")
 public class SameLineForm {
 
   private String name;

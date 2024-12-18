@@ -1,17 +1,17 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import java.lang.annotation.Annotation;
 
-public class FakeCaptionAnnotation implements Caption {
+public class FakeLabelAnnotation implements Label {
 
   String value = "";
 
-  public FakeCaptionAnnotation(String value) {
+  public FakeLabelAnnotation(String value) {
     this.value = value;
   }
 
-  public FakeCaptionAnnotation() {}
+  public FakeLabelAnnotation() {}
 
   @Override
   public String value() {
@@ -20,6 +20,6 @@ public class FakeCaptionAnnotation implements Caption {
 
   @Override
   public Class<? extends Annotation> annotationType() {
-    return Caption.class;
+    return Label.class;
   }
 }

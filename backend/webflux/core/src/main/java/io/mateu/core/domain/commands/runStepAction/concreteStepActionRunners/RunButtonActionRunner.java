@@ -115,7 +115,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         }
 
         return resultMapper.processResult(
-            actualViewInstance, method, data, serverHttpRequest, result, componentId);
+            actualViewInstance, m, method, data, serverHttpRequest, result, componentId);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();

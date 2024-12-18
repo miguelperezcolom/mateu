@@ -17,6 +17,7 @@ export default interface Action {
     confirmationTexts: ConfirmationTexts
     target: ActionTarget
     modalStyle: string
+    modalTitle: string
     customEvent: string
     href: string
     runOnEnter: boolean

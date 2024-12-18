@@ -1,13 +1,14 @@
 package com.example.demo.infra.ui.menus.collections;
 
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.Title;
 import lombok.Data;
 
 import java.util.Map;
 
 @Data
-@Caption("Simple maps")
+@Title("Simple maps")
 public class SimpleMapsForm {
 
   @Section("Simple maps")

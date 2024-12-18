@@ -1,13 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Label;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-@Caption("Call action on change")
+@Title("Call action on change")
 public class CallActionOnChangeFieldForm {
 
   @Section("Basic")

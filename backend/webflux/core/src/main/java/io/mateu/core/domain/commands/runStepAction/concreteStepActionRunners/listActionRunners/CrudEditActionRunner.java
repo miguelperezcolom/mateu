@@ -90,12 +90,7 @@ public class CrudEditActionRunner implements ListActionRunner {
       throw new Exception("Crud getDetail returned null");
     }
 
-    return resultMapper.processResult(
-        crud,
-        reflectionService.getMethod(crud.getClass(), "getDetail"),
-        data,
-        serverHttpRequest,
-        editor,
-        "");
+    var method = reflectionService.getMethod(crud.getClass(), "getDetail");
+    return resultMapper.processResult(crud, method, method, data, serverHttpRequest, editor, "");
   }
 }

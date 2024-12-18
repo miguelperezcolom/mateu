@@ -1,15 +1,12 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.TelephoneNumber;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-@Caption("Telephone field with prefix")
+@Title("Telephone field with prefix")
 public class TelephoneFieldForm {
 
   @Section("Telephones")

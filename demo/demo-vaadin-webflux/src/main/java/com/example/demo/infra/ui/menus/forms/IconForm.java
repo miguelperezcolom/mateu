@@ -1,12 +1,11 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Caption;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Icon;
-import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.IconChooser;
 
-@Caption("Icons")
+@Title("Icons")
 public class IconForm {
 
     @CallActionOnChange("changeIcon")

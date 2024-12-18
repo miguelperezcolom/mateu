@@ -14,6 +14,7 @@ package io.mateu.dtos;
  * @param confirmationTexts Confirmation dialog text
  * @param target Target for this action: modal, new tab, ...
  * @param modalStyle The value for the dialog style attribute
+ * @param modalTitle The value for the dialog header
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
  * @param runOnEnter Set to true if you want to add a shortcut on Enter key
@@ -34,6 +35,7 @@ public record Action(
     ConfirmationTexts confirmationTexts,
     ActionTarget target,
     String modalStyle,
+    String modalTitle,
     String customEvent,
     String href,
     boolean runOnEnter,

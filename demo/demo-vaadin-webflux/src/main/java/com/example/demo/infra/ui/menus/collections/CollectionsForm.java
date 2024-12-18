@@ -1,15 +1,12 @@
 package com.example.demo.infra.ui.menus.collections;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Caption;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.*;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@Caption("Arrays and collections")
+@Title("Arrays and collections")
 public class CollectionsForm {
   @Section("Collections")
   private List<Boolean> booleansCollection = List.of(false, false, true, false);
