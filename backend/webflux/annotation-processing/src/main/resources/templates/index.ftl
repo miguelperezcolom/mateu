@@ -39,6 +39,7 @@ public class ${simpleClassName}Controller {
 <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
+        html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
         html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v3", "${path}/mateu/v3");
         html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");

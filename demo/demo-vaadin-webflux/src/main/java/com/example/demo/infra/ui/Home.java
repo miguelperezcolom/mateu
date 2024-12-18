@@ -18,6 +18,7 @@ import java.util.Map;
 @io.mateu.uidl.annotations.ExternalScripts("https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js")
 @Getter
 @Slf4j
+@FavIcon("/images/mateu-favicon.png")
 public class Home extends DemoApp implements ConsumesContextData {
 
   @Section(value = "", leftSideImageUrl = "/myassets/background.svg")

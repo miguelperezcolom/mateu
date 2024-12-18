@@ -3,10 +3,7 @@ package io.mateu.annotationProcessing;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
-import io.mateu.uidl.annotations.ExternalScripts;
-import io.mateu.uidl.annotations.KeycloakSecured;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -85,8 +82,14 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
   }
 
   private String getCaption(Element e, String simpleClassName) {
-    if (e.getAnnotation(Label.class) != null) {
-      return e.getAnnotation(Label.class).value();
+    if (e.getAnnotation(PageTitle.class) != null) {
+      return e.getAnnotation(PageTitle.class).value();
+    }
+    if (e.getAnnotation(AppTitle.class) != null) {
+      return e.getAnnotation(AppTitle.class).value();
+    }
+    if (e.getAnnotation(Title.class) != null) {
+      return e.getAnnotation(Title.class).value();
     }
     return Helper.capitalize(simpleClassName);
   }
@@ -150,6 +153,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   frontendPath,
                   "indexHtmlPath",
                   indexHtmlPath));
+
+      FavIcon favIconAnnotation = e.getAnnotation(FavIcon.class);
+      if (favIconAnnotation != null) {
+        model.put(
+            "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.value() + "\\\" />");
+      }
 
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {

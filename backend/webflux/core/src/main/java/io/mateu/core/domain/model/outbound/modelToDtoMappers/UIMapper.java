@@ -7,8 +7,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.App;
 import io.mateu.dtos.UI;
-import io.mateu.uidl.annotations.MenuOption;
-import io.mateu.uidl.annotations.Submenu;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -59,12 +58,18 @@ public class UIMapper {
     if (uiInstance instanceof HasFavicon hasFavicon) {
       return hasFavicon.getFavicon();
     }
+    if (uiInstance.getClass().isAnnotationPresent(FavIcon.class)) {
+      return uiInstance.getClass().getAnnotation(FavIcon.class).value();
+    }
     return null;
   }
 
   private String getIcon(Object uiInstance) {
     if (uiInstance instanceof HasIcon hasIcon) {
       return hasIcon.getIcon();
+    }
+    if (uiInstance.getClass().isAnnotationPresent(AppIcon.class)) {
+      return uiInstance.getClass().getAnnotation(AppIcon.class).value().iconName;
     }
     return null;
   }
@@ -112,8 +117,14 @@ public class UIMapper {
     if (uiInstance instanceof HasAppTitle) {
       return ((HasAppTitle) uiInstance).getAppTitle();
     }
+    if (uiInstance.getClass().isAnnotationPresent(AppTitle.class)) {
+      return uiInstance.getClass().getAnnotation(AppTitle.class).value();
+    }
     if (uiInstance instanceof HasTitle) {
       return ((HasTitle) uiInstance).getTitle();
+    }
+    if (uiInstance.getClass().isAnnotationPresent(Title.class)) {
+      return uiInstance.getClass().getAnnotation(Title.class).value();
     }
     return captionProvider.getCaption(uiInstance);
   }
