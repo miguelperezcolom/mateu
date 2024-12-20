@@ -73,7 +73,7 @@ public class ResultMapper {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
               componentFactory.createFormComponent(
-                  actualViewInstance, serverHttpRequest, data, true),
+                  actualViewInstance, serverHttpRequest, data, mustAutofocusBeDisabled(m)),
               componentId));
     }
 
@@ -111,6 +111,16 @@ public class ResultMapper {
     }
   }
 
+  private boolean mustAutofocusBeDisabled(AnnotatedElement m) {
+    List<ActionTarget> modals =
+        List.of(
+            ActionTarget.NewModal,
+            ActionTarget.LeftDrawer,
+            ActionTarget.RightDrawer,
+            ActionTarget.View);
+    return !modals.contains(getActionTarget(m));
+  }
+
   @SneakyThrows
   protected UIIncrement getUiIncrement(
       AnnotatedElement m,
@@ -142,7 +152,8 @@ public class ResultMapper {
       if (!ActionTarget.NewTab.equals(getActionTarget(m))
           && !ActionTarget.NewWindow.equals(getActionTarget(m))) {
         var component =
-            componentFactory.createFormComponent(new URLWrapper(url), serverHttpRequest, data);
+            componentFactory.createFormComponent(
+                new URLWrapper(url), serverHttpRequest, data, mustAutofocusBeDisabled(m));
         fragments.add(
             new UIFragment(
                 mapActionTarget(getActionTarget(m)),
@@ -154,7 +165,8 @@ public class ResultMapper {
       }
     } else if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
-          componentFactory.createFormComponent(new ObjectWrapper(r), serverHttpRequest, data);
+          componentFactory.createFormComponent(
+              new ObjectWrapper(r), serverHttpRequest, data, mustAutofocusBeDisabled(m));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m)),
@@ -165,7 +177,8 @@ public class ResultMapper {
               Map.of(component.id(), component)));
     } else if (r instanceof ResponseWrapper responseWrapper) {
       var component =
-          componentFactory.createFormComponent(responseWrapper.response(), serverHttpRequest, data);
+          componentFactory.createFormComponent(
+              responseWrapper.response(), serverHttpRequest, data, mustAutofocusBeDisabled(m));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m)),
@@ -198,7 +211,9 @@ public class ResultMapper {
               viewDto,
               allComponents));
     } else {
-      var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
+      var component =
+          componentFactory.createFormComponent(
+              r, serverHttpRequest, data, mustAutofocusBeDisabled(m));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m)),
@@ -255,7 +270,9 @@ public class ResultMapper {
 
   private UICommand createCloseCommand(
       AnnotatedElement m, Object r, Map<String, Object> data, ServerHttpRequest serverHttpRequest) {
-    var component = componentFactory.createFormComponent(r, serverHttpRequest, data);
+    var component =
+        componentFactory.createFormComponent(
+            r, serverHttpRequest, data, mustAutofocusBeDisabled(m));
     var uiIncrement =
         new UIIncrement(
             List.of(),

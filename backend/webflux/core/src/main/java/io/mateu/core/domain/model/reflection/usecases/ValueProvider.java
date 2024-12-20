@@ -21,6 +21,7 @@ public class ValueProvider {
   }
 
   public Object getValue(java.lang.reflect.Field f, Object o) {
+    if (o == null) return null;
     if (f == null) {
       return null;
     }
@@ -44,6 +45,9 @@ public class ValueProvider {
   }
 
   public Object getValue(Field f, Object o, Object valueIfNull) {
+
+    if (o == null) return valueIfNull;
+
     Object v = null;
     try {
       v = getValue(f, o);
@@ -89,6 +93,9 @@ public class ValueProvider {
 
   public Object getValue(String id, Object o)
       throws IllegalAccessException, InvocationTargetException {
+
+    if (o == null) return null;
+
     Object v = null;
 
     if (id.contains(".")) {
@@ -102,6 +109,14 @@ public class ValueProvider {
 
         try {
           getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), firstId));
+          if (getter != null && getter.getReturnType().isAssignableFrom(f.getType())) {
+            getter = null;
+          }
+          if (getter != null) {
+            if (!Modifier.isPublic(getter.getModifiers())) {
+              getter.setAccessible(true);
+            }
+          }
         } catch (Exception e) {
 
         }
@@ -134,6 +149,14 @@ public class ValueProvider {
         Method getter = null;
         try {
           getter = o.getClass().getMethod(getterProvider.getGetter(f.getType(), id));
+          if (getter != null && getter.getReturnType().isAssignableFrom(f.getType())) {
+            getter = null;
+          }
+          if (getter != null) {
+            if (!Modifier.isPublic(getter.getModifiers())) {
+              getter.setAccessible(true);
+            }
+          }
         } catch (Exception e) {
 
         }

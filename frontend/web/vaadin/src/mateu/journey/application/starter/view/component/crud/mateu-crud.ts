@@ -171,6 +171,7 @@ export class MateuCrud extends LitElement {
         changedProperties.has('component')
     ) {
       this.page = 0
+      this.searchText = undefined
       this.doSearch().then()
     }
   }
@@ -249,6 +250,7 @@ export class MateuCrud extends LitElement {
   private stampState(state: CrudState) {
 //    if (this.journeyId == state.journeyId && this.component.id == state.listId) {
       this.state = state
+      this.searchText = state.searchText
       this.items = state.items
       if (state.count > -1) {
         this.count = state.count

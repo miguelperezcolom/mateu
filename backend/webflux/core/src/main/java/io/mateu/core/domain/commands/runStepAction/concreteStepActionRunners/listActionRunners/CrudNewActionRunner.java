@@ -49,6 +49,6 @@ public class CrudNewActionRunner implements ListActionRunner {
 
     return Mono.just(
         uIIncrementFactory.createForSingleComponent(
-            componentFactory.createFormComponent(editor, serverHttpRequest, data)));
+            componentFactory.createFormComponent(editor, serverHttpRequest, data, false)));
   }
 }

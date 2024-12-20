@@ -201,7 +201,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 componentFactory.createFormComponent(
                     new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
                     serverHttpRequest,
-                    data)));
+                    data,
+                    false)));
 
       } else {
 
@@ -210,7 +211,8 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
                 componentFactory.createFormComponent(
                     new MethodParametersEditor(actualViewInstance, m.getName(), serializerService),
                     serverHttpRequest,
-                    data)));
+                    data,
+                    false)));
       }
 
     } else {

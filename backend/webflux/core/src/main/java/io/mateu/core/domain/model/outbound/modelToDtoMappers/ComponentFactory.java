@@ -50,11 +50,6 @@ public class ComponentFactory {
   }
 
   public Component createFormComponent(
-      Object componentInstance, ServerHttpRequest serverHttpRequest, Map<String, Object> data) {
-    return createFormComponent(componentInstance, serverHttpRequest, data, true);
-  }
-
-  public Component createFormComponent(
       Object componentInstance,
       ServerHttpRequest serverHttpRequest,
       Map<String, Object> data,
