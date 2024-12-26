@@ -23,7 +23,9 @@ public record Column(
     String description,
     String width,
     List<Pair> attributes,
-    boolean detail) {
+    boolean detail,
+    boolean sortable,
+    boolean serverSideSortable) {
 
   public Column {
     attributes = Collections.unmodifiableList(attributes);

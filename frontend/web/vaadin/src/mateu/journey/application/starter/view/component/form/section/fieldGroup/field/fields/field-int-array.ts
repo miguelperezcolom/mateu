@@ -110,6 +110,7 @@ export class FieldIntArray extends LitElement implements Component {
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
                 placeholder="${this.placeholder}"
+                helper-text="${this.field?.description}"
             ></vaadin-text-field>
             `
     }

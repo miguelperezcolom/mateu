@@ -123,6 +123,7 @@ export class FieldExternalrefArray extends LitElement implements Component {
                              item-label-path="key"
                                            item-id-path="value"
                                            @selected-items-changed=${this.onChange}
+                                           helper-text="${this.field?.description}"
             >
             </vaadin-multi-select-combo-box>
             `

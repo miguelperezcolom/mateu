@@ -99,6 +99,7 @@ export class FieldDate extends LitElement implements Component {
                     ?required=${this.required}
                     placeholder="${this.placeholder}"
                     ?autofocus="${this.field?.wantsFocus}"
+                    helper-text="${this.field?.description}"
                     autoselect="on"
             ></vaadin-date-picker>
             `

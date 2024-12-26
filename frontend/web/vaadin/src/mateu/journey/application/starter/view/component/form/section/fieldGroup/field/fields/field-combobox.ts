@@ -111,6 +111,7 @@ export class FieldCombobox extends LitElement implements Component {
                               placeholder="${this.placeholder}"
                               ?autofocus="${this.field?.wantsFocus}"
                               autoselect="on"
+                              helper-text="${this.field?.description}"
             >
             </vaadin-combo-box>
             `

@@ -125,6 +125,7 @@ export class FieldNumber extends LitElement implements Component {
                     max="${ifDefined(this.max)}"
                     placeholder="${this.placeholder}"
                     autoselect="on"
+                    helper-text="${this.field?.description}"
             ></vaadin-integer-field>
         `
     }

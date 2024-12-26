@@ -117,6 +117,7 @@ export class FieldExternalRefClosedList extends LitElement implements Component 
                               item-label-path="key"
                               item-value-path="value"
                               placeholder="${this.placeholder}"
+                              helper-text="${this.field?.description}"
             >
             </vaadin-combo-box>
             `

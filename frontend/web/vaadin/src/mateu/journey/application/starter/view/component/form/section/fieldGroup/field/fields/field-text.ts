@@ -106,6 +106,7 @@ export class FieldText extends LitElement implements Component {
                 allowed-char-pattern="${this.pattern}"
                 pattern="${this.pattern}"
                 ?autofocus="${this.field?.wantsFocus}"
+                helper-text="${this.field?.description}"
                 autoselect="on"
             ></vaadin-text-field>
             `

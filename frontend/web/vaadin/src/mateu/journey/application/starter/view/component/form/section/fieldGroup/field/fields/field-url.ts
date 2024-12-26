@@ -92,6 +92,7 @@ export class FieldUrl extends LitElement implements Component {
                 data-testid="${this.name}"
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
+                helper-text="${this.field?.description}"
             >
                 <a href="${this.value}">${this.placeholder??this.value}</a>
                 

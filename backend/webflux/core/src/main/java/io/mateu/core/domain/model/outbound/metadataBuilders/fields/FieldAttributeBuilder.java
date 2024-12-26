@@ -218,7 +218,10 @@ public class FieldAttributeBuilder {
                     "",
                     fieldTypeMapper.getWidth(columnField),
                     List.of(),
-                    columnField.isAnnotationPresent(Detail.class))));
+                    columnField.isAnnotationPresent(Detail.class),
+                    columnField.isAnnotationPresent(Sortable.class),
+                    columnField.isAnnotationPresent(Sortable.class)
+                        && columnField.getAnnotation(Sortable.class).serverSide())));
       }
       if (field.isAnnotationPresent(Table.class)) {
         var table = field.getAnnotation(Table.class);

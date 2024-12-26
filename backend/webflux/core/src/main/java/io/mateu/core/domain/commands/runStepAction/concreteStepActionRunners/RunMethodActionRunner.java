@@ -117,7 +117,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object result =
           m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
       return resultMapper.processResult(
-          targetInstance, m, m, data, serverHttpRequest, result, componentId);
+          targetInstance, m, m, data, serverHttpRequest, result, componentId, true);
     }
 
     return runMethod(viewInstance, data, serverHttpRequest, componentId, actionId);
@@ -196,23 +196,17 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
 
       if (Modifier.isStatic(m.getModifiers())) {
 
-        return Mono.just(
-            uIIncrementFactory.createForSingleComponent(
-                componentFactory.createFormComponent(
-                    new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data),
-                    serverHttpRequest,
-                    data,
-                    false)));
+        var result = new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data);
+
+        return resultMapper.processResult(
+            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
 
       } else {
 
-        return Mono.just(
-            uIIncrementFactory.createForSingleComponent(
-                componentFactory.createFormComponent(
-                    new MethodParametersEditor(actualViewInstance, m.getName(), serializerService),
-                    serverHttpRequest,
-                    data,
-                    false)));
+        var result = new MethodParametersEditor(actualViewInstance, m.getName(), serializerService);
+
+        return resultMapper.processResult(
+            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
       }
 
     } else {
@@ -227,7 +221,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
 
         return resultMapper.processResult(
-            actualViewInstance, m, m, data, serverHttpRequest, result, componentId);
+            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();

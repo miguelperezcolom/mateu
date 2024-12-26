@@ -1,10 +1,6 @@
 package com.example.demo.infra.ui.menus.forms;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Placeholder;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.RequestFocus;
-import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BadgeTheme;
 import io.mateu.uidl.data.Status;
@@ -27,6 +23,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   @Section(value = "Basic", columns = 2)
   @NotEmpty
   @RequestFocus
+  @Help("Here the name")
   private String name = "Mateu";
 
   @Placeholder("This should appear as the placeholder")
@@ -36,6 +33,7 @@ public class BasicFieldsForm implements HasBadges, HasStatus, HasTitle, HasSubti
   @Placeholder("example@acme.com")
   private String yourEmail;
 
+  @Help("Here the age")
   @NotNull private int age = 15;
 
   private double balance = 20.31;

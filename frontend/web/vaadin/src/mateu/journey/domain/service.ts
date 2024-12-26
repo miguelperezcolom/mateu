@@ -27,7 +27,6 @@ export class Service {
         componentType: string,
         data: unknown
     ) {
-        console.log('runAction', baseUrl, uiId, data)
         await callActionCommandHandler
             .handle({
                 baseUrl,

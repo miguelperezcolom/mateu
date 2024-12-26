@@ -52,6 +52,6 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
     var result = startJourneyCommandHandler.createInstanceFromMenuMapping(menuEntry);
     var method = reflectionService.getMethod(DirectoryActionRunner.class, "run");
     return resultMapper.processResult(
-        viewInstance, method, method, data, serverHttpRequest, result, componentId);
+        viewInstance, method, method, data, serverHttpRequest, result, componentId, false);
   }
 }

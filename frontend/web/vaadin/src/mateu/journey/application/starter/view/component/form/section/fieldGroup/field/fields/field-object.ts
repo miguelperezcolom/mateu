@@ -108,6 +108,7 @@ export class FieldObject extends LitElement implements Component {
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
                 placeholder="${this.placeholder}"
+                helper-text="${this.field?.description}"
             >
     <vaadin-horizontal-layout class="container">
                 <div style="flex-grow: 1;">${raw}</div>

@@ -176,7 +176,9 @@ export class FieldFile extends LitElement implements Component {
                    ?disabled=${!this.enabled}
                 ?required=${this.required}
                 placeholder="${this.placeholder}"
-                    target="${this.baseUrl + '/files/' + this.fileidprefix + this.fileid}"></vaadin-upload>
+                    target="${this.baseUrl + '/files/' + this.fileidprefix + this.fileid}"
+                helper-text="${this.field?.description}"
+            ></vaadin-upload>
             </vaadin-custom-field>
             `
     }

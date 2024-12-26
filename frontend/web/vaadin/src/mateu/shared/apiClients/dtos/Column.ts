@@ -10,4 +10,6 @@ export default interface Column {
     width: string
     attributes: Pair[]
     detail: boolean
+    sortable: boolean
+    serverSideSortable: boolean
 }

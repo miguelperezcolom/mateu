@@ -98,6 +98,7 @@ export class FieldBooleanRadioButtons extends LitElement implements Component {
                    ?disabled=${!this.enabled}
                                 ?required=${this.required}
                                 placeholder="${this.placeholder}"
+                                helper-text="${this.field?.description}"
             >
                     <vaadin-radio-button value=true label="Yes" data-testid="${this.name}-yes"style="width: 50%;"></vaadin-radio-button>
                     <vaadin-radio-button value=false label="No" data-testid="${this.name}-no" style="width: 49%;"></vaadin-radio-button>

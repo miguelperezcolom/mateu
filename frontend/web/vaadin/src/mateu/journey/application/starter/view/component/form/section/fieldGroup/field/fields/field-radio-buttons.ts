@@ -99,6 +99,7 @@ export class FieldRadioButtons extends LitElement implements Component {
                    ?disabled=${!this.enabled}
                                 ?required=${this.required}
                                 placeholder="${this.placeholder}"
+                                helper-text="${this.field?.description}"
             >
                 ${this.field!.attributes.filter(a => a.key == 'choice').map(a => a.value as Value).map(v => html`
                     <vaadin-radio-button value=${v.value} label=${v.key}

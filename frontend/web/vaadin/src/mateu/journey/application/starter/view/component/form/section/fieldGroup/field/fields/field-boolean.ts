@@ -89,7 +89,8 @@ export class FieldBoolean extends LitElement implements Component {
 
     render() {
         return html`
-            <vaadin-checkbox-group label="${this.label}" theme="vertical">
+            <vaadin-checkbox-group label="${this.label}" theme="vertical"
+                                   helper-text="${this.field?.description}">
                 <vaadin-checkbox label="Yes"
             @change=${this.onChange} 
                            name="${this.name}" 

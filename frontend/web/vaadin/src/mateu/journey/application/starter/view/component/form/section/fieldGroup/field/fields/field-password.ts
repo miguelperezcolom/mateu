@@ -105,6 +105,7 @@ export class FieldPassword extends LitElement implements Component {
                 placeholder="${this.placeholder}"
                 allowed-char-pattern="${this.pattern}"
                 pattern="${this.pattern}"
+                helper-text="${this.field?.description}"
             ></vaadin-password-field>
             `
     }

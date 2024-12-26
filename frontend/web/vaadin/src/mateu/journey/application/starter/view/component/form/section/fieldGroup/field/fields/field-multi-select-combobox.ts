@@ -111,6 +111,7 @@ export class FieldMultiSelectCombobox extends LitElement implements Component {
                              ?required=${this.required} 
                              .items="${this.items}"
                                            @selected-items-changed=${this.onChange}
+                             helper-text="${this.field?.description}"
             >
             </vaadin-multi-select-combo-box>
             `

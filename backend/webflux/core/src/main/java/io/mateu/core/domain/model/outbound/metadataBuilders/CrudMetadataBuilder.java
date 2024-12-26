@@ -6,10 +6,8 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapp
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.uidl.annotations.Child;
-import io.mateu.uidl.annotations.DataOnly;
-import io.mateu.uidl.annotations.Detail;
-import io.mateu.uidl.annotations.Ignored;
+import io.mateu.dtos.Section;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.Listing;
 import java.util.*;
@@ -98,7 +96,10 @@ public class CrudMetadataBuilder {
         "",
         fieldTypeMapper.getWidth(field),
         List.of(),
-        field.isAnnotationPresent(Detail.class));
+        field.isAnnotationPresent(Detail.class),
+        field.isAnnotationPresent(Sortable.class),
+        field.isAnnotationPresent(Sortable.class)
+            && field.getAnnotation(Sortable.class).serverSide());
   }
 
   @SneakyThrows

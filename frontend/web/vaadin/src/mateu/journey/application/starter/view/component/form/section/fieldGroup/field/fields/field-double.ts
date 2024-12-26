@@ -100,6 +100,7 @@ export class FieldDouble extends LitElement implements Component {
                     placeholder="${this.placeholder}"
                     theme="align-right"
                     autoselect="on"
+                    helper-text="${this.field?.description}"
             ></vaadin-number-field>
         `
     }

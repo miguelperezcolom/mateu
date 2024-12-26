@@ -106,6 +106,7 @@ export class FieldEmail extends LitElement implements Component {
                 ?autofocus="${this.field?.wantsFocus}"
                 autoselect="on"
                 clear-button-visible
+                helper-text="${this.field?.description}"
             ></vaadin-email-field>
             `
     }

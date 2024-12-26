@@ -98,7 +98,7 @@ export class MateuSection extends LitElement {
                                                     .value=${this.formElement.getValue(f.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(f)}
                                sidePositionedLabel="${this.section.sidePositionedLabel}"
-            style="display: inline-flex; align-self: end; ${this.getStyle(f)}">                    
+            style="display: inline-flex; align-self: start; ${this.getStyle(f)}">                    
             </mateu-field>
           </vaadin-form-item>
         `:html`
@@ -112,7 +112,7 @@ export class MateuSection extends LitElement {
                                                     .value=${this.formElement.getValue(f.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(f)}
                                sidePositionedLabel="${this.section.sidePositionedLabel}"
-            style="align-self: end; ${this.getStyle(f)}">
+            style="align-self: start; ${this.getStyle(f)}">
             </mateu-field>
         `}
                   

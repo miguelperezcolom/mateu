@@ -91,6 +91,6 @@ public class CrudEditActionRunner implements ListActionRunner {
     }
 
     var method = reflectionService.getMethod(crud.getClass(), "getDetail");
-    return resultMapper.processResult(crud, method, method, data, serverHttpRequest, editor, "");
+    return resultMapper.processResult(crud, method, method, data, serverHttpRequest, editor, "", false);
   }
 }

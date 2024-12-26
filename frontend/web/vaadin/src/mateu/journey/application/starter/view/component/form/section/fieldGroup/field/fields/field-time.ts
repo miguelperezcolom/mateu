@@ -97,6 +97,7 @@ export class FieldTime extends LitElement implements Component {
                     ?disabled=${!this.enabled}
                     ?required=${this.required}
                     placeholder="${this.placeholder}"
+                    helper-text="${this.field?.description}"
             ></vaadin-time-picker>
             `
     }

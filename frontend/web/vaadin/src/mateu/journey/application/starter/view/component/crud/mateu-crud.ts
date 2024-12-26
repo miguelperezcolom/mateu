@@ -11,7 +11,7 @@ import "../form/section/fieldGroup/field/fields/field-externalref"
 import "./mateu-paginator"
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
 import {Grid, GridActiveItemChangedEvent} from "@vaadin/grid";
-import {GridSortColumn} from "@vaadin/grid/vaadin-grid-sort-column";
+import {GridSortColumn, GridSortColumnDirectionChangedEvent} from "@vaadin/grid/vaadin-grid-sort-column";
 import {Button} from "@vaadin/button";
 import {badge} from "@vaadin/vaadin-lumo-styles";
 import {StatusType} from "../../../../../../shared/apiClients/dtos/StatusType";
@@ -438,30 +438,62 @@ export class MateuCrud extends LitElement {
     return '';
   }
 
+  private directionChanged(event: GridSortColumnDirectionChangedEvent) {
+    // @ts-ignore
+    const column = event.target.column as Column
+    if (column.serverSideSortable) {
+      setTimeout(async () => {
+        await this.doSearch()
+      })
+    }
+  }
+
   private getColumn(c: Column): TemplateResult {
     if (c.type == 'Status') {
-      return html`
+      if (c.sortable) {
+        return html`
             <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
                                       id="${this.component.id}-${c.id}"
                                       width="${ifDefined(c.width?c.width:undefined)}"
                                       flex-grow="${ifDefined(c.width?'0':'1')}"
                                       data-testid="column-${c.id}"
+                                      .column="${c}"
+                                      @direction-changed="${this.directionChanged}"
                 ${columnBodyRenderer(
-                    // @ts-ignore
-                    (row, model, column) => {
             // @ts-ignore
-            const status = row[column.path]
-            return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
-          },
-          []
-      )}>
+            (row, model, column) => {
+              // @ts-ignore
+              const status = row[column.path]
+              return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
+            },
+            []
+        )}>
             </vaadin-grid-sort-column>
           `;
+      } else {
+        return html`
+            <vaadin-grid-column  path="${c.id}" header="${c.caption}" resizable
+                                      id="${this.component.id}-${c.id}"
+                                      width="${ifDefined(c.width?c.width:undefined)}"
+                                      flex-grow="${ifDefined(c.width?'0':'1')}"
+                                      data-testid="column-${c.id}"
+                ${columnBodyRenderer(
+            // @ts-ignore
+            (row, model, column) => {
+              // @ts-ignore
+              const status = row[column.path]
+              return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
+            },
+            []
+        )}>
+            </vaadin-grid-column>
+          `;
+      }
     }
     if (c.type == 'ColumnActionGroup') {
       return html`
         <vaadin-grid-column  path="${c.id}" data-testid="column-${c.id}" header="${c.caption}" width="90px" flex-grow="0"
-                             id="${this.component.id}-${c.id}"
+                             id="${this.component.id}-${c.id}"  resizable
                              ${columnBodyRenderer(
                                  // @ts-ignore
                                  (row, model, column) => {
@@ -486,32 +518,64 @@ export class MateuCrud extends LitElement {
         </vaadin-grid-column>
       `;
     }
-    return html`
+    if (c.sortable) {
+      return html`
             <vaadin-grid-sort-column path="${c.id}" header="${c.caption}" resizable
                                      width="${ifDefined(c.width?c.width:'50px')}"
                                      flex-grow="${ifDefined(c.width?'0':'1')}"
                                      data-testid="column-${c.id}"
                                      id="${this.component.id}-${c.id}"
-                                     text-align="${c.type == 'money'?'end':''}"
+                                     text-align="${c.type == 'money'?'end':'start'}"
+                                     @direction-changed="${this.directionChanged}"
+                                     .column="${c}"
                                      ${columnBodyRenderer(
-                                         // @ts-ignore
-                                         (row, model, column) => {
-                                           // @ts-ignore
-                                           let value = '' + row[column.path]
-                                           if (c.type == 'money') {
-                                             const floatValue = parseFloat(value);
-                                             if (floatValue) {
-                                               value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
-                                             } else {
-                                               value = ''
-                                             }
-                                           }
-                                           return html`${unsafeHTML(value)}`;
-                                         },
-                                         []
-                                     )}
+          // @ts-ignore
+          (row, model, column) => {
+            // @ts-ignore
+            let value = '' + row[column.path]
+            if (c.type == 'money') {
+              const floatValue = parseFloat(value);
+              if (floatValue) {
+                value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+              } else {
+                value = ''
+              }
+            }
+            return html`${unsafeHTML(value)}`;
+          },
+          []
+      )}
             ></vaadin-grid-sort-column>
         `;
+    } else {
+      return html`
+            <vaadin-grid-column path="${c.id}" header="${c.caption}" resizable
+                                     width="${ifDefined(c.width?c.width:'50px')}"
+                                     flex-grow="${ifDefined(c.width?'0':'1')}"
+                                     data-testid="column-${c.id}"
+                                     id="${this.component.id}-${c.id}"
+                                     text-align="${c.type == 'money'?'end':'start'}"
+                                     ${columnBodyRenderer(
+          // @ts-ignore
+          (row, model, column) => {
+            // @ts-ignore
+            let value = '' + row[column.path]
+            if (c.type == 'money') {
+              const floatValue = parseFloat(value);
+              if (floatValue) {
+                value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+              } else {
+                value = ''
+              }
+            }
+            return html`${unsafeHTML(value)}`;
+          },
+          []
+      )}
+            ></vaadin-grid-column>
+        `;
+    }
+
   }
 
   hasDetail() {

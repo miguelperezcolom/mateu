@@ -115,7 +115,8 @@ export class FieldImage extends LitElement implements Component {
     render() {
         return html`
             <vaadin-custom-field label="${this.label}"
-                                 helper-text="${this.field?.description}">
+                                 helper-text="${this.field?.description}"
+            >
             <image src="${this.value}" data-testid="${this.name}" style="${this.styles}" class="${this.cssClasses} ${this.action?'clickable':''}"
                    @click="${ifDefined(this.action?this.runAction:undefined)}"
             ></image>
