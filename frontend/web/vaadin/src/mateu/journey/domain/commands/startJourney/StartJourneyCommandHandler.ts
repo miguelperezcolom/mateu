@@ -1,10 +1,10 @@
 import {StartJourneyCommand} from "./StartJourneyCommand";
-import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import UIIncrement from "../../../../shared/apiClients/dtos/UIIncrement";
+import {MateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 
 export class StartJourneyCommandHandler {
 
-    public async handle(command: StartJourneyCommand): Promise<UIIncrement> {
+    public async handle(mateuApiClient: MateuApiClient, command: StartJourneyCommand): Promise<UIIncrement> {
         return await mateuApiClient.createJourneyAndReturn(command.uiId, command.journeyTypeId, command.journeyId)
     }
 

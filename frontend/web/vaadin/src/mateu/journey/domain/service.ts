@@ -2,6 +2,7 @@ import {Subject} from "rxjs";
 import {callActionCommandHandler} from "./commands/callAction/CallActionCommandHandler";
 import UIIncrement from "../../shared/apiClients/dtos/UIIncrement";
 import {startJourneyCommandHandler} from "./commands/startJourney/StartJourneyCommandHandler";
+import {MateuApiClient} from "../../shared/apiClients/MateuApiClient";
 
 export class Service {
 
@@ -11,12 +12,13 @@ export class Service {
         this.upstream = upstream;
     }
 
-    async startJourney(baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
-        const uiIncrement = await startJourneyCommandHandler.handle({baseUrl, uiId, journeyTypeId, journeyId})
+    async startJourney(mateuApiClient: MateuApiClient, baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
+        const uiIncrement = await startJourneyCommandHandler.handle(mateuApiClient, {baseUrl, uiId, journeyTypeId, journeyId})
         this.upstream.next(uiIncrement)
     }
 
     async runAction(
+        mateuApiClient: MateuApiClient,
         baseUrl: string,
         uiId: string,
         journeyTypeId: string,
@@ -28,7 +30,7 @@ export class Service {
         data: unknown
     ) {
         await callActionCommandHandler
-            .handle({
+            .handle(mateuApiClient, {
                 baseUrl,
                 uiId,
                 journeyTypeId,

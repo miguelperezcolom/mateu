@@ -28,25 +28,30 @@ export class ApiController implements ReactiveController {
         this.host.removeEventListener('backend-failed-event', this.onBackendFailed)
     }
 
-    onBackendCalled = () => {
+    onBackendCalled = (event: Event) => {
+        event.preventDefault()
         //console.log('backend called')
         if (this.activeCalls < 0) {
             this.activeCalls = 0
         }
         this.activeCalls++;
         this.host.loading = this.activeCalls > 0
+        console.log('host loading', this.host.loading, this.host)
     }
 
-    onBackendSucceeded = () => {
+    onBackendSucceeded = (event: Event) => {
+        event.preventDefault()
         //console.log('backend succeed')
         this.activeCalls--;
         if (this.activeCalls < 0) {
             this.activeCalls = 0
         }
         this.host.loading = this.activeCalls > 0
+        console.log('host loading', this.host.loading, this.host)
     }
 
-    onBackendCancelled = () => {
+    onBackendCancelled = (event: Event) => {
+        event.preventDefault()
         console.log('backend cancelled')
         this.activeCalls--;
         if (this.activeCalls < 0) {
@@ -56,6 +61,7 @@ export class ApiController implements ReactiveController {
     }
 
     onBackendFailed = (event: Event) => {
+        event.preventDefault()
         console.log('backend failed', event, (event as CustomEvent).detail.reason.response?.data)
         this.activeCalls--;
         if (this.activeCalls < 0) {

@@ -53,7 +53,7 @@ public class RunStepActionCommandHandler {
           serverHttpRequest,
           actionHandler.handle(serverSideObject, actionId, serverHttpRequest),
           componentId,
-              false);
+          false);
     }
 
     Object viewInstance =

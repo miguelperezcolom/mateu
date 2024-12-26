@@ -8,6 +8,7 @@ import Component from "../../../../shared/apiClients/dtos/Component";
 import Crud from "../../../../shared/apiClients/dtos/Crud";
 import {ComponentMetadataType} from "../../../../shared/apiClients/dtos/ComponentMetadataType";
 import Form from "../../../../shared/apiClients/dtos/Form";
+import {MateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 
 /**
  * An example element.
@@ -48,6 +49,9 @@ export class MateuView extends LitElement {
     @property()
     instant = ''
 
+    @property()
+    mateuApiClient!: MateuApiClient
+
     @state()
     maincssclasses = ''
 
@@ -87,6 +91,7 @@ export class MateuView extends LitElement {
                         .map(c => html`<mateu-component
                         .component=${c}
                         .components=${this.components}
+                        .mateuApiClient="${this.mateuApiClient}"
                         uiId="${this.uiId}"
                         journeyTypeId="${this.journeyTypeId}"
                         journeyId="${this.journeyId}"
@@ -106,6 +111,7 @@ export class MateuView extends LitElement {
                 .map(c => html`<mateu-component
             .component=${c}
             .components=${this.components}
+            .mateuApiClient="${this.mateuApiClient}"
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"
@@ -129,6 +135,7 @@ export class MateuView extends LitElement {
                 .map(c => html`<mateu-component 
             .component=${c}
             .components=${this.components}
+            .mateuApiClient="${this.mateuApiClient}"
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -147,6 +154,7 @@ export class MateuView extends LitElement {
                 .map(c => html`<mateu-component 
             .component=${c}
             .components=${this.components}
+            .mateuApiClient="${this.mateuApiClient}"
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}" 
             journeyId="${this.journeyId}" 
@@ -165,6 +173,7 @@ export class MateuView extends LitElement {
                         .map(c => html`<mateu-component
             .component=${c}
             .components=${this.components}
+            .mateuApiClient="${this.mateuApiClient}"
             uiId="${this.uiId}"
             journeyTypeId="${this.journeyTypeId}"
             journeyId="${this.journeyId}"

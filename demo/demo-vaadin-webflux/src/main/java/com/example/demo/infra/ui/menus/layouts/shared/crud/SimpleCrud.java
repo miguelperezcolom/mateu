@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 
 @MateuUI("/crud")
@@ -53,7 +54,7 @@ public class SimpleCrud implements Crud<SearchForm, Row> {
 
     @Action(target = ActionTarget.NewModal)
     public Mono<String> askAndRemain(@Min(1)@Max(500)@Help("Max 500") int quantity) {
-        return Mono.just("Quantity was " + quantity);
+        return Mono.just("Quantity was " + quantity).delayElement(Duration.ofSeconds(3));
     }
 
 }

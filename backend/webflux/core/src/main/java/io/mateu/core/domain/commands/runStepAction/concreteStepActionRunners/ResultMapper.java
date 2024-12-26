@@ -75,7 +75,10 @@ public class ResultMapper {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
               componentFactory.createFormComponent(
-                  actualViewInstance, serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor)),
+                  actualViewInstance,
+                  serverHttpRequest,
+                  data,
+                  mustAutofocusBeDisabled(m, calledByParametersEditor)),
               componentId));
     }
 
@@ -101,7 +104,8 @@ public class ResultMapper {
       return mono.map(
           r -> {
             try {
-              return getUiIncrement(m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
+              return getUiIncrement(
+                  m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
             } catch (Throwable e) {
               return Mono.error(new RuntimeException(e));
             }
@@ -109,7 +113,9 @@ public class ResultMapper {
 
     } else {
 
-      return Mono.just(getUiIncrement(trigger, data, serverHttpRequest, result, componentId, calledByParametersEditor));
+      return Mono.just(
+          getUiIncrement(
+              trigger, data, serverHttpRequest, result, componentId, calledByParametersEditor));
     }
   }
 
@@ -130,22 +136,24 @@ public class ResultMapper {
       ServerHttpRequest serverHttpRequest,
       Object r,
       String componentId,
-          boolean calledByParametersEditor) {
+      boolean calledByParametersEditor) {
 
     var commands = getCommands(m, data, serverHttpRequest, r, calledByParametersEditor);
     var messages = getMessages(r, m, calledByParametersEditor);
-    var fragments = getFragments(m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
+    var fragments =
+        getFragments(m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
 
     return new UIIncrement(commands, messages, fragments);
   }
 
   @SneakyThrows
   private List<UIFragment> getFragments(
-          AnnotatedElement m,
-          Map<String, Object> data,
-          ServerHttpRequest serverHttpRequest,
-          Object r,
-          String componentId, boolean calledByParametersEditor) {
+      AnnotatedElement m,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      Object r,
+      String componentId,
+      boolean calledByParametersEditor) {
 
     List<UIFragment> fragments = new ArrayList<>();
     if (mustCloseModal(m, r instanceof MethodParametersEditor) || r instanceof CloseModal) {
@@ -156,7 +164,10 @@ public class ResultMapper {
           && !ActionTarget.NewWindow.equals(getActionTarget(m, calledByParametersEditor))) {
         var component =
             componentFactory.createFormComponent(
-                new URLWrapper(url), serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor));
+                new URLWrapper(url),
+                serverHttpRequest,
+                data,
+                mustAutofocusBeDisabled(m, calledByParametersEditor));
         fragments.add(
             new UIFragment(
                 mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -169,7 +180,10 @@ public class ResultMapper {
     } else if (basicTypeChecker.isBasic(r.getClass())) {
       var component =
           componentFactory.createFormComponent(
-              new ObjectWrapper(r), serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor));
+              new ObjectWrapper(r),
+              serverHttpRequest,
+              data,
+              mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -181,7 +195,10 @@ public class ResultMapper {
     } else if (r instanceof ResponseWrapper responseWrapper) {
       var component =
           componentFactory.createFormComponent(
-              responseWrapper.response(), serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor));
+              responseWrapper.response(),
+              serverHttpRequest,
+              data,
+              mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -248,14 +265,24 @@ public class ResultMapper {
   }
 
   private List<UICommand> getCommands(
-          AnnotatedElement m, Map<String, Object> data, ServerHttpRequest serverHttpRequest, Object r, boolean calledByParametersEditor) {
+      AnnotatedElement m,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      Object r,
+      boolean calledByParametersEditor) {
     List<UICommand> commands = new ArrayList<>();
     if (mustCloseModal(m, r instanceof MethodParametersEditor)) {
-      commands.add(createCloseCommand(m, r, dataExtractor.getData(r), serverHttpRequest, calledByParametersEditor));
+      commands.add(
+          createCloseCommand(
+              m, r, dataExtractor.getData(r), serverHttpRequest, calledByParametersEditor));
     } else if (r instanceof CloseModal closeModal) {
       commands.add(
           createCloseCommand(
-              m, closeModal, dataExtractor.getData(closeModal.getResult()), serverHttpRequest, calledByParametersEditor));
+              m,
+              closeModal,
+              dataExtractor.getData(closeModal.getResult()),
+              serverHttpRequest,
+              calledByParametersEditor));
     }
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m, calledByParametersEditor))) {
@@ -269,7 +296,11 @@ public class ResultMapper {
   }
 
   private UICommand createCloseCommand(
-      AnnotatedElement m, Object r, Map<String, Object> data, ServerHttpRequest serverHttpRequest, boolean calledByParametersEditor) {
+      AnnotatedElement m,
+      Object r,
+      Map<String, Object> data,
+      ServerHttpRequest serverHttpRequest,
+      boolean calledByParametersEditor) {
     CloseModal closeModal = null;
     if (r instanceof CloseModal<?>) {
       closeModal = (CloseModal<?>) r;
@@ -352,7 +383,8 @@ public class ResultMapper {
     return null;
   }
 
-  protected String getTargetId(AnnotatedElement m, String componentId, boolean calledByParametersEditor) {
+  protected String getTargetId(
+      AnnotatedElement m, String componentId, boolean calledByParametersEditor) {
     if (ActionTarget.Self.equals(getActionTarget(m, calledByParametersEditor))) {
       return componentId;
     }
@@ -400,8 +432,9 @@ public class ResultMapper {
     return ActionTarget.Self;
   }
 
-  private List<io.mateu.dtos.Message> getMessages(Object r, AnnotatedElement m, boolean calledByParametersEditor) {
-    return extractMessages(r, m,calledByParametersEditor).stream()
+  private List<io.mateu.dtos.Message> getMessages(
+      Object r, AnnotatedElement m, boolean calledByParametersEditor) {
+    return extractMessages(r, m, calledByParametersEditor).stream()
         .map(
             msg ->
                 new io.mateu.dtos.Message(
@@ -409,7 +442,8 @@ public class ResultMapper {
         .toList();
   }
 
-  private List<Message> extractMessages(Object response, AnnotatedElement method, boolean calledByParametersEditor) {
+  private List<Message> extractMessages(
+      Object response, AnnotatedElement method, boolean calledByParametersEditor) {
     if (response instanceof Message) {
       return List.of((Message) response);
     }

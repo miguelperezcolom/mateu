@@ -152,7 +152,7 @@ public class ActionMetadataBuilder {
     return ActionTarget.valueOf(getRealTarget(m).name());
   }
 
-  //todo: remove as target is not handled by frontend
+  // todo: remove as target is not handled by frontend
   private io.mateu.uidl.annotations.ActionTarget getRealTarget(Method m) {
     var target = io.mateu.uidl.annotations.ActionTarget.View;
     if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {

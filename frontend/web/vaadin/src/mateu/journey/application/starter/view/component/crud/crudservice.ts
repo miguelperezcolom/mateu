@@ -2,10 +2,11 @@ import {fetchRowsQueryHandler} from "./queries/fetchRows/FetchRowsQueryHandler";
 import {CrudState} from "./crudstate";
 import {Subject} from "rxjs";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
+import {MateuApiClient} from "../../../../../../shared/apiClients/MateuApiClient";
 
 export class CrudService {
 
-    async fetch(crudState: CrudState,
+    async fetch(mateuApiClient: MateuApiClient, crudState: CrudState,
                 crudUpstream: Subject<CrudState>,
                 params: {
         listId: string
@@ -16,7 +17,7 @@ export class CrudService {
         sortOrders: string
     },  component: Component, data: unknown) {
         // Pagination
-        const page = await fetchRowsQueryHandler.handle({
+        const page = await fetchRowsQueryHandler.handle(mateuApiClient, {
             baseUrl: crudState.baseUrl,
             uiId: crudState.uiId,
             journeyTypeId: crudState.journeyTypeId,

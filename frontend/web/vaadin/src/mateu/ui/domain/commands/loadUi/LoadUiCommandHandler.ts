@@ -1,15 +1,15 @@
 import {LoadUiCommand} from "./LoadUiCommand";
-import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import Menu from "../../../../shared/apiClients/dtos/Menu";
 import {MenuBarItem} from "@vaadin/menu-bar";
 import {MenuType} from "../../../../shared/apiClients/dtos/MenuType";
 import UI from "../../../../shared/apiClients/dtos/UI";
+import {MateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 
 export class LoadUiCommandHandler {
 
-    public async handle(command: LoadUiCommand): Promise<{ui: UI,items: any, journeyTypeId: string | undefined}> {
+    public async handle(mateuApiClient: MateuApiClient, command: LoadUiCommand): Promise<{ui: UI,items: any, journeyTypeId: string | undefined}> {
         const ui = await mateuApiClient.fetchUi(command.uiId)
-        const menu = await this.hydrate(ui?.menu)
+        const menu = await this.hydrate(mateuApiClient, ui?.menu)
         return {
             ui: ui,
             items: menu?.filter(m => m.visible).map(m => this.mapToMenuBarItem(m)),
@@ -35,17 +35,17 @@ export class LoadUiCommandHandler {
         }
     }
 
-    private async hydrate(menu: Menu[] | undefined): Promise<Menu[]> {
+    private async hydrate(mateuApiClient: MateuApiClient, menu: Menu[] | undefined): Promise<Menu[]> {
         if (menu) {
             const hydratedMenu: Menu[] = []
             for (const m of menu) {
                 let hydratedItem: Menu | undefined = m
                 if (MenuType.Remote == m.type) {
-                    hydratedItem = await this.fetchMenu(m)
+                    hydratedItem = await this.fetchMenu(mateuApiClient, m)
                 }
                 if (hydratedItem) {
                     if (hydratedItem?.submenus) {
-                        hydratedItem.submenus = await this.hydrate(hydratedItem.submenus)
+                        hydratedItem.submenus = await this.hydrate(mateuApiClient, hydratedItem.submenus)
                         hydratedItem.submenus.forEach(x => {
                             x.remoteBaseUrl = m.remoteBaseUrl
                             x.remoteUiId = m.remoteUiId
@@ -65,7 +65,7 @@ export class LoadUiCommandHandler {
         return []
     }
 
-    private async fetchMenu(m: Menu): Promise<Menu | undefined> {
+    private async fetchMenu(mateuApiClient:MateuApiClient, m: Menu): Promise<Menu | undefined> {
         try {
             const ui = await mateuApiClient.fetchRemoteUi(m.remoteBaseUrl!, m.remoteUiId!)
             if (ui.menu) {

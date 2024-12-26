@@ -2,7 +2,7 @@ import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import '@vaadin/button'
 import '@vaadin/horizontal-layout'
-import {mateuApiClient} from "../../../shared/apiClients/MateuApiClient";
+import {MateuApiClient} from "../../../shared/apiClients/MateuApiClient";
 import {Subject, Subscription} from "rxjs";
 import {ApiController} from "./controllers/ApiController";
 import {ActionTarget} from "../../../shared/apiClients/dtos/ActionTarget";
@@ -77,6 +77,7 @@ export class JourneyStarter extends LitElement {
     upstream = new Subject<UIIncrement>()
     apiController = new ApiController(this)
     service: Service
+    mateuApiClient = new MateuApiClient(this)
 
     constructor() {
         super();
@@ -87,6 +88,7 @@ export class JourneyStarter extends LitElement {
         event.preventDefault()
         event.stopPropagation()
         this.service.runAction(
+            this.mateuApiClient,
             this.baseUrl,
             this.uiId!,
             this.journeyTypeId!,
@@ -385,15 +387,15 @@ export class JourneyStarter extends LitElement {
         ) {
                 setTimeout(async () => {
                     if (this.baseUrl && this.journeyTypeId) {
-                        mateuApiClient.baseUrl = this.baseUrl
+                        this.mateuApiClient.baseUrl = this.baseUrl
                         try {
-                            mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
+                            this.mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
                         } catch (e) {
                             console.log('error when parsing context data', e)
                         }
-                        mateuApiClient.element = this
+                        this.mateuApiClient.element = this
 
-                        mateuApiClient.abortAll();
+                        this.mateuApiClient.abortAll();
 
                         // @ts-ignore
                         if (this.main || this.main == 'true') {
@@ -406,7 +408,7 @@ export class JourneyStarter extends LitElement {
 
                         this.journeyId = nanoid()
                         try {
-                            await this.service.startJourney(this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
+                            await this.service.startJourney(this.mateuApiClient, this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
                             this.error = false
                             this.loadFailed = undefined
                         } catch (e) {
@@ -419,7 +421,7 @@ export class JourneyStarter extends LitElement {
     }
 
     async cancelAll() {
-        await mateuApiClient.abortAll();
+        await this.mateuApiClient.abortAll();
     }
 
     @state()
@@ -506,6 +508,7 @@ export class JourneyStarter extends LitElement {
                 journeyId="${this.journeyId}" 
                 .service=${this.service}
                 baseUrl="${this.baseUrl}"
+                .mateuApiClient="${this.mateuApiClient}"
                 stepId="none"
                 @runaction="${this.runAction}"
                 @replace-component="${this.replaceComponent}"

@@ -15,12 +15,12 @@ import {State} from "../domain/state";
 import {upstream} from "../domain/upstream";
 import {Subscription} from "rxjs";
 import {service} from "../domain/service";
-import {mateuApiClient} from "../../shared/apiClients/MateuApiClient";
 import {nanoid} from "nanoid";
 import "../../shared/apiClients/dtos/App";
 import App from "../../shared/apiClients/dtos/App";
 import Menu from "../../shared/apiClients/dtos/Menu";
 import {MyMenuBarItem} from "./my-menu-bar-item";
+import {MateuApiClient} from "../../shared/apiClients/MateuApiClient";
 
 
 @customElement('mateu-ui')
@@ -67,6 +67,7 @@ export class MateuUi extends LitElement {
 
     // upstream channel
     private upstreamSubscription: Subscription | undefined;
+    private mateuApiClient: MateuApiClient = new MateuApiClient(this)
 
     loadHash(w: Window) {
         if (!w.location.hash.startsWith('#state=')) {
@@ -125,18 +126,18 @@ export class MateuUi extends LitElement {
         super.updated(_changedProperties);
 
         try {
-            mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
+            this.mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
         } catch (e) {
             console.log('error when parsing context data', e)
         }
 
         if (_changedProperties.has('baseUrl') || _changedProperties.has('uiId')) {
 
-            mateuApiClient.baseUrl = this.baseUrl
-            mateuApiClient.element = this
+            this.mateuApiClient.baseUrl = this.baseUrl
+            this.mateuApiClient.element = this
 
             if (this.baseUrl && this.uiId) {
-                service.loadUi(this.baseUrl, this.uiId, this.journeyTypeId).then();
+                service.loadUi(this.mateuApiClient, this.baseUrl, this.uiId, this.journeyTypeId).then();
             }
 
         }

@@ -1,10 +1,10 @@
 import {FetchRowsQuery} from "./FetchRowsQuery";
-import {mateuApiClient} from "../../../../../../../../shared/apiClients/MateuApiClient";
 import Page from "../../../../../../../../shared/apiClients/dtos/Page";
+import {MateuApiClient} from "../../../../../../../../shared/apiClients/MateuApiClient";
 
 export class FetchRowsQueryHandler {
 
-    public async handle(query: FetchRowsQuery): Promise<Page> {
+    public async handle(mateuApiClient: MateuApiClient, query: FetchRowsQuery): Promise<Page> {
         return await mateuApiClient.fetchRows(
             query.baseUrl,
             query.uiId,

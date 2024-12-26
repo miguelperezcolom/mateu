@@ -17,7 +17,7 @@ import {badge} from "@vaadin/vaadin-lumo-styles";
 import {StatusType} from "../../../../../../shared/apiClients/dtos/StatusType";
 import Column from "../../../../../../shared/apiClients/dtos/Column";
 import '@vaadin/menu-bar';
-import {mateuApiClient} from "../../../../../../shared/apiClients/MateuApiClient";
+import {MateuApiClient} from "../../../../../../shared/apiClients/MateuApiClient";
 import {Base64} from "js-base64";
 import ConfirmationTexts from "../../../../../../shared/apiClients/dtos/ConfirmationTexts";
 import {dialogRenderer, gridRowDetailsRenderer} from 'lit-vaadin-helpers';
@@ -96,6 +96,9 @@ export class MateuCrud extends LitElement {
 
   @property()
   confirmationOpened = false;
+
+  @property()
+  mateuApiClient!: MateuApiClient
 
   @property()
   closeConfirmation = () => {
@@ -228,7 +231,7 @@ export class MateuCrud extends LitElement {
       this.state.listId = this.component.id
       this.state.searchText = params.searchText
       this.state.filters = params.filters
-      await this.crudService.fetch(this.state, this.crudUpstream, params, this.component, this.data)
+      await this.crudService.fetch(this.mateuApiClient, this.state, this.crudUpstream, params, this.component, this.data)
   }
 
   connectedCallback() {
@@ -586,9 +589,9 @@ export class MateuCrud extends LitElement {
   exportItemSelected(event: MenuBarItemSelectedEvent) {
     let item = event.detail.value
     if (item.text == 'Excel') {
-      mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
+      this.mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     } else if (item.text == 'Csv') {
-      mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
+      this.mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     }
   }
 

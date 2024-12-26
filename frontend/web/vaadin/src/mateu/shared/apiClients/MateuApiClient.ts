@@ -9,7 +9,7 @@ let abortControllers: AbortController[] = [];
 let fetchRowsAbortController0 = new AbortController()
 let fetchRowsAbortController1 = new AbortController()
 
-class MateuApiClient {
+export class MateuApiClient {
 
     axiosInstance = axios.create({timeout: 60000})
 
@@ -17,7 +17,8 @@ class MateuApiClient {
     element: HTMLElement = document.body;
     contextData: unknown = {}
 
-    constructor() {
+    constructor(journeyStarter: HTMLElement) {
+        this.element = journeyStarter
         this.axiosInstance.interceptors.request.use(config => {
             this.addAuthToken(config)
             this.addSessionId(config)
@@ -230,4 +231,3 @@ class MateuApiClient {
 
 }
 
-export const mateuApiClient = new MateuApiClient()

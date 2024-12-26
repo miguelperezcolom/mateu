@@ -1,10 +1,10 @@
 import {CallActionCommand} from "./CallActionCommand";
-import {mateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 import UIIncrement from "../../../../shared/apiClients/dtos/UIIncrement";
+import {MateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 
 export class CallActionCommandHandler {
 
-    public async handle(command: CallActionCommand): Promise<UIIncrement> {
+    public async handle(mateuApiClient: MateuApiClient, command: CallActionCommand): Promise<UIIncrement> {
 
         return mateuApiClient.runStepActionAndReturn(
             command.baseUrl,
