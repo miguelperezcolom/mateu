@@ -57,4 +57,9 @@ public class SimpleCrud implements Crud<SearchForm, Row> {
         return Mono.just("Quantity was " + quantity).delayElement(Duration.ofSeconds(3));
     }
 
+
+    @Override
+    public Object getDetail(Row row) throws Throwable {
+        return new SimpleCrudEditor(row.name(), row.age());
+    }
 }

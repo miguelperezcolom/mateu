@@ -92,6 +92,10 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     var method = reflectionService.getMethod(crud.getClass(), "getDetail");
     return resultMapper.processResult(
-        crud, method, method, data, serverHttpRequest, editor, "", false);
+        crud, method, method, data, serverHttpRequest, editor, extractComponentId(actionId), false);
+  }
+
+  private String extractComponentId(String actionId) {
+    return actionId.replaceAll("^__list__", "").replaceAll("__edit$", "");
   }
 }

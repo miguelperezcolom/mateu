@@ -36,7 +36,6 @@ export class ApiController implements ReactiveController {
         }
         this.activeCalls++;
         this.host.loading = this.activeCalls > 0
-        console.log('host loading', this.host.loading, this.host)
     }
 
     onBackendSucceeded = (event: Event) => {
@@ -47,7 +46,6 @@ export class ApiController implements ReactiveController {
             this.activeCalls = 0
         }
         this.host.loading = this.activeCalls > 0
-        console.log('host loading', this.host.loading, this.host)
     }
 
     onBackendCancelled = (event: Event) => {
