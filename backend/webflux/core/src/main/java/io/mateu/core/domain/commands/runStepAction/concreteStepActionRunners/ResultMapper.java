@@ -294,7 +294,7 @@ public class ResultMapper {
       }
     }
     if (r instanceof UpdatesUrlFragment updatesUrlFragment) {
-      commands.add(new UICommand(UICommandType.SetLocation, updatesUrlFragment.getUrlFragment()));
+      commands.add(new UICommand(UICommandType.UpdateUrlFragment, updatesUrlFragment.getUrlFragment()));
     }
     return commands;
   }

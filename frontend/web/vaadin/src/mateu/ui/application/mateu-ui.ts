@@ -78,7 +78,10 @@ export class MateuUi extends LitElement {
             this.journeyContextData = this.contextData
              */
 
-            const journeyTypeId = w.location.hash.split('&')[0].substring(1)
+            let journeyTypeId = w.location.hash.split('&')[0].substring(1)
+            if (journeyTypeId.includes('____x')) {
+                journeyTypeId = journeyTypeId.substring(0, journeyTypeId.indexOf('____x'))
+            }
 
             const item = this.findMenuBarItem(journeyTypeId)
             if (item) {

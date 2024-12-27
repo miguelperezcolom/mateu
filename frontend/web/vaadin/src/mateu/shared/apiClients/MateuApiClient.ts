@@ -111,7 +111,6 @@ export class MateuApiClient {
     async post(uri: string, data: unknown): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
-
         return this.axiosInstance.post(uri, data,{
             signal: abortController.signal
         });
@@ -120,7 +119,6 @@ export class MateuApiClient {
     async getUsingPost(uri: string, data: unknown): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
-
         return this.axiosInstance.post(uri, data,{
             signal: abortController.signal
         });
@@ -144,7 +142,8 @@ export class MateuApiClient {
         return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
             + journeyType + '/' + journeyId,
             {
-                "context-data": this.contextData
+                "context-data": this.contextData,
+                "hash": window.location.hash
             }
         ).then((response) => response.data))
     }
@@ -155,7 +154,8 @@ export class MateuApiClient {
             + '/' + componentId+ '/' + actionId, {
                 componentType: componentType,
                 data: data,
-            "context-data": this.contextData
+            "context-data": this.contextData,
+            "hash": window.location.hash
             }
         ).then((response) => response.data).catch((error) => {
             console.log('error en post', error)

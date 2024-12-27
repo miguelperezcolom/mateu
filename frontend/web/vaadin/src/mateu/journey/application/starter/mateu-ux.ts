@@ -293,6 +293,19 @@ export class MateuUx extends LitElement {
                         window.history.pushState({},"", url)
                     }
                     return
+                case UICommandType.UpdateUrlFragment:
+                    // @ts-ignore
+                    let urlFragment = window.location.hash
+                    console.log('url', urlFragment, c.data)
+                    if (urlFragment.includes('____x')) {
+                        urlFragment = urlFragment.substring(0, urlFragment.indexOf('____x'))
+                    }
+                    urlFragment += '____x' + c.data
+                    console.log('url', urlFragment, c.data)
+                    if (this.main) {
+                        window.history.pushState({},"", urlFragment)
+                    }
+                    return
                 case UICommandType.CloseModal:
                     this.closeModalAndStay(c.data as UIIncrement)
                     return
@@ -403,7 +416,9 @@ export class MateuUx extends LitElement {
                             if ('____home____' == this.journeyTypeId) {
                                 url = ''
                             }
-                            window.history.pushState({},"", url);
+                            if (!window.location.hash.startsWith(url)) {
+                                window.history.pushState({},"", url);
+                            }
                         }
 
                         this.journeyId = nanoid()

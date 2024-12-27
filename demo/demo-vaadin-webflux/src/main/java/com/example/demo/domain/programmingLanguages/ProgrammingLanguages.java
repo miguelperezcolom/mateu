@@ -3,6 +3,7 @@ package com.example.demo.domain.programmingLanguages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.interfaces.ConsumesUrlFragment;
 import io.mateu.uidl.interfaces.Crud;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +32,7 @@ import java.util.List;
 @Service
 @Scope("prototype")
 public class ProgrammingLanguages
-    implements Crud<ProgrammingLanguages, LanguageRow>, HasTitle, HasSubtitle {
+    implements Crud<ProgrammingLanguages, LanguageRow>, HasTitle, HasSubtitle, ConsumesUrlFragment {
 
   @JsonIgnore
   @Autowired private LanguagesRepository repo;
@@ -132,5 +134,11 @@ public class ProgrammingLanguages
   @Override
   public String getCaptionForEdit() {
     return "View details";
+  }
+
+  @Override
+  public Object consume(String urlFragment, ServerHttpRequest serverHttpRequest) {
+    detail.load(urlFragment.substring(urlFragment.indexOf("____x") + "____x".length()));
+    return detail;
   }
 }

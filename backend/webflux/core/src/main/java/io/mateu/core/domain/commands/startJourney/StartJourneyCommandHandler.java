@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.dtos.*;
 import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.ConsumesContextData;
+import io.mateu.uidl.interfaces.ConsumesUrlFragment;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import io.mateu.uidl.interfaces.JourneyStarter;
 import io.mateu.uidl.views.SingleComponentView;
@@ -65,6 +66,11 @@ public class StartJourneyCommandHandler {
       if (formInstance instanceof ConsumesContextData consumesContextData) {
         consumesContextData.consume(
             command.getJourneyCreationRq().contextData(), serverHttpRequest);
+      }
+
+      if (formInstance instanceof ConsumesUrlFragment consumesUrlFragment) {
+        formInstance = consumesUrlFragment.consume(
+                command.getJourneyCreationRq().hash(), serverHttpRequest);
       }
 
       if (formInstance instanceof JourneyStarter journeyStarter) {
