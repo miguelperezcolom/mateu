@@ -1,15 +1,15 @@
 import {ReactiveController} from 'lit';
-import {JourneyStarter} from "../journey-starter";
+import {MateuUx} from "../mateu-ux";
 import {ResultType} from "../../../../shared/apiClients/dtos/ResultType";
 
 export class ApiController implements ReactiveController {
 
-    host: JourneyStarter;
+    host: MateuUx;
 
     // non reactive state
     activeCalls = 0;
 
-    constructor(host: JourneyStarter) {
+    constructor(host: MateuUx) {
         (this.host = host).addController(this);
         this.activeCalls = 0;
     }

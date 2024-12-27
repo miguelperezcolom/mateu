@@ -7,7 +7,7 @@ import '@vaadin/app-layout'
 import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
-import '../../journey/application/starter/journey-starter'
+import '../../journey/application/starter/mateu-ux'
 import {notificationRenderer} from 'lit-vaadin-helpers';
 import {MenuBarItem, MenuBarItemSelectedEvent} from "@vaadin/menu-bar";
 import "@vaadin/menu-bar";
@@ -256,13 +256,13 @@ export class MateuUi extends LitElement {
                 
                 ${this.ui.menu && this.ui.menu.length > 0?html`
                     <vaadin-app-layout>
-                        <vaadin-horizontal-layout style="width: 100%" slot="navbar">
+                        <vaadin-horizontal-layout style="width: 100%" slot="navbar" theme="wrap">
                         <vaadin-horizontal-layout theme="spacing" style="align-items: center;margin-left: 10px;">
                             ${this.ui.icon?html`
                                 <vaadin-icon style="margin-left: 5px;" icon="${this.ui.icon}" @click=${this.goHome}></vaadin-icon>
                             `:''}
                             ${this.ui.logo?html`
-                                <img style="margin-left: 5px;" src="${this.ui.logo}" @click=${this.goHome}>
+                                <img style="margin-left: 5px; max-height: 36px;" src="${this.ui.logo}" @click=${this.goHome}>
                             `:''}
                             ${this.ui.apps && this.ui.apps.length > 0?html`
                                 <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
@@ -297,7 +297,7 @@ export class MateuUi extends LitElement {
                 `:''}
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
-                    <journey-starter 
+                    <mateu-ux
                             uiId="${this.journeyUiId}" 
                             journeytypeid="${this.ui.homeJourneyTypeId}" 
                             baseUrl="${this.journeyBaseUrl}" 
@@ -305,13 +305,13 @@ export class MateuUi extends LitElement {
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
                             main="${this.baseUrl == this.journeyBaseUrl}"
-                    ></journey-starter>
+                    ></mateu-ux>
                     
                 `:''}
 
                     ${this.journeyTypeId?html`
 
-                    <journey-starter 
+                    <mateu-ux
                             uiId="${this.journeyUiId}" 
                             journeytypeid=${this.journeyTypeId} 
                             baseUrl="${this.journeyBaseUrl}"  
@@ -319,7 +319,7 @@ export class MateuUi extends LitElement {
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
                             main="${this.baseUrl == this.journeyBaseUrl}"
-                    ></journey-starter>
+                    ></mateu-ux>
                     
                 `:''}
 

@@ -48,7 +48,7 @@ public class DemoApp implements HasLogin, HasAppTitle, HasIcon, HasApps
 
   @Override
   public String getAppTitle() {
-    return "Demo";
+    return "Demo app";
   }
 
   @Override

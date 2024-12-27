@@ -8,7 +8,7 @@ import './card/mateu-card'
 import './directory/mateu-directory'
 import './crud/mateu-crud'
 import './result/mateu-result'
-import '../../journey-starter'
+import '../../mateu-ux'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/split-layout'
@@ -396,23 +396,23 @@ export class MateuComponent extends LitElement {
                     :html``}
 
             ${this.component?.metadata.type == ComponentMetadataType.JourneyStarter?
-                    html`<journey-starter
+                    html`<mateu-ux
                             .component=${this.component}
                             uiId="${(this.component.metadata as JourneyStarter).uiId}"
                             baseUrl="${(this.component.metadata as JourneyStarter).baseUrl?(this.component.metadata as JourneyStarter).baseUrl:this.baseUrl}"
                             journeyTypeId="${(this.component.metadata as JourneyStarter).journeyTypeId}"
                             contextData="${(this.component.metadata as JourneyStarter).contextData}"
-                    ></journey-starter>`
+                    ></mateu-ux>`
                     :html``}
 
     ${this.component?.metadata.type == ComponentMetadataType.RemoteJourney?
-            html`<journey-starter
+            html`<mateu-ux
                             .component=${this.component}
                             uiId="${(this.component.metadata as RemoteJourney).remoteUiId}"
                             baseUrl="${(this.component.metadata as RemoteJourney).remoteBaseUrl?(this.component.metadata as RemoteJourney).remoteBaseUrl:this.baseUrl}"
                             journeyTypeId="${(this.component.metadata as RemoteJourney).remoteJourneyType}"
                             contextData="${(this.component.metadata as RemoteJourney).contextData}"
-                    ></journey-starter>`
+                    ></mateu-ux>`
             :html``}
 
     <vaadin-dialog

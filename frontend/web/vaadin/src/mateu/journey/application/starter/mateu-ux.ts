@@ -22,8 +22,8 @@ import {ContentType} from "../../../shared/apiClients/dtos/ContentType";
 import {SingleComponent} from "../../../shared/apiClients/dtos/SingleComponent";
 import {UIFragment} from "../../../shared/apiClients/dtos/UIFragment";
 
-@customElement('journey-starter')
-export class JourneyStarter extends LitElement {
+@customElement('mateu-ux')
+export class MateuUx extends LitElement {
 
     //properties (reactive)
     @property()
@@ -162,7 +162,7 @@ export class JourneyStarter extends LitElement {
                 const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
                 newWindow?.document.write(`${this.renderModal()}`);
             } else if (ActionTarget.NewModal == f.target) {
-                // crear modal y meter un journey-starter dentro
+                // crear modal y meter un mateu-ux dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
@@ -183,7 +183,7 @@ export class JourneyStarter extends LitElement {
                     overlay?.setAttribute('style',  this.modalStyle?this.modalStyle:'')
                 });
             } else if (ActionTarget.LeftDrawer == f.target) {
-                // crear modal y meter un journey-starter dentro
+                // crear modal y meter un mateu-ux dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
@@ -203,7 +203,7 @@ export class JourneyStarter extends LitElement {
                     overlay?.setAttribute('style', 'left:0;position:absolute;height:100vh;max-height:unset;max-width:unset;margin-left:-15px;border-top-left-radius:0px;border-bottom-left-radius:0px;' + (this.modalStyle?this.modalStyle:''))
                 });
             } else if (ActionTarget.RightDrawer == f.target) {
-                // crear modal y meter un journey-starter dentro
+                // crear modal y meter un mateu-ux dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
                 this.modalInitialUiIncrement = {
@@ -314,7 +314,7 @@ export class JourneyStarter extends LitElement {
                     window.open(c.data, 'A window', 'width=800,height=400,screenX=200,screenY=200')
                     return
                 case UICommandType.ReplaceJourney:
-                    this.replaceJourney(c.data as JourneyStarter)
+                    this.replaceJourney(c.data as MateuUx)
                     return
 
             }
@@ -440,7 +440,7 @@ export class JourneyStarter extends LitElement {
             }}))
     }
 
-    replaceJourney(journeyStarter: JourneyStarter) {
+    replaceJourney(journeyStarter: MateuUx) {
         this.dispatchEvent(new CustomEvent('replace-journey', {
             bubbles: true,
             composed: true,
@@ -452,7 +452,7 @@ export class JourneyStarter extends LitElement {
 
     renderModal() {
         return html`
-            <journey-starter
+            <mateu-ux
                     uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
                     journeyId="${this.journeyId}"
@@ -676,7 +676,7 @@ export class JourneyStarter extends LitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'journey-starter': JourneyStarter
+        'mateu-ux': MateuUx
     }
 }
 

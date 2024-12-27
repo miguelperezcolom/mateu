@@ -21,6 +21,7 @@ import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.JourneyStarter;
 import io.mateu.uidl.interfaces.Message;
 import io.mateu.uidl.interfaces.ResponseWrapper;
+import io.mateu.uidl.interfaces.UpdatesUrlFragment;
 import io.mateu.uidl.views.SingleComponentView;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -291,6 +292,9 @@ public class ResultMapper {
       if (ActionTarget.NewWindow.equals(getActionTarget(m, calledByParametersEditor))) {
         commands.add(new UICommand(UICommandType.OpenNewWindow, url.toString()));
       }
+    }
+    if (r instanceof UpdatesUrlFragment updatesUrlFragment) {
+      commands.add(new UICommand(UICommandType.SetLocation, updatesUrlFragment.getUrlFragment()));
     }
     return commands;
   }

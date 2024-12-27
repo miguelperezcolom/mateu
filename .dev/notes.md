@@ -8,7 +8,7 @@ Hi Josh, I'd like to contribute a new dependency to the Spring Initializer (http
 - add close on action (e.g. CloseModal as target action)
 
 1. back visibility logic
-   2. en journey-starter.ts
+   2. en mateu-ux.ts
       ${this.step?.previousStepId && this.step?.previousStepId != this.initialStepId?html`
       ${this.step?.data?.__index?html``:html`
       <vaadin-button theme="tertiary" @click=${this.goBack}>Back</vaadin-button>
@@ -25,7 +25,7 @@ Hi Josh, I'd like to contribute a new dependency to the Spring Initializer (http
       4. "target" : "NewModal",
       5. "target" : "Left"
       6. "target" : "Right"
-   5. en journey-starter.ts
+   5. en mateu-ux.ts
    ```
        runAction(event: CustomEvent) {
            const action: Action = event.detail.action
@@ -36,7 +36,7 @@ Hi Josh, I'd like to contribute a new dependency to the Spring Initializer (http
                const newWindow = window.open('', 'A window', 'width=800,height=400,screenX=200,screenY=200');
                newWindow?.document.write(`${this.renderModal()}`);
            } else if (action && ActionTarget.NewModal == action.target) {
-               // crear modal y meter un journey-starter dentro
+               // crear modal y meter un mateu-ux dentro
                this.modalOpened = true
                this.modalStepId = this.stepId
                this.modalActionId = event.detail.actionId
@@ -52,7 +52,7 @@ Hi Josh, I'd like to contribute a new dependency to the Spring Initializer (http
    renderModal() {
         return html`
             <div style="${this.modalStyle}">
-            <journey-starter
+            <mateu-ux
                     uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
                     journeyId="${this.journeyId}"
