@@ -35,7 +35,7 @@ public class CreateSimpleFormHomeJourneyTest {
     var uiId = SimpleForm.class.getName();
     var journeyTypeId = "____home____";
     var journeyId = UUID.randomUUID().toString();
-    var journeyCreationRq = new JourneyCreationRq(Map.of());
+    var journeyCreationRq = new JourneyCreationRq(Map.of(), "");
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         createJourneyUseCase.createJourney(

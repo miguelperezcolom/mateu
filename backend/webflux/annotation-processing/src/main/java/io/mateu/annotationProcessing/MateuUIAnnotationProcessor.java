@@ -158,6 +158,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       if (favIconAnnotation != null) {
         model.put(
             "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.value() + "\\\" />");
+      } else {
+        model.put("favicon", "");
       }
 
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);

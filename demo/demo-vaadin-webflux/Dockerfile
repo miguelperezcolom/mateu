@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:17-latest
+FROM azul/zulu-openjdk-alpine:17.0.11-17.50-x86
 
 #RUN apk add --no-cache msttcorefonts-installer fontconfig
 #RUN update-ms-fonts

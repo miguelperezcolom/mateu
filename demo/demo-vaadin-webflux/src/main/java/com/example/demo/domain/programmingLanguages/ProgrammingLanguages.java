@@ -138,7 +138,7 @@ public class ProgrammingLanguages
 
   @Override
   public Object consume(String urlFragment, ServerHttpRequest serverHttpRequest) {
-    detail.load(urlFragment.substring(urlFragment.indexOf("____x") + "____x".length()));
+    detail.load(urlFragment);
     return detail;
   }
 }

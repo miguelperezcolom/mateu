@@ -69,8 +69,12 @@ public class StartJourneyCommandHandler {
       }
 
       if (formInstance instanceof ConsumesUrlFragment consumesUrlFragment) {
-        formInstance = consumesUrlFragment.consume(
-                command.getJourneyCreationRq().hash(), serverHttpRequest);
+        var hash = command.getJourneyCreationRq().hash();
+        if (hash != null && hash.contains("____x")) {
+          formInstance =
+              consumesUrlFragment.consume(
+                  hash.substring(hash.indexOf("____x") + "____x".length()), serverHttpRequest);
+        }
       }
 
       if (formInstance instanceof JourneyStarter journeyStarter) {

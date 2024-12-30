@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.Map;
 
-public record JourneyCreationRq(@JsonProperty("context-data") Map<String, Object> contextData, String hash) {
+public record JourneyCreationRq(
+    @JsonProperty("context-data") Map<String, Object> contextData, String hash) {
 
   public JourneyCreationRq {
     contextData = contextData != null ? Collections.unmodifiableMap(contextData) : Map.of();
