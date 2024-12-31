@@ -21,6 +21,7 @@ public class CreateJourneyUseCase {
 
   public Mono<UIIncrement> createJourney(
       String uiId,
+      String baseUrl,
       String journeyTypeId,
       String journeyId,
       JourneyCreationRq rq,
@@ -29,6 +30,7 @@ public class CreateJourneyUseCase {
     return startJourneyCommandHandler.handle(
         StartJourneyCommand.builder()
             .uiId(uiId)
+            .baseUrl(baseUrl)
             .journeyId(journeyId)
             .journeyTypeId(journeyTypeId)
             .journeyCreationRq(rq)

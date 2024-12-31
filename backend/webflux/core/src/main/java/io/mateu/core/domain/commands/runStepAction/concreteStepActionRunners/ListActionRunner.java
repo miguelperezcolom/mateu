@@ -16,6 +16,7 @@ public interface ListActionRunner {
       String actionId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable;
 }

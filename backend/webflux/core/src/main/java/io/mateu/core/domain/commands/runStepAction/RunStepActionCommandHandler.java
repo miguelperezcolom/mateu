@@ -50,6 +50,7 @@ public class RunStepActionCommandHandler {
           method,
           method,
           data,
+          command.baseUrl(),
           serverHttpRequest,
           actionHandler.handle(serverSideObject, actionId, serverHttpRequest),
           componentId,
@@ -68,6 +69,7 @@ public class RunStepActionCommandHandler {
             componentId,
             data,
             command.contextData(),
+            command.baseUrl(),
             serverHttpRequest);
       }
     }

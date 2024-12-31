@@ -17,6 +17,8 @@ public class StartJourneyCommand {
 
   private String journeyId;
 
+  private String baseUrl;
+
   private JourneyCreationRq journeyCreationRq;
 
   private ServerHttpRequest serverHttpRequest;

@@ -46,12 +46,13 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
       String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     var menuEntry = menuResolver.resolve(viewInstance, actionId, serverHttpRequest).orElse(null);
     var result = startJourneyCommandHandler.createInstanceFromMenuMapping(menuEntry);
     var method = reflectionService.getMethod(DirectoryActionRunner.class, "run");
     return resultMapper.processResult(
-        viewInstance, method, method, data, serverHttpRequest, result, componentId, false);
+        viewInstance, method, method, data, baseUrl, serverHttpRequest, result, componentId, false);
   }
 }

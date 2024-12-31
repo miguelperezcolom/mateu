@@ -2,7 +2,6 @@ import Component from "../../../../../../../../shared/apiClients/dtos/Component"
 
 export interface FetchRowsQuery {
     baseUrl: string
-    uiId: string
     journeyTypeId: string
     journeyId: string
     stepId: string

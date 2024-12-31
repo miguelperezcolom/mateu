@@ -3,7 +3,7 @@ package com.example.demo.infra.ui.menus;
 import com.example.demo.infra.ui.menus.forms.*;
 import io.mateu.uidl.annotations.FormColumns;
 import io.mateu.uidl.annotations.MenuOption;
-import io.mateu.uidl.interfaces.JourneyStarter;
+import io.mateu.uidl.interfaces.MicroFrontend;
 
 @FormColumns(2)
 public class FormOthersSubmenu {
@@ -13,10 +13,9 @@ public class FormOthersSubmenu {
 
   @MenuOption private FailingForm failingForm;
 
-  @MenuOption private JourneyStarter remoteForm = new JourneyStarter(
-          "com.example.demo.infra.ui.helloworld.HelloWorld",
+  @MenuOption private MicroFrontend remoteForm = new MicroFrontend(
           "",
-          "/mateu/v3",
+          "",
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 

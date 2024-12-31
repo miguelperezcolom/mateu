@@ -12,15 +12,14 @@ export class Service {
         this.upstream = upstream;
     }
 
-    async startJourney(mateuApiClient: MateuApiClient, baseUrl: string, uiId: string, journeyTypeId: string, journeyId: string) {
-        const uiIncrement = await startJourneyCommandHandler.handle(mateuApiClient, {baseUrl, uiId, journeyTypeId, journeyId})
+    async startJourney(mateuApiClient: MateuApiClient, baseUrl: string, journeyTypeId: string, journeyId: string) {
+        const uiIncrement = await startJourneyCommandHandler.handle(mateuApiClient, {baseUrl, journeyTypeId, journeyId})
         this.upstream.next(uiIncrement)
     }
 
     async runAction(
         mateuApiClient: MateuApiClient,
         baseUrl: string,
-        uiId: string,
         journeyTypeId: string,
         journeyId: string,
         stepId: string,
@@ -32,7 +31,6 @@ export class Service {
         await callActionCommandHandler
             .handle(mateuApiClient, {
                 baseUrl,
-                uiId,
                 journeyTypeId,
                 journeyId,
                 stepId,

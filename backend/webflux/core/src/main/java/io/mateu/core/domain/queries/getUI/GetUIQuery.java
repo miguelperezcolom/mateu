@@ -1,17 +1,18 @@
 package io.mateu.core.domain.queries.getUI;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-@Builder
 @Slf4j
 @Getter
 public class GetUIQuery {
 
   private final String uiId;
 
-  public GetUIQuery(String uiId) {
+  private final String baseUrl;
+
+  public GetUIQuery(String uiId, String baseUrl) {
     this.uiId = uiId;
+    this.baseUrl = baseUrl;
   }
 }

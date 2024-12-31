@@ -8,7 +8,6 @@ export class CallActionCommandHandler {
 
         return mateuApiClient.runStepActionAndReturn(
             command.baseUrl,
-            command.uiId,
             command.journeyTypeId,
             command.journeyId,
             command.stepId,

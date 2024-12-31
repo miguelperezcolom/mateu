@@ -5,9 +5,8 @@ import {MateuApiClient} from "../../shared/apiClients/MateuApiClient";
 
 export class Service {
 
-    async loadUi(mateuApiClient: MateuApiClient, baseUrl: string, uiId: string, journeyTypeId: string | undefined) {
+    async loadUi(mateuApiClient: MateuApiClient, baseUrl: string, journeyTypeId: string | undefined) {
         const changes = await loadUiCommandHandler.handle(mateuApiClient, {
-            uiId: uiId,
             baseUrl: baseUrl,
             journeyTypeId: journeyTypeId
         })

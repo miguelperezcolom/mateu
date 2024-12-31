@@ -69,19 +69,21 @@ public class MateuService {
     this.serveFileUseCase = serveFileUseCase;
   }
 
-  public Mono<UI> getUI(String uiId, ServerHttpRequest serverHttpRequest) throws Exception {
-    return getUiUseCase.getUI(uiId, serverHttpRequest);
+  public Mono<UI> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
+      throws Exception {
+    return getUiUseCase.getUI(uiId, baseUrl, serverHttpRequest);
   }
 
   public Mono<UIIncrement> createJourney(
       String uiId,
+      String baseUrl,
       String journeyTypeId,
       String journeyId,
       JourneyCreationRq rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return createJourneyUseCase.createJourney(
-        uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
+        uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
   }
 
   public Mono<UIIncrement> runStepAndReturn(
@@ -92,10 +94,19 @@ public class MateuService {
       String componentId,
       String actionId,
       RunActionRq rq,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return runStepUseCase.runStep(
-        uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, serverHttpRequest);
+        uiId,
+        baseUrl,
+        journeyTypeId,
+        journeyId,
+        stepId,
+        componentId,
+        actionId,
+        rq,
+        serverHttpRequest);
   }
 
   public Mono<Page> getListRows(

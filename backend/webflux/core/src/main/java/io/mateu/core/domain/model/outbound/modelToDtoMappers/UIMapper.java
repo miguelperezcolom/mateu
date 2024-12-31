@@ -25,7 +25,8 @@ public class UIMapper {
   final MenuBuilder menuCreator;
   final CaptionProvider captionProvider;
 
-  public UI map(Object uiInstance, ServerHttpRequest serverHttpRequest) throws Exception {
+  public UI map(Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest)
+      throws Exception {
 
     if (uiInstance instanceof DynamicUI) {
       return ((DynamicUI) uiInstance).build().toFuture().get();
@@ -38,7 +39,7 @@ public class UIMapper {
             getLogo(uiInstance),
             getTitle(uiInstance),
             getSubtitle(uiInstance),
-            menuCreator.buildMenuForUi(uiInstance, serverHttpRequest),
+            menuCreator.buildMenuForUi(uiInstance, baseUrl, serverHttpRequest),
             "____home____",
             getLoginUrl(uiInstance),
             getLogoutUrl(uiInstance),

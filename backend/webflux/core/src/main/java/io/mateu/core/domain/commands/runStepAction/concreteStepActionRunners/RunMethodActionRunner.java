@@ -105,6 +105,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
@@ -117,10 +118,10 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
       Object result =
           m.invoke(targetInstance, injectParameters(targetInstance, m, serverHttpRequest, data));
       return resultMapper.processResult(
-          targetInstance, m, m, data, serverHttpRequest, result, componentId, true);
+          targetInstance, m, m, data, baseUrl, serverHttpRequest, result, componentId, true);
     }
 
-    return runMethod(viewInstance, data, serverHttpRequest, componentId, actionId);
+    return runMethod(viewInstance, data, baseUrl, serverHttpRequest, componentId, actionId);
   }
 
   @SneakyThrows
@@ -180,6 +181,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       String componentId,
       String actionId)
@@ -199,14 +201,14 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         var result = new MethodParametersEditor(m.getDeclaringClass(), m.getName(), data);
 
         return resultMapper.processResult(
-            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
+            actualViewInstance, m, m, data, baseUrl, serverHttpRequest, result, componentId, false);
 
       } else {
 
         var result = new MethodParametersEditor(actualViewInstance, m.getName(), serializerService);
 
         return resultMapper.processResult(
-            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
+            actualViewInstance, m, m, data, baseUrl, serverHttpRequest, result, componentId, false);
       }
 
     } else {
@@ -221,7 +223,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
             m.invoke(methodOwner, injectParameters(methodOwner, m, serverHttpRequest, data));
 
         return resultMapper.processResult(
-            actualViewInstance, m, m, data, serverHttpRequest, result, componentId, false);
+            actualViewInstance, m, m, data, baseUrl, serverHttpRequest, result, componentId, false);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();

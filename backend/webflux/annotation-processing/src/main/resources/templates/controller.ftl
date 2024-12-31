@@ -32,24 +32,27 @@ public class ${simpleClassName}MateuController {
     @Autowired
     private MateuService service;
 
+    private String uiId = "${className}";
 
-    @GetMapping(value = "v3/uis/{uiId}")
-    public Mono<UI> getUI(@PathVariable String uiId,
-            ServerHttpRequest serverHttpRequest) throws Exception {
-        return service.getUI(uiId, serverHttpRequest);
+    private String baseUrl = "${path}";
+
+
+    @GetMapping(value = "v3/ui")
+    public Mono<UI> getUI(ServerHttpRequest serverHttpRequest) throws Exception {
+        return service.getUI(uiId, baseUrl, serverHttpRequest);
     }
 
-    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<UIIncrement> createJourney(@PathVariable String uiId,
+    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")
+    public Mono<UIIncrement> createJourney(
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @RequestBody JourneyCreationRq rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.createJourney(uiId, journeyTypeId, journeyId, rq, serverHttpRequest);
+        return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
-    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
-    public Mono<UIIncrement> runStep(@PathVariable String uiId,
+    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
+    public Mono<UIIncrement> runStep(
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @PathVariable String stepId,
@@ -57,11 +60,11 @@ public class ${simpleClassName}MateuController {
             @PathVariable String actionId,
             @RequestBody RunActionRq rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, serverHttpRequest);
+        return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, baseUrl, serverHttpRequest);
     }
 
-    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
-    public Mono<Page> getListRows(@PathVariable String uiId,
+    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
+    public Mono<Page> getListRows(
                 @PathVariable String journeyTypeId,
                 @PathVariable String journeyId,
                 @PathVariable String stepId,
@@ -115,9 +118,9 @@ public class ${simpleClassName}MateuController {
         return service.handleFileUpload(fileId, file);
     }
 
-    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/csv")
-    public ResponseEntity<Mono<Resource>> downloadCsv(@PathVariable String uiId,
-                                        @PathVariable String journeyTypeId,
+    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/csv")
+    public ResponseEntity<Mono<Resource>> downloadCsv(
+                    @PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
                     @PathVariable String componentId,
@@ -148,9 +151,9 @@ public class ${simpleClassName}MateuController {
             }));
     }
 
-    @PostMapping("v3/{uiId}/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/xls")
-    public ResponseEntity<Mono<Resource>> downloadExcel(@PathVariable String uiId,
-                                            @PathVariable String journeyTypeId,
+    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/xls")
+    public ResponseEntity<Mono<Resource>> downloadExcel(
+                    @PathVariable String journeyTypeId,
                     @PathVariable String journeyId,
                     @PathVariable String stepId,
                     @PathVariable String componentId,

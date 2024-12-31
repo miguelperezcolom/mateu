@@ -82,6 +82,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
       String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
@@ -92,7 +93,8 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
 
       for (ListActionRunner listActionRunner : listActionRunners) {
         if (listActionRunner.applies(crud, actionId)) {
-          return listActionRunner.run(crud, stepId, actionId, data, contextData, serverHttpRequest);
+          return listActionRunner.run(
+              crud, stepId, actionId, data, contextData, baseUrl, serverHttpRequest);
         }
       }
     }
@@ -104,6 +106,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
         componentId,
         data,
         contextData,
+        baseUrl,
         serverHttpRequest);
   }
 }

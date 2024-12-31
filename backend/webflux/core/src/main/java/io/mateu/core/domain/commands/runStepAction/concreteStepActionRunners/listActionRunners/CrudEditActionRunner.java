@@ -46,6 +46,7 @@ public class CrudEditActionRunner implements ListActionRunner {
       String actionId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
@@ -92,7 +93,15 @@ public class CrudEditActionRunner implements ListActionRunner {
 
     var method = reflectionService.getMethod(crud.getClass(), "getDetail");
     return resultMapper.processResult(
-        crud, method, method, data, serverHttpRequest, editor, extractComponentId(actionId), false);
+        crud,
+        method,
+        method,
+        data,
+        baseUrl,
+        serverHttpRequest,
+        editor,
+        extractComponentId(actionId),
+        false);
   }
 
   private String extractComponentId(String actionId) {

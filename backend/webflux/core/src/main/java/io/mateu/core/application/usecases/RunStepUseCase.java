@@ -27,6 +27,7 @@ public class RunStepUseCase {
 
   public Mono<UIIncrement> runStep(
       String uiId,
+      String baseUrl,
       String journeyTypeId,
       String journeyId,
       String stepId,
@@ -51,6 +52,7 @@ public class RunStepUseCase {
     return runStepActionCommandHandler
         .handle(
             new RunStepActionCommand(
+                baseUrl,
                 journeyTypeId,
                 journeyId,
                 stepId,

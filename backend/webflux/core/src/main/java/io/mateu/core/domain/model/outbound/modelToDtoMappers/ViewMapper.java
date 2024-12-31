@@ -35,6 +35,7 @@ public class ViewMapper {
 
   public View map(
       io.mateu.uidl.interfaces.View view,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
       Map<String, Object> data)
@@ -76,6 +77,7 @@ public class ViewMapper {
                 componentFactory.createComponent(
                     p.isForm(),
                     componentInstance,
+                    baseUrl,
                     serverHttpRequest,
                     p.getField(),
                     p.getFields(),
@@ -106,6 +108,7 @@ public class ViewMapper {
                   componentFactory.createComponent(
                       p.isForm(),
                       componentInstance,
+                      baseUrl,
                       serverHttpRequest,
                       p.getField(),
                       p.getFields(),

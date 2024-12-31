@@ -31,12 +31,13 @@ public class MenuBuilder {
   private final Humanizer humanizer;
 
   @SneakyThrows
-  public List<Menu> buildMenuForUi(Object uiInstance, ServerHttpRequest serverHttpRequest) {
-    return buildMenu(uiInstance, "", serverHttpRequest);
+  public List<Menu> buildMenuForUi(
+      Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest) {
+    return buildMenu(uiInstance, baseUrl, "", serverHttpRequest);
   }
 
   public List<Menu> buildMenu(
-      Object menuHolder, String prefix, ServerHttpRequest serverHttpRequest) {
+      Object menuHolder, String baseUrl, String prefix, ServerHttpRequest serverHttpRequest) {
     List<Menu> l = new ArrayList<>();
 
     for (Field f : reflectionService.getAllFields(menuHolder.getClass())) {
@@ -45,7 +46,8 @@ public class MenuBuilder {
         f.getField().setAccessible(true);
       }
 
-      addIfAuthorised(menuHolder, l, (AnnotatedElement) f, prefix, f.getName(), serverHttpRequest);
+      addIfAuthorised(
+          menuHolder, l, (AnnotatedElement) f, baseUrl, prefix, f.getName(), serverHttpRequest);
     }
 
     for (Method m : getAllMenuMethods(menuHolder.getClass())) {
@@ -54,7 +56,7 @@ public class MenuBuilder {
         m.setAccessible(true);
       }
 
-      addIfAuthorised(menuHolder, l, m, prefix, m.getName(), serverHttpRequest);
+      addIfAuthorised(menuHolder, l, m, baseUrl, prefix, m.getName(), serverHttpRequest);
     }
 
     l.sort(Comparator.comparingInt(Menu::order));
@@ -66,6 +68,7 @@ public class MenuBuilder {
       Object uiInstance,
       List<Menu> l,
       AnnotatedElement f,
+      String baseUrl,
       String prefix,
       String name,
       ServerHttpRequest serverHttpRequest) {
@@ -85,7 +88,7 @@ public class MenuBuilder {
 
       if (f.isAnnotationPresent(MenuOption.class) || f.isAnnotationPresent(Submenu.class)) {
         String journeyTypeId = prefix + humanizer.camelcasize(name);
-        addMenuEntry(uiInstance, l, f, name, journeyTypeId, serverHttpRequest);
+        addMenuEntry(uiInstance, baseUrl, l, f, name, journeyTypeId, serverHttpRequest);
       }
     }
   }
@@ -105,36 +108,37 @@ public class MenuBuilder {
 
   private void addMenuEntry(
       Object uiInstance,
+      String baseUrl,
       List<Menu> l,
       AnnotatedElement m,
       String name,
       String journeyTypeId,
       ServerHttpRequest serverHttpRequest) {
-    String caption =
-        (m.isAnnotationPresent(Submenu.class))
-            ? m.getAnnotation(Submenu.class).value()
-            : m.getAnnotation(MenuOption.class).value();
-    if (Strings.isNullOrEmpty(caption)) caption = humanizer.capitalize(name);
+    String caption = getCaption(m, name);
 
-    String icon = null;
-    if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();
-    if (m.isAnnotationPresent(MenuOption.class)) icon = m.getAnnotation(MenuOption.class).icon();
+    String icon = getIcon(m);
 
-    int order = 0;
-    if (m.isAnnotationPresent(MenuOption.class)) order = m.getAnnotation(MenuOption.class).order();
-    else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();
-    if (order == 0 || order == 10000) order = l.size();
+    int order = getOrder(l, m);
 
-    String remoteBaseUrl = "";
-    String remoteUiId = "";
-    String remoteMenuId = "";
+    String remoteBaseUrl = baseUrl;
+    String contextData = "";
     MenuType menuType = MenuType.Submenu;
     if (m instanceof Field field && field.getType().equals(RemoteMenu.class)) {
       RemoteMenu remoteMenu = (RemoteMenu) getValue(uiInstance, m);
       if (remoteMenu != null) {
         remoteBaseUrl = remoteMenu.remoteBaseUrl();
-        remoteUiId = remoteMenu.remoteUiId();
-        remoteMenuId = remoteMenu.remoteMenuId();
+        contextData = remoteMenu.contextData();
+        menuType = MenuType.Remote;
+      }
+    }
+    if (m instanceof Field field
+        && field.getType().equals(String.class)
+        && ((m.isAnnotationPresent(MenuOption.class) && m.getAnnotation(MenuOption.class).remote())
+            || (m.isAnnotationPresent(Submenu.class) && m.getAnnotation(Submenu.class).remote()))) {
+      String remoteMenu = (String) getValue(uiInstance, m);
+      if (remoteMenu != null && !remoteMenu.isEmpty()) {
+        remoteBaseUrl = remoteMenu;
+        contextData = "";
         menuType = MenuType.Remote;
       }
     }
@@ -144,16 +148,7 @@ public class MenuBuilder {
         || m.isAnnotationPresent(PrivateHome.class)) {
       l.add(
           new Menu(
-              menuType,
-              "home",
-              "Home",
-              "",
-              List.of(),
-              order,
-              true,
-              remoteBaseUrl,
-              remoteUiId,
-              remoteMenuId));
+              menuType, "home", "Home", "", List.of(), order, true, remoteBaseUrl, contextData));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
           new Menu(
@@ -161,12 +156,11 @@ public class MenuBuilder {
               icon,
               caption,
               journeyTypeId,
-              buildMenu(getValue(uiInstance, m), journeyTypeId + "_", serverHttpRequest),
+              buildMenu(getValue(uiInstance, m), baseUrl, journeyTypeId + "_", serverHttpRequest),
               order,
               m.getAnnotation(Submenu.class).visible(),
               remoteBaseUrl,
-              remoteUiId,
-              remoteMenuId));
+              contextData));
     } else {
       if (!MenuType.Remote.equals(menuType)) {
         menuType = MenuType.MenuOption;
@@ -181,9 +175,34 @@ public class MenuBuilder {
               order,
               isVisible(m),
               remoteBaseUrl,
-              remoteUiId,
-              remoteMenuId));
+              contextData));
     }
+  }
+
+  private String getIcon(AnnotatedElement m) {
+    String icon = null;
+    if (m.isAnnotationPresent(Submenu.class)) icon = m.getAnnotation(Submenu.class).icon();
+    if (m.isAnnotationPresent(MenuOption.class)) icon = m.getAnnotation(MenuOption.class).icon();
+    return icon;
+  }
+
+  private String getCaption(AnnotatedElement m, String name) {
+    String caption =
+        (m.isAnnotationPresent(Submenu.class))
+            ? m.getAnnotation(Submenu.class).value()
+            : m.getAnnotation(MenuOption.class).value();
+    if (Strings.isNullOrEmpty(caption)) caption = humanizer.capitalize(name);
+    return caption;
+  }
+
+  private int getOrder(List<Menu> l, AnnotatedElement m) {
+    int order = 0;
+    if (m.isAnnotationPresent(MenuOption.class)) order = m.getAnnotation(MenuOption.class).order();
+    else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();
+    if (order == 0 || order == 10000) {
+      order = l.size();
+    }
+    return order;
   }
 
   private boolean isVisible(AnnotatedElement m) {

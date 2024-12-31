@@ -5,7 +5,7 @@ import {MateuApiClient} from "../../../../shared/apiClients/MateuApiClient";
 export class StartJourneyCommandHandler {
 
     public async handle(mateuApiClient: MateuApiClient, command: StartJourneyCommand): Promise<UIIncrement> {
-        return await mateuApiClient.createJourneyAndReturn(command.uiId, command.journeyTypeId, command.journeyId)
+        return await mateuApiClient.createJourneyAndReturn(command.journeyTypeId, command.journeyId)
     }
 
 }

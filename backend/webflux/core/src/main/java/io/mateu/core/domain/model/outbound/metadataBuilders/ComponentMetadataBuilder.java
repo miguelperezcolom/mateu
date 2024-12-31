@@ -69,6 +69,7 @@ public class ComponentMetadataBuilder {
       Field field,
       List<Field> slotFields,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       boolean autoFocusDisabled) {
     ComponentMetadata metadata;
@@ -120,8 +121,8 @@ public class ComponentMetadataBuilder {
             .getClass()
             .isAnnotationPresent(io.mateu.uidl.annotations.SplitLayout.class)) {
       metadata = getSplitLayout(componentInstance);
-    } else if (componentInstance instanceof io.mateu.uidl.interfaces.JourneyStarter) {
-      metadata = getJourneyStarter((io.mateu.uidl.interfaces.JourneyStarter) componentInstance);
+    } else if (componentInstance instanceof io.mateu.uidl.interfaces.MicroFrontend) {
+      metadata = getJourneyStarter((io.mateu.uidl.interfaces.MicroFrontend) componentInstance);
     } else if (componentInstance instanceof Element) {
       metadata = getElement((Element) componentInstance);
     } else if (componentInstance
@@ -135,7 +136,7 @@ public class ComponentMetadataBuilder {
     } else if (componentInstance instanceof RemoteJourney remoteJourney) {
       metadata = getRemoteJourney(remoteJourney, serverHttpRequest);
     } else if (componentInstance instanceof io.mateu.uidl.interfaces.Directory directory) {
-      metadata = getDirectory(directory, serverHttpRequest);
+      metadata = getDirectory(directory, baseUrl, serverHttpRequest);
     } else if (componentInstance instanceof Listing) {
       metadata = getCrud("main", (Listing) componentInstance);
     } else if (componentInstance instanceof RpcViewWrapper) {
@@ -180,8 +181,10 @@ public class ComponentMetadataBuilder {
   }
 
   private ComponentMetadata getDirectory(
-      io.mateu.uidl.interfaces.Directory directory, ServerHttpRequest serverHttpRequest) {
-    return directoryMetadataBuilder.build(directory, serverHttpRequest);
+      io.mateu.uidl.interfaces.Directory directory,
+      String baseUrl,
+      ServerHttpRequest serverHttpRequest) {
+    return directoryMetadataBuilder.build(directory, baseUrl, serverHttpRequest);
   }
 
   private ComponentMetadata wrap(Object value) {
@@ -320,12 +323,9 @@ public class ComponentMetadataBuilder {
     return crudMetadataBuilder.build(listId, listing);
   }
 
-  private JourneyStarter getJourneyStarter(io.mateu.uidl.interfaces.JourneyStarter journeyStarter) {
-    return new JourneyStarter(
-        journeyStarter.uiId(),
-        journeyStarter.baseUrl(),
-        journeyStarter.journeyTypeId(),
-        journeyStarter.contextData());
+  private MicroFrontend getJourneyStarter(io.mateu.uidl.interfaces.MicroFrontend microFrontend) {
+    return new MicroFrontend(
+        microFrontend.baseUrl(), microFrontend.journeyTypeId(), microFrontend.contextData());
   }
 
   private Form getMethodParametersEditor(MethodParametersEditor uiInstance) {
@@ -359,6 +359,7 @@ public class ComponentMetadataBuilder {
   public ComponentMetadata getFormMetadata(
       Object form,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       boolean autoFocusDisabled) {
     return getMetadata(
@@ -367,6 +368,7 @@ public class ComponentMetadataBuilder {
         null,
         reflectionService.getAllEditableFields(form.getClass()),
         data,
+        baseUrl,
         serverHttpRequest,
         autoFocusDisabled);
   }

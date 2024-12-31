@@ -53,9 +53,6 @@ export class MateuCrud extends LitElement {
   baseUrl = ''
 
   @property()
-  uiId!: string
-
-  @property()
   journeyTypeId!: string
 
   @property()
@@ -149,7 +146,6 @@ export class MateuCrud extends LitElement {
 
   state: CrudState = {
     baseUrl: '',
-    uiId: '',
     journeyTypeId: '',
     journeyId: '',
     stepId: '',
@@ -224,7 +220,6 @@ export class MateuCrud extends LitElement {
     sortOrders: string
   }) {
       this.state.baseUrl = this.baseUrl
-      this.state.uiId = this.uiId
       this.state.journeyTypeId = this.journeyTypeId
       this.state.journeyId = this.journeyId
       this.state.stepId = this.stepId
@@ -589,9 +584,9 @@ export class MateuCrud extends LitElement {
   exportItemSelected(event: MenuBarItemSelectedEvent) {
     let item = event.detail.value
     if (item.text == 'Excel') {
-      this.mateuApiClient.getXls(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
+      this.mateuApiClient.getXls(this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     } else if (item.text == 'Csv') {
-      this.mateuApiClient.getCsv(this.uiId, this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
+      this.mateuApiClient.getCsv(this.journeyTypeId, this.journeyId, this.stepId, this.component.id, this.getSortOrders(), this.searchText, this.data)
     }
   }
 

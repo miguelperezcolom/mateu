@@ -13,8 +13,7 @@ public record Menu(
     @JsonIgnore int order,
     boolean visible,
     String remoteBaseUrl,
-    String remoteUiId,
-    String remoteMenuId) {
+    String contextData) {
 
   public Menu {
     submenus = Collections.unmodifiableList(submenus);

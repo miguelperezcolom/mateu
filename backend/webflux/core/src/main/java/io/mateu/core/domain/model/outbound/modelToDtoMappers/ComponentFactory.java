@@ -51,12 +51,13 @@ public class ComponentFactory {
 
   public Component createFormComponent(
       Object componentInstance,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Map<String, Object> data,
       boolean autoFocusDisabled) {
     ComponentMetadata metadata =
         componentMetadataBuilder.getFormMetadata(
-            componentInstance, data, serverHttpRequest, autoFocusDisabled);
+            componentInstance, data, baseUrl, serverHttpRequest, autoFocusDisabled);
     return new GenericComponent(
         metadata,
         UUID.randomUUID().toString(),
@@ -103,6 +104,7 @@ public class ComponentFactory {
   public String createComponent(
       boolean form,
       Object componentInstance,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Field field,
       List<Field> fields,
@@ -115,7 +117,7 @@ public class ComponentFactory {
     String componentId = getComponentId(field, componentInstance, componentCounter);
     ComponentMetadata metadata =
         componentMetadataBuilder.getMetadata(
-            form, componentInstance, field, fields, data, serverHttpRequest, false);
+            form, componentInstance, field, fields, data, baseUrl, serverHttpRequest, false);
     var actualComponentInstance =
         actualUiInstanceProvider.getActualUiInstance(componentInstance, serverHttpRequest);
     Component component;
@@ -131,6 +133,7 @@ public class ComponentFactory {
                   form,
                   actualComponentInstance,
                   field,
+                  baseUrl,
                   serverHttpRequest,
                   allComponentsInStep,
                   componentCounter,
@@ -148,6 +151,7 @@ public class ComponentFactory {
                     form,
                     actualComponentInstance,
                     field,
+                    baseUrl,
                     serverHttpRequest,
                     allComponentsInStep,
                     componentCounter,
@@ -160,6 +164,7 @@ public class ComponentFactory {
                 form,
                 actualComponentInstance,
                 field,
+                baseUrl,
                 serverHttpRequest,
                 allComponentsInStep,
                 componentCounter,
@@ -195,6 +200,7 @@ public class ComponentFactory {
                     form,
                     actualComponentInstance,
                     field,
+                    baseUrl,
                     serverHttpRequest,
                     allComponentsInStep,
                     componentCounter,
@@ -221,6 +227,7 @@ public class ComponentFactory {
       boolean form,
       Object actualComponentInstance,
       Field field,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Map<String, Component> allComponentsInStep,
       AtomicInteger componentCounter,
@@ -232,6 +239,7 @@ public class ComponentFactory {
                   createComponent(
                       true,
                       o,
+                      baseUrl,
                       serverHttpRequest,
                       null,
                       List.of(),
@@ -258,6 +266,7 @@ public class ComponentFactory {
                   createComponent(
                       formIdentifier.isForm(p.getKey(), p.getValue()),
                       p.getValue(),
+                      baseUrl,
                       serverHttpRequest,
                       p.getKey(),
                       List.of(),

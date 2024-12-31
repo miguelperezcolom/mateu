@@ -38,6 +38,7 @@ public class CrudNewActionRunner implements ListActionRunner {
       String actionId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
@@ -49,6 +50,6 @@ public class CrudNewActionRunner implements ListActionRunner {
 
     return Mono.just(
         uIIncrementFactory.createForSingleComponent(
-            componentFactory.createFormComponent(editor, serverHttpRequest, data, false)));
+            componentFactory.createFormComponent(editor, baseUrl, serverHttpRequest, data, false)));
   }
 }

@@ -48,6 +48,7 @@ public class CrudDeleteActionRunner implements ListActionRunner {
       String actionId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     List selectedRows = (List) data.get("_selectedRows");
@@ -91,7 +92,8 @@ public class CrudDeleteActionRunner implements ListActionRunner {
 
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(whatToShow, serverHttpRequest, data, false)));
+              componentFactory.createFormComponent(
+                  whatToShow, baseUrl, serverHttpRequest, data, false)));
 
     } catch (Throwable e) {
       throw new Exception(

@@ -17,4 +17,6 @@ public @interface MenuOption {
   int order() default 0;
 
   boolean visible() default true;
+
+  boolean remote() default false;
 }

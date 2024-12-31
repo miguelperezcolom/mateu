@@ -41,8 +41,6 @@ public class ${simpleClassName}Controller {
 </#list>
         html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
-        html = html.replaceAll("http:\\/\\/localhost:8081\\/mateu\\/v3", "${path}/mateu/v3");
-        html = html.replaceAll("com\\.example\\.demoremote\\.ui\\.demoApp\\.DemoApp", "${className}");
 <#if keycloak??>
         String keycloakStuff = """
 <script src='${keycloak.jsUrl}'></script>
@@ -101,7 +99,7 @@ public class ${simpleClassName}Controller {
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
                             + (liveReloadEnabled?
                                     "<script src='http://localhost:35729/livereload.js'></script>":""));
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui uiId='${className}' baseUrl='${path}/mateu/v3'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}'></mateu-ui>");
 </#if>
         return html;
     }

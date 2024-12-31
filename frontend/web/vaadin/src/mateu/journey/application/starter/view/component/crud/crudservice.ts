@@ -19,7 +19,6 @@ export class CrudService {
         // Pagination
         const page = await fetchRowsQueryHandler.handle(mateuApiClient, {
             baseUrl: crudState.baseUrl,
-            uiId: crudState.uiId,
             journeyTypeId: crudState.journeyTypeId,
             journeyId: crudState.journeyId,
             stepId: crudState.stepId,

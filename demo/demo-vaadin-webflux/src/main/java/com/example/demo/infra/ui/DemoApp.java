@@ -1,12 +1,19 @@
 package com.example.demo.infra.ui;
 
-import com.example.demo.infra.ui.menus.*;
+import com.example.demo.infra.ui.menus.CrudsSubmenu;
+import com.example.demo.infra.ui.menus.FormsSubmenu;
+import com.example.demo.infra.ui.menus.LayoutsSubmenu;
+import com.example.demo.infra.ui.menus.OtherComponentsSubmenu;
 import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Private;
 import io.mateu.uidl.annotations.Submenu;
-import io.mateu.uidl.data.RemoteMenu;
-import io.mateu.uidl.interfaces.*;
+import io.mateu.uidl.interfaces.App;
+import io.mateu.uidl.interfaces.HasAppTitle;
+import io.mateu.uidl.interfaces.HasApps;
+import io.mateu.uidl.interfaces.HasIcon;
+import io.mateu.uidl.interfaces.HasLogin;
+import io.mateu.uidl.interfaces.Icon;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,11 +42,8 @@ public class DemoApp implements HasLogin, HasAppTitle, HasIcon, HasApps
   @Private
   private BasicFieldsForm eyesOnly;
 
-  @MenuOption
-  RemoteMenu remoteMenu = new RemoteMenu("/remoteapp/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
-
-  @MenuOption
-  RemoteMenu remoteBrokenMenu = new RemoteMenu("https://demo.mateu.io/xxxxx/mateu/v3", "com.example.demo.infra.ui.RemoteApp", "cruds");
+  @Submenu
+  private RemotesSubmenu remotes;
 
   @Override
   public String getLoginUrl() {

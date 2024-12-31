@@ -84,18 +84,20 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
       String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
     Field m = getActions(viewInstance).get(actionId);
 
-    return runMethod(viewInstance, m, data, serverHttpRequest, componentId);
+    return runMethod(viewInstance, m, data, baseUrl, serverHttpRequest, componentId);
   }
 
   public Mono<UIIncrement> runMethod(
       Object actualViewInstance,
       Field m,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       String componentId)
       throws Throwable {
@@ -115,7 +117,15 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
         }
 
         return resultMapper.processResult(
-            actualViewInstance, m, method, data, serverHttpRequest, result, componentId, false);
+            actualViewInstance,
+            m,
+            method,
+            data,
+            baseUrl,
+            serverHttpRequest,
+            result,
+            componentId,
+            false);
 
       } catch (InvocationTargetException ex) {
         Throwable targetException = ex.getTargetException();

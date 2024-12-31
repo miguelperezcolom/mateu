@@ -129,17 +129,17 @@ export class MateuApiClient {
         abortControllers = []
     }
 
-    async fetchUi(uiId: string): Promise<UI> {
-        return this.fetchRemoteUi(this.baseUrl, uiId)
+    async fetchUi(): Promise<UI> {
+        return this.fetchRemoteUi(this.baseUrl)
     }
 
-    async fetchRemoteUi(baseUrl: string, uiId: string): Promise<UI> {
-        return await this.wrap<UI>(this.get(baseUrl + '/uis/' + uiId)
+    async fetchRemoteUi(baseUrl: string): Promise<UI> {
+        return await this.wrap<UI>(this.get(baseUrl + '/mateu/v3/ui')
             .then((response) => response.data))
     }
 
-    async createJourneyAndReturn(uiId: string, journeyType: string, journeyId: string): Promise<UIIncrement> {
-        return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/' + uiId + '/journeys/'
+    async createJourneyAndReturn(journeyType: string, journeyId: string): Promise<UIIncrement> {
+        return await this.wrap<UIIncrement>(this.getUsingPost(this.baseUrl + '/mateu/v3/journeys/'
             + journeyType + '/' + journeyId,
             {
                 "context-data": this.contextData,
@@ -147,9 +147,9 @@ export class MateuApiClient {
             }
         ).then((response) => response.data))
     }
-    async runStepActionAndReturn(baseUrl: string, uiId: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
+    async runStepActionAndReturn(baseUrl: string, journeyType: string, journeyId: string, stepId: string, componentId: string, actionId: string,
                         componentType: string, data: unknown): Promise<UIIncrement> {
-        return this.wrap<UIIncrement>(this.getUsingPost(baseUrl + '/' + uiId + '/journeys/' +
+        return this.wrap<UIIncrement>(this.getUsingPost(baseUrl + '/mateu/v3/journeys/' +
             journeyType + '/' + journeyId + '/steps/' + stepId
             + '/' + componentId+ '/' + actionId, {
                 componentType: componentType,
@@ -163,7 +163,7 @@ export class MateuApiClient {
         }))
     }
 
-    async fetchRows(baseUrl: string, uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
+    async fetchRows(baseUrl: string, journeyType: string, journeyId: string, stepId: string, listId: string,
                     page: number, pageSize: number,
                     sortOrders: string, searchText: string | undefined, filters: object, component: Component, data: unknown
                     ): Promise<Page> {
@@ -173,7 +173,7 @@ export class MateuApiClient {
             __searchText: searchText,
             __componentType: component.className
         }
-        return await this.wrap<Page>(this.postMax2(baseUrl + '/' + uiId + '/journeys/' + journeyType
+        return await this.wrap<Page>(this.postMax2(baseUrl + '/mateu/v3/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             '/' + listId +
@@ -183,14 +183,14 @@ export class MateuApiClient {
             .then((response) => response.data))
     }
 
-    async getCsv(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
+    async getCsv(journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, searchText: string | undefined, filters: string): Promise<void> {
         const data = {
             __searchText: searchText,
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        await this.wrap<void>(this.getUsingPost(this.baseUrl + '/' + uiId + "/journeys/" + journeyType
+        await this.wrap<void>(this.getUsingPost(this.baseUrl + '/mateu/v3/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/csv?" +
@@ -206,14 +206,14 @@ export class MateuApiClient {
             }))
     }
 
-    async getXls(uiId: string, journeyType: string, journeyId: string, stepId: string, listId: string,
+    async getXls(journeyType: string, journeyId: string, stepId: string, listId: string,
                  sortOrders: string, searchText: string | undefined, filters: any): Promise<void> {
         const data = {
             __searchText: searchText,
             __filters: filters,
             __journey: JSON.parse(sessionStorage.getItem(journeyId)!)
         }
-        await this.wrap<number>(this.getUsingPost(this.baseUrl + '/' + uiId + "/journeys/" + journeyType
+        await this.wrap<number>(this.getUsingPost(this.baseUrl + '/mateu/v3/journeys/' + journeyType
             + '/' + journeyId +
             "/steps/" + stepId +
             "/lists/" + listId + "/xls?" +

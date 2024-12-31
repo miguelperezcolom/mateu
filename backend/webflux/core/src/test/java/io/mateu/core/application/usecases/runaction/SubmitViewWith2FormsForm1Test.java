@@ -43,9 +43,10 @@ public class SubmitViewWith2FormsForm1Test {
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         runStepUseCase.runStep(
+            "",
+            "",
             journeyTypeId,
             journeyId,
-            "form",
             stepId,
             "component-0",
             actionId,

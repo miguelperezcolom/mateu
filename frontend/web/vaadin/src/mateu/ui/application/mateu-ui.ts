@@ -31,15 +31,11 @@ export class MateuUi extends LitElement {
     @property()
     baseUrl = ''
     @property()
-    uiId = '';
-    @property()
     contextData: string | undefined = undefined;
 
     // state
     @state()
     journeyBaseUrl = ''
-    @state()
-    journeyUiId = '';
     @state()
     journeyContextData: string | undefined = undefined;
     @state()
@@ -48,6 +44,8 @@ export class MateuUi extends LitElement {
     remoteMenus: Menu[] = [];
     @property()
     journeyTypeId: string | undefined;
+    @state()
+    remoteJourneyTypeId: string | undefined
     @state()
     instant: string | undefined;
     @state()
@@ -134,14 +132,12 @@ export class MateuUi extends LitElement {
             console.log('error when parsing context data', e)
         }
 
-        if (_changedProperties.has('baseUrl') || _changedProperties.has('uiId')) {
+        if (_changedProperties.has('baseUrl')) {
 
             this.mateuApiClient.baseUrl = this.baseUrl
             this.mateuApiClient.element = this
 
-            if (this.baseUrl && this.uiId) {
-                service.loadUi(this.mateuApiClient, this.baseUrl, this.uiId, this.journeyTypeId).then();
-            }
+            service.loadUi(this.mateuApiClient, this.baseUrl, this.journeyTypeId).then();
 
         }
 
@@ -152,6 +148,7 @@ export class MateuUi extends LitElement {
     stampState(state: State) {
         this.ui = state.ui
         this.journeyTypeId = state.journeyTypeId
+        this.remoteJourneyTypeId = undefined
         this.loading = state.loading
         this.items = state.items
         this.selectedItem = state.selectedItem
@@ -159,7 +156,6 @@ export class MateuUi extends LitElement {
         this.notificationMessage = state.notificationMessage
 
         this.journeyBaseUrl = this.baseUrl
-        this.journeyUiId = this.uiId
         this.journeyContextData = this.contextData
 
         if (window.location.hash) {
@@ -182,8 +178,8 @@ export class MateuUi extends LitElement {
     myMenuBarItemSelected(item: MyMenuBarItem) {
         this.instant = nanoid()
         this.journeyTypeId = item.journeyTypeId
-        this.journeyUiId = item.uiId?item.uiId:this.uiId
-        this.journeyBaseUrl = item.baseUrl?item.baseUrl:this.baseUrl
+        this.remoteJourneyTypeId = item.remoteJourneyTypeId;
+        this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
         this.journeyContextData = this.contextData
         this.label = item.text
     }
@@ -246,8 +242,8 @@ export class MateuUi extends LitElement {
     replaceJourney(event: CustomEvent) {
         const journeyStarter = event.detail.journeyStarter
         this.journeyBaseUrl = journeyStarter.baseUrl
-        this.journeyUiId = journeyStarter.uiId
         this.journeyTypeId = journeyStarter.journeyTypeId
+        this.remoteJourneyTypeId = undefined
         this.journeyContextData = journeyStarter.contextData
     }
 
@@ -300,8 +296,7 @@ export class MateuUi extends LitElement {
                 `:''}
                 
                     ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
-                    <mateu-ux
-                            uiId="${this.journeyUiId}" 
+                    <mateu-ux 
                             journeytypeid="${this.ui.homeJourneyTypeId}" 
                             baseUrl="${this.journeyBaseUrl}" 
                             instant="${this.instant}" 
@@ -315,8 +310,7 @@ export class MateuUi extends LitElement {
                     ${this.journeyTypeId?html`
 
                     <mateu-ux
-                            uiId="${this.journeyUiId}" 
-                            journeytypeid=${this.journeyTypeId} 
+                            journeytypeid=${this.remoteJourneyTypeId?this.remoteJourneyTypeId:this.journeyTypeId} 
                             baseUrl="${this.journeyBaseUrl}"  
                             instant="${this.instant}" 
                             contextData="${this.journeyContextData}"

@@ -29,8 +29,6 @@ export class MateuUx extends LitElement {
     @property()
     baseUrl = ''
     @property()
-    uiId: string | undefined = undefined;
-    @property()
     journeyTypeId: string | undefined = undefined;
     @property()
     journeyId: string | undefined = undefined;
@@ -90,7 +88,6 @@ export class MateuUx extends LitElement {
         this.service.runAction(
             this.mateuApiClient,
             this.baseUrl,
-            this.uiId!,
             this.journeyTypeId!,
             this.journeyId!,
             'notInUse',
@@ -399,7 +396,7 @@ export class MateuUx extends LitElement {
             || changedProperties.has("instant")
         ) {
                 setTimeout(async () => {
-                    if (this.baseUrl && this.journeyTypeId) {
+                    if (this.journeyTypeId) {
                         this.mateuApiClient.baseUrl = this.baseUrl
                         try {
                             this.mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
@@ -423,7 +420,7 @@ export class MateuUx extends LitElement {
 
                         this.journeyId = nanoid()
                         try {
-                            await this.service.startJourney(this.mateuApiClient, this.baseUrl, this.uiId!, this.journeyTypeId!, this.journeyId)
+                            await this.service.startJourney(this.mateuApiClient, this.baseUrl, this.journeyTypeId!, this.journeyId)
                             this.error = false
                             this.loadFailed = undefined
                         } catch (e) {
@@ -468,7 +465,6 @@ export class MateuUx extends LitElement {
     renderModal() {
         return html`
             <mateu-ux
-                    uiId="${this.uiId}"
                     journeyTypeId="${this.journeyTypeId}"
                     journeyId="${this.journeyId}"
                     stepId="${this.modalStepId}"
@@ -518,7 +514,6 @@ export class MateuUx extends LitElement {
                     <mateu-view 
                 .view=${this.view}
                 .components=${this.components}
-                uiId="${this.uiId}"
                 journeyTypeId="${this.journeyTypeId}"
                 journeyId="${this.journeyId}" 
                 .service=${this.service}

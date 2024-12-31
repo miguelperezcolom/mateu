@@ -40,6 +40,7 @@ public class CrudRowActionRunner implements ListActionRunner {
       String actionId,
       Map<String, Object> data,
       Map<String, Object> contextData,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
 
@@ -62,12 +63,13 @@ public class CrudRowActionRunner implements ListActionRunner {
       if (r == null) {
         return Mono.just(
             uIIncrementFactory.createForSingleComponent(
-                componentFactory.createFormComponent(crud, serverHttpRequest, data, false)));
+                componentFactory.createFormComponent(
+                    crud, baseUrl, serverHttpRequest, data, false)));
       }
 
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
-              componentFactory.createFormComponent(r, serverHttpRequest, data, false)));
+              componentFactory.createFormComponent(r, baseUrl, serverHttpRequest, data, false)));
 
     } catch (Throwable e) {
       throw new Exception(

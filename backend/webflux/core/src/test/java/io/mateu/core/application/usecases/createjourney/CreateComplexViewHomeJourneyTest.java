@@ -41,7 +41,7 @@ public class CreateComplexViewHomeJourneyTest {
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         createJourneyUseCase.createJourney(
-            uiId, journeyTypeId, journeyId, journeyCreationRq, serverHttpRequest);
+            uiId, "", journeyTypeId, journeyId, journeyCreationRq, serverHttpRequest);
 
     // when
     var uiIncrement = mono.block();

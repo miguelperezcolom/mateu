@@ -7,7 +7,6 @@ export class FetchRowsQueryHandler {
     public async handle(mateuApiClient: MateuApiClient, query: FetchRowsQuery): Promise<Page> {
         return await mateuApiClient.fetchRows(
             query.baseUrl,
-            query.uiId,
             query.journeyTypeId,
             query.journeyId,
             query.stepId,

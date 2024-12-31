@@ -18,8 +18,8 @@ import io.mateu.uidl.annotations.On;
 import io.mateu.uidl.data.CloseModal;
 import io.mateu.uidl.data.GoBack;
 import io.mateu.uidl.interfaces.Container;
-import io.mateu.uidl.interfaces.JourneyStarter;
 import io.mateu.uidl.interfaces.Message;
+import io.mateu.uidl.interfaces.MicroFrontend;
 import io.mateu.uidl.interfaces.ResponseWrapper;
 import io.mateu.uidl.interfaces.UpdatesUrlFragment;
 import io.mateu.uidl.views.SingleComponentView;
@@ -68,6 +68,7 @@ public class ResultMapper {
       AnnotatedElement trigger,
       Method m,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Object result,
       String componentId,
@@ -77,23 +78,23 @@ public class ResultMapper {
           uIIncrementFactory.createForSingleComponent(
               componentFactory.createFormComponent(
                   actualViewInstance,
+                  baseUrl,
                   serverHttpRequest,
                   data,
                   mustAutofocusBeDisabled(m, calledByParametersEditor)),
               componentId));
     }
 
-    if (result instanceof JourneyStarter journeyStarter) {
+    if (result instanceof MicroFrontend microFrontend) {
       return Mono.just(
           new UIIncrement(
               List.of(
                   new UICommand(
                       UICommandType.ReplaceJourney,
-                      new io.mateu.dtos.JourneyStarter(
-                          journeyStarter.uiId(),
-                          journeyStarter.baseUrl(),
-                          journeyStarter.journeyTypeId(),
-                          journeyStarter.contextData()))),
+                      new io.mateu.dtos.MicroFrontend(
+                          microFrontend.baseUrl(),
+                          microFrontend.journeyTypeId(),
+                          microFrontend.contextData()))),
               List.of(),
               List.of()));
     }
@@ -106,7 +107,7 @@ public class ResultMapper {
           r -> {
             try {
               return getUiIncrement(
-                  m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
+                  m, data, baseUrl, serverHttpRequest, r, componentId, calledByParametersEditor);
             } catch (Throwable e) {
               return Mono.error(new RuntimeException(e));
             }
@@ -116,7 +117,13 @@ public class ResultMapper {
 
       return Mono.just(
           getUiIncrement(
-              trigger, data, serverHttpRequest, result, componentId, calledByParametersEditor));
+              trigger,
+              data,
+              baseUrl,
+              serverHttpRequest,
+              result,
+              componentId,
+              calledByParametersEditor));
     }
   }
 
@@ -134,15 +141,16 @@ public class ResultMapper {
   protected UIIncrement getUiIncrement(
       AnnotatedElement m,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Object r,
       String componentId,
       boolean calledByParametersEditor) {
 
-    var commands = getCommands(m, data, serverHttpRequest, r, calledByParametersEditor);
+    var commands = getCommands(m, data, baseUrl, serverHttpRequest, r, calledByParametersEditor);
     var messages = getMessages(r, m, calledByParametersEditor);
     var fragments =
-        getFragments(m, data, serverHttpRequest, r, componentId, calledByParametersEditor);
+        getFragments(m, data, baseUrl, serverHttpRequest, r, componentId, calledByParametersEditor);
 
     return new UIIncrement(commands, messages, fragments);
   }
@@ -151,6 +159,7 @@ public class ResultMapper {
   private List<UIFragment> getFragments(
       AnnotatedElement m,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Object r,
       String componentId,
@@ -166,6 +175,7 @@ public class ResultMapper {
         var component =
             componentFactory.createFormComponent(
                 new URLWrapper(url),
+                baseUrl,
                 serverHttpRequest,
                 data,
                 mustAutofocusBeDisabled(m, calledByParametersEditor));
@@ -182,6 +192,7 @@ public class ResultMapper {
       var component =
           componentFactory.createFormComponent(
               new ObjectWrapper(r),
+              baseUrl,
               serverHttpRequest,
               data,
               mustAutofocusBeDisabled(m, calledByParametersEditor));
@@ -197,6 +208,7 @@ public class ResultMapper {
       var component =
           componentFactory.createFormComponent(
               responseWrapper.response(),
+              baseUrl,
               serverHttpRequest,
               data,
               mustAutofocusBeDisabled(m, calledByParametersEditor));
@@ -210,7 +222,7 @@ public class ResultMapper {
               Map.of(component.id(), component)));
     } else if (r instanceof io.mateu.uidl.interfaces.View view) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
-      View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
+      View viewDto = viewMapper.map(view, baseUrl, serverHttpRequest, allComponents, Map.of());
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -222,7 +234,8 @@ public class ResultMapper {
     } else if (r instanceof Container) {
       Map<String, Component> allComponents = new LinkedHashMap<>();
       View viewDto =
-          viewMapper.map(new SingleComponentView(r), serverHttpRequest, allComponents, Map.of());
+          viewMapper.map(
+              new SingleComponentView(r), baseUrl, serverHttpRequest, allComponents, Map.of());
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -234,7 +247,11 @@ public class ResultMapper {
     } else {
       var component =
           componentFactory.createFormComponent(
-              r, serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor));
+              r,
+              baseUrl,
+              serverHttpRequest,
+              data,
+              mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
           new UIFragment(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
@@ -268,6 +285,7 @@ public class ResultMapper {
   private List<UICommand> getCommands(
       AnnotatedElement m,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Object r,
       boolean calledByParametersEditor) {
@@ -275,13 +293,19 @@ public class ResultMapper {
     if (mustCloseModal(m, r instanceof MethodParametersEditor)) {
       commands.add(
           createCloseCommand(
-              m, r, dataExtractor.getData(r), serverHttpRequest, calledByParametersEditor));
+              m,
+              r,
+              dataExtractor.getData(r),
+              baseUrl,
+              serverHttpRequest,
+              calledByParametersEditor));
     } else if (r instanceof CloseModal closeModal) {
       commands.add(
           createCloseCommand(
               m,
               closeModal,
               dataExtractor.getData(closeModal.getResult()),
+              baseUrl,
               serverHttpRequest,
               calledByParametersEditor));
     }
@@ -304,6 +328,7 @@ public class ResultMapper {
       AnnotatedElement m,
       Object r,
       Map<String, Object> data,
+      String baseUrl,
       ServerHttpRequest serverHttpRequest,
       boolean calledByParametersEditor) {
     CloseModal closeModal = null;
@@ -313,7 +338,11 @@ public class ResultMapper {
     }
     var component =
         componentFactory.createFormComponent(
-            r, serverHttpRequest, data, mustAutofocusBeDisabled(m, calledByParametersEditor));
+            r,
+            baseUrl,
+            serverHttpRequest,
+            data,
+            mustAutofocusBeDisabled(m, calledByParametersEditor));
     var uiIncrement =
         new UIIncrement(
             List.of(),

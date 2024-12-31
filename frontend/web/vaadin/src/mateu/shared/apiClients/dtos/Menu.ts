@@ -10,7 +10,6 @@ export default interface Menu {
     submenus: Menu[] | undefined
     visible: boolean | undefined
     remoteBaseUrl: string | undefined
-    remoteUiId: string | undefined
     remoteMenuId: string | undefined
 
 }

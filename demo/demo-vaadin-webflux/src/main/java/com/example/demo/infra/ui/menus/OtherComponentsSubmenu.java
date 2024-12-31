@@ -57,10 +57,9 @@ public class OtherComponentsSubmenu implements ActionHandler {
     CrudsSubmenu anotherDirectory;
 
   @MenuOption
-  JourneyStarter remote = new JourneyStarter(
-          "com.example.demo.infra.ui.helloworld.HelloWorld",
+  MicroFrontend remote = new MicroFrontend(
           "",
-          "/mateu/v3",
+          "",
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 

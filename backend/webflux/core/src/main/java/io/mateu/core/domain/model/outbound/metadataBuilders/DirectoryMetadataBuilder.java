@@ -23,12 +23,14 @@ public class DirectoryMetadataBuilder {
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
   public Directory build(
-      io.mateu.uidl.interfaces.Directory directory, ServerHttpRequest serverHttpRequest) {
+      io.mateu.uidl.interfaces.Directory directory,
+      String baseUrl,
+      ServerHttpRequest serverHttpRequest) {
     Directory metadata =
         new Directory(
             getTitle(directory),
             getSubtitle(directory),
-            menuCreator.buildMenuForUi(directory, serverHttpRequest));
+            menuCreator.buildMenuForUi(directory, baseUrl, serverHttpRequest));
     return metadata;
   }
 

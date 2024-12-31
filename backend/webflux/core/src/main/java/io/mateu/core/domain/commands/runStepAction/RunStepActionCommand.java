@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 public record RunStepActionCommand(
+    String baseUrl,
     String journeyTypeId,
     String journeyId,
     String stepId,

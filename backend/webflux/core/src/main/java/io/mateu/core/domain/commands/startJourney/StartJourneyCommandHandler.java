@@ -8,7 +8,7 @@ import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.ConsumesContextData;
 import io.mateu.uidl.interfaces.ConsumesUrlFragment;
 import io.mateu.uidl.interfaces.HasInitMethod;
-import io.mateu.uidl.interfaces.JourneyStarter;
+import io.mateu.uidl.interfaces.MicroFrontend;
 import io.mateu.uidl.views.SingleComponentView;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -77,17 +77,16 @@ public class StartJourneyCommandHandler {
         }
       }
 
-      if (formInstance instanceof JourneyStarter journeyStarter) {
+      if (formInstance instanceof MicroFrontend microFrontend) {
         return Mono.just(
             new UIIncrement(
                 List.of(
                     new UICommand(
                         UICommandType.ReplaceJourney,
-                        new io.mateu.dtos.JourneyStarter(
-                            journeyStarter.uiId(),
-                            journeyStarter.baseUrl(),
-                            journeyStarter.journeyTypeId(),
-                            journeyStarter.contextData()))),
+                        new io.mateu.dtos.MicroFrontend(
+                            microFrontend.baseUrl(),
+                            microFrontend.journeyTypeId(),
+                            microFrontend.contextData()))),
                 List.of(),
                 List.of()));
       }
@@ -103,7 +102,8 @@ public class StartJourneyCommandHandler {
         (formInstance instanceof io.mateu.uidl.interfaces.View v)
             ? v
             : new SingleComponentView(formInstance);
-    View viewDto = viewMapper.map(view, serverHttpRequest, allComponents, Map.of());
+    View viewDto =
+        viewMapper.map(view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
 
     return Mono.just(
         new UIIncrement(
@@ -126,8 +126,8 @@ public class StartJourneyCommandHandler {
 
   @SneakyThrows
   public Object createInstanceFromMenuMapping(Object menuEntry) {
-    if (menuEntry instanceof JourneyStarter journeyStarter) {
-      return journeyStarter;
+    if (menuEntry instanceof MicroFrontend microFrontend) {
+      return microFrontend;
     }
     if (menuEntry instanceof MDDOpenEditorAction action) {
       if (action.getSupplier() != null) {

@@ -1,6 +1,5 @@
 export interface CallActionCommand {
     baseUrl: string
-    uiId: string
     journeyTypeId: string
     journeyId: string
     stepId: string
