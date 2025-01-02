@@ -6,8 +6,8 @@ import static org.mockito.Mockito.mock;
 import io.mateu.core.application.usecases.CreateJourneyUseCase;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.SimpleForm;
-import io.mateu.dtos.JourneyCreationRq;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.JourneyCreationRqDto;
+import io.mateu.dtos.UIIncrementDto;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class CreateSimpleFormHomeJourneyTest {
     var uiId = SimpleForm.class.getName();
     var journeyTypeId = "____home____";
     var journeyId = UUID.randomUUID().toString();
-    var journeyCreationRq = new JourneyCreationRq(Map.of(), "");
+    var journeyCreationRq = new JourneyCreationRqDto(Map.of(), "");
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         createJourneyUseCase.createJourney(
@@ -49,7 +49,7 @@ public class CreateSimpleFormHomeJourneyTest {
   }
 
   @SneakyThrows
-  private void assertUIIncrement(UIIncrement uiIncrement) {
+  private void assertUIIncrement(UIIncrementDto uiIncrement) {
     assertNotNull(uiIncrement);
     log.info(serializerService.toJson(uiIncrement));
     var json =

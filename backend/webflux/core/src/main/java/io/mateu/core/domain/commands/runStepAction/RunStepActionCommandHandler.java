@@ -28,7 +28,7 @@ public class RunStepActionCommandHandler {
   private final ResultMapper resultMapper;
 
   @Transactional
-  public Mono<UIIncrement> handle(RunStepActionCommand command) throws Throwable {
+  public Mono<UIIncrementDto> handle(RunStepActionCommand command) throws Throwable {
     String stepId = command.stepId();
     String actionId = command.actionId();
     String componentId = command.componentId();
@@ -36,10 +36,10 @@ public class RunStepActionCommandHandler {
     ServerHttpRequest serverHttpRequest = command.serverHttpRequest();
 
     if (data.containsKey("__actionHandler")) {
-      ServerSideObject serverSideObject =
-          (ServerSideObject)
+      ServerSideObjectDto serverSideObject =
+          (ServerSideObjectDto)
               reflectionService.newInstance(
-                  ServerSideObject.class, (Map<String, Object>) data.get("__actionHandler"));
+                  ServerSideObjectDto.class, (Map<String, Object>) data.get("__actionHandler"));
       ActionHandler actionHandler =
           (ActionHandler)
               reflectionService.newInstance(

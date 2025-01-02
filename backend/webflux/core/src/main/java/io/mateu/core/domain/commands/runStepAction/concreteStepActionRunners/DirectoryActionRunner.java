@@ -5,7 +5,7 @@ import io.mateu.core.domain.commands.runStepAction.ActionRunner;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.MenuResolver;
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.Directory;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -39,7 +39,7 @@ public class DirectoryActionRunner extends AbstractActionRunner implements Actio
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Object viewInstance,
       String stepId,
       String actionId,

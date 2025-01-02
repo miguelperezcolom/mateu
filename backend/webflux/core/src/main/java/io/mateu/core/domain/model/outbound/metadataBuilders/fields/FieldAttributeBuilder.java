@@ -40,102 +40,102 @@ public class FieldAttributeBuilder {
   private final Humanizer humanizer;
 
   @SneakyThrows
-  public List<Pair> buildAttributes(Object view, Field field) {
-    List<Pair> attributes = new ArrayList<>();
+  public List<PairDto> buildAttributes(Object view, Field field) {
+    List<PairDto> attributes = new ArrayList<>();
     if (field.isAnnotationPresent(CallActionOnClick.class)) {
       CallActionOnClick clickable = field.getAnnotation(CallActionOnClick.class);
-      attributes.add(new Pair("action", clickable.value()));
+      attributes.add(new PairDto("action", clickable.value()));
     }
     if (field.isAnnotationPresent(Image.class)) {
       Image image = field.getAnnotation(Image.class);
       if (!image.cssClasses().isEmpty()) {
-        attributes.add(new Pair("cssClasses", image.cssClasses()));
+        attributes.add(new PairDto("cssClasses", image.cssClasses()));
       }
       if (!image.style().isEmpty()) {
-        attributes.add(new Pair("style", image.style()));
+        attributes.add(new PairDto("style", image.style()));
       }
       if (!image.action().isEmpty()) {
-        attributes.add(new Pair("action", image.action()));
+        attributes.add(new PairDto("action", image.action()));
       }
     }
     if (field.isAnnotationPresent(Icon.class)) {
       Icon icon = field.getAnnotation(Icon.class);
-      attributes.add(new Pair("icon-src", "icon-src"));
+      attributes.add(new PairDto("icon-src", "icon-src"));
       if (!icon.cssClasses().isEmpty()) {
-        attributes.add(new Pair("cssClasses", icon.cssClasses()));
+        attributes.add(new PairDto("cssClasses", icon.cssClasses()));
       }
       if (!icon.style().isEmpty()) {
-        attributes.add(new Pair("style", icon.style()));
+        attributes.add(new PairDto("style", icon.style()));
       }
       if (!icon.action().isEmpty()) {
-        attributes.add(new Pair("action", icon.action()));
+        attributes.add(new PairDto("action", icon.action()));
       }
     }
     if (field.isAnnotationPresent(Styled.class)) {
       Styled styled = field.getAnnotation(Styled.class);
       if (!styled.cssClasses().isEmpty()) {
-        attributes.add(new Pair("cssClasses", styled.cssClasses()));
+        attributes.add(new PairDto("cssClasses", styled.cssClasses()));
       }
       if (!styled.style().isEmpty()) {
-        attributes.add(new Pair("style", styled.style()));
+        attributes.add(new PairDto("style", styled.style()));
       }
     }
     if (TelephoneNumber.class.equals(field.getType())) {
-      List<TelephonePrefix> prefixes =
+      List<TelephonePrefixDto> prefixes =
           List.of(
-              TelephonePrefix.builder()
+              TelephonePrefixDto.builder()
                   .key("es")
                   .img("https://flagcdn.com/es.svg")
                   .value("+34")
                   .build(),
-              TelephonePrefix.builder()
+              TelephonePrefixDto.builder()
                   .key("de")
                   .img("https://flagcdn.com/de.svg")
                   .value("+49")
                   .build(),
-              TelephonePrefix.builder()
+              TelephonePrefixDto.builder()
                   .key("us")
                   .img("https://flagcdn.com/us.svg")
                   .value("+1")
                   .build(),
-              TelephonePrefix.builder()
+              TelephonePrefixDto.builder()
                   .key("uy")
                   .img("https://flagcdn.com/uy.svg")
                   .value("+598")
                   .build());
       prefixes.forEach(
           v -> {
-            attributes.add(new Pair("prefix", v));
+            attributes.add(new PairDto("prefix", v));
           });
     }
     if (field.isAnnotationPresent(FlexGrow.class)) {
-      attributes.add(new Pair("flex-grow", field.getAnnotation(FlexGrow.class).value()));
+      attributes.add(new PairDto("flex-grow", field.getAnnotation(FlexGrow.class).value()));
     }
     if (field.isAnnotationPresent(Button.class)) {
-      attributes.add(new Pair("buttonMetadata", buttonMetadataBuilder.getAction(field)));
+      attributes.add(new PairDto("buttonMetadata", buttonMetadataBuilder.getAction(field)));
     }
     if (field.isAnnotationPresent(Width.class)) {
-      attributes.add(new Pair("width", field.getAnnotation(Width.class).value()));
+      attributes.add(new PairDto("width", field.getAnnotation(Width.class).value()));
     }
     if (field.isAnnotationPresent(Height.class)) {
-      attributes.add(new Pair("height", field.getAnnotation(Height.class).value()));
+      attributes.add(new PairDto("height", field.getAnnotation(Height.class).value()));
     }
     if (field.isAnnotationPresent(Style.class)) {
-      attributes.add(new Pair("style", field.getAnnotation(Style.class).value()));
+      attributes.add(new PairDto("style", field.getAnnotation(Style.class).value()));
     }
     if (field.isAnnotationPresent(CssClasses.class)) {
-      attributes.add(new Pair("cssClasses", field.getAnnotation(CssClasses.class).value()));
+      attributes.add(new PairDto("cssClasses", field.getAnnotation(CssClasses.class).value()));
     }
     if (field.isAnnotationPresent(ItemsProvider.class)) {
       attributes.add(
-          new Pair("itemprovider", field.getAnnotation(ItemsProvider.class).value().getName()));
+          new PairDto("itemprovider", field.getAnnotation(ItemsProvider.class).value().getName()));
     }
     if (field.isAnnotationPresent(ManyToOne.class)) {
-      attributes.add(new Pair("itemprovider", field.getType().getName()));
+      attributes.add(new PairDto("itemprovider", field.getType().getName()));
     }
     if (field.isAnnotationPresent(OneToMany.class) || field.isAnnotationPresent(ManyToMany.class)) {
       if (!field.isAnnotationPresent(UseCrud.class)) {
-        attributes.add(new Pair("itemprovider", field.getGenericClass().getName()));
+        attributes.add(new PairDto("itemprovider", field.getGenericClass().getName()));
       }
     }
     if (field.isAnnotationPresent(ValuesProvider.class)) {
@@ -147,7 +147,7 @@ public class FieldAttributeBuilder {
             .getAll()
             .forEach(
                 v -> {
-                  attributes.add(new Pair("choice", new Value("" + v, v)));
+                  attributes.add(new PairDto("choice", new ValueDto("" + v, v)));
                 });
       } catch (Exception e) {
         e.printStackTrace();
@@ -158,29 +158,30 @@ public class FieldAttributeBuilder {
         Method m =
             reflectionService.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
-        List<Value> choices = (List<Value>) m.invoke(view);
+        List<ValueDto> choices = (List<ValueDto>) m.invoke(view);
         choices.forEach(
             v -> {
-              attributes.add(new Pair("choice", new Value(v.key(), v.value())));
+              attributes.add(new PairDto("choice", new ValueDto(v.key(), v.value())));
             });
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
     if (fileChecker.isFile(field)) {
-      attributes.add(new Pair("fileidprefix", "mateuremoteistheremoteflavourofmateu"));
+      attributes.add(new PairDto("fileidprefix", "mateuremoteistheremoteflavourofmateu"));
       if (List.class.isAssignableFrom(field.getType()) || field.getType().isArray()) {
-        attributes.add(new Pair("maxfiles", 3));
+        attributes.add(new PairDto("maxfiles", 3));
       } else {
-        attributes.add(new Pair("maxfiles", 1));
+        attributes.add(new PairDto("maxfiles", 1));
       }
     }
     if (field.getType().equals(IconChooser.class)) {
       for (Object enumConstant : io.mateu.uidl.interfaces.Icon.values()) {
         attributes.add(
-            new Pair(
+            new PairDto(
                 "choice",
-                new Value(humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
+                new ValueDto(
+                    humanizer.capitalize(enumConstant.toString()), enumConstant.toString())));
       }
     }
     if ((field.getType().isEnum() && !io.mateu.uidl.interfaces.Icon.class.equals(field.getType()))
@@ -194,11 +195,12 @@ public class FieldAttributeBuilder {
         m = enumType.getMethod("valueOf", (Class<?>[]) null);
         for (Object enumConstant : enumType.getEnumConstants()) {
           Object value = m.invoke(enumConstant, (Object[]) null);
-          attributes.add(new Pair("choice", new Value(enumConstant.toString(), value)));
+          attributes.add(new PairDto("choice", new ValueDto(enumConstant.toString(), value)));
         }
       } catch (Throwable ignored) {
         for (Object enumConstant : enumType.getEnumConstants()) {
-          attributes.add(new Pair("choice", new Value(enumConstant.toString(), enumConstant)));
+          attributes.add(
+              new PairDto("choice", new ValueDto(enumConstant.toString(), enumConstant)));
         }
       }
     }
@@ -208,9 +210,9 @@ public class FieldAttributeBuilder {
         && !field.getGenericClass().isEnum()) {
       for (Field columnField : reflectionService.getAllEditableFields(field.getGenericClass())) {
         attributes.add(
-            new Pair(
+            new PairDto(
                 "column",
-                new Column(
+                new ColumnDto(
                     columnField.getId(),
                     "column",
                     fieldTypeMapper.mapColumnType(columnField),
@@ -226,10 +228,10 @@ public class FieldAttributeBuilder {
       if (field.isAnnotationPresent(Table.class)) {
         var table = field.getAnnotation(Table.class);
         if (table.editable()) {
-          attributes.add(new Pair("editable", "true"));
+          attributes.add(new PairDto("editable", "true"));
         }
         if (table.filterable()) {
-          attributes.add(new Pair("filterable", "true"));
+          attributes.add(new PairDto("filterable", "true"));
         }
       }
     }
@@ -238,7 +240,7 @@ public class FieldAttributeBuilder {
           .filter(m -> m.isAnnotationPresent(Content.class))
           .forEach(
               m -> {
-                attributes.add(new Pair("contentField", m.getName()));
+                attributes.add(new PairDto("contentField", m.getName()));
               });
       reflectionService.getAllMethods(field.getType()).stream()
           .filter(m -> m.isAnnotationPresent(On.class))
@@ -246,9 +248,9 @@ public class FieldAttributeBuilder {
               m -> {
                 var on = m.getAnnotation(On.class);
                 attributes.add(
-                    new Pair(
+                    new PairDto(
                         "listener",
-                        new Listener(on.value(), field.getName() + "." + m.getName(), on.js())));
+                        new ListenerDto(on.value(), field.getName() + "." + m.getName(), on.js())));
               });
     }
     return attributes;

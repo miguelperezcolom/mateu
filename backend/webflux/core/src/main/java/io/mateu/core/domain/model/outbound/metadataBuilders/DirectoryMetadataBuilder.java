@@ -3,7 +3,7 @@ package io.mateu.core.domain.model.outbound.metadataBuilders;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.MenuBuilder;
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.dtos.Directory;
+import io.mateu.dtos.DirectoryDto;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +22,12 @@ public class DirectoryMetadataBuilder {
   private final ServerSideObjectMapper serverSideObjectMapper;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Directory build(
+  public DirectoryDto build(
       io.mateu.uidl.interfaces.Directory directory,
       String baseUrl,
       ServerHttpRequest serverHttpRequest) {
-    Directory metadata =
-        new Directory(
+    DirectoryDto metadata =
+        new DirectoryDto(
             getTitle(directory),
             getSubtitle(directory),
             menuCreator.buildMenuForUi(directory, baseUrl, serverHttpRequest));

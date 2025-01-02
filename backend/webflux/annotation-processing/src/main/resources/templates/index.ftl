@@ -21,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.Map;
 
 
-@RestController
+@RestController("${pkgName}.${simpleClassName}Controller")
 @RequestMapping("${path}")
 @Slf4j
 public class ${simpleClassName}Controller {

@@ -6,7 +6,7 @@ import io.mateu.core.application.usecases.fetchlist.FetchListUseCase;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.infra.csv.ByteArrayInOutStream;
 import io.mateu.dtos.*;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -69,31 +69,31 @@ public class MateuService {
     this.serveFileUseCase = serveFileUseCase;
   }
 
-  public Mono<UI> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
+  public Mono<UIDto> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
       throws Exception {
     return getUiUseCase.getUI(uiId, baseUrl, serverHttpRequest);
   }
 
-  public Mono<UIIncrement> createJourney(
+  public Mono<UIIncrementDto> createJourney(
       String uiId,
       String baseUrl,
       String journeyTypeId,
       String journeyId,
-      JourneyCreationRq rq,
+      JourneyCreationRqDto rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return createJourneyUseCase.createJourney(
         uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
   }
 
-  public Mono<UIIncrement> runStepAndReturn(
+  public Mono<UIIncrementDto> runStepAndReturn(
       String uiId,
       String journeyTypeId,
       String journeyId,
       String stepId,
       String componentId,
       String actionId,
-      RunActionRq rq,
+      RunActionRqDto rq,
       String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
@@ -109,7 +109,7 @@ public class MateuService {
         serverHttpRequest);
   }
 
-  public Mono<Page> getListRows(
+  public Mono<PageDto> getListRows(
       String componentType,
       int page,
       int page_size,
@@ -126,7 +126,7 @@ public class MateuService {
         .subscribeOn(Schedulers.boundedElastic());
   }
 
-  public Mono<Items> getItems(String itemProviderId, int page, int page_size, String search_text)
+  public Mono<ItemsDto> getItems(String itemProviderId, int page, int page_size, String search_text)
       throws Throwable {
     return fetchItemsUseCase.getItems(itemProviderId, page, page_size, search_text);
   }
@@ -161,7 +161,7 @@ public class MateuService {
 
     return getListRows(
             componentType, 0, 500, data, searchText, filters, ordering, serverHttpRequest)
-        .map(Page::content)
+        .map(PageDto::content)
         .map(
             list -> {
               try {
@@ -212,7 +212,7 @@ public class MateuService {
 
     return getListRows(
             componentType, 0, 500, data, searchText, filters, ordering, serverHttpRequest)
-        .map(Page::content)
+        .map(PageDto::content)
         .map(
             list ->
                 list.stream()

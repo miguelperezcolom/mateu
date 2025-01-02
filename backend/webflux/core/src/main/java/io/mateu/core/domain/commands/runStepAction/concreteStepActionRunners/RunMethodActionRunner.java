@@ -11,7 +11,7 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.MainAction;
@@ -98,7 +98,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Object viewInstance,
       String stepId,
       String actionId,
@@ -178,7 +178,7 @@ public class RunMethodActionRunner extends AbstractActionRunner implements Actio
         && reflectionService.getGenericClass(type, List.class, "E").equals(listing.getRowClass());
   }
 
-  public Mono<UIIncrement> runMethod(
+  public Mono<UIIncrementDto> runMethod(
       Object actualViewInstance,
       Map<String, Object> data,
       String baseUrl,

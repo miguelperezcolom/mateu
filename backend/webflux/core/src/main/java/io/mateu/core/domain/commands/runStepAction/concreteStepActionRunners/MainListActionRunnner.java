@@ -11,7 +11,7 @@ import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.MethodProvider;
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.Crud;
 import io.mateu.uidl.interfaces.Listing;
 import java.util.List;
@@ -75,7 +75,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Object viewInstance,
       String stepId,
       String actionId,
@@ -94,7 +94,7 @@ public class MainListActionRunnner extends RunMethodActionRunner implements Acti
       for (ListActionRunner listActionRunner : listActionRunners) {
         if (listActionRunner.applies(crud, actionId)) {
           return listActionRunner.run(
-              crud, stepId, actionId, data, contextData, baseUrl, serverHttpRequest);
+              crud, stepId, actionId, componentId, data, contextData, baseUrl, serverHttpRequest);
         }
       }
     }

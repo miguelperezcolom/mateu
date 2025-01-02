@@ -7,12 +7,12 @@ import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.dtos.*;
-import io.mateu.dtos.Tab;
+import io.mateu.dtos.TabDto;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.HorizontalLayout;
-import io.mateu.uidl.annotations.SplitLayout;
-import io.mateu.uidl.annotations.TabLayout;
-import io.mateu.uidl.annotations.VerticalLayout;
+import io.mateu.uidl.annotations.HorizontalLayouted;
+import io.mateu.uidl.annotations.SplitLayouted;
+import io.mateu.uidl.annotations.TabLayouted;
+import io.mateu.uidl.annotations.VerticalLayouted;
 import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.Crud;
 import java.util.HashMap;
@@ -49,16 +49,16 @@ public class ComponentFactory {
     this.formIdentifier = formIdentifier;
   }
 
-  public Component createFormComponent(
+  public ComponentDto createFormComponent(
       Object componentInstance,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Map<String, Object> data,
       boolean autoFocusDisabled) {
-    ComponentMetadata metadata =
+    ComponentMetadataDto metadata =
         componentMetadataBuilder.getFormMetadata(
             componentInstance, data, baseUrl, serverHttpRequest, autoFocusDisabled);
-    return new GenericComponent(
+    return new GenericComponentDto(
         metadata,
         UUID.randomUUID().toString(),
         getComponentClassName(componentInstance),
@@ -108,22 +108,22 @@ public class ComponentFactory {
       ServerHttpRequest serverHttpRequest,
       Field field,
       List<Field> fields,
-      Map<String, Component> allComponentsInStep,
+      Map<String, ComponentDto> allComponentsInStep,
       AtomicInteger componentCounter,
       Map<String, Object> data) {
 
     // todo: s no es componente reconocido, meter en un form sin caption y sin márgenes?
 
     String componentId = getComponentId(field, componentInstance, componentCounter);
-    ComponentMetadata metadata =
+    ComponentMetadataDto metadata =
         componentMetadataBuilder.getMetadata(
             form, componentInstance, field, fields, data, baseUrl, serverHttpRequest, false);
     var actualComponentInstance =
         actualUiInstanceProvider.getActualUiInstance(componentInstance, serverHttpRequest);
-    Component component;
+    ComponentDto component;
     if (form) {
       component =
-          new GenericComponent(
+          new GenericComponentDto(
               metadata,
               componentId,
               getComponentClassName(componentInstance),
@@ -141,7 +141,7 @@ public class ComponentFactory {
     } else {
       if (actualComponentInstance instanceof Crud<?, ?>) {
         component =
-            new CrudComponent(
+            new CrudComponentDto(
                 metadata,
                 componentId,
                 getComponentClassName(actualComponentInstance),
@@ -169,19 +169,20 @@ public class ComponentFactory {
                 allComponentsInStep,
                 componentCounter,
                 data);
-        if (metadata instanceof io.mateu.dtos.TabLayout tabLayout) {
+        if (metadata instanceof TabLayoutDto tabLayout) {
           Map<String, String> componentIdPerTabId = new HashMap<>();
           for (int i = 0; i < tabLayout.tabs().size(); i++) {
             componentIdPerTabId.put(tabLayout.tabs().get(i).id(), childComponents.get(i));
           }
           metadata =
-              new io.mateu.dtos.TabLayout(
+              new TabLayoutDto(
                   tabLayout.tabs().stream()
-                      .map(t -> new Tab(componentIdPerTabId.get(t.id()), t.active(), t.caption()))
+                      .map(
+                          t -> new TabDto(componentIdPerTabId.get(t.id()), t.active(), t.caption()))
                       .toList());
         }
         component =
-            new GenericComponent(
+            new GenericComponentDto(
                 metadata,
                 componentId,
                 getComponentClassName(actualComponentInstance),
@@ -190,7 +191,7 @@ public class ComponentFactory {
                 childComponents);
       } else {
         component =
-            new GenericComponent(
+            new GenericComponentDto(
                 metadata,
                 componentId,
                 getComponentClassName(actualComponentInstance),
@@ -213,14 +214,14 @@ public class ComponentFactory {
 
   private static boolean isLayout(Field field, Object actualComponentInstance) {
     return (actualComponentInstance != null
-            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayout.class)))
+            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayouted.class)))
         || (field != null
-            && (field.isAnnotationPresent(HorizontalLayout.class)
-                || field.isAnnotationPresent(VerticalLayout.class)
-                || field.isAnnotationPresent(SplitLayout.class)
-                || field.isAnnotationPresent(TabLayout.class)));
+            && (field.isAnnotationPresent(HorizontalLayouted.class)
+                || field.isAnnotationPresent(VerticalLayouted.class)
+                || field.isAnnotationPresent(SplitLayouted.class)
+                || field.isAnnotationPresent(TabLayouted.class)));
   }
 
   private List<String> getChildComponents(
@@ -229,7 +230,7 @@ public class ComponentFactory {
       Field field,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
-      Map<String, Component> allComponentsInStep,
+      Map<String, ComponentDto> allComponentsInStep,
       AtomicInteger componentCounter,
       Map<String, Object> data) {
     if (actualComponentInstance instanceof List<?> list) {
@@ -250,15 +251,15 @@ public class ComponentFactory {
     }
     if (actualComponentInstance instanceof Container
         || (field != null
-            && (field.isAnnotationPresent(HorizontalLayout.class)
-                || field.isAnnotationPresent(VerticalLayout.class)
-                || field.isAnnotationPresent(SplitLayout.class)
-                || field.isAnnotationPresent(TabLayout.class)))
+            && (field.isAnnotationPresent(HorizontalLayouted.class)
+                || field.isAnnotationPresent(VerticalLayouted.class)
+                || field.isAnnotationPresent(SplitLayouted.class)
+                || field.isAnnotationPresent(TabLayouted.class)))
         || (actualComponentInstance != null
-            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayout.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(TabLayout.class)))) {
+            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayouted.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(TabLayouted.class)))) {
       return reflectionService.getAllFields(actualComponentInstance.getClass()).stream()
           .map(f -> new Pair<>(f, getValue(f, actualComponentInstance)))
           .map(

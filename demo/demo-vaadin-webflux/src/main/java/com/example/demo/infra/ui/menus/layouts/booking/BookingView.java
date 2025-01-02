@@ -91,7 +91,7 @@ public class BookingView implements View {
     String id = "4564564";
 
     @Slot(SlotName.main)
-    @HorizontalLayout
+    @HorizontalLayouted
     MyHorizontalLayout main = new MyHorizontalLayout(new BookingInfoSection(
             "5454",
             "Mateu",

@@ -77,7 +77,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Object viewInstance,
       String stepId,
       String actionId,
@@ -93,7 +93,7 @@ public class RunButtonActionRunner extends RunMethodActionRunner implements Acti
     return runMethod(viewInstance, m, data, baseUrl, serverHttpRequest, componentId);
   }
 
-  public Mono<UIIncrement> runMethod(
+  public Mono<UIIncrementDto> runMethod(
       Object actualViewInstance,
       Field m,
       Map<String, Object> data,

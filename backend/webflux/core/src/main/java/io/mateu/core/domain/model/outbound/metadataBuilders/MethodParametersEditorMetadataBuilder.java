@@ -28,8 +28,8 @@ public class MethodParametersEditorMetadataBuilder {
   final ReflectionService reflectionService;
   final Humanizer humanizer;
 
-  public Form build(MethodParametersEditor uiInstance) {
-    return new Form(
+  public FormDto build(MethodParametersEditor uiInstance) {
+    return new FormDto(
         null,
         getCaption(uiInstance),
         false,
@@ -50,34 +50,34 @@ public class MethodParametersEditorMetadataBuilder {
     return null;
   }
 
-  private List<Action> getMainActions(Object uiInstance) {
-    List<Action> actions = new ArrayList<>();
-    Action action =
-        new Action(
+  private List<ActionDto> getMainActions(Object uiInstance) {
+    List<ActionDto> actions = new ArrayList<>();
+    ActionDto action =
+        new ActionDto(
             "run",
             null,
             "Run",
-            ActionType.Primary,
-            new ActionThemeVariant[0],
+            ActionTypeDto.Primary,
+            new ActionThemeVariantDto[0],
             true,
             true,
             false,
             false,
             null,
-            ActionTarget.View,
+            ActionTargetDto.View,
             null,
             null,
             null,
             null,
             true,
-            ActionPosition.Right,
+            ActionPositionDto.Right,
             0,
             Integer.MAX_VALUE);
     actions.add(action);
     return actions;
   }
 
-  private List<Section> getSections(MethodParametersEditor methodParametersEditor) {
+  private List<SectionDto> getSections(MethodParametersEditor methodParametersEditor) {
     Method m =
         reflectionService.getMethod(
             methodParametersEditor.getType(), methodParametersEditor.getMethodId());
@@ -88,7 +88,7 @@ public class MethodParametersEditorMetadataBuilder {
             .filter(f -> !ServerHttpRequest.class.isAssignableFrom(f.getType()))
             .collect(Collectors.toList());
 
-    List<Section> sections =
+    List<SectionDto> sections =
         formMetadataBuilder.createSections(methodParametersEditor, allEditableFields, false);
 
     sections = fillSectionIds(sections);
@@ -96,13 +96,13 @@ public class MethodParametersEditorMetadataBuilder {
     return sections;
   }
 
-  private List<Section> fillSectionIds(List<Section> sections) {
+  private List<SectionDto> fillSectionIds(List<SectionDto> sections) {
     AtomicInteger i = new AtomicInteger();
     AtomicInteger fieldPos = new AtomicInteger();
     return sections.stream()
         .map(
             s ->
-                new Section(
+                new SectionDto(
                     "section_" + i.getAndIncrement(),
                     s.tabId(),
                     s.caption(),
@@ -114,17 +114,17 @@ public class MethodParametersEditorMetadataBuilder {
                     IntStream.range(0, s.fieldGroups().size())
                         .mapToObj(
                             j ->
-                                new FieldGroup(
+                                new FieldGroupDto(
                                     "fieldgroup_" + i + "_" + j,
                                     s.fieldGroups().get(j).caption(),
                                     s.fieldGroups().get(j).lines().stream()
                                         .map(
                                             l ->
-                                                new FieldGroupLine(
+                                                new FieldGroupLineDto(
                                                     l.fields().stream()
                                                         .map(
                                                             f ->
-                                                                new io.mateu.dtos.Field(
+                                                                new FieldDto(
                                                                     "param_"
                                                                         + fieldPos
                                                                             .getAndIncrement(),

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.commands.runStepAction;
 
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
@@ -9,7 +9,7 @@ public interface ActionRunner {
 
   boolean applies(Object viewInstance, String actionId, Map<String, Object> contextData);
 
-  Mono<UIIncrement> run(
+  Mono<UIIncrementDto> run(
       Object viewInstance,
       String stepId,
       String actionId,

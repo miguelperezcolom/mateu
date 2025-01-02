@@ -26,7 +26,7 @@ public class Home extends DemoApp implements ConsumesContextData {
   String someContent =
       """
 
-            <h1>Hello you!</h1>
+            <h1>Hello me!</h1>
 
             <p>This is some content for the home page.</p>
 

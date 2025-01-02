@@ -2,7 +2,7 @@ package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.queries.getUI.GetUIQuery;
 import io.mateu.core.domain.queries.getUI.GetUIQueryHandler;
-import io.mateu.dtos.UI;
+import io.mateu.dtos.UIDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class GetUiUseCase {
     this.getUIQueryHandler = getUIQueryHandler;
   }
 
-  public Mono<UI> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
+  public Mono<UIDto> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
       throws Exception {
     log.info("Get UI with targetId {} {}", uiId, baseUrl);
     return Mono.just(getUIQueryHandler.run(new GetUIQuery(uiId, baseUrl), serverHttpRequest));

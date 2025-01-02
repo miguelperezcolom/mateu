@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFactory;
 import io.mateu.core.domain.model.reflection.usecases.*;
 import io.mateu.core.domain.model.util.persistence.EntitySerializer;
 import io.mateu.core.infra.MateuConfiguratorBean;
-import io.mateu.dtos.ComponentMetadata;
+import io.mateu.dtos.ComponentMetadataDto;
 import io.mateu.uidl.data.Stepper;
 import io.mateu.uidl.data.StepperStep;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +50,7 @@ class SerializerServiceTest {
             getClass().getResourceAsStream("serializer/pojofromjson.json").readAllBytes(),
             StandardCharsets.UTF_8);
     ;
-    var destinationClass = ComponentMetadata.class;
+    var destinationClass = ComponentMetadataDto.class;
 
     // when
     var object = serializerService.pojoFromJson(json, destinationClass);

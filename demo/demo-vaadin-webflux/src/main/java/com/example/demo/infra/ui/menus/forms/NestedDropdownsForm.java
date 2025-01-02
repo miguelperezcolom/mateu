@@ -1,8 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.dtos.Value;
+import io.mateu.dtos.ValueDto;
 import lombok.Data;
 
 import java.util.List;
@@ -35,20 +34,20 @@ public class NestedDropdownsForm {
   @ValuesProviderMethod("getCitiesInCountry")
   private String city;
 
-  public List<Value> getCitiesInCountry() {
+  public List<ValueDto> getCitiesInCountry() {
     if (countryAgain == null) {
       return List.of();
     }
     if (countryAgain.equals(Country.Spain)) {
       return List.of(
-              new Value("Madrid", "mad"),
-              new Value("Palma de Mallorca", "pmi")
+              new ValueDto("Madrid", "mad"),
+              new ValueDto("Palma de Mallorca", "pmi")
       );
     }
     if (countryAgain.equals(Country.France)) {
       return List.of(
-              new Value("Paris", "par"),
-              new Value("Marsella", "mrs")
+              new ValueDto("Paris", "par"),
+              new ValueDto("Marsella", "mrs")
       );
     }
     return List.of();

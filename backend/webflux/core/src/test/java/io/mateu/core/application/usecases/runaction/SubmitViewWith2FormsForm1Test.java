@@ -6,9 +6,9 @@ import static org.mockito.Mockito.mock;
 import io.mateu.core.application.usecases.RunStepUseCase;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.SimpleForm;
-import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.SingleComponent;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.RunActionRqDto;
+import io.mateu.dtos.SingleComponentDto;
+import io.mateu.dtos.UIIncrementDto;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
@@ -39,7 +39,8 @@ public class SubmitViewWith2FormsForm1Test {
     var stepId = "x";
     var actionId = "submit";
     var componentType = SimpleForm.class.getName();
-    var runActionRq = new RunActionRq(componentType, Map.of("name", "Miguel", "age", 55), Map.of());
+    var runActionRq =
+        new RunActionRqDto(componentType, Map.of("name", "Miguel", "age", 55), Map.of());
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         runStepUseCase.runStep(
@@ -61,7 +62,7 @@ public class SubmitViewWith2FormsForm1Test {
   }
 
   @SneakyThrows
-  private void assertUIIncrement(UIIncrement uiIncrement) {
+  private void assertUIIncrement(UIIncrementDto uiIncrement) {
     assertNotNull(uiIncrement);
     log.info(serializerService.toJson(uiIncrement));
     var json =
@@ -70,7 +71,7 @@ public class SubmitViewWith2FormsForm1Test {
                 StandardCharsets.UTF_8)
             .replaceAll(
                 "87d43efa-0b1a-4ef1-b4dc-f9517d2deb9e",
-                ((SingleComponent) uiIncrement.uiFragments().get(0).content()).componentId());
+                ((SingleComponentDto) uiIncrement.uiFragments().get(0).content()).componentId());
     JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 }

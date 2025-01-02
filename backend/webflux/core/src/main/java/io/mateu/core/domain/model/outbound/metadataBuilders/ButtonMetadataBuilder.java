@@ -20,9 +20,9 @@ public class ButtonMetadataBuilder {
   final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
 
-  public Action getAction(Field m) {
-    Action action =
-        new Action(
+  public ActionDto getAction(Field m) {
+    ActionDto action =
+        new ActionDto(
             m.getName(),
             null,
             captionProvider.getCaption(m),
@@ -39,7 +39,7 @@ public class ButtonMetadataBuilder {
             getCustomEvent(m),
             getHref(m),
             getRunEonEnter(m),
-            ActionPosition.Right,
+            ActionPositionDto.Right,
             0,
             getOrder(m));
     return action;
@@ -73,8 +73,8 @@ public class ButtonMetadataBuilder {
     return "";
   }
 
-  private ActionTarget getTarget(Field m) {
-    return ActionTarget.valueOf(getRealTarget(m).name());
+  private ActionTargetDto getTarget(Field m) {
+    return ActionTargetDto.valueOf(getRealTarget(m).name());
   }
 
   private io.mateu.uidl.annotations.ActionTarget getRealTarget(Field m) {
@@ -102,34 +102,34 @@ public class ButtonMetadataBuilder {
     return true;
   }
 
-  private ActionType getActionType(Field m) {
+  private ActionTypeDto getActionType(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
-      return ActionType.valueOf(m.getAnnotation(Button.class).type().name());
+      return ActionTypeDto.valueOf(m.getAnnotation(Button.class).type().name());
     }
-    return ActionType.Primary;
+    return ActionTypeDto.Primary;
   }
 
-  private ActionThemeVariant[] getActionThemeVariants(Field m) {
+  private ActionThemeVariantDto[] getActionThemeVariants(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
       return getActionThemeVariants(m.getAnnotation(Button.class).variants());
     }
-    return new ActionThemeVariant[0];
+    return new ActionThemeVariantDto[0];
   }
 
-  private ActionThemeVariant[] getActionThemeVariants(
+  private ActionThemeVariantDto[] getActionThemeVariants(
       io.mateu.uidl.annotations.ActionThemeVariant[] variants) {
     if (variants == null || variants.length == 0) {
-      return new ActionThemeVariant[0];
+      return new ActionThemeVariantDto[0];
     }
     return Arrays.stream(variants)
-        .map(v -> ActionThemeVariant.valueOf(v.name()))
-        .toArray(ActionThemeVariant[]::new);
+        .map(v -> ActionThemeVariantDto.valueOf(v.name()))
+        .toArray(ActionThemeVariantDto[]::new);
   }
 
-  private ConfirmationTexts getConfirmationTexts(Field m) {
+  private ConfirmationTextsDto getConfirmationTexts(Field m) {
     if (m.isAnnotationPresent(Button.class)) {
       var button = m.getAnnotation(Button.class);
-      return new ConfirmationTexts(
+      return new ConfirmationTextsDto(
           getConfirmationTitle(button.confirmationTitle(), m),
           button.confirmationMessage(),
           getConfirmationAction(button.confirmationAction(), m));

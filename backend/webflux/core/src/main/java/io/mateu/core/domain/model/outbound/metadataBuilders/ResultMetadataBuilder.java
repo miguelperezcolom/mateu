@@ -1,9 +1,9 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
-import io.mateu.dtos.Destination;
-import io.mateu.dtos.DestinationType;
-import io.mateu.dtos.Result;
-import io.mateu.dtos.ResultType;
+import io.mateu.dtos.DestinationDto;
+import io.mateu.dtos.DestinationTypeDto;
+import io.mateu.dtos.ResultDto;
+import io.mateu.dtos.ResultTypeDto;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,22 +15,26 @@ public class ResultMetadataBuilder {
     this.serverSideObjectMapper = serverSideObjectMapper;
   }
 
-  public Result build(io.mateu.uidl.data.Result result) {
-    return new Result(
+  public ResultDto build(io.mateu.uidl.data.Result result) {
+    return new ResultDto(
         result.title(),
-        ResultType.valueOf(result.type().toString()),
+        ResultTypeDto.valueOf(result.type().toString()),
         result.message(),
         result.interestingLinks().stream()
             .map(
                 l ->
-                    new Destination(
-                        l.id(), DestinationType.valueOf(l.type().toString()), l.description()))
+                    new DestinationDto(
+                        l.id(),
+                        DestinationTypeDto.valueOf(l.type().toString()),
+                        l.description(),
+                        l.value()))
             .toList(),
         result.nowTo() != null
-            ? new Destination(
+            ? new DestinationDto(
                 result.nowTo().id(),
-                DestinationType.valueOf(result.nowTo().type().toString()),
-                result.nowTo().description())
+                DestinationTypeDto.valueOf(result.nowTo().type().toString()),
+                result.nowTo().description(),
+                result.nowTo().value())
             : null,
         result.leftSideImageUrl(),
         serverSideObjectMapper.toDto(result.actionHandler()));

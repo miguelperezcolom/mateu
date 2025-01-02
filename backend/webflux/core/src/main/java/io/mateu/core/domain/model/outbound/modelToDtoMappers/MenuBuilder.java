@@ -5,8 +5,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.dtos.Menu;
-import io.mateu.dtos.MenuType;
+import io.mateu.dtos.MenuDto;
+import io.mateu.dtos.MenuTypeDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.interfaces.MateuSecurityManager;
@@ -31,14 +31,14 @@ public class MenuBuilder {
   private final Humanizer humanizer;
 
   @SneakyThrows
-  public List<Menu> buildMenuForUi(
+  public List<MenuDto> buildMenuForUi(
       Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest) {
     return buildMenu(uiInstance, baseUrl, "", serverHttpRequest);
   }
 
-  public List<Menu> buildMenu(
+  public List<MenuDto> buildMenu(
       Object menuHolder, String baseUrl, String prefix, ServerHttpRequest serverHttpRequest) {
-    List<Menu> l = new ArrayList<>();
+    List<MenuDto> l = new ArrayList<>();
 
     for (Field f : reflectionService.getAllFields(menuHolder.getClass())) {
 
@@ -59,14 +59,14 @@ public class MenuBuilder {
       addIfAuthorised(menuHolder, l, m, baseUrl, prefix, m.getName(), serverHttpRequest);
     }
 
-    l.sort(Comparator.comparingInt(Menu::order));
+    l.sort(Comparator.comparingInt(MenuDto::order));
 
     return l;
   }
 
   private void addIfAuthorised(
       Object uiInstance,
-      List<Menu> l,
+      List<MenuDto> l,
       AnnotatedElement f,
       String baseUrl,
       String prefix,
@@ -109,7 +109,7 @@ public class MenuBuilder {
   private void addMenuEntry(
       Object uiInstance,
       String baseUrl,
-      List<Menu> l,
+      List<MenuDto> l,
       AnnotatedElement m,
       String name,
       String journeyTypeId,
@@ -122,13 +122,13 @@ public class MenuBuilder {
 
     String remoteBaseUrl = baseUrl;
     String contextData = "";
-    MenuType menuType = MenuType.Submenu;
+    MenuTypeDto menuType = MenuTypeDto.Submenu;
     if (m instanceof Field field && field.getType().equals(RemoteMenu.class)) {
       RemoteMenu remoteMenu = (RemoteMenu) getValue(uiInstance, m);
       if (remoteMenu != null) {
         remoteBaseUrl = remoteMenu.remoteBaseUrl();
         contextData = remoteMenu.contextData();
-        menuType = MenuType.Remote;
+        menuType = MenuTypeDto.Remote;
       }
     }
     if (m instanceof Field field
@@ -139,7 +139,7 @@ public class MenuBuilder {
       if (remoteMenu != null && !remoteMenu.isEmpty()) {
         remoteBaseUrl = remoteMenu;
         contextData = "";
-        menuType = MenuType.Remote;
+        menuType = MenuTypeDto.Remote;
       }
     }
 
@@ -147,11 +147,11 @@ public class MenuBuilder {
         || m.isAnnotationPresent(PublicHome.class)
         || m.isAnnotationPresent(PrivateHome.class)) {
       l.add(
-          new Menu(
+          new MenuDto(
               menuType, "home", "Home", "", List.of(), order, true, remoteBaseUrl, contextData));
     } else if (m.isAnnotationPresent(Submenu.class)) {
       l.add(
-          new Menu(
+          new MenuDto(
               menuType,
               icon,
               caption,
@@ -162,11 +162,11 @@ public class MenuBuilder {
               remoteBaseUrl,
               contextData));
     } else {
-      if (!MenuType.Remote.equals(menuType)) {
-        menuType = MenuType.MenuOption;
+      if (!MenuTypeDto.Remote.equals(menuType)) {
+        menuType = MenuTypeDto.MenuOption;
       }
       l.add(
-          new Menu(
+          new MenuDto(
               menuType,
               icon,
               caption,
@@ -195,7 +195,7 @@ public class MenuBuilder {
     return caption;
   }
 
-  private int getOrder(List<Menu> l, AnnotatedElement m) {
+  private int getOrder(List<MenuDto> l, AnnotatedElement m) {
     int order = 0;
     if (m.isAnnotationPresent(MenuOption.class)) order = m.getAnnotation(MenuOption.class).order();
     else if (m.isAnnotationPresent(Submenu.class)) order = m.getAnnotation(Submenu.class).order();

@@ -3,7 +3,7 @@ package io.mateu.jpa.domain.ui.cruds;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.dtos.Value;
+import io.mateu.dtos.ValueDto;
 import io.mateu.uidl.annotations.*;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -39,9 +39,9 @@ public class ChooseEntityClassForm {
   @ValuesProviderMethod("getChoices")
   private String type;
 
-  public List<Value> getChoices() {
+  public List<ValueDto> getChoices() {
     return subclasses.entrySet().stream()
-        .map(e -> new Value(e.getValue(), e.getKey()))
+        .map(e -> new ValueDto(e.getValue(), e.getKey()))
         .collect(Collectors.toList());
   }
 

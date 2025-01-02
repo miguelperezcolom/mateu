@@ -40,10 +40,11 @@ public class CrudEditActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Crud crud,
       String crudStepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       String baseUrl,

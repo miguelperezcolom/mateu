@@ -4,8 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.dtos.Card;
-import io.mateu.dtos.CardLayout;
+import io.mateu.dtos.CardDto;
+import io.mateu.dtos.CardLayoutDto;
 import io.mateu.uidl.annotations.SameLine;
 import io.mateu.uidl.annotations.UseCrud;
 import io.mateu.uidl.interfaces.*;
@@ -30,10 +30,10 @@ public class CardMetadataBuilder {
   private final ServerSideObjectMapper serverSideObjectMapper;
 
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Card build(io.mateu.uidl.interfaces.Card card, List<Field> slotFields) {
-    Card metadata =
-        new Card(
-            CardLayout.Layout1,
+  public CardDto build(io.mateu.uidl.interfaces.Card card, List<Field> slotFields) {
+    CardDto metadata =
+        new CardDto(
+            CardLayoutDto.Layout1,
             card.thumbnail(),
             createActionsForButtons(card.buttons()),
             createActionsForIcons(card.icons()),
@@ -41,55 +41,55 @@ public class CardMetadataBuilder {
     return metadata;
   }
 
-  private List<Action> createActionsForIcons(List<CallableIcon> icons) {
+  private List<ActionDto> createActionsForIcons(List<CallableIcon> icons) {
     return icons.stream()
         .map(
             i ->
-                new Action(
+                new ActionDto(
                     i.id(),
                     i.icon().iconName,
                     i.description(),
-                    ActionType.Primary,
-                    new ActionThemeVariant[0],
+                    ActionTypeDto.Primary,
+                    new ActionThemeVariantDto[0],
                     true,
                     false,
                     false,
                     false,
                     null,
-                    ActionTarget.Self,
+                    ActionTargetDto.Self,
                     null,
                     null,
                     null,
                     null,
                     false,
-                    ActionPosition.Left,
+                    ActionPositionDto.Left,
                     0,
                     Integer.MAX_VALUE))
         .toList();
   }
 
-  private List<Action> createActionsForButtons(List<Button> buttons) {
+  private List<ActionDto> createActionsForButtons(List<Button> buttons) {
     return buttons.stream()
         .map(
             i ->
-                new Action(
+                new ActionDto(
                     i.id(),
                     Icon.None.iconName,
                     i.caption(),
-                    ActionType.Primary,
-                    new ActionThemeVariant[0],
+                    ActionTypeDto.Primary,
+                    new ActionThemeVariantDto[0],
                     true,
                     false,
                     false,
                     false,
                     null,
-                    ActionTarget.Self,
+                    ActionTargetDto.Self,
                     null,
                     null,
                     null,
                     null,
                     false,
-                    ActionPosition.Right,
+                    ActionPositionDto.Right,
                     0,
                     Integer.MAX_VALUE))
         .toList();
@@ -123,24 +123,25 @@ public class CardMetadataBuilder {
     return null;
   }
 
-  private Status getStatus(Object uiInstance) {
+  private StatusDto getStatus(Object uiInstance) {
     if (!(uiInstance instanceof HasStatus)) {
       return null;
     }
     HasStatus hasStatus = (HasStatus) uiInstance;
     if (hasStatus.getStatus() == null) return null;
-    return new Status(mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
+    return new StatusDto(
+        mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
   }
 
-  private StatusType mapStatusType(io.mateu.uidl.data.StatusType type) {
-    return StatusType.valueOf(type.toString());
+  private StatusTypeDto mapStatusType(io.mateu.uidl.data.StatusType type) {
+    return StatusTypeDto.valueOf(type.toString());
   }
 
-  private List<FieldGroup> getFieldGroups(
+  private List<FieldGroupDto> getFieldGroups(
       String stepId, Object uiInstance, List<Field> slotFields, boolean autoFocusDisabled) {
-    List<io.mateu.dtos.Field> fields = new ArrayList<>();
-    List<FieldGroup> fieldGroups = new ArrayList<>();
-    List<FieldGroupLine> fieldGroupLines = new ArrayList<>();
+    List<FieldDto> fields = new ArrayList<>();
+    List<FieldGroupDto> fieldGroups = new ArrayList<>();
+    List<FieldGroupLineDto> fieldGroupLines = new ArrayList<>();
     String currentFieldGroupCaption = "";
     int currentFieldGroupColumns = 0;
 
@@ -161,7 +162,7 @@ public class CardMetadataBuilder {
         int columns = field.getAnnotation(io.mateu.uidl.annotations.FieldGroup.class).columns();
         if (fieldGroupLines.size() > 0) {
           fieldGroups.add(
-              new FieldGroup(
+              new FieldGroupDto(
                   UUID.randomUUID().toString(),
                   currentFieldGroupCaption,
                   fieldGroupLines,
@@ -173,13 +174,13 @@ public class CardMetadataBuilder {
       fields.add(fieldMetadataBuilder.getField(uiInstance, field, autoFocusDisabled));
       if (!field.isAnnotationPresent(SameLine.class)) {
         if (fields.size() > 0) {
-          fieldGroupLines.add(new FieldGroupLine(fields));
+          fieldGroupLines.add(new FieldGroupLineDto(fields));
         }
       }
     }
     if (fieldGroupLines.size() > 0) {
       fieldGroups.add(
-          new FieldGroup(
+          new FieldGroupDto(
               UUID.randomUUID().toString(),
               currentFieldGroupCaption,
               fieldGroupLines,
@@ -191,12 +192,12 @@ public class CardMetadataBuilder {
     return fieldGroups;
   }
 
-  private void fillGroupIds(List<FieldGroup> fieldGroups) {
+  private void fillGroupIds(List<FieldGroupDto> fieldGroups) {
     AtomicInteger j = new AtomicInteger();
     fieldGroups.stream()
         .map(
             g ->
-                new FieldGroup(
+                new FieldGroupDto(
                     "fieldgroup_" + j.getAndIncrement(), g.caption(), g.lines(), g.columns()))
         .toList();
   }

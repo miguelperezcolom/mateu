@@ -1,7 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders;
 
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.ServerSideObject;
+import io.mateu.dtos.ServerSideObjectDto;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +15,10 @@ public class ServerSideObjectMapper {
   }
 
   @SneakyThrows
-  public ServerSideObject toDto(Object object) {
+  public ServerSideObjectDto toDto(Object object) {
     if (object == null) {
       return null;
     }
-    return new ServerSideObject(object.getClass().getName(), serializerService.toMap(object));
+    return new ServerSideObjectDto(object.getClass().getName(), serializerService.toMap(object));
   }
 }

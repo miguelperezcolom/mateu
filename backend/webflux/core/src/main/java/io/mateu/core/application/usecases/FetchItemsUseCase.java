@@ -4,7 +4,7 @@ import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQuery;
 import io.mateu.core.domain.queries.getItemsCount.GetItemsCountQueryHandler;
 import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQuery;
 import io.mateu.core.domain.queries.getItemsRows.GetItemsRowsQueryHandler;
-import io.mateu.dtos.Items;
+import io.mateu.dtos.ItemsDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -24,10 +24,10 @@ public class FetchItemsUseCase {
     this.getItemsRowsQueryHandler = getItemsRowsQueryHandler;
   }
 
-  public Mono<Items> getItems(String itemProviderId, int page, int page_size, String search_text)
+  public Mono<ItemsDto> getItems(String itemProviderId, int page, int page_size, String search_text)
       throws Throwable {
     return Mono.just(
-            new Items(
+            new ItemsDto(
                 getItemsRowsQueryHandler.run(
                     GetItemsRowsQuery.builder()
                         .itemsProviderId(itemProviderId)

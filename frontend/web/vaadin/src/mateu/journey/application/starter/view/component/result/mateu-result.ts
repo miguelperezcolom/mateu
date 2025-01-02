@@ -7,6 +7,8 @@ import "@vaadin/icon";
 import Result from "../../../../../../shared/apiClients/dtos/Result";
 import {ResultType} from "../../../../../../shared/apiClients/dtos/ResultType";
 import Component from "../../../../../../shared/apiClients/dtos/Component";
+import Destination from "../../../../../../shared/apiClients/dtos/Destination";
+import {DestinationType} from "../../../../../../shared/apiClients/dtos/DestinationType";
 
 /**
  * An example element.
@@ -53,14 +55,23 @@ export class MateuResult extends LitElement {
 
   async runAction(event: Event) {
     const boton = (event.target as HTMLElement)
-    const actionId = boton.getAttribute('actionId');
-    if (!actionId) {
-      console.log('Attribute actionId is missing for ' + event.target)
-      return
+    // @ts-ignore
+    const destination: Destination = boton.destination;
+
+    console.log('destination', destination)
+    if (DestinationType.Url == destination.type) {
+      let url = destination.value
+      window.location = url
+    } else {
+      const actionId = destination.id
+      if (!destination.id) {
+        console.log('Attribute actionId is missing for ' + event.target)
+        return
+      }
+      setTimeout(async () => {
+        await this.doRunActionId(actionId, undefined, undefined);
+      })
     }
-    setTimeout(async () => {
-      await this.doRunActionId(actionId, undefined, undefined);
-    })
   }
 
   async doRunActionId(actionId: string, eventName: string | undefined, event: unknown | undefined) {
@@ -129,7 +140,6 @@ export class MateuResult extends LitElement {
     <div class="link"><vaadin-button theme="tertiary small" @click=${this.runAction}
                                                data-testid="link-${l.id}"
                                      id="${l.id}"
-                                     actionId=${l.id}
                                      .destination=${l}>${l.description}</vaadin-button></div>                   
 
 `)}
@@ -142,7 +152,7 @@ export class MateuResult extends LitElement {
       
       </div>
       
-      <vaadin-horizontal-layout style="justify-content: end;" theme="spacing">
+      <vaadin-horizontal-layout style="justify-content: center;" theme="spacing">
         <slot></slot>
         ${this.metadata.nowTo?html`
           <vaadin-button theme="primary" @click=${this.runAction} 
@@ -162,8 +172,10 @@ export class MateuResult extends LitElement {
     
     .mateu-section {
       text-align: left;
+      /*
       background-color: var(--lumo-shade-5pct);
-      border-radius: 8px;
+      border-radius: 8px;      
+       */
       padding: 2rem;  
       margin-bottom: 16px;       
       padding-top: 47px;

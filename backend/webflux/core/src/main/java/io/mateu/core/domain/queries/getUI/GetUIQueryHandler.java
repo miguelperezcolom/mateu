@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UiInstantiator;
 import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.dtos.UI;
+import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class GetUIQueryHandler {
   final ReflectionService reflectionService;
   final UiInstantiator uiInstantiator;
 
-  public UI run(GetUIQuery query, ServerHttpRequest serverHttpRequest) throws Exception {
+  public UIDto run(GetUIQuery query, ServerHttpRequest serverHttpRequest) throws Exception {
 
     String uiId = query.getUiId();
 
@@ -31,7 +31,7 @@ public class GetUIQueryHandler {
       hasInitMethod.init(serverHttpRequest);
     }
 
-    UI ui = uiMapper.map(uiInstance, query.getBaseUrl(), serverHttpRequest);
+    UIDto ui = uiMapper.map(uiInstance, query.getBaseUrl(), serverHttpRequest);
 
     return ui;
   }

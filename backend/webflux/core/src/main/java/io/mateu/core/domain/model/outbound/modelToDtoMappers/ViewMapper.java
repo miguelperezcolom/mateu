@@ -33,11 +33,11 @@ public class ViewMapper {
     this.actualUiInstanceProvider = actualUiInstanceProvider;
   }
 
-  public View map(
+  public ViewDto map(
       io.mateu.uidl.interfaces.View view,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
-      Map<String, Component> allComponentsInStep,
+      Map<String, ComponentDto> allComponentsInStep,
       Map<String, Object> data)
       throws Throwable {
 
@@ -120,11 +120,11 @@ public class ViewMapper {
       }
     }
 
-    return new View(
-        new ViewPart(null, header),
-        new ViewPart(null, left),
-        new ViewPart(null, main),
-        new ViewPart(null, right),
-        new ViewPart(null, footer));
+    return new ViewDto(
+        new ViewPartDto(null, header),
+        new ViewPartDto(null, left),
+        new ViewPartDto(null, main),
+        new ViewPartDto(null, right),
+        new ViewPartDto(null, footer));
   }
 }

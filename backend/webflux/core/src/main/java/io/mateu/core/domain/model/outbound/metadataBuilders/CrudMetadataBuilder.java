@@ -6,7 +6,7 @@ import io.mateu.core.domain.model.outbound.metadataBuilders.fields.FieldTypeMapp
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.dtos.*;
-import io.mateu.dtos.Section;
+import io.mateu.dtos.SectionDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.Listing;
@@ -31,7 +31,7 @@ public class CrudMetadataBuilder {
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Crud build(String listId, Object crudInstance) {
+  public CrudDto build(String listId, Object crudInstance) {
 
     if (crudInstance instanceof DynamicCrud) {
       return ((DynamicCrud) crudInstance).build().toFuture().get();
@@ -39,7 +39,7 @@ public class CrudMetadataBuilder {
 
     var rpcView = (Listing) crudInstance;
 
-    return new Crud(
+    return new CrudDto(
         captionProvider.getCaption(rpcView),
         getSubtitle(rpcView),
         reflectionService.isOverridden(rpcView, "getDetail"),
@@ -61,7 +61,7 @@ public class CrudMetadataBuilder {
     return null;
   }
 
-  private List<Column> buildColumns(Listing rpcView) {
+  private List<ColumnDto> buildColumns(Listing rpcView) {
     Class rowClass = rpcView.getRowClass();
     Map<Field, String> columnIdsPerField = new HashMap<>();
     Map<Field, String> columnCaptionsPerField = new HashMap<>();
@@ -87,8 +87,8 @@ public class CrudMetadataBuilder {
         .collect(Collectors.toList());
   }
 
-  private Column getColumn(String columnId, String columnCaption, Field field) {
-    return new Column(
+  private ColumnDto getColumn(String columnId, String columnCaption, Field field) {
+    return new ColumnDto(
         columnId,
         fieldTypeMapper.mapColumnType(field),
         "column",
@@ -103,7 +103,7 @@ public class CrudMetadataBuilder {
   }
 
   @SneakyThrows
-  private Component buildSearchForm(Listing rpcView, String listId) {
+  private ComponentDto buildSearchForm(Listing rpcView, String listId) {
     List<String> allComponents = new ArrayList<>();
     var form =
         formMetadataBuilder.build(
@@ -112,8 +112,8 @@ public class CrudMetadataBuilder {
             Map.of(),
             false);
     var component =
-        new GenericComponent(
-            new Form(
+        new GenericComponentDto(
+            new FormDto(
                 form.icon(),
                 "",
                 false,
@@ -125,13 +125,13 @@ public class CrudMetadataBuilder {
                 form.sections().stream()
                     .map(
                         s ->
-                            new Section(
+                            new SectionDto(
                                 s.id(),
                                 s.tabId(),
                                 s.caption(),
                                 s.description(),
                                 s.readOnly(),
-                                SectionType.Transparent,
+                                SectionTypeDto.Transparent,
                                 s.leftSideImageUrl(),
                                 s.topImageUrl(),
                                 s.fieldGroups(),
@@ -152,7 +152,7 @@ public class CrudMetadataBuilder {
     return component;
   }
 
-  private List<io.mateu.dtos.Field> buildSearchFields(
+  private List<FieldDto> buildSearchFields(
       Listing rpcView, String listId, boolean autoFocusDisabled) {
     Class searchFormClass = rpcView.getSearchFormClass();
     List<Field> allEditableFields = reflectionService.getAllEditableFields(searchFormClass);
@@ -175,14 +175,14 @@ public class CrudMetadataBuilder {
       }
     }
 
-    List<io.mateu.dtos.Field> filterFields =
+    List<FieldDto> filterFields =
         allEditableFields.stream()
             .map(
                 fieldInterfaced ->
                     fieldMetadataBuilder.getField(rpcView, fieldInterfaced, autoFocusDisabled))
             .map(
                 f ->
-                    new io.mateu.dtos.Field(
+                    new FieldDto(
                         f.id(),
                         f.type(),
                         f.stereotype(),
@@ -204,7 +204,7 @@ public class CrudMetadataBuilder {
       filterFields =
           Stream.concat(
                   Stream.of(
-                      new io.mateu.dtos.Field(
+                      new FieldDto(
                           listId + "-" + "_search-text",
                           "string",
                           "input",

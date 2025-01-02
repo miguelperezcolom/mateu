@@ -34,6 +34,8 @@ public class DemoApp implements HasLogin, HasAppTitle, HasIcon, HasApps
 
   @Submenu private LayoutsSubmenu layouts;
 
+  @Submenu private UseCasesSubmenu useCases;
+
   //@Submenu private UtilSubmenu util;
 
   //@Submenu private UseCasesSubmenu useCases;

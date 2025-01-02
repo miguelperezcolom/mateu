@@ -28,14 +28,14 @@ public class RulesBuilder {
   final ReflectionService reflectionService;
   private final ManagedTypeChecker managedTypeChecker;
 
-  public List<Rule> buildRules(Object form) {
-    List<Rule> rules = new ArrayList<>();
+  public List<RuleDto> buildRules(Object form) {
+    List<RuleDto> rules = new ArrayList<>();
     addRulesForFields(form, rules);
     addRulesForActions(form, rules);
     return rules;
   }
 
-  private void addRulesForActions(Object actualUiInstance, List<Rule> rules) {
+  private void addRulesForActions(Object actualUiInstance, List<RuleDto> rules) {
     List<Method> allActions =
         reflectionService.getAllMethods(actualUiInstance.getClass()).stream()
             .filter(
@@ -46,59 +46,59 @@ public class RulesBuilder {
         .forEach(
             f ->
                 rules.add(
-                    Rule.builder()
+                    RuleDto.builder()
                         .filter("!(" + f.getAnnotation(VisibleIf.class).value() + ")")
                         .data(new String[] {f.getName()})
-                        .action(RuleAction.HideAction)
-                        .result(RuleResult.Continue)
+                        .action(RuleActionDto.HideAction)
+                        .result(RuleResultDto.Continue)
                         .build()));
     allActions.stream()
         .filter(f -> f.isAnnotationPresent(EnabledIf.class))
         .forEach(
             f ->
                 rules.add(
-                    Rule.builder()
+                    RuleDto.builder()
                         .filter("!(" + f.getAnnotation(EnabledIf.class).value() + ")")
                         .data(new String[] {f.getName()})
-                        .action(RuleAction.DisableAction)
-                        .result(RuleResult.Continue)
+                        .action(RuleActionDto.DisableAction)
+                        .result(RuleResultDto.Continue)
                         .build()));
   }
 
-  private void addRulesForFields(Object actualUiInstance, List<Rule> rules) {
+  private void addRulesForFields(Object actualUiInstance, List<RuleDto> rules) {
     List<Field> allEditableFields = getAllEditableFields(actualUiInstance, List.of());
     allEditableFields.stream()
         .filter(f -> f.isAnnotationPresent(VisibleIf.class))
         .forEach(
             f ->
                 rules.add(
-                    Rule.builder()
+                    RuleDto.builder()
                         .filter("!(" + f.getAnnotation(VisibleIf.class).value() + ")")
                         .data(new String[] {f.getId()})
-                        .action(RuleAction.Hide)
-                        .result(RuleResult.Continue)
+                        .action(RuleActionDto.Hide)
+                        .result(RuleResultDto.Continue)
                         .build()));
     allEditableFields.stream()
         .filter(f -> f.isAnnotationPresent(EnabledIf.class))
         .forEach(
             f ->
                 rules.add(
-                    Rule.builder()
+                    RuleDto.builder()
                         .filter("!(" + f.getAnnotation(EnabledIf.class).value() + ")")
                         .data(new String[] {f.getId()})
-                        .action(RuleAction.Disable)
-                        .result(RuleResult.Continue)
+                        .action(RuleActionDto.Disable)
+                        .result(RuleResultDto.Continue)
                         .build()));
     allEditableFields.stream()
         .filter(f -> f.isAnnotationPresent(CallActionOnChange.class))
         .forEach(
             f ->
                 rules.add(
-                    Rule.builder()
+                    RuleDto.builder()
                         .filter("hasChanged('" + f.getId() + "')")
                         .data(f.getAnnotation(CallActionOnChange.class).value())
-                        .action(RuleAction.RunAction)
-                        .result(RuleResult.Stop)
+                        .action(RuleActionDto.RunAction)
+                        .result(RuleResultDto.Stop)
                         .build()));
   }
 

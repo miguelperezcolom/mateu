@@ -4,8 +4,8 @@ import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.dtos.SortCriteria;
-import io.mateu.dtos.SortType;
+import io.mateu.dtos.SortCriteriaDto;
+import io.mateu.dtos.SortTypeDto;
 import io.mateu.uidl.annotations.*;
 import jakarta.persistence.*;
 import java.lang.reflect.InvocationTargetException;
@@ -31,7 +31,7 @@ public class QueryHelper {
       String selectedColumns,
       String searchText,
       Object filters,
-      List<SortCriteria> sortOrders,
+      List<SortCriteriaDto> sortOrders,
       String groupClause,
       int offset,
       int limit,
@@ -60,14 +60,14 @@ public class QueryHelper {
     if (addOrderClause) {
       String oc = "";
       if (sortOrders != null)
-        for (SortCriteria qso : sortOrders) {
-          if (!SortType.None.equals(qso.getOrder())) {
+        for (SortCriteriaDto qso : sortOrders) {
+          if (!SortTypeDto.None.equals(qso.getOrder())) {
             if (!Strings.isNullOrEmpty(qso.getColumn())) {
               if (!"".equals(oc)) oc += ", ";
               oc +=
                   qso.getColumn()
                       + " "
-                      + ((SortType.Descending.equals(qso.getOrder())) ? "desc" : "asc");
+                      + ((SortTypeDto.Descending.equals(qso.getOrder())) ? "desc" : "asc");
             }
           }
         }

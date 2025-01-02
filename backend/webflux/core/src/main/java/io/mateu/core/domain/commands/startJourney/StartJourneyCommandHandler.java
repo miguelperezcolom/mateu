@@ -47,7 +47,7 @@ public class StartJourneyCommandHandler {
     this.serializerService = serializerService;
   }
 
-  public Mono<UIIncrement> handle(StartJourneyCommand command) throws Throwable {
+  public Mono<UIIncrementDto> handle(StartJourneyCommand command) throws Throwable {
 
     String uiId = command.getUiId();
     String journeyTypeId = command.getJourneyTypeId();
@@ -83,11 +83,11 @@ public class StartJourneyCommandHandler {
 
       if (formInstance instanceof MicroFrontend microFrontend) {
         return Mono.just(
-            new UIIncrement(
+            new UIIncrementDto(
                 List.of(
-                    new UICommand(
-                        UICommandType.ReplaceJourney,
-                        new io.mateu.dtos.MicroFrontend(
+                    new UICommandDto(
+                        UICommandTypeDto.ReplaceJourney,
+                        new MicroFrontendDto(
                             microFrontend.baseUrl(),
                             microFrontend.journeyTypeId(),
                             serializerService.toJson(microFrontend.contextData())))),
@@ -101,21 +101,19 @@ public class StartJourneyCommandHandler {
       throw e;
     }
 
-    Map<String, Component> allComponents = new LinkedHashMap<>();
+    Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
     io.mateu.uidl.interfaces.View view =
         (formInstance instanceof io.mateu.uidl.interfaces.View v)
             ? v
             : new SingleComponentView(formInstance);
-    View viewDto =
+    ViewDto viewDto =
         viewMapper.map(view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
 
     return Mono.just(
-        new UIIncrement(
+        new UIIncrementDto(
             List.of(),
             List.of(),
-            List.of(
-                new UIFragment(
-                    io.mateu.dtos.ActionTarget.View, "", "", "", viewDto, allComponents))));
+            List.of(new UIFragmentDto(ActionTargetDto.View, "", "", "", viewDto, allComponents))));
   }
 
   public Object resolveJourneyTypeId(

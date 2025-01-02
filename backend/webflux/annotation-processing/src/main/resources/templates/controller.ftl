@@ -1,9 +1,6 @@
 package ${pkgName};
 
-import io.mateu.dtos.Value;
 import io.mateu.core.application.MateuService;
-import io.mateu.dtos.Page;
-import io.mateu.dtos.Items;
 import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -24,7 +21,7 @@ import java.util.Map;
 
 
 @CrossOrigin
-@RestController
+@RestController("${pkgName}.${simpleClassName}MateuController")
 @RequestMapping("${path}/mateu")
 @Slf4j
 public class ${simpleClassName}MateuController {
@@ -38,33 +35,33 @@ public class ${simpleClassName}MateuController {
 
 
     @GetMapping(value = "v3/ui")
-    public Mono<UI> getUI(ServerHttpRequest serverHttpRequest) throws Exception {
+    public Mono<UIDto> getUI(ServerHttpRequest serverHttpRequest) throws Exception {
         return service.getUI(uiId, baseUrl, serverHttpRequest);
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<UIIncrement> createJourney(
+    public Mono<UIIncrementDto> createJourney(
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
-            @RequestBody JourneyCreationRq rq,
+            @RequestBody JourneyCreationRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
         return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
-    public Mono<UIIncrement> runStep(
+    public Mono<UIIncrementDto> runStep(
             @PathVariable String journeyTypeId,
             @PathVariable String journeyId,
             @PathVariable String stepId,
             @PathVariable String componentId,
             @PathVariable String actionId,
-            @RequestBody RunActionRq rq,
+            @RequestBody RunActionRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
         return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, baseUrl, serverHttpRequest);
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
-    public Mono<Page> getListRows(
+    public Mono<PageDto> getListRows(
                 @PathVariable String journeyTypeId,
                 @PathVariable String journeyId,
                 @PathVariable String stepId,
@@ -92,7 +89,7 @@ public class ${simpleClassName}MateuController {
     }
 
     @GetMapping("v3/itemproviders/{itemProviderId}/items")
-    public Mono<Items> getItems(@PathVariable String itemProviderId,
+    public Mono<ItemsDto> getItems(@PathVariable String itemProviderId,
                                 @RequestParam int page,
                                 @RequestParam int page_size,
                                 @RequestParam String search_text

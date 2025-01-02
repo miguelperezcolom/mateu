@@ -3,8 +3,8 @@ package io.mateu.core.application.usecases;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.RunActionRq;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.RunActionRqDto;
+import io.mateu.dtos.UIIncrementDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class RunStepUseCase {
     this.serializerService = serializerService;
   }
 
-  public Mono<UIIncrement> runStep(
+  public Mono<UIIncrementDto> runStep(
       String uiId,
       String baseUrl,
       String journeyTypeId,
@@ -33,7 +33,7 @@ public class RunStepUseCase {
       String stepId,
       String componentId,
       String actionId,
-      RunActionRq rq,
+      RunActionRqDto rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     log.info(

@@ -33,9 +33,9 @@ public class ActionMetadataBuilder {
   private final AllEditableFieldsProvider allEditableFieldsProvider;
   private final ManagedTypeChecker managedTypeChecker;
 
-  protected Action getAction(String prefix, Method m) {
-    Action action =
-        new Action(
+  protected ActionDto getAction(String prefix, Method m) {
+    ActionDto action =
+        new ActionDto(
             prefix + m.getName(),
             getIcon(m),
             captionProvider.getCaption(m),
@@ -88,12 +88,12 @@ public class ActionMetadataBuilder {
     return null;
   }
 
-  private ActionPosition getPosition(Method m) {
+  private ActionPositionDto getPosition(Method m) {
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
-      return ActionPosition.valueOf(action.position().name());
+      return ActionPositionDto.valueOf(action.position().name());
     }
-    return ActionPosition.Right;
+    return ActionPositionDto.Right;
   }
 
   private boolean isRunOnEnter(Method m) {
@@ -148,8 +148,8 @@ public class ActionMetadataBuilder {
     return "";
   }
 
-  private ActionTarget getTarget(Method m) {
-    return ActionTarget.valueOf(getRealTarget(m).name());
+  private ActionTargetDto getTarget(Method m) {
+    return ActionTargetDto.valueOf(getRealTarget(m).name());
   }
 
   // todo: remove as target is not handled by frontend
@@ -182,7 +182,7 @@ public class ActionMetadataBuilder {
     return true;
   }
 
-  private ActionThemeVariant[] getActionThemeVariants(Method m) {
+  private ActionThemeVariantDto[] getActionThemeVariants(Method m) {
     if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
       io.mateu.uidl.annotations.Action action =
           m.getAnnotation(io.mateu.uidl.annotations.Action.class);
@@ -192,44 +192,44 @@ public class ActionMetadataBuilder {
       MainAction action = m.getAnnotation(MainAction.class);
       return getActionThemeVariants(action.variants());
     }
-    return new ActionThemeVariant[0];
+    return new ActionThemeVariantDto[0];
   }
 
-  private ActionThemeVariant[] getActionThemeVariants(
+  private ActionThemeVariantDto[] getActionThemeVariants(
       io.mateu.uidl.annotations.ActionThemeVariant[] variants) {
     if (variants == null || variants.length == 0) {
-      return new ActionThemeVariant[0];
+      return new ActionThemeVariantDto[0];
     }
     return Arrays.stream(variants)
-        .map(v -> ActionThemeVariant.valueOf(v.name()))
-        .toArray(ActionThemeVariant[]::new);
+        .map(v -> ActionThemeVariantDto.valueOf(v.name()))
+        .toArray(ActionThemeVariantDto[]::new);
   }
 
-  private ActionType getActionType(Method m) {
+  private ActionTypeDto getActionType(Method m) {
     if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
       io.mateu.uidl.annotations.Action action =
           m.getAnnotation(io.mateu.uidl.annotations.Action.class);
-      return ActionType.valueOf(action.type().name());
+      return ActionTypeDto.valueOf(action.type().name());
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
-      return ActionType.valueOf(action.type().name());
+      return ActionTypeDto.valueOf(action.type().name());
     }
-    return ActionType.Primary;
+    return ActionTypeDto.Primary;
   }
 
-  private ConfirmationTexts getConfirmationTexts(Method m) {
+  private ConfirmationTextsDto getConfirmationTexts(Method m) {
     if (m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)) {
       io.mateu.uidl.annotations.Action action =
           m.getAnnotation(io.mateu.uidl.annotations.Action.class);
-      return new ConfirmationTexts(
+      return new ConfirmationTextsDto(
           getConfirmationTitle(action.confirmationTitle(), m),
           action.confirmationMessage(),
           getConfirmationAction(action.confirmationAction(), m));
     }
     if (m.isAnnotationPresent(MainAction.class)) {
       MainAction action = m.getAnnotation(MainAction.class);
-      return new ConfirmationTexts(
+      return new ConfirmationTextsDto(
           getConfirmationTitle(action.confirmationTitle(), m),
           action.confirmationMessage(),
           getConfirmationAction(action.confirmationAction(), m));
@@ -302,14 +302,14 @@ public class ActionMetadataBuilder {
     return "";
   }
 
-  protected List<Action> getActions(String listId, Object uiInstance) {
-    List<Action> actions = getActions(uiInstance);
+  protected List<ActionDto> getActions(String listId, Object uiInstance) {
+    List<ActionDto> actions = getActions(uiInstance);
     if (!Strings.isNullOrEmpty(listId))
       actions =
           actions.stream()
               .map(
                   a ->
-                      new Action(
+                      new ActionDto(
                           "__list__" + listId + "__" + a.id(),
                           null,
                           a.caption(),
@@ -326,57 +326,57 @@ public class ActionMetadataBuilder {
                           a.customEvent(),
                           a.href(),
                           false,
-                          ActionPosition.Right,
+                          ActionPositionDto.Right,
                           a.timeoutMillis(),
                           a.order()))
               .toList();
     if (canAdd(uiInstance)) {
-      Action action =
-          new Action(
+      ActionDto action =
+          new ActionDto(
               "__list__" + listId + "__new",
               null,
               getCaptionForNew(uiInstance),
-              ActionType.Primary,
-              new ActionThemeVariant[0],
+              ActionTypeDto.Primary,
+              new ActionThemeVariantDto[0],
               true,
               false,
               false,
               false,
               null,
-              ActionTarget.View,
+              ActionTargetDto.View,
               null,
               null,
               null,
               null,
               false,
-              ActionPosition.Right,
+              ActionPositionDto.Right,
               0,
               Integer.MAX_VALUE);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
     }
     if (canDelete(uiInstance)) {
-      Action action =
-          new Action(
+      ActionDto action =
+          new ActionDto(
               "__list__" + listId + "__delete",
               null,
               getCaptionForDelete(uiInstance),
-              ActionType.Primary,
-              new ActionThemeVariant[0],
+              ActionTypeDto.Primary,
+              new ActionThemeVariantDto[0],
               true,
               false,
               true,
               true,
-              new ConfirmationTexts(
+              new ConfirmationTextsDto(
                   "Please confirm",
                   "Are you sure you want to delete the selected rows",
                   "Yes, delete them"),
-              ActionTarget.View,
+              ActionTargetDto.View,
               null,
               null,
               null,
               null,
               false,
-              ActionPosition.Right,
+              ActionPositionDto.Right,
               0,
               Integer.MAX_VALUE);
       actions = Stream.concat(actions.stream(), Stream.of(action)).toList();
@@ -384,11 +384,11 @@ public class ActionMetadataBuilder {
     return actions;
   }
 
-  public List<Action> getActions(Object uiInstance) {
+  public List<ActionDto> getActions(Object uiInstance) {
     return getActionsWithPrefix("", uiInstance);
   }
 
-  private List<Action> getActionsWithPrefix(String prefix, Object uiInstance) {
+  private List<ActionDto> getActionsWithPrefix(String prefix, Object uiInstance) {
     if (uiInstance == null) {
       return new ArrayList<>();
     }
@@ -399,7 +399,7 @@ public class ActionMetadataBuilder {
       type = uiInstance.getClass();
     }
     List<Method> allMethods = reflectionService.getAllMethods(type);
-    List<Action> actions =
+    List<ActionDto> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
             .filter(
@@ -432,8 +432,8 @@ public class ActionMetadataBuilder {
                 throw new RuntimeException(e);
               }
             });
-    actions.sort(Comparator.comparing(Action::caption));
-    actions.sort(Comparator.comparing(Action::order));
+    actions.sort(Comparator.comparing(ActionDto::caption));
+    actions.sort(Comparator.comparing(ActionDto::order));
     return actions;
   }
 

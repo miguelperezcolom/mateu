@@ -8,11 +8,15 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
-import io.mateu.dtos.Element;
-import io.mateu.dtos.Tab;
+import io.mateu.dtos.ElementDto;
+import io.mateu.dtos.TabDto;
 import io.mateu.uidl.annotations.Attribute;
 import io.mateu.uidl.annotations.Content;
+import io.mateu.uidl.annotations.HorizontalLayouted;
 import io.mateu.uidl.annotations.On;
+import io.mateu.uidl.annotations.SplitLayouted;
+import io.mateu.uidl.annotations.TabLayouted;
+import io.mateu.uidl.annotations.VerticalLayouted;
 import io.mateu.uidl.data.RemoteJourney;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.Stepper;
@@ -65,7 +69,7 @@ public class ComponentMetadataBuilder {
   @Autowired private DirectoryMetadataBuilder directoryMetadataBuilder;
   @Autowired private SerializerService serializerService;
 
-  public ComponentMetadata getMetadata(
+  public ComponentMetadataDto getMetadata(
       boolean form,
       Object componentInstance,
       Field field,
@@ -74,59 +78,51 @@ public class ComponentMetadataBuilder {
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
       boolean autoFocusDisabled) {
-    ComponentMetadata metadata;
+    ComponentMetadataDto metadata;
     if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.HorizontalLayout.class)) {
+        && field.isAnnotationPresent(HorizontalLayouted.class)) {
       metadata = getHorizontalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.HorizontalLayout.class)) {
+        && field.isAnnotationPresent(HorizontalLayouted.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.TabLayout.class)) {
+        && field.isAnnotationPresent(TabLayouted.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance
-            .getClass()
-            .isAnnotationPresent(io.mateu.uidl.annotations.TabLayout.class)) {
+        && componentInstance.getClass().isAnnotationPresent(TabLayouted.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance
-            .getClass()
-            .isAnnotationPresent(io.mateu.uidl.annotations.HorizontalLayout.class)) {
+        && componentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance
-            .getClass()
-            .isAnnotationPresent(io.mateu.uidl.annotations.VerticalLayout.class)) {
+        && componentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.VerticalLayout.class)) {
+        && field.isAnnotationPresent(VerticalLayouted.class)) {
       metadata = getVerticalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.VerticalLayout.class)) {
+        && field.isAnnotationPresent(VerticalLayouted.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.SplitLayout.class)) {
+        && field.isAnnotationPresent(SplitLayouted.class)) {
       metadata = getSplitLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(io.mateu.uidl.annotations.SplitLayout.class)) {
+        && field.isAnnotationPresent(SplitLayouted.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance
-            .getClass()
-            .isAnnotationPresent(io.mateu.uidl.annotations.SplitLayout.class)) {
+        && componentInstance.getClass().isAnnotationPresent(SplitLayouted.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance instanceof io.mateu.uidl.interfaces.MicroFrontend) {
       metadata = getJourneyStarter((io.mateu.uidl.interfaces.MicroFrontend) componentInstance);
-    } else if (componentInstance instanceof Element) {
-      metadata = getElement((Element) componentInstance);
+    } else if (componentInstance instanceof ElementDto) {
+      metadata = getElement((ElementDto) componentInstance);
     } else if (componentInstance
         .getClass()
         .isAnnotationPresent(io.mateu.uidl.annotations.Element.class)) {
@@ -177,20 +173,20 @@ public class ComponentMetadataBuilder {
     return metadata;
   }
 
-  private ComponentMetadata getRemoteJourney(
+  private ComponentMetadataDto getRemoteJourney(
       RemoteJourney remoteJourney, ServerHttpRequest serverHttpRequest) {
     return remoteJourneyMetadataBuilder.build(remoteJourney);
   }
 
-  private ComponentMetadata getDirectory(
+  private ComponentMetadataDto getDirectory(
       io.mateu.uidl.interfaces.Directory directory,
       String baseUrl,
       ServerHttpRequest serverHttpRequest) {
     return directoryMetadataBuilder.build(directory, baseUrl, serverHttpRequest);
   }
 
-  private ComponentMetadata wrap(Object value) {
-    return new io.mateu.dtos.Element(
+  private ComponentMetadataDto wrap(Object value) {
+    return new ElementDto(
         "div",
         Map.of(),
             """
@@ -203,40 +199,40 @@ public class ComponentMetadataBuilder {
             .formatted("" + value));
   }
 
-  private ComponentMetadata getVerticalLayout(Object componentInstance) {
-    return new io.mateu.dtos.VerticalLayout();
+  private ComponentMetadataDto getVerticalLayout(Object componentInstance) {
+    return new VerticalLayoutDto();
   }
 
-  private ComponentMetadata getHorizontalLayout(Object componentInstance) {
-    return new io.mateu.dtos.HorizontalLayout();
+  private ComponentMetadataDto getHorizontalLayout(Object componentInstance) {
+    return new HorizontalLayoutDto();
   }
 
-  private ComponentMetadata getTabLayout(Object componentInstance) {
-    List<Tab> tabs = new ArrayList<>();
+  private ComponentMetadataDto getTabLayout(Object componentInstance) {
+    List<TabDto> tabs = new ArrayList<>();
     if (componentInstance != null) {
       reflectionService
           .getAllFields(componentInstance.getClass())
           .forEach(
               f -> {
-                tabs.add(new Tab(f.getName(), false, captionProvider.getCaption(f)));
+                tabs.add(new TabDto(f.getName(), false, captionProvider.getCaption(f)));
               });
     }
-    return new io.mateu.dtos.TabLayout(tabs);
+    return new TabLayoutDto(tabs);
   }
 
-  private ComponentMetadata getSplitLayout(Object componentInstance) {
-    return new io.mateu.dtos.SplitLayout();
+  private ComponentMetadataDto getSplitLayout(Object componentInstance) {
+    return new SplitLayoutDto();
   }
 
-  private ComponentMetadata getNonForm(Object componentInstance) {
+  private ComponentMetadataDto getNonForm(Object componentInstance) {
     if (componentInstance instanceof Container) {
-      return new io.mateu.dtos.VerticalLayout();
+      return new VerticalLayoutDto();
     }
-    return new io.mateu.dtos.Element("div", Map.of(), "" + componentInstance);
+    return new ElementDto("div", Map.of(), "" + componentInstance);
   }
 
-  private ComponentMetadata buildElement(Object componentInstance) {
-    return new io.mateu.dtos.Element(
+  private ComponentMetadataDto buildElement(Object componentInstance) {
+    return new ElementDto(
         getElementName(componentInstance),
         getElementAttributes(componentInstance),
         getElementContent(componentInstance));
@@ -277,13 +273,14 @@ public class ComponentMetadataBuilder {
                 throw new RuntimeException(e);
               }
             });
-    List<Pair> listeners = new ArrayList<>();
+    List<PairDto> listeners = new ArrayList<>();
     reflectionService.getAllMethods(componentInstance.getClass()).stream()
         .filter(m -> m.isAnnotationPresent(On.class))
         .forEach(
             m -> {
               var on = m.getAnnotation(On.class);
-              listeners.add(new Pair("listener", new Listener(on.value(), m.getName(), on.js())));
+              listeners.add(
+                  new PairDto("listener", new ListenerDto(on.value(), m.getName(), on.js())));
             });
     if (!listeners.isEmpty()) {
       attributes.put("listeners", listeners);
@@ -298,58 +295,58 @@ public class ComponentMetadataBuilder {
         .value();
   }
 
-  private ComponentMetadata getElement(Element element) {
-    return new io.mateu.dtos.Element(element.name(), element.attributes(), element.content());
+  private ComponentMetadataDto getElement(ElementDto element) {
+    return new ElementDto(element.name(), element.attributes(), element.content());
   }
 
-  private ComponentMetadata getHorizontalLayout(List<?> list, Object model, Field field) {
-    return new io.mateu.dtos.HorizontalLayout();
+  private ComponentMetadataDto getHorizontalLayout(List<?> list, Object model, Field field) {
+    return new HorizontalLayoutDto();
   }
 
-  private ComponentMetadata getVerticalLayout(List<?> list, Object model, Field field) {
-    return new io.mateu.dtos.VerticalLayout();
+  private ComponentMetadataDto getVerticalLayout(List<?> list, Object model, Field field) {
+    return new VerticalLayoutDto();
   }
 
-  private ComponentMetadata getSplitLayout(List<?> list, Object model, Field field) {
+  private ComponentMetadataDto getSplitLayout(List<?> list, Object model, Field field) {
     if (list.size() > 2) {
       log.warn(
           "Split layout cannot have more than 2 elements"
               + (field != null ? " for field " + field.getName() : ""));
     }
-    return new io.mateu.dtos.SplitLayout();
+    return new SplitLayoutDto();
   }
 
   @SneakyThrows
-  private ComponentMetadata getCrud(String listId, JpaCrud crud) {
+  private ComponentMetadataDto getCrud(String listId, JpaCrud crud) {
     Listing listing = jpaRpcCrudFactory.create(crud);
     return crudMetadataBuilder.build(listId, listing);
   }
 
   @SneakyThrows
-  private MicroFrontend getJourneyStarter(io.mateu.uidl.interfaces.MicroFrontend microFrontend) {
-    return new MicroFrontend(
+  private MicroFrontendDto getJourneyStarter(io.mateu.uidl.interfaces.MicroFrontend microFrontend) {
+    return new MicroFrontendDto(
         microFrontend.baseUrl(),
         microFrontend.journeyTypeId(),
         serializerService.toJson(microFrontend.contextData()));
   }
 
-  private Form getMethodParametersEditor(MethodParametersEditor uiInstance) {
+  private FormDto getMethodParametersEditor(MethodParametersEditor uiInstance) {
     return methodParametersEditorMetadataBuilder.build(uiInstance);
   }
 
-  private io.mateu.dtos.Result getResult(Result uiInstance) {
+  private ResultDto getResult(Result uiInstance) {
     return resultMetadataBuilder.build(uiInstance);
   }
 
-  private io.mateu.dtos.Stepper getStepper() {
+  private StepperDto getStepper() {
     return stepperMetadataBuilder.build();
   }
 
-  private io.mateu.dtos.Card getCard(Card uiInstance, List<Field> slotFields) {
+  private CardDto getCard(Card uiInstance, List<Field> slotFields) {
     return cardMetadataBuilder.build(uiInstance, slotFields);
   }
 
-  private Form getForm(
+  private FormDto getForm(
       Object uiInstance,
       List<Field> slotFields,
       Map<String, Object> data,
@@ -357,11 +354,11 @@ public class ComponentMetadataBuilder {
     return formMetadataBuilder.build(uiInstance, slotFields, data, autoFocusDisabled);
   }
 
-  private Crud getCrud(String listId, Listing rpcView) {
+  private CrudDto getCrud(String listId, Listing rpcView) {
     return crudMetadataBuilder.build(listId, rpcView);
   }
 
-  public ComponentMetadata getFormMetadata(
+  public ComponentMetadataDto getFormMetadata(
       Object form,
       Map<String, Object> data,
       String baseUrl,

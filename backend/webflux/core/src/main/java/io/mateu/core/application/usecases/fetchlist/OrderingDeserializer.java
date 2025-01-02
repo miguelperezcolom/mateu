@@ -2,8 +2,8 @@ package io.mateu.core.application.usecases.fetchlist;
 
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.SortCriteria;
-import io.mateu.dtos.SortType;
+import io.mateu.dtos.SortCriteriaDto;
+import io.mateu.dtos.SortTypeDto;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ public class OrderingDeserializer {
     this.serializerService = serializerService;
   }
 
-  public List<SortCriteria> deserialize(String raw) {
+  public List<SortCriteriaDto> deserialize(String raw) {
     if (Strings.isNullOrEmpty(raw)) {
       return List.of();
     }
@@ -33,8 +33,8 @@ public class OrderingDeserializer {
       return data.stream()
           .map(
               m ->
-                  new SortCriteria(
-                      (String) m.get("column"), SortType.valueOf((String) m.get("order"))))
+                  new SortCriteriaDto(
+                      (String) m.get("column"), SortTypeDto.valueOf((String) m.get("order"))))
           .collect(Collectors.toList());
     } catch (Exception e) {
       e.printStackTrace();

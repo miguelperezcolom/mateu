@@ -1,6 +1,7 @@
 package io.mateu.core.domain.model.outbound.metadataBuilders.fields;
 
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
+import io.mateu.dtos.StatusDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ExternalReference;
 import io.mateu.uidl.data.IconChooser;
@@ -114,7 +115,7 @@ public class FieldTypeMapper {
       return "money";
     }
     if (field.isAnnotationPresent(Status.class)) {
-      return io.mateu.dtos.Status.class.getSimpleName();
+      return StatusDto.class.getSimpleName();
     }
     return mapFieldType(field);
   }

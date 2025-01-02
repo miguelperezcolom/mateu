@@ -2,8 +2,8 @@ package io.mateu.core.application.usecases;
 
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommand;
 import io.mateu.core.domain.commands.startJourney.StartJourneyCommandHandler;
-import io.mateu.dtos.JourneyCreationRq;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.JourneyCreationRqDto;
+import io.mateu.dtos.UIIncrementDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -19,12 +19,12 @@ public class CreateJourneyUseCase {
     this.startJourneyCommandHandler = startJourneyCommandHandler;
   }
 
-  public Mono<UIIncrement> createJourney(
+  public Mono<UIIncrementDto> createJourney(
       String uiId,
       String baseUrl,
       String journeyTypeId,
       String journeyId,
-      JourneyCreationRq rq,
+      JourneyCreationRqDto rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
     return startJourneyCommandHandler.handle(

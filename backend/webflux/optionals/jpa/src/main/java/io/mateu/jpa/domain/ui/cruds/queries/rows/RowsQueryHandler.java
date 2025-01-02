@@ -3,9 +3,10 @@ package io.mateu.jpa.domain.ui.cruds.queries.rows;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.dtos.SortCriteria;
-import io.mateu.dtos.SortType;
-import io.mateu.dtos.StatusType;
+import io.mateu.dtos.SortCriteriaDto;
+import io.mateu.dtos.SortTypeDto;
+import io.mateu.dtos.StatusDto;
+import io.mateu.dtos.StatusTypeDto;
 import io.mateu.jpa.domain.ui.cruds.queries.QueryHelper;
 import io.mateu.uidl.annotations.Status;
 import jakarta.persistence.EntityManager;
@@ -56,12 +57,13 @@ public class RowsQueryHandler {
     }
   }
 
-  private List<SortCriteria> toSortOrders(Sort sort) {
+  private List<SortCriteriaDto> toSortOrders(Sort sort) {
     return sort.stream()
         .map(
             s ->
-                new SortCriteria(
-                    s.getProperty(), s.isDescending() ? SortType.Descending : SortType.Ascending))
+                new SortCriteriaDto(
+                    s.getProperty(),
+                    s.isDescending() ? SortTypeDto.Descending : SortTypeDto.Ascending))
         .toList();
   }
 
@@ -81,7 +83,7 @@ public class RowsQueryHandler {
     }
     if (field != null && field.isAnnotationPresent(Status.class)) {
       Status statusAnnotation = field.getAnnotation(Status.class);
-      return new io.mateu.dtos.Status(getStatusType(statusAnnotation, "" + value), "" + value);
+      return new StatusDto(getStatusType(statusAnnotation, "" + value), "" + value);
     }
     if (reflectionService.isBasic(value.getClass())) {
       return value;
@@ -89,27 +91,27 @@ public class RowsQueryHandler {
     return "" + value;
   }
 
-  private StatusType getStatusType(Status statusAnnotation, String value) {
+  private StatusTypeDto getStatusType(Status statusAnnotation, String value) {
     if (value == null) {
-      return StatusType.NONE;
+      return StatusTypeDto.NONE;
     }
     String normalizedValue = value.toLowerCase();
     if (statusAnnotation.valuesForSuccess().contains(normalizedValue)
         || successStatuses.contains(normalizedValue)) {
-      return StatusType.SUCCESS;
+      return StatusTypeDto.SUCCESS;
     }
     if (statusAnnotation.valuesForDanger().contains(normalizedValue)
         || dangerStatuses.contains(normalizedValue)) {
-      return StatusType.DANGER;
+      return StatusTypeDto.DANGER;
     }
     if (statusAnnotation.valuesForWarning().contains(normalizedValue)
         || warningStatuses.contains(normalizedValue)) {
-      return StatusType.WARNING;
+      return StatusTypeDto.WARNING;
     }
     if (statusAnnotation.valuesForInfo().contains(normalizedValue)
         || infoStatuses.contains(normalizedValue)) {
-      return StatusType.INFO;
+      return StatusTypeDto.INFO;
     }
-    return StatusType.NONE;
+    return StatusTypeDto.NONE;
   }
 }

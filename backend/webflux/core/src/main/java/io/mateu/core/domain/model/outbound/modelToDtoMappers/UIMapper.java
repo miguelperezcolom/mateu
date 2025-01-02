@@ -5,8 +5,8 @@ import io.mateu.core.domain.model.inbound.dynamic.DynamicUI;
 import io.mateu.core.domain.model.outbound.metadataBuilders.CaptionProvider;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.dtos.App;
-import io.mateu.dtos.UI;
+import io.mateu.dtos.AppDto;
+import io.mateu.dtos.UIDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
@@ -25,15 +25,15 @@ public class UIMapper {
   final MenuBuilder menuCreator;
   final CaptionProvider captionProvider;
 
-  public UI map(Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest)
+  public UIDto map(Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest)
       throws Exception {
 
     if (uiInstance instanceof DynamicUI) {
       return ((DynamicUI) uiInstance).build().toFuture().get();
     }
 
-    UI ui =
-        new UI(
+    UIDto ui =
+        new UIDto(
             getFavIcon(uiInstance),
             getIcon(uiInstance),
             getLogo(uiInstance),
@@ -75,10 +75,12 @@ public class UIMapper {
     return null;
   }
 
-  private List<App> getApps(Object uiInstance) {
+  private List<AppDto> getApps(Object uiInstance) {
     if (uiInstance instanceof HasApps hasApps) {
       return hasApps.getApps().stream()
-          .map(app -> new App(app.icon(), app.name(), app.description(), app.url(), app.disabled()))
+          .map(
+              app ->
+                  new AppDto(app.icon(), app.name(), app.description(), app.url(), app.disabled()))
           .toList();
     }
     return List.of();

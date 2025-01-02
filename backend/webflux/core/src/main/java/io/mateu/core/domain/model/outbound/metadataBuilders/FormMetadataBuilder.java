@@ -9,11 +9,11 @@ import io.mateu.core.domain.model.reflection.fieldabstraction.FieldFromReflectio
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
 import io.mateu.core.domain.model.reflection.usecases.ManagedTypeChecker;
 import io.mateu.dtos.*;
-import io.mateu.dtos.Action;
-import io.mateu.dtos.FieldGroup;
-import io.mateu.dtos.Section;
-import io.mateu.dtos.Status;
-import io.mateu.dtos.Tab;
+import io.mateu.dtos.ActionDto;
+import io.mateu.dtos.FieldGroupDto;
+import io.mateu.dtos.SectionDto;
+import io.mateu.dtos.StatusDto;
+import io.mateu.dtos.TabDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.HasBadges;
 import io.mateu.uidl.interfaces.HasBanners;
@@ -51,11 +51,11 @@ public class FormMetadataBuilder {
   final RulesBuilder rulesBuilder;
   private final BasicTypeChecker basicTypeChecker;
   private final ManagedTypeChecker managedTypeChecker;
-  private Section s;
+  private SectionDto s;
 
   @SneakyThrows
   // todo: this builder is based on reflection. Consider adding a dynamic one and cache results
-  public Form build(
+  public FormDto build(
       Object uiInstance,
       List<Field> slotFields,
       Map<String, Object> data,
@@ -64,7 +64,7 @@ public class FormMetadataBuilder {
       return ((DynamicForm) uiInstance).build().toFuture().get();
     }
 
-    return new Form(
+    return new FormDto(
         getIcon(uiInstance),
         captionProvider.getCaption(uiInstance),
         isReadOnly(uiInstance),
@@ -116,12 +116,12 @@ public class FormMetadataBuilder {
     return null;
   }
 
-  private List<Tab> getTabs(Object uiInstance, Map<String, Object> data) {
+  private List<TabDto> getTabs(Object uiInstance, Map<String, Object> data) {
     if (uiInstance == null) {
       return null;
     }
     String activeTabId = (String) data.get("__activeTabId");
-    List<Tab> tabs = new ArrayList<>();
+    List<TabDto> tabs = new ArrayList<>();
     var editableFields = reflectionService.getAllEditableFields(uiInstance.getClass());
     AtomicBoolean first = new AtomicBoolean(true);
     tabs.addAll(
@@ -129,7 +129,7 @@ public class FormMetadataBuilder {
             .filter(f -> f.isAnnotationPresent(io.mateu.uidl.annotations.Tab.class))
             .map(
                 f ->
-                    new Tab(
+                    new TabDto(
                         "tab_" + f.getId(),
                         isActive("tab_" + f.getId(), first.getAndSet(false), activeTabId),
                         f.getAnnotation(io.mateu.uidl.annotations.Tab.class).value()))
@@ -144,7 +144,7 @@ public class FormMetadataBuilder {
     return activeTabId.equals(tabId);
   }
 
-  private List<Banner> getBanners(Object uiInstance) {
+  private List<BannerDto> getBanners(Object uiInstance) {
     if (!(uiInstance instanceof HasBanners)) {
       return List.of();
     }
@@ -152,7 +152,7 @@ public class FormMetadataBuilder {
         .getBanners().stream()
             .map(
                 banner ->
-                    new Banner(
+                    new BannerDto(
                         mapBannerTheme(banner.theme()),
                         banner.hasIcon(),
                         banner.hasCloseButton(),
@@ -161,8 +161,8 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BannerTheme mapBannerTheme(io.mateu.uidl.data.BannerTheme theme) {
-    return BannerTheme.valueOf(theme.toString());
+  private BannerThemeDto mapBannerTheme(io.mateu.uidl.data.BannerTheme theme) {
+    return BannerThemeDto.valueOf(theme.toString());
   }
 
   private boolean isReadOnly(Object uiInstance) {
@@ -190,20 +190,21 @@ public class FormMetadataBuilder {
     return null;
   }
 
-  private Status getStatus(Object uiInstance) {
+  private StatusDto getStatus(Object uiInstance) {
     if (!(uiInstance instanceof HasStatus)) {
       return null;
     }
     HasStatus hasStatus = (HasStatus) uiInstance;
     if (hasStatus.getStatus() == null) return null;
-    return new Status(mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
+    return new StatusDto(
+        mapStatusType(hasStatus.getStatus().type()), hasStatus.getStatus().message());
   }
 
-  private StatusType mapStatusType(io.mateu.uidl.data.StatusType type) {
-    return StatusType.valueOf(type.toString());
+  private StatusTypeDto mapStatusType(io.mateu.uidl.data.StatusType type) {
+    return StatusTypeDto.valueOf(type.toString());
   }
 
-  private List<Badge> getBadges(Object uiInstance) {
+  private List<BadgeDto> getBadges(Object uiInstance) {
     if (!(uiInstance instanceof HasBadges)) {
       return List.of();
     }
@@ -211,28 +212,28 @@ public class FormMetadataBuilder {
         .getBadges().stream()
             .map(
                 b -> {
-                  BadgeTheme theme = mapBadgeTheme(b.theme());
+                  BadgeThemeDto theme = mapBadgeTheme(b.theme());
                   String label = b.label();
                   String icon = b.icon();
-                  BadgeStyle badgeStyle = mapBadgeStyle(b.badgeStyle());
-                  BadgeIconPosition iconPosition = mapBadgePosition(b.iconPosition());
+                  BadgeStyleDto badgeStyle = mapBadgeStyle(b.badgeStyle());
+                  BadgeIconPositionDto iconPosition = mapBadgePosition(b.iconPosition());
 
                   if (theme != null
                       && label != null
                       && icon != null
                       && badgeStyle != null
                       && iconPosition != null) {
-                    return new Badge(theme, label, icon, badgeStyle, iconPosition);
+                    return new BadgeDto(theme, label, icon, badgeStyle, iconPosition);
                   } else if (theme != null
                       && icon != null
                       && badgeStyle != null
                       && iconPosition != null) {
-                    return new Badge(theme, null, icon, badgeStyle, iconPosition);
+                    return new BadgeDto(theme, null, icon, badgeStyle, iconPosition);
                   } else if (theme != null
                       && label != null
                       && badgeStyle != null
                       && iconPosition != null) {
-                    return new Badge(theme, label, null, badgeStyle, iconPosition);
+                    return new BadgeDto(theme, label, null, badgeStyle, iconPosition);
                   } else {
                     return null;
                   }
@@ -240,37 +241,37 @@ public class FormMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
-    return BadgeTheme.valueOf(theme.toString());
+  private BadgeThemeDto mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
+    return BadgeThemeDto.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
+  private BadgeStyleDto mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
     if (badgeStyle == null) {
-      return BadgeStyle.ROUND;
+      return BadgeStyleDto.ROUND;
     }
-    return BadgeStyle.valueOf(badgeStyle.toString());
+    return BadgeStyleDto.valueOf(badgeStyle.toString());
   }
 
-  private BadgeIconPosition mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
+  private BadgeIconPositionDto mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
     if (iconPosition == null) {
-      return BadgeIconPosition.RIGHT;
+      return BadgeIconPositionDto.RIGHT;
     }
-    return BadgeIconPosition.valueOf(iconPosition.toString());
+    return BadgeIconPositionDto.valueOf(iconPosition.toString());
   }
 
-  private List<Action> getMainActions(Object uiInstance) {
+  private List<ActionDto> getMainActions(Object uiInstance) {
     List<Method> allMethods = reflectionService.getAllMethods(uiInstance.getClass());
-    List<Action> actions =
+    List<ActionDto> actions =
         allMethods.stream()
             .filter(m -> m.isAnnotationPresent(MainAction.class))
             .map(m -> actionMetadataBuilder.getAction("", m))
             .collect(Collectors.toList());
-    actions.sort(Comparator.comparing(Action::caption));
-    actions.sort(Comparator.comparing(Action::order));
+    actions.sort(Comparator.comparing(ActionDto::caption));
+    actions.sort(Comparator.comparing(ActionDto::order));
     return actions;
   }
 
-  public List<Section> getSections(
+  public List<SectionDto> getSections(
       Object uiInstance, List<Field> slotFields, boolean autoFocusDisabled) {
     List<Field> allEditableFields = getAllEditableFields(uiInstance, slotFields);
 
@@ -316,11 +317,11 @@ public class FormMetadataBuilder {
     return new FakeLabelAnnotation(effectiveCaption);
   }
 
-  public List<Section> createSections(
+  public List<SectionDto> createSections(
       Object uiInstance, List<Field> allEditableFields, boolean autoFocusDisabled) {
     Map<String, List<Field>> fieldsByTabId = groupFieldsByTabId(allEditableFields);
 
-    List<Section> sections = new ArrayList<>();
+    List<SectionDto> sections = new ArrayList<>();
     fieldsByTabId
         .keySet()
         .forEach(
@@ -350,7 +351,7 @@ public class FormMetadataBuilder {
       Object uiInstance,
       Field firstField,
       String tabId,
-      List<Section> sections,
+      List<SectionDto> sections,
       int defaultColumnsNumber,
       boolean autoFocusDisabled) {
     String caption = "";
@@ -377,13 +378,13 @@ public class FormMetadataBuilder {
       itemLabelWidth = annotation.itemLabelWidth();
     }
     var section =
-        new Section(
+        new SectionDto(
             "" + sections.size(),
             tabId,
             caption,
             description,
             isReadOnly(uiInstance),
-            card ? SectionType.Card : SectionType.Transparent,
+            card ? SectionTypeDto.Card : SectionTypeDto.Transparent,
             leftSideImageUrl,
             topImageUrl,
             createFieldGroups(uiInstance, fields, numberOfColumns, autoFocusDisabled),
@@ -430,14 +431,14 @@ public class FormMetadataBuilder {
     return fieldsByTabId;
   }
 
-  private List<FieldGroup> createFieldGroups(
+  private List<FieldGroupDto> createFieldGroups(
       Object formInstance,
       List<Field> allEditableFields,
       int numberOfColumnsInSection,
       boolean autoFocusDisabled) {
-    List<FieldGroup> groups = new ArrayList<>();
-    List<FieldGroupLine> lines = new ArrayList<>();
-    List<io.mateu.dtos.Field> fields = new ArrayList<>();
+    List<FieldGroupDto> groups = new ArrayList<>();
+    List<FieldGroupLineDto> lines = new ArrayList<>();
+    List<FieldDto> fields = new ArrayList<>();
     String currentGroupCaption = "";
     int currentGroupColumns = 0;
 
@@ -461,7 +462,7 @@ public class FormMetadataBuilder {
       }
       if (!field.isAnnotationPresent(SameLine.class)) {
         if (!fields.isEmpty()) {
-          lines.add(new FieldGroupLine(fields));
+          lines.add(new FieldGroupLineDto(fields));
           fields = new ArrayList<>();
         }
       }
@@ -475,14 +476,14 @@ public class FormMetadataBuilder {
   }
 
   private void addGroup(
-      List<FieldGroup> groups,
-      List<FieldGroupLine> lines,
-      List<io.mateu.dtos.Field> fields,
+      List<FieldGroupDto> groups,
+      List<FieldGroupLineDto> lines,
+      List<FieldDto> fields,
       int numberOfColumnsInSection,
       String currentGroupCaption,
       int currentGroupColumns) {
     if (!fields.isEmpty()) {
-      lines.add(new FieldGroupLine(new ArrayList<>(fields)));
+      lines.add(new FieldGroupLineDto(new ArrayList<>(fields)));
       fields.clear();
 
       int totalCols = fields.stream().map(f -> f.colspan()).reduce(Integer::sum).orElse(0);
@@ -492,7 +493,7 @@ public class FormMetadataBuilder {
       }
       if (requiredCols > totalCols) {
         fields.add(
-            new io.mateu.dtos.Field(
+            new FieldDto(
                 "void",
                 "string",
                 "element:div",
@@ -509,11 +510,11 @@ public class FormMetadataBuilder {
                 false,
                 false));
       }
-      lines.add(new FieldGroupLine(new ArrayList<>(fields)));
+      lines.add(new FieldGroupLineDto(new ArrayList<>(fields)));
     }
     if (!lines.isEmpty()) {
       groups.add(
-          new FieldGroup(
+          new FieldGroupDto(
               "" + groups.size(),
               currentGroupCaption,
               new ArrayList<>(lines),
@@ -523,12 +524,12 @@ public class FormMetadataBuilder {
     fields.clear();
   }
 
-  private List<Section> fillSectionIds(List<Section> sections) {
+  private List<SectionDto> fillSectionIds(List<SectionDto> sections) {
     AtomicInteger i = new AtomicInteger();
     return sections.stream()
         .map(
             s ->
-                new Section(
+                new SectionDto(
                     "section_" + i.getAndIncrement(),
                     s.tabId(),
                     s.caption(),
@@ -540,7 +541,7 @@ public class FormMetadataBuilder {
                     IntStream.range(0, s.fieldGroups().size())
                         .mapToObj(
                             j ->
-                                new FieldGroup(
+                                new FieldGroupDto(
                                     "fieldgroup_" + i + "_" + j,
                                     s.fieldGroups().get(j).caption(),
                                     s.fieldGroups().get(j).lines(),

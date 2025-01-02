@@ -19,6 +19,10 @@ public record Result(
         interestingLinks != null ? Collections.unmodifiableList(interestingLinks) : List.of();
   }
 
+  public Result(ResultType type, String message, Destination nowTo) {
+    this("", type, message, List.of(), nowTo, "", null);
+  }
+
   @Override
   public List<Destination> interestingLinks() {
     return Collections.unmodifiableList(interestingLinks);

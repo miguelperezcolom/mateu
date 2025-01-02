@@ -3,7 +3,7 @@ package io.mateu.core.application.usecases.fetchlist;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQuery;
 import io.mateu.core.domain.queries.getListRows.GetListRowsQueryHandler;
-import io.mateu.dtos.Page;
+import io.mateu.dtos.PageDto;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -27,7 +27,7 @@ public class FetchListUseCase {
     this.orderingDeserializer = orderingDeserializer;
   }
 
-  public Mono<Page> fetchPage(
+  public Mono<PageDto> fetchPage(
       String componentType,
       Map<String, Object> data,
       int page,
@@ -49,6 +49,6 @@ public class FetchListUseCase {
                 page,
                 page_size,
                 orderingDeserializer.deserialize(ordering)))
-        .map(p -> new Page(p.stream().toList(), p.getTotalElements()));
+        .map(p -> new PageDto(p.stream().toList(), p.getTotalElements()));
   }
 }

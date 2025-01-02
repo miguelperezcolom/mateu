@@ -6,9 +6,9 @@ import static org.mockito.Mockito.mock;
 import io.mateu.core.application.usecases.CreateJourneyUseCase;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.demo.complexview.ComplexView;
-import io.mateu.dtos.Component;
-import io.mateu.dtos.JourneyCreationRq;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.JourneyCreationRqDto;
+import io.mateu.dtos.UIIncrementDto;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class CreateComplexViewHomeJourneyTest {
     var uiId = ComplexView.class.getName();
     var journeyTypeId = "____home____";
     var journeyId = UUID.randomUUID().toString();
-    var journeyCreationRq = new JourneyCreationRq(Map.of(), "");
+    var journeyCreationRq = new JourneyCreationRqDto(Map.of(), "");
     var serverHttpRequest = mock(ServerHttpRequest.class);
     var mono =
         createJourneyUseCase.createJourney(
@@ -51,7 +51,7 @@ public class CreateComplexViewHomeJourneyTest {
   }
 
   @SneakyThrows
-  private void assertUIIncrement(UIIncrement uiIncrement) {
+  private void assertUIIncrement(UIIncrementDto uiIncrement) {
     assertNotNull(uiIncrement);
     log.info(serializerService.toJson(uiIncrement));
     var componentsJsons = new HashMap<String, String>();
@@ -80,7 +80,7 @@ public class CreateComplexViewHomeJourneyTest {
     JSONAssert.assertEquals(json, serializerService.toJson(uiIncrement), JSONCompareMode.STRICT);
   }
 
-  private String assertComponent(String componentId, Component component) throws Exception {
+  private String assertComponent(String componentId, ComponentDto component) throws Exception {
     log.info("assertComponent: {}", componentId);
     var realJson = getJsonForComponent(component);
     log.info("realJson: {}", realJson);
@@ -92,7 +92,7 @@ public class CreateComplexViewHomeJourneyTest {
     return componentJson;
   }
 
-  private String getJsonForComponent(Component component) throws Exception {
+  private String getJsonForComponent(ComponentDto component) throws Exception {
     return serializerService.toJson(component);
   }
 }

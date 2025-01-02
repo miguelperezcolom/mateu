@@ -413,7 +413,11 @@ export class MateuUx extends LitElement {
                             if ('____home____' == this.journeyTypeId) {
                                 url = ''
                             }
-                            if (!window.location.hash.startsWith(url)) {
+                            var hash = window.location.hash
+                            if (hash.includes('____x')) {
+                                hash = hash.substring(0, hash.indexOf('____x'))
+                            }
+                            if (hash != url) {
                                 window.history.pushState({},"", url);
                             }
                         }

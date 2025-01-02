@@ -31,10 +31,9 @@ public class FieldMetadataBuilder {
   final ReflectionService reflectionService;
   final CaptionProvider captionProvider;
 
-  public io.mateu.dtos.Field getField(
-      Object view, Field fieldInterfaced, boolean autoFocusDisabled) {
-    io.mateu.dtos.Field field =
-        new io.mateu.dtos.Field(
+  public FieldDto getField(Object view, Field fieldInterfaced, boolean autoFocusDisabled) {
+    FieldDto field =
+        new FieldDto(
             fieldInterfaced.getId(),
             fieldTypeMapper.mapFieldType(fieldInterfaced),
             fieldStereotypeMapper.mapStereotype(view, fieldInterfaced),
@@ -66,12 +65,12 @@ public class FieldMetadataBuilder {
   }
 
   @SneakyThrows
-  private List<Pair> completeAttributes(
-      Object view, Field field, List<Pair> pairs, boolean autoFocusDisabled) {
+  private List<PairDto> completeAttributes(
+      Object view, Field field, List<PairDto> pairs, boolean autoFocusDisabled) {
     if (VGap.class.equals(field.getType())) {
       VGap vgap = (VGap) reflectionService.getValue(field, view);
       if (vgap != null) {
-        pairs.add(new Pair("height", vgap.height()));
+        pairs.add(new PairDto("height", vgap.height()));
       }
     }
     if (Collection.class.isAssignableFrom(field.getType())
@@ -85,7 +84,7 @@ public class FieldMetadataBuilder {
         }
         var form = reflectionService.newInstance(formClass);
         for (Field columnField : reflectionService.getAllEditableFields(formClass)) {
-          pairs.add(new Pair("field", getField(form, columnField, autoFocusDisabled)));
+          pairs.add(new PairDto("field", getField(form, columnField, autoFocusDisabled)));
         }
       }
     }
@@ -106,7 +105,7 @@ public class FieldMetadataBuilder {
     return fieldInterfaced.isAnnotationPresent(RequestFocus.class);
   }
 
-  private List<Badge> getBadges(Object view, Field field) {
+  private List<BadgeDto> getBadges(Object view, Field field) {
     if (!(view instanceof HasBadgesOnFields)) {
       return List.of();
     }
@@ -114,7 +113,7 @@ public class FieldMetadataBuilder {
         .getBadgesOnField(field.getId()).stream()
             .map(
                 b ->
-                    new Badge(
+                    new BadgeDto(
                         mapBadgeTheme(b.theme()),
                         b.label(),
                         b.icon(),
@@ -123,16 +122,16 @@ public class FieldMetadataBuilder {
             .collect(Collectors.toList());
   }
 
-  private BadgeTheme mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
-    return BadgeTheme.valueOf(theme.toString());
+  private BadgeThemeDto mapBadgeTheme(io.mateu.uidl.data.BadgeTheme theme) {
+    return BadgeThemeDto.valueOf(theme.toString());
   }
 
-  private BadgeStyle mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
-    return BadgeStyle.valueOf(badgeStyle.toString());
+  private BadgeStyleDto mapBadgeStyle(io.mateu.uidl.data.BadgeStyle badgeStyle) {
+    return BadgeStyleDto.valueOf(badgeStyle.toString());
   }
 
-  private BadgeIconPosition mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
-    return BadgeIconPosition.valueOf(iconPosition.toString());
+  private BadgeIconPositionDto mapBadgePosition(io.mateu.uidl.data.BadgeIconPosition iconPosition) {
+    return BadgeIconPositionDto.valueOf(iconPosition.toString());
   }
 
   private boolean isObserved(Field field) {
@@ -153,8 +152,8 @@ public class FieldMetadataBuilder {
     return null;
   }
 
-  private List<Validation> getValidations(Field fieldInterfaced) {
-    List<Validation> validations = new ArrayList<>();
+  private List<ValidationDto> getValidations(Field fieldInterfaced) {
+    List<ValidationDto> validations = new ArrayList<>();
     // todo: añadir otros tipos de validación, y mensaje de error
     addRequiredValidation(fieldInterfaced, validations);
     addPatternValidation(fieldInterfaced, validations);
@@ -164,39 +163,39 @@ public class FieldMetadataBuilder {
     return validations;
   }
 
-  private void addMinValidation(Field field, List<Validation> validations) {
+  private void addMinValidation(Field field, List<ValidationDto> validations) {
     if (field.isAnnotationPresent(Min.class)) {
       validations.add(
-          new Validation(
-              ValidationType.Min,
+          new ValidationDto(
+              ValidationTypeDto.Min,
               field.getAnnotation(Min.class).message(),
               field.getAnnotation(Min.class).value()));
     }
   }
 
-  private void addMaxValidation(Field field, List<Validation> validations) {
+  private void addMaxValidation(Field field, List<ValidationDto> validations) {
     if (field.isAnnotationPresent(Max.class)) {
       validations.add(
-          new Validation(
-              ValidationType.Max,
+          new ValidationDto(
+              ValidationTypeDto.Max,
               field.getAnnotation(Max.class).message(),
               field.getAnnotation(Max.class).value()));
     }
   }
 
-  private void addRequiredValidation(Field field, List<Validation> validations) {
+  private void addRequiredValidation(Field field, List<ValidationDto> validations) {
     if (field.isAnnotationPresent(NotEmpty.class)
         || field.isAnnotationPresent(NotNull.class)
         || field.isAnnotationPresent(NotBlank.class)) {
-      validations.add(new Validation(ValidationType.NotEmpty, "Required field", null));
+      validations.add(new ValidationDto(ValidationTypeDto.NotEmpty, "Required field", null));
     }
   }
 
-  private void addPatternValidation(Field field, List<Validation> validations) {
+  private void addPatternValidation(Field field, List<ValidationDto> validations) {
     if (field.isAnnotationPresent(Pattern.class)) {
       validations.add(
-          new Validation(
-              ValidationType.Pattern,
+          new ValidationDto(
+              ValidationTypeDto.Pattern,
               field.getAnnotation(Pattern.class).message(),
               field.getAnnotation(Pattern.class).regexp()));
     }

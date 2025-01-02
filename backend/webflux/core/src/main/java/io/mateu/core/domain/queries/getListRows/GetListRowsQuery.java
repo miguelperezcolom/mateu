@@ -1,6 +1,6 @@
 package io.mateu.core.domain.queries.getListRows;
 
-import io.mateu.dtos.SortCriteria;
+import io.mateu.dtos.SortCriteriaDto;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +14,7 @@ public record GetListRowsQuery(
     Map<String, Object> filters,
     int page,
     int pageSize,
-    List<SortCriteria> ordering) {
+    List<SortCriteriaDto> ordering) {
 
   public GetListRowsQuery {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();
@@ -33,7 +33,7 @@ public record GetListRowsQuery(
   }
 
   @Override
-  public List<SortCriteria> ordering() {
+  public List<SortCriteriaDto> ordering() {
     return Collections.unmodifiableList(ordering);
   }
 }

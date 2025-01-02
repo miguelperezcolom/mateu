@@ -4,7 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.Lis
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.ComponentFactory;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIIncrementFactory;
 import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.dtos.UIIncrement;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.Crud;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -34,10 +34,11 @@ public class CrudRowActionRunner implements ListActionRunner {
   }
 
   @Override
-  public Mono<UIIncrement> run(
+  public Mono<UIIncrementDto> run(
       Crud crud,
       String crudStepId,
       String actionId,
+      String componentId,
       Map<String, Object> data,
       Map<String, Object> contextData,
       String baseUrl,

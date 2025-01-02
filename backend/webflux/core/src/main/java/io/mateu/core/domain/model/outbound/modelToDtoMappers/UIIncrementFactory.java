@@ -9,26 +9,26 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class UIIncrementFactory {
-  public UIIncrement createForSingleComponent(Component component, String componentId) {
-    return createForSingleComponent(component, ActionTarget.Component, componentId);
+  public UIIncrementDto createForSingleComponent(ComponentDto component, String componentId) {
+    return createForSingleComponent(component, ActionTargetDto.Component, componentId);
   }
 
-  public UIIncrement createForSingleComponent(Component component) {
-    return createForSingleComponent(component, ActionTarget.View, "");
+  public UIIncrementDto createForSingleComponent(ComponentDto component) {
+    return createForSingleComponent(component, ActionTargetDto.View, "");
   }
 
-  public UIIncrement createForSingleComponent(
-      Component component, ActionTarget actionTarget, String targetId) {
-    return new UIIncrement(
+  public UIIncrementDto createForSingleComponent(
+      ComponentDto component, ActionTargetDto actionTarget, String targetId) {
+    return new UIIncrementDto(
         List.of(),
         List.of(),
         List.of(
-            new UIFragment(
+            new UIFragmentDto(
                 actionTarget,
                 targetId,
                 "",
                 "",
-                new SingleComponent(component.id()),
+                new SingleComponentDto(component.id()),
                 Map.of(component.id(), component))));
   }
 }

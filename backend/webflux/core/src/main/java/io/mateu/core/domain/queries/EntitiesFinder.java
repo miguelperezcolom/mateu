@@ -3,7 +3,7 @@ package io.mateu.core.domain.queries;
 import com.google.common.base.Strings;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
-import io.mateu.dtos.Value;
+import io.mateu.dtos.ValueDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -18,7 +18,7 @@ public class EntitiesFinder {
   @PersistenceContext EntityManager em;
   @Autowired ReflectionService reflectionService;
 
-  public List<Value> findEntities(Class entityClass, String searchText, int page, int pageSize) {
+  public List<ValueDto> findEntities(Class entityClass, String searchText, int page, int pageSize) {
     Field idField = reflectionService.getIdField(entityClass);
     Field nameField = reflectionService.getNameField(entityClass, false);
     String jpql =
@@ -37,9 +37,9 @@ public class EntitiesFinder {
     if (!Strings.isNullOrEmpty(searchText)) {
       query.setParameter("s", "%" + searchText.toLowerCase().replaceAll("'", "''") + "%");
     }
-    return (List<Value>)
+    return (List<ValueDto>)
         query.getResultList().stream()
-            .map(m -> new Value((String) ((Object[]) m)[1], ((Object[]) m)[0]))
+            .map(m -> new ValueDto((String) ((Object[]) m)[1], ((Object[]) m)[0]))
             .collect(Collectors.toList());
   }
 

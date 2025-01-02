@@ -68,7 +68,7 @@ public class ResultMapper {
   }
 
   @SneakyThrows
-  public Mono<UIIncrement> processResult(
+  public Mono<UIIncrementDto> processResult(
       Object actualViewInstance,
       AnnotatedElement trigger,
       Method m,
@@ -92,11 +92,11 @@ public class ResultMapper {
 
     if (result instanceof MicroFrontend microFrontend) {
       return Mono.just(
-          new UIIncrement(
+          new UIIncrementDto(
               List.of(
-                  new UICommand(
-                      UICommandType.ReplaceJourney,
-                      new io.mateu.dtos.MicroFrontend(
+                  new UICommandDto(
+                      UICommandTypeDto.ReplaceJourney,
+                      new MicroFrontendDto(
                           microFrontend.baseUrl(),
                           microFrontend.journeyTypeId(),
                           serializerService.toJson(microFrontend.contextData())))),
@@ -143,7 +143,7 @@ public class ResultMapper {
   }
 
   @SneakyThrows
-  protected UIIncrement getUiIncrement(
+  protected UIIncrementDto getUiIncrement(
       AnnotatedElement m,
       Map<String, Object> data,
       String baseUrl,
@@ -157,11 +157,11 @@ public class ResultMapper {
     var fragments =
         getFragments(m, data, baseUrl, serverHttpRequest, r, componentId, calledByParametersEditor);
 
-    return new UIIncrement(commands, messages, fragments);
+    return new UIIncrementDto(commands, messages, fragments);
   }
 
   @SneakyThrows
-  private List<UIFragment> getFragments(
+  private List<UIFragmentDto> getFragments(
       AnnotatedElement m,
       Map<String, Object> data,
       String baseUrl,
@@ -170,9 +170,9 @@ public class ResultMapper {
       String componentId,
       boolean calledByParametersEditor) {
 
-    List<UIFragment> fragments = new ArrayList<>();
+    List<UIFragmentDto> fragments = new ArrayList<>();
     if (mustCloseModal(m, r instanceof MethodParametersEditor) || r instanceof CloseModal) {
-    } else if (isTargetMessage(m) || r instanceof Message || r instanceof io.mateu.dtos.Message) {
+    } else if (isTargetMessage(m) || r instanceof Message || r instanceof MessageDto) {
 
     } else if (r instanceof URL url) {
       if (!ActionTarget.NewTab.equals(getActionTarget(m, calledByParametersEditor))
@@ -185,12 +185,12 @@ public class ResultMapper {
                 data,
                 mustAutofocusBeDisabled(m, calledByParametersEditor));
         fragments.add(
-            new UIFragment(
+            new UIFragmentDto(
                 mapActionTarget(getActionTarget(m, calledByParametersEditor)),
                 getTargetId(m, componentId, calledByParametersEditor),
                 getModalStyle(m),
                 getModalTitle(m),
-                new SingleComponent(component.id()),
+                new SingleComponentDto(component.id()),
                 Map.of(component.id(), component)));
       }
     } else if (basicTypeChecker.isBasic(r.getClass())) {
@@ -202,12 +202,12 @@ public class ResultMapper {
               data,
               mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
-          new UIFragment(
+          new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
               getModalStyle(m),
               getModalTitle(m),
-              new SingleComponent(component.id()),
+              new SingleComponentDto(component.id()),
               Map.of(component.id(), component)));
     } else if (r instanceof ResponseWrapper responseWrapper) {
       var component =
@@ -218,18 +218,18 @@ public class ResultMapper {
               data,
               mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
-          new UIFragment(
+          new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
               getModalStyle(m),
               getModalTitle(m),
-              new SingleComponent(component.id()),
+              new SingleComponentDto(component.id()),
               Map.of(component.id(), component)));
     } else if (r instanceof io.mateu.uidl.interfaces.View view) {
-      Map<String, Component> allComponents = new LinkedHashMap<>();
-      View viewDto = viewMapper.map(view, baseUrl, serverHttpRequest, allComponents, Map.of());
+      Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
+      ViewDto viewDto = viewMapper.map(view, baseUrl, serverHttpRequest, allComponents, Map.of());
       fragments.add(
-          new UIFragment(
+          new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
               getModalStyle(m),
@@ -237,12 +237,12 @@ public class ResultMapper {
               viewDto,
               allComponents));
     } else if (r instanceof Container) {
-      Map<String, Component> allComponents = new LinkedHashMap<>();
-      View viewDto =
+      Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
+      ViewDto viewDto =
           viewMapper.map(
               new SingleComponentView(r), baseUrl, serverHttpRequest, allComponents, Map.of());
       fragments.add(
-          new UIFragment(
+          new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
               getModalStyle(m),
@@ -258,12 +258,12 @@ public class ResultMapper {
               data,
               mustAutofocusBeDisabled(m, calledByParametersEditor));
       fragments.add(
-          new UIFragment(
+          new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
               getModalStyle(m),
               getModalTitle(m),
-              new SingleComponent(component.id()),
+              new SingleComponentDto(component.id()),
               Map.of(component.id(), component)));
     }
 
@@ -287,14 +287,14 @@ public class ResultMapper {
     return false;
   }
 
-  private List<UICommand> getCommands(
+  private List<UICommandDto> getCommands(
       AnnotatedElement m,
       Map<String, Object> data,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Object r,
       boolean calledByParametersEditor) {
-    List<UICommand> commands = new ArrayList<>();
+    List<UICommandDto> commands = new ArrayList<>();
     if (mustCloseModal(m, r instanceof MethodParametersEditor)) {
       commands.add(
           createCloseCommand(
@@ -316,20 +316,21 @@ public class ResultMapper {
     }
     if (r instanceof URL url) {
       if (ActionTarget.NewTab.equals(getActionTarget(m, calledByParametersEditor))) {
-        commands.add(new UICommand(UICommandType.OpenNewTab, url.toString()));
+        commands.add(new UICommandDto(UICommandTypeDto.OpenNewTab, url.toString()));
       }
       if (ActionTarget.NewWindow.equals(getActionTarget(m, calledByParametersEditor))) {
-        commands.add(new UICommand(UICommandType.OpenNewWindow, url.toString()));
+        commands.add(new UICommandDto(UICommandTypeDto.OpenNewWindow, url.toString()));
       }
     }
     if (r instanceof UpdatesUrlFragment updatesUrlFragment) {
       commands.add(
-          new UICommand(UICommandType.UpdateUrlFragment, updatesUrlFragment.getUrlFragment()));
+          new UICommandDto(
+              UICommandTypeDto.UpdateUrlFragment, updatesUrlFragment.getUrlFragment()));
     }
     return commands;
   }
 
-  private UICommand createCloseCommand(
+  private UICommandDto createCloseCommand(
       AnnotatedElement m,
       Object r,
       Map<String, Object> data,
@@ -349,21 +350,21 @@ public class ResultMapper {
             data,
             mustAutofocusBeDisabled(m, calledByParametersEditor));
     var uiIncrement =
-        new UIIncrement(
+        new UIIncrementDto(
             List.of(),
             List.of(),
             List.of(
-                new UIFragment(
+                new UIFragmentDto(
                     mapActionTargetForResult(m, r, closeModal, calledByParametersEditor),
                     getTargetId(m, null, calledByParametersEditor),
                     getModalStyle(m),
                     getModalTitle(m),
-                    new SingleComponent(component.id()),
+                    new SingleComponentDto(component.id()),
                     Map.of(component.id(), component))));
-    return new UICommand(UICommandType.CloseModal, uiIncrement);
+    return new UICommandDto(UICommandTypeDto.CloseModal, uiIncrement);
   }
 
-  private io.mateu.dtos.ActionTarget mapActionTargetForResult(
+  private ActionTargetDto mapActionTargetForResult(
       AnnotatedElement m, Object r, CloseModal closeModal, boolean calledByParametersEditor) {
     if (closeModal != null) {
       return mapActionTarget(closeModal.getActionTarget());
@@ -442,14 +443,14 @@ public class ResultMapper {
     return null;
   }
 
-  private io.mateu.dtos.ActionTarget mapActionTarget(ActionTarget actionTarget) {
+  private ActionTargetDto mapActionTarget(ActionTarget actionTarget) {
     if (actionTarget == null) {
       return null;
     }
     if (ActionTarget.Self.equals(actionTarget)) {
-      return io.mateu.dtos.ActionTarget.Component;
+      return ActionTargetDto.Component;
     }
-    return io.mateu.dtos.ActionTarget.valueOf(actionTarget.name());
+    return ActionTargetDto.valueOf(actionTarget.name());
   }
 
   protected ActionTarget getActionTarget(AnnotatedElement m, boolean calledByParametersEditor) {
@@ -471,13 +472,16 @@ public class ResultMapper {
     return ActionTarget.Self;
   }
 
-  private List<io.mateu.dtos.Message> getMessages(
+  private List<MessageDto> getMessages(
       Object r, AnnotatedElement m, boolean calledByParametersEditor) {
     return extractMessages(r, m, calledByParametersEditor).stream()
         .map(
             msg ->
-                new io.mateu.dtos.Message(
-                    ResultType.valueOf(msg.type().name()), msg.title(), msg.text(), msg.duration()))
+                new MessageDto(
+                    ResultTypeDto.valueOf(msg.type().name()),
+                    msg.title(),
+                    msg.text(),
+                    msg.duration()))
         .toList();
   }
 
@@ -496,13 +500,13 @@ public class ResultMapper {
     if (ActionTarget.Message.equals(getActionTarget(method, calledByParametersEditor))) {
       return List.of(
           new Message(
-              io.mateu.uidl.data.ResultType.valueOf(ResultType.Success.name()),
+              io.mateu.uidl.data.ResultType.valueOf(ResultTypeDto.Success.name()),
               "",
               "" + response,
               0));
     }
     if (response instanceof GoBack goBack) {
-      if (ResultType.Ignored.equals(goBack.resultType()) || goBack.message() == null) {
+      if (ResultTypeDto.Ignored.equals(goBack.resultType()) || goBack.message() == null) {
         return List.of();
       }
       return List.of(new Message(goBack.resultType(), "", goBack.message(), 0));
