@@ -169,7 +169,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         String keycloakClientId = keycloakAnnotation.clientId();
         String keycloakJsUrl = keycloakAnnotation.jsUrl();
         if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
-          keycloakJsUrl = "https://www.unpkg.com/keycloak-js/dist/keycloak.min.js";
+          keycloakJsUrl = path + "/dist/assets/keycloak.js";
         }
 
         model.put(

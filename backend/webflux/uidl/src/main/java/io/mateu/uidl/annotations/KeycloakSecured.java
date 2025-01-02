@@ -16,5 +16,5 @@ public @interface KeycloakSecured {
 
   String clientId();
 
-  String jsUrl() default "dist/assets/keycloak.js";
+  String jsUrl() default "";
 }
