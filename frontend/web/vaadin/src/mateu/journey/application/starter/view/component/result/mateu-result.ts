@@ -61,7 +61,7 @@ export class MateuResult extends LitElement {
     console.log('destination', destination)
     if (DestinationType.Url == destination.type) {
       let url = destination.value
-      window.location = url
+      window.location.href = url
     } else {
       const actionId = destination.id
       if (!destination.id) {
