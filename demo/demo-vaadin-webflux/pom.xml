@@ -90,7 +90,7 @@
         <dependency>
             <groupId>io.mateu.article2</groupId>
             <artifactId>sdk</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
 

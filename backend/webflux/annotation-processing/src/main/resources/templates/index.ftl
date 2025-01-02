@@ -82,7 +82,7 @@ public class ${simpleClassName}Controller {
 
                 const u = document.createElement('mateu-ui');
                 u.setAttribute('uiId', '${className}')
-                u.setAttribute('baseUrl', '${path}/mateu/v3')
+                u.setAttribute('baseUrl', '${path}')
                 document.body.appendChild(u);
 
             }
