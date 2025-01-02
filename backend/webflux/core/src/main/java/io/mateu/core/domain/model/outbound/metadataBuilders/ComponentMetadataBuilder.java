@@ -6,6 +6,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.Obj
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.fieldabstraction.Field;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
 import io.mateu.dtos.Element;
 import io.mateu.dtos.Tab;
@@ -62,6 +63,7 @@ public class ComponentMetadataBuilder {
 
   @Autowired private ServerSideObjectMapper serverSideObjectMapper;
   @Autowired private DirectoryMetadataBuilder directoryMetadataBuilder;
+  @Autowired private SerializerService serializerService;
 
   public ComponentMetadata getMetadata(
       boolean form,
@@ -323,9 +325,12 @@ public class ComponentMetadataBuilder {
     return crudMetadataBuilder.build(listId, listing);
   }
 
+  @SneakyThrows
   private MicroFrontend getJourneyStarter(io.mateu.uidl.interfaces.MicroFrontend microFrontend) {
     return new MicroFrontend(
-        microFrontend.baseUrl(), microFrontend.journeyTypeId(), microFrontend.contextData());
+        microFrontend.baseUrl(),
+        microFrontend.journeyTypeId(),
+        serializerService.toJson(microFrontend.contextData()));
   }
 
   private Form getMethodParametersEditor(MethodParametersEditor uiInstance) {

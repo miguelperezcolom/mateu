@@ -15,7 +15,6 @@ public class FormOthersSubmenu {
 
   @MenuOption private MicroFrontend remoteForm = new MicroFrontend(
           "",
-          "",
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 

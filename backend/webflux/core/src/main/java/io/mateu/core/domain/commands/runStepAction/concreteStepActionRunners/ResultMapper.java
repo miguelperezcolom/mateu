@@ -10,6 +10,7 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.viewMapperStuff.URL
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.reflection.usecases.AllEditableFieldsProvider;
 import io.mateu.core.domain.model.reflection.usecases.BasicTypeChecker;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.ActionTarget;
 import io.mateu.uidl.annotations.Button;
@@ -45,6 +46,7 @@ public class ResultMapper {
   final DataExtractor dataExtractor;
   final AllEditableFieldsProvider allEditableFieldsProvider;
   final ReflectionService reflectionService;
+  private final SerializerService serializerService;
 
   public ResultMapper(
       ComponentFactory componentFactory,
@@ -53,7 +55,8 @@ public class ResultMapper {
       ViewMapper viewMapper,
       DataExtractor dataExtractor,
       AllEditableFieldsProvider allEditableFieldsProvider,
-      ReflectionService reflectionService) {
+      ReflectionService reflectionService,
+      SerializerService serializerService) {
     this.componentFactory = componentFactory;
     this.uIIncrementFactory = uIIncrementFactory;
     this.basicTypeChecker = basicTypeChecker;
@@ -61,8 +64,10 @@ public class ResultMapper {
     this.dataExtractor = dataExtractor;
     this.allEditableFieldsProvider = allEditableFieldsProvider;
     this.reflectionService = reflectionService;
+    this.serializerService = serializerService;
   }
 
+  @SneakyThrows
   public Mono<UIIncrement> processResult(
       Object actualViewInstance,
       AnnotatedElement trigger,
@@ -94,7 +99,7 @@ public class ResultMapper {
                       new io.mateu.dtos.MicroFrontend(
                           microFrontend.baseUrl(),
                           microFrontend.journeyTypeId(),
-                          microFrontend.contextData()))),
+                          serializerService.toJson(microFrontend.contextData())))),
               List.of(),
               List.of()));
     }

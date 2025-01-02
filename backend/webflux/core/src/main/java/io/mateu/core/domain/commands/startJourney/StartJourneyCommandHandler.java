@@ -3,6 +3,7 @@ package io.mateu.core.domain.commands.startJourney;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
 import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.ConsumesContextData;
@@ -29,18 +30,21 @@ public class StartJourneyCommandHandler {
   private final MenuResolver menuResolver;
   private final UiInstantiator uiInstantiator;
   private final ViewMapper viewMapper;
+  private final SerializerService serializerService;
 
   public StartJourneyCommandHandler(
       ReflectionService reflectionService,
       MDDOpenCRUDActionViewBuilder mddOpenCRUDActionViewBuilder,
       MenuResolver menuResolver,
       UiInstantiator uiInstantiator,
-      ViewMapper viewMapper) {
+      ViewMapper viewMapper,
+      SerializerService serializerService) {
     this.reflectionService = reflectionService;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.menuResolver = menuResolver;
     this.uiInstantiator = uiInstantiator;
     this.viewMapper = viewMapper;
+    this.serializerService = serializerService;
   }
 
   public Mono<UIIncrement> handle(StartJourneyCommand command) throws Throwable {
@@ -86,7 +90,7 @@ public class StartJourneyCommandHandler {
                         new io.mateu.dtos.MicroFrontend(
                             microFrontend.baseUrl(),
                             microFrontend.journeyTypeId(),
-                            microFrontend.contextData()))),
+                            serializerService.toJson(microFrontend.contextData())))),
                 List.of(),
                 List.of()));
       }

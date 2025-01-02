@@ -59,7 +59,6 @@ public class OtherComponentsSubmenu implements ActionHandler {
   @MenuOption
   MicroFrontend remote = new MicroFrontend(
           "",
-          "",
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 
