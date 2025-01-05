@@ -172,6 +172,9 @@ export class MateuUi extends LitElement {
 
     itemSelected(event: MenuBarItemSelectedEvent) {
         let item = event.detail.value as MyMenuBarItem
+        if (item.journeyTypeId) {
+            window.location.hash = '#' + item.journeyTypeId
+        }
         this.myMenuBarItemSelected(item)
     }
 
@@ -182,9 +185,6 @@ export class MateuUi extends LitElement {
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
         this.journeyContextData = this.contextData
         this.label = item.text
-        if (item.journeyTypeId) {
-            window.location.href = item.journeyTypeId
-        }
     }
 
     login() {
