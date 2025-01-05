@@ -49,7 +49,7 @@ public class HomeSecured implements ConsumesContextData, HasLogout {
   }
 
   @Override
-  public String getLogoutUrl() {
+  public String getLogoutUrl(ServerHttpRequest serverHttpRequest) {
     var post_logout_redirect_uri = "";
     //Base64.getUrlEncoder().encodeToString("/".getBytes(StandardCharsets.UTF_8));
     return "http://lemur-18.cloud-iam.com/auth/realms/demomateu/protocol/openid-connect/logout?" +

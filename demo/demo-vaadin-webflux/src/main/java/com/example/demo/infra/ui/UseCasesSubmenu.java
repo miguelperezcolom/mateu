@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui;
 
-import com.example.demo.demobooking.BookingsCrud;
 import com.example.demo.demobooking.IncompleteBookingsCrud;
+import com.example.demo.demobooking.bookings.BookingsCrud;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Submenu;
 

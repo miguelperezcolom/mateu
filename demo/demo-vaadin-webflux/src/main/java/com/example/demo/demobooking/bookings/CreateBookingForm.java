@@ -1,4 +1,4 @@
-package com.example.demo.demobooking;
+package com.example.demo.demobooking.bookings;
 
 import io.mateu.uidl.annotations.MainAction;
 import io.mateu.uidl.annotations.RequestFocus;
@@ -15,10 +15,12 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 
-@Service@Scope("prototype")
+@Service
+@Scope("prototype")
 public class CreateBookingForm implements UpdatesUrlFragment {
 
-    @RequestFocus@NotEmpty
+    @RequestFocus
+    @NotEmpty
     String leadName;
 
     @NotEmpty
@@ -35,7 +37,7 @@ public class CreateBookingForm implements UpdatesUrlFragment {
         return Mono.just(new Result(
                 ResultType.Success,
                 "The booking has been created :)",
-                new Destination(DestinationType.Url, "Back to bookings list", "#useCases_booking_bookings")));
+                new Destination(DestinationType.Url, "Back to bookings list", "#bookings")));
     }
 
 

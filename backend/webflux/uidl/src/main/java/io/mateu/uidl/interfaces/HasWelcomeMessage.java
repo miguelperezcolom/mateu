@@ -2,7 +2,7 @@ package io.mateu.uidl.interfaces;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
-public interface HasLogout {
+public interface HasWelcomeMessage {
 
-  String getLogoutUrl(ServerHttpRequest serverHttpRequest);
+  String getWelcomeMessage(ServerHttpRequest serverHttpRequest);
 }

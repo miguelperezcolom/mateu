@@ -132,7 +132,7 @@ export class MateuUi extends LitElement {
             console.log('error when parsing context data', e)
         }
 
-        if (_changedProperties.has('baseUrl')) {
+        if (_changedProperties.has('baseUrl') || _changedProperties.has('instant')) {
 
             this.mateuApiClient.baseUrl = this.baseUrl
             this.mateuApiClient.element = this
@@ -280,6 +280,9 @@ export class MateuUi extends LitElement {
                             `:''}
                         </div>                         
                         <div style="text-align: right; padding-right: 10px;">
+                            ${this.ui.welcomeMessage?html`
+                                <p>${this.ui.welcomeMessage}</p>
+                            `:''}
                                 ${this.ui.loginUrl?html`
                                     <vaadin-button theme="tertiary" 
                                                    @click="${this.login}"

@@ -10,6 +10,7 @@ export default interface UI {
     menu: Menu[]  | undefined
     homeJourneyTypeId: string | undefined
     loginUrl: string | undefined
+    welcomeMessage: string | undefined
     logoutUrl: string | undefined
     apps: App[] | undefined
     icon: string | undefined

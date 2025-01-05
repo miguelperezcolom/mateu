@@ -12,6 +12,7 @@ public record UIDto(
     List<MenuDto> menu,
     String homeJourneyTypeId,
     String loginUrl,
+    String welcomeMessage,
     String logoutUrl,
     List<AppDto> apps) {
 

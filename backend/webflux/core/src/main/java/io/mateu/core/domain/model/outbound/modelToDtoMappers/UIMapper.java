@@ -42,7 +42,8 @@ public class UIMapper {
             menuCreator.buildMenuForUi(uiInstance, baseUrl, serverHttpRequest),
             "____home____",
             getLoginUrl(uiInstance),
-            getLogoutUrl(uiInstance),
+            getWelcomeMessage(uiInstance, serverHttpRequest),
+            getLogoutUrl(uiInstance, serverHttpRequest),
             getApps(uiInstance));
 
     return ui;
@@ -86,9 +87,16 @@ public class UIMapper {
     return List.of();
   }
 
-  private String getLogoutUrl(Object uiInstance) {
+  private String getWelcomeMessage(Object uiInstance, ServerHttpRequest serverHttpRequest) {
+    if (uiInstance instanceof HasWelcomeMessage hasWelcomeMessage) {
+      return hasWelcomeMessage.getWelcomeMessage(serverHttpRequest);
+    }
+    return null;
+  }
+
+  private String getLogoutUrl(Object uiInstance, ServerHttpRequest serverHttpRequest) {
     if (uiInstance instanceof HasLogout hasLogout) {
-      return hasLogout.getLogoutUrl();
+      return hasLogout.getLogoutUrl(serverHttpRequest);
     }
     return null;
   }
