@@ -132,7 +132,7 @@ export class MateuUi extends LitElement {
             console.log('error when parsing context data', e)
         }
 
-        if (_changedProperties.has('baseUrl') || _changedProperties.has('journeyId')) {
+        if (_changedProperties.has('baseUrl') || _changedProperties.has('instant')) {
 
             this.mateuApiClient.baseUrl = this.baseUrl
             this.mateuApiClient.element = this
@@ -182,6 +182,9 @@ export class MateuUi extends LitElement {
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
         this.journeyContextData = this.contextData
         this.label = item.text
+        if (item.journeyTypeId) {
+            window.location.href = item.journeyTypeId
+        }
     }
 
     login() {
