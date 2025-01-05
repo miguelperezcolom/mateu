@@ -132,7 +132,7 @@ export class MateuUi extends LitElement {
             console.log('error when parsing context data', e)
         }
 
-        if (_changedProperties.has('baseUrl') || _changedProperties.has('instant')) {
+        if (_changedProperties.has('baseUrl') || _changedProperties.has('journeyId')) {
 
             this.mateuApiClient.baseUrl = this.baseUrl
             this.mateuApiClient.element = this
