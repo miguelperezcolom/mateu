@@ -229,6 +229,7 @@ export class MateuComponent extends LitElement {
                         .map(id => this.components[id])
                         .map(c => html`<div tab="${c.id}"><mateu-component
                                 .component=${c}
+                                componentId="${c.id}"
                                 .components=${this.components}
                                 .mateuApiClient="${this.mateuApiClient}"
                                 uiId="${this.uiId}"
@@ -252,6 +253,7 @@ export class MateuComponent extends LitElement {
                     .map(id => this.components[id])
                     .map(c => html`<mateu-component
                 .component=${c}
+                componentId="${c.id}"
                 .components=${this.components}
                 .mateuApiClient="${this.mateuApiClient}"
                 uiId="${this.uiId}"
@@ -271,6 +273,7 @@ export class MateuComponent extends LitElement {
                             .map(id => this.components[id])
                             .map(c => html`<mateu-component
                                     .component=${c}
+                                    componentId="${c.id}"
                                     .components=${this.components}
                                     .mateuApiClient="${this.mateuApiClient}"
                         uiId="${this.uiId}"
@@ -289,6 +292,7 @@ export class MateuComponent extends LitElement {
                             .map(id => this.components[id])
                             .map(c => html`<mateu-component
                                     .component=${c}
+                                    componentId="${c.id}"
                                     .components=${this.components}
                                     .mateuApiClient="${this.mateuApiClient}"
                         uiId="${this.uiId}"
@@ -306,6 +310,7 @@ export class MateuComponent extends LitElement {
                     html`<mateu-stepper
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .metadata=${this.component.metadata}
                             .data=${this.component.data}
                             journeyTypeId="${this.journeyTypeId}"
@@ -321,6 +326,7 @@ export class MateuComponent extends LitElement {
                     html`<mateu-card
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .metadata=${this.component.metadata}
                             .data=${this.component.data}
                             journeyTypeId="${this.journeyTypeId}"
@@ -336,6 +342,7 @@ export class MateuComponent extends LitElement {
             html`<mateu-directory
                     .component=${this.component}
                     .components=${this.components}
+                    componentId="${this.component.id}"
                     .metadata=${this.component.metadata}
                     .data=${this.component.data}
                     journeyTypeId="${this.journeyTypeId}"
@@ -368,6 +375,7 @@ export class MateuComponent extends LitElement {
                     html`<mateu-crud
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .mateuApiClient="${this.mateuApiClient}"
                             .metadata=${this.component.metadata} 
                             .data=${this.component.data}
@@ -385,9 +393,11 @@ export class MateuComponent extends LitElement {
             ${this.component?.metadata.type == ComponentMetadataType.Result?
                     html`<mateu-result
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             .components=${this.components}
                             .metadata=${this.component.metadata} 
                             .data=${this.component.data}
+                            componentId="${this.component.id}"
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" stepId="${this.stepId}"
                             baseUrl="${this.baseUrl}"
@@ -398,6 +408,7 @@ export class MateuComponent extends LitElement {
             ${this.component?.metadata.type == ComponentMetadataType.JourneyStarter?
                     html`<mateu-ux
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             uiId="${(this.component.metadata as JourneyStarter).uiId}"
                             baseUrl="${(this.component.metadata as JourneyStarter).baseUrl?(this.component.metadata as JourneyStarter).baseUrl:this.baseUrl}"
                             journeyTypeId="${(this.component.metadata as JourneyStarter).journeyTypeId}"
@@ -408,6 +419,7 @@ export class MateuComponent extends LitElement {
     ${this.component?.metadata.type == ComponentMetadataType.RemoteJourney?
             html`<mateu-ux
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             uiId="${(this.component.metadata as RemoteJourney).remoteUiId}"
                             baseUrl="${(this.component.metadata as RemoteJourney).remoteBaseUrl?(this.component.metadata as RemoteJourney).remoteBaseUrl:this.baseUrl}"
                             journeyTypeId="${(this.component.metadata as RemoteJourney).remoteJourneyType}"

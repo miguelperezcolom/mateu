@@ -233,6 +233,11 @@ public class ComponentFactory {
       Map<String, ComponentDto> allComponentsInStep,
       AtomicInteger componentCounter,
       Map<String, Object> data) {
+
+    if (actualComponentInstance == null) {
+      return List.of();
+    }
+
     if (actualComponentInstance instanceof List<?> list) {
       return list.stream()
           .map(

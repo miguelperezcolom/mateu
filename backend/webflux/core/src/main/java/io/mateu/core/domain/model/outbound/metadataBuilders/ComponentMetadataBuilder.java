@@ -123,9 +123,10 @@ public class ComponentMetadataBuilder {
       metadata = getJourneyStarter((io.mateu.uidl.interfaces.MicroFrontend) componentInstance);
     } else if (componentInstance instanceof ElementDto) {
       metadata = getElement((ElementDto) componentInstance);
-    } else if (componentInstance
-        .getClass()
-        .isAnnotationPresent(io.mateu.uidl.annotations.Element.class)) {
+    } else if (componentInstance != null
+        && componentInstance
+            .getClass()
+            .isAnnotationPresent(io.mateu.uidl.annotations.Element.class)) {
       metadata = buildElement(componentInstance);
     } else if (componentInstance instanceof MethodParametersEditor) {
       metadata = getMethodParametersEditor((MethodParametersEditor) componentInstance);

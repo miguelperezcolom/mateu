@@ -18742,6 +18742,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
                 </vaadin-tabs>
                 ${(U=this.component)==null?void 0:U.childComponentIds.map(re=>this.components[re]).map(re=>x`<div tab="${re.id}"><mateu-component
                                 .component=${re}
+                                componentId="${re.id}"
                                 .components=${this.components}
                                 .mateuApiClient="${this.mateuApiClient}"
                                 uiId="${this.uiId}"
@@ -18761,6 +18762,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
     ${((q=this.component)==null?void 0:q.metadata.type)==ComponentMetadataType.HorizontalLayout?x`<vaadin-horizontal-layout theme="spacing">
                 ${this.component.childComponentIds.map(re=>this.components[re]).map(re=>x`<mateu-component
                 .component=${re}
+                componentId="${re.id}"
                 .components=${this.components}
                 .mateuApiClient="${this.mateuApiClient}"
                 uiId="${this.uiId}"
@@ -18776,6 +18778,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
 
             ${((W=this.component)==null?void 0:W.metadata.type)==ComponentMetadataType.VerticalLayout?x`<vaadin-vertical-layout theme="spacing">${this.component.childComponentIds.map(re=>this.components[re]).map(re=>x`<mateu-component
                                     .component=${re}
+                                    componentId="${re.id}"
                                     .components=${this.components}
                                     .mateuApiClient="${this.mateuApiClient}"
                         uiId="${this.uiId}"
@@ -18790,6 +18793,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
 
             ${((G=this.component)==null?void 0:G.metadata.type)==ComponentMetadataType.SplitLayout?x`<vaadin-split-layout>${this.component.childComponentIds.map(re=>this.components[re]).map(re=>x`<mateu-component
                                     .component=${re}
+                                    componentId="${re.id}"
                                     .components=${this.components}
                                     .mateuApiClient="${this.mateuApiClient}"
                         uiId="${this.uiId}"
@@ -18805,6 +18809,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
             ${((K=this.component)==null?void 0:K.metadata.type)==ComponentMetadataType.Stepper?x`<mateu-stepper
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .metadata=${this.component.metadata}
                             .data=${this.component.data}
                             journeyTypeId="${this.journeyTypeId}"
@@ -18818,6 +18823,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
             ${((Y=this.component)==null?void 0:Y.metadata.type)==ComponentMetadataType.Card?x`<mateu-card
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .metadata=${this.component.metadata}
                             .data=${this.component.data}
                             journeyTypeId="${this.journeyTypeId}"
@@ -18831,6 +18837,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
     ${((J=this.component)==null?void 0:J.metadata.type)==ComponentMetadataType.Directory?x`<mateu-directory
                     .component=${this.component}
                     .components=${this.components}
+                    componentId="${this.component.id}"
                     .metadata=${this.component.metadata}
                     .data=${this.component.data}
                     journeyTypeId="${this.journeyTypeId}"
@@ -18859,6 +18866,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
             ${((ee=this.component)==null?void 0:ee.metadata.type)==ComponentMetadataType.Crud?x`<mateu-crud
                             .component=${this.component}
                             .components=${this.components}
+                            componentId="${this.component.id}"
                             .mateuApiClient="${this.mateuApiClient}"
                             .metadata=${this.component.metadata} 
                             .data=${this.component.data}
@@ -18874,9 +18882,11 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
 
             ${((ie=this.component)==null?void 0:ie.metadata.type)==ComponentMetadataType.Result?x`<mateu-result
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             .components=${this.components}
                             .metadata=${this.component.metadata} 
                             .data=${this.component.data}
+                            componentId="${this.component.id}"
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" stepId="${this.stepId}"
                             baseUrl="${this.baseUrl}"
@@ -18885,6 +18895,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
 
             ${((de=this.component)==null?void 0:de.metadata.type)==ComponentMetadataType.JourneyStarter?x`<mateu-ux
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             uiId="${this.component.metadata.uiId}"
                             baseUrl="${this.component.metadata.baseUrl?this.component.metadata.baseUrl:this.baseUrl}"
                             journeyTypeId="${this.component.metadata.journeyTypeId}"
@@ -18893,6 +18904,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
 
     ${((le=this.component)==null?void 0:le.metadata.type)==ComponentMetadataType.RemoteJourney?x`<mateu-ux
                             .component=${this.component}
+                            componentId="${this.component.id}"
                             uiId="${this.component.metadata.remoteUiId}"
                             baseUrl="${this.component.metadata.remoteBaseUrl?this.component.metadata.remoteBaseUrl:this.baseUrl}"
                             journeyTypeId="${this.component.metadata.remoteJourneyType}"

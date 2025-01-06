@@ -70,22 +70,24 @@ public class ViewMapper {
         viewInstanceParts.add(
             new ViewInstancePart(SlotName.main, true, actualObject, null, List.of()));
       }
-      viewInstanceParts.forEach(
-          p -> {
-            var componentInstance = p.getUiInstance();
-            var component =
-                componentFactory.createComponent(
-                    p.isForm(),
-                    componentInstance,
-                    baseUrl,
-                    serverHttpRequest,
-                    p.getField(),
-                    p.getFields(),
-                    allComponentsInStep,
-                    componentCounter,
-                    data);
-            componentIdsPerSlot.get(SlotName.main).add(component);
-          });
+      viewInstanceParts.stream()
+          .filter(p -> p != null && p.getUiInstance() != null)
+          .forEach(
+              p -> {
+                var componentInstance = p.getUiInstance();
+                var component =
+                    componentFactory.createComponent(
+                        p.isForm(),
+                        componentInstance,
+                        baseUrl,
+                        serverHttpRequest,
+                        p.getField(),
+                        p.getFields(),
+                        allComponentsInStep,
+                        componentCounter,
+                        data);
+                componentIdsPerSlot.get(SlotName.main).add(component);
+              });
 
     } else {
 
@@ -101,22 +103,24 @@ public class ViewMapper {
           viewInstanceParts.add(new ViewInstancePart(slot, true, actualObject, null, List.of()));
         }
 
-        viewInstanceParts.forEach(
-            p -> {
-              var componentInstance = p.getUiInstance();
-              var component =
-                  componentFactory.createComponent(
-                      p.isForm(),
-                      componentInstance,
-                      baseUrl,
-                      serverHttpRequest,
-                      p.getField(),
-                      p.getFields(),
-                      allComponentsInStep,
-                      componentCounter,
-                      data);
-              componentIdsPerSlot.get(slot).add(component);
-            });
+        viewInstanceParts.stream()
+            .filter(p -> p != null && p.getUiInstance() != null)
+            .forEach(
+                p -> {
+                  var componentInstance = p.getUiInstance();
+                  var component =
+                      componentFactory.createComponent(
+                          p.isForm(),
+                          componentInstance,
+                          baseUrl,
+                          serverHttpRequest,
+                          p.getField(),
+                          p.getFields(),
+                          allComponentsInStep,
+                          componentCounter,
+                          data);
+                  componentIdsPerSlot.get(slot).add(component);
+                });
       }
     }
 
