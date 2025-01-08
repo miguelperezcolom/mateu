@@ -350,14 +350,22 @@
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+          <execution>
+            <id>jacoco-verify</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report-aggregate</goal>
+            </goals>
             <configuration>
-              <outputDirectory>${project.basedir}/.qodana/code-coverage/</outputDirectory>
-              <formats>XML</formats>
+              <dataFileIncludes>
+                <dataFileInclude>**/jacoco.exec</dataFileInclude>
+              </dataFileIncludes>
               <!--
-              <includes>
-                <include>org/example/**</include>
-              </includes>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate</outputDirectory>
               -->
+              <outputDirectory>${project.basedir}/.qodana/code-coverage</outputDirectory>
+              <formats>XML</formats>
             </configuration>
           </execution>
         </executions>
