@@ -41,8 +41,8 @@ public class ${simpleClassName}MateuController {
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")
     public Mono<UIIncrementDto> createJourney(
-            @PathVariable String journeyTypeId,
-            @PathVariable String journeyId,
+            @PathVariable("journeyTypeId") String journeyTypeId,
+            @PathVariable("journeyId") String journeyId,
             @RequestBody JourneyCreationRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
         return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
@@ -50,11 +50,11 @@ public class ${simpleClassName}MateuController {
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
     public Mono<UIIncrementDto> runStep(
-            @PathVariable String journeyTypeId,
-            @PathVariable String journeyId,
-            @PathVariable String stepId,
-            @PathVariable String componentId,
-            @PathVariable String actionId,
+            @PathVariable("journeyTypeId") String journeyTypeId,
+            @PathVariable("journeyId") String journeyId,
+            @PathVariable("stepId") String stepId,
+            @PathVariable("componentId") String componentId,
+            @PathVariable("actionId") String actionId,
             @RequestBody RunActionRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
         return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, baseUrl, serverHttpRequest);
@@ -62,17 +62,17 @@ public class ${simpleClassName}MateuController {
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
     public Mono<PageDto> getListRows(
-                @PathVariable String journeyTypeId,
-                @PathVariable String journeyId,
-                @PathVariable String stepId,
-                @PathVariable String componentId,
-                @PathVariable String listId,
-                @RequestParam int page,
-                @RequestParam int page_size,
+                @PathVariable("journeyTypeId") String journeyTypeId,
+                @PathVariable("journeyId") String journeyId,
+                @PathVariable("stepId") String stepId,
+                @PathVariable("componentId") String componentId,
+                @PathVariable("listId") String listId,
+                @RequestParam("page") int page,
+                @RequestParam("page_size") int page_size,
                 // urlencoded form of filters json serialized
                 @RequestBody Map<String, Object> body,
                 // urlencoded form of orders json serialized
-                @RequestParam String ordering,
+                @RequestParam("ordering") String ordering,
                 ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;
@@ -89,43 +89,49 @@ public class ${simpleClassName}MateuController {
     }
 
     @GetMapping("v3/itemproviders/{itemProviderId}/items")
-    public Mono<ItemsDto> getItems(@PathVariable String itemProviderId,
-                                @RequestParam int page,
-                                @RequestParam int page_size,
-                                @RequestParam String search_text
+    public Mono<ItemsDto> getItems(@PathVariable("itemProviderId") String itemProviderId,
+                                @RequestParam("page") int page,
+                                @RequestParam("page_size") int page_size,
+                                @RequestParam("search_text") String search_text
                                 ) throws Throwable {
         return service.getItems(itemProviderId, page, page_size, search_text);
     }
 
     @GetMapping("v3/cdn/{fileId}/{filename:.+}")
     @ResponseBody
-    public Mono<ResponseEntity<Resource>> serveFile(@PathVariable String fileId, @PathVariable String filename)
+    public Mono<ResponseEntity<Resource>> serveFile(
+                        @PathVariable("fileId") String fileId,
+                        @PathVariable("filename") String filename)
         throws AuthenticationException {
         return service.serveFile(fileId, filename);
     }
 
     @GetMapping(value = "v3/files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public Mono<String> getFileUrl(@PathVariable String fileId, @PathVariable String fileName) throws AuthenticationException {
+    public Mono<String> getFileUrl(
+                            @PathVariable("fileId") String fileId,
+                            @PathVariable("fileName") String fileName) throws AuthenticationException {
         return service.getFileUrl(fileId, fileName);
     }
 
     @PostMapping("v3/files/{fileId}")
-    public Mono<Void> handleFileUpload(@PathVariable String fileId, @RequestPart("file") Mono<FilePart> file)
+    public Mono<Void> handleFileUpload(
+                                @PathVariable("fileId") String fileId,
+                                @RequestPart("file") Mono<FilePart> file)
         throws Exception {
         return service.handleFileUpload(fileId, file);
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/csv")
     public ResponseEntity<Mono<Resource>> downloadCsv(
-                    @PathVariable String journeyTypeId,
-                    @PathVariable String journeyId,
-                    @PathVariable String stepId,
-                    @PathVariable String componentId,
-                    @PathVariable String listId,
+                    @PathVariable("journeyTypeId") String journeyTypeId,
+                    @PathVariable("journeyId") String journeyId,
+                    @PathVariable("stepId") String stepId,
+                    @PathVariable("componentId") String componentId,
+                    @PathVariable("listId") String listId,
                     // urlencoded form of filters json serialized
                     @RequestBody Map<String, Object> body,
                     // urlencoded form of orders json serialized
-                    @RequestParam String ordering,
+                    @RequestParam("ordering") String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;
@@ -150,15 +156,15 @@ public class ${simpleClassName}MateuController {
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/xls")
     public ResponseEntity<Mono<Resource>> downloadExcel(
-                    @PathVariable String journeyTypeId,
-                    @PathVariable String journeyId,
-                    @PathVariable String stepId,
-                    @PathVariable String componentId,
-                    @PathVariable String listId,
+                    @PathVariable("journeyTypeId") String journeyTypeId,
+                    @PathVariable("journeyId") String journeyId,
+                    @PathVariable("stepId") String stepId,
+                    @PathVariable("componentId") String componentId,
+                    @PathVariable("listId") String listId,
                     // urlencoded form of filters json serialized
                     @RequestBody Map<String, Object> body,
                     // urlencoded form of orders json serialized
-                    @RequestParam String ordering,
+                    @RequestParam("ordering") String ordering,
                     ServerHttpRequest serverHttpRequest) throws Throwable {
         Map<String, Object> filters = null;
         Map<String, Object> data = null;

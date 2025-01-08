@@ -31,10 +31,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
         String generatedFullClassName = className + "Controller";
-        String pkgName =
-            generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
-        String generatedClassName =
-            generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);
+        String pkgName = "";
+        String generatedClassName = generatedFullClassName;
+        if (generatedFullClassName.contains(".")) {
+          pkgName = generatedFullClassName.substring(0, generatedFullClassName.lastIndexOf("."));
+          generatedClassName =
+              generatedFullClassName.substring(generatedFullClassName.lastIndexOf(".") + 1);
+        }
         String caption = getCaption(e, simpleClassName);
 
         try {
@@ -104,7 +107,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       String caption,
       String path)
       throws IOException {
-    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    JavaFileObject builderFile = getFiler().createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 
@@ -195,6 +198,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     }
   }
 
+  public Filer getFiler() {
+    return processingEnv.getFiler();
+  }
+
   private void createConfig(
       String generatedFullClassName,
       String pkgName,
@@ -205,7 +212,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       String caption,
       String path)
       throws IOException {
-    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    JavaFileObject builderFile = getFiler().createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 
@@ -245,7 +252,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       String caption,
       String path)
       throws IOException {
-    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(generatedFullClassName);
+    JavaFileObject builderFile = getFiler().createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 

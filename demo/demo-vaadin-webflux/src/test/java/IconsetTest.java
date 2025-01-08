@@ -1,5 +1,3 @@
-package com.example.demo;
-
 import io.mateu.core.domain.model.outbound.Humanizer;
 import io.mateu.core.domain.model.util.SerializerService;
 import jakarta.inject.Inject;
@@ -8,14 +6,12 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 
-@SpringBootTest
+//@SpringBootTest
 public class IconsetTest {
 
     @Inject
@@ -23,7 +19,7 @@ public class IconsetTest {
     @Inject
     Humanizer h;
 
-    @Test
+    //@Test
     void test() throws IOException, JDOMException {
 
         File file = new File("/Users/mguel/IdeaProjects/mateu/.dev/vaadin-icons.xml");
