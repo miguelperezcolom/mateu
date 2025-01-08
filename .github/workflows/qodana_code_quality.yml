@@ -26,8 +26,16 @@ jobs:
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Build with Maven
         run: mvn -B install --file backend/webflux/pom.xml
+      - name: Ls 0
+        run: ls -lh backend/webflux/core/.qodana
+      - name: Ls 0 again
+        run: ls -lh backend/webflux/core/.qodana/code-coverage
       - name: Copy coverage reports
         run: cp -r backend/webflux/core/.qodana .
+      - name: Ls
+        run: ls -lh .qodana
+      - name: Ls again
+        run: ls -lh .qodana/code-coverage
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.2
         with:
