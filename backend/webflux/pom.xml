@@ -41,6 +41,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+    <intellij.coverage.agent.version>1.0.746</intellij.coverage.agent.version>
+    <intellij.agent.options>${project.basedir}/.qodana/code-coverage/output.ic,true,true,true,false</intellij.agent.options>
   </properties>
 
   <modules>
@@ -83,6 +85,7 @@
       <artifactId>spring-web</artifactId>
       <version>6.1.12</version>
     </dependency>
+
   </dependencies>
 
   <distributionManagement>
@@ -332,12 +335,30 @@
               <goal>prepare-agent</goal>
             </goals>
           </execution>
+          <!--
           <execution>
             <id>report</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+          -->
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/.qodana/code-coverage/</outputDirectory>
+              <formats>XML</formats>
+              <!--
+              <includes>
+                <include>org/example/**</include>
+              </includes>
+              -->
+            </configuration>
           </execution>
         </executions>
         <configuration>
@@ -348,7 +369,7 @@
                 <limit>
                   <counter>LINE</counter>
                   <value>COVEREDRATIO</value>
-                  <minimum>0.00</minimum> <!-- I'm using e2e tests, for now -->
+                  <minimum>0.00</minimum>
                 </limit>
               </limits>
             </rule>
