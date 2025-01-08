@@ -39,7 +39,7 @@ jobs:
       - name: Pwd
         run: pwd
       - name: Ls
-        run: ls -lh
+        run: ls -lha
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.2
         with:
