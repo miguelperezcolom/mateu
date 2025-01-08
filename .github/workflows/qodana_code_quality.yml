@@ -30,14 +30,16 @@ jobs:
         run: ls -lh backend/webflux/core/.qodana
       - name: Ls 0 again
         run: ls -lh backend/webflux/core/.qodana/code-coverage
-      - name: Pwd
-        run: pwd
       - name: Copy coverage reports
         run: cp -r backend/webflux/core/.qodana .
       - name: Ls
         run: ls -lh .qodana
       - name: Ls again
         run: ls -lh .qodana/code-coverage
+      - name: Pwd
+        run: pwd
+      - name: Ls
+        run: ls -lh
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.2
         with:
