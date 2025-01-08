@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: # Specify your branches here
-      - main # The 'main' branch
+      - master # The 'main' branch
       - 'releases/*' # The release branches
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
       - name: Ls
         run: ls -lha
       - name: 'Qodana Scan'
-        uses: JetBrains/qodana-action@v2024.2
+        uses: JetBrains/qodana-action@v2024.3
         with:
           pr-mode: false
         env:
