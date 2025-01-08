@@ -49,6 +49,7 @@ jobs:
         uses: JetBrains/qodana-action@v2024.3
         with:
           pr-mode: false
+          args: "--coverage-dir,backend/webflux/core/.qodana/code-coverage"
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_1991950249 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
