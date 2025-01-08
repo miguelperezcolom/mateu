@@ -4,3 +4,13 @@ profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+exclude:
+  - name: All
+    paths:
+      - frontend
+      - demo
+      - docs
+      - e2e
+      - backend/dotnet
+      - backend/go
+      - backend/micronaut
