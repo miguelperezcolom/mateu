@@ -239,8 +239,7 @@ export class MateuComponent extends LitElement {
                                 baseUrl="${this.baseUrl}"
                                 previousStepId="${this.previousStepId}"
                         >
-                            <slot></slot></mateu-component
-                                id="${c.id}"></div>
+                            <slot></slot></mateu-component></div>
                         `)}
 
             </vaadin-tabsheet>`
@@ -383,7 +382,6 @@ export class MateuComponent extends LitElement {
                             journeyTypeId="${this.journeyTypeId}"
                             journeyId="${this.journeyId}" 
                             stepId="${this.stepId}"
-                            componentId="${this.component.id}"
                             baseUrl="${this.baseUrl}"
                             previousStepId="${this.previousStepId}"
                             searchSignature="${this.journeyId}-${this.stepId}-${this.component.id}"
@@ -393,7 +391,6 @@ export class MateuComponent extends LitElement {
             ${this.component?.metadata.type == ComponentMetadataType.Result?
                     html`<mateu-result
                             .component=${this.component}
-                            componentId="${this.component.id}"
                             .components=${this.components}
                             .metadata=${this.component.metadata} 
                             .data=${this.component.data}

@@ -6,7 +6,7 @@ import io.mateu.uidl.data.Destination;
 import io.mateu.uidl.data.DestinationType;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.ResultType;
-import io.mateu.uidl.interfaces.UpdatesUrlFragment;
+import io.mateu.uidl.interfaces.UpdatesHash;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.Scope;
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 
 @Service
 @Scope("prototype")
-public class CreateBookingForm implements UpdatesUrlFragment {
+public class CreateBookingForm implements UpdatesHash {
 
     @RequestFocus
     @NotEmpty
@@ -42,7 +42,7 @@ public class CreateBookingForm implements UpdatesUrlFragment {
 
 
     @Override
-    public String getUrlFragment() {
+    public String getHash() {
         return "new";
     }
 }

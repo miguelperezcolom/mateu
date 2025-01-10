@@ -7,7 +7,7 @@ import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.*;
 import io.mateu.uidl.app.*;
 import io.mateu.uidl.interfaces.ConsumesContextData;
-import io.mateu.uidl.interfaces.ConsumesUrlFragment;
+import io.mateu.uidl.interfaces.ConsumesHash;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import io.mateu.uidl.interfaces.MicroFrontend;
 import io.mateu.uidl.views.SingleComponentView;
@@ -72,13 +72,9 @@ public class StartJourneyCommandHandler {
             command.getJourneyCreationRq().contextData(), serverHttpRequest);
       }
 
-      if (formInstance instanceof ConsumesUrlFragment consumesUrlFragment) {
+      if (formInstance instanceof ConsumesHash consumesHash) {
         var hash = command.getJourneyCreationRq().hash();
-        if (hash != null && hash.contains("____x")) {
-          formInstance =
-              consumesUrlFragment.consume(
-                  hash.substring(hash.indexOf("____x") + "____x".length()), serverHttpRequest);
-        }
+        formInstance = consumesHash.consume(hash, serverHttpRequest);
       }
 
       if (formInstance instanceof MicroFrontend microFrontend) {

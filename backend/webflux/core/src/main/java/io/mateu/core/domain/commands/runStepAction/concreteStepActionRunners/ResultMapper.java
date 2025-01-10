@@ -22,7 +22,7 @@ import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.Message;
 import io.mateu.uidl.interfaces.MicroFrontend;
 import io.mateu.uidl.interfaces.ResponseWrapper;
-import io.mateu.uidl.interfaces.UpdatesUrlFragment;
+import io.mateu.uidl.interfaces.UpdatesHash;
 import io.mateu.uidl.views.SingleComponentView;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -322,10 +322,8 @@ public class ResultMapper {
         commands.add(new UICommandDto(UICommandTypeDto.OpenNewWindow, url.toString()));
       }
     }
-    if (r instanceof UpdatesUrlFragment updatesUrlFragment) {
-      commands.add(
-          new UICommandDto(
-              UICommandTypeDto.UpdateUrlFragment, updatesUrlFragment.getUrlFragment()));
+    if (r instanceof UpdatesHash updatesHash) {
+      commands.add(new UICommandDto(UICommandTypeDto.UpdateHash, updatesHash.getHash()));
     }
     return commands;
   }

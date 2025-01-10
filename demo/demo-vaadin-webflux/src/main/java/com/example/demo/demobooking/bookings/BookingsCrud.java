@@ -1,7 +1,7 @@
 package com.example.demo.demobooking.bookings;
 
 import io.mateu.article2.Article2Client;
-import io.mateu.uidl.interfaces.ConsumesUrlFragment;
+import io.mateu.uidl.interfaces.ConsumesHash;
 import io.mateu.uidl.interfaces.Crud;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
@@ -21,7 +21,7 @@ record Row(String id, String leadName) {
 
 @Service
 @Scope("prototype")
-public class BookingsCrud implements Crud<Filters, Row>, ConsumesUrlFragment {
+public class BookingsCrud implements Crud<Filters, Row>, ConsumesHash {
 
     private final Article2Client article2Client;
     private final CreateBookingForm createBookingForm;
@@ -54,10 +54,10 @@ public class BookingsCrud implements Crud<Filters, Row>, ConsumesUrlFragment {
     }
 
     @Override
-    public Object consume(String urlFragment, ServerHttpRequest serverHttpRequest) {
-        if ("new".equals(urlFragment)) {
+    public Object consume(String hash, ServerHttpRequest serverHttpRequest) {
+        if ("new".equals(hash)) {
             return createBookingForm;
         }
-        return bookingEditor.load(urlFragment);
+        return bookingEditor.load(hash);
     }
 }

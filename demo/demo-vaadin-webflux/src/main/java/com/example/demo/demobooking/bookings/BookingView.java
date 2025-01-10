@@ -13,7 +13,7 @@ import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.ResultType;
 import io.mateu.uidl.interfaces.MicroFrontend;
-import io.mateu.uidl.interfaces.UpdatesUrlFragment;
+import io.mateu.uidl.interfaces.UpdatesHash;
 import io.mateu.uidl.interfaces.View;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -89,7 +89,7 @@ class Info {
 
 @Service("BookingView2")
 @Scope("prototype")
-public class BookingView implements View, UpdatesUrlFragment {
+public class BookingView implements View, UpdatesHash {
 
     private final Info info;
 
@@ -123,7 +123,7 @@ public class BookingView implements View, UpdatesUrlFragment {
     }
 
     @Override
-    public String getUrlFragment() {
+    public String getHash() {
         return id;
     }
 }

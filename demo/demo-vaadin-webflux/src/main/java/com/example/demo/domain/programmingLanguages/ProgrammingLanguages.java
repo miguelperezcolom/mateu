@@ -1,9 +1,8 @@
 package com.example.demo.domain.programmingLanguages;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
 import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.interfaces.ConsumesUrlFragment;
+import io.mateu.uidl.interfaces.ConsumesHash;
 import io.mateu.uidl.interfaces.Crud;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
@@ -13,8 +12,8 @@ import io.mateu.uidl.annotations.Placeholder;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
@@ -31,18 +30,17 @@ import java.util.List;
 @Setter
 @Service
 @Scope("prototype")
+@RequiredArgsConstructor
 public class ProgrammingLanguages
-    implements Crud<ProgrammingLanguages, LanguageRow>, HasTitle, HasSubtitle, ConsumesUrlFragment {
+    implements Crud<ProgrammingLanguages, LanguageRow>, HasTitle, HasSubtitle, ConsumesHash {
 
-  @JsonIgnore
-  @Autowired private LanguagesRepository repo;
+  private final LanguagesRepository repo;
 
-  @Autowired private LanguageForm form;
+  private final LanguageForm form;
 
-  @Autowired private LanguageDetail detail;
+  private final LanguageDetail detail;
 
-  @JsonIgnore
-  @Autowired ApplicationContext context;
+  private final ApplicationContext context;
 
   @Placeholder("here the language name")
   private String name;
@@ -137,8 +135,8 @@ public class ProgrammingLanguages
   }
 
   @Override
-  public Object consume(String urlFragment, ServerHttpRequest serverHttpRequest) {
-    detail.load(urlFragment);
+  public Object consume(String hash, ServerHttpRequest serverHttpRequest) {
+    detail.load(hash);
     return detail;
   }
 }

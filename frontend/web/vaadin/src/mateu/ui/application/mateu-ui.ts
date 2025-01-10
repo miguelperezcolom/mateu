@@ -47,6 +47,8 @@ export class MateuUi extends LitElement {
     @state()
     remoteJourneyTypeId: string | undefined
     @state()
+    menuPath: string | undefined
+    @state()
     instant: string | undefined;
     @state()
     label: string | undefined;
@@ -61,7 +63,7 @@ export class MateuUi extends LitElement {
     @property()
     notificationMessage: string = '';
 
-
+    menuRetriesCount = 0
 
     // upstream channel
     private upstreamSubscription: Subscription | undefined;
@@ -69,27 +71,43 @@ export class MateuUi extends LitElement {
 
     loadHash(w: Window) {
         if (!w.location.hash.startsWith('#state=')) {
-            /*
-            this.journeyTypeId = w.location.hash.split('&')[0].substring(1)
-            this.journeyBaseUrl = this.baseUrl
-            this.journeyUiId = this.uiId
-            this.journeyContextData = this.contextData
-             */
 
-            let journeyTypeId = w.location.hash.split('&')[0].substring(1)
-            if (journeyTypeId.includes('____x')) {
-                journeyTypeId = journeyTypeId.substring(0, journeyTypeId.indexOf('____x'))
-            }
+            let journeyTypeId = this.extractJourneyTypeIdFromUrl(w)
 
-            const item = this.findMenuBarItem(journeyTypeId)
-            if (item) {
-                this.myMenuBarItemSelected(item)
+            this.menuRetriesCount = 0
+            if (journeyTypeId) {
+                this.searchAndSelectMenuItem(journeyTypeId)
             } else {
-                console.log('No menu item with journeyTypeId ' + journeyTypeId, this.items)
+                //home. No menu to select
             }
 
         }
 
+    }
+
+    extractJourneyTypeIdFromUrl(w: Window) {
+        let journeyTypeId = w.location.pathname
+        if (this.baseUrl) {
+            journeyTypeId = journeyTypeId.substring(this.baseUrl.length)
+        }
+        if (journeyTypeId.startsWith('/')) {
+            journeyTypeId = journeyTypeId.substring(1)
+        }
+        return journeyTypeId;
+    }
+
+    searchAndSelectMenuItem(journeyTypeId: string) {
+        const item = this.findMenuBarItem(journeyTypeId)
+        if (item) {
+            this.myMenuBarItemSelected(item)
+        } else {
+            if (this.menuRetriesCount++ < 20) {
+                console.log('Retrying (' + this.menuRetriesCount + ') search of menu item with journeyTypeId ' + journeyTypeId)
+                setTimeout(() => this.searchAndSelectMenuItem(journeyTypeId), 100)
+            } else {
+                console.log('No menu item with journeyTypeId ' + journeyTypeId, this.items)
+            }
+        }
     }
 
 
@@ -103,6 +121,8 @@ export class MateuUi extends LitElement {
             const w = e.target as Window
             this.loadHash(w)
         };
+
+        this.loadHash(window)
     }
 
     findMenuBarItem(journeyTypeId: string): MyMenuBarItem | undefined {
@@ -126,13 +146,17 @@ export class MateuUi extends LitElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
+        this.journeyContextData = this.contextData
+
         try {
             this.mateuApiClient.contextData = this.contextData?JSON.parse(this.contextData):{}
         } catch (e) {
             console.log('error when parsing context data', e)
         }
 
-        if (_changedProperties.has('baseUrl') || _changedProperties.has('instant')) {
+        if (_changedProperties.has('baseUrl')
+        //    || _changedProperties.has('instant')
+        ) {
 
             this.mateuApiClient.baseUrl = this.baseUrl
             this.mateuApiClient.element = this
@@ -158,10 +182,6 @@ export class MateuUi extends LitElement {
         this.journeyBaseUrl = this.baseUrl
         this.journeyContextData = this.contextData
 
-        if (window.location.hash) {
-            this.loadHash(window)
-        }
-
     }
 
 
@@ -172,16 +192,35 @@ export class MateuUi extends LitElement {
 
     itemSelected(event: MenuBarItemSelectedEvent) {
         let item = event.detail.value as MyMenuBarItem
-        if (item.journeyTypeId) {
-            window.location.hash = '#' + item.journeyTypeId
+        let intendedPath = item.journeyTypeId || ''
+        if ('____home____' == this.journeyTypeId) {
+            intendedPath = ''
         }
-        this.myMenuBarItemSelected(item)
+        if (this.baseUrl && intendedPath) {
+            intendedPath = this.baseUrl + '/' + intendedPath
+        }
+        if (!intendedPath.startsWith('/')) {
+            intendedPath = '/' + intendedPath
+        }
+
+        if (item.journeyTypeId && window.location.pathname != intendedPath) {
+            console.log('pushing path', intendedPath)
+            window.history.pushState({},"", intendedPath);
+            dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+        } else {
+            this.myMenuBarItemSelected(item)
+        }
     }
 
     myMenuBarItemSelected(item: MyMenuBarItem) {
         this.instant = nanoid()
         this.journeyTypeId = item.journeyTypeId
         this.remoteJourneyTypeId = item.remoteJourneyTypeId;
+        let menuPath = ''
+        if (item.journeyTypeId && item.remoteJourneyTypeId) {
+            menuPath = item.journeyTypeId?.substring(0, item.journeyTypeId?.length - item.remoteJourneyTypeId.length)
+        }
+        this.menuPath = menuPath;
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
         this.journeyContextData = this.contextData
         this.label = item.text
@@ -200,7 +239,11 @@ export class MateuUi extends LitElement {
     }
 
     goHome() {
-        window.location.href = ''
+        if (!this.baseUrl) {
+            window.location.href = '/'
+        } else {
+            window.location.href = this.baseUrl
+        }
     }
 
     appSelected(event: MenuBarItemSelectedEvent) {
@@ -309,6 +352,8 @@ export class MateuUi extends LitElement {
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
                             main="${this.baseUrl == this.journeyBaseUrl}"
+                            uiBaseUrl="${this.baseUrl}"
+                            menuPath="${this.menuPath}"
                     ></mateu-ux>
                     
                 `:''}
@@ -322,6 +367,8 @@ export class MateuUi extends LitElement {
                             contextData="${this.journeyContextData}"
                             @replace-journey="${this.replaceJourney}"
                             main="${this.baseUrl == this.journeyBaseUrl}"
+                            uiBaseUrl="${this.baseUrl}"
+                            menuPath="${this.menuPath}"
                     ></mateu-ux>
                     
                 `:''}

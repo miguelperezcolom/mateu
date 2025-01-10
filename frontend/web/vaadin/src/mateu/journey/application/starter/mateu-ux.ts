@@ -27,7 +27,11 @@ export class MateuUx extends LitElement {
 
     //properties (reactive)
     @property()
+    uiBaseUrl = ''
+    @property()
     baseUrl = ''
+    @property()
+    menuPath: string | undefined = undefined;
     @property()
     journeyTypeId: string | undefined = undefined;
     @property()
@@ -282,25 +286,45 @@ export class MateuUx extends LitElement {
                     return
                 case UICommandType.UpdateUrl:
                     // @ts-ignore
-                    let url = '#' + c.data.url
+                    let url = c.data.url
                     if ('____home____' == this.journeyTypeId) {
                         url = ''
                     }
+                    if (this.uiBaseUrl) {
+                        if (url) {
+                            url = this.uiBaseUrl + '/' + url
+                        } else {
+                            url = this.uiBaseUrl
+                        }
+                    }
                     if (this.main) {
+                        console.log('pushing path', url)
                         window.history.pushState({},"", url)
                     }
                     return
-                case UICommandType.UpdateUrlFragment:
-                    // @ts-ignore
-                    let urlFragment = window.location.hash
-                    console.log('url', urlFragment, c.data)
-                    if (urlFragment.includes('____x')) {
-                        urlFragment = urlFragment.substring(0, urlFragment.indexOf('____x'))
+                case UICommandType.UpdateHash:
+                    console.log('url', c.data)
+                    let intendedPath = this.journeyTypeId || ''
+                    if ('____home____' == this.journeyTypeId) {
+                        intendedPath = ''
                     }
-                    urlFragment += '____x' + c.data
-                    console.log('url', urlFragment, c.data)
+                    if (this.uiBaseUrl) {
+                        if (intendedPath) {
+                            intendedPath = this.uiBaseUrl + '/' + intendedPath
+                        } else {
+                            intendedPath = this.uiBaseUrl
+                        }
+                    }
+                    if (!intendedPath.startsWith('/')) {
+                        intendedPath = '/' + intendedPath
+                    }
+                    if (c.data) {
+                        intendedPath += '#' + c.data
+                    }
                     if (this.main) {
-                        window.history.pushState({},"", urlFragment)
+                        console.log('pushing path', intendedPath)
+                        window.history.pushState({},"", intendedPath)
+                        dispatchEvent(new PopStateEvent('popstate', { state: {} }));
                     }
                     return
                 case UICommandType.CloseModal:
@@ -409,16 +433,32 @@ export class MateuUx extends LitElement {
 
                         // @ts-ignore
                         if (this.main || this.main == 'true') {
-                            let url = '#' + this.journeyTypeId
+                            let intendedPath = this.journeyTypeId
                             if ('____home____' == this.journeyTypeId) {
-                                url = ''
+                                intendedPath = ''
                             }
-                            var hash = window.location.hash
-                            if (hash.includes('____x')) {
-                                hash = hash.substring(0, hash.indexOf('____x'))
+                            if (this.menuPath) {
+                                intendedPath = this.menuPath + intendedPath
                             }
-                            if (hash != url) {
-                                window.history.pushState({},"", url);
+                            if (this.uiBaseUrl) {
+                                if (intendedPath) {
+                                    intendedPath = this.uiBaseUrl + '/' + intendedPath
+                                } else {
+                                    intendedPath = this.uiBaseUrl
+                                }
+                            }
+                            if (!intendedPath.startsWith('/')) {
+                                intendedPath = '/' + intendedPath
+                            }
+                            let currentPath = window.location.pathname;
+                            if (window.location.hash) {
+                                intendedPath += window.location.hash
+                                currentPath += window.location.hash
+                            }
+                            if (this.journeyTypeId && currentPath != intendedPath) {
+                                console.log('pushing path', intendedPath)
+                                window.history.pushState({},"", intendedPath);
+                                dispatchEvent(new PopStateEvent('popstate', { state: {} }));
                             }
                         }
 

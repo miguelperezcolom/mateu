@@ -3,7 +3,7 @@ package io.mateu.dtos;
 public enum UICommandTypeDto {
   CloseModal,
   UpdateUrl,
-  UpdateUrlFragment,
+  UpdateHash,
   ReplaceWithUrl,
   OpenNewTab,
   OpenNewWindow,

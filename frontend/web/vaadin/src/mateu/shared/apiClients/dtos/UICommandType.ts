@@ -1,7 +1,7 @@
 export enum UICommandType {
     CloseModal = "CloseModal",
     UpdateUrl = "UpdateUrl",
-    UpdateUrlFragment = "UpdateUrlFragment",
+    UpdateHash = "UpdateHash",
     ReplaceWithUrl = "ReplaceWithUrl",
     OpenNewTab = "OpenNewTab",
     OpenNewWindow = "OpenNewWindow",

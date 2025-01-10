@@ -2,7 +2,9 @@ package ${pkgName};
 
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.reflection.ReflectionService;
+import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.uidl.interfaces.ReflectionHelper;
+import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,13 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.web.server.ServerWebExchange;
 
+import java.util.HashMap;
 import java.util.Map;
+
 
 
 @RestController("${pkgName}.${simpleClassName}Controller")
@@ -32,9 +39,11 @@ public class ${simpleClassName}Controller {
     private UIMapper uiMapper;
     @Autowired
     private ReflectionHelper reflectionHelper;
+    @Autowired
+    private SerializerService serializerService;
 
-    @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndex() {
+    @GetMapping(value = "**", produces = MediaType.TEXT_HTML_VALUE)
+    public String getIndex(ServerHttpRequest request) {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
@@ -99,10 +108,34 @@ public class ${simpleClassName}Controller {
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
                             + (liveReloadEnabled?
                                     "<script src='http://localhost:35729/livereload.js'></script>":""));
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}' contextData='" + getContextData(request) + "'></mateu-ui>");
 </#if>
         return html;
     }
+
+@SneakyThrows
+private String getContextData(ServerHttpRequest request) {
+    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+    params.putAll(request.getQueryParams());
+
+    Map<String, Object> data = new HashMap<>();
+    params.forEach((key, value) -> {
+        Object v = value;
+        if (value.size() == 1) {
+            v = value.get(0);
+        }
+        data.put(key, v);
+    });
+
+    return serializerService.toJson(data).replaceAll("\\n","");
+}
+
+private MultiValueMap<String, String> getFormData(ServerWebExchange serverWebExchange) {
+    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+    serverWebExchange.getFormData().subscribe(formData::addAll);
+    return formData;
+}
+
 
 
 @GetMapping(value = "/assets/**")
