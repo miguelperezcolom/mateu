@@ -33,6 +33,8 @@ export class MateuUx extends LitElement {
     @property()
     menuPath: string | undefined = undefined;
     @property()
+    search: string | undefined = undefined;
+    @property()
     journeyTypeId: string | undefined = undefined;
     @property()
     journeyId: string | undefined = undefined;
@@ -305,6 +307,9 @@ export class MateuUx extends LitElement {
                             url = this.uiBaseUrl
                         }
                     }
+                    if (this.search) {
+                        url += this.search
+                    }
                     if (this.main) {
                         console.log('pushing path', url)
                         window.history.pushState({},"", url)
@@ -332,6 +337,9 @@ export class MateuUx extends LitElement {
                     }
                     if (!intendedPath.startsWith('/')) {
                         intendedPath = '/' + intendedPath
+                    }
+                    if (this.search) {
+                        intendedPath += this.search
                     }
                     if (c.data) {
                         intendedPath += '#' + c.data
@@ -465,7 +473,13 @@ export class MateuUx extends LitElement {
                             if (!intendedPath.startsWith('/')) {
                                 intendedPath = '/' + intendedPath
                             }
+                            if (this.search) {
+                                intendedPath += this.search
+                            }
                             let currentPath = window.location.pathname;
+                            if (window.location.search) {
+                                currentPath += window.location.search
+                            }
                             if (window.location.hash) {
                                 intendedPath += window.location.hash
                                 currentPath += window.location.hash

@@ -1,6 +1,7 @@
 package com.example.demo.infra.ui.menus.forms;
 
 import io.mateu.uidl.annotations.MainAction;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.interfaces.ConsumesHash;
 import io.mateu.uidl.interfaces.UpdatesHash;
 import org.springframework.context.annotation.Scope;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 public class HashConsumer implements ConsumesHash, UpdatesHash {
 
+    @ReadOnly
     String currentHash = "";
 
     String desiredHash = "";

@@ -49,6 +49,8 @@ export class MateuUi extends LitElement {
     @state()
     menuPath: string | undefined
     @state()
+    search: string | undefined
+    @state()
     instant: string | undefined;
     @state()
     label: string | undefined;
@@ -122,6 +124,7 @@ export class MateuUi extends LitElement {
             this.loadHash(w)
         };
 
+        this.search = window.location.search
         this.loadHash(window)
     }
 
@@ -202,8 +205,15 @@ export class MateuUi extends LitElement {
         if (!intendedPath.startsWith('/')) {
             intendedPath = '/' + intendedPath
         }
+        if (this.search) {
+            intendedPath += this.search
+        }
+        let currentPath = window.location.pathname;
+        if (window.location.search) {
+            currentPath += window.location.search
+        }
 
-        if (item.journeyTypeId && window.location.pathname != intendedPath) {
+        if (item.journeyTypeId && currentPath != intendedPath) {
             console.log('pushing path', intendedPath)
             window.history.pushState({},"", intendedPath);
             dispatchEvent(new PopStateEvent('popstate', { state: {} }));
@@ -239,11 +249,16 @@ export class MateuUi extends LitElement {
     }
 
     goHome() {
-        if (!this.baseUrl) {
-            window.location.href = '/'
+        let url = this.baseUrl
+        if (!url) {
+            url = '/'
         } else {
-            window.location.href = this.baseUrl
+            url = this.baseUrl
         }
+        if (this.search) {
+            url += this.search
+        }
+        window.location.href = url
     }
 
     appSelected(event: MenuBarItemSelectedEvent) {
@@ -354,6 +369,7 @@ export class MateuUi extends LitElement {
                             main="${this.baseUrl == this.journeyBaseUrl}"
                             uiBaseUrl="${this.baseUrl}"
                             menuPath="${this.menuPath}"
+                            search="${this.search}"
                     ></mateu-ux>
                     
                 `:''}
@@ -369,6 +385,7 @@ export class MateuUi extends LitElement {
                             main="${this.baseUrl == this.journeyBaseUrl}"
                             uiBaseUrl="${this.baseUrl}"
                             menuPath="${this.menuPath}"
+                            search="${this.search}"
                     ></mateu-ux>
                     
                 `:''}
