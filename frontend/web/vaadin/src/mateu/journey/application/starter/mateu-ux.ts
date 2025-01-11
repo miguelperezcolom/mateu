@@ -316,6 +316,13 @@ export class MateuUx extends LitElement {
                     if ('____home____' == this.journeyTypeId) {
                         intendedPath = ''
                     }
+                    if (this.menuPath) {
+                        if (intendedPath) {
+                            intendedPath = this.menuPath + '/' + intendedPath
+                        } else {
+                            intendedPath = this.menuPath
+                        }
+                    }
                     if (this.uiBaseUrl) {
                         if (intendedPath) {
                             intendedPath = this.uiBaseUrl + '/' + intendedPath
