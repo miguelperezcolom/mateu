@@ -146,9 +146,7 @@ export class MateuUi extends LitElement {
         this.upstreamSubscription?.unsubscribe();
     }
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-
+    updateContextData() {
         this.journeyContextData = this.contextData
 
         try {
@@ -156,6 +154,12 @@ export class MateuUi extends LitElement {
         } catch (e) {
             console.log('error when parsing context data', e)
         }
+    }
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+
+        this.updateContextData()
 
         if (_changedProperties.has('baseUrl')
         //    || _changedProperties.has('instant')
@@ -174,6 +178,8 @@ export class MateuUi extends LitElement {
     // write state to reactive properties
     stampState(state: State) {
         this.ui = state.ui
+        this.contextData = this.ui?.contextData
+        this.updateContextData()
         this.journeyTypeId = state.journeyTypeId
         this.remoteJourneyTypeId = undefined
         this.loading = state.loading
@@ -183,7 +189,6 @@ export class MateuUi extends LitElement {
         this.notificationMessage = state.notificationMessage
 
         this.journeyBaseUrl = this.baseUrl
-        this.journeyContextData = this.contextData
 
     }
 
@@ -232,7 +237,7 @@ export class MateuUi extends LitElement {
         }
         this.menuPath = menuPath;
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
-        this.journeyContextData = this.contextData
+        this.updateContextData()
         this.label = item.text
     }
 
