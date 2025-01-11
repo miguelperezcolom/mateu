@@ -14,6 +14,7 @@ import java.util.Map;
 public record UIFragmentDto(
     ActionTargetDto target,
     String targetId,
+    String initiatorComponentId,
     String modalStyle,
     String modalTitle,
     ContentDto content,

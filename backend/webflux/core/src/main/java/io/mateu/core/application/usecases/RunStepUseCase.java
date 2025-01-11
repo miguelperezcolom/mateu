@@ -4,6 +4,7 @@ import io.mateu.core.domain.commands.runStepAction.RunStepActionCommand;
 import io.mateu.core.domain.commands.runStepAction.RunStepActionCommandHandler;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -62,6 +63,23 @@ public class RunStepUseCase {
                 rq.data(),
                 rq.contextData(),
                 serverHttpRequest))
+        .map(
+            i ->
+                new UIIncrementDto(
+                    i.commands(),
+                    i.messages(),
+                    i.uiFragments().stream()
+                        .map(
+                            f ->
+                                new UIFragmentDto(
+                                    f.target(),
+                                    f.targetId(),
+                                    componentId,
+                                    f.modalStyle(),
+                                    f.modalTitle(),
+                                    f.content(),
+                                    f.components()))
+                        .toList()))
         .subscribeOn(Schedulers.boundedElastic());
   }
 }

@@ -152,7 +152,8 @@ public class ResultMapper {
       String componentId,
       boolean calledByParametersEditor) {
 
-    var commands = getCommands(m, data, baseUrl, serverHttpRequest, r, calledByParametersEditor);
+    var commands =
+        getCommands(m, data, baseUrl, serverHttpRequest, componentId, r, calledByParametersEditor);
     var messages = getMessages(r, m, calledByParametersEditor);
     var fragments =
         getFragments(m, data, baseUrl, serverHttpRequest, r, componentId, calledByParametersEditor);
@@ -188,6 +189,7 @@ public class ResultMapper {
             new UIFragmentDto(
                 mapActionTarget(getActionTarget(m, calledByParametersEditor)),
                 getTargetId(m, componentId, calledByParametersEditor),
+                componentId,
                 getModalStyle(m),
                 getModalTitle(m),
                 new SingleComponentDto(component.id()),
@@ -205,6 +207,7 @@ public class ResultMapper {
           new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
+              componentId,
               getModalStyle(m),
               getModalTitle(m),
               new SingleComponentDto(component.id()),
@@ -221,6 +224,7 @@ public class ResultMapper {
           new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
+              componentId,
               getModalStyle(m),
               getModalTitle(m),
               new SingleComponentDto(component.id()),
@@ -232,6 +236,7 @@ public class ResultMapper {
           new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
+              componentId,
               getModalStyle(m),
               getModalTitle(m),
               viewDto,
@@ -245,6 +250,7 @@ public class ResultMapper {
           new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
+              componentId,
               getModalStyle(m),
               getModalTitle(m),
               viewDto,
@@ -261,6 +267,7 @@ public class ResultMapper {
           new UIFragmentDto(
               mapActionTarget(getActionTarget(m, calledByParametersEditor)),
               getTargetId(m, componentId, calledByParametersEditor),
+              componentId,
               getModalStyle(m),
               getModalTitle(m),
               new SingleComponentDto(component.id()),
@@ -292,6 +299,7 @@ public class ResultMapper {
       Map<String, Object> data,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
+      String componentId,
       Object r,
       boolean calledByParametersEditor) {
     List<UICommandDto> commands = new ArrayList<>();
@@ -303,6 +311,7 @@ public class ResultMapper {
               dataExtractor.getData(r),
               baseUrl,
               serverHttpRequest,
+              componentId,
               calledByParametersEditor));
     } else if (r instanceof CloseModal closeModal) {
       commands.add(
@@ -312,6 +321,7 @@ public class ResultMapper {
               dataExtractor.getData(closeModal.getResult()),
               baseUrl,
               serverHttpRequest,
+              componentId,
               calledByParametersEditor));
     }
     if (r instanceof URL url) {
@@ -334,6 +344,7 @@ public class ResultMapper {
       Map<String, Object> data,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
+      String componentId,
       boolean calledByParametersEditor) {
     CloseModal closeModal = null;
     if (r instanceof CloseModal<?>) {
@@ -355,6 +366,7 @@ public class ResultMapper {
                 new UIFragmentDto(
                     mapActionTargetForResult(m, r, closeModal, calledByParametersEditor),
                     getTargetId(m, null, calledByParametersEditor),
+                    componentId,
                     getModalStyle(m),
                     getModalTitle(m),
                     new SingleComponentDto(component.id()),

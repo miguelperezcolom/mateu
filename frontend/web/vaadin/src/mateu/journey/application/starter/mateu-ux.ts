@@ -46,8 +46,12 @@ export class MateuUx extends LitElement {
     initialUiIncrement: UIFragment | undefined = undefined;
     @property()
     main: boolean = false
+    @property()
+    parent: MateuUx | undefined
 
     //reactive state (not properties)
+    @state()
+    initiatorComponentId: string | undefined = undefined;
     @state()
     modalStepId: string | undefined = undefined;
     @state()
@@ -98,7 +102,7 @@ export class MateuUx extends LitElement {
             event.detail.componentId,
             event.detail.actionId,
             event.detail.componentType,
-            event.detail.data
+            event.detail.data,
         ).then()
     }
 
@@ -166,6 +170,7 @@ export class MateuUx extends LitElement {
                 // crear modal y meter un mateu-ux dentro
                 this.modalOpened = true
                 this.modalInstant = nanoid()
+                this.initiatorComponentId = f.initiatorComponentId
                 this.modalInitialUiIncrement = {
                     modalStyle: undefined,
                     modalTitle: undefined,
@@ -520,7 +525,19 @@ export class MateuUx extends LitElement {
                     @close-modal="${async (event: any) => {
                         if (this.modalOpened) {
                             this.modalOpened = false
-                            this.initialUiIncrement = event.detail.uiIncrement.uiFragments[0]
+                            const increment = event.detail.uiIncrement.uiFragments[0]
+                            if (increment) {
+                            if (ActionTarget.Component == increment.target) {
+                                if (!increment.targetId) {
+                                    if (this.initiatorComponentId) {
+                                        increment.targetId = this.initiatorComponentId
+                                    } else {
+                                        increment.target = ActionTarget.View
+                                    }
+                                } 
+                            }
+                            this.initialUiIncrement = increment
+                            }
                         } else {
                             console.log('NOT closing modal')
                         }

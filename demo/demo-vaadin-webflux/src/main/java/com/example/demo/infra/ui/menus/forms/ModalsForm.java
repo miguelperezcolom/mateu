@@ -36,12 +36,12 @@ public class ModalsForm implements HasBadges, HasStatus, HasTitle, HasSubtitle {
     return new WizardPage1();
   }
 
-  @Action(order = 0, target = ActionTarget.NewModal, modalStyle = "width: 800px; height: 300px;")
+  @Action(order = 10, target = ActionTarget.NewModal, modalStyle = "width: 800px; height: 300px;")
   public TextFieldsForm openModal2() {
     return new TextFieldsForm();
   }
 
-  @Action(order = 10, target = ActionTarget.NewModal)
+  @Action(order = 1, target = ActionTarget.NewModal)
   public ChangeNameInModalForm changeNameInModal() {
     return new ChangeNameInModalForm(name, this);
   }

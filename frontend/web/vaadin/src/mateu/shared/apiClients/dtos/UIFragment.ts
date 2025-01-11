@@ -6,6 +6,7 @@ export interface UIFragment {
 
     target: ActionTarget
     targetId: string
+    initiatorComponentId : string | undefined
     modalStyle: string | undefined
     modalTitle: string | undefined
     content: Content

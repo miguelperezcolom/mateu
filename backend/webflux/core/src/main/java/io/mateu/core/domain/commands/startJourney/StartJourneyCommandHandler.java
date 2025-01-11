@@ -109,7 +109,8 @@ public class StartJourneyCommandHandler {
         new UIIncrementDto(
             List.of(),
             List.of(),
-            List.of(new UIFragmentDto(ActionTargetDto.View, "", "", "", viewDto, allComponents))));
+            List.of(
+                new UIFragmentDto(ActionTargetDto.View, "", "", "", "", viewDto, allComponents))));
   }
 
   public Object resolveJourneyTypeId(
