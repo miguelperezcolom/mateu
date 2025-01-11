@@ -318,7 +318,7 @@ export class MateuUx extends LitElement {
                     }
                     if (this.menuPath) {
                         if (intendedPath) {
-                            intendedPath = this.menuPath + '/' + intendedPath
+                            intendedPath = this.menuPath + intendedPath
                         } else {
                             intendedPath = this.menuPath
                         }
