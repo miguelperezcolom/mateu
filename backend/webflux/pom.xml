@@ -361,11 +361,6 @@
               <dataFileIncludes>
                 <dataFileInclude>**/jacoco.exec</dataFileInclude>
               </dataFileIncludes>
-              <!--
-              <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate</outputDirectory>
-              -->
-              <outputDirectory>${project.basedir}/.qodana/code-coverage</outputDirectory>
-              <formats>XML</formats>
             </configuration>
           </execution>
         </executions>

@@ -176,6 +176,7 @@ export class MateuUx extends LitElement {
                     modalTitle: undefined,
                     content: f.content,
                     targetId: '',
+                    initiatorComponentId: f.initiatorComponentId,
                     target: ActionTarget.View,
                     components: f.components
                 }
@@ -197,6 +198,7 @@ export class MateuUx extends LitElement {
                     modalTitle: undefined,
                     content: f.content,
                     targetId: '',
+                    initiatorComponentId: f.initiatorComponentId,
                     target: ActionTarget.View,
                     components: f.components
                 }
@@ -217,6 +219,7 @@ export class MateuUx extends LitElement {
                     modalTitle: undefined,
                     content: f.content,
                     targetId: '',
+                    initiatorComponentId: f.initiatorComponentId,
                     target: ActionTarget.View,
                     components: f.components
                 }
