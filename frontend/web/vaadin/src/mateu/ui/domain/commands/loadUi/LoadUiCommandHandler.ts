@@ -9,10 +9,12 @@ export class LoadUiCommandHandler {
 
     public async handle(mateuApiClient: MateuApiClient, command: LoadUiCommand): Promise<{ui: UI,items: any, journeyTypeId: string | undefined}> {
         const ui = await mateuApiClient.fetchUi()
-        try {
-            mateuApiClient.contextData = ui?.contextData?JSON.parse(ui?.contextData!):{}
-        } catch (e) {
-            console.log('error when parsing context data', e)
+        if (ui?.contextData) {
+            try {
+                mateuApiClient.contextData = ui.contextData?JSON.parse(ui.contextData):{}
+            } catch (e) {
+                console.log('error when parsing context data', e)
+            }
         }
         const menu = await this.hydrate(mateuApiClient, ui?.menu)
         return {

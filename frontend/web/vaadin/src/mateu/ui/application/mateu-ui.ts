@@ -178,8 +178,10 @@ export class MateuUi extends LitElement {
     // write state to reactive properties
     stampState(state: State) {
         this.ui = state.ui
-        this.contextData = this.ui?.contextData
-        this.updateContextData()
+        if (this.ui?.contextData) {
+            this.contextData = this.ui?.contextData
+            this.updateContextData()
+        }
         this.journeyTypeId = state.journeyTypeId
         this.remoteJourneyTypeId = undefined
         this.loading = state.loading
