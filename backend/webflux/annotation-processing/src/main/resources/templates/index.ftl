@@ -42,7 +42,7 @@ public class ${simpleClassName}Controller {
     @Autowired
     private SerializerService serializerService;
 
-    @GetMapping(value = "**", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = "*", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex(ServerHttpRequest request) {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
@@ -113,34 +113,34 @@ public class ${simpleClassName}Controller {
         return html;
     }
 
-@SneakyThrows
-private String getContextData(ServerHttpRequest request) {
-    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-    params.putAll(request.getQueryParams());
+    @SneakyThrows
+    private String getContextData(ServerHttpRequest request) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.putAll(request.getQueryParams());
 
-    Map<String, Object> data = new HashMap<>();
-    params.forEach((key, value) -> {
-        Object v = value;
-        if (value.size() == 1) {
-            v = value.get(0);
-        }
-        data.put(key, v);
-    });
+        Map<String, Object> data = new HashMap<>();
+        params.forEach((key, value) -> {
+            Object v = value;
+            if (value.size() == 1) {
+                v = value.get(0);
+            }
+            data.put(key, v);
+        });
 
-    return serializerService.toJson(data).replaceAll("\\n","");
-}
+        return serializerService.toJson(data).replaceAll("\\n","");
+    }
 
-private MultiValueMap<String, String> getFormData(ServerWebExchange serverWebExchange) {
-    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-    serverWebExchange.getFormData().subscribe(formData::addAll);
-    return formData;
-}
+    private MultiValueMap<String, String> getFormData(ServerWebExchange serverWebExchange) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        serverWebExchange.getFormData().subscribe(formData::addAll);
+        return formData;
+    }
 
 
 
-@GetMapping(value = "/assets/**")
-public ResponseEntity<String> getAssets(ServerHttpRequest request) {
-    return getFromClasspath(request.getURI().toString(), "assets", "/npm/mateu/assets/");
+    @GetMapping(value = "/assets/**")
+    public ResponseEntity<String> getAssets(ServerHttpRequest request) {
+        return getFromClasspath(request.getURI().toString(), "assets", "/npm/mateu/assets/");
     }
 
     private ResponseEntity<String> getFromClasspath(String uri, String key, String pkg) {
@@ -158,13 +158,11 @@ public ResponseEntity<String> getAssets(ServerHttpRequest request) {
         }
         String html = InputStreamReader.readFromClasspath(this.getClass(), pkg + path);
         return new ResponseEntity(html, httpHeaders, HttpStatus.OK);
-        }
+    }
 
-        @GetMapping(value = "/dist/**")
-        public ResponseEntity<String> getDist(ServerHttpRequest request) {
-            return getFromClasspath(request.getURI().toString(), "dist", "/npm/mateu/dist/");
-            }
+    @GetMapping(value = "/dist/**")
+    public ResponseEntity<String> getDist(ServerHttpRequest request) {
+        return getFromClasspath(request.getURI().toString(), "dist", "/npm/mateu/dist/");
+    }
 
-
-
-            }
+}
