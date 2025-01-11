@@ -3,6 +3,7 @@ package com.example.demo.infra.ui.helloworld;
 import io.mateu.dtos.ActionTargetDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.GenericComponentDto;
+import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.JourneyCreationRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -40,12 +41,14 @@ public class HelloWorldTest {
             null,
             null,
             null,
-            List.of());
+            List.of(),
+            null);
 
     this.webClient
-        .get()
+        .post()
         .uri("/helloworld/mateu/v3/ui")
         .accept(MediaType.APPLICATION_JSON)
+        .bodyValue(new GetUIRqDto(Map.of(), ""))
         .exchange()
         .expectStatus()
         .isOk()

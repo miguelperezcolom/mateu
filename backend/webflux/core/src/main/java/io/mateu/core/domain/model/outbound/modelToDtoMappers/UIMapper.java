@@ -10,6 +10,7 @@ import io.mateu.dtos.UIDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -25,7 +26,11 @@ public class UIMapper {
   final MenuBuilder menuCreator;
   final CaptionProvider captionProvider;
 
-  public UIDto map(Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest)
+  public UIDto map(
+      Object uiInstance,
+      String baseUrl,
+      Map<String, Object> contextData,
+      ServerHttpRequest serverHttpRequest)
       throws Exception {
 
     if (uiInstance instanceof DynamicUI) {
@@ -44,9 +49,18 @@ public class UIMapper {
             getLoginUrl(uiInstance),
             getWelcomeMessage(uiInstance, serverHttpRequest),
             getLogoutUrl(uiInstance, serverHttpRequest),
-            getApps(uiInstance));
+            getApps(uiInstance),
+            getContextData(uiInstance, contextData, serverHttpRequest));
 
     return ui;
+  }
+
+  private String getContextData(
+      Object uiInstance, Map<String, Object> contextData, ServerHttpRequest serverHttpRequest) {
+    if (uiInstance instanceof UpdatesContextData updatesContextData) {
+      return updatesContextData.getContextData(contextData, serverHttpRequest);
+    }
+    return null;
   }
 
   private String getLogo(Object uiInstance) {

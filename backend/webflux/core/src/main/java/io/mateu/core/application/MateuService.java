@@ -69,9 +69,10 @@ public class MateuService {
     this.serveFileUseCase = serveFileUseCase;
   }
 
-  public Mono<UIDto> getUI(String uiId, String baseUrl, ServerHttpRequest serverHttpRequest)
+  public Mono<UIDto> getUI(
+      String uiId, String baseUrl, GetUIRqDto rq, ServerHttpRequest serverHttpRequest)
       throws Exception {
-    return getUiUseCase.getUI(uiId, baseUrl, serverHttpRequest);
+    return getUiUseCase.getUI(uiId, baseUrl, rq, serverHttpRequest);
   }
 
   public Mono<UIIncrementDto> createJourney(

@@ -14,7 +14,8 @@ public record UIDto(
     String loginUrl,
     String welcomeMessage,
     String logoutUrl,
-    List<AppDto> apps) {
+    List<AppDto> apps,
+    String contextData) {
 
   public UIDto {
     menu = Collections.unmodifiableList(menu);

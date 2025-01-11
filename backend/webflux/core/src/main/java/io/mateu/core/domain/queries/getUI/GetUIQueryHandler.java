@@ -31,7 +31,8 @@ public class GetUIQueryHandler {
       hasInitMethod.init(serverHttpRequest);
     }
 
-    UIDto ui = uiMapper.map(uiInstance, query.getBaseUrl(), serverHttpRequest);
+    UIDto ui =
+        uiMapper.map(uiInstance, query.getBaseUrl(), query.getContextData(), serverHttpRequest);
 
     return ui;
   }

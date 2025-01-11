@@ -34,9 +34,11 @@ public class ${simpleClassName}MateuController {
     private String baseUrl = "${path}";
 
 
-    @GetMapping(value = "v3/ui")
-    public Mono<UIDto> getUI(ServerHttpRequest serverHttpRequest) throws Exception {
-        return service.getUI(uiId, baseUrl, serverHttpRequest);
+    @PostMapping(value = "v3/ui")
+    public Mono<UIDto> getUI(
+            @RequestBody GetUIRqDto rq,
+            ServerHttpRequest serverHttpRequest) throws Exception {
+        return service.getUI(uiId, baseUrl, rq, serverHttpRequest);
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")

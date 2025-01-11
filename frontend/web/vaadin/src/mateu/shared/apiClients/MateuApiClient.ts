@@ -134,7 +134,10 @@ export class MateuApiClient {
     }
 
     async fetchRemoteUi(baseUrl: string): Promise<UI> {
-        return await this.wrap<UI>(this.get(baseUrl + '/mateu/v3/ui')
+        return await this.wrap<UI>(this.getUsingPost(baseUrl + '/mateu/v3/ui', {
+            "context-data": this.contextData,
+            "hash": window.location.hash
+        })
             .then((response) => response.data))
     }
 
