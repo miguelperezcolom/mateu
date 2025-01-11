@@ -218,7 +218,7 @@ export class MateuUi extends LitElement {
         this.remoteJourneyTypeId = item.remoteJourneyTypeId;
         let menuPath = ''
         if (item.journeyTypeId && item.remoteJourneyTypeId) {
-            menuPath = item.journeyTypeId?.substring(0, item.journeyTypeId?.length - item.remoteJourneyTypeId.length)
+            menuPath = item.journeyTypeId.substring(0, item.journeyTypeId.length - item.remoteJourneyTypeId.length)
         }
         this.menuPath = menuPath;
         this.journeyBaseUrl = item.baseUrl?item.baseUrl:''
