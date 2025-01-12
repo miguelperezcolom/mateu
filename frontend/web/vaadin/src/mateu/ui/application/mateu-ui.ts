@@ -33,7 +33,10 @@ export class MateuUi extends LitElement {
     @property()
     contextData: string | undefined = undefined;
 
+
     // state
+    @state()
+    initialJourneyTypeIdFromWindow: string | undefined
     @state()
     journeyBaseUrl = ''
     @state()
@@ -123,6 +126,8 @@ export class MateuUi extends LitElement {
             const w = e.target as Window
             this.loadHash(w)
         };
+
+        this.initialJourneyTypeIdFromWindow = this.extractJourneyTypeIdFromUrl(window)
 
         this.search = window.location.search
         this.loadHash(window)
@@ -369,7 +374,7 @@ export class MateuUi extends LitElement {
                     </vaadin-app-layout>
                 `:''}
                 
-                    ${this.ui.homeJourneyTypeId && !this.journeyTypeId?html`
+                    ${this.ui.homeJourneyTypeId && !this.initialJourneyTypeIdFromWindow && !this.journeyTypeId?html`
                     <mateu-ux 
                             journeytypeid="${this.ui.homeJourneyTypeId}" 
                             baseUrl="${this.journeyBaseUrl}" 
