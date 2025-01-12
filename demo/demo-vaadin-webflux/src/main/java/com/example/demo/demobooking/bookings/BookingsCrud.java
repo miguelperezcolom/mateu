@@ -49,7 +49,7 @@ public class BookingsCrud implements Crud<Filters, Row>, ConsumesHash {
     }
 
     @Override
-    public Object getDetail(Row myRow) throws Throwable {
+    public Mono<BookingView> getDetail(Row myRow) throws Throwable {
         return bookingEditor.load(myRow.id());
     }
 
@@ -57,6 +57,9 @@ public class BookingsCrud implements Crud<Filters, Row>, ConsumesHash {
     public Object consume(String hash, ServerHttpRequest serverHttpRequest) {
         if ("new".equals(hash)) {
             return createBookingForm;
+        }
+        if ("".equals(hash) || hash == null) {
+            return this;
         }
         return bookingEditor.load(hash);
     }

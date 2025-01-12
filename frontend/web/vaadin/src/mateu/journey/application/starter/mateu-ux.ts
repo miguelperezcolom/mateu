@@ -311,7 +311,7 @@ export class MateuUx extends LitElement {
                         url += this.search
                     }
                     if (this.main) {
-                        console.log('pushing path', url)
+                        console.log('pushing path in ux when handling UICommandType.UpdateUrl', url)
                         window.history.pushState({},"", url)
                     }
                     return
@@ -345,9 +345,9 @@ export class MateuUx extends LitElement {
                         intendedPath += '#' + c.data
                     }
                     if (this.main) {
-                        console.log('pushing path', intendedPath)
+                        console.log('pushing path when handling UICommandType.UpdateHash', intendedPath)
                         window.history.pushState({},"", intendedPath)
-                        dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+                        //dispatchEvent(new PopStateEvent('popstate', { state: {} }));
                     }
                     return
                 case UICommandType.CloseModal:
@@ -485,9 +485,9 @@ export class MateuUx extends LitElement {
                                 currentPath += window.location.hash
                             }
                             if (this.journeyTypeId && currentPath != intendedPath) {
-                                console.log('pushing path', intendedPath)
+                                console.log('pushing path in ux when updated', intendedPath, currentPath, this.journeyTypeId)
                                 window.history.pushState({},"", intendedPath);
-                                dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+                                //dispatchEvent(new PopStateEvent('popstate', { state: {} }));
                             }
                         }
 

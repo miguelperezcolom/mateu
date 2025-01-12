@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.SneakyThrows;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 
@@ -33,13 +34,13 @@ public class ViewMapper {
     this.actualUiInstanceProvider = actualUiInstanceProvider;
   }
 
+  @SneakyThrows
   public ViewDto map(
       io.mateu.uidl.interfaces.View view,
       String baseUrl,
       ServerHttpRequest serverHttpRequest,
       Map<String, ComponentDto> allComponentsInStep,
-      Map<String, Object> data)
-      throws Throwable {
+      Map<String, Object> data) {
 
     var actualObject = actualUiInstanceProvider.getActualUiInstance(view, serverHttpRequest);
 

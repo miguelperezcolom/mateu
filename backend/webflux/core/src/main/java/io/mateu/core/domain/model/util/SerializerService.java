@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
@@ -113,7 +114,8 @@ public class SerializerService implements Serializer {
     return mapper.readValue(json, c);
   }
 
-  public String toJson(Object o) throws Exception {
+  @SneakyThrows
+  public String toJson(Object o) {
     if (o != null && o.getClass().isAnnotationPresent(Entity.class)) {
       return entityToJson(o);
     }

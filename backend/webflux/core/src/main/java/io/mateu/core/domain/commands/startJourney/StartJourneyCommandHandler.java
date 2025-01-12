@@ -74,43 +74,56 @@ public class StartJourneyCommandHandler {
 
       if (formInstance instanceof ConsumesHash consumesHash) {
         var hash = command.getJourneyCreationRq().hash();
+        if (hash != null && hash.startsWith("#")) {
+          hash = hash.substring(1);
+        }
         formInstance = consumesHash.consume(hash, serverHttpRequest);
       }
 
-      if (formInstance instanceof MicroFrontend microFrontend) {
-        return Mono.just(
-            new UIIncrementDto(
-                List.of(
-                    new UICommandDto(
-                        UICommandTypeDto.ReplaceJourney,
-                        new MicroFrontendDto(
-                            microFrontend.baseUrl(),
-                            microFrontend.journeyTypeId(),
-                            serializerService.toJson(microFrontend.contextData())))),
-                List.of(),
-                List.of()));
+      Mono mono = null;
+      if (formInstance instanceof Mono formInstanceAsMono) {
+        mono = formInstanceAsMono;
+      } else {
+        mono = Mono.just(formInstance);
       }
 
-    } catch (Exception e) {
+      return mono.map(
+          instance -> {
+            if (instance instanceof MicroFrontend microFrontend) {
+              return new UIIncrementDto(
+                  List.of(
+                      new UICommandDto(
+                          UICommandTypeDto.ReplaceJourney,
+                          new MicroFrontendDto(
+                              microFrontend.baseUrl(),
+                              microFrontend.journeyTypeId(),
+                              serializerService.toJson(microFrontend.contextData())))),
+                  List.of(),
+                  List.of());
+            } else {
+              Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
+              io.mateu.uidl.interfaces.View view =
+                  (instance instanceof io.mateu.uidl.interfaces.View v)
+                      ? v
+                      : new SingleComponentView(instance);
+              ViewDto viewDto =
+                  viewMapper.map(
+                      view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
+
+              return new UIIncrementDto(
+                  List.of(),
+                  List.of(),
+                  List.of(
+                      new UIFragmentDto(
+                          ActionTargetDto.View, "", "", "", "", viewDto, allComponents)));
+            }
+          });
+
+    } catch (Throwable e) {
       log.error("error on getUi", e);
       // throw new NotFoundException("No class with name " + journeyTypeId + " found");
       throw e;
     }
-
-    Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
-    io.mateu.uidl.interfaces.View view =
-        (formInstance instanceof io.mateu.uidl.interfaces.View v)
-            ? v
-            : new SingleComponentView(formInstance);
-    ViewDto viewDto =
-        viewMapper.map(view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
-
-    return Mono.just(
-        new UIIncrementDto(
-            List.of(),
-            List.of(),
-            List.of(
-                new UIFragmentDto(ActionTargetDto.View, "", "", "", "", viewDto, allComponents))));
   }
 
   public Object resolveJourneyTypeId(

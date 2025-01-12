@@ -219,9 +219,12 @@ export class MateuUi extends LitElement {
         if (window.location.search) {
             currentPath += window.location.search
         }
+        if (window.location.hash) {
+            currentPath += window.location.hash
+        }
 
         if (item.journeyTypeId && currentPath != intendedPath) {
-            console.log('pushing path', intendedPath)
+            console.log('pushing path in ui', currentPath, intendedPath)
             window.history.pushState({},"", intendedPath);
             dispatchEvent(new PopStateEvent('popstate', { state: {} }));
         } else {

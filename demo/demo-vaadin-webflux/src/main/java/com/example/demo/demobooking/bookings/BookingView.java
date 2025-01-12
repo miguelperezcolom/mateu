@@ -12,6 +12,7 @@ import io.mateu.uidl.data.DestinationType;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.ResultType;
+import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.MicroFrontend;
 import io.mateu.uidl.interfaces.UpdatesHash;
 import io.mateu.uidl.interfaces.View;
@@ -74,22 +75,25 @@ class Info {
     }
 
     @SneakyThrows
-    public Info load(String id) {
-        var booking = article2Client.findById(id).toFuture().get();
+    public Mono<Info> load(String id) {
+        return article2Client.findById(id)
+                .flatMap(booking -> {
+                    this.id = id;
+                    if (booking != null) {
+                        leadName = booking.leadName();
+                        service = booking.service();
+                        startDate = booking.serviceStartDate();
+                        endDate = booking.serviceEndDate();
+                    }
+                    return Mono.just(this);
+                });
 
-        this.id = id;
-        leadName = booking.leadName();
-        service = booking.service();
-        startDate = booking.serviceStartDate();
-        endDate = booking.serviceEndDate();
-
-        return this;
     }
 }
 
 @Service("BookingView2")
 @Scope("prototype")
-public class BookingView implements View, UpdatesHash {
+public class BookingView implements Container, UpdatesHash {
 
     private final Info info;
 
@@ -104,17 +108,20 @@ public class BookingView implements View, UpdatesHash {
 
 
     @SneakyThrows
-    public BookingView load(String id) {
+    public Mono<BookingView> load(String id) {
 
         this.id = id;
 
-        horizontalLayout = new HorizontalLayout(
-                info.load(id),
-                new MicroFrontend(
-                        "https://article2.mateu.io/financial/bookingreport",
-                        Map.of("id", id)));
+        return info.load(id).map(info -> {
+            horizontalLayout = new HorizontalLayout(
+                    info,
+                    new MicroFrontend(
+                            "https://article2.mateu.io/financial/bookingreport",
+                            Map.of("id", id)));
 
-        return this;
+            return this;
+        });
+
     }
 
     @Override

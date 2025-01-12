@@ -92,17 +92,26 @@ public class CrudEditActionRunner implements ListActionRunner {
       throw new Exception("Crud getDetail returned null");
     }
 
+    Mono mono = null;
+    if (editor instanceof Mono<?> editorMono) {
+      mono = editorMono;
+    } else {
+      mono = Mono.just(editor);
+    }
+
     var method = reflectionService.getMethod(crud.getClass(), "getDetail");
-    return resultMapper.processResult(
-        crud,
-        method,
-        method,
-        data,
-        baseUrl,
-        serverHttpRequest,
-        editor,
-        extractComponentId(actionId),
-        false);
+    return mono.flatMap(
+        realEditor ->
+            resultMapper.processResult(
+                crud,
+                method,
+                method,
+                data,
+                baseUrl,
+                serverHttpRequest,
+                realEditor,
+                extractComponentId(actionId),
+                false));
   }
 
   private String extractComponentId(String actionId) {
