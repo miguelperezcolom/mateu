@@ -44,8 +44,8 @@ export class LoadUiCommandHandler {
 
     private clean(baseUrl: string | undefined): string {
         if (baseUrl) {
-            if (baseUrl.includes('#menu_')) {
-                return baseUrl.substring(0, baseUrl.lastIndexOf('menu_'))
+            if (baseUrl.includes('/menu_')) {
+                return baseUrl.substring(0, baseUrl.lastIndexOf('/menu_'))
             }
             return baseUrl
         }
@@ -56,8 +56,8 @@ export class LoadUiCommandHandler {
         hydratedItem.remoteMenuId = hydratedItem.journeyTypeId
         hydratedItem.journeyTypeId = prefix + hydratedItem.journeyTypeId
         let cleanBaseUrl = baseUrl?baseUrl:'';
-        if (cleanBaseUrl.includes('#')) {
-            cleanBaseUrl = cleanBaseUrl.substring(0, cleanBaseUrl.indexOf('#'))
+        if (cleanBaseUrl.includes('/menu_')) {
+            cleanBaseUrl = cleanBaseUrl.substring(0, cleanBaseUrl.indexOf('/menu_'))
         }
         hydratedItem.remoteBaseUrl = cleanBaseUrl
         if (hydratedItem.submenus) {
@@ -108,9 +108,9 @@ export class LoadUiCommandHandler {
         try {
             let cleanUrl = m.remoteBaseUrl!;
             let cleanMenuId = m.remoteMenuId!;
-            if (cleanUrl.includes('#')) {
-                cleanUrl = cleanUrl.substring(0, cleanUrl.indexOf('#'))
-                cleanMenuId = cleanUrl.substring(cleanUrl.indexOf('#') + 1)
+            if (cleanUrl.includes('/menu_')) {
+                cleanUrl = cleanUrl.substring(0, cleanUrl.indexOf('/menu_'))
+                cleanMenuId = cleanUrl.substring(cleanUrl.indexOf('/menu_') + 1)
             }
             const ui = await mateuApiClient.fetchRemoteUi(cleanUrl) // /remoteapp#cruds
             if (ui.menu) {
