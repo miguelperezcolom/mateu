@@ -38,7 +38,7 @@ public class MenuResolver {
     if ("____home____".equals(actionId)) {
       return Optional.of(buildHomeMenuEntry(uiInstance));
     }
-    return Optional.ofNullable(resolve(uiInstance, "", actionId, serverHttpRequest));
+    return Optional.ofNullable(resolve(uiInstance, "menu_", actionId, serverHttpRequest));
   }
 
   private MenuEntry buildHomeMenuEntry(Object uiInstance) {

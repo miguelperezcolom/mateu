@@ -33,7 +33,7 @@ public class MenuBuilder {
   @SneakyThrows
   public List<MenuDto> buildMenuForUi(
       Object uiInstance, String baseUrl, ServerHttpRequest serverHttpRequest) {
-    return buildMenu(uiInstance, baseUrl, "", serverHttpRequest);
+    return buildMenu(uiInstance, baseUrl, "menu_", serverHttpRequest);
   }
 
   public List<MenuDto> buildMenu(

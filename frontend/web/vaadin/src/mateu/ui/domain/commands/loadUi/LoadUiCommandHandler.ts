@@ -44,8 +44,8 @@ export class LoadUiCommandHandler {
 
     private clean(baseUrl: string | undefined): string {
         if (baseUrl) {
-            if (baseUrl.includes('#')) {
-                return baseUrl.substring(0, baseUrl.indexOf('#'))
+            if (baseUrl.includes('#menu_')) {
+                return baseUrl.substring(0, baseUrl.lastIndexOf('menu_'))
             }
             return baseUrl
         }
