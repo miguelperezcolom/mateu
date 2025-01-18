@@ -17,6 +17,7 @@ import io.mateu.uidl.annotations.On;
 import io.mateu.uidl.annotations.SplitLayouted;
 import io.mateu.uidl.annotations.TabLayouted;
 import io.mateu.uidl.annotations.VerticalLayouted;
+import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.RemoteJourney;
 import io.mateu.uidl.data.Result;
 import io.mateu.uidl.data.Stepper;
@@ -121,6 +122,8 @@ public class ComponentMetadataBuilder {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance instanceof io.mateu.uidl.interfaces.MicroFrontend) {
       metadata = getJourneyStarter((io.mateu.uidl.interfaces.MicroFrontend) componentInstance);
+    } else if (componentInstance instanceof Element) {
+      metadata = getElement((Element) componentInstance);
     } else if (componentInstance instanceof ElementDto) {
       metadata = getElement((ElementDto) componentInstance);
     } else if (componentInstance != null
@@ -294,6 +297,10 @@ public class ComponentMetadataBuilder {
         .getClass()
         .getAnnotation(io.mateu.uidl.annotations.Element.class)
         .value();
+  }
+
+  private ComponentMetadataDto getElement(Element element) {
+    return new ElementDto(element.name(), element.attributes(), element.content());
   }
 
   private ComponentMetadataDto getElement(ElementDto element) {
