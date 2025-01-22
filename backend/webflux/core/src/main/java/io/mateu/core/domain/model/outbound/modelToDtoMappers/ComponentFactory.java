@@ -9,10 +9,10 @@ import io.mateu.core.domain.model.util.data.Pair;
 import io.mateu.dtos.*;
 import io.mateu.dtos.TabDto;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.HorizontalLayouted;
-import io.mateu.uidl.annotations.SplitLayouted;
-import io.mateu.uidl.annotations.TabLayouted;
-import io.mateu.uidl.annotations.VerticalLayouted;
+import io.mateu.uidl.annotations.HorizontallyArranged;
+import io.mateu.uidl.annotations.SplitArranged;
+import io.mateu.uidl.annotations.InTabsArranged;
+import io.mateu.uidl.annotations.VerticallyArranged;
 import io.mateu.uidl.interfaces.Container;
 import io.mateu.uidl.interfaces.Crud;
 import java.util.HashMap;
@@ -214,14 +214,14 @@ public class ComponentFactory {
 
   private static boolean isLayout(Field field, Object actualComponentInstance) {
     return (actualComponentInstance != null
-            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayouted.class)))
+            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontallyArranged.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(VerticallyArranged.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(SplitArranged.class)))
         || (field != null
-            && (field.isAnnotationPresent(HorizontalLayouted.class)
-                || field.isAnnotationPresent(VerticalLayouted.class)
-                || field.isAnnotationPresent(SplitLayouted.class)
-                || field.isAnnotationPresent(TabLayouted.class)));
+            && (field.isAnnotationPresent(HorizontallyArranged.class)
+                || field.isAnnotationPresent(VerticallyArranged.class)
+                || field.isAnnotationPresent(SplitArranged.class)
+                || field.isAnnotationPresent(InTabsArranged.class)));
   }
 
   private List<String> getChildComponents(
@@ -256,15 +256,15 @@ public class ComponentFactory {
     }
     if (actualComponentInstance instanceof Container
         || (field != null
-            && (field.isAnnotationPresent(HorizontalLayouted.class)
-                || field.isAnnotationPresent(VerticalLayouted.class)
-                || field.isAnnotationPresent(SplitLayouted.class)
-                || field.isAnnotationPresent(TabLayouted.class)))
+            && (field.isAnnotationPresent(HorizontallyArranged.class)
+                || field.isAnnotationPresent(VerticallyArranged.class)
+                || field.isAnnotationPresent(SplitArranged.class)
+                || field.isAnnotationPresent(InTabsArranged.class)))
         || (actualComponentInstance != null
-            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(SplitLayouted.class)
-                || actualComponentInstance.getClass().isAnnotationPresent(TabLayouted.class)))) {
+            && (actualComponentInstance.getClass().isAnnotationPresent(HorizontallyArranged.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(VerticallyArranged.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(SplitArranged.class)
+                || actualComponentInstance.getClass().isAnnotationPresent(InTabsArranged.class)))) {
       return reflectionService.getAllFields(actualComponentInstance.getClass()).stream()
           .map(f -> new Pair<>(f, getValue(f, actualComponentInstance)))
           .map(

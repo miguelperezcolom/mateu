@@ -1,6 +1,19 @@
 package com.example.demo.infra.ui.menus;
 
-import com.example.demo.infra.ui.menus.forms.*;
+import com.example.demo.infra.ui.menus.components.forms.BasicFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.BooleanFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.DatesFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.EnumFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.IconForm;
+import com.example.demo.infra.ui.menus.components.forms.ImageForm;
+import com.example.demo.infra.ui.menus.components.forms.NestedDropdownsForm;
+import com.example.demo.infra.ui.menus.components.forms.NumberFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.PatternValidatedFieldForm;
+import com.example.demo.infra.ui.menus.components.forms.TelephoneFieldForm;
+import com.example.demo.infra.ui.menus.components.forms.TextFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.UrlAndTextForm;
+import com.example.demo.infra.ui.menus.components.forms.VaadinRichTextFieldForm;
+import com.example.demo.infra.ui.menus.components.forms.WrappersFieldsForm;
 import io.mateu.uidl.annotations.MenuOption;
 
 public class FormUsualFieldsSubmenu {
@@ -29,9 +42,11 @@ public class FormUsualFieldsSubmenu {
 
   @MenuOption private UrlAndTextForm urls;
 
-  @MenuOption IconForm icons;
+  @MenuOption
+  IconForm icons;
 
-  @MenuOption ImageForm images = new ImageForm(
+  @MenuOption
+  ImageForm images = new ImageForm(
           "https://www.svgrepo.com/show/530409/time.svg",
           "https://www.svgrepo.com/show/530464/insurance.svg",
           "https://www.svgrepo.com/show/430013/education-school-study-sticker-9.svg",

@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui.menus;
 
 import com.example.demo.domain.cities.City;
-import com.example.demo.domain.programmingLanguages.ProgrammingLanguages;
+import com.example.demo.infra.ui.menus.components.cruds.programmingLanguages.ProgrammingLanguages;
 import com.example.demo.infra.ui.menus.errors.rpcTimeouts.BrokenCrud;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.*;
 import io.mateu.uidl.interfaces.Directory;

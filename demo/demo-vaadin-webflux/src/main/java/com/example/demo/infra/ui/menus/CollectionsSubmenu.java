@@ -1,6 +1,16 @@
 package com.example.demo.infra.ui.menus;
 
-import com.example.demo.infra.ui.menus.collections.*;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.ArraysForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.CollectionsForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.EditableCustomFormTableForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.EditableTableForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.EnumsCollectionsForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.ExternalRefsCollectionsForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.FilterableTableForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.ObjectsForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.RefsForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.TablesForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.WithValuesProvidersCollectionsForm;
 import io.mateu.uidl.annotations.MenuOption;
 
 public class CollectionsSubmenu {

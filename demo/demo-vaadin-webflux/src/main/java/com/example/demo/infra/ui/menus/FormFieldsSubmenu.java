@@ -1,6 +1,13 @@
 package com.example.demo.infra.ui.menus;
 
-import com.example.demo.infra.ui.menus.forms.*;
+import com.example.demo.infra.ui.menus.components.forms.ComplexChoiceForm;
+import com.example.demo.infra.ui.menus.components.forms.DisableFieldForm;
+import com.example.demo.infra.ui.menus.components.forms.ElementForm;
+import com.example.demo.infra.ui.menus.components.forms.HideFieldForm;
+import com.example.demo.infra.ui.menus.components.forms.MiscellaneousForm;
+import com.example.demo.infra.ui.menus.components.forms.ReusableFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.SameLineForm;
+import com.example.demo.infra.ui.menus.components.forms.WebComponentForm;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Submenu;
 

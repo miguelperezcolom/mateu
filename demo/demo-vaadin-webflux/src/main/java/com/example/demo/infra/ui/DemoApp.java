@@ -1,10 +1,8 @@
 package com.example.demo.infra.ui;
 
-import com.example.demo.infra.ui.menus.CrudsSubmenu;
-import com.example.demo.infra.ui.menus.FormsSubmenu;
 import com.example.demo.infra.ui.menus.LayoutsSubmenu;
-import com.example.demo.infra.ui.menus.OtherComponentsSubmenu;
-import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
+import com.example.demo.infra.ui.menus.ComponentsSubmenu;
+import com.example.demo.infra.ui.menus.components.forms.BasicFieldsForm;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.Private;
 import io.mateu.uidl.annotations.Submenu;
@@ -25,12 +23,7 @@ public class DemoApp implements HasLogin, HasAppTitle, HasIcon, HasApps
 // , IncludesRemoteUIs
 {
 
-  @Submenu
-  private FormsSubmenu forms;
-
-  @Submenu private CrudsSubmenu cruds;
-
-  @Submenu private OtherComponentsSubmenu otherComponents;
+  @Submenu private ComponentsSubmenu components;
 
   @Submenu private LayoutsSubmenu layouts;
 

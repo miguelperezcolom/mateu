@@ -1,6 +1,6 @@
 package com.example.demo.infra.ui.menus;
 
-import com.example.demo.infra.ui.menus.collections.OneToManyForm;
+import com.example.demo.infra.ui.menus.components.forms.fields.collections.OneToManyForm;
 import com.example.demo.infra.ui.menus.refs.ExternalRefs;
 import com.example.demo.infra.ui.menus.refs.FilesForm;
 import io.mateu.uidl.annotations.MenuOption;

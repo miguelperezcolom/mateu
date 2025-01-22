@@ -4,11 +4,11 @@ import com.example.demo.infra.ui.menus.layouts.shared.LeftSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.MyForm1;
 import com.example.demo.infra.ui.menus.layouts.shared.RightSideContent;
 import com.example.demo.infra.ui.menus.layouts.shared.crud.SimpleCrud;
-import io.mateu.uidl.annotations.HorizontalLayouted;
+import io.mateu.uidl.annotations.HorizontallyArranged;
 import io.mateu.uidl.annotations.Slot;
 import io.mateu.uidl.annotations.SlotName;
-import io.mateu.uidl.annotations.SplitLayouted;
-import io.mateu.uidl.annotations.TabLayouted;
+import io.mateu.uidl.annotations.SplitArranged;
+import io.mateu.uidl.annotations.InTabsArranged;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.interfaces.View;
 
@@ -21,22 +21,22 @@ public class CompleteView implements View {
 
     private MyForm1 myForm1;
 
-    @SplitLayouted
+    @SplitArranged
     private List splitLayout = List.of(
             new LeftSideContent("Left", "This goes to the left"),
             new RightSideContent("Right", "This goes to the right")
     );
 
-    @HorizontalLayouted
+    @HorizontallyArranged
     private List horizontalLayout = List.of(
             new LeftSideContent("Left", "This goes to the left"),
             new RightSideContent("Right", "This goes to the right")
     );
 
-    @HorizontalLayouted
+    @HorizontallyArranged
     private SimpleContainer simpleContainer;
 
-    @TabLayouted
+    @InTabsArranged
     SimpleContainer tabs;
 
 

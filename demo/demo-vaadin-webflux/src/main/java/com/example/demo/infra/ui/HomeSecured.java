@@ -1,7 +1,7 @@
 package com.example.demo.infra.ui;
 
-import com.example.demo.infra.ui.menus.forms.BasicFieldsForm;
-import com.example.demo.infra.ui.menus.forms.TextFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.BasicFieldsForm;
+import com.example.demo.infra.ui.menus.components.forms.TextFieldsForm;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.interfaces.ConsumesContextData;

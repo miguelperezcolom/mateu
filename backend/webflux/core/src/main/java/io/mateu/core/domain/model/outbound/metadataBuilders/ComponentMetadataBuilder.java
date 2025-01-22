@@ -12,11 +12,11 @@ import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.uidl.annotations.Attribute;
 import io.mateu.uidl.annotations.Content;
-import io.mateu.uidl.annotations.HorizontalLayouted;
+import io.mateu.uidl.annotations.HorizontallyArranged;
 import io.mateu.uidl.annotations.On;
-import io.mateu.uidl.annotations.SplitLayouted;
-import io.mateu.uidl.annotations.TabLayouted;
-import io.mateu.uidl.annotations.VerticalLayouted;
+import io.mateu.uidl.annotations.SplitArranged;
+import io.mateu.uidl.annotations.InTabsArranged;
+import io.mateu.uidl.annotations.VerticallyArranged;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.RemoteJourney;
 import io.mateu.uidl.data.Result;
@@ -82,43 +82,43 @@ public class ComponentMetadataBuilder {
     ComponentMetadataDto metadata;
     if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(HorizontalLayouted.class)) {
+        && field.isAnnotationPresent(HorizontallyArranged.class)) {
       metadata = getHorizontalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(HorizontalLayouted.class)) {
+        && field.isAnnotationPresent(HorizontallyArranged.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(TabLayouted.class)) {
+        && field.isAnnotationPresent(InTabsArranged.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(TabLayouted.class)) {
+        && componentInstance.getClass().isAnnotationPresent(InTabsArranged.class)) {
       metadata = getTabLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(HorizontalLayouted.class)) {
+        && componentInstance.getClass().isAnnotationPresent(HorizontallyArranged.class)) {
       metadata = getHorizontalLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(VerticalLayouted.class)) {
+        && componentInstance.getClass().isAnnotationPresent(VerticallyArranged.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(VerticalLayouted.class)) {
+        && field.isAnnotationPresent(VerticallyArranged.class)) {
       metadata = getVerticalLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(VerticalLayouted.class)) {
+        && field.isAnnotationPresent(VerticallyArranged.class)) {
       metadata = getVerticalLayout(componentInstance);
     } else if (componentInstance instanceof List<?> list
         && field != null
-        && field.isAnnotationPresent(SplitLayouted.class)) {
+        && field.isAnnotationPresent(SplitArranged.class)) {
       metadata = getSplitLayout(list, componentInstance, field);
     } else if (componentInstance != null
         && field != null
-        && field.isAnnotationPresent(SplitLayouted.class)) {
+        && field.isAnnotationPresent(SplitArranged.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance != null
-        && componentInstance.getClass().isAnnotationPresent(SplitLayouted.class)) {
+        && componentInstance.getClass().isAnnotationPresent(SplitArranged.class)) {
       metadata = getSplitLayout(componentInstance);
     } else if (componentInstance instanceof io.mateu.uidl.interfaces.MicroFrontend) {
       metadata = getJourneyStarter((io.mateu.uidl.interfaces.MicroFrontend) componentInstance);

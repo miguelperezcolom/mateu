@@ -16,7 +16,7 @@ import lombok.Setter;
 public class ComplexView implements Container {
 
   @Slot(SlotName.left)
-  @VerticalLayouted
+  @VerticallyArranged
   List<Object> left =
       List.of(
           new Card("Simple Card 1", "Subtitle 1", "Content 1"),
@@ -26,14 +26,14 @@ public class ComplexView implements Container {
   Card simpleCard = new Card("Simple Card 3", "Subtitle 3", "Content 3");
 
   @Slot(SlotName.right)
-  @VerticalLayouted
+  @VerticallyArranged
   List<Object> right =
       List.of(
           new Card("Simple Card 7", "Subtitle 7", "Content 7"),
           new Card("Simple Card 8", "Subtitle 8", "Content 8"));
 
   @Slot(SlotName.header)
-  @VerticalLayouted
+  @VerticallyArranged
   List<Object> header =
       List.of(new Element("h1", "This is the title"), new Element("h2", "This is the subtitle"));
 
@@ -41,13 +41,14 @@ public class ComplexView implements Container {
 
   AnotherSimpleForm anotherSimpleForm;
 
-  @HorizontalLayouted
+  @HorizontallyArranged
   List<Object> hl =
       List.of(
           new Card("Simple Card 5", "Subtitle 5", "Content 5"),
           new Card("Simple Card 6", "Subtitle 6", "Content 6"));
 
-  @TabLayouted HorizontalLayoutContainer tabs;
+  @InTabsArranged
+  HorizontalLayoutContainer tabs;
 
   String stringField = "stringField";
 

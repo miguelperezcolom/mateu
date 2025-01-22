@@ -1,6 +1,16 @@
 package com.example.demo.infra.ui.menus;
 
-import com.example.demo.infra.ui.menus.forms.*;
+import com.example.demo.infra.ui.menus.components.forms.BackgroundOnTop;
+import com.example.demo.infra.ui.menus.components.forms.DecomposedForm;
+import com.example.demo.infra.ui.menus.components.forms.FailingForm;
+import com.example.demo.infra.ui.menus.components.forms.FormStructureForm;
+import com.example.demo.infra.ui.menus.components.forms.HasInitMethodForm;
+import com.example.demo.infra.ui.menus.components.forms.MessagesForm;
+import com.example.demo.infra.ui.menus.components.forms.ModalsForm;
+import com.example.demo.infra.ui.menus.components.forms.MyReadOnlyPojo;
+import com.example.demo.infra.ui.menus.components.forms.MyReadOnlyPojoWithCrud;
+import com.example.demo.infra.ui.menus.components.forms.NestedDropdownsForm;
+import com.example.demo.infra.ui.menus.components.forms.WizardPage1;
 import io.mateu.uidl.annotations.FormColumns;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.interfaces.MicroFrontend;
@@ -19,8 +29,6 @@ public class FormOthersSubmenu {
   );
 
   @MenuOption private BackgroundOnTop backgroundOnTop;
-
-  @MenuOption private TabsForm tabs;
 
   @MenuOption private HasInitMethodForm hasInitMethod;
 
