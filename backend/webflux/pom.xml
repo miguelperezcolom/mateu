@@ -41,18 +41,17 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <intellij.coverage.agent.version>1.0.746</intellij.coverage.agent.version>
-    <intellij.agent.options>${project.basedir}/.qodana/code-coverage/output.ic,true,true,true,false</intellij.agent.options>
   </properties>
 
   <modules>
-    <module>annotation-processing</module>
-    <module>core</module>
-      <module>dtos</module>
+    <module>../shared/uidl</module>
+    <module>../shared/dtos</module>
+    <module>../shared/annotation-processing</module>
+    <module>../shared/core</module>
+    <module>webflux-core</module>
     <module>optionals/jpa</module>
       <module>optionals/springboot-security</module>
       <module>optionals/embedded-front</module>
-      <module>uidl</module>
   </modules>
 
   <dependencyManagement>

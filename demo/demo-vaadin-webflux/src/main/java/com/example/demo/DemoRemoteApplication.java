@@ -11,9 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
-@EnableJpaRepositories(
-    basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
-@EntityScan(basePackageClasses = {ReferenceForPackageScanning.class, DemoRemoteApplication.class})
 @EnableCaching
 public class DemoRemoteApplication {
 
@@ -21,8 +18,4 @@ public class DemoRemoteApplication {
     SpringApplication.run(DemoRemoteApplication.class, args);
   }
 
-  @Bean
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
-  }
 }
