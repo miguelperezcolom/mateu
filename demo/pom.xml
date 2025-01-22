@@ -20,6 +20,8 @@
   <modules>
     <module>demo-app-definition</module>
     <module>demo-vaadin-webflux</module>
+    <module>demo-vaadin-quarkus</module>
+    <module>demo-vaadin-micronaut</module>
   </modules>
 
 </project>
