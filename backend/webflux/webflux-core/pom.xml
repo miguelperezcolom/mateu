@@ -35,7 +35,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processing</artifactId>
+            <artifactId>annotation-processor-core</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

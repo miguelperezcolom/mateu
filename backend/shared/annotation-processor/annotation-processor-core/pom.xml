@@ -8,7 +8,7 @@
     <version>0.0.1-MATEU</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>annotation-processing</artifactId>
+  <artifactId>annotation-processor-core</artifactId>
 
   <name>annotation-processing</name>
   <description>shared interfaces for mateu mdd</description>
