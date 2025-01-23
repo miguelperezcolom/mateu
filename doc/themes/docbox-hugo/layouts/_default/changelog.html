@@ -1,0 +1,51 @@
+{{ define "main" }}
+  {{ $title := .Title }}
+  {{ $description := .Params.description }}
+
+  {{ with .Params.changelog_list }}
+    <section>
+      <div class="container">
+        <div class="row">
+          <div class="lg:col-3 hidden pt-8 md:pr-10 md:pt-12 lg:block">
+            <div class="changelog-link sticky top-[149px]">
+              {{ range $i, $e := . }}
+                <div
+                  class="border-b-border last-of-type:border-b-0 text-h5-md md:text-h5 text-dark relative block border-b py-4 font-medium first:pt-0 md:py-7">
+                  <a
+                    href="#ch-{{ $i }}"
+                    class="inset-0 after:absolute after:left-0 after:top-0 after:h-full after:w-full">
+                    {{ .version }}
+                    <span class="inline-block text-sm"> ({{ .date }}) </span>
+                  </a>
+                </div>
+              {{ end }}
+            </div>
+          </div>
+          <!-- End Changelog Date -->
+          <div class="lg:col-9 lg:border-l-border pt-12 lg:border-l lg:pl-10">
+            <h1 class="text-h1-md md:text-h1 text-dark mb-6">
+              {{ $title }}
+            </h1>
+            <p class="font-secondary text-text font-normal">
+              {{ $description }}
+            </p>
+            <div class="changelog mb-12">
+              {{ range $i, $e := . }}
+                <div class="changelog-item" id="ch-{{ $i }}">
+                  <h2 class="changelog-title">{{ .version }} ({{ .date }})</h2>
+                  <div class="badge badge-{{ .status }}">
+                    {{ .status_value }}
+                  </div>
+                  <div class="changelog-content">
+                    {{ .content | markdownify }}
+                  </div>
+                </div>
+              {{ end }}
+            </div>
+          </div>
+          <!-- End Changelog Content -->
+        </div>
+      </div>
+    </section>
+  {{ end }}
+{{ end }}

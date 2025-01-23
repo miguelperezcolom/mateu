@@ -1,0 +1,20 @@
+{{ $title := .Get "title" }}
+{{ $label := .Get "label" }}
+{{ $image := .Get "image" }}
+{{ $link := .Get "link" }}
+
+
+<div class="{{ if site.Params.tableofcontents }}min-[1850px]:col-6{{ end }}">
+  <div class="card-cta relative z-10">
+    <div
+      class="bg-theme-light relative w-full rounded-xl px-6 py-6 sm:rounded-3xl sm:px-8 sm:py-8 sm:pr-28">
+      <h3 class="text-h5 mt-0 font-medium">
+        {{ $title | markdownify }}
+      </h3>
+      <a href="{{ $link }}" class="btn btn-primary-gray">
+        {{ $label | markdownify }}
+      </a>
+    </div>
+    {{ partial "image.html" (dict "Src" $image "Class" `absolute bottom-0 right-0 m-0 w-[190px] p-0` "Alt" "illustration") }}
+  </div>
+</div>

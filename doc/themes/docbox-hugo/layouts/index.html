@@ -1,0 +1,183 @@
+{{ define "main" }}
+  {{ with .Params.banner }}
+    <section
+      class="section-md xl:section-lg {{ if .enable_bg_pattern }}
+        xl:bg-hero-pattern
+      {{ end }} bg-theme-light rounded-b-[2rem] bg-right bg-no-repeat md:rounded-b-[80px] xl:rounded-b-[120px]">
+      <div class="container">
+        <div class="row">
+          <div class="md:col-12 lg:col-7 xl:col-6">
+            <div
+              class="text-text bg-border mb-6 w-fit rounded-lg px-4 py-2 font-medium sm:mb-8">
+              {{ .subtitle | markdownify }}
+            </div>
+            <h1 class="text-dark mb-5 capitalize 2xl:pr-24">
+              {{ .title | markdownify }}
+            </h1>
+            <p
+              class="font-secondary sm:text-h6 text-text mb-10 text-base font-normal">
+              {{ .content | markdownify }}
+            </p>
+            {{ with .search }}
+              {{ if .enable }}
+                <form
+                  class="flex w-full max-w-[450px] justify-between rounded-xl bg-white p-1 shadow-lg sm:flex-row sm:rounded-2xl md:max-w-[580px]">
+                  <input
+                    type="search"
+                    data-target="search-modal"
+                    class="font-secondary placeholder:text-text/50 w-full border-0 bg-transparent p-2 pl-4 text-sm focus:border-0 focus:ring-0 sm:text-left md:p-4 md:pl-6 md:text-base"
+                    placeholder="{{ .input_placeholder }}" />
+                  <button
+                    type="button"
+                    data-target="search-modal"
+                    class="btn btn-md btn-primary-dark whitespace-nowrap">
+                    <i class="fas fa-search max-md:text-base"></i
+                    ><span class="ml-2 hidden sm:inline-block"
+                      >{{ .button_text | markdownify }}</span
+                    >
+                  </button>
+                </form>
+              {{ end }}
+            {{ end }}
+          </div>
+          <!-- End Banner Content -->
+          {{ if .image }}
+            <div class="lg:col-5 xl:col-6 hidden lg:block">
+              {{ partial "image.html" (dict "Src" .image "Class" "ml-auto block" "Alt" "banner image") }}
+            </div>
+            <!-- End Banner Image -->
+          {{ end }}
+        </div>
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with .Params.topics }}
+    <section class="section pb-0 max-2xl:px-3">
+      <div
+        class="bg-theme-dark mx-auto w-full max-w-[1700px] rounded-[2rem] sm:rounded-[40px]">
+        <div class="container pb-16 pt-16">
+          <div class="row pb-8">
+            <div class="col-12">
+              <div
+                class="bg-theme-light/20 mb-8 w-fit rounded-lg px-4 py-2 font-medium text-white">
+                {{ .subtitle | markdownify }}
+              </div>
+              <h2 class="mb-5 capitalize text-white sm:mb-0">
+                {{ .title | markdownify }}
+              </h2>
+            </div>
+          </div>
+          <!-- End Section Title -->
+          <div class="row gy-4 has-colored-box">
+            {{ range (where site.Pages "Type" "docs") }}
+              <div class="md:col-6 lg:col-4 2xl:col-3 flex">
+                <div
+                  class="border-border/30 flex flex-col items-start rounded-xl border px-5 py-7 sm:rounded-2xl">
+                  <div
+                    class="{{ if .Params.icon_bg }}
+                      bg-[{{ .Params.icon_bg }}]
+                    {{ else }}
+                      colored-box
+                    {{ end }} mb-6 flex h-[80px] w-[80px] items-center justify-center rounded-full text-center">
+                    {{ partial "image.html" (dict "Src" .Params.icon "Class" "h-8 w-8") }}
+                  </div>
+                  <h3 class="text-h5 mb-5 font-normal text-white">
+                    {{ .Title | markdownify }}
+                  </h3>
+                  <p
+                    class="font-secondary text-h6 text-light/70 mb-5 font-normal">
+                    {{ .Params.description | markdownify }}
+                  </p>
+
+                  {{ $permalink := "" }}
+                  {{ range first 1 (where .Pages "Section" .Section) }}
+                    {{ $permalink = .RelPermalink }}
+                  {{ end }}
+                  <a href="{{ $permalink }}" class="text-primary group mt-auto">
+                    View Details
+                    <span
+                      class="inline-block transition-all duration-300 group-hover:ml-1">
+                      <svg
+                        width="21"
+                        height="14"
+                        viewBox="0 0 21 14"
+                        fill="text-primary"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M20.6187 7.61872C20.9604 7.27701 20.9604 6.72299 20.6187 6.38128L15.0503 0.812816C14.7085 0.471107 14.1545 0.471107 13.8128 0.812816C13.4711 1.15452 13.4711 1.70854 13.8128 2.05025L18.7626 7L13.8128 11.9497C13.4711 12.2915 13.4711 12.8455 13.8128 13.1872C14.1545 13.5289 14.7085 13.5289 15.0503 13.1872L20.6187 7.61872ZM0 7.875H20V6.125H0V7.875Z"
+                          fill="#C7E564" />
+                      </svg>
+                    </span>
+                  </a>
+                </div>
+              </div>
+            {{ end }}
+          </div>
+          <!-- End Slider Topics -->
+        </div>
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with .Params.faq }}
+    {{ if .enable }}
+      <section class="section pb-0">
+        <div class="container">
+          <div class="row gy-5">
+            <div class="lg:col-6">
+              <div
+                class="text-text badge-gray mb-6 w-fit rounded-lg px-4 py-2 font-medium sm:mb-8">
+                {{ .subtitle | markdownify }}
+              </div>
+              <h2 class="text-dark mb-5 capitalize">
+                {{ .title | markdownify }}
+              </h2>
+              <p
+                class="font-secondary sm:text-h6 text-text text-base font-normal lg:mb-10">
+                {{ .content | markdownify }}
+              </p>
+              {{ with .button }}
+                {{ if .enable }}
+                  <a
+                    href="{{ .link }}"
+                    class="btn btn-primary-dark hidden lg:inline-block">
+                    {{ .label }}
+                  </a>
+                {{ end }}
+              {{ end }}
+            </div>
+            <!-- End Title -->
+            <div class="lg:col-6">
+              {{ partial "components/faq.html" }}
+              {{ with .button }}
+                {{ if .enable }}
+                  <a
+                    href="{{ .link }}"
+                    class="btn btn-primary-dark mx-auto mt-8 block w-fit lg:hidden">
+                    {{ .label }}
+                  </a>
+                {{ end }}
+              {{ end }}
+            </div>
+            <!-- End Faq Items -->
+          </div>
+        </div>
+      </section>
+    {{ end }}
+  {{ end }}
+
+  {{ with (site.GetPage "call-to-action") }}
+    {{ if .Params.enable }}
+      <section class="section">
+        <div class="container">
+          <div class="row">
+            <div class="col-12">
+              {{ partial "call-to-action.html" (dict "Context" . "IsHome" true) }}
+            </div>
+          </div>
+        </div>
+      </section>
+    {{ end }}
+  {{ end }}
+{{ end }}

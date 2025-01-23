@@ -1,0 +1,48 @@
+{{ $icon := .Get "icon" | default "fa-regular fa-lightbulb" }}
+{{ $title := .Get "title" | default "This is title" }}
+{{ $description := .Get "description" | default "This is description" }}
+{{ $link := .Get "link" | default "#?" }}
+{{ $label := .Get "label" | default "This is label" }}
+
+{{ if $title }}
+  <div
+    class="{{ if site.Params.tableofcontents }}
+      md:col-6 lg:col-12 xl:col-6 min-[1400px]:col-12 min-[1600px]:col-6
+    {{ else }}
+      xl:col-6
+    {{ end }}">
+    <div
+      class="border-border flex h-full w-full flex-col items-start rounded-xl border px-7 py-7 sm:rounded-2xl">
+      <div
+        class="border-b-border mb-4 flex w-full items-center gap-5 border-b pb-4">
+        <div class="colored-box rounded-xl flex items-center min-w-[60px] min-h-[65px] sm:rounded-2xl">
+          <i
+            class="{{ $icon }} mx-auto h-[30px] w-[30px] text-center align-middle text-[28px] text-theme-dark"></i>
+        </div>
+        <h3 class="text-h5 font-medium text-dark">
+          {{ $title | markdownify }}
+        </h3>
+      </div>
+      <p class="font-secondary text-h6 text-text mb-5 font-normal">
+        {{ $description | markdownify }}
+      </p>
+      <a
+        href="{{ $link }}"
+        class="btn text-secondary group mt-auto p-0 font-semibold">
+        {{ $label | markdownify }}
+        <span class="inline-block transition-all duration-300 group-hover:ml-1">
+          <svg
+            width="18"
+            height="11"
+            viewBox="0 0 21 14"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M20.6187 7.61872C20.9604 7.27701 20.9604 6.72299 20.6187 6.38128L15.0503 0.812816C14.7085 0.471107 14.1545 0.471107 13.8128 0.812816C13.4711 1.15452 13.4711 1.70854 13.8128 2.05025L18.7626 7L13.8128 11.9497C13.4711 12.2915 13.4711 12.8455 13.8128 13.1872C14.1545 13.5289 14.7085 13.5289 15.0503 13.1872L20.6187 7.61872ZM0 7.875H20V6.125H0V7.875Z"
+              fill="currentColor" />
+          </svg>
+        </span>
+      </a>
+    </div>
+  </div>
+{{ end }}

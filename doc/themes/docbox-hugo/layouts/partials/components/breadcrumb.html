@@ -1,0 +1,35 @@
+{{ $context := .Context | default . }}
+<nav aria-label="breadcrumb">
+  <ul class="breadcrumb not-prose mt-0">
+    {{ range $i, $e := $context.Ancestors.Reverse }}
+      {{ if ne $i 0 }}
+        <li>
+          {{ $title := .LinkTitle }}
+          {{ $fileName := $e.File.Path }}
+
+          {{ with site.GetPage ($fileName | urlize) }}
+            {{ range first 1 .Pages }}
+              <a
+                href="{{ if .RelPermalink }}
+                  {{ .RelPermalink }}
+                {{ else }}
+                  {{ (index .Pages 0).RelPermalink }}
+                {{ end }}">
+                {{ $title }}
+              </a>
+            {{ end }}
+          {{ end }}
+        </li>
+      {{ end }}
+    {{ end }}
+    <li>
+      <a aria-current="page" href="{{ $context.Permalink }}">
+        {{ $context.Title }}
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<div class="hr">
+  <hr />
+</div>

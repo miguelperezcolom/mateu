@@ -1,0 +1,59 @@
+- id: home
+  translation: maison
+
+- id: subscription_form_input_placeholder
+  translation: Entrez votre mail ici
+
+- id: subscribe_now
+  translation: Abonnez-vous maintenant
+
+- id: send_message
+  translation: Envoyer le message
+
+- id: write_here
+  translation: Écrivez ici...
+
+- id: message
+  translation: Message
+
+- id: first_name
+  translation: Prénom
+
+- id: email_address
+  translation: Adresse e-mail
+
+- id: first_name_placeholder
+  translation: Theresa Webb
+
+- id: email_placeholder
+  translation: theresawebb@gmail.com
+
+- id: subject
+  translation: Sujet
+
+- id: subject_placeholder
+  translation: Theresa Webb
+
+- id: on_this_page
+  translation: Sur cette page
+
+- id: address_title
+  translation: Dans la région de la baie
+
+- id: support
+  translation: Soutien
+
+- id: follow_us
+  translation: Suivez-nous
+
+- id: search_input_placeholder
+  translation: Recherche documents ...
+
+- id: no_results_for
+  translation: Aucun résultat pour
+
+- id: empty_search_results_placeholder
+  translation: Tapez quelque chose à rechercher..
+
+- id: last_update
+  translation: Last Update

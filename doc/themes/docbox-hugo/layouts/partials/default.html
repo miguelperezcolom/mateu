@@ -1,0 +1,240 @@
+{{ $isTocEnable := site.Params.tableofcontents }}
+<section>
+  <div
+    class="{{ if $isTocEnable }}
+      container-fluid
+    {{ else }}
+      container
+    {{ end }} mb-10 md:mb-16 lg:mb-20">
+    <div class="row md:justify-center lg:justify-start">
+      <div
+        class="{{ if $isTocEnable }}
+          w-[320px] lg:w-[380px] lg:pr-0
+        {{ else }}
+          max-w-[320px] lg:pr-0 lg:max-w-[380px] 2xl:max-w-[400px]
+        {{ end }}">
+        <aside
+          class="sidebar overflow-auto lg:!sticky lg:!top-[95px] lg:max-h-[calc(100vh-100px)] lg:!w-full lg:!py-10 lg:!pr-[46px]">
+          <form
+            class="border-border mb-10 hidden w-full justify-between rounded-xl border sm:rounded-2xl lg:flex">
+            <input
+              type="search"
+              class="font-secondary placeholder:text-text/50 w-full border-0 bg-transparent p-3 pl-6 pr-0 placeholder:text-sm focus:border-0 focus:ring-0"
+              data-target="search-modal"
+              placeholder="Search The Doc" />
+            <button data-target="search-modal" type="button" class="pl-3 pr-6">
+              <i class="fa-solid fa-magnifying-glass text-theme-dark"></i>
+            </button>
+          </form>
+          <!-- End Search Bar -->
+          <ul class="sidebar-list">
+            {{ $currentNode := . }}
+            {{ range site.Home.Sections.ByWeight }}
+              <!-- not render any single page -->
+              {{ $numberOfMainPages := len .Pages }}
+              {{ if or (eq $numberOfMainPages 0) (eq .Section "pages") (eq .Section "sections") }}
+              {{ else }}
+                <!-- /not render any single page -->
+                {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode }}
+              {{ end }}
+            {{ end }}
+          </ul>
+          <!-- End Sidebar Menu List -->
+        </aside>
+        <!-- End Sidebar -->
+        <button
+          class="sidebar-toggler group peer"
+          aria-label="show/hide sidebar">
+          <i class="fa-solid fa-list group-[.active]:hidden"></i>
+          <i class="fa-solid fa-xmark hidden group-[.active]:inline-block"></i>
+        </button>
+        <!-- End Sidebar Toggler -->
+        <div class="sidebar-overlay hidden max-lg:peer-[.active]:block"></div>
+      </div>
+      <div
+        class="{{ if $isTocEnable }}
+          lg:w-[calc(100%-380px)] lg:border-l lg:border-l-border lg:pl-0
+          2xl:w-[calc(100%-380px-350px)] 2xl:pr-0
+          {{ if gt .WordCount 180 }}
+            2xl:border-r 2xl:border-r-border
+          {{ end }}
+        {{ else }}
+          max-w-[calc(100% - 400px)] col-12 lg:col lg:border-l-border
+          lg:border-l lg:pl-0
+        {{ end }}">
+        <div
+          class="{{ if $isTocEnable }}
+            max-w-full px-0 pt-7 lg:pt-10 lg:pl-[46px] 2xl:pr-[46px]
+          {{ else }}
+            pt-10 lg:pl-[46px]
+          {{ end }}">
+          <article class="content prose max-w-full px-0 py-0">
+            {{ partial "components/breadcrumb" (dict "Context" .) }}
+
+            {{ if and ($isTocEnable) (gt .WordCount 180) }}
+              <div
+                class="toc-responsive bg-theme-light group rounded-xl sm:rounded-2xl 2xl:hidden">
+                <div
+                  class="text-h6 sm:text-h5 text-dark relative cursor-pointer px-4 py-3 font-semibold sm:px-6 sm:py-5 sm:pr-16"
+                  data-accordion>
+                  {{ i18n "on_this_page" }}
+                  <div
+                    class="absolute right-4 top-1/2 m-0 block -translate-y-1/2 rounded-lg bg-white p-3">
+                    <svg
+                      class="w-full transition-transform duration-300 group-[.active]:rotate-180"
+                      width="16"
+                      height="12"
+                      viewBox="0 0 20 13"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M18 2L10 10L2 2"
+                        stroke="currentColor"
+                        stroke-width="3" />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  class="toc-content border-t-theme-light bg-theme-light hidden max-h-0 overflow-hidden rounded-b-lg border-t px-4 pb-5 pt-0 group-[.active]:block group-[.active]:max-h-[1000px] md:px-6">
+                  {{ .TableOfContents }}
+                </div>
+              </div>
+              <div class="hr 2xl:hidden">
+                <hr />
+              </div>
+            {{ end }}
+            {{ if .Content }}
+              {{ .Content }}
+
+              {{ if .GitInfo.Hash }}
+                <div class="py-8">
+                  <hr class="!mb-4" />
+                  <span class="mb-0 !text-sm">
+                    <i class="far fa-clock"></i>
+                    {{ i18n `last_update` }} -
+                    {{ .Lastmod | time.Format ":date_long" }}
+                  </span>
+                </div>
+              {{ end }}
+
+            {{ else }}
+              <h2 class="fw-bold mb-4">{{ .Title }}</h2>
+            {{ end }}
+          </article>
+          {{ partial "call-to-action.html" (dict "Context" . "Class" "mt-8") }}
+        </div>
+      </div>
+      {{ if and ($isTocEnable) (gt .WordCount 180) }}
+        <div class="hidden w-[350px] lg:pl-[28px] 2xl:block">
+          <div
+            class="cs-scrollbar sticky top-[105px] hidden max-h-[calc(100vh-100px)] overflow-auto pt-10 lg:block lg:overflow-auto lg:transition-none 2xl:block">
+            <div id="toc-wrapper">
+              <div class="toc-heading">
+                <h2 class="text-h5 font-medium">Table of Contents</h2>
+              </div>
+              {{ .TableOfContents }}
+            </div>
+          </div>
+          <!-- End Table Of Contents -->
+        </div>
+        <!-- End Table Of Contents Col -->
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+{{ define "section-tree-nav-item" }}
+  {{ $currentNode := .currentnode }}
+  {{ $has_children := .has_child }}
+  {{ with .sect }}
+    {{ safeHTML .Params.head }}
+    {{ $fileUniqueID := "" }}
+    {{ with .File }}{{ $fileUniqueID = .UniqueID }}{{ end }}
+    {{ $currentNodeFileUniqueID := "" }}
+    {{ with $currentNode.File }}
+      {{ $currentNodeFileUniqueID = .UniqueID }}
+    {{ end }}
+    <li
+      class="{{ if or (.IsAncestor $currentNode) (eq $fileUniqueID $currentNodeFileUniqueID) }}
+        active
+      {{ end }} group">
+      {{ if $has_children }}
+        <button
+          class="has-sibling-child"
+          aria-label="Dropdown Collapse"
+          data-accordion>
+          {{ .Title }}
+        </button>
+      {{ else }}
+        <a href="{{ .Permalink }}" data-accordion>
+          {{ .Title }}
+        </a>
+      {{ end }}
+
+      {{ if $has_children }}
+        <ul>
+          {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}
+          {{ $currentNode.Scratch.Set "pages" .Pages }}
+          {{ if .Sections }}
+            {{ $currentNode.Scratch.Set "pages" (.Pages | union .Sections) }}
+          {{ end }}
+
+          {{ $pages := ($currentNode.Scratch.Get "pages") }}
+          {{ range $pages.ByWeight }}
+            {{ $check_child := gt .Pages 0 }}
+            {{ template "section-tree-nav-item" dict "sect" . "currentnode" $currentNode "has_child" $check_child }}
+          {{ end }}
+        </ul>
+      {{ end }}
+    </li>
+  {{ end }}
+{{ end }}
+
+{{ define "section-tree-nav" }}
+  {{ $currentNode := .currentnode }}
+  {{ with .sect }}
+    {{ safeHTML .Params.head }}
+    {{ $fileUniqueID := "" }}
+    {{ with .File }}{{ $fileUniqueID = .UniqueID }}{{ end }}
+    {{ $currentNodeFileUniqueID := "" }}
+    {{ with $currentNode.File }}
+      {{ $currentNodeFileUniqueID = .UniqueID }}
+    {{ end }}
+    <li
+      data-nav-id="{{ .Permalink }}"
+      title="{{ .Title }}"
+      class="{{ if or (.IsAncestor $currentNode) (eq $fileUniqueID $currentNodeFileUniqueID) }}
+        active
+      {{ end }} group relative">
+      <div
+        class="flex cursor-pointer select-none items-center gap-4"
+        data-accordion>
+        <h2
+          class="order-1 text-base font-medium group-[.active]:font-semibold sm:text-[20px] lg:text-[22px]">
+          {{ .Title }}
+        </h2>
+        <div
+          class="order-0 bg-theme-light group-hover:bg-primary group-[.active]:bg-primary flex h-[40px] w-[40px] items-center justify-center rounded-md p-[10px] transition-colors duration-300 sm:h-[50px] sm:w-[50px]">
+          {{ partial "image.html" (dict "Src" .Params.icon "Class" "h-5 w-5") }}
+        </div>
+      </div>
+      <!-- End Title & Icon -->
+      {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}
+      {{ if ne $numberOfPages 0 }}
+        <ul class="group-[.active]:mt-4 group-[.active]:max-h-[1000px]">
+          {{ $currentNode.Scratch.Set "pages" .Pages }}
+          {{ if .Sections }}
+            {{ $currentNode.Scratch.Set "pages" (.Pages | union .Sections) }}
+          {{ end }}
+
+          {{ $pages := ($currentNode.Scratch.Get "pages") }}
+          {{ range $pages.ByWeight }}
+            {{ $check_child := gt .Pages 0 }}
+            {{ template "section-tree-nav-item" dict "sect" . "has_child" $check_child "currentnode" $currentNode }}
+          {{ end }}
+        </ul>
+      {{ end }}
+      <!-- End Content -->
+    </li>
+  {{ end }}
+{{ end }}

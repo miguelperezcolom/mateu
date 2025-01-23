@@ -1,0 +1,25 @@
+{{ with site.GetPage "faq" }}
+  <div
+    class="border-border bg-theme-light text-text rounded-[25px] border p-3 sm:rounded-[50px] sm:p-8 md:p-5">
+    {{ range .Params.faq_items }}
+      <div
+        class="accordion border-border/40 mb-3 rounded-[17px] border bg-white sm:mb-6 sm:rounded-[34px]">
+        <div class="accordion-header font-medium" data-accordion>
+          {{ .title | markdownify }}
+          <svg
+            class="accordion-icon"
+            width="20"
+            height="13"
+            viewBox="0 0 20 13"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 2L10 10L2 2" stroke="currentColor" stroke-width="3" />
+          </svg>
+        </div>
+        <div class="accordion-content">
+          {{ .content | markdownify }}
+        </div>
+      </div>
+    {{ end }}
+  </div>
+{{ end }}

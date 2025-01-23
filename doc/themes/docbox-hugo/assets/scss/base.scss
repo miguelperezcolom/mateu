@@ -1,0 +1,56 @@
+html {
+  @apply scroll-smooth text-base;
+}
+
+body {
+  @apply bg-body font-primary text-text font-normal leading-relaxed;
+}
+
+h1,
+.h1,
+h2,
+.h2,
+h3,
+.h3,
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
+  @apply text-dark font-bold leading-tight;
+}
+
+h1,
+.h1 {
+  @apply text-h1-md md:text-h1;
+}
+
+h2,
+.h2 {
+  @apply text-h2-md md:text-h2;
+}
+
+h3,
+.h3 {
+  @apply text-h3-md md:text-h3;
+}
+
+h4,
+.h4 {
+  @apply text-h4;
+}
+
+h5,
+.h5 {
+  @apply text-h5;
+}
+
+h6,
+.h6 {
+  @apply text-h6;
+}
+
+p {
+  @apply font-secondary break-words;
+}

@@ -1,0 +1,40 @@
+############# English navigation ##############
+
+# main menu
+
+[[main]]
+name = "Docs"
+url = "getting-started/requirments/"
+weight = 1
+
+[[main]]
+name = "Faq"
+url = "faq/"
+weight = 2
+
+[[main]]
+name = "Elements"
+url = "getting-started/elements/"
+weight = 3
+
+# footer menu
+[[footer_primary]]
+name = "Changelog"
+url = "changelog/"
+weight = 1
+
+[[footer_primary]]
+name = "Contact us"
+url = "contact/"
+weight = 2
+
+# footer menu
+[[footer_secondary]]
+name = "Privacy Policy"
+url = "privacy-policy/"
+weight = 1
+
+[[footer_secondary]]
+name = "Terms And Conditions"
+url = "terms-conditions/"
+weight = 2
