@@ -3,7 +3,7 @@ header_alt: true
 
 # Banner
 banner:
-  title: "Lets Get Started With Docbox"
+  title: "Lets Get Startsssed With Docbox"
   subtitle: "Interactive Tutorial 🔥"
   content: "Pellen tesque in ipsum id orci porta dapibus. Sed porttitor lectus nibh. Vivamus accumsan tincidunt. Vestibulum ac diam sit amet quam vehicula elementum sed suscipit tortor eget"
   enable_bg_pattern: true
