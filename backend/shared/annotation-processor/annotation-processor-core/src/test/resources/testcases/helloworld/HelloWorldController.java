@@ -1,4 +1,4 @@
-package io.mateu.annotationProcessing.testcases.helloworld;
+package io.mateu.annotationprocessing.testcases.helloworld;
 
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.reflection.ReflectionService;

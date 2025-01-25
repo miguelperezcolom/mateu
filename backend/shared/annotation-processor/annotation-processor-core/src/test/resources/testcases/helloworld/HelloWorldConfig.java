@@ -1,4 +1,4 @@
-package io.mateu.annotationProcessing.testcases.helloworld;
+package io.mateu.annotationprocessing.testcases.helloworld;
 
 import io.mateu.ReferenceForPackageScanning;
 import org.springframework.context.annotation.ComponentScan;

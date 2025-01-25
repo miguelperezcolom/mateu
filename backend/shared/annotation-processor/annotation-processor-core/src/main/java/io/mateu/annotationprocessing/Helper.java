@@ -1,6 +1,8 @@
-package io.mateu.annotationProcessing;
+package io.mateu.annotationprocessing;
 
 public class Helper {
+
+  private Helper() {}
 
   public static String capitalize(String s) {
     return capitalize(s, true);
@@ -8,7 +10,7 @@ public class Helper {
 
   public static String capitalize(String s, boolean startWithUppercase) {
     if (s == null || "".equals(s)) return s;
-    s = s.replaceAll("\\.", " ");
+    s = s.replace(".", " ");
     String c =
         s.replaceAll(
                 String.format(
@@ -18,7 +20,7 @@ public class Helper {
                     "(?<=[A-Za-z])(?=[^A-Za-z])"),
                 " ")
             .toLowerCase();
-    c = c.replaceAll("[ ]+", " ");
+    c = c.replaceAll(" +", " ");
     if (startWithUppercase && c.length() > 1) c = c.substring(0, 1).toUpperCase() + c.substring(1);
 
     return c;

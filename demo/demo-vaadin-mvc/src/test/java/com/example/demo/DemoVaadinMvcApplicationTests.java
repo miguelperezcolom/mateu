@@ -8,6 +8,7 @@ class DemoVaadinMvcApplicationTests {
 
     @Test
     void contextLoads() {
+        // just check it starts up
     }
 
 }

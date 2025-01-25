@@ -6,7 +6,7 @@ import io.mateu.core.application.getui.GetUIRequest;
 import io.mateu.core.application.getui.GetUIUseCase;
 import org.junit.jupiter.api.Test;
 
-public class GetUIUseCaseTest {
+class GetUIUseCaseTest {
 
   @Test
   void returnsUI() {

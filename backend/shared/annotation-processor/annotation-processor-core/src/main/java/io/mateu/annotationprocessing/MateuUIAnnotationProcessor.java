@@ -1,4 +1,4 @@
-package io.mateu.annotationProcessing;
+package io.mateu.annotationprocessing;
 
 import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
@@ -200,8 +200,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       }
        */
 
-      io.mateu.annotationProcessing.Formatter formatter =
-          new io.mateu.annotationProcessing.Formatter("index.ftl", model);
+      io.mateu.annotationprocessing.Formatter formatter =
+          new io.mateu.annotationprocessing.Formatter("index.ftl", model);
       try {
         out.println(formatter.apply());
       } catch (TemplateException ex) {
@@ -228,8 +228,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 
-      io.mateu.annotationProcessing.Formatter formatter =
-          new io.mateu.annotationProcessing.Formatter(
+      io.mateu.annotationprocessing.Formatter formatter =
+          new io.mateu.annotationprocessing.Formatter(
               "config.ftl",
               Map.of(
                   "pkgName",
@@ -268,7 +268,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 
-      io.mateu.annotationProcessing.Formatter formatter =
+      io.mateu.annotationprocessing.Formatter formatter =
           new Formatter(
               "controller.ftl",
               Map.of(

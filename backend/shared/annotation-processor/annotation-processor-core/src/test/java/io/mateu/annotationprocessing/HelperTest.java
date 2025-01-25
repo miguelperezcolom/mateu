@@ -1,7 +1,6 @@
-package io.mateu.annotationProcessing;
+package io.mateu.annotationprocessing;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 

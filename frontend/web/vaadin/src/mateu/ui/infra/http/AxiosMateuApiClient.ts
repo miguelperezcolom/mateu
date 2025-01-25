@@ -98,21 +98,13 @@ export class AxiosMateuApiClient implements MateuApiClient {
         });
     }
 
-    async getUsingPost(uri: string, data: unknown): Promise<AxiosResponse<any>> {
-        const abortController =  new AbortController();
-        abortControllers = [...abortControllers, abortController]
-        return this.axiosInstance.post(uri, data,{
-            signal: abortController.signal
-        });
-    }
-
     async abortAll() {
         abortControllers.forEach(c => c.abort());
         abortControllers = []
     }
 
     async fetchUi(baseUrl: string): Promise<UI> {
-        return await this.wrap<UI>(this.getUsingPost(baseUrl + '/mateu/v3/ui', {
+        return await this.wrap<UI>(this.post(baseUrl + '/mateu/v3/ui', {
             "context-data": this.contextData,
             "hash": window.location.hash
         })
