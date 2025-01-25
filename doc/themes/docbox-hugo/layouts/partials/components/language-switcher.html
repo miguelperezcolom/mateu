@@ -5,11 +5,26 @@
 {{ $base:= urls.Parse site.BaseURL }}
 {{ $siteLanguages := site.Home.AllTranslations }}
 {{ $pageLink := replace (replace $context.RelPermalink (add $pageLang "/") "") $base.Path "/" }}
+<script>
+  function validateAndRedirect(selectElement) {
+    const allowedUrls = [
+      {{ range $siteLanguages }}
+        "{{ replace (add .RelPermalink $pageLink) `//` `/` }}",
+      {{ end }}
+    ];
+    const selectedValue = selectElement.value;
+    if (allowedUrls.includes(selectedValue)) {
+      location = selectedValue;
+    } else {
+      console.error("Invalid URL selected");
+    }
+  }
+</script>
 
 {{ if $context.IsTranslated }}
   <select
     class="{{ $class }} lg-switcher cursor-pointer"
-    onchange="location = this.value">
+    onchange="validateAndRedirect(this)">
     {{ range $siteLanguages }}
       {{ if eq (string $pageLang) (string .Language) }}
         <option
