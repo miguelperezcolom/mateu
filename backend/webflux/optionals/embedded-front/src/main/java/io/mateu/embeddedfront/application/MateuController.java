@@ -1,6 +1,5 @@
 package io.mateu.embeddedfront.application;
 
-import io.mateu.core.domain.model.util.InputStreamReader;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

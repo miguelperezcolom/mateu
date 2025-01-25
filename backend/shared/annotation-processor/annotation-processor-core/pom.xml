@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>annotation-processor-core</artifactId>
 
-  <name>annotation-processing</name>
+  <name>annotation-processor-core</name>
   <description>shared interfaces for mateu mdd</description>
   <url>https://mateu.io</url>
 

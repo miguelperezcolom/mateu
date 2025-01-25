@@ -38,7 +38,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
@@ -56,10 +55,6 @@
     <module>webflux/optionals/jpa</module>
       <module>webflux/optionals/springboot-security</module>
       <module>webflux/optionals/embedded-front</module>
-    <module>shared/annotation-processor/annotation-processor-webflux</module>
-    <module>shared/annotation-processor/annotation-processor-quarkus</module>
-    <module>shared/annotation-processor/annotation-processor-micronaut</module>
-    <module>shared/annotation-processor/annotation-processor-mvc</module>
   </modules>
 
   <dependencyManagement>
