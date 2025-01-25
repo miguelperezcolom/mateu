@@ -85,6 +85,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
   }
 
   private String getCaption(Element e, String simpleClassName) {
+    /*
+    todo: bring back at some point
     if (e.getAnnotation(PageTitle.class) != null) {
       return e.getAnnotation(PageTitle.class).value();
     }
@@ -94,6 +96,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     if (e.getAnnotation(Title.class) != null) {
       return e.getAnnotation(Title.class).value();
     }
+     */
     return Helper.capitalize(simpleClassName);
   }
 
@@ -112,9 +115,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       // writing generated file to out …
 
       String[] externalScripts = null;
+      /*
+      todo: bring back at some point
       if (e.getAnnotation(ExternalScripts.class) != null) {
         externalScripts = e.getAnnotation(ExternalScripts.class).value();
       }
+       */
       if (externalScripts == null) externalScripts = new String[0];
 
       String indexHtmlPath = "/index/index.html";
@@ -157,6 +163,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   "indexHtmlPath",
                   indexHtmlPath));
 
+      /*
+      todo: bring back at some point
       FavIcon favIconAnnotation = e.getAnnotation(FavIcon.class);
       if (favIconAnnotation != null) {
         model.put(
@@ -164,7 +172,10 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       } else {
         model.put("favicon", "");
       }
+       */
 
+      /*
+      todo: bring back at some point
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {
         String keycloakUrl = keycloakAnnotation.url();
@@ -187,6 +198,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 "jsUrl",
                 keycloakJsUrl));
       }
+       */
 
       io.mateu.annotationProcessing.Formatter formatter =
           new io.mateu.annotationProcessing.Formatter("index.ftl", model);
