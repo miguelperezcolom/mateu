@@ -1,7 +1,6 @@
 package io.mateu.annotationProcessing;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 
@@ -16,10 +15,10 @@ public class HelperTest {
     assertThat(r).isNull();
 
     r = Helper.capitalize("");
-    assertThat(r).isEqualTo("");
+    assertThat(r).isEmpty();
 
     r = Helper.capitalize("", false);
-    assertThat(r).isEqualTo("");
+    assertThat(r).isEmpty();
   }
 
   @Test

@@ -111,27 +111,11 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 
-      String[] externalScripts = null;
-      if (e.getAnnotation(ExternalScripts.class) != null) {
-        externalScripts = e.getAnnotation(ExternalScripts.class).value();
-      }
-      if (externalScripts == null) externalScripts = new String[0];
+      String[] externalScripts = getExternalScripts(e);
 
-      String indexHtmlPath = "/index/index.html";
-      String frontendPath = path + "/dist/assets/mateu.js";
-      if (e.getAnnotation(MateuUI.class) != null) {
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).indexHtmlPath())) {
-          indexHtmlPath = e.getAnnotation(MateuUI.class).indexHtmlPath();
-        }
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
-          frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
-          if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
-            frontendPath = path + frontendPath;
-          }
-        }
-      }
-      System.out.println("Using " + indexHtmlPath + " for index.html");
-      System.out.println("Using " + frontendPath + " for frontend component");
+      Paths paths = getPaths(e, path);
+      System.out.println("Using " + paths.indexHtmlPath() + " for index.html");
+      System.out.println("Using " + paths.frontendPath() + " for frontend component");
 
       Map<String, Object> model =
           new HashMap<>(
@@ -153,40 +137,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   "externalScripts",
                   externalScripts,
                   "frontendPath",
-                  frontendPath,
+                      paths.frontendPath(),
                   "indexHtmlPath",
-                  indexHtmlPath));
+                      paths.indexHtmlPath()));
 
-      FavIcon favIconAnnotation = e.getAnnotation(FavIcon.class);
-      if (favIconAnnotation != null) {
-        model.put(
-            "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.value() + "\\\" />");
-      } else {
-        model.put("favicon", "");
-      }
+      addFavIcon(e, model);
 
-      KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
-      if (keycloakAnnotation != null) {
-        String keycloakUrl = keycloakAnnotation.url();
-        String keycloakRealm = keycloakAnnotation.realm();
-        String keycloakClientId = keycloakAnnotation.clientId();
-        String keycloakJsUrl = keycloakAnnotation.jsUrl();
-        if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
-          keycloakJsUrl = path + "/dist/assets/keycloak.js";
-        }
-
-        model.put(
-            "keycloak",
-            Map.of(
-                "url",
-                keycloakUrl,
-                "realm",
-                keycloakRealm,
-                "clientId",
-                keycloakClientId,
-                "jsUrl",
-                keycloakJsUrl));
-      }
+      addKeycloak(e, path, model);
 
       io.mateu.annotationProcessing.Formatter formatter =
           new io.mateu.annotationProcessing.Formatter("index.ftl", model);
@@ -196,6 +153,71 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         ex.printStackTrace();
       }
     }
+  }
+
+  private static void addKeycloak(Element e, String path, Map<String, Object> model) {
+    KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
+    if (keycloakAnnotation != null) {
+      String keycloakUrl = keycloakAnnotation.url();
+      String keycloakRealm = keycloakAnnotation.realm();
+      String keycloakClientId = keycloakAnnotation.clientId();
+      String keycloakJsUrl = keycloakAnnotation.jsUrl();
+      if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
+        keycloakJsUrl = path + "/dist/assets/keycloak.js";
+      }
+
+      model.put(
+          "keycloak",
+          Map.of(
+              "url",
+              keycloakUrl,
+              "realm",
+              keycloakRealm,
+              "clientId",
+              keycloakClientId,
+              "jsUrl",
+              keycloakJsUrl));
+    }
+  }
+
+  private static void addFavIcon(Element e, Map<String, Object> model) {
+    FavIcon favIconAnnotation = e.getAnnotation(FavIcon.class);
+    if (favIconAnnotation != null) {
+      model.put(
+          "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.value() + "\\\" />");
+    } else {
+      model.put("favicon", "");
+    }
+  }
+
+  private static Paths getPaths(Element e, String path) {
+    String indexHtmlPath = "/index/index.html";
+    String frontendPath = path + "/dist/assets/mateu.js";
+    if (e.getAnnotation(MateuUI.class) != null) {
+      if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).indexHtmlPath())) {
+        indexHtmlPath = e.getAnnotation(MateuUI.class).indexHtmlPath();
+      }
+      if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
+        frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
+        if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
+          frontendPath = path + frontendPath;
+        }
+      }
+    }
+    Paths result = new Paths(indexHtmlPath, frontendPath);
+    return result;
+  }
+
+  private record Paths(String indexHtmlPath, String frontendPath) {
+  }
+
+  private static String[] getExternalScripts(Element e) {
+    String[] externalScripts = null;
+    if (e.getAnnotation(ExternalScripts.class) != null) {
+      externalScripts = e.getAnnotation(ExternalScripts.class).value();
+    }
+    if (externalScripts == null) externalScripts = new String[0];
+    return externalScripts;
   }
 
   public Filer getFiler() {
