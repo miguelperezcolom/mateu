@@ -46,7 +46,8 @@
   <modules>
     <module>../shared/uidl</module>
     <module>../shared/dtos</module>
-    <module>../shared/annotation-processing</module>
+    <module>../shared/annotation-processor/annotation-processor-core</module>
+    <module>../shared/annotation-processor/annotation-processor-webflux</module>
     <module>../shared/core</module>
     <module>webflux-core</module>
     <module>optionals/jpa</module>
