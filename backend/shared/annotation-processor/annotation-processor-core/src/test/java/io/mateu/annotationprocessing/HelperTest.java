@@ -9,16 +9,14 @@ public class HelperTest {
   @Test
   public void returnsEmptyString() {
 
-    assertThat(new Helper()).isNotNull();
-
     var r = Helper.capitalize(null);
     assertThat(r).isNull();
 
     r = Helper.capitalize("");
-    assertThat(r).isEqualTo("");
+    assertThat(r).isEmpty();
 
     r = Helper.capitalize("", false);
-    assertThat(r).isEqualTo("");
+    assertThat(r).isEmpty();
   }
 
   @Test
