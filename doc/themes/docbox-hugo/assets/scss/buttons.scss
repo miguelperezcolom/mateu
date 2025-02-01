@@ -1,0 +1,23 @@
+.btn {
+  @apply text-text inline-block rounded-xl px-7 py-4 text-[15px] font-semibold transition;
+
+  &.btn-md {
+    @apply py-3;
+  }
+}
+
+.btn-primary {
+  @apply bg-primary border border-theme-dark hover:bg-transparent hover:text-theme-dark;
+}
+
+.btn-primary-dark {
+  @apply hover:bg-primary border-0 bg-theme-dark text-white hover:text-theme-dark;
+}
+
+.btn-primary-gray {
+  @apply btn bg-theme-dark/10 hover:bg-primary inline-block rounded-lg px-6 py-3 text-theme-dark transition-colors duration-300 hover:border-l-theme-dark hover:text-theme-dark hover:no-underline;
+}
+
+.btn-outline-primary {
+  @apply border border-theme-dark bg-transparent hover:bg-theme-dark hover:text-white;
+}

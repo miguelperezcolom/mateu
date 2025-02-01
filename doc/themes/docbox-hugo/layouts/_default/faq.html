@@ -1,0 +1,21 @@
+{{ define "main" }}
+  <section class="section">
+    <div class="container">
+      <div class="row justify-center">
+        <div class="lg:col-6 text-center">
+          <div
+            class="badge-gray text-text mx-auto mb-8 w-fit rounded-lg px-4 py-2 font-medium">
+            {{ .Params.subtitle }}
+          </div>
+          <h2 class="mb-5 capitalize text-dark">{{ .Title }}</h2>
+          <p class="font-secondary text-h6 text-text mb-10 font-normal">
+            {{ .Params.description }}
+          </p>
+        </div>
+        <!-- End Title -->
+        <div class="lg:col-10">{{ partial "components/faq.html" }}</div>
+        <!-- End Faq Items -->
+      </div>
+    </div>
+  </section>
+{{ end }}

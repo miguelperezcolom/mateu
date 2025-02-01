@@ -1,0 +1,11 @@
+{{ $type:= .Get 0 }}
+
+{{ range $i, $e:= .Params }}
+  {{ if eq $i "type" }}{{ $type = $e }}{{ end }}
+{{ end }}
+
+<div class="notices {{ $type }}">
+  <p>
+    {{ .Inner | markdownify }}
+  </p>
+</div>

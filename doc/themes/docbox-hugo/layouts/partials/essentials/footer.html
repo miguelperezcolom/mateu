@@ -1,0 +1,75 @@
+<footer
+  class="bg-theme-dark rounded-t-[2rem] pb-10 pt-12 md:rounded-t-[80px] md:pt-16 2xl:pt-24">
+  <div class="container">
+    <div class="row items-center justify-center pb-10 lg:justify-between">
+      <div class="col-auto">
+        <a href="{{ site.BaseURL | relLangURL }}">
+          {{ partial "logo" (dict "Src" site.Params.logo_darkmode) }}
+        </a>
+      </div>
+      <div class="col-12 pt-10 lg:col-auto lg:pt-0">
+        <ul
+          class="font-secondary flex flex-wrap justify-center gap-x-6 gap-y-4 text-white lg:justify-end lg:gap-10">
+          {{ range site.Menus.footer_primary }}
+            <li>
+              <a
+                href="{{ .URL | relLangURL }}"
+                class="hover:text-primary transition-colors duration-300">
+                {{ .Name }}
+              </a>
+            </li>
+          {{ end }}
+        </ul>
+      </div>
+    </div>
+    <!-- End Footer First Row -->
+    <hr class="border-border/20 h-[1px] border-0 border-b bg-transparent" />
+    <!-- End Footer Row Divider  -->
+    <div class="xl:gy-0 row gy-4 items-center justify-center pt-10">
+      <div class="order-3 col-auto xl:order-none">
+        <p class="copyright">
+          {{ site.Params.copyright }}
+          {{ if site.Params.theme_copyright }}
+            | Theme by
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://gethugothemes.com/">
+              GetHugoThemes
+            </a>
+          {{ end }}
+        </p>
+      </div>
+      <!-- End Copyright -->
+      <div class="order-1 col-auto xl:order-none">
+        <ul
+          class="font-secondary text-light/60 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-normal lg:justify-start">
+          {{ range site.Menus.footer_secondary }}
+            <li>
+              <a
+                href="{{ .URL | relLangURL }}"
+                class="hover:text-primary transition-colors duration-300">
+                {{ .Name }}
+              </a>
+            </li>
+          {{ end }}
+        </ul>
+      </div>
+      <!-- End Menu -->
+      <div class="col-12 order-2 xl:order-none xl:col-auto xl:ml-auto">
+        <ul class="social-icons">
+          {{ range site.Data.social.main }}
+            <li>
+              <a href="{{ .link }}" target="_blank">
+                <span class="sr-only">{{ .name }}</span>
+                <i class="{{ .icon }}"></i>
+              </a>
+            </li>
+          {{ end }}
+        </ul>
+      </div>
+      <!-- End Social Link -->
+    </div>
+    <!-- End Footer Second Row -->
+  </div>
+</footer>

@@ -1,0 +1,59 @@
+- id: home
+  translation: Home
+
+- id: subscription_form_input_placeholder
+  translation: Enter your mail here
+
+- id: subscribe_now
+  translation: Subscribe Now
+
+- id: send_message
+  translation: Send message
+
+- id: write_here
+  translation: Write here...
+
+- id: message
+  translation: Message
+
+- id: first_name
+  translation: First Name
+
+- id: email_address
+  translation: Email Address
+
+- id: first_name_placeholder
+  translation: Theresa Webb
+
+- id: email_placeholder
+  translation: theresawebb@gmail.com
+
+- id: subject
+  translation: Subject
+
+- id: subject_placeholder
+  translation: Theresa Webb
+
+- id: on_this_page
+  translation: On This Page
+
+- id: address_title
+  translation: In the bay area?
+
+- id: support
+  translation: Support
+
+- id: follow_us
+  translation: Follow Us
+
+- id: search_input_placeholder
+  translation: Search Docs ...
+
+- id: no_results_for
+  translation: No results for
+
+- id: empty_search_results_placeholder
+  translation: Type something to search..
+
+- id: last_update
+  translation: Last Update

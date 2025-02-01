@@ -1,0 +1,24 @@
+{{ define "main" }}
+  <section
+    class="section-md bg-theme-light mb-14 rounded-b-[2rem] md:mb-16 md:rounded-b-[80px]">
+    <div class="container">
+      <div class="row">
+        <div
+          class="md:col-10 mx-auto rounded-t-2xl bg-white pb-0 pt-8 text-center md:px-10 md:pt-16">
+          <h1
+            class="text-h1-sm md:text-h1-md lg:text-h1 text-dark mb-2 md:mb-3">
+            {{ .Title | markdownify }}
+          </h1>
+          {{ if .GitInfo.Hash }}
+          <p class="md:text-h5 text-sm font-medium">{{ i18n `last_update` }} - {{ .Lastmod | time.Format ":date_medium" }}</p>
+          {{ end }}
+        </div>
+        <div class="md:col-10 mx-auto rounded-b-2xl bg-white md:px-10 md:pb-12">
+          <div class="content prose max-sm:px-0">
+            {{ .Content }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{{ end }}

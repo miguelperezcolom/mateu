@@ -1,0 +1,150 @@
+{{ define "main" }}
+  <section
+    class="section-sm md:section xl:bg-hero-pattern bg-theme-light mb-20 rounded-b-[2rem] bg-right bg-no-repeat sm:rounded-b-[60px] md:mb-24 md:rounded-b-[120px]">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h1 class="text-dark mb-5 capitalize">{{ .Title }}</h1>
+        </div>
+        <!-- End Title -->
+      </div>
+      <!-- End Title Row -->
+      <div class="row gy-5 items-center justify-center pt-10">
+        <div class="lg:col-6 2xl:col-5">
+          <div
+            class="rounded-xl bg-white px-6 py-8 sm:rounded-2xl md:px-8 md:py-10">
+            <form
+              action="{{ site.Params.contact_form_action }}"
+              method="post"
+              class="md:gy-[2.5rem] gy-4 row">
+              <div class="col-12">
+                <label
+                  for="name"
+                  class="text-text md:text-h5 mb-2 block text-base font-medium">
+                  {{ i18n `first_name` }}
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="form-input"
+                  placeholder="{{ i18n `first_name_placeholder` }}" />
+              </div>
+              <div class="col-12">
+                <label
+                  for="email"
+                  class="text-text md:text-h5 mb-2 block text-base font-medium">
+                  {{ i18n `email_address` }}
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form-input"
+                  placeholder="{{ i18n `email_placeholder` }}"
+                  required />
+              </div>
+              <div class="col-12">
+                <label
+                  for="subject"
+                  class="text-text md:text-h5 mb-2 block text-base font-medium">
+                  {{ i18n `subject` }}
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  class="form-input"
+                  placeholder="{{ i18n `subject_placeholder` }}"
+                  required />
+              </div>
+              <div class="col-12">
+                <label
+                  for="message"
+                  class="text-text md:text-h5 mb-2 block text-base font-medium">
+                  {{ i18n `message` }}
+                </label>
+                <textarea
+                  rows="3"
+                  cols="20"
+                  id="message"
+                  name="message"
+                  class="form-input"
+                  placeholder="{{ i18n `write_here` }}"
+                  required></textarea>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary-dark mt-4">
+                  {{ i18n "send_message" }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- End Forms -->
+        <div class="lg:col-6 2xl:col-4">
+          <div class="lg:pl-14">
+            {{ with site.Params.contact_info.address }}
+              <h2 class="h5 md:h4 mb-4 !font-semibold">
+                {{ i18n "address_title" }}
+              </h2>
+              <p
+                class="md:h5 !text-dark/50 mb-4 !font-normal leading-6 md:leading-9">
+                {{ . }}
+              </p>
+            {{ end }}
+            {{ if or (site.Params.contact_info.email) (site.Params.contact_info.mobile) }}
+              <h2 class="h5 md:h4 mb-4 mt-8 !font-semibold">
+                {{ i18n "support" }}
+              </h2>
+              <ul>
+                {{ with site.Params.contact_info.email }}
+                  <li
+                    class="md:h5 !text-dark/50 !font-normal leading-6 md:leading-9">
+                    <a
+                      href="mailto:{{ . }}"
+                      class="hover:!text-dark/80 mb-2 block break-all transition-colors duration-300">
+                      <i class="fa-regular fa-paper-plane fa-sm mr-3"></i
+                      >{{ . }}
+                    </a>
+                  </li>
+                {{ end }}
+                {{ with site.Params.contact_info.mobile }}
+                  <li
+                    class="md:h5 !text-dark/50 !font-normal leading-6 md:leading-9">
+                    <a
+                      href="tel:{{ . }}"
+                      class="hover:!text-dark/80 mb-2 block break-all transition-colors duration-300">
+                      <i class="fa-solid fa-phone-flip fa-sm mr-3"></i>{{ . }}
+                    </a>
+                  </li>
+                {{ end }}
+              </ul>
+            {{ end }}
+
+            {{ if index site.Data.social.main 0 }}
+              <h2 class="h5 md:h4 mb-4 mt-8 !font-semibold">
+                {{ i18n "follow_us" }}
+              </h2>
+              <ul class="social-icons justify-start">
+                {{ range site.Data.social.main }}
+                  <li>
+                    <a
+                      target="_blank"
+                      href="{{ .link }}"
+                      class="hover:!bg-primary !bg-theme-dark/70">
+                      <span class="sr-only">{{ .name }}</span>
+                      <i class="{{ .icon }}"></i>
+                    </a>
+                  </li>
+                {{ end }}
+              </ul>
+            {{ end }}
+          </div>
+        </div>
+        <!-- End Contact Info -->
+      </div>
+      <!-- End Content Info Row -->
+    </div>
+  </section>
+{{ end }}

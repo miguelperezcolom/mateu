@@ -1,0 +1,165 @@
+{{ $header_alt := false }}
+{{ if .Params.header_alt }}
+  {{ $header_alt = true }}
+{{ end }}
+
+{{ $isDocPage := false }}
+{{ with site.GetPage .Section }}
+  {{ if eq .Type  "docs" }}
+    {{ $isDocPage = true }}
+  {{ end }}
+{{ end }}
+
+
+<header
+  class="header header-sticky-top {{ if $header_alt }}
+    header-alt
+  {{ end }} w-full">
+  <nav
+    class="navbar {{ if $isDocPage }}
+      container-fluid
+    {{ else }}
+      container
+    {{ end }}">
+    <a class="navbar-brand bg-shape" href="{{ site.BaseURL | relLangURL }}">
+      {{ partial "logo" }}
+    </a>
+    <!-- End logo -->
+
+    {{ partial "components/language-switcher" (dict "Context" . "Class" "mt-0 lg:hidden sm:mr-0 ml-auto") }}
+    <!-- End Language Switcher -->
+
+    <button
+      class="border-dark/20 mr-2 rounded-md border p-1 px-3 lg:hidden"
+      type="button"
+      aria-label="open seach popup"
+      data-target="search-modal">
+      <i class="fas fa-search text-sm"></i>
+    </button>
+
+    <button
+      class="navbar-toggler {{ if not .IsTranslated }}
+        ml-auto
+      {{ end }}group relative"
+      aria-label="navbar toggler">
+      <div
+        class="relative flex h-[30px] w-[30px] transform items-center justify-center overflow-hidden rounded-full ring-0 transition-all duration-200">
+        <div
+          class="flex h-[15px] w-[18px] origin-center transform flex-col justify-between overflow-hidden transition-all duration-300 group-[.active]:h-[21px]">
+          <div
+            class="bg-theme-dark h-[2px] w-7 origin-left transform transition-all duration-300 group-[.active]:translate-x-10"></div>
+          <div
+            class="bg-theme-dark h-[2px] w-7 transform rounded transition-all delay-75 duration-300 group-[.active]:translate-x-10"></div>
+          <div
+            class="bg-theme-dark h-[2px] w-7 origin-left transform transition-all delay-150 duration-300 group-[.active]:translate-x-10"></div>
+          <div
+            class="absolute top-2.5 flex w-0 -translate-x-10 transform items-center justify-between transition-all duration-500 group-[.active]:w-12 group-[.active]:translate-x-0">
+            <div
+              class="bg-theme-dark absolute h-[2px] w-4 rotate-0 transform transition-all delay-300 duration-500 group-[.active]:rotate-45"></div>
+            <div
+              class="bg-theme-dark absolute h-[2px] w-4 -rotate-0 transform transition-all delay-300 duration-500 group-[.active]:-rotate-45"></div>
+          </div>
+        </div>
+      </div>
+    </button>
+    <!-- End Navbar Toggler -->
+
+    <div class="navbar-wrapper">
+      <ul class="navbar-nav">
+        {{ $currentPage := . }}
+        {{ range site.Menus.main }}
+          {{ $menuURL := .URL | absLangURL }}
+          {{ $pageURL:= $currentPage.Permalink | absLangURL }}
+          {{ $active := eq $menuURL $pageURL }}
+          {{ if .HasChildren }}
+            <li class="nav-item nav-dropdown group relative">
+              <span
+                class="nav-link {{ range .Children }}
+                  {{ $childURL := .URL | absLangURL }}
+                  {{ $active := eq $childURL $pageURL }}
+                  {{ if $active }}
+                    active
+                  {{ end }}
+                {{ end }} inline-flex items-center">
+                {{ .Name }}
+                <i class="fa-solid fa-angle-down"></i>
+              </span>
+              <ul
+                class="nav-dropdown-list lg:group-hover:visible lg:group-hover:opacity-100">
+                {{ range .Children }}
+                  {{ $childURL := .URL | absLangURL }}
+                  {{ $active := eq $childURL $pageURL }}
+                  <li class="nav-dropdown-item">
+                    <a
+                      class="nav-dropdown-link {{ if $active }}
+                        active
+                      {{ end }} block"
+                      {{ if findRE `^http` .URL }}
+                        target="_blank" rel="noopener"
+                      {{ end }}
+                      href="{{ if findRE `^#` .URL }}
+                        {{ if not $.IsHome }}
+                          {{ site.BaseURL | relLangURL }}
+                        {{ end }}{{ .URL }}
+                      {{ else }}
+                        {{ .URL | relLangURL }}
+                      {{ end }}">
+                      {{ .Name }}
+                    </a>
+                  </li>
+                {{ end }}
+              </ul>
+            </li>
+          {{ else }}
+            <li class="nav-item">
+              <a
+                class="nav-link {{ if $active }}
+                  active
+                {{ end }}"
+                {{ if findRE `^http` .URL }}
+                  target="_blank" rel="noopener"
+                {{ end }}
+                href="{{ if findRE `^#` .URL }}
+                  {{ if not $.IsHome }}
+                    {{ site.BaseURL | relLangURL }}
+                  {{ end }}{{ .URL }}
+                {{ else }}
+                  {{ .URL | relLangURL }}
+                {{ end }}">
+                {{ .Name }}
+              </a>
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
+      <!-- End Navbar Nav -->
+
+      <div
+        class="order-2 mx-auto mb-[0.75rem] flex flex-col items-center lg:mx-0 lg:mb-0 lg:flex-row lg:gap-7">
+        {{ partial "components/language-switcher" (dict "Context" . "Class" "hidden lg:block") }}
+        <!-- End Language Switcher -->
+        {{ if .IsTranslated }}
+          <hr
+            class="border-border hidden h-10 border-0 border-l-[1px] lg:block" />
+        {{ end }}
+        <div
+          class="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-[0.7rem] lg:gap-x-5 lg:pt-0">
+          {{ range $i, $e := site.Params.navigation_button }}
+            {{ if .enable }}
+              <a
+                href="{{ .link | relLangURL }}"
+                class="btn btn-md {{ if eq $i 0 }}
+                  btn-outline-primary
+                {{ else }}
+                  btn-primary
+                {{ end }}">
+                {{ .label | markdownify }}
+              </a>
+            {{ end }}
+          {{ end }}
+        </div>
+      </div>
+    </div>
+    <!-- End Navbar Wrapper -->
+  </nav>
+</header>

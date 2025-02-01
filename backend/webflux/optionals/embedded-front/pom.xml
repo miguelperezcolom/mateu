@@ -25,7 +25,7 @@
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>webflux-core</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
