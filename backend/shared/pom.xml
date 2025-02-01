@@ -7,7 +7,7 @@
   <version>0.0.1-MATEU</version>
   <packaging>pom</packaging>
 
-  <name>Mateu</name>
+  <name>Shared</name>
   <description>parent project</description>
 
   <url>http://maven.apache.org</url>
@@ -43,18 +43,14 @@
   </properties>
 
   <modules>
-    <module>shared/uidl</module>
-    <module>shared/dtos</module>
-    <module>shared/annotation-processor/annotation-processor-core</module>
-    <module>shared/annotation-processor/annotation-processor-webflux</module>
-    <module>shared/annotation-processor/annotation-processor-mvc</module>
-    <module>shared/annotation-processor/annotation-processor-micronaut</module>
-    <module>shared/annotation-processor/annotation-processor-quarkus</module>
-    <module>shared/core</module>
-    <module>webflux/webflux-core</module>
-    <module>webflux/optionals/jpa</module>
-      <module>webflux/optionals/springboot-security</module>
-      <module>webflux/optionals/embedded-front</module>
+    <module>uidl</module>
+    <module>dtos</module>
+    <module>annotation-processor/annotation-processor-core</module>
+    <module>annotation-processor/annotation-processor-webflux</module>
+    <module>annotation-processor/annotation-processor-mvc</module>
+    <module>annotation-processor/annotation-processor-micronaut</module>
+    <module>annotation-processor/annotation-processor-quarkus</module>
+    <module>core</module>
   </modules>
 
   <dependencyManagement>

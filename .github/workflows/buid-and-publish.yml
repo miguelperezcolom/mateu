@@ -15,10 +15,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set env
         run: VERSION=${{ github.event.release.tag_name }}; echo "RELEASE_VERSION=${VERSION:1}" >> $GITHUB_ENV
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 21
+          java-version: 17
           distribution: zulu
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
           server-username: OSSRH_USERNAME
@@ -39,10 +39,19 @@ jobs:
       - name: fix version
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
 
-      - name: Build with Maven
+      - name: Build backend shared
+        run: mvn -B install --file backend/shared/pom.xml
+
+      - name: Build backend webflux
         run: mvn -B install --file backend/webflux/pom.xml
 
-      - name: Publish to Maven Central
+      - name: Publish to Maven Central Shared
+        run: mvn deploy -f shared/webflux/pom.xml
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+
+      - name: Publish to Maven Central Webflux
         run: mvn deploy -f backend/webflux/pom.xml
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}

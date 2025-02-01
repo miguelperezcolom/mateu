@@ -7,7 +7,7 @@
   <version>0.0.1-MATEU</version>
   <packaging>pom</packaging>
 
-  <name>Mateu Webflux</name>
+  <name>Webflux</name>
   <description>parent project</description>
 
   <url>http://maven.apache.org</url>
@@ -44,11 +44,6 @@
   </properties>
 
   <modules>
-    <module>../shared/uidl</module>
-    <module>../shared/dtos</module>
-    <module>../shared/annotation-processor/annotation-processor-core</module>
-    <module>../shared/annotation-processor/annotation-processor-webflux</module>
-    <module>../shared/core</module>
     <module>webflux-core</module>
     <module>optionals/jpa</module>
       <module>optionals/springboot-security</module>
