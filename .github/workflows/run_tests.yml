@@ -10,15 +10,17 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 21
+          java-version: 17
           distribution: zulu
       - name: Import GPG Key
         uses: crazy-max/ghaction-import-gpg@v1
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Build with Maven
-        run: mvn -B install --file backend/pom.xml
+      - name: Build with Maven shared
+        run: mvn -B install --file backend/shared/pom.xml
+      - name: Build with Maven webflux
+        run: mvn -B install --file backend/webflux/pom.xml
       - name: Start demo
         run: mvn install -f demo/pom.xml && mvn spring-boot:start -f demo/pom.xml
       - uses: actions/setup-node@v3
