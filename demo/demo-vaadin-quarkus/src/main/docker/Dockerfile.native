@@ -17,14 +17,8 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 WORKDIR /work/
 
-RUN useradd usuario
-
-RUN chown usuario /work \
-    && chmod "g+rwX" /work \
-    && chown 1001:root /work
-COPY --chown=usuario:root target/*-runner /work/application
+COPY target/*-runner /work/application
 
 EXPOSE 8080
-USER usuario
 
 ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]
