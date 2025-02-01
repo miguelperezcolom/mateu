@@ -13,16 +13,17 @@
   </head>
 
   <body>
+  <div class="flex flex-col h-screen justify-between">
     <!-- cache partial only in production -->
     {{ if hugo.IsProduction }}
-      {{ partialCached "preloader.html" . }}
-      {{ partialCached "gtm-noscript.html" . }}
+    {{ partialCached "preloader.html" . }}
+    {{ partialCached "gtm-noscript.html" . }}
     {{ else }}
-      {{ partial "preloader.html" . }}
+    {{ partial "preloader.html" . }}
 
 
-      <!-- tailwind size indicator -->
-      {{ partial "components/tw-size-indicator.html" . }}
+    <!-- tailwind size indicator -->
+    {{ partial "components/tw-size-indicator.html" . }}
     {{ end }}
 
 
@@ -30,18 +31,20 @@
     {{ partial "essentials/header.html" . }}
     {{ partial "search-modal.html" (dict "Context" . ) }}
 
-
     <main>
       {{ block "main" . }}{{ end }}
     </main>
 
     <!-- cache partial only in production -->
     {{ if hugo.IsProduction }}
-      {{ partialCached "essentials/footer.html" . }}
-      {{ partialCached "essentials/script.html" . }}
+    {{ partialCached "essentials/footer.html" . }}
+    {{ partialCached "essentials/script.html" . }}
     {{ else }}
-      {{ partial "essentials/footer.html" . }}
-      {{ partial "essentials/script.html" . }}
+    {{ partial "essentials/footer.html" . }}
+    {{ partial "essentials/script.html" . }}
     {{ end }}
+
+  </div>
+
   </body>
 </html>

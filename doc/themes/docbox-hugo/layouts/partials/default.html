@@ -211,12 +211,14 @@
         data-accordion>
         <h2
           class="order-1 text-base font-medium group-[.active]:font-semibold sm:text-[12px] lg:text-[16px]">
-          {{ .Title }}
+         {{ .Title }}
         </h2>
+        {{ if .Params.icon }}
         <div
           class="order-0 bg-theme-light group-hover:bg-primary group-[.active]:bg-primary flex h-[40px] w-[40px] items-center justify-center rounded-md p-[10px] transition-colors duration-300 sm:h-[50px] sm:w-[50px]">
           {{ partial "image.html" (dict "Src" .Params.icon "Class" "h-5 w-5") }}
         </div>
+        {{ end }}
       </div>
       <!-- End Title & Icon -->
       {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}

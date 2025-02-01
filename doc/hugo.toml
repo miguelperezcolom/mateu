@@ -1,9 +1,9 @@
 ######################## default configuration ####################
 baseURL = "https://mateu.io/"
-title = "Docbox"
+title = "Mateu"
 theme = "docbox-hugo"
 # Default time zone for time stamps; use any valid tz database name: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
-timeZone = "America/New_York"
+timeZone = "Europe/Madrid"
 # google analytics
 googleAnalytics = "UA-123456-78" # example: UA-123-45, for more info, read the article https://support.google.com/analytics/answer/1008080?hl=en
 # disqus short name
@@ -12,6 +12,7 @@ disqusShortname = "themefisher-template" # we use disqus to show comments in blo
 defaultContentLanguage = "en" # see https://gohugo.io/content-management/multilingual/
 # disable language
 disableLanguages = [
+  "fr"
 ] # example: ["fr"] for disable french language. see https://gohugo.io/content-management/multilingual/
 hasCJKLanguage = false #  If hasCJKLanguage true, auto-detect Chinese/Japanese/Korean Languages in the content. see: https://gohugo.io/getting-started/configuration/#hascjklanguage
 enableGitInfo = false
