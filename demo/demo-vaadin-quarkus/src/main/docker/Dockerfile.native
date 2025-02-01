@@ -17,6 +17,12 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 WORKDIR /work/
 
+RUN addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot
+
+USER nonroot
+
+
 COPY target/*-runner /work/application
 
 EXPOSE 8080

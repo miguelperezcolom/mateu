@@ -81,6 +81,11 @@ FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
 
 ENV LANGUAGE='en_US:en'
 
+RUN addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot
+
+USER nonroot
+
 
 COPY target/lib/* /deployments/lib/
 COPY target/*-runner.jar /deployments/quarkus-run.jar

@@ -19,6 +19,12 @@
 ###
 FROM quay.io/quarkus/quarkus-micro-image:2.0
 WORKDIR /work/
+
+RUN addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot
+
+USER nonroot
+
 COPY target/*-runner /work/application
 
 EXPOSE 8080
