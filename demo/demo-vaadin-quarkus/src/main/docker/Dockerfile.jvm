@@ -83,14 +83,12 @@ ENV LANGUAGE='en_US:en'
 
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
-RUN useradd usuario
-COPY --chown=usuario target/quarkus-app/lib/ /deployments/lib/
-COPY --chown=usuario target/quarkus-app/*.jar /deployments/
-COPY --chown=usuario target/quarkus-app/app/ /deployments/app/
-COPY --chown=usuario target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY target/quarkus-app/lib/ /deployments/lib/
+COPY target/quarkus-app/*.jar /deployments/
+COPY target/quarkus-app/app/ /deployments/app/
+COPY target/quarkus-app/quarkus/ /deployments/quarkus/
 
 EXPOSE 8080
-USER usuario
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
