@@ -70,6 +70,16 @@
       <artifactId>assertj-core</artifactId>
       <version>3.26.3</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>net.bytebuddy</groupId>
+          <artifactId>byte-buddy-agent</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>net.bytebuddy</groupId>
+          <artifactId>byte-buddy</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
