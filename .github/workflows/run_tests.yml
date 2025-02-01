@@ -22,7 +22,7 @@ jobs:
       - name: Build with Maven webflux
         run: mvn -B install --file backend/webflux/pom.xml
       - name: Start demo
-        run: mvn install -f demo/pom.xml && mvn spring-boot:start -f demo/pom.xml
+        run: mvn install -f demo/demo-vaadin-webflux/pom.xml && mvn spring-boot:start -f demo/demo-vaadin-webflux/pom.xml
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -33,6 +33,6 @@ jobs:
       - name: Run Playwright tests
         run: cd e2e && npx playwright test
         env:
-          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8081
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8091
       - name: Stop demo
-        run: mvn spring-boot:stop -f demo/pom.xml
+        run: mvn spring-boot:stop -f demo/demo-vaadin-webflux/pom.xml
