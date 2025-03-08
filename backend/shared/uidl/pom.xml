@@ -17,6 +17,19 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>dtos</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
