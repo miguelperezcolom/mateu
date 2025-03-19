@@ -6,5 +6,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration("com.example.FakeConfig")
 @ComponentScan(basePackageClasses = ReferenceForPackageScanning.class)
-public class FakeConfig {
-}
+public class FakeConfig {}

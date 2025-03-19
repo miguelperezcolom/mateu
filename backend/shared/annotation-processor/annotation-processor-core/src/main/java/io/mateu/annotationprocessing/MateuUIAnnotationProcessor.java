@@ -1,6 +1,5 @@
 package io.mateu.annotationprocessing;
 
-import com.google.auto.service.AutoService;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
 import io.mateu.uidl.annotations.*;
@@ -15,7 +14,6 @@ import javax.tools.JavaFileObject;
 
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.MateuUI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@AutoService(Processor.class)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
   @Override

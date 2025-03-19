@@ -16,14 +16,15 @@ class GetUIUseCaseTest {
 
   @Test
   void returnsUI() {
-    var useCase = new GetUIUseCase(
+    var useCase =
+        new GetUIUseCase(
             new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()),
             new ReflectionUiMapper());
 
-    GetUIQuery request = new GetUIQuery(HelloWorld.class.getName(), "base_url", new FakeHttpRequest());
+    GetUIQuery request =
+        new GetUIQuery(HelloWorld.class.getName(), "base_url", new FakeHttpRequest());
     var ui = useCase.handle(request).block();
 
     assertThat(ui).isNotNull();
-
   }
 }

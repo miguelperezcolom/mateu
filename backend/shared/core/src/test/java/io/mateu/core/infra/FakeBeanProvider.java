@@ -5,8 +5,8 @@ import jakarta.inject.Named;
 
 @Named
 public class FakeBeanProvider implements BeanProvider {
-    @Override
-    public <T> T getBean(Class<T> clazz) {
-        return null;
-    }
+  @Override
+  public <T> T getBean(Class<T> clazz) {
+    return null;
+  }
 }

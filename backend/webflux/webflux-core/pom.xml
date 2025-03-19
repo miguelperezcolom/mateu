@@ -23,7 +23,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>dtos</artifactId>
+            <artifactId>core</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -35,19 +35,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-core</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>uidl</artifactId>
+            <artifactId>annotation-processor-webflux</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

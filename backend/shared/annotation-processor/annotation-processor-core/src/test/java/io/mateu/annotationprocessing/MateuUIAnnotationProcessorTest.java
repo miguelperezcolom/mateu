@@ -38,7 +38,7 @@ public class MateuUIAnnotationProcessorTest {
     Set<? extends TypeElement> annotations = Set.of(mateuUi);
     RoundEnvironment roundEnv = mock(RoundEnvironment.class);
     var helloWorld = mock(TypeElement.class);
-    when(helloWorld.toString()).thenReturn("HelloWorld");
+    when(helloWorld.toString()).thenReturn("com.example.HelloWorld");
     var name = mock(Name.class);
     when(helloWorld.getQualifiedName()).thenReturn(name);
     when(helloWorld.getSimpleName()).thenReturn(name);

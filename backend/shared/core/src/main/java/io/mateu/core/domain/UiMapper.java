@@ -6,6 +6,5 @@ import reactor.core.publisher.Mono;
 
 public interface UiMapper {
 
-    Mono<UIDto> map(Object instance, String baseUrl, HttpRequest httpRequest);
-
+  Mono<UIDto> map(Object instance, String baseUrl, HttpRequest httpRequest);
 }

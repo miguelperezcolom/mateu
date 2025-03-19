@@ -53,12 +53,6 @@
             <artifactId>springfox-boot-starter</artifactId>
             <version>3.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>jpa</artifactId>
-            <version>0.0.1-MATEU</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!--
         <dependency>

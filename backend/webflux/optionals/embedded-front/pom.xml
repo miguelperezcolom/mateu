@@ -13,8 +13,7 @@
     <artifactId>embedded-front</artifactId>
 
     <name>embedded-front</name>
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
+    <url>https://mateu.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,6 +25,17 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>webflux-core</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-webflux</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

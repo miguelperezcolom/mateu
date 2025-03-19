@@ -99,6 +99,7 @@ public class ${simpleClassName}MateuController {
         return service.getItems(itemProviderId, page, page_size, search_text);
     }
 
+    /*
     @GetMapping("v3/cdn/{fileId}/{filename:.+}")
     @ResponseBody
     public Mono<ResponseEntity<Resource>> serveFile(
@@ -107,14 +108,18 @@ public class ${simpleClassName}MateuController {
         throws AuthenticationException {
         return service.serveFile(fileId, filename);
     }
+    */
 
+    /*
     @GetMapping(value = "v3/files/{fileId}/{fileName}", produces = MediaType.TEXT_PLAIN_VALUE)
     public Mono<String> getFileUrl(
                             @PathVariable("fileId") String fileId,
                             @PathVariable("fileName") String fileName) throws AuthenticationException {
         return service.getFileUrl(fileId, fileName);
     }
+    */
 
+    /*
     @PostMapping("v3/files/{fileId}")
     public Mono<Void> handleFileUpload(
                                 @PathVariable("fileId") String fileId,
@@ -122,7 +127,9 @@ public class ${simpleClassName}MateuController {
         throws Exception {
         return service.handleFileUpload(fileId, file);
     }
+    */
 
+    /*
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/csv")
     public ResponseEntity<Mono<Resource>> downloadCsv(
                     @PathVariable("journeyTypeId") String journeyTypeId,
@@ -155,7 +162,9 @@ public class ${simpleClassName}MateuController {
                 return Mono.just(resource);
             }));
     }
+    */
 
+    /*
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/xls")
     public ResponseEntity<Mono<Resource>> downloadExcel(
                     @PathVariable("journeyTypeId") String journeyTypeId,
@@ -188,6 +197,6 @@ public class ${simpleClassName}MateuController {
                 return Mono.just(resource);
             }));
     }
-
+    */
 
 }
