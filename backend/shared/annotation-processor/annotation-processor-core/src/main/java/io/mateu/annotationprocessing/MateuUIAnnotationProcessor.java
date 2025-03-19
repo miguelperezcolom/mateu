@@ -171,6 +171,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         model.put("favicon", "");
       }
        */
+      model.put("favicon", "");
 
       /*
       todo: bring back at some point

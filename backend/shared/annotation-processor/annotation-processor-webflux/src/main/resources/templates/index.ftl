@@ -1,14 +1,11 @@
 package ${pkgName};
 
-import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
-import io.mateu.core.domain.model.reflection.ReflectionService;
-import io.mateu.core.domain.model.util.SerializerService;
-import io.mateu.uidl.interfaces.ReflectionHelper;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
-import io.mateu.core.domain.model.util.InputStreamReader;
+import io.mateu.core.infra.InputStreamReader;
+import io.mateu.core.infra.JsonSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,14 +32,13 @@ public class ${simpleClassName}Controller {
 
     @Value("${r"${spring.devtools.livereload.enabled:false}"}")
     private boolean liveReloadEnabled;
-    @Autowired
-    private UIMapper uiMapper;
-    @Autowired
-    private ReflectionHelper reflectionHelper;
-    @Autowired
-    private SerializerService serializerService;
 
     @GetMapping(value = "*", produces = MediaType.TEXT_HTML_VALUE)
+    public String getIndexAlways(ServerHttpRequest request) {
+        return getIndex(request);
+    }
+
+    @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex(ServerHttpRequest request) {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
@@ -127,7 +123,7 @@ public class ${simpleClassName}Controller {
             data.put(key, v);
         });
 
-        return serializerService.toJson(data).replaceAll("\\n","");
+        return JsonSerializer.toJson(data).replaceAll("\\n","");
     }
 
     private MultiValueMap<String, String> getFormData(ServerWebExchange serverWebExchange) {

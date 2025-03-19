@@ -47,7 +47,17 @@
             <artifactId>embedded-front</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
-
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-webflux</artifactId>
+            <version>0.0.1-MATEU</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-boot-starter</artifactId>
