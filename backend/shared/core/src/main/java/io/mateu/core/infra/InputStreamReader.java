@@ -14,6 +14,9 @@ public class InputStreamReader {
     String s = "";
 
     InputStream inputStream = c.getResourceAsStream(p);
+    if (inputStream == null) {
+      throw new RuntimeException("Resource not found: " + p);
+    }
     return readInputStream(inputStream);
   }
 
