@@ -4,5 +4,5 @@ import io.mateu.dtos.UIDto;
 import reactor.core.publisher.Mono;
 
 public interface DynamicUI {
-  Mono<UIDto> build();
+  Mono<UIDto> build(String baseUrl, HttpRequest httpRequest);
 }

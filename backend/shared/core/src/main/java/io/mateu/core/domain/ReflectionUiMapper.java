@@ -12,7 +12,7 @@ public class ReflectionUiMapper implements UiMapper {
   @Override
   public Mono<UIDto> map(Object uiInstance, String baseUrl, HttpRequest httpRequest) {
     if (uiInstance instanceof DynamicUI dynamicUI) {
-      return dynamicUI.build();
+      return dynamicUI.build(baseUrl, httpRequest);
     }
     return Mono.just(
         new UIDto(
