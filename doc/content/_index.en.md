@@ -11,6 +11,12 @@ The main idea is to achieve it with **the fewest lines of code**. In Mateu you *
 
 Mateu's UI definition domain specific language (DSL) is built by adding some interfaces, classes and annotations to the good old java language.
 
+### Goal
+
+Mateu is just another way of building UIs, mainly targeted to backend teams. It's specially well suited for building huge enterprise applications where the UI is distributed among several teams.
+
+The truth is that with Mateu building a cool UI is a no-brainer for any java (c# and go in future) developer.
+
 ### Some advantages
 
 I'd say the main advantage of using Mateu is that you empower the backend teams to easily build high quality UIs without frontend dedicated developers. 
@@ -23,12 +29,6 @@ Besides that, here are some other advantages of using Mateu for building your UI
 - All of the advantages of using java (statically typed language, tooling, ...) when developing your UI
 - Distributed nature (micro frontend and micro service friendly)
 - Embeddable everywhere (it's just web components)
-
-### Goal
-
-Mateu is just another way of building UIs, mainly targeted to backend teams. It's specially well suited for building huge enterprise applications where the UI is distributed among several teams.
-
-The truth is that with Mateu building a cool UI is a no-brainer for any java (c# and go in future) developer.
 
 ### Why not just use Vaadin
 
