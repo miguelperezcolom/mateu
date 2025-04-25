@@ -13,7 +13,8 @@ Mateu's UI definition domain specific language (DSL) is built by adding some int
 
 ### Some advantages
 
-Here are some of the advantages of using Mateu for building your UI:
+I'd say the main advantage of using Mateu is that you empower the backend teams to easily build high quality UIs without frontend dedicated developers. 
+Besides that, here are some other advantages of using Mateu for building your UI:
 
 - Fast
 - Frontend agnostic
