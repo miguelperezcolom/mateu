@@ -1,4 +1,4 @@
-package com.example.ui.dynamic;
+package com.example.uis.dynamic;
 
 import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.DynamicUI;

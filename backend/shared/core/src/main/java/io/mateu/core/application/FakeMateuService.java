@@ -33,11 +33,7 @@ public class FakeMateuService implements MateuService {
   }
 
   @Override
-  public Mono<UIIncrementDto> runStepAndReturn(
-      String uiId,
-      String journeyTypeId,
-      String journeyId,
-      String stepId,
+  public Mono<UIIncrementDto> runAction(
       String componentId,
       String actionId,
       RunActionRqDto rq,
@@ -47,23 +43,4 @@ public class FakeMateuService implements MateuService {
     return Mono.empty();
   }
 
-  @Override
-  public Mono<PageDto> getListRows(
-      String componentType,
-      int page,
-      int page_size,
-      Map<String, Object> data,
-      String searchText,
-      Map<String, Object> filters,
-      String ordering,
-      ServerHttpRequest serverHttpRequest)
-      throws Throwable {
-    return Mono.empty();
-  }
-
-  @Override
-  public Mono<ItemsDto> getItems(String itemProviderId, int page, int page_size, String search_text)
-      throws Throwable {
-    return Mono.empty();
-  }
 }

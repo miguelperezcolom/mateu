@@ -1,7 +1,10 @@
-package io.mateu.core.domain;
+package io.mateu.core.domain.reflection;
 
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
+import io.mateu.core.domain.BasicTypeChecker;
+import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.InstanceFactory;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;

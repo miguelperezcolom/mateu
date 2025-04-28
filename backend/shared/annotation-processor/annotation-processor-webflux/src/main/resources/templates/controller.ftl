@@ -50,53 +50,13 @@ public class ${simpleClassName}MateuController {
         return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
     }
 
-    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/{actionId}")
+    @PostMapping("v3/components/{componentId}/{actionId}")
     public Mono<UIIncrementDto> runStep(
-            @PathVariable("journeyTypeId") String journeyTypeId,
-            @PathVariable("journeyId") String journeyId,
-            @PathVariable("stepId") String stepId,
             @PathVariable("componentId") String componentId,
             @PathVariable("actionId") String actionId,
             @RequestBody RunActionRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.runStepAndReturn(uiId, journeyTypeId, journeyId, stepId, componentId, actionId, rq, baseUrl, serverHttpRequest);
-    }
-
-    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}/steps/{stepId}/{componentId}/lists/{listId}/rows")
-    public Mono<PageDto> getListRows(
-                @PathVariable("journeyTypeId") String journeyTypeId,
-                @PathVariable("journeyId") String journeyId,
-                @PathVariable("stepId") String stepId,
-                @PathVariable("componentId") String componentId,
-                @PathVariable("listId") String listId,
-                @RequestParam("page") int page,
-                @RequestParam("page_size") int page_size,
-                // urlencoded form of filters json serialized
-                @RequestBody Map<String, Object> body,
-                // urlencoded form of orders json serialized
-                @RequestParam("ordering") String ordering,
-                ServerHttpRequest serverHttpRequest) throws Throwable {
-        Map<String, Object> filters = null;
-        Map<String, Object> data = null;
-        String componentType = null;
-        String searchText = null;
-        if (body != null) {
-            filters = (Map<String, Object>) body.get("__filters");
-            data = (Map<String, Object>) body.get("__data");
-            componentType = (String) body.get("__componentType");
-            searchText = (String) body.get("__searchText");
-        }
-        return service.getListRows(componentType, page, page_size,
-                            data, searchText, filters, ordering, serverHttpRequest);
-    }
-
-    @GetMapping("v3/itemproviders/{itemProviderId}/items")
-    public Mono<ItemsDto> getItems(@PathVariable("itemProviderId") String itemProviderId,
-                                @RequestParam("page") int page,
-                                @RequestParam("page_size") int page_size,
-                                @RequestParam("search_text") String search_text
-                                ) throws Throwable {
-        return service.getItems(itemProviderId, page, page_size, search_text);
+        return service.runAction(componentId, actionId, rq, baseUrl, serverHttpRequest);
     }
 
     /*

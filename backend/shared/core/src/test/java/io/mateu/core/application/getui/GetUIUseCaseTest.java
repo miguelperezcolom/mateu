@@ -1,16 +1,16 @@
-package io.mateu.core.application;
+package io.mateu.core.application.getui;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.example.ui.HelloWorld;
-import com.example.ui.HolaMundo;
-import com.example.ui.HolaMundoInstanceFactory;
-import com.example.ui.dynamic.DynamicHelloWorld;
+import com.example.uis.HelloWorld;
+import com.example.uis.HolaMundo;
+import com.example.uis.HolaMundoInstanceFactory;
+import com.example.uis.dynamic.DynamicHelloWorld;
 import io.mateu.core.application.getui.GetUIQuery;
 import io.mateu.core.application.getui.GetUIUseCase;
 import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
-import io.mateu.core.domain.ReflectionInstanceFactory;
+import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
@@ -20,13 +20,13 @@ import java.util.List;
 
 class GetUIUseCaseTest {
 
+  final GetUIUseCase useCase =
+          new GetUIUseCase(
+                  new DefaultInstanceFactoryProvider(List.of
+                          (new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
+                  new ReflectionUiMapper());
   @Test
   void returnsUI() {
-    var useCase =
-        new GetUIUseCase(
-            new DefaultInstanceFactoryProvider(List.of
-                    (new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
-            new ReflectionUiMapper());
 
     for (var type : List.of(DynamicHelloWorld.class, HelloWorld.class)) {
       GetUIQuery request =
@@ -49,14 +49,6 @@ class GetUIUseCaseTest {
 
   @Test
   void usesCustomInstanceFactory() {
-    var useCase =
-            new GetUIUseCase(
-                    new DefaultInstanceFactoryProvider(List.of(
-                            new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()),
-                            new HolaMundoInstanceFactory()
-                    )),
-                    new ReflectionUiMapper());
-
     GetUIQuery request =
             new GetUIQuery(HolaMundo.class.getName(), "base_url", new FakeHttpRequest());
     var ui = useCase.handle(request).block();

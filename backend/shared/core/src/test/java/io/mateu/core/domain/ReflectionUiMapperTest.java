@@ -1,8 +1,7 @@
 package io.mateu.core.domain;
 
-import com.example.ui.AnnotatedUI;
-import com.example.ui.HolaMundo;
-import com.example.ui.UsingInterfacesUI;
+import com.example.uis.AnnotatedUI;
+import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.DynamicUI;

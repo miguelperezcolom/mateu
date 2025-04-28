@@ -1,4 +1,4 @@
-package com.example.ui;
+package com.example.uis;
 
 import io.mateu.uidl.annotations.MateuUI;
 

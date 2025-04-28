@@ -31,25 +31,7 @@ class FakeMateuServiceTest {
     @Test
     void runStepAndReturn() throws Throwable {
         assertNull(fakeMateuService
-                .runStepAndReturn(
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null).block());
-    }
-
-    @Test
-    void getListRows() throws Throwable {
-        assertNull(fakeMateuService
-                .getListRows(
-                        null,
-                        0,
-                        0,
+                .runAction(
                         null,
                         null,
                         null,
@@ -57,13 +39,4 @@ class FakeMateuServiceTest {
                         null).block());
     }
 
-    @Test
-    void getItems() throws Throwable {
-        assertNull(fakeMateuService
-                .getItems(
-                        null,
-                        0,
-                        0,
-                        null).block());
-    }
 }
