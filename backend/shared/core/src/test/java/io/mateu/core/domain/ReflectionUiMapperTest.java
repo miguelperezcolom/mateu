@@ -1,5 +1,8 @@
 package io.mateu.core.domain;
 
+import com.example.ui.AnnotatedUI;
+import com.example.ui.HolaMundo;
+import com.example.ui.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.DynamicUI;
@@ -14,9 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ReflectionUiMapperTest {
 
+    final String baseUrl = "http://example.com";
+    final HttpRequest httpRequest = new FakeHttpRequest();
+    final UiMapper reflectionUiMapper = new ReflectionUiMapper();
+
     @Test
     void mapsToDto() {
-        var reflectionUiMapper = new ReflectionUiMapper();
         var instance = new Object();
         var dto = reflectionUiMapper.map(instance, "/", new FakeHttpRequest()).block();
         assertNotNull(dto);
@@ -24,9 +30,6 @@ class ReflectionUiMapperTest {
 
     @Test
     void buildIsCalled() {
-        var baseUrl = "http://example.com";
-        var httpRequest = new FakeHttpRequest();
-        var reflectionUiMapper = new ReflectionUiMapper();
         var expectedDto = new UIDto(
                 baseUrl,
                 httpRequest.toString(),
@@ -66,5 +69,16 @@ class ReflectionUiMapperTest {
                 .usingRecursiveComparison()
                 .isEqualTo(expectedDto);
     }
+
+    @Test
+    void favIconIsFilled() {
+        for (var instance : List.of(new AnnotatedUI(), new UsingInterfacesUI())) {
+            var dto = reflectionUiMapper.map(instance, baseUrl, httpRequest).block();
+            assertNotNull(dto);
+            assertThat(dto.favIcon()).isNotNull();
+            assertThat(dto.favIcon()).isEqualTo("fav_icon");
+        };
+    }
+
 
 }

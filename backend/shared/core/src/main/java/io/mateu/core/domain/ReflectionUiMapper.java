@@ -1,7 +1,9 @@
 package io.mateu.core.domain;
 
 import io.mateu.dtos.UIDto;
+import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.interfaces.DynamicUI;
+import io.mateu.uidl.interfaces.HasFavicon;
 import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
@@ -21,7 +23,7 @@ public class ReflectionUiMapper implements UiMapper {
     }
     return Mono.just(
             new UIDto(
-                    null,
+                    getFavIcon(uiInstance),
                     null,
                     null,
                     getTitle(uiInstance),
@@ -34,6 +36,16 @@ public class ReflectionUiMapper implements UiMapper {
                     null,
                     null
             ));
+  }
+
+  private String getFavIcon(Object uiInstance) {
+    if (uiInstance instanceof HasFavicon hasFavicon) {
+      return hasFavicon.getFavicon();
+    }
+    if (uiInstance.getClass().isAnnotationPresent(FavIcon.class)) {
+      return uiInstance.getClass().getAnnotation(FavIcon.class).value();
+    }
+    return null;
   }
 
   private String getTitle(Object uiInstance) {
