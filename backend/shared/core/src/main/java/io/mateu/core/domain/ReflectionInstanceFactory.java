@@ -27,10 +27,16 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   private final BasicTypeChecker basicTypeChecker;
   private final BeanProvider beanProvider;
 
+  @Override
+  public boolean supports(String className) {
+    return true;
+  }
+
   @SneakyThrows
   @Override
   public Mono<? extends Object> createInstance(
       String className, Map<String, Object> data, HttpRequest httpRequest) {
+
     return Mono.just(Class.forName(className))
         .map(uiClass -> newInstance(uiClass, data))
         .map(uiInstance -> initIfNeeded(uiInstance, httpRequest));

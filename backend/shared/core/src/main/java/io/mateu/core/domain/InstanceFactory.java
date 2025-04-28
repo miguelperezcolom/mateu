@@ -6,6 +6,12 @@ import reactor.core.publisher.Mono;
 
 public interface InstanceFactory {
 
+  boolean supports(String className);
+
+  default int priority() {
+    return Integer.MAX_VALUE;
+  }
+
   Mono<? extends Object> createInstance(
       String className, Map<String, Object> data, HttpRequest httpRequest);
 }

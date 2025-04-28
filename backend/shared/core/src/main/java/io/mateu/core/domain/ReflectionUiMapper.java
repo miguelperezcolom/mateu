@@ -2,6 +2,7 @@ package io.mateu.core.domain;
 
 import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.DynamicUI;
+import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
@@ -36,6 +37,9 @@ public class ReflectionUiMapper implements UiMapper {
   }
 
   private String getTitle(Object uiInstance) {
+    if (uiInstance instanceof HasPageTitle hasPageTitle) {
+      return hasPageTitle.getPageTitle();
+    }
     return Humanizer.capitalize(uiInstance.getClass().getSimpleName());
   }
 }

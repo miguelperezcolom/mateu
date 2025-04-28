@@ -3,10 +3,13 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.ui.HelloWorld;
+import com.example.ui.HolaMundo;
+import com.example.ui.HolaMundoInstanceFactory;
 import com.example.ui.dynamic.DynamicHelloWorld;
 import io.mateu.core.application.getui.GetUIQuery;
 import io.mateu.core.application.getui.GetUIUseCase;
 import io.mateu.core.domain.BasicTypeChecker;
+import io.mateu.core.domain.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.ReflectionInstanceFactory;
 import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.infra.FakeBeanProvider;
@@ -21,7 +24,8 @@ class GetUIUseCaseTest {
   void returnsUI() {
     var useCase =
         new GetUIUseCase(
-            new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()),
+            new DefaultInstanceFactoryProvider(List.of
+                    (new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
             new ReflectionUiMapper());
 
     for (var type : List.of(DynamicHelloWorld.class, HelloWorld.class)) {
@@ -40,8 +44,25 @@ class GetUIUseCaseTest {
       assertThat(ui.logoutUrl()).isNull();
       assertThat(ui.menu()).isEmpty();
       assertThat(ui.subtitle()).isNull();
-
     }
+  }
 
+  @Test
+  void usesCustomInstanceFactory() {
+    var useCase =
+            new GetUIUseCase(
+                    new DefaultInstanceFactoryProvider(List.of(
+                            new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()),
+                            new HolaMundoInstanceFactory()
+                    )),
+                    new ReflectionUiMapper());
+
+    GetUIQuery request =
+            new GetUIQuery(HolaMundo.class.getName(), "base_url", new FakeHttpRequest());
+    var ui = useCase.handle(request).block();
+
+    assertThat(ui).isNotNull();
+    assertThat(ui.title()).isNotNull();
+    assertThat(ui.title()).isEqualTo("Hola, que tal?");
   }
 }
