@@ -1,18 +1,17 @@
 package io.mateu.core.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.example.uis.AnnotatedUI;
 import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIDto;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ReflectionUiMapperTest {
 
