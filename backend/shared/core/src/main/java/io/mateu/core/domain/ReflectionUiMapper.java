@@ -7,7 +7,6 @@ import io.mateu.uidl.interfaces.HasFavicon;
 import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
-import java.util.List;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -22,20 +21,19 @@ public class ReflectionUiMapper implements UiMapper {
       return dynamicUI.build(baseUrl, httpRequest);
     }
     return Mono.just(
-            new UIDto(
-                    getFavIcon(uiInstance),
-                    null,
-                    null,
-                    getTitle(uiInstance),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-            ));
+        new UIDto(
+            getFavIcon(uiInstance),
+            null,
+            null,
+            getTitle(uiInstance),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private String getFavIcon(Object uiInstance) {

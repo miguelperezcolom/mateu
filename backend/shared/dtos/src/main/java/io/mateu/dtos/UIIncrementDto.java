@@ -12,17 +12,16 @@ import java.util.Map;
  * @param uiFragments List of new UI fragments
  */
 public record UIIncrementDto(
-        List<UICommandDto> commands,
-        List<MessageDto> messages,
-        List<UIFragmentDto> uiFragments,
-        Map<String, Object> appData
-) {
+    List<UICommandDto> commands,
+    List<MessageDto> messages,
+    List<UIFragmentDto> uiFragments,
+    Map<String, Object> appData) {
 
   public UIIncrementDto {
-    commands = Collections.unmodifiableList(commands !=  null?commands:List.of());
-    messages = Collections.unmodifiableList(messages  != null?messages:List.of());
-    uiFragments = Collections.unmodifiableList(uiFragments != null?uiFragments:List.of());
-    appData = Collections.unmodifiableMap(appData != null?appData:Map.of());
+    commands = Collections.unmodifiableList(commands != null ? commands : List.of());
+    messages = Collections.unmodifiableList(messages != null ? messages : List.of());
+    uiFragments = Collections.unmodifiableList(uiFragments != null ? uiFragments : List.of());
+    appData = Collections.unmodifiableMap(appData != null ? appData : Map.of());
   }
 
   @Override
@@ -44,5 +43,4 @@ public record UIIncrementDto(
   public Map<String, Object> appData() {
     return Collections.unmodifiableMap(appData);
   }
-
 }

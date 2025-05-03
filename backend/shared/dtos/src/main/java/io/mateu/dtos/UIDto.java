@@ -18,8 +18,8 @@ public record UIDto(
     String contextData) {
 
   public UIDto {
-    menu = Collections.unmodifiableList(menu != null?menu:List.of());
-    apps = Collections.unmodifiableList(apps != null?apps:List.of());
+    menu = Collections.unmodifiableList(menu != null ? menu : List.of());
+    apps = Collections.unmodifiableList(apps != null ? apps : List.of());
   }
 
   @Override

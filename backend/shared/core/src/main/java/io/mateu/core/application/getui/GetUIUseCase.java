@@ -1,6 +1,5 @@
 package io.mateu.core.application.getui;
 
-import io.mateu.core.domain.InstanceFactory;
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.UiMapper;
 import io.mateu.dtos.UIDto;

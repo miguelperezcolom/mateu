@@ -29,5 +29,4 @@ public interface MateuService {
       String baseUrl,
       ServerHttpRequest serverHttpRequest)
       throws Throwable;
-
 }

@@ -15,8 +15,7 @@ public class AllMethodsProvider {
 
     List<Method> l = new ArrayList<>();
 
-    if (c.getSuperclass() != null)
-      l.addAll(getAllMethods(c.getSuperclass()));
+    if (c.getSuperclass() != null) l.addAll(getAllMethods(c.getSuperclass()));
 
     for (Method f : c.getDeclaredMethods()) {
       if (!f.getDeclaringClass().equals(Object.class)) {

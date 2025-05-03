@@ -1,14 +1,11 @@
 package io.mateu.core.application;
 
 import io.mateu.dtos.GetUIRqDto;
-import io.mateu.dtos.ItemsDto;
 import io.mateu.dtos.JourneyCreationRqDto;
-import io.mateu.dtos.PageDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Named;
-import java.util.Map;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
@@ -42,5 +39,4 @@ public class FakeMateuService implements MateuService {
       throws Throwable {
     return Mono.empty();
   }
-
 }
