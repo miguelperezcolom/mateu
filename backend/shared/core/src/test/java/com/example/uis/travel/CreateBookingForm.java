@@ -1,8 +1,9 @@
 package com.example.uis.travel;
 
+import com.example.uis.travel.uidl.ActionType;
 import com.example.uis.travel.uidl.Form;
 import com.example.uis.travel.uidl.Intent;
-import com.example.uis.travel.uidl.MainAction;
+import com.example.uis.travel.uidl.Action;
 import jakarta.validation.constraints.NotEmpty;
 
 import java.time.LocalDate;
@@ -21,6 +22,6 @@ public class CreateBookingForm implements Form {
 
   String comments;
 
-  @MainAction
+  @Action(type = ActionType.Main)
   void create() {}
 }

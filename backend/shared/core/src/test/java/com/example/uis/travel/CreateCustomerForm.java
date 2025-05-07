@@ -1,9 +1,10 @@
 package com.example.uis.travel;
 
+import com.example.uis.travel.uidl.ActionType;
 import com.example.uis.travel.uidl.Destination;
 import com.example.uis.travel.uidl.Form;
 import com.example.uis.travel.uidl.Intent;
-import com.example.uis.travel.uidl.MainAction;
+import com.example.uis.travel.uidl.Action;
 import com.example.uis.travel.uidl.Option;
 import com.example.uis.travel.uidl.Page;
 import com.example.uis.travel.uidl.Pageable;
@@ -20,7 +21,7 @@ public class CreateCustomerForm implements Form, OptionsProvider {
     @UseRadioButtons
     CustomerType type;
 
-    @MainAction
+    @Action(type = ActionType.Main)
     Mono<Destination> create() {
         return Mono.just(new Destination(""));
     }
