@@ -6,7 +6,7 @@ import com.example.uis.travel.uidl.HorizontalLayout;
 
 import java.util.function.Supplier;
 
-public class CustomerRef implements HorizontalLayout {
+public class CustomerSelector implements HorizontalLayout {
 
     String id;
 

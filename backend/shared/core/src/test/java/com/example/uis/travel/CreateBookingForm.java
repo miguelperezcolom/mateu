@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class CreateBookingForm implements Form {
 
   @NotEmpty
-  CustomerRef customer;
+  CustomerSelector customer;
 
   String service;
 
