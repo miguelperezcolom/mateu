@@ -13,4 +13,5 @@ public class CustomerRef implements HorizontalLayout {
 
     @Button
     Supplier<?> create = () -> new CreateCustomerForm();
+
 }
