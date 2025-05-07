@@ -1,8 +1,5 @@
-package com.example.uis.travel;
+package com.example.uis.travel.uidl;
 
-import com.example.uis.travel.uidl.Option;
-import com.example.uis.travel.uidl.Page;
-import com.example.uis.travel.uidl.Pageable;
 import reactor.core.publisher.Mono;
 
 public interface OptionsProvider {
