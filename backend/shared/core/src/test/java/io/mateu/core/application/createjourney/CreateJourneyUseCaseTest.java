@@ -19,7 +19,7 @@ class CreateJourneyUseCaseTest {
 
   @Test
   void createsJourney() {
-    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of());
+    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), null);
     var ui =
         new HandlesRoute() {
 

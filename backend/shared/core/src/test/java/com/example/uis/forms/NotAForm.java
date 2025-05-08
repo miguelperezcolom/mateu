@@ -2,8 +2,7 @@ package com.example.uis.forms;
 
 public class NotAForm {
 
-    String name;
+  String name;
 
-    int age;
-
+  int age;
 }

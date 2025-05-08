@@ -1,11 +1,11 @@
 package com.example.uis.travel;
 
 import io.mateu.uidl.annotations.Intent;
-import io.mateu.uidl.interfaces.Listing;
-import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.RowAction;
+import io.mateu.uidl.data.Page;
+import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.interfaces.Listing;
 import reactor.core.publisher.Mono;
 
 record Filters() {}

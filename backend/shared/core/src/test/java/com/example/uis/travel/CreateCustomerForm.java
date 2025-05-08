@@ -2,14 +2,14 @@ package com.example.uis.travel;
 
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.ActionType;
-import io.mateu.uidl.data.Destination;
-import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.annotations.Intent;
+import io.mateu.uidl.annotations.UseRadioButtons;
+import io.mateu.uidl.data.Destination;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.interfaces.OptionsProvider;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.annotations.UseRadioButtons;
+import io.mateu.uidl.interfaces.Form;
+import io.mateu.uidl.interfaces.OptionsProvider;
 import reactor.core.publisher.Mono;
 
 @Intent

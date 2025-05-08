@@ -1,8 +1,8 @@
 package com.example.uis.travel;
 
-import io.mateu.uidl.interfaces.Listing;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.interfaces.Listing;
 import reactor.core.publisher.Mono;
 
 record BookingServicesListFilters() {}
