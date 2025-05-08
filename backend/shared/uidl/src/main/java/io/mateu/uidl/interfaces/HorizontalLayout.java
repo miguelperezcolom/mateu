@@ -1,4 +1,4 @@
-package com.example.uis.travel.uidl;
+package io.mateu.uidl.interfaces;
 
 public interface HorizontalLayout {
 }

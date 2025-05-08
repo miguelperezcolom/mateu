@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.mateu.core.domain.DefaultRouteMatcher;
 import io.mateu.core.domain.InstanceFactory;
 import io.mateu.core.domain.ReflectionUiIncrementMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HandlesRoute;
@@ -42,7 +43,7 @@ class CreateJourneyUseCaseTest {
                     return Mono.just(ui);
                   }
                 },
-            new ReflectionUiIncrementMapper(),
+            new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()),
             new DefaultRouteMatcher());
     var result =
         useCase

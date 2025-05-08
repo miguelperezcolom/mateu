@@ -1,15 +1,14 @@
 package com.example.uis.travel;
 
-import com.example.uis.travel.uidl.DetailPage;
-import com.example.uis.travel.uidl.Intent;
-import com.example.uis.travel.uidl.Route;
-import com.example.uis.travel.uidl.Subresource;
+import io.mateu.uidl.interfaces.DetailPage;
+import io.mateu.uidl.annotations.Intent;
+import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.Subresource;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.time.LocalDate;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDate;
 
 @Intent
 @NoArgsConstructor
@@ -28,12 +27,9 @@ public class BookingDetail implements HandlesRoute, DetailPage {
 
   String comments;
 
-  @Subresource
-  BookingServicesList services;
+  @Subresource BookingServicesList services;
 
-  @Subresource
-  BookingPaymentsList payments;
-
+  @Subresource BookingPaymentsList payments;
 
   Mono<BookingDetail> load(String bookingId) {
     return Mono.empty();

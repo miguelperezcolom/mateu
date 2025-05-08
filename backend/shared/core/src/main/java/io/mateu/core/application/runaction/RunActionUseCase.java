@@ -29,6 +29,6 @@ public class RunActionUseCase {
                 actionRunnerProvider
                     .get(instance, command.actionId())
                     .run(instance, command.actionId(), command.data(), command.httpRequest()))
-        .flatMap(ui -> uiIncrementMapper.map(ui, command.baseUrl(), command.httpRequest()));
+        .flatMap(result -> uiIncrementMapper.map(result, command.baseUrl(), command.httpRequest()));
   }
 }

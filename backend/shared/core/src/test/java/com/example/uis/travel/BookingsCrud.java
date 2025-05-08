@@ -1,12 +1,11 @@
 package com.example.uis.travel;
 
-import com.example.uis.travel.uidl.Intent;
-import com.example.uis.travel.uidl.Listing;
-import com.example.uis.travel.uidl.Page;
-import com.example.uis.travel.uidl.Pageable;
-import com.example.uis.travel.uidl.Route;
-import com.example.uis.travel.uidl.RowAction;
-import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Intent;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.data.Page;
+import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.RowAction;
 import reactor.core.publisher.Mono;
 
 record Filters() {}
@@ -17,7 +16,6 @@ record Row(String bookingId) {}
 @Route("/bookings")
 public class BookingsCrud implements Listing<Filters, Row> {
 
-  @Action
   CreateBookingForm create() {
     return new CreateBookingForm();
   }

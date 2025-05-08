@@ -1,6 +1,6 @@
 package com.example.uis.travel;
 
-import com.example.uis.travel.uidl.Intent;
+import io.mateu.uidl.annotations.Intent;
 
 @Intent
 public class HomePage {}

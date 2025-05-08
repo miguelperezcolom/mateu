@@ -1,4 +1,3 @@
 package com.example.uis.travel;
 
-public class BookingPaymentsList {
-}
+public class BookingPaymentsList {}

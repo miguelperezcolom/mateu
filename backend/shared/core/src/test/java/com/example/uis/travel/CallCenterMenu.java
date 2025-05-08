@@ -1,11 +1,8 @@
 package com.example.uis.travel;
 
-import com.example.uis.travel.uidl.MenuOption;
+import io.mateu.uidl.annotations.MenuOption;
 
 public class CallCenterMenu {
 
-    @MenuOption
-    BookingsCrud bookings;
-
-
+  @MenuOption BookingsCrud bookings;
 }

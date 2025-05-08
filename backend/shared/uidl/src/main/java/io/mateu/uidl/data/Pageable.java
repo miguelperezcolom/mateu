@@ -1,4 +1,4 @@
-package com.example.uis.travel.uidl;
+package io.mateu.uidl.data;
 
 public record Pageable(int page, int size, Sort sort) {
 }

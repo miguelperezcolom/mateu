@@ -1,4 +1,4 @@
-package com.example.uis.travel.uidl;
+package io.mateu.uidl.annotations;
 
 public @interface UseRadioButtons {
 }

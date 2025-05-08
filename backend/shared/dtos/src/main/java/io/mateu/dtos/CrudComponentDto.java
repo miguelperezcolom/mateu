@@ -9,7 +9,7 @@ public record CrudComponentDto(
     String id,
     String className,
     Map<String, Object> attributes,
-    Map<String, Object> data,
+    Object data,
     List<String> childComponentIds,
     Map<String, Object> lastUsedFilters,
     List<SortCriteriaDto> lastUsedSorting)
@@ -21,7 +21,6 @@ public record CrudComponentDto(
     lastUsedSorting =
         lastUsedSorting != null ? Collections.unmodifiableList(lastUsedSorting) : List.of();
     attributes = Collections.unmodifiableMap(attributes);
-    data = Collections.unmodifiableMap(data);
     childComponentIds = Collections.unmodifiableList(childComponentIds);
   }
 
@@ -38,11 +37,6 @@ public record CrudComponentDto(
   @Override
   public Map<String, Object> attributes() {
     return Collections.unmodifiableMap(attributes);
-  }
-
-  @Override
-  public Map<String, Object> data() {
-    return Collections.unmodifiableMap(data);
   }
 
   @Override

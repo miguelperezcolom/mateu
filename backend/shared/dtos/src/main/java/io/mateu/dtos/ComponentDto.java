@@ -21,7 +21,7 @@ public interface ComponentDto {
 
   Map<String, Object> attributes();
 
-  Map<String, Object> data();
+  Object data();
 
   List<String> childComponentIds();
 }

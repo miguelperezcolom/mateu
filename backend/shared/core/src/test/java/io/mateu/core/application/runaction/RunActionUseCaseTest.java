@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.components.AnnotatedComponent;
 import com.example.components.UsingInterfacesComponent;
 import io.mateu.core.domain.*;
+import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
 import io.mateu.core.infra.FakeBeanProvider;
@@ -21,7 +22,7 @@ class RunActionUseCaseTest {
               List.of(
                   new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
           new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
-          new ReflectionUiIncrementMapper());
+          new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()));
 
   @Test
   void runsMethod() {

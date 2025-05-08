@@ -1,18 +1,16 @@
 package com.example.uis.travel;
 
-import com.example.uis.travel.uidl.ActionType;
-import com.example.uis.travel.uidl.Form;
-import com.example.uis.travel.uidl.Intent;
-import com.example.uis.travel.uidl.Action;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.ActionType;
+import io.mateu.uidl.interfaces.Form;
+import io.mateu.uidl.annotations.Intent;
 import jakarta.validation.constraints.NotEmpty;
-
 import java.time.LocalDate;
 
 @Intent
 public class CreateBookingForm implements Form {
 
-  @NotEmpty
-  CustomerSelector customer;
+  @NotEmpty CustomerSelector customer;
 
   String service;
 
