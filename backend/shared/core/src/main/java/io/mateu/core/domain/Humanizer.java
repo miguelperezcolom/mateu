@@ -45,7 +45,7 @@ public class Humanizer {
       var sb = new StringBuilder();
       int pos = 0;
       for (String z : aux.split(" ")) {
-        if (pos++ > 0 && !isNullOrEmpty(z))
+        if (pos++ > 0 && !isEmpty(z))
           sb.append(z.substring(0, 1).toUpperCase()).append(z.substring(1));
         else sb.append(z);
       }
@@ -55,8 +55,8 @@ public class Humanizer {
     return c;
   }
 
-  private static boolean isNullOrEmpty(String z) {
-    return z == null || z.trim().isEmpty();
+  private static boolean isEmpty(String z) {
+    return z.trim().isEmpty();
   }
 
   public static String pluralize(String s) {

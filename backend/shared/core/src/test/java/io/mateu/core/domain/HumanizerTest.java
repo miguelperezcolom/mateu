@@ -14,6 +14,18 @@ class HumanizerTest {
     capitalised = Humanizer.capitalize("");
     assertEquals("", capitalised);
 
+    capitalised = Humanizer.capitalize("", true);
+    assertEquals("", capitalised);
+
+    capitalised = Humanizer.capitalize("", false);
+    assertEquals("", capitalised);
+
+    capitalised = Humanizer.capitalize("hola", true);
+    assertEquals("Hola", capitalised);
+
+    capitalised = Humanizer.capitalize("hola", false);
+    assertEquals("hola", capitalised);
+
     capitalised = Humanizer.capitalize(null);
     assertNull(capitalised);
   }
@@ -28,6 +40,18 @@ class HumanizerTest {
   void returnsCamelcase() {
     var camelcasized = Humanizer.camelcasize("hello   WORLD");
     assertEquals("helloWorld", camelcasized);
+
+    camelcasized = Humanizer.camelcasize("hola palma de mallorcs");
+    assertEquals("holaPalmaDeMallorcs", camelcasized);
+
+    camelcasized = Humanizer.camelcasize("a");
+    assertEquals("a", camelcasized);
+
+    camelcasized = Humanizer.camelcasize("");
+    assertEquals("", camelcasized);
+
+    camelcasized = Humanizer.camelcasize(null);
+    assertNull(camelcasized);
   }
 
   @Test

@@ -74,27 +74,22 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         cons.setAccessible(true);
         o = (T) cons.newInstance(p);
       } else {
-        Constructor con = getConstructor(c);
-        if (con != null) {
-          if (con.getParameterCount() > 0) {
-            o = (T) con.newInstance(buildConstructorParams(con, data));
-          } else {
-            o = (T) con.newInstance();
-          }
-        } else {
-          Method builderMethod = null;
-          try {
-            builderMethod = c.getMethod("builder");
-          } catch (Exception ignored) {
+        Method builderMethod = null;
+        try {
+          builderMethod = c.getMethod("builder");
+        } catch (Exception ignored) {
 
-          }
-          if (builderMethod != null) {
-            Object builder = c.getMethod("builder").invoke(null);
-            o = (T) builder.getClass().getMethod("build").invoke(builder);
-          } else {
-            if (c.getDeclaredConstructors().length == 1) {
-              Constructor constructor = c.getDeclaredConstructors()[0];
-              o = (T) constructor.newInstance(newInstance(constructor.getParameterTypes()[0]));
+        }
+        if (builderMethod != null) {
+          Object builder = c.getMethod("builder").invoke(null);
+          o = (T) builder.getClass().getMethod("build").invoke(builder);
+        } else {
+          Constructor con = getConstructor(c);
+          if (con != null) {
+            if (con.getParameterCount() > 0) {
+              o = (T) con.newInstance(buildConstructorParams(con, data));
+            } else {
+              o = (T) con.newInstance();
             }
           }
         }
