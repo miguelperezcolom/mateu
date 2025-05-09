@@ -65,7 +65,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     var o = beanProvider.getBean(c);
     if (o == null) { // not from spring
       if (c.getDeclaringClass() != null) { // inner class
-        Object p = newInstance(c.getDeclaringClass());
+        Object p = newInstance(c.getDeclaringClass(), data);
         Constructor<?> cons =
             Arrays.stream(c.getDeclaredConstructors())
                 .filter(constructor -> constructor.getParameterCount() == 1)
@@ -126,43 +126,28 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   private Constructor getConstructor(Class type) {
     Constructor con = null;
     int minParams = Integer.MAX_VALUE;
-    for (Constructor x : type.getConstructors())
-      if (Modifier.isPublic(x.getModifiers())) {
+    // look for public constructors
+    for (Constructor x : type.getConstructors()) // public constructors
+    if (Modifier.isPublic(x.getModifiers())) {
         if (x.getParameterCount() < minParams) {
           con = x;
           minParams = con.getParameterCount();
         }
       }
+    // look for protected constructors
     if (con == null) {
-      for (Constructor x : type.getConstructors())
-        if (Modifier.isProtected(x.getModifiers())) {
+      for (Constructor x : type.getDeclaredConstructors()) // public, protected and private
+      if (Modifier.isProtected(x.getModifiers())) {
           if (x.getParameterCount() < minParams) {
             con = x;
             minParams = con.getParameterCount();
           }
         }
     }
+    // look for private constructors
     if (con == null) {
-      for (Constructor x : type.getDeclaredConstructors())
-        if (Modifier.isPublic(x.getModifiers())) {
-          if (x.getParameterCount() < minParams) {
-            con = x;
-            minParams = con.getParameterCount();
-          }
-        }
-    }
-    if (con == null) {
-      for (Constructor x : type.getDeclaredConstructors())
-        if (Modifier.isProtected(x.getModifiers())) {
-          if (x.getParameterCount() < minParams) {
-            con = x;
-            minParams = con.getParameterCount();
-          }
-        }
-    }
-    if (con == null) {
-      for (Constructor x : type.getDeclaredConstructors())
-        if (x.getParameterCount() < minParams) {
+      for (Constructor x : type.getDeclaredConstructors()) // public, protected and private
+      if (x.getParameterCount() < minParams) {
           con = x;
           minParams = con.getParameterCount();
         }
@@ -170,20 +155,6 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     if (con != null) {
       if (!Modifier.isPublic(con.getModifiers())) {
         con.setAccessible(true);
-      }
-    }
-    return con;
-  }
-
-  private Constructor getConstructor(Class c, Class parameterClass) {
-    Constructor con = null;
-    while (con == null && !Object.class.equals(parameterClass)) {
-      try {
-        con = c.getConstructor(parameterClass);
-      } catch (NoSuchMethodException e) {
-      }
-      if (con == null) {
-        parameterClass = parameterClass.getSuperclass();
       }
     }
     return con;

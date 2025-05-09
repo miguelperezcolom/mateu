@@ -3,7 +3,9 @@ package io.mateu.core.infra;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 
-public class JsonSerializer {
+public final class JsonSerializer {
+
+  private JsonSerializer() {}
 
   @SneakyThrows
   public static String toJson(Object object) {

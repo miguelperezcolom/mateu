@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /** Created by miguel on 13/9/16. */
 @Slf4j
-public class InputStreamReader {
+public final class InputStreamReader {
+
+  private InputStreamReader() {}
 
   public static String readFromClasspath(Class c, String p) {
     String s = "";

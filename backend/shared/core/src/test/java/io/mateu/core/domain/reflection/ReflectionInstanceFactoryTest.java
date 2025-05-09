@@ -4,10 +4,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.reflection.samples.WithBuilder;
+import io.mateu.core.domain.reflection.samples.WithConstructorParameters;
 import io.mateu.core.domain.reflection.samples.WithInitMethod;
+import io.mateu.core.domain.reflection.samples.WithObjectConstructorParameters;
+import io.mateu.core.domain.reflection.samples.WithProtectedConstructors;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -41,5 +46,34 @@ class ReflectionInstanceFactoryTest {
 
     instance = factory.newInstance(WithBuilder.class);
     assertNotNull(instance);
+
+    instance =
+        factory.newInstance(
+            WithConstructorParameters.class,
+            Map.of(
+                "name",
+                "Mateu",
+                "birthDate",
+                LocalDate.of(2008, 4, 18),
+                "lastAccess",
+                LocalDateTime.of(2025, 5, 9, 21, 15)));
+    assertNotNull(instance);
+    assertEquals("Mateu 2008-04-18 2025-05-09T21:15", instance.toString());
+
+    instance =
+        factory.newInstance(
+            WithObjectConstructorParameters.class, Map.of("value", Map.of("name", "Mateu")));
+    assertNotNull(instance);
+    assertEquals("Mateu", instance.toString());
+
+    instance =
+        factory.newInstance(
+            WithObjectConstructorParameters.class, Map.of("value", Map.of("name", "Mateu")));
+    assertNotNull(instance);
+    assertEquals("Mateu", instance.toString());
+
+    instance = factory.newInstance(WithProtectedConstructors.class, Map.of("name", "Mateu"));
+    assertNotNull(instance);
+    assertEquals("Mateu", instance.toString());
   }
 }
