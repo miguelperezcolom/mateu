@@ -24,7 +24,7 @@ class CreateJourneyUseCaseTest {
         new HandlesRoute() {
 
           @Override
-          public Mono<?> handle(String route, HttpRequest httpRequest) {
+          public Mono<?> handleRoute(String route, HttpRequest httpRequest) {
             return Mono.fromSupplier(() -> dto);
           }
         };

@@ -2,24 +2,88 @@ package io.mateu.core.application;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.uis.HelloWorld;
+import com.example.uis.HelloWorldHandlingActions;
+import com.example.uis.HelloWorldHandlingRoute;
+import io.mateu.core.application.createjourney.CreateJourneyUseCase;
+import io.mateu.core.application.getui.GetUIUseCase;
+import io.mateu.core.application.runaction.RunActionUseCase;
+import io.mateu.core.domain.BasicTypeChecker;
+import io.mateu.core.domain.DefaultActionRunnerProvider;
+import io.mateu.core.domain.DefaultInstanceFactoryProvider;
+import io.mateu.core.domain.DefaultRouteMatcher;
+import io.mateu.core.domain.InstanceFactoryProvider;
+import io.mateu.core.domain.ReflectionUiIncrementMapper;
+import io.mateu.core.domain.ReflectionUiMapper;
+import io.mateu.core.domain.UiIncrementMapper;
+import io.mateu.core.domain.UiMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
+import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
+import io.mateu.core.domain.reflection.RunMethodActionRunner;
+import io.mateu.core.infra.FakeBeanProvider;
+import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.dtos.GetUIRqDto;
+import io.mateu.dtos.JourneyCreationRqDto;
+import io.mateu.dtos.RunActionRqDto;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FakeMateuServiceTest {
 
-  final FakeMateuService fakeMateuService = new FakeMateuService();
+  final InstanceFactoryProvider instanceFactoryProvider =
+      new DefaultInstanceFactoryProvider(
+          List.of(new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider())));
+  final UiMapper uiMapper = new ReflectionUiMapper();
+  final UiIncrementMapper uiIncrementMapper =
+      new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
+
+  final FakeMateuService fakeMateuService =
+      new FakeMateuService(
+          new GetUIUseCase(instanceFactoryProvider, uiMapper),
+          new CreateJourneyUseCase(
+              instanceFactoryProvider, uiIncrementMapper, new DefaultRouteMatcher()),
+          new RunActionUseCase(
+              instanceFactoryProvider,
+              new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
+              uiIncrementMapper));
 
   @Test
   void getUI() {
-    assertNull(fakeMateuService.getUI(null, null, null, null).block());
+    assertNotNull(
+        fakeMateuService
+            .getUI(
+                HelloWorld.class.getName(),
+                "base_url",
+                new GetUIRqDto(Map.of(), "_hash"),
+                new FakeHttpRequest())
+            .block());
   }
 
   @Test
   void createJourney() throws Throwable {
-    assertNull(fakeMateuService.createJourney(null, null, null, null, null, null).block());
+    assertNotNull(
+        fakeMateuService
+            .createJourney(
+                HelloWorldHandlingRoute.class.getName(),
+                "base_url",
+                null,
+                null,
+                new JourneyCreationRqDto(Map.of(), "_hash"),
+                new FakeHttpRequest())
+            .block());
   }
 
   @Test
   void runStepAndReturn() throws Throwable {
-    assertNull(fakeMateuService.runAction(null, null, null, null, null).block());
+    assertNotNull(
+        fakeMateuService
+            .runAction(
+                "component_id",
+                "action_id",
+                new RunActionRqDto(HelloWorldHandlingActions.class.getName(), Map.of(), Map.of()),
+                "base_url",
+                new FakeHttpRequest())
+            .block());
   }
 }

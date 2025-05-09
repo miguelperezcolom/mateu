@@ -7,14 +7,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class SpringBeanProvider implements BeanProvider {
 
-    private final ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
 
-    public SpringBeanProvider(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
+  public SpringBeanProvider(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
+  }
 
-    @Override
-    public <T> T getBean(Class<T> clazz) {
-        return applicationContext.getBean(clazz);
+  @Override
+  public <T> T getBean(Class<T> clazz) {
+    try {
+      return applicationContext.getBean(clazz);
+    } catch (Exception ignored) {
+      return null;
     }
+  }
 }

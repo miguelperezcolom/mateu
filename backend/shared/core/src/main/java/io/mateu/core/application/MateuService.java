@@ -5,13 +5,12 @@ import io.mateu.dtos.JourneyCreationRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
 public interface MateuService {
 
-  Mono<UIDto> getUI(
-      String uiId, String baseUrl, GetUIRqDto rq, ServerHttpRequest serverHttpRequest);
+  Mono<UIDto> getUI(String uiId, String baseUrl, GetUIRqDto rq, HttpRequest httpRequest);
 
   Mono<UIIncrementDto> createJourney(
       String uiId,
@@ -19,7 +18,7 @@ public interface MateuService {
       String journeyTypeId,
       String journeyId,
       JourneyCreationRqDto rq,
-      ServerHttpRequest serverHttpRequest)
+      HttpRequest httpRequest)
       throws Throwable;
 
   Mono<UIIncrementDto> runAction(
@@ -27,6 +26,6 @@ public interface MateuService {
       String actionId,
       RunActionRqDto rq,
       String baseUrl,
-      ServerHttpRequest serverHttpRequest)
+      HttpRequest httpRequest)
       throws Throwable;
 }

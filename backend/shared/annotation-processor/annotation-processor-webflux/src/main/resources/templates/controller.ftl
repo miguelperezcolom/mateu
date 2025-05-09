@@ -15,6 +15,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import io.mateu.SpringHttpRequest;
 
 import javax.naming.AuthenticationException;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class ${simpleClassName}MateuController {
     public Mono<UIDto> getUI(
             @RequestBody GetUIRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Exception {
-        return service.getUI(uiId, baseUrl, rq, serverHttpRequest);
+        return service.getUI(uiId, baseUrl, rq, new SpringHttpRequest(serverHttpRequest));
     }
 
     @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")
@@ -47,7 +48,8 @@ public class ${simpleClassName}MateuController {
             @PathVariable("journeyId") String journeyId,
             @RequestBody JourneyCreationRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq, serverHttpRequest);
+        return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq,
+                new SpringHttpRequest(serverHttpRequest));
     }
 
     @PostMapping("v3/components/{componentId}/{actionId}")
@@ -56,7 +58,7 @@ public class ${simpleClassName}MateuController {
             @PathVariable("actionId") String actionId,
             @RequestBody RunActionRqDto rq,
             ServerHttpRequest serverHttpRequest) throws Throwable {
-        return service.runAction(componentId, actionId, rq, baseUrl, serverHttpRequest);
+        return service.runAction(componentId, actionId, rq, baseUrl, new SpringHttpRequest(serverHttpRequest));
     }
 
     /*

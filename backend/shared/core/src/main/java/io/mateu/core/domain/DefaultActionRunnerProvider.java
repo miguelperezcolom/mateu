@@ -25,7 +25,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }
     if (instance instanceof HandlesActions handlesActions) {
-      if (handlesActions.supports(actionId)) {
+      if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
           @Override
           public boolean supports(Object instance, String actionId) {
@@ -35,7 +35,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           @Override
           public Mono<?> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            return handlesActions.handle(actionId, httpRequest);
+            return handlesActions.handleAction(actionId, httpRequest);
           }
         };
       }

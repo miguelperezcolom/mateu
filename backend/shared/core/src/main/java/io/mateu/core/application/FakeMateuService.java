@@ -1,20 +1,32 @@
 package io.mateu.core.application;
 
+import io.mateu.core.application.createjourney.CreateJourneyCommand;
+import io.mateu.core.application.createjourney.CreateJourneyUseCase;
+import io.mateu.core.application.getui.GetUIQuery;
+import io.mateu.core.application.getui.GetUIUseCase;
+import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.runaction.RunActionUseCase;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.JourneyCreationRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Named
+@RequiredArgsConstructor
 public class FakeMateuService implements MateuService {
+
+  private final GetUIUseCase getUIUseCase;
+  private final CreateJourneyUseCase createJourneyUseCase;
+  private final RunActionUseCase runActionUseCase;
+
   @Override
-  public Mono<UIDto> getUI(
-      String uiId, String baseUrl, GetUIRqDto rq, ServerHttpRequest serverHttpRequest) {
-    return Mono.empty();
+  public Mono<UIDto> getUI(String uiId, String baseUrl, GetUIRqDto rq, HttpRequest httpRequest) {
+    return getUIUseCase.handle(new GetUIQuery(uiId, baseUrl, httpRequest));
   }
 
   @Override
@@ -24,9 +36,10 @@ public class FakeMateuService implements MateuService {
       String journeyTypeId,
       String journeyId,
       JourneyCreationRqDto rq,
-      ServerHttpRequest serverHttpRequest)
+      HttpRequest httpRequest)
       throws Throwable {
-    return Mono.empty();
+    return createJourneyUseCase.handle(
+        new CreateJourneyCommand(uiId, journeyTypeId, journeyId, baseUrl, httpRequest));
   }
 
   @Override
@@ -35,8 +48,16 @@ public class FakeMateuService implements MateuService {
       String actionId,
       RunActionRqDto rq,
       String baseUrl,
-      ServerHttpRequest serverHttpRequest)
+      HttpRequest httpRequest)
       throws Throwable {
-    return Mono.empty();
+    return runActionUseCase.handle(
+        new RunActionCommand(
+            baseUrl,
+            componentId,
+            actionId,
+            rq.componentType(),
+            rq.data(),
+            rq.contextData(),
+            httpRequest));
   }
 }
