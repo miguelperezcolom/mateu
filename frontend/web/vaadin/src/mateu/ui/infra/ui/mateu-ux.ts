@@ -12,6 +12,7 @@ import { Subject, Subscription } from "rxjs";
 import { State } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
+import './mateu-component'
 
 
 @customElement('mateu-ux')

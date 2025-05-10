@@ -32,16 +32,8 @@ class GetUIUseCaseTest {
       var ui = useCase.handle(request).block();
 
       assertThat(ui).isNotNull();
-      assertThat(ui.icon()).isNull();
-      assertThat(ui.logo()).isNull();
       assertThat(ui.favIcon()).isNull();
-      assertThat(ui.contextData()).isNull();
       assertThat(ui.title()).isEqualTo("Hello world");
-      assertThat(ui.apps()).isEmpty();
-      assertThat(ui.loginUrl()).isNull();
-      assertThat(ui.logoutUrl()).isNull();
-      assertThat(ui.menu()).isEmpty();
-      assertThat(ui.subtitle()).isNull();
     }
   }
 

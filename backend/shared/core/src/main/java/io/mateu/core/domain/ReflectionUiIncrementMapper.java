@@ -9,6 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Named;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -40,7 +41,9 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
             mapToFragments(instance, baseUrl, httpRequest),
-            mapToData(instance, baseUrl, httpRequest)));
+            mapToData(instance, baseUrl, httpRequest),
+            Map.of(),
+            Map.of()));
   }
 
   private List<UICommandDto> mapToCommands(
@@ -61,6 +64,6 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     if (instance instanceof Form) {
       return instance;
     }
-    return null;
+    return Map.of();
   }
 }

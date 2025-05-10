@@ -22,7 +22,7 @@ class ReflectionUiIncrementMapperTest {
   @Test
   void mapsToSelf() {
     var mapper = new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
-    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of());
+    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of());
     var result = mapper.map(dto, "base_url", new FakeHttpRequest()).block();
     assertEquals(dto, result);
   }
@@ -30,7 +30,7 @@ class ReflectionUiIncrementMapperTest {
   @Test
   void callsMethod() {
     var mapper = new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
-    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of());
+    var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of());
     var instance =
         new MapsToDto() {
 

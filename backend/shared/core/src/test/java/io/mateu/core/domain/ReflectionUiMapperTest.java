@@ -7,9 +7,11 @@ import com.example.uis.AnnotatedUI;
 import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIDto;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -32,16 +34,7 @@ class ReflectionUiMapperTest {
         new UIDto(
             baseUrl,
             httpRequest.toString(),
-            "logo",
-            "title",
-            "subtitle",
-            List.of(),
-            "home_journey_type_id",
-            "login_url",
-            "welcome_message",
-            "logout_url",
-            List.of(),
-            "context_data");
+            new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of()));
     var instance =
         new DynamicUI() {
           @Override
@@ -50,16 +43,8 @@ class ReflectionUiMapperTest {
                 new UIDto(
                     baseUrl,
                     httpRequest.toString(),
-                    "logo",
-                    "title",
-                    "subtitle",
-                    List.of(),
-                    "home_journey_type_id",
-                    "login_url",
-                    "welcome_message",
-                    "logout_url",
-                    List.of(),
-                    "context_data"));
+                    new UIIncrementDto(
+                        List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of())));
           }
         };
     var dto = reflectionUiMapper.map(instance, baseUrl, httpRequest).block();

@@ -1,12 +1,34 @@
 package io.mateu.dtos;
 
-/**
- * Apps in a multi app UI
- *
- * @param icon Icon for this app
- * @param name Name for this app
- * @param description Description for this app
- * @param url Url for this app
- * @param disabled If this app is disabled
- */
-public record AppDto(String icon, String name, String description, String url, boolean disabled) {}
+import java.util.Collections;
+import java.util.List;
+import lombok.Builder;
+
+@Builder
+public record AppDto(
+    String icon,
+    String logo,
+    String title,
+    String subtitle,
+    List<MenuDto> menu,
+    String homeJourneyTypeId,
+    String loginUrl,
+    String welcomeMessage,
+    String logoutUrl,
+    List<AppDescriptorDto> apps) {
+
+  public AppDto {
+    menu = Collections.unmodifiableList(menu != null ? menu : List.of());
+    apps = Collections.unmodifiableList(apps != null ? apps : List.of());
+  }
+
+  @Override
+  public List<MenuDto> menu() {
+    return Collections.unmodifiableList(menu);
+  }
+
+  @Override
+  public List<AppDescriptorDto> apps() {
+    return Collections.unmodifiableList(apps);
+  }
+}

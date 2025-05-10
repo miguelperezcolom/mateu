@@ -1,12 +1,15 @@
 package io.mateu.core.domain;
 
 import io.mateu.dtos.UIDto;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HasFavicon;
 import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import java.util.List;
+import java.util.Map;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -28,17 +31,8 @@ public class ReflectionUiMapper implements UiMapper {
     return Mono.just(
         new UIDto(
             getFavIcon(uiInstance),
-            null,
-            null,
             getTitle(uiInstance),
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null));
+            new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of())));
   }
 
   private String getFavIcon(Object uiInstance) {
