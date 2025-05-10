@@ -19,6 +19,11 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
   private final FragmentMapper fragmentMapper;
 
   @Override
+  public boolean supports(Object instance) {
+    return true;
+  }
+
+  @Override
   // todo: add metadata from the method annotations
   public Mono<UIIncrementDto> map(Object instance, String baseUrl, HttpRequest httpRequest) {
     if (instance == null) {
