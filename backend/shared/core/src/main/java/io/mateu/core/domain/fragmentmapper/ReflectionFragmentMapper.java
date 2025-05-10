@@ -5,7 +5,6 @@ import io.mateu.dtos.ActionTargetDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ContentDto;
 import io.mateu.dtos.FormDto;
-import io.mateu.dtos.GenericComponentDto;
 import io.mateu.dtos.SingleComponentDto;
 import io.mateu.dtos.StatusDto;
 import io.mateu.dtos.StatusTypeDto;
@@ -50,8 +49,8 @@ public class ReflectionFragmentMapper implements FragmentMapper {
     Map<String, ComponentDto> components =
         Map.of(
             "component_id",
-            new GenericComponentDto(
-                formDto, "component_id", form.getClass().getName(), Map.of(), form, List.of()));
+            new ComponentDto(
+                formDto, "component_id", form.getClass().getName(), List.of(), form, List.of()));
     return new UIFragmentDto(
         ActionTargetDto.Component,
         "initiator_component_id",

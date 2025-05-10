@@ -1,25 +1,29 @@
 package io.mateu.dtos;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-/** A common interface for componentIds */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "componentType")
-@JsonSubTypes({
-  @JsonSubTypes.Type(value = GenericComponentDto.class, name = "GenericComponent"),
-  @JsonSubTypes.Type(value = CrudComponentDto.class, name = "CrudComponent"),
-})
-public interface ComponentDto {
+public record ComponentDto(
+    ComponentMetadataDto metadata,
+    String id,
+    String className,
+    List<PairDto> attributes,
+    Object data,
+    List<ComponentDto> children) {
 
-  ComponentMetadataDto metadata();
+  public ComponentDto {
+    attributes = Collections.unmodifiableList(attributes);
+    children = Collections.unmodifiableList(children);
+  }
 
-  String id();
+  @Override
+  public List<PairDto> attributes() {
+    return Collections.unmodifiableList(attributes);
+  }
 
-  String className();
-
-  Map<String, Object> attributes();
-
-  List<String> childComponentIds();
+  @Override
+  public List<ComponentDto> children() {
+    return Collections.unmodifiableList(children);
+  }
 }
