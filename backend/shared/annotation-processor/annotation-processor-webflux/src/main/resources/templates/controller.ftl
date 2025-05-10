@@ -3,7 +3,6 @@ package ${pkgName};
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpRequest;
 import io.mateu.SpringHttpRequest;
 
 import javax.naming.AuthenticationException;

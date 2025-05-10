@@ -7,6 +7,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@vaadin/button": "^24.7.5",
 		"preact": "^10.25.3"
 	},
 	"devDependencies": {

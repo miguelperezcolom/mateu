@@ -17,8 +17,7 @@ public class QuarkusBeanProvider implements BeanProvider {
   public <T> T getBean(Class<T> clazz) {
     try {
       var bean = beanManager.getBeans(clazz).iterator().next();
-      return (T) beanManager.getReference(bean, clazz,
-              beanManager.createCreationalContext(bean));
+      return (T) beanManager.getReference(bean, clazz, beanManager.createCreationalContext(bean));
     } catch (Exception ignored) {
       return null;
     }

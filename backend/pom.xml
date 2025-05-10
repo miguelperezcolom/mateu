@@ -40,6 +40,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+    <jacoco.min.coverage>90%</jacoco.min.coverage>
   </properties>
 
   <modules>
@@ -47,6 +48,7 @@
     <module>webflux</module>
     <module>micronaut</module>
     <module>quarkus</module>
+    <module>mvc</module>
   </modules>
 
   <dependencyManagement>
@@ -345,7 +347,7 @@
                 <limit>
                   <counter>LINE</counter>
                   <value>COVEREDRATIO</value>
-                  <minimum>90%</minimum>
+                  <minimum>${jacoco.min.coverage}</minimum>
                 </limit>
               </limits>
             </rule>

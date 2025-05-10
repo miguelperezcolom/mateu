@@ -37,6 +37,12 @@
       <groupId>io.mateu</groupId>
       <artifactId>core</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

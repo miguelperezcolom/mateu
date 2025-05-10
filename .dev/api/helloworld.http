@@ -1,0 +1,29 @@
+###
+POST http://localhost:8091/helloworld/mateu/v3/ui
+Accept: application/json, text/plain, */*
+Content-Type: application/json
+
+{
+  "context-data": {}
+}
+
+###
+POST http://localhost:8091/helloworld/mateu/v3/journeys/com.example.demo.HelloWorld/_
+Accept: application/json, text/plain, */*
+Content-Type: application/json
+
+{
+  "context-data": {}
+}
+
+###
+POST http://localhost:8091/helloworld/mateu/v3/components/component_id/action_id
+Accept: application/json, text/plain, */*
+Content-Type: application/json
+
+{
+  "componentType": "com.example.demo.HelloWorld"
+}
+
+###
+
