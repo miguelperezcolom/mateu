@@ -9,12 +9,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
 
     axiosInstance = axios.create({timeout: 60000})
 
-    baseUrl: string = ''
-    element: HTMLElement = document.body;
-    contextData: unknown = {}
-
-    constructor(journeyStarter: HTMLElement) {
-        this.element = journeyStarter
+    constructor() {
         this.axiosInstance.interceptors.request.use(config => {
             this.addAuthToken(config)
             this.addSessionId(config)
@@ -38,15 +33,15 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
     }
 
-    async wrap<T>(call: Promise<T>): Promise<T> {
-        this.element.dispatchEvent(new CustomEvent('backend-called-event', {
+    async wrap<T>(call: Promise<T>, initiator: HTMLElement): Promise<T> {
+        initiator.dispatchEvent(new CustomEvent('backend-called-event', {
             bubbles: true,
             composed: true,
             detail: {
             }
         }))
         return call.then(response => {
-            this.element.dispatchEvent(new CustomEvent('backend-succeeded-event', {
+            initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
                 bubbles: true,
                 composed: true,
                 detail: {
@@ -55,14 +50,14 @@ export class AxiosMateuApiClient implements MateuApiClient {
             return response
         }).catch((reason) => {
             if (reason.code == 'ERR_CANCELED') {
-                this.element.dispatchEvent(new CustomEvent('backend-cancelled-event', {
+                initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
                     bubbles: true,
                     composed: true,
                     detail: {
                     }
                 }))
             } else {
-                this.element.dispatchEvent(new CustomEvent('backend-failed-event', {
+                initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
                     bubbles: true,
                     composed: true,
                     detail: {
@@ -103,13 +98,14 @@ export class AxiosMateuApiClient implements MateuApiClient {
         abortControllers = []
     }
 
-    async fetchUi(baseUrl: string): Promise<UI> {
+    async fetchUi(baseUrl: string, contextData: any, initiator: HTMLElement): Promise<UI> {
         return await this.wrap<UI>(this.post(baseUrl + '/mateu/v3/ui', {
-            "context-data": this.contextData,
+            "context-data": contextData,
             "hash": window.location.hash
         })
-            .then((response) => response.data))
+            .then((response) => response.data), initiator)
     }
-
 }
+
+export const mateuApiClient = new AxiosMateuApiClient()
 

@@ -12,20 +12,18 @@ import { Subject, Subscription } from "rxjs";
 import { State } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
-import './mateu-ux'
 
 
-@customElement('mateu-ui')
-export class MateuUi extends LitElement {
+@customElement('mateu-ux')
+export class MateuUx extends LitElement {
 
     // public properties
     @property()
     baseUrl = ''
     @property()
-    journeyTypeId: string | undefined = undefined;
-
-    @property()
     config: string | undefined = undefined;
+    @property()
+    journeyTypeId: string | undefined = undefined;
 
     // state
     @state()
@@ -42,13 +40,6 @@ export class MateuUi extends LitElement {
         this.upstreamSubscription = this.upstream.subscribe((state: State) =>
             this.stampState(state)
         )
-
-        window.onpopstate = (e) => {
-            const w = e.target as Window
-            this.loadHash(w)
-        };
-
-        this.loadHash(window)
     }
 
     disconnectedCallback() {
@@ -60,7 +51,7 @@ export class MateuUi extends LitElement {
         super.updated(_changedProperties);
 
         if (_changedProperties.has('baseUrl')
-            || _changedProperties.has('config')
+                || _changedProperties.has('config')
         ) {
 
             if (this.config) {
@@ -82,33 +73,6 @@ export class MateuUi extends LitElement {
 
     }
 
-    loadHash(w: Window) {
-        if (!w.location.hash.startsWith('#state=')) {
-
-            this.journeyTypeId = this.extractJourneyTypeIdFromUrl(w)
-
-        }
-        if (w.location.search) {
-            const urlParams = new URLSearchParams(w.location.search);
-            const configParam = urlParams.get('config')
-            if (configParam) {
-                this.config = configParam
-            }
-        }
-
-    }
-
-    extractJourneyTypeIdFromUrl(w: Window) {
-        let journeyTypeId = w.location.pathname
-        if (this.baseUrl) {
-            journeyTypeId = journeyTypeId.substring(this.baseUrl.length)
-        }
-        if (journeyTypeId.startsWith('/')) {
-            journeyTypeId = journeyTypeId.substring(1)
-        }
-        return journeyTypeId;
-    }
-
     // write state to reactive properties
     stampState(state: State) {
         this.ui = state.ui
@@ -120,7 +84,7 @@ export class MateuUi extends LitElement {
 
     render() {
        return html`
-           <mateu-ux baseurl="${this.baseUrl}"></mateu-ux>
+           <h1>${this.ui?.title}</h1>
        `
     }
 
@@ -130,15 +94,8 @@ export class MateuUi extends LitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'mateu-ui': MateuUi
+        'mateu-ux': MateuUx
     }
 }
 
-declare global {
-    interface Window {
-        __MATEU_REMOTE_BASE_URL__: any
-        __MATEU_UI_ID__: any
-        location: Location
-    }
-}
 

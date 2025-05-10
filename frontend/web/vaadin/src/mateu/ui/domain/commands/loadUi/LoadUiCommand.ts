@@ -1,4 +1,5 @@
 export interface LoadUiCommand {
-    baseUrl: string
-    journeyTypeId: string | undefined
+    baseUrl: string,
+    contextData: any,
+    initiator: HTMLElement
 }
