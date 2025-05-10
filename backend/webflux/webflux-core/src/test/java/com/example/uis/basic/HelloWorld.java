@@ -8,18 +8,18 @@ import reactor.core.publisher.Mono;
 
 @MateuUI("/hello")
 public class HelloWorld implements HandlesActions, HandlesRoute {
-    @Override
-    public boolean supportsAction(String actionId) {
-        return true;
-    }
+  @Override
+  public boolean supportsAction(String actionId) {
+    return true;
+  }
 
-    @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
-    }
+  @Override
+  public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+    return Mono.just(this);
+  }
 
-    @Override
-    public Mono<?> handleRoute(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
-    }
+  @Override
+  public Mono<?> handleRoute(String actionId, HttpRequest httpRequest) {
+    return Mono.just(this);
+  }
 }

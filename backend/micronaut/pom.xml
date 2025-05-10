@@ -7,17 +7,14 @@
     <artifactId>backend</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>webflux</artifactId>
+  <artifactId>micronaut</artifactId>
   <packaging>pom</packaging>
 
-  <name>Webflux</name>
+  <name>Micronaut</name>
   <description>parent project</description>
 
   <modules>
-    <module>webflux-core</module>
-    <module>optionals/embedded-front</module>
-    <module>optionals/springboot-security</module>
-    <module>optionals/jpa</module>
+    <module>micronaut-core</module>
   </modules>
 
 </project>
