@@ -23,12 +23,19 @@
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-context</artifactId>
       <version>4.7.14</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-http</artifactId>
+      <version>4.7.14</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>uidl</artifactId>
+      <artifactId>core</artifactId>
       <version>${project.version}</version>
     </dependency>
 

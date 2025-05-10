@@ -1,13 +1,15 @@
 package io.mateu;
 
+import io.mateu.core.domain.BeanProvider;
+import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class SpringBeanProvider implements BeanProvider {
+public class MicronautBeanProvider implements BeanProvider {
 
   private final ApplicationContext applicationContext;
 
-  public SpringBeanProvider(ApplicationContext applicationContext) {
+  public MicronautBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
   }
 
