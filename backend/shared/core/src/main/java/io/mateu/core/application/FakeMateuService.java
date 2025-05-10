@@ -13,10 +13,12 @@ import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Named
+@Singleton
 @RequiredArgsConstructor
 public class FakeMateuService implements MateuService {
 
