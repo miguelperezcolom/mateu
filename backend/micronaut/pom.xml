@@ -15,6 +15,7 @@
 
   <modules>
     <module>micronaut-core</module>
+    <module>annotation-processor-micronaut</module>
   </modules>
 
 </project>

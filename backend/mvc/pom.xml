@@ -15,6 +15,7 @@
 
   <modules>
     <module>mvc-core</module>
+    <module>annotation-processor-mvc</module>
   </modules>
 
 </project>

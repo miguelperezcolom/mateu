@@ -16,11 +16,7 @@
   <modules>
     <module>uidl</module>
     <module>dtos</module>
-    <module>annotation-processor/annotation-processor-core</module>
-    <module>annotation-processor/annotation-processor-webflux</module>
-    <module>annotation-processor/annotation-processor-mvc</module>
-    <module>annotation-processor/annotation-processor-micronaut</module>
-    <module>annotation-processor/annotation-processor-quarkus</module>
+    <module>annotation-processor-core</module>
     <module>core</module>
   </modules>
 

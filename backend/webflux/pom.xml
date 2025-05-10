@@ -18,6 +18,7 @@
     <module>optionals/embedded-front</module>
     <module>optionals/springboot-security</module>
     <module>optionals/jpa</module>
+    <module>annotation-processor-webflux</module>
   </modules>
 
 </project>

@@ -15,6 +15,7 @@
 
   <modules>
     <module>quarkus-core</module>
+    <module>annotation-processor-quarkus</module>
   </modules>
 
 </project>
