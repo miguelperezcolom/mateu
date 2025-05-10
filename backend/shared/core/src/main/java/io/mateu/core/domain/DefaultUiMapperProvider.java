@@ -1,7 +1,6 @@
 package io.mateu.core.domain;
 
 import jakarta.inject.Named;
-
 import java.util.Comparator;
 import java.util.List;
 

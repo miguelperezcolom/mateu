@@ -8,7 +8,6 @@ import reactor.core.publisher.Mono;
 public class DynamicHelloWorld implements DynamicUI {
   @Override
   public Mono<UIDto> build(String baseUrl, HttpRequest httpRequest) {
-    return Mono.just(
-        new UIDto(null, null, null, "Hello world", null, null, null, null, null, null, null, null));
+    return Mono.just(UIDto.builder().title("Hello world").build());
   }
 }

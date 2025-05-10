@@ -2,7 +2,9 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 
+@Builder
 public record UIDto(
     String favIcon,
     String icon,

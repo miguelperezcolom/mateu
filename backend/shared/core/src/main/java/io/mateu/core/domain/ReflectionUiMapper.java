@@ -13,6 +13,11 @@ import reactor.core.publisher.Mono;
 public class ReflectionUiMapper implements UiMapper {
 
   @Override
+  public boolean supports(Object instance) {
+    return true;
+  }
+
+  @Override
   public Mono<UIDto> map(Object uiInstance, String baseUrl, HttpRequest httpRequest) {
     if (uiInstance == null) {
       return null;

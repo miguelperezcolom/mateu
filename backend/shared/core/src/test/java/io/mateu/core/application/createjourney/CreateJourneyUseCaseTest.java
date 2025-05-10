@@ -1,8 +1,10 @@
 package io.mateu.core.application.createjourney;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.mateu.core.domain.DefaultRouteMatcher;
+import io.mateu.core.domain.DefaultUiIncrementMapperProvider;
 import io.mateu.core.domain.InstanceFactory;
 import io.mateu.core.domain.ReflectionUiIncrementMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
@@ -43,7 +45,8 @@ class CreateJourneyUseCaseTest {
                     return Mono.just(ui);
                   }
                 },
-            new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()),
+            new DefaultUiIncrementMapperProvider(
+                List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()))),
             new DefaultRouteMatcher());
     var result =
         useCase

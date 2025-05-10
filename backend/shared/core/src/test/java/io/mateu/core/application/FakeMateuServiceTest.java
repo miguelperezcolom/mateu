@@ -12,11 +12,13 @@ import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.DefaultActionRunnerProvider;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.DefaultRouteMatcher;
+import io.mateu.core.domain.DefaultUiIncrementMapperProvider;
+import io.mateu.core.domain.DefaultUiMapperProvider;
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.ReflectionUiIncrementMapper;
 import io.mateu.core.domain.ReflectionUiMapper;
-import io.mateu.core.domain.UiIncrementMapper;
-import io.mateu.core.domain.UiMapper;
+import io.mateu.core.domain.UiIncrementMapperProvider;
+import io.mateu.core.domain.UiMapperProvider;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
@@ -34,19 +36,21 @@ class FakeMateuServiceTest {
   final InstanceFactoryProvider instanceFactoryProvider =
       new DefaultInstanceFactoryProvider(
           List.of(new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider())));
-  final UiMapper uiMapper = new ReflectionUiMapper();
-  final UiIncrementMapper uiIncrementMapper =
-      new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
+  final UiMapperProvider uiMapperProvider =
+      new DefaultUiMapperProvider(List.of(new ReflectionUiMapper()));
+  final UiIncrementMapperProvider uiIncrementMapperProvider =
+      new DefaultUiIncrementMapperProvider(
+          List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper())));
 
   final FakeMateuService fakeMateuService =
       new FakeMateuService(
-          new GetUIUseCase(instanceFactoryProvider, uiMapper),
+          new GetUIUseCase(instanceFactoryProvider, uiMapperProvider),
           new CreateJourneyUseCase(
-              instanceFactoryProvider, uiIncrementMapper, new DefaultRouteMatcher()),
+              instanceFactoryProvider, uiIncrementMapperProvider, new DefaultRouteMatcher()),
           new RunActionUseCase(
               instanceFactoryProvider,
               new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
-              uiIncrementMapper));
+              uiIncrementMapperProvider));
 
   @Test
   void getUI() {

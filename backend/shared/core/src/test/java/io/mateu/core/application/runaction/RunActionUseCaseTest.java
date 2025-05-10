@@ -22,7 +22,8 @@ class RunActionUseCaseTest {
               List.of(
                   new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
           new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
-          new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()));
+          new DefaultUiIncrementMapperProvider(
+              List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()))));
 
   @Test
   void runsMethod() {

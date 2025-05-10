@@ -2,7 +2,7 @@ package io.mateu.core.application.createjourney;
 
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.RouteMatcher;
-import io.mateu.core.domain.UiIncrementMapper;
+import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Named;
 import java.util.Map;
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class CreateJourneyUseCase {
 
   private final InstanceFactoryProvider instanceFactoryProvider;
-  private final UiIncrementMapper uiIncrementMapper;
+  private final UiIncrementMapperProvider uiIncrementMapperProvider;
   private final RouteMatcher routeMatcher;
 
   public Mono<UIIncrementDto> handle(CreateJourneyCommand command) {
@@ -28,6 +28,9 @@ public class CreateJourneyUseCase {
                 instanceFactory.createInstance(command.uiId(), Map.of(), command.httpRequest()))
         .flatMap(ui -> routeMatcher.map(ui, command.httpRequest()))
         .flatMap(
-            journey -> uiIncrementMapper.map(journey, command.baseUrl(), command.httpRequest()));
+            journey ->
+                uiIncrementMapperProvider
+                    .get(journey)
+                    .map(journey, command.baseUrl(), command.httpRequest()));
   }
 }

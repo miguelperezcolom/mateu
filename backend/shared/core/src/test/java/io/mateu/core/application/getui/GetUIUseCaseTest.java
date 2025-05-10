@@ -7,6 +7,7 @@ import com.example.uis.HolaMundo;
 import com.example.uis.dynamic.DynamicHelloWorld;
 import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
+import io.mateu.core.domain.DefaultUiMapperProvider;
 import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.infra.FakeBeanProvider;
@@ -21,7 +22,7 @@ class GetUIUseCaseTest {
           new DefaultInstanceFactoryProvider(
               List.of(
                   new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
-          new ReflectionUiMapper());
+          new DefaultUiMapperProvider(List.of(new ReflectionUiMapper())));
 
   @Test
   void returnsUI() {

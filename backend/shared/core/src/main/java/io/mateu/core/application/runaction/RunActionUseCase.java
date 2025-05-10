@@ -2,7 +2,7 @@ package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.ActionRunnerProvider;
 import io.mateu.core.domain.InstanceFactoryProvider;
-import io.mateu.core.domain.UiIncrementMapper;
+import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ public class RunActionUseCase {
 
   private final InstanceFactoryProvider instanceFactoryProvider;
   private final ActionRunnerProvider actionRunnerProvider;
-  private final UiIncrementMapper uiIncrementMapper;
+  private final UiIncrementMapperProvider uiIncrementMapperProvider;
 
   public Mono<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action for {}", command);
@@ -29,6 +29,10 @@ public class RunActionUseCase {
                 actionRunnerProvider
                     .get(instance, command.actionId())
                     .run(instance, command.actionId(), command.data(), command.httpRequest()))
-        .flatMap(result -> uiIncrementMapper.map(result, command.baseUrl(), command.httpRequest()));
+        .flatMap(
+            result ->
+                uiIncrementMapperProvider
+                    .get(result)
+                    .map(result, command.baseUrl(), command.httpRequest()));
   }
 }
