@@ -197,6 +197,7 @@
             <groupId>io.mateu</groupId>
             <artifactId>integration-tests</artifactId>
             <version>0.0.1-MATEU</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

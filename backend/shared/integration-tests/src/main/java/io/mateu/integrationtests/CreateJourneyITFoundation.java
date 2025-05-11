@@ -15,7 +15,7 @@ public class CreateJourneyITFoundation {
     var journeyTypeId = "_";
     var journeyId = UUID.randomUUID().toString();
 
-    RestAssured.given()
+    given()
         .contentType(ContentType.JSON)
         .body(
             """
@@ -32,10 +32,10 @@ public class CreateJourneyITFoundation {
         .log()
         .all()
         .statusCode(200)
-        .body("commands", Matchers.notNullValue())
-        .body("messages", Matchers.notNullValue())
-        .body("uiFragments", Matchers.notNullValue())
-        .body("appData", Matchers.nullValue());
+        .body("commands", notNullValue())
+        .body("messages", notNullValue())
+        .body("uiFragments", notNullValue())
+        .body("appData", nullValue());
   }
 
 }

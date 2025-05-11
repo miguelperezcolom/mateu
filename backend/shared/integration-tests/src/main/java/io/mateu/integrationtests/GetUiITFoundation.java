@@ -9,7 +9,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class GetUiITFoundation {
 
   void getsUi() {
-    RestAssured.given()
+    given()
         .contentType(ContentType.JSON)
         .body(
             """
@@ -25,7 +25,7 @@ public class GetUiITFoundation {
         .log()
         .all()
         .statusCode(200)
-        .body("menu", Matchers.notNullValue())
-        .body("title", Matchers.equalTo("Travel app"));
+        .body("menu", notNullValue())
+        .body("title", equalTo("Travel app"));
   }
 }

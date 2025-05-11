@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class GetIndexITFoundation {
 
   void getsIndex() {
-    RestAssured.given()
+    given()
         .log()
         .all()
         .when()
@@ -15,7 +15,7 @@ public class GetIndexITFoundation {
         .log()
         .all()
         .statusCode(200)
-        .body("html.head.title", Matchers.equalTo("Travel app"));
+        .body("html.head.title", equalTo("Travel app"));
   }
 
 }
