@@ -49,6 +49,7 @@
     <module>micronaut</module>
     <module>quarkus</module>
     <module>mvc</module>
+      <module>shared/integration-tests</module>
   </modules>
 
   <dependencyManagement>
