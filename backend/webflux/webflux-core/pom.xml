@@ -193,6 +193,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>integration-tests</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
+
     </dependencies>
 
     <distributionManagement>

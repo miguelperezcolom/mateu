@@ -19,24 +19,7 @@ public class GetUiIT {
 
   @Test
   void getsUi() {
-    given()
-        .contentType(ContentType.JSON)
-        .body(
-            """
-          {
-
-          }
-          """)
-        .log()
-        .all()
-        .when()
-        .post("/travel/mateu/v3/ui")
-        .then()
-        .log()
-        .all()
-        .statusCode(200)
-        .body("menu", notNullValue())
-        .body("title", equalTo("Travel app"));
+    new GetUiITFoundation().getsUi();
   }
 
   @BeforeEach

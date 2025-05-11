@@ -6,10 +6,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class GetUiIT {
+public class GetUiITFoundation {
 
   void getsUi() {
-    given()
+    RestAssured.given()
         .contentType(ContentType.JSON)
         .body(
             """
@@ -25,7 +25,7 @@ public class GetUiIT {
         .log()
         .all()
         .statusCode(200)
-        .body("menu", notNullValue())
-        .body("title", equalTo("Travel app"));
+        .body("menu", Matchers.notNullValue())
+        .body("title", Matchers.equalTo("Travel app"));
   }
 }

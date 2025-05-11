@@ -20,30 +20,7 @@ public class RunActionIT {
 
   @Test
   void runsAction() {
-
-    var componentId = "_";
-    var actionId = "action";
-
-    given()
-        .contentType(ContentType.JSON)
-        .body(
-            """
-                  {
-                  "componentType": "com.example.uis.basic.HelloWorld"
-                  }
-                  """)
-        .log()
-        .all()
-        .when()
-        .post("/hello/mateu/v3/components/" + componentId + "/" + actionId)
-        .then()
-        .log()
-        .all()
-        .statusCode(200)
-        .body("commands", notNullValue())
-        .body("messages", notNullValue())
-        .body("uiFragments", notNullValue())
-        .body("appData", nullValue());
+    new RunActionITFoundation().runsAction();
   }
 
   @BeforeEach

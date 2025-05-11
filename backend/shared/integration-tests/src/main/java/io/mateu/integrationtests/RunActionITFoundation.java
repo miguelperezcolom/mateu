@@ -6,14 +6,14 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-public class RunActionIT {
+public class RunActionITFoundation {
 
   public void runsAction() {
 
     var componentId = "_";
     var actionId = "action";
 
-    given()
+    RestAssured.given()
         .contentType(ContentType.JSON)
         .body(
             """
@@ -29,9 +29,9 @@ public class RunActionIT {
         .log()
         .all()
         .statusCode(200)
-        .body("commands", notNullValue())
-        .body("messages", notNullValue())
-        .body("uiFragments", notNullValue())
-        .body("appData", nullValue());
+        .body("commands", Matchers.notNullValue())
+        .body("messages", Matchers.notNullValue())
+        .body("uiFragments", Matchers.notNullValue())
+        .body("appData", Matchers.nullValue());
   }
 }

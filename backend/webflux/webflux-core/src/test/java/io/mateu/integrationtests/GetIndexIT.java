@@ -1,7 +1,6 @@
 package io.mateu.integrationtests;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.example.FakeApplication;
@@ -12,22 +11,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = FakeApplication.class)
-public class GetIndex {
+public class GetIndexIT {
 
   @LocalServerPort private Integer port;
 
   @Test
   void getsIndex() {
-    given()
-        .log()
-        .all()
-        .when()
-        .get("/travel")
-        .then()
-        .log()
-        .all()
-        .statusCode(200)
-        .body("html.head.title", equalTo("Travel app"));
+    new GetIndexITFoundation().getsIndex();
   }
 
   @BeforeEach

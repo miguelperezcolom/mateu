@@ -1,6 +1,5 @@
 package io.mateu.integrationtests;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 
 import java.util.UUID;
@@ -9,14 +8,14 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-public class CreateJourneyIT {
+public class CreateJourneyITFoundation {
 
   public void createsJourney() {
 
     var journeyTypeId = "_";
     var journeyId = UUID.randomUUID().toString();
 
-    given()
+    RestAssured.given()
         .contentType(ContentType.JSON)
         .body(
             """
@@ -33,10 +32,10 @@ public class CreateJourneyIT {
         .log()
         .all()
         .statusCode(200)
-        .body("commands", notNullValue())
-        .body("messages", notNullValue())
-        .body("uiFragments", notNullValue())
-        .body("appData", nullValue());
+        .body("commands", Matchers.notNullValue())
+        .body("messages", Matchers.notNullValue())
+        .body("uiFragments", Matchers.notNullValue())
+        .body("appData", Matchers.nullValue());
   }
 
 }

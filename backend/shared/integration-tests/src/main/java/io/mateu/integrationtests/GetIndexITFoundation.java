@@ -1,15 +1,12 @@
 package io.mateu.integrationtests;
 
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.Test;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-public class GetIndex {
+public class GetIndexITFoundation {
 
   void getsIndex() {
-    given()
+    RestAssured.given()
         .log()
         .all()
         .when()
@@ -18,7 +15,7 @@ public class GetIndex {
         .log()
         .all()
         .statusCode(200)
-        .body("html.head.title", equalTo("Travel app"));
+        .body("html.head.title", Matchers.equalTo("Travel app"));
   }
 
 }
