@@ -6,12 +6,13 @@ import com.example.uis.HelloWorld;
 import com.example.uis.HolaMundo;
 import com.example.uis.dynamic.DynamicHelloWorld;
 import io.mateu.core.domain.BasicTypeChecker;
+import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.DefaultUiMapperProvider;
-import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -20,9 +21,21 @@ class GetUIUseCaseTest {
   final GetUIUseCase useCase =
       new GetUIUseCase(
           new DefaultInstanceFactoryProvider(
-              List.of(
-                  new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
-          new DefaultUiMapperProvider(List.of(new ReflectionUiMapper())));
+              new BeanProvider() {
+                @Override
+                public <T> T getBean(Class<T> clazz) {
+                  return null;
+                }
+
+                @Override
+                public <T> Collection<T> getBeans(Class<T> clazz) {
+                  return (Collection<T>)
+                      List.of(
+                          new ReflectionInstanceFactory(
+                              new BasicTypeChecker(), new FakeBeanProvider()));
+                }
+              }),
+          new DefaultUiMapperProvider(new FakeBeanProvider()));
 
   @Test
   void returnsUI() {

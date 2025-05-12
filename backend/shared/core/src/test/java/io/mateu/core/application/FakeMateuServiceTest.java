@@ -8,39 +8,29 @@ import com.example.uis.HelloWorldHandlingRoute;
 import io.mateu.core.application.createjourney.CreateJourneyUseCase;
 import io.mateu.core.application.getui.GetUIUseCase;
 import io.mateu.core.application.runaction.RunActionUseCase;
-import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.DefaultActionRunnerProvider;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.DefaultRouteMatcher;
 import io.mateu.core.domain.DefaultUiIncrementMapperProvider;
 import io.mateu.core.domain.DefaultUiMapperProvider;
 import io.mateu.core.domain.InstanceFactoryProvider;
-import io.mateu.core.domain.ReflectionUiIncrementMapper;
-import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.core.domain.UiMapperProvider;
-import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
-import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
-import io.mateu.core.domain.reflection.RunMethodActionRunner;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.JourneyCreationRqDto;
 import io.mateu.dtos.RunActionRqDto;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FakeMateuServiceTest {
 
   final InstanceFactoryProvider instanceFactoryProvider =
-      new DefaultInstanceFactoryProvider(
-          List.of(new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider())));
-  final UiMapperProvider uiMapperProvider =
-      new DefaultUiMapperProvider(List.of(new ReflectionUiMapper()));
+      new DefaultInstanceFactoryProvider(new FakeBeanProvider());
+  final UiMapperProvider uiMapperProvider = new DefaultUiMapperProvider(new FakeBeanProvider());
   final UiIncrementMapperProvider uiIncrementMapperProvider =
-      new DefaultUiIncrementMapperProvider(
-          List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper())));
+      new DefaultUiIncrementMapperProvider(new FakeBeanProvider());
 
   final FakeMateuService fakeMateuService =
       new FakeMateuService(
@@ -49,7 +39,7 @@ class FakeMateuServiceTest {
               instanceFactoryProvider, uiIncrementMapperProvider, new DefaultRouteMatcher()),
           new RunActionUseCase(
               instanceFactoryProvider,
-              new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
+              new DefaultActionRunnerProvider(new FakeBeanProvider()),
               uiIncrementMapperProvider));
 
   @Test

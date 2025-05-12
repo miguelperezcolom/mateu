@@ -9,6 +9,7 @@ import io.mateu.core.domain.InstanceFactory;
 import io.mateu.uidl.interfaces.HasInitMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
+@Singleton
 @Named
 @RequiredArgsConstructor
 public class ReflectionInstanceFactory implements InstanceFactory {

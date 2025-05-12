@@ -3,6 +3,8 @@ package io.mateu;
 import io.mateu.core.domain.BeanProvider;
 import io.micronaut.context.ApplicationContext;
 import jakarta.inject.Singleton;
+import java.util.Collection;
+import java.util.List;
 
 @Singleton
 public class MicronautBeanProvider implements BeanProvider {
@@ -19,6 +21,15 @@ public class MicronautBeanProvider implements BeanProvider {
       return applicationContext.getBean(clazz);
     } catch (Exception ignored) {
       return null;
+    }
+  }
+
+  @Override
+  public <T> Collection<T> getBeans(Class<T> clazz) {
+    try {
+      return applicationContext.getBeansOfType(clazz);
+    } catch (Exception ignored) {
+      return List.of();
     }
   }
 }

@@ -5,11 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.components.AnnotatedComponent;
 import com.example.components.UsingInterfacesComponent;
 import io.mateu.core.domain.*;
-import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
-import io.mateu.core.domain.reflection.RunMethodActionRunner;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -19,11 +18,22 @@ class RunActionUseCaseTest {
   final RunActionUseCase useCase =
       new RunActionUseCase(
           new DefaultInstanceFactoryProvider(
-              List.of(
-                  new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()))),
-          new DefaultActionRunnerProvider(List.of(new RunMethodActionRunner())),
-          new DefaultUiIncrementMapperProvider(
-              List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()))));
+              new BeanProvider() {
+                @Override
+                public <T> T getBean(Class<T> clazz) {
+                  return null;
+                }
+
+                @Override
+                public <T> Collection<T> getBeans(Class<T> clazz) {
+                  return (Collection<T>)
+                      List.of(
+                          new ReflectionInstanceFactory(
+                              new BasicTypeChecker(), new FakeBeanProvider()));
+                }
+              }),
+          new DefaultActionRunnerProvider(new FakeBeanProvider()),
+          new DefaultUiIncrementMapperProvider(new FakeBeanProvider()));
 
   @Test
   void runsMethod() {
