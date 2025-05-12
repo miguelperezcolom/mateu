@@ -1,13 +1,11 @@
 ---
 header_alt: true
-Title: Welcome to Mateu
+Title: Welcome to Mateu, the distributed backend-driven UIs library
 ---
 
-Long story short, **Mateu** allows you to create distributed backend driven user interfaces (UIs).
+Long story short, **Mateu** allows you to create distributed backend driven user interfaces (UIs). Mateu is a **java** (also c# and go in the future) library for creating awesome and reliable **responsive web applications** from our java classes at speed of light.
 
-Mateu is a **java** (also c# and go in the future) library for creating awesome and reliable **responsive web applications** from our java classes at speed of light.
-
-The main idea is to achieve it with **the fewest lines of code**. In Mateu you **only** need to know java (also c# and go in the future), so you do not need to know about html, javascript, or css to build your apps.
+The main idea is to build your UIs with **the fewest lines of code**. In Mateu you **only** need to know java (also c# and go in the future), so you do not need to know about html, javascript, or css to build your apps.
 
 Mateu's UI definition domain specific language (DSL) is built by adding some interfaces, classes and annotations to the good old java language.
 
