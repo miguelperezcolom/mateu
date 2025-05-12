@@ -7,8 +7,6 @@ weight: 2
 
 Obviously you need a valid spring boot project, with **Reactive Web** (Webflux) enabled. If you do not have it already, you should create it from IntelliJ or go to [Spring Boot Initializr](https://start.spring.io/) and create a new project with the **Reactive Web** dependency.
 
-**As per today only Spring boot 3 is supported.**
-
 ## Step 2: Add Mateu dependency
 
 In case you are using maven:
