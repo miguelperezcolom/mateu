@@ -1,46 +1,75 @@
 ---
 header_alt: true
-Title: Welcome to Mateu, the distributed backend-driven UIs library
+Title: 👋 Welcome to **Mateu** – The Distributed Backend-Driven UI Framework
 ---
 
-Long story short, **Mateu** allows you to create distributed backend driven user interfaces (UIs). Mateu is a **java** (also c# and go in the future) library for creating awesome and reliable **responsive web applications** from our java classes at speed of light.
+**Mateu** empowers backend developers to build full-featured, responsive web applications—directly from their Java code. (Support for C# and Go is on the way.)
 
-The main idea is to build your UIs with **the fewest lines of code**. In Mateu you **only** need to know java (also c# and go in the future), so you do not need to know about html, javascript, or css to build your apps.
+Forget about HTML, JavaScript, or CSS. With Mateu, you can create complex user interfaces using only Java (or other backend languages in the future), with minimal code and maximum speed.
 
-Mateu's UI definition domain specific language (DSL) is built by adding some interfaces, classes and annotations to the good old java language.
+Mateu is especially powerful for large-scale enterprise applications built by distributed teams. It’s designed to make UI development fast, reliable, and backend-friendly.
 
-### Goal
+---
 
-Mateu is just another way of building UIs, mainly targeted to backend teams. It's specially well suited for building huge enterprise applications where the UI is distributed among several teams.
+## 🎯 Why Mateu?
 
-The truth is that with Mateu building a cool UI is a no-brainer for any java (c# and go in future) developer.
+Mateu introduces a simple yet powerful UI Domain-Specific Language (DSL) through familiar Java constructs—interfaces, annotations, and classes. The goal: **build your UI with the fewest lines of code possible**, and let backend developers own the entire application lifecycle.
 
-### Some advantages
+---
 
-I'd say the main advantage of using Mateu is that you empower the backend teams to easily build high quality UIs without frontend dedicated developers. 
-Besides that, here are some other advantages of using Mateu for building your UI:
+## 💡 Key Benefits
 
-- Fast
-- Frontend agnostic
-- Allows you to truly focus on your business logic
-- Highly reusable high level components
-- All of the advantages of using java (statically typed language, tooling, ...) when developing your UI
-- Distributed nature (micro frontend and micro service friendly)
-- Embeddable everywhere (it's just web components)
+- 🚀 **Lightning-fast development**
+- 🧩 **Frontend-agnostic architecture** (supports multiple frontends)
+- 🎯 **Focus on business logic**, not UI plumbing
+- 🔁 **Reusable, high-level UI components**
+- 🛠️ **All the benefits of Java** — static typing, rich tooling, mature ecosystem
+- 🌐 **Built for distributed systems** — stateless, microservice-friendly
+- 🔌 **Embeddable anywhere** — UI delivered as web components
 
-### Why not just use Vaadin
+---
 
-While Vaadin is an excellent tool that I truly enjoy using (in fact, I'm currently leveraging Vaadin's design system for Mateu's frontend), I believe there are certain aspects that make Mateu stand out. From my perspective::
+## 🤔 Why Not Just Use Vaadin?
 
-- Mateu is a higher level approach. With Vaadin you build UIs, while Mateu is focused on building apps.
-- Mateu's server side is stateless, which makes it great for microservices.
-- Microfrontends are first class citizens in Mateu, and they are really easy
-- Mateu is designed to support many languages and many frontends. Frontend and backend are clearly decoupled so we can have several frontend implementations (web, native app, desktop, web using different design systems, ...) and several backend implementations (java, c#, go, ...) at some point in future (I hope, if I have time ;)).
+Vaadin is a fantastic tool (we even use its design system!), but Mateu offers a different perspective:
 
-### Actual status
+| Feature                     | Vaadin                           | Mateu                                      |
+|----------------------------|----------------------------------|--------------------------------------------|
+| **Focus**                  | UI components                    | Full application structure                 |
+| **Architecture**           | Stateful                         | Stateless (ideal for microservices)        |
+| **Microfrontend support**  | Indirect                         | First-class citizen                        |
+| **Multi-language roadmap** | Java only                        | Java, C#, Go (planned)                     |
+| **Frontend flexibility**   | Coupled                          | Fully decoupled and swappable              |
 
-Mateu is currently used in production for several projects, and as time goes by it becomes more useful and proofs to be a good choice for developing enterprise applications. Even for developing all of your applications, when a UI is needed.
+---
 
-Since May 2024 I'm working on the **version 3** which should bring many improvements (including a general clean up, more UX features and components, plenty of extension points, documentation, refactored user manual, an alternate look and feel using a different design system, ...).
+## 📦 Production-Proven
 
-I hope you like it ;)
+Mateu is already in production across multiple enterprise projects, powering complex UI systems with minimal development effort.
+
+**Case Study:**  
+At **Wefox**, Mateu was extended to seamlessly integrate with their corporate design system—demonstrating its flexibility and adaptability in real-world environments.
+
+---
+
+## 🛠️ Current Status: Version 3 in Development
+
+Since May 2024, work has begun on **Mateu v3**, which includes:
+
+- A cleaner, modular architecture
+- Improved UX components
+- More extension points
+- Updated documentation and user manual
+- Support for alternate design systems
+
+---
+
+## 🚀 Ready to Build Smarter UIs?
+
+👉 [**Try the live demo**](https://demo.mateu.io)  
+👉 [**Check out the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
+👉 [**Explore the documentation**](https://mateu.io/docs)
+
+---
+
+_Made with ❤️ by developers for developers._
