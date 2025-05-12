@@ -1,5 +1,7 @@
 package io.mateu.core.domain;
 
+import io.quarkus.arc.All;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import java.util.List;
@@ -7,8 +9,9 @@ import java.util.List;
 @Named
 public class DefaultUiIncrementMapperProvider implements UiIncrementMapperProvider {
 
-  private final List<UiIncrementMapper> mappers;
+  @All private final List<UiIncrementMapper> mappers;
 
+  @Inject
   public DefaultUiIncrementMapperProvider(List<UiIncrementMapper> mappers) {
     this.mappers = mappers;
   }

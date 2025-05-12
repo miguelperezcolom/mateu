@@ -17,5 +17,4 @@ public class GetIndexITFoundation {
         .statusCode(200)
         .body("html.head.title", equalTo("Travel app"));
   }
-
 }

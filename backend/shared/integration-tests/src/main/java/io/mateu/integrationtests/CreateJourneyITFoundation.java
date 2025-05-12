@@ -1,12 +1,11 @@
 package io.mateu.integrationtests;
 
-import io.restassured.http.ContentType;
-
-import java.util.UUID;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+
+import io.restassured.http.ContentType;
+import java.util.UUID;
 
 public class CreateJourneyITFoundation {
 
@@ -37,5 +36,4 @@ public class CreateJourneyITFoundation {
         .body("uiFragments", notNullValue())
         .body("appData", nullValue());
   }
-
 }

@@ -1,5 +1,6 @@
 package io.mateu.core.domain.reflection;
 
+import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.core.domain.BasicTypeChecker;
@@ -40,9 +41,17 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   public Mono<? extends Object> createInstance(
       String className, Map<String, Object> data, HttpRequest httpRequest) {
 
-    return Mono.just(Class.forName(className))
+    return Mono.just(loadClass(className))
         .map(uiClass -> newInstance(uiClass, data))
         .map(uiInstance -> initIfNeeded(uiInstance, httpRequest));
+  }
+
+  private Class<?> loadClass(String className) throws ClassNotFoundException {
+    try {
+      return Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      return currentThread().getContextClassLoader().loadClass(className);
+    }
   }
 
   private Object initIfNeeded(Object uiInstance, HttpRequest httpRequest) {

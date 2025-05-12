@@ -2,6 +2,8 @@ package io.mateu.core.domain;
 
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.quarkus.arc.All;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import java.util.List;
@@ -12,8 +14,9 @@ import reactor.core.publisher.Mono;
 @Named
 public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
-  private final List<ActionRunner> runners;
+  @All private final List<ActionRunner> runners;
 
+  @Inject
   public DefaultActionRunnerProvider(List<ActionRunner> runners) {
     this.runners = runners;
   }

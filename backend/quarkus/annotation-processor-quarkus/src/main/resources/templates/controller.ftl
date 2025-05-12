@@ -32,33 +32,33 @@ public class ${simpleClassName}MateuController {
 
     @Path("v3/ui")
     @POST
-    public Mono<UIDto> getUI(
+    public UIDto getUI(
         GetUIRqDto rq,
         HttpServerRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
-        new QuarkusHttpRequest(serverHttpRequest));
+        new QuarkusHttpRequest(serverHttpRequest)).block();
     }
 
     @Path("v3/journeys/{journeyTypeId}/{journeyId}")
     @POST
-    public Mono<UIIncrementDto> createJourney(
+    public UIIncrementDto createJourney(
         String journeyTypeId,
         String journeyId,
         JourneyCreationRqDto rq,
         HttpServerRequest serverHttpRequest) throws Throwable {
       return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq,
-        new QuarkusHttpRequest(serverHttpRequest));
+        new QuarkusHttpRequest(serverHttpRequest)).block();
     }
 
     @Path("v3/components/{componentId}/{actionId}")
     @POST
-    public Mono<UIIncrementDto> runStep(
+    public UIIncrementDto runStep(
         String componentId,
         String actionId,
         RunActionRqDto rq,
         HttpServerRequest serverHttpRequest) throws Throwable {
       return service.runAction(componentId, actionId, rq, baseUrl,
-        new QuarkusHttpRequest(serverHttpRequest));
+        new QuarkusHttpRequest(serverHttpRequest)).block();
     }
 
 }

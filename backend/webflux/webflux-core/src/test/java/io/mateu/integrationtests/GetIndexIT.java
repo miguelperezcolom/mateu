@@ -1,6 +1,5 @@
 package io.mateu.integrationtests;
 
-import static io.restassured.RestAssured.given;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.example.FakeApplication;
