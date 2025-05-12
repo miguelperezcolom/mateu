@@ -1,6 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, PropertyValues } from "lit";
-import UI from "../../../shared/apiClients/dtos/UI"
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
@@ -8,10 +7,8 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { Subject, Subscription } from "rxjs";
-import { State } from "../../domain/state";
-import { service } from "../../application/service";
-import { mateuApiClient } from "../http/AxiosMateuApiClient";
+import { Subscription } from "rxjs";
+import { State, upstream } from "../../domain/state";
 import './mateu-component'
 
 
@@ -28,17 +25,16 @@ export class MateuUx extends LitElement {
 
     // state
     @state()
-    ui: UI | undefined = undefined;
+    titleFromUI: string | undefined = undefined;
 
     @state()
     configParsed: Object = {};
 
-    private upstream = new Subject<State>()
     private upstreamSubscription: Subscription | undefined;
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = this.upstream.subscribe((state: State) =>
+        this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
     }
@@ -51,41 +47,19 @@ export class MateuUx extends LitElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
-        if (_changedProperties.has('baseUrl')
-                || _changedProperties.has('config')
-        ) {
-
-            if (this.config) {
-                try {
-                    this.configParsed = JSON.parse(this.config)
-                } catch (exception) {
-                    console.log('error when trying to parse config', this.config, exception)
-                    this.configParsed = {
-                        value: this.config
-                    }
-                }
-            } else {
-                this.configParsed = {}
-            }
-
-            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, this.upstream).then();
-
-        }
-
     }
 
     // write state to reactive properties
     stampState(state: State) {
-        this.ui = state.ui
-        if (state.ui?.title) {
-            document.title = state.ui.title
-        }
+        console.log('stamp state in ux')
+        this.titleFromUI = state.ui?.title
     }
 
 
     render() {
+        console.log('render ux', this.title)
        return html`
-           <h1>${this.ui?.title}</h1>
+           <h1>${this.titleFromUI}</h1>
        `
     }
 

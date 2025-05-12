@@ -8,8 +8,8 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { Subject, Subscription } from "rxjs";
-import { State } from "../../domain/state";
+import { Subscription } from "rxjs";
+import { State, upstream } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
 import './mateu-ux'
@@ -34,12 +34,11 @@ export class MateuUi extends LitElement {
     @state()
     configParsed: Object = {};
 
-    private upstream = new Subject<State>()
-    private upstreamSubscription: Subscription | undefined;
+    private upstreamSubscription: Subscription | undefined
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = this.upstream.subscribe((state: State) =>
+        this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
 
@@ -76,7 +75,7 @@ export class MateuUi extends LitElement {
                 this.configParsed = {}
             }
 
-            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, this.upstream).then();
+            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, upstream).then();
 
         }
 
@@ -109,18 +108,32 @@ export class MateuUi extends LitElement {
         return journeyTypeId;
     }
 
+    state: State | undefined
+
     // write state to reactive properties
     stampState(state: State) {
+        console.log('stamp state in ui')
         this.ui = state.ui
+        this.state = state
         if (state.ui?.title) {
             document.title = state.ui.title
         }
     }
 
+    signalUi = () => {
+        upstream.next(this.state!)
+    }
+
+    updateUi = () => {
+        this.state!.ui!.title = this.state!.ui!.title + 'x'
+        upstream.next(this.state!)
+    }
 
     render() {
        return html`
            <mateu-ux baseurl="${this.baseUrl}" journeytypeid="_"></mateu-ux>
+           <vaadin-button @click="${this.signalUi}">Signal</vaadin-button>
+           <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
        `
     }
 

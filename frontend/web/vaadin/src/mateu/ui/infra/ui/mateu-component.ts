@@ -9,7 +9,7 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subject, Subscription } from "rxjs";
-import { State } from "../../domain/state";
+import { State, upstream } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
 
@@ -32,12 +32,11 @@ export class MateuComponent extends LitElement {
     @state()
     configParsed: Object = {};
 
-    private upstream = new Subject<State>()
     private upstreamSubscription: Subscription | undefined;
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = this.upstream.subscribe((state: State) =>
+        this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
     }
@@ -67,7 +66,7 @@ export class MateuComponent extends LitElement {
                 this.configParsed = {}
             }
 
-            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, this.upstream).then();
+            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, upstream).then();
 
         }
 
