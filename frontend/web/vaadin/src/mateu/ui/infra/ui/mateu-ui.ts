@@ -31,9 +31,6 @@ export class MateuUi extends LitElement {
     @state()
     ui: UI | undefined = undefined;
 
-    @state()
-    configParsed: Object = {};
-
     private upstreamSubscription: Subscription | undefined
 
     connectedCallback() {
@@ -62,20 +59,21 @@ export class MateuUi extends LitElement {
             || _changedProperties.has('config')
         ) {
 
+            let configParsed = {}
             if (this.config) {
                 try {
-                    this.configParsed = JSON.parse(this.config)
+                    configParsed = JSON.parse(this.config)
                 } catch (exception) {
                     console.log('error when trying to parse config', this.config, exception)
-                    this.configParsed = {
+                    configParsed = {
                         value: this.config
                     }
                 }
             } else {
-                this.configParsed = {}
+                configParsed = {}
             }
 
-            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, upstream).then();
+            service.loadUi(mateuApiClient, this.baseUrl, configParsed, this, upstream).then();
 
         }
 

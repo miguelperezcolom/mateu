@@ -11,7 +11,7 @@ export class Service {
             initiator: initiator,
             contextData: config
         })
-        upstream.next({...state, ...changes})
+        upstream.next({...state, ...changes, ...config})
     }
 }
 
