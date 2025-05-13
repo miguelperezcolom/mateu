@@ -1,6 +1,6 @@
 ---
 header_alt: true
-Title: 👋 Welcome to **Mateu** – The Distributed Backend-Driven UI Framework
+Title: 👋 Welcome to **Mateu** – The Backend-Driven Distributed UI Framework
 <meta name="description" content="Mateu: Create backend-driven UIs with Java, Go, or C#.">
   <meta property="og:title" content="Mateu – Backend-Driven UI Framework">
   <meta property="og:description" content="Build full UIs directly from your backend code, with zero frontend work.">
