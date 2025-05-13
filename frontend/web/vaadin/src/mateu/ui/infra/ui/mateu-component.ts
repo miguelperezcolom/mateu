@@ -1,5 +1,5 @@
-import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
+import { customElement } from "lit/decorators.js";
+import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
@@ -7,40 +7,23 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { Subscription } from "rxjs";
-import { State, store, upstream } from "@domain/state";
+import { store, upstream } from "@domain/state";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import './mateu-form'
 import './mateu-field'
+import ComponentElement from "@infra/ui/ComponentElement";
 
 @customElement('mateu-component')
-export class MateuComponent extends LitElement {
+export class MateuComponent extends ComponentElement {
 
-    // public properties
-    @property()
-    id = ''
 
-    @state()
-    metadata: ComponentMetadata | undefined = undefined
-
-    private upstreamSubscription: Subscription | undefined;
-
-    connectedCallback() {
-        super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((state: State) =>
-            this.stampState(state)
-        )
-        console.log('connected component', this.id)
-    }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.upstreamSubscription?.unsubscribe();
-        // todo: remove component from state, perhaps with a timer
         setTimeout(() => {
             console.log('garbage collecting component', this.id)
+            // todo: remove component from state
             upstream.next({
                 ...store.state
             })
@@ -48,28 +31,7 @@ export class MateuComponent extends LitElement {
         console.log('disconnected component', this.id)
     }
 
-    protected update(changedProperties: PropertyValues) {
-        console.log('updated', changedProperties)
-        if (changedProperties.has('id')) {
-            this.stampState({...store.state})
-        }
-        if (changedProperties.has('metadata')) {
-            super.update(changedProperties);
-        }
-    }
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-
-        console.log('updated', _changedProperties)
-    }
-
-    // write state to reactive properties
-    stampState(state: State) {
-        if (JSON.stringify(this.metadata) != JSON.stringify(state.components[this.id].metadata)) {
-            this.metadata = {...state.components[this.id].metadata}
-        }
-    }
 
     renderElement = (element: Element): TemplateResult => {
         console.log('element', element)

@@ -15,10 +15,11 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
+import ConnectedElement from "@infra/ui/ConnectedElement";
 
 
 @customElement('mateu-ux')
-export class MateuUx extends LitElement {
+export class MateuUx extends ConnectedElement {
 
     // public properties
     @property()
@@ -37,24 +38,9 @@ export class MateuUx extends LitElement {
     @state()
     root: Component | undefined = undefined;
 
-    private upstreamSubscription: Subscription | undefined;
-
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((state: State) =>
-            this.stampState(state)
-        )
         this.overridesParsed = parseOverrides(this.overrides);
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.upstreamSubscription?.unsubscribe();
-    }
-
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-
     }
 
     // write state to reactive properties

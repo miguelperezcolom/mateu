@@ -1,17 +1,17 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, PropertyValues } from "lit";
+import { css, html, PropertyValues } from "lit";
 import UI from "@mateu/shared/apiClients/dtos/UI"
 import '@vaadin/vertical-layout'
-import { Subscription } from "rxjs";
 import { State, upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
 import { parseOverrides } from "@infra/ui/common";
+import ConnectedElement from "@infra/ui/ConnectedElement";
 
 
 @customElement('mateu-ui')
-export class MateuUi extends LitElement {
+export class MateuUi extends ConnectedElement {
 
     // public properties
     @property()
@@ -26,13 +26,8 @@ export class MateuUi extends LitElement {
     @state()
     ui: UI | undefined = undefined;
 
-    private upstreamSubscription: Subscription | undefined
-
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((state: State) =>
-            this.stampState(state)
-        )
 
         window.onpopstate = (e) => {
             const w = e.target as Window
@@ -40,11 +35,6 @@ export class MateuUi extends LitElement {
         };
 
         this.loadUrl(window)
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.upstreamSubscription?.unsubscribe();
     }
 
     protected updated(_changedProperties: PropertyValues) {
