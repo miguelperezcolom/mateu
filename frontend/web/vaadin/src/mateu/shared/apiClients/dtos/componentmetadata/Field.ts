@@ -1,23 +1,24 @@
 import Validation from "./Validation";
 import Pair from "./Pair";
 import Badge from "./Badge";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
-export default interface Field {
+export default interface Field extends ComponentMetadata {
 
-    id: string
-    type: string
+    fieldId: string
+    dataType: string
     stereotype: string
-    observed: boolean
-    wantsFocus: boolean
-    caption: string
-    placeholder: string
-    cssClasses: string
-    description: string
-    badges: Badge[]
-    validations: Validation[]
-    attributes: Pair[]
-    colspan: number
-    rightAligned: boolean
-    bold: boolean
+    observed: boolean | undefined
+    wantsFocus: boolean | undefined
+    label: string | undefined
+    placeholder: string | undefined
+    cssClasses: string | undefined
+    description: string | undefined
+    badges: Badge[] | undefined
+    validations: Validation[] | undefined
+    attributes: Pair[] | undefined
+    colspan: number | undefined
+    rightAligned: boolean | undefined
+    bold: boolean | undefined
 
 }

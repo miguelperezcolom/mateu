@@ -8,7 +8,7 @@ export default interface Action {
 
     id: string
     icon: string
-    caption: string
+    label: string
     type: ActionType
     stereotype: ActionStereotype
     variants: string[]
@@ -25,5 +25,7 @@ export default interface Action {
     runOnEnter: boolean
     position: ActionPosition
     timeoutMillis: number
+    onSuccess: string[]
+    onError: string[]
 
 }

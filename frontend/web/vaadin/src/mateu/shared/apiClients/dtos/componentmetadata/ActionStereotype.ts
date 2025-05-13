@@ -1,5 +1,5 @@
 export enum ActionStereotype {
 
-    Main = "Main", Regular = "Regular", Button = "Button"
+    Main = "Main", Regular = "Regular", Button = "Button", Hidden = "Hidden"
 
 }

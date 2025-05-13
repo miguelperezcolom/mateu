@@ -1,6 +1,6 @@
 import {BadgeTheme} from "./BadgeTheme";
 import {BadgeStyle} from "./BadgeStyle";
-import {BadgeIconPosition} from "./BadgeIconPosition";
+import { BadgeIconPosition } from "./BadgeIconPosition";
 
 export default interface Badge {
 

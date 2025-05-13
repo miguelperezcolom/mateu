@@ -12,5 +12,10 @@ export enum ComponentMetadataType {
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
     TabLayout = "TabLayout",
+    FormLayout = "FormLayout",
+    Section = "Section",
+    FieldGroup = "FieldGroup",
+    FieldLine = "FieldLine",
+    Field = "Field",
 
 }

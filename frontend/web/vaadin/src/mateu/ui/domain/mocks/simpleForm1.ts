@@ -1,54 +1,60 @@
 import Component from "../../../shared/apiClients/dtos/Component";
-import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
+import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
+import { ActionType } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionType";
+import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionStereotype";
 
 
 export const mockedSimpleForm1: Component = {
     id: '_root',
     serverSideType: '',
     metadata: {
-        type: ComponentMetadataType.HorizontalLayout,
-        name: 'div'
-    } as Element,
+        type: ComponentMetadataType.Form,
+        title: 'My form',
+        subtitle: 'This is the first form, bla, bla, bla, bla, bla...',
+        actions: [
+            {
+                id: 'submit',
+                type: ActionType.Secondary,
+                stereotype: ActionStereotype.Regular,
+                label: 'Enviar',
+            }
+        ]
+    } as Form,
     children: [
         {
             id: '1',
             serverSideType: '',
             metadata: {
-                type: ComponentMetadataType.Element,
-                name: 'div'
-            } as Element,
+                type: ComponentMetadataType.FormLayout,
+            },
             children: [
                 {
                     id: '2',
                     serverSideType: '',
                     metadata: {
-                        type: ComponentMetadataType.Element,
-                        name: 'div'
-                    } as Element,
+                        fieldId: 'nombre',
+                        label: 'Nombre',
+                        type: ComponentMetadataType.Field,
+                        dataType: 'string',
+                        stereotype: 'text'
+                    } as Field,
+                    children: []
+                },
+                {
+                    id: '3',
+                    serverSideType: '',
+                    metadata: {
+                        fieldId: 'edad',
+                        label: 'Edad',
+                        type: ComponentMetadataType.Field,
+                        dataType: 'integer',
+                        stereotype: 'text'
+                    } as Field,
                     children: []
                 }
             ]
         },
-        {
-            id: '3',
-            serverSideType: '',
-            metadata: {
-                type: ComponentMetadataType.Element,
-                name: 'div',
-            } as Element,
-            children: [
-                {
-                    id: '6',
-                    serverSideType: '',
-                    metadata: {
-                        type: ComponentMetadataType.Element,
-                        name: 'div',
-                        content: 'Hola 6!'
-                    } as Element,
-                    children: []
-                }
-            ]
-        }
     ]
 }

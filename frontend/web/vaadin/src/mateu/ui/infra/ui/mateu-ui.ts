@@ -3,17 +3,11 @@ import { css, html, LitElement, PropertyValues } from "lit";
 import UI from "@mateu/shared/apiClients/dtos/UI"
 import '@vaadin/vertical-layout'
 import { Subscription } from "rxjs";
-import { State, store, upstream } from "@domain/state";
+import { State, upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
-import { mockedSimpleRoot1 } from "@domain/mocks/simpleRoot1";
-import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
-import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
-import { nanoid } from "nanoid";
-import { mockedSimpleRoot2 } from "@domain/mocks/simpleRoot2";
-import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
 
 
 @customElement('mateu-ui')
@@ -99,51 +93,10 @@ export class MateuUi extends LitElement {
         }
     }
 
-    plainComponents = (state: State, component: Component) => {
-        state.components[component.id] = component
-        component.children?.map(child => this.plainComponents(state, child))
-    }
-
-    signalUi = () => {
-        this.loadComponent(mockedSimpleRoot1)
-    }
-
-    updateUi = () => {
-        const newContent =  'Hola 6 -' + nanoid();
-        const component = { ...mockedSimpleRoot2 };
-        // @ts-ignore
-        (component.children[1].children[0].metadata as Element).content = newContent
-        this.loadComponent(mockedSimpleRoot2)
-    }
-
-    loadForm = () => {
-        this.loadComponent(mockedSimpleForm1)
-    }
-
-    loadComponent = (component: Component) => {
-        const newState = {
-            ...store.state
-        }
-        if (!newState.ui) {
-            newState.ui = {
-                title: 'Hola',
-                favIcon: 'favicon',
-                root: {...component}
-            }
-        } else {
-            newState.ui!.root = {...component}
-        }
-        this.plainComponents(newState, {...component});
-        store.state = newState
-        upstream.next(newState)
-
-    }
 
     render() {
        return html`
            <mateu-ux baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
-           <vaadin-button @click="${this.signalUi}">Signal</vaadin-button>
-           <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
        `
     }
 
