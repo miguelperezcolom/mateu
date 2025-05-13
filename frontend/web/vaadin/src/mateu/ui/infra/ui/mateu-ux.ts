@@ -8,9 +8,9 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
-import { State, upstream } from "../../domain/state";
+import { State, upstream } from "@domain/state";
 import './mateu-component'
-import Component from "../../../shared/apiClients/dtos/Component";
+import Component from "@mateu/shared/apiClients/dtos/Component";
 
 
 @customElement('mateu-ux')
@@ -74,7 +74,6 @@ ${component.children?.map(child => this.renderComponent(child))}
            ${this.root?html`<mateu-component id="${this.root.id}">
 ${this.root.children?.map(component => this.renderComponent(component))}
            </mateu-component>`:nothing}
-           
        `
     }
 

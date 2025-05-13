@@ -1,20 +1,14 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, PropertyValues } from "lit";
-import UI from "../../../shared/apiClients/dtos/UI"
-import '@vaadin/horizontal-layout'
+import UI from "@mateu/shared/apiClients/dtos/UI"
 import '@vaadin/vertical-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
-import { State, store, upstream } from "../../domain/state";
-import { service } from "../../application/service";
-import { mateuApiClient } from "../http/AxiosMateuApiClient";
+import { State, store, upstream } from "@domain/state";
+import { service } from "@application/service";
+import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
-import { mockedNewRoot, mockedRoot } from "../../domain/mocks";
-import Component from "../../../shared/apiClients/dtos/Component";
+import { mockedNewRoot, mockedRoot } from "@domain/mocks";
+import Component from "@mateu/shared/apiClients/dtos/Component";
 
 
 @customElement('mateu-ui')

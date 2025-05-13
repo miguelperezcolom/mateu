@@ -8,7 +8,7 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
-import { State, store, upstream } from "../../domain/state";
+import { State, store, upstream } from "@domain/state";
 
 
 @customElement('mateu-component')
