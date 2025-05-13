@@ -9,10 +9,12 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
-import { State, upstream } from "../../domain/state";
+import { State, store, upstream } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
 import './mateu-ux'
+import { mockedRoot } from "../../domain/mocks";
+import Component from "../../../shared/apiClients/dtos/Component";
 
 
 @customElement('mateu-ui')
@@ -116,6 +118,13 @@ export class MateuUi extends LitElement {
         if (state.ui?.title) {
             document.title = state.ui.title
         }
+        this.ui!.root = mockedRoot
+        this.plainComponents(mockedRoot)
+    }
+
+    plainComponents = (component: Component) => {
+        store.state.components[component.id] = component
+        component.children?.map(child => this.plainComponents(child))
     }
 
     signalUi = () => {

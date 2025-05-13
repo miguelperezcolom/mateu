@@ -10,5 +10,4 @@ package io.mateu.dtos;
  * @param footer Footer content
  */
 public record ViewDto(
-    ViewPartDto header, ViewPartDto left, ViewPartDto main, ViewPartDto right, ViewPartDto footer)
-    implements ContentDto {}
+    ViewPartDto header, ViewPartDto left, ViewPartDto main, ViewPartDto right, ViewPartDto footer) {}

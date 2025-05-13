@@ -1,6 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, PropertyValues } from "lit";
-import UI from "../../../shared/apiClients/dtos/UI"
+import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
@@ -8,10 +7,8 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { Subject, Subscription } from "rxjs";
-import { State, upstream } from "../../domain/state";
-import { service } from "../../application/service";
-import { mateuApiClient } from "../http/AxiosMateuApiClient";
+import { Subscription } from "rxjs";
+import { State, store, upstream } from "../../domain/state";
 
 
 @customElement('mateu-component')
@@ -19,18 +16,11 @@ export class MateuComponent extends LitElement {
 
     // public properties
     @property()
-    baseUrl = ''
-    @property()
-    config: string | undefined = undefined;
-    @property()
-    journeyTypeId: string | undefined = undefined;
-
-    // state
-    @state()
-    ui: UI | undefined = undefined;
+    id = ''
 
     @state()
-    configParsed: Object = {};
+    type: string = ''
+
 
     private upstreamSubscription: Subscription | undefined;
 
@@ -39,51 +29,44 @@ export class MateuComponent extends LitElement {
         this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
+        this.type = store.state.components[this.id]?.type
+        console.log(store.state)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.upstreamSubscription?.unsubscribe();
+        // todo: remove component from state, perhaps with a timer
+        setTimeout(() => {
+            upstream.next({
+                ...store.state
+            })
+        }, 1000)
     }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
-        if (_changedProperties.has('baseUrl')
-                || _changedProperties.has('config')
-        ) {
-
-            if (this.config) {
-                try {
-                    this.configParsed = JSON.parse(this.config)
-                } catch (exception) {
-                    console.log('error when trying to parse config', this.config, exception)
-                    this.configParsed = {
-                        value: this.config
-                    }
-                }
-            } else {
-                this.configParsed = {}
-            }
-
-            service.loadUi(mateuApiClient, this.baseUrl, this.configParsed, this, upstream).then();
-
-        }
-
     }
 
     // write state to reactive properties
     stampState(state: State) {
-        this.ui = state.ui
-        if (state.ui?.title) {
-            document.title = state.ui.title
-        }
+        this.type = state.components[this.id].type
     }
 
 
     render() {
+        console.log('render component', this.id)
        return html`
-           <h1>${this.ui?.title}</h1>
+           <h2>${this.id}</h2>
+           ${this.type == 'hl'?html`<vaadin-horizontal-layout>
+        <slot></slot>        
+</vaadin-horizontal-layout>`:nothing}
+           ${this.type == 'div'?html`<div style="border: 1px lightgrey solid;">
+        <slot></slot>        
+</div>`:nothing}
+           ${this.type == 'text'?html`Hola`:nothing}
+           
        `
     }
 

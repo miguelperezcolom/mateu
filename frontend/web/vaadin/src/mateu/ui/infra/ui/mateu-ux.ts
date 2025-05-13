@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, PropertyValues } from "lit";
+import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
@@ -10,6 +10,7 @@ import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
 import { State, upstream } from "../../domain/state";
 import './mateu-component'
+import Component from "../../../shared/apiClients/dtos/Component";
 
 
 @customElement('mateu-ux')
@@ -29,6 +30,9 @@ export class MateuUx extends LitElement {
 
     @state()
     configParsed: Object = {};
+
+    @state()
+    root: Component | undefined = undefined;
 
     private upstreamSubscription: Subscription | undefined;
 
@@ -53,13 +57,23 @@ export class MateuUx extends LitElement {
     stampState(state: State) {
         console.log('stamp state in ux')
         this.titleFromUI = state.ui?.title
+        this.root = state.ui?.root
     }
 
+    renderComponent = (component: Component): TemplateResult => {
+        return html`<mateu-component id="${component.id}">
+${component.children?.map(child => this.renderComponent(child))}
+           </mateu-component>`
+    }
 
     render() {
-        console.log('render ux', this.title)
+        console.log('render ux', this.root)
        return html`
            <h1>${this.titleFromUI}</h1>
+           ${this.root?html`<mateu-component id="${this.root.id}">
+${this.root.children?.map(component => this.renderComponent(component))}
+           </mateu-component>`:nothing}
+           
        `
     }
 

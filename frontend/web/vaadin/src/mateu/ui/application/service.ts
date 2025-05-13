@@ -1,5 +1,5 @@
 import {loadUiCommandHandler} from "../domain/commands/loadUi/LoadUiCommandHandler";
-import { State, state } from "../domain/state";
+import { State, store } from "../domain/state";
 import {AxiosMateuApiClient} from "../infra/http/AxiosMateuApiClient";
 import { Subject } from "rxjs";
 
@@ -11,7 +11,7 @@ export class Service {
             initiator: initiator,
             contextData: config
         })
-        upstream.next({...state, ...changes, ...config})
+        upstream.next({...store.state, ...changes, ...config})
     }
 }
 
