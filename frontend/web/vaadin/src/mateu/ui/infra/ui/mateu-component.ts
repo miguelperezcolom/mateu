@@ -9,9 +9,9 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
 import { State, store, upstream } from "@domain/state";
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
 
 @customElement('mateu-component')
@@ -22,8 +22,7 @@ export class MateuComponent extends LitElement {
     id = ''
 
     @state()
-    metadata: ComponentMetadata = {} as ComponentMetadata
-
+    metadata: ComponentMetadata | undefined = undefined
 
     private upstreamSubscription: Subscription | undefined;
 
@@ -32,7 +31,6 @@ export class MateuComponent extends LitElement {
         this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
-        this.metadata = store.state.components[this.id].metadata
         console.log('connected component', this.id)
     }
 
@@ -49,17 +47,31 @@ export class MateuComponent extends LitElement {
         console.log('disconnected component', this.id)
     }
 
+    protected update(changedProperties: PropertyValues) {
+        console.log('updated', changedProperties)
+        if (changedProperties.has('id')) {
+            this.stampState({...store.state})
+        }
+        if (changedProperties.has('metadata')) {
+            super.update(changedProperties);
+        }
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
+        console.log('updated', _changedProperties)
     }
 
     // write state to reactive properties
     stampState(state: State) {
-        this.metadata = state.components[this.id].metadata
+        if (JSON.stringify(this.metadata) != JSON.stringify(state.components[this.id].metadata)) {
+            this.metadata = {...state.components[this.id].metadata}
+        }
     }
 
     renderElement = (element: Element): TemplateResult => {
+        console.log('element', element)
         if (element.name == 'div') {
             return html`<div>
                 ${element.content??nothing}
@@ -71,16 +83,17 @@ export class MateuComponent extends LitElement {
 
     render() {
         console.log('render component', this.id)
-       return html`
+        const metadata = this.metadata!
+        return html`
            <h2>${this.id}</h2>
 
-           ${this.metadata.type == ComponentMetadataType.HorizontalLayout
+           ${metadata.type == ComponentMetadataType.HorizontalLayout
                    ?html`<vaadin-horizontal-layout>
         <slot></slot>        
 </vaadin-horizontal-layout>`:nothing}
 
-           ${this.metadata.type == ComponentMetadataType.Element
-                   ?this.renderElement(this.metadata as Element):nothing}
+           ${metadata.type == ComponentMetadataType.Element
+                   ?this.renderElement(metadata as Element):nothing}
            
        `
     }

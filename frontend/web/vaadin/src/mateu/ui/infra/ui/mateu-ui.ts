@@ -10,6 +10,8 @@ import './mateu-ux'
 import { mockedNewRoot, mockedRoot } from "@domain/mocks";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
+import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
+import { nanoid } from "nanoid";
 
 
 @customElement('mateu-ui')
@@ -95,22 +97,30 @@ export class MateuUi extends LitElement {
         }
     }
 
-    plainComponents = (component: Component) => {
-        store.state.components[component.id] = component
-        component.children?.map(child => this.plainComponents(child))
+    plainComponents = (state: State, component: Component) => {
+        state.components[component.id] = component
+        component.children?.map(child => this.plainComponents(state, child))
     }
 
     signalUi = () => {
-        store.state.ui!.root = mockedRoot
-        this.plainComponents(mockedRoot)
-        upstream.next(store.state)
+        const newState = {
+            ...store.state
+        }
+        newState.ui!.root = mockedRoot
+        this.plainComponents(newState, mockedRoot)
+        upstream.next(newState)
     }
 
     updateUi = () => {
-        store.state!.ui!.title = store.state!.ui!.title + 'x'
-        store.state.ui!.root = mockedNewRoot
-        this.plainComponents(mockedNewRoot)
-        upstream.next(store.state)
+        const newState = {
+            ...store.state
+        }
+        newState.ui!.root = {...mockedNewRoot}
+        this.plainComponents(newState, {...mockedNewRoot});
+        const newContent =  'Hola 6 -' + nanoid();
+        (newState.components['6'].metadata as Element).content = newContent
+        store.state = newState
+        upstream.next(newState)
     }
 
     render() {
