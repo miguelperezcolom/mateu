@@ -1,5 +1,6 @@
 export enum ComponentMetadataType {
 
+    Element = "Element",
     MicroFrontend = "MicroFrontend",
     Form = "Form",
     Crud = "Crud",
@@ -11,6 +12,5 @@ export enum ComponentMetadataType {
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
     TabLayout = "TabLayout",
-    Element = "Element",
 
 }

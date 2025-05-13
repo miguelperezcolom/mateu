@@ -4,8 +4,7 @@ export default interface Component {
 
     metadata: ComponentMetadata
     id: string
-    type: string
-    serverSideType: string
+    serverSideType: string | undefined
     children: Component[] | undefined
 
 }

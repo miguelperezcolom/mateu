@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, nothing, PropertyValues } from "lit";
+import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/app-layout'
@@ -9,6 +9,9 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import { Subscription } from "rxjs";
 import { State, store, upstream } from "@domain/state";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 
 
 @customElement('mateu-component')
@@ -19,7 +22,7 @@ export class MateuComponent extends LitElement {
     id = ''
 
     @state()
-    type: string = ''
+    metadata: ComponentMetadata = {} as ComponentMetadata
 
 
     private upstreamSubscription: Subscription | undefined;
@@ -29,7 +32,8 @@ export class MateuComponent extends LitElement {
         this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
-        this.type = store.state.components[this.id].type
+        this.metadata = store.state.components[this.id].metadata
+        console.log('connected component', this.id)
     }
 
     disconnectedCallback() {
@@ -42,6 +46,7 @@ export class MateuComponent extends LitElement {
                 ...store.state
             })
         }, 1000)
+        console.log('disconnected component', this.id)
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -51,32 +56,31 @@ export class MateuComponent extends LitElement {
 
     // write state to reactive properties
     stampState(state: State) {
-        this.type = state.components[this.id].type
+        this.metadata = state.components[this.id].metadata
     }
 
+    renderElement = (element: Element): TemplateResult => {
+        if (element.name == 'div') {
+            return html`<div>
+                ${element.content??nothing}
+                <slot></slot>
+            </div>`
+        }
+        return html``
+    }
 
     render() {
         console.log('render component', this.id)
        return html`
            <h2>${this.id}</h2>
 
-           ${this.type == 'hl'
+           ${this.metadata.type == ComponentMetadataType.HorizontalLayout
                    ?html`<vaadin-horizontal-layout>
         <slot></slot>        
 </vaadin-horizontal-layout>`:nothing}
 
-           ${this.type == 'div'
-                   ?html`<div style="border: 1px lightgrey solid;">
-        <slot></slot>        
-</div>`:nothing}
-
-           ${this.type == 'text'
-                   ?html`Hola`:nothing}
-           
-           ${this.type != 'hl'
-                   && this.type != 'div'
-                   && this.type != 'text'
-                   ?html`<h3>${this.type}</h3><slot></slot>`:nothing}
+           ${this.metadata.type == ComponentMetadataType.Element
+                   ?this.renderElement(this.metadata as Element):nothing}
            
        `
     }
