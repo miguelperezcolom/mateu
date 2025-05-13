@@ -58,6 +58,7 @@ export class MateuUx extends LitElement {
         console.log('stamp state in ux')
         this.titleFromUI = state.ui?.title
         this.root = state.ui?.root
+        this.requestUpdate()
     }
 
     renderComponent = (component: Component): TemplateResult => {
@@ -67,7 +68,7 @@ ${component.children?.map(child => this.renderComponent(child))}
     }
 
     render() {
-        console.log('render ux', this.root)
+        console.log('render ux')
        return html`
            <h1>${this.titleFromUI}</h1>
            ${this.root?html`<mateu-component id="${this.root.id}">

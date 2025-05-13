@@ -13,7 +13,7 @@ import { State, store, upstream } from "../../domain/state";
 import { service } from "../../application/service";
 import { mateuApiClient } from "../http/AxiosMateuApiClient";
 import './mateu-ux'
-import { mockedRoot } from "../../domain/mocks";
+import { mockedNewRoot, mockedRoot } from "../../domain/mocks";
 import Component from "../../../shared/apiClients/dtos/Component";
 
 
@@ -118,8 +118,6 @@ export class MateuUi extends LitElement {
         if (state.ui?.title) {
             document.title = state.ui.title
         }
-        this.ui!.root = mockedRoot
-        this.plainComponents(mockedRoot)
     }
 
     plainComponents = (component: Component) => {
@@ -128,12 +126,18 @@ export class MateuUi extends LitElement {
     }
 
     signalUi = () => {
-        upstream.next(this.state!)
+        store.state.ui!.root = mockedRoot
+        this.plainComponents(mockedRoot)
+        this.state = store.state
+        upstream.next(store.state)
     }
 
     updateUi = () => {
-        this.state!.ui!.title = this.state!.ui!.title + 'x'
-        upstream.next(this.state!)
+        store.state!.ui!.title = this.state!.ui!.title + 'x'
+        store.state.ui!.root = mockedNewRoot
+        this.plainComponents(mockedNewRoot)
+        this.state = store.state
+        upstream.next(store.state)
     }
 
     render() {

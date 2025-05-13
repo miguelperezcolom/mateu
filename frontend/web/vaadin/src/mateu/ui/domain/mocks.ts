@@ -28,3 +28,32 @@ export const mockedRoot: Component = {
         }
     ]
 }
+
+export const mockedNewRoot: Component = {
+    id: '_root',
+    type: 'hl',
+    children: [
+        {
+            id: '1',
+            type: 'div',
+            children: [
+                {
+                    id: '2',
+                    type: 'text',
+                    children: []
+                }
+            ]
+        },
+        {
+            id: '3',
+            type: 'div',
+            children: [
+                {
+                    id: '6',
+                    type: 'text',
+                    children: []
+                }
+            ]
+        }
+    ]
+}
