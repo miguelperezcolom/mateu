@@ -9,6 +9,7 @@ import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
 import { mockedNewRoot, mockedRoot } from "@domain/mocks";
 import Component from "@mateu/shared/apiClients/dtos/Component";
+import { parseOverrides } from "@infra/ui/common";
 
 
 @customElement('mateu-ui')
@@ -21,7 +22,7 @@ export class MateuUi extends LitElement {
     journeyTypeId: string | undefined = undefined;
 
     @property()
-    config: string | undefined = undefined;
+    overrides: string | undefined = undefined;
 
     // state
     @state()
@@ -37,10 +38,10 @@ export class MateuUi extends LitElement {
 
         window.onpopstate = (e) => {
             const w = e.target as Window
-            this.loadHash(w)
+            this.loadUrl(w)
         };
 
-        this.loadHash(window)
+        this.loadUrl(window)
     }
 
     disconnectedCallback() {
@@ -55,37 +56,19 @@ export class MateuUi extends LitElement {
             || _changedProperties.has('config')
         ) {
 
-            let configParsed = {}
-            if (this.config) {
-                try {
-                    configParsed = JSON.parse(this.config)
-                } catch (exception) {
-                    console.log('error when trying to parse config', this.config, exception)
-                    configParsed = {
-                        value: this.config
-                    }
-                }
-            } else {
-                configParsed = {}
-            }
-
-            service.loadUi(mateuApiClient, this.baseUrl, configParsed, this, upstream).then();
+            service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this, upstream).then();
 
         }
 
     }
 
-    loadHash(w: Window) {
-        if (!w.location.hash.startsWith('#state=')) {
-
-            this.journeyTypeId = this.extractJourneyTypeIdFromUrl(w)
-
-        }
+    loadUrl(w: Window) {
+        this.journeyTypeId = this.extractJourneyTypeIdFromUrl(w)
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
-            const configParam = urlParams.get('config')
+            const configParam = urlParams.get('overrides')
             if (configParam) {
-                this.config = configParam
+                this.overrides = configParam
             }
         }
 
@@ -102,13 +85,11 @@ export class MateuUi extends LitElement {
         return journeyTypeId;
     }
 
-    state: State | undefined
 
     // write state to reactive properties
     stampState(state: State) {
         console.log('stamp state in ui')
         this.ui = state.ui
-        this.state = state
         if (state.ui?.title) {
             document.title = state.ui.title
         }
@@ -122,21 +103,19 @@ export class MateuUi extends LitElement {
     signalUi = () => {
         store.state.ui!.root = mockedRoot
         this.plainComponents(mockedRoot)
-        this.state = store.state
         upstream.next(store.state)
     }
 
     updateUi = () => {
-        store.state!.ui!.title = this.state!.ui!.title + 'x'
+        store.state!.ui!.title = store.state!.ui!.title + 'x'
         store.state.ui!.root = mockedNewRoot
         this.plainComponents(mockedNewRoot)
-        this.state = store.state
         upstream.next(store.state)
     }
 
     render() {
        return html`
-           <mateu-ux baseurl="${this.baseUrl}" journeytypeid="_"></mateu-ux>
+           <mateu-ux baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
            <vaadin-button @click="${this.signalUi}">Signal</vaadin-button>
            <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
        `

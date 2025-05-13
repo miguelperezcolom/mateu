@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = FormDto.class, name = "Form"),
   @JsonSubTypes.Type(value = CrudDto.class, name = "Crud"),
   @JsonSubTypes.Type(value = ResultDto.class, name = "Result"),
-  @JsonSubTypes.Type(value = MicroFrontendDto.class, name = "JourneyStarter"),
+  @JsonSubTypes.Type(value = MicroFrontendDto.class, name = "MicroFrontend"),
   @JsonSubTypes.Type(value = CardDto.class, name = "Card"),
   @JsonSubTypes.Type(value = DirectoryDto.class, name = "Directory"),
   @JsonSubTypes.Type(value = StepperDto.class, name = "Stepper"),

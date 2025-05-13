@@ -28,36 +28,27 @@ public record FormDto(
     String subtitle,
     StatusDto status,
     List<BadgeDto> badges,
-    List<TabDto> tabs,
     List<BannerDto> banners,
     List<SectionDto> sections,
     List<ActionDto> actions,
     List<ActionDto> mainActions,
     List<ValidationDto> validations,
-    List<RuleDto> rules,
-    Map<String, Object> attributes)
+    List<RuleDto> rules)
     implements ComponentMetadataDto {
 
   public FormDto {
     badges = Collections.unmodifiableList(badges);
-    tabs = Collections.unmodifiableList(tabs);
     banners = Collections.unmodifiableList(banners);
     sections = Collections.unmodifiableList(sections);
     actions = Collections.unmodifiableList(actions);
     mainActions = Collections.unmodifiableList(mainActions);
     validations = Collections.unmodifiableList(validations);
     rules = Collections.unmodifiableList(rules);
-    attributes = Collections.unmodifiableMap(attributes);
   }
 
   @Override
   public List<BadgeDto> badges() {
     return Collections.unmodifiableList(badges);
-  }
-
-  @Override
-  public List<TabDto> tabs() {
-    return Collections.unmodifiableList(tabs);
   }
 
   @Override
@@ -90,8 +81,4 @@ public record FormDto(
     return Collections.unmodifiableList(rules);
   }
 
-  @Override
-  public Map<String, Object> attributes() {
-    return Collections.unmodifiableMap(attributes);
-  }
 }

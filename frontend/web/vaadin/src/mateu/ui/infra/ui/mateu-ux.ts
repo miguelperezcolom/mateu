@@ -11,6 +11,7 @@ import { Subscription } from "rxjs";
 import { State, upstream } from "@domain/state";
 import './mateu-component'
 import Component from "@mateu/shared/apiClients/dtos/Component";
+import { parseOverrides } from "@infra/ui/common";
 
 
 @customElement('mateu-ux')
@@ -20,7 +21,7 @@ export class MateuUx extends LitElement {
     @property()
     baseUrl = ''
     @property()
-    config: string | undefined = undefined;
+    overrides: string | undefined = undefined;
     @property()
     journeyTypeId: string | undefined = undefined;
 
@@ -28,8 +29,7 @@ export class MateuUx extends LitElement {
     @state()
     titleFromUI: string | undefined = undefined;
 
-    @state()
-    configParsed: Object = {};
+    overridesParsed: Object = {};
 
     @state()
     root: Component | undefined = undefined;
@@ -41,6 +41,7 @@ export class MateuUx extends LitElement {
         this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
+        this.overridesParsed = parseOverrides(this.overrides);
     }
 
     disconnectedCallback() {

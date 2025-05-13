@@ -27,6 +27,7 @@ public record ActionDto(
     String icon,
     String caption,
     ActionTypeDto type,
+    ActionStereotypeDto stereotype,
     ActionThemeVariantDto[] variants,
     boolean visible,
     boolean validationRequired,

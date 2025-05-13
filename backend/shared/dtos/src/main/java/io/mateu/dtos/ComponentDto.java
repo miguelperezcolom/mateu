@@ -6,19 +6,11 @@ import java.util.List;
 public record ComponentDto(
     ComponentMetadataDto metadata,
     String id,
-    String className,
-    List<PairDto> attributes,
-    Object data,
+    String serverSideType,
     List<ComponentDto> children) {
 
   public ComponentDto {
-    attributes = Collections.unmodifiableList(attributes);
     children = Collections.unmodifiableList(children);
-  }
-
-  @Override
-  public List<PairDto> attributes() {
-    return Collections.unmodifiableList(attributes);
   }
 
   @Override

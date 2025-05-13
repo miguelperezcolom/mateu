@@ -59,16 +59,24 @@ export class MateuComponent extends LitElement {
         console.log('render component', this.id)
        return html`
            <h2>${this.id}</h2>
-           ${this.type == 'hl'?html`<vaadin-horizontal-layout>
+
+           ${this.type == 'hl'
+                   ?html`<vaadin-horizontal-layout>
         <slot></slot>        
 </vaadin-horizontal-layout>`:nothing}
-           ${this.type == 'div'?html`<div style="border: 1px lightgrey solid;">
+
+           ${this.type == 'div'
+                   ?html`<div style="border: 1px lightgrey solid;">
         <slot></slot>        
 </div>`:nothing}
-           ${this.type == 'text'?html`Hola`:nothing}
+
+           ${this.type == 'text'
+                   ?html`Hola`:nothing}
+           
            ${this.type != 'hl'
                    && this.type != 'div'
-                   && this.type != 'text'?html`<h3>${this.type}</h3><slot></slot>`:nothing}
+                   && this.type != 'text'
+                   ?html`<h3>${this.type}</h3><slot></slot>`:nothing}
            
        `
     }
