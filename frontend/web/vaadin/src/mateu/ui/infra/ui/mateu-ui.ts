@@ -7,11 +7,13 @@ import { State, store, upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
-import { mockedNewRoot, mockedRoot } from "@domain/mocks";
+import { mockedSimpleRoot1 } from "@domain/mocks/simpleRoot1";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { nanoid } from "nanoid";
+import { mockedSimpleRoot2 } from "@domain/mocks/simpleRoot2";
+import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
 
 
 @customElement('mateu-ui')
@@ -103,24 +105,38 @@ export class MateuUi extends LitElement {
     }
 
     signalUi = () => {
-        const newState = {
-            ...store.state
-        }
-        newState.ui!.root = mockedRoot
-        this.plainComponents(newState, mockedRoot)
-        upstream.next(newState)
+        this.loadComponent(mockedSimpleRoot1)
     }
 
     updateUi = () => {
+        const newContent =  'Hola 6 -' + nanoid();
+        const component = { ...mockedSimpleRoot2 };
+        // @ts-ignore
+        (component.children[1].children[0].metadata as Element).content = newContent
+        this.loadComponent(mockedSimpleRoot2)
+    }
+
+    loadForm = () => {
+        this.loadComponent(mockedSimpleForm1)
+    }
+
+    loadComponent = (component: Component) => {
         const newState = {
             ...store.state
         }
-        newState.ui!.root = {...mockedNewRoot}
-        this.plainComponents(newState, {...mockedNewRoot});
-        const newContent =  'Hola 6 -' + nanoid();
-        (newState.components['6'].metadata as Element).content = newContent
+        if (!newState.ui) {
+            newState.ui = {
+                title: 'Hola',
+                favIcon: 'favicon',
+                root: {...component}
+            }
+        } else {
+            newState.ui!.root = {...component}
+        }
+        this.plainComponents(newState, {...component});
         store.state = newState
         upstream.next(newState)
+
     }
 
     render() {
