@@ -4,6 +4,7 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
 import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
 import { ActionType } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionType";
 import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionStereotype";
+import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
 
 
 export const mockedSimpleForm1: Component = {
@@ -28,7 +29,8 @@ export const mockedSimpleForm1: Component = {
             serverSideType: '',
             metadata: {
                 type: ComponentMetadataType.FormLayout,
-            },
+                columns: 2
+            } as FormLayout,
             children: [
                 {
                     id: '2',
@@ -50,6 +52,30 @@ export const mockedSimpleForm1: Component = {
                         label: 'Edad',
                         type: ComponentMetadataType.Field,
                         dataType: 'integer',
+                        stereotype: 'text'
+                    } as Field,
+                    children: []
+                },
+                {
+                    id: '5',
+                    serverSideType: '',
+                    metadata: {
+                        fieldId: 'poblacion',
+                        label: 'Población',
+                        type: ComponentMetadataType.Field,
+                        dataType: 'string',
+                        stereotype: 'text'
+                    } as Field,
+                    children: []
+                },
+                {
+                    id: '6',
+                    serverSideType: '',
+                    metadata: {
+                        fieldId: 'idioma',
+                        label: 'Idioma',
+                        type: ComponentMetadataType.Field,
+                        dataType: 'string',
                         stereotype: 'text'
                     } as Field,
                     children: []

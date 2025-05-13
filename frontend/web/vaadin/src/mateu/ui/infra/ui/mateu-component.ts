@@ -13,7 +13,6 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import './mateu-form'
-import './mateu-form-layout'
 import './mateu-field'
 
 @customElement('mateu-component')
@@ -91,20 +90,10 @@ export class MateuComponent extends LitElement {
            <h2>${this.id}</h2>
            -->
 
-           ${metadata.type == ComponentMetadataType.HorizontalLayout
-                   ?html`<vaadin-horizontal-layout>
-        <slot></slot>        
-</vaadin-horizontal-layout>`:nothing}
-
            ${metadata.type == ComponentMetadataType.Form
                    ?html`<mateu-form id="${this.id}">
         <slot></slot>        
 </mateu-form>`:nothing}
-
-           ${metadata.type == ComponentMetadataType.FormLayout
-                   ?html`<mateu-form-layout id="${this.id}">
-        <slot></slot>        
-</mateu-form-layout>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Field
                    ?html`<mateu-field id="${this.id}">

@@ -2,6 +2,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
+import '@vaadin/form-layout'
 import '@vaadin/app-layout'
 import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
@@ -12,6 +13,8 @@ import { State, upstream } from "@domain/state";
 import './mateu-component'
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
 
 
 @customElement('mateu-ux')
@@ -66,6 +69,15 @@ export class MateuUx extends LitElement {
     }
 
     renderComponent = (component: Component): TemplateResult => {
+        if (component.metadata.type == ComponentMetadataType.FormLayout) {
+            return renderFormLayout(component, this.renderComponent)
+        }
+        if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
+            return renderHorizontalLayout(component, this.renderComponent)
+        }
+        if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
+            return renderVerticalLayout(component, this.renderComponent)
+        }
         return html`<mateu-component id="${component.id}">
 ${component.children?.map(child => this.renderComponent(child))}
            </mateu-component>`
@@ -74,9 +86,7 @@ ${component.children?.map(child => this.renderComponent(child))}
     render() {
         console.log('render ux')
        return html`
-           ${this.root?html`<mateu-component id="${this.root.id}">
-${this.root.children?.map(component => this.renderComponent(component))}
-           </mateu-component>`:nothing}
+           ${this.root?this.renderComponent(this.root):nothing}
        `
     }
 
