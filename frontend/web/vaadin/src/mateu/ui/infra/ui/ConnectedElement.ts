@@ -11,7 +11,6 @@ export default abstract class ConnectedElement extends LitElement {
         this.upstreamSubscription = upstream.subscribe((state: State) =>
             this.stampState(state)
         )
-        console.log('connected component', this.id)
     }
 
     disconnectedCallback() {

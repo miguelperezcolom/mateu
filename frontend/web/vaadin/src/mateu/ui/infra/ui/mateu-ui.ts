@@ -76,7 +76,6 @@ export class MateuUi extends ConnectedElement {
 
     // write state to reactive properties
     stampState(state: State) {
-        console.log('stamp state in ui')
         this.ui = state.ui
         if (state.ui?.title) {
             document.title = state.ui.title

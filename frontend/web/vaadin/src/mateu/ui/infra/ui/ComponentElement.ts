@@ -14,7 +14,6 @@ export default abstract class ComponentElement extends ConnectedElement {
     metadata: ComponentMetadata | undefined = undefined
 
     protected update(changedProperties: PropertyValues) {
-        console.log('updated', changedProperties)
         if (changedProperties.has('id')) {
             this.stampState({...store.state})
         }

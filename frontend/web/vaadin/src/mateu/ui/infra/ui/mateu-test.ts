@@ -55,7 +55,6 @@ export class MateuTest extends LitElement {
         }
         this.plainComponents(newState, {...component});
         store.state = newState
-        console.log('next state', newState)
         upstream.next(newState)
     }
 

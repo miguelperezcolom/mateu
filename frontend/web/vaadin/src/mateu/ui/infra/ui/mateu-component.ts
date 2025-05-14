@@ -28,13 +28,11 @@ export class MateuComponent extends ComponentElement {
                 ...store.state
             })
         }, 1000)
-        console.log('disconnected component', this.id)
     }
 
 
 
     renderElement = (element: Element): TemplateResult => {
-        console.log('element', element)
         if (element.name == 'div') {
             return html`<div>
                 ${element.content??nothing}
@@ -45,12 +43,8 @@ export class MateuComponent extends ComponentElement {
     }
 
     render() {
-        console.log('render component', this.id)
         const metadata = this.metadata!
         return html`
-            <!--
-           <h2>${this.id}</h2>
-           -->
 
            ${metadata.type == ComponentMetadataType.Form
                    ?html`<mateu-form id="${this.id}">

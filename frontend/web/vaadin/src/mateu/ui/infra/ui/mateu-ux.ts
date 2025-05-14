@@ -44,7 +44,6 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     stampState(state: State) {
-        console.log('stamp state in ux')
         this.titleFromUI = state.ui?.title
         if (state.ui?.root) {
             this.root = {...state.ui?.root}
@@ -69,7 +68,6 @@ ${component.children?.map(child => this.renderComponent(child))}
     }
 
     render() {
-        console.log('render ux')
        return html`
            ${this.root?this.renderComponent(this.root):nothing}
        `

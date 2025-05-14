@@ -1,6 +1,6 @@
-import {loadUiCommandHandler} from "../domain/commands/loadUi/LoadUiCommandHandler";
-import { State, store } from "../domain/state";
-import {AxiosMateuApiClient} from "../infra/http/AxiosMateuApiClient";
+import {loadUiCommandHandler} from "@domain/commands/loadUi/LoadUiCommandHandler";
+import { State, store } from "@domain/state";
+import {AxiosMateuApiClient} from "@infra/http/AxiosMateuApiClient";
 import { Subject } from "rxjs";
 
 export class Service {
