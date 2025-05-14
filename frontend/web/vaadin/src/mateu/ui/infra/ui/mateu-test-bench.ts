@@ -10,6 +10,7 @@ import { nanoid } from "nanoid";
 import { mockedSimpleRoot2 } from "@domain/mocks/simpleRoot2";
 import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
 import './mateu-ui'
+import { mockedSimpleTable1 } from "@domain/mocks/simpleTable1";
 
 
 @customElement('mateu-test-bench')
@@ -38,6 +39,10 @@ export class MateuTestBench extends LitElement {
 
     loadForm = () => {
         this.loadComponent(mockedSimpleForm1)
+    }
+
+    loadTable = () => {
+        this.loadComponent(mockedSimpleTable1)
     }
 
     loadComponent = (component: Component) => {
@@ -70,6 +75,7 @@ export class MateuTestBench extends LitElement {
            <vaadin-button @click="${this.signalUi}">Signal</vaadin-button>
            <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
            <vaadin-button @click="${this.loadForm}">Form</vaadin-button>
+           <vaadin-button @click="${this.loadTable}">Table</vaadin-button>
        `
     }
 

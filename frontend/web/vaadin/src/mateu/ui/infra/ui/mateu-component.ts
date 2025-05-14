@@ -12,6 +12,7 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
 import './mateu-field'
+import './mateu-table'
 import ComponentElement from "@infra/ui/ComponentElement";
 
 @customElement('mateu-component')
@@ -50,6 +51,11 @@ export class MateuComponent extends ComponentElement {
                    ?html`<mateu-form id="${this.id}">
         <slot></slot>        
 </mateu-form>`:nothing}
+
+           ${metadata.type == ComponentMetadataType.Table
+                   ?html`<mateu-table id="${this.id}">
+                       <slot></slot>
+                   </mateu-table>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Field
                    ?html`<mateu-field id="${this.id}">
