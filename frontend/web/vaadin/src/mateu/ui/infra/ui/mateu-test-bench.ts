@@ -12,8 +12,8 @@ import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
 import './mateu-ui'
 
 
-@customElement('mateu-test')
-export class MateuTest extends LitElement {
+@customElement('mateu-test-bench')
+export class MateuTestBench extends LitElement {
 
     // public properties
     @property()
@@ -79,7 +79,7 @@ export class MateuTest extends LitElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'mateu-test': MateuTest
+        'mateu-test-bench': MateuTestBench
     }
 }
 

@@ -9,14 +9,14 @@
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
     <script type="module" src="https://unpkg.com/test-custom-components/dist/assets/custom-elements.js"></script>
     <script type="module" src="/src/lumo.js"></script>
-    <script type="module" src="/src/mateu/ui/infra/ui/mateu-test.ts"></script>
+    <script type="module" src="/src/mateu/ui/infra/ui/mateu-test-bench.ts"></script>
   </head>
   <body>
 
-  <mateu-test baseUrl="/helloworld"
+  <mateu-test-bench baseUrl="/helloworld"
             config='{"tenantId": "1111","profile": "dev"}'
   >
-  </mateu-test>
+  </mateu-test-bench>
 
   <script>
     if (window.matchMedia) {
