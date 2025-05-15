@@ -11,6 +11,10 @@ import { mockedSimpleRoot2 } from "@domain/mocks/simpleRoot2";
 import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
 import './mateu-ui'
 import { mockedSimpleTable1 } from "@domain/mocks/simpleTable1";
+import { mockedSimpleTableCrud1 } from "@domain/mocks/simpleTableCrud1";
+import { mockedSimpleCardCrud1 } from "@domain/mocks/simpleCardCrud1";
+import { mockedSimpleApp1 } from "@domain/mocks/simpleApp1";
+import { mockedSimpleCard1 } from "@domain/mocks/simpleCard1";
 
 
 @customElement('mateu-test-bench')
@@ -45,6 +49,22 @@ export class MateuTestBench extends LitElement {
         this.loadComponent(mockedSimpleTable1)
     }
 
+    loadTableCrud = () => {
+        this.loadComponent(mockedSimpleTableCrud1)
+    }
+
+    loadCardCrud = () => {
+        this.loadComponent(mockedSimpleCardCrud1)
+    }
+
+    loadApp = () => {
+        this.loadComponent(mockedSimpleApp1)
+    }
+
+    loadCard = () => {
+        this.loadComponent(mockedSimpleCard1)
+    }
+
     loadComponent = (component: Component) => {
         const newState = {
             ...store.state
@@ -76,6 +96,10 @@ export class MateuTestBench extends LitElement {
            <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
            <vaadin-button @click="${this.loadForm}">Form</vaadin-button>
            <vaadin-button @click="${this.loadTable}">Table</vaadin-button>
+           <vaadin-button @click="${this.loadTableCrud}">Table Crud</vaadin-button>
+           <vaadin-button @click="${this.loadCardCrud}">Card Crud</vaadin-button>
+           <vaadin-button @click="${this.loadApp}">App</vaadin-button>
+           <vaadin-button @click="${this.loadCard}">Card</vaadin-button>
        `
     }
 

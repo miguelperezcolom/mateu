@@ -13,6 +13,9 @@ import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
 import './mateu-field'
 import './mateu-table'
+import './mateu-crud'
+import './mateu-card'
+import './mateu-app'
 import ComponentElement from "@infra/ui/ComponentElement";
 
 @customElement('mateu-component')
@@ -56,6 +59,17 @@ export class MateuComponent extends ComponentElement {
                    ?html`<mateu-table id="${this.id}">
                        <slot></slot>
                    </mateu-table>`:nothing}
+
+           ${metadata.type == ComponentMetadataType.TableCrud
+                   ?html`<mateu-crud id="${this.id}"></mateu-crud>`:nothing}
+           ${metadata.type == ComponentMetadataType.CardCrud
+                   ?html`<mateu-crud id="${this.id}"></mateu-crud>`:nothing}
+
+           ${metadata.type == ComponentMetadataType.Card
+                   ?html`<mateu-card id="${this.id}"></mateu-card>`:nothing}
+
+           ${metadata.type == ComponentMetadataType.App
+                   ?html`<mateu-app id="${this.id}"></mateu-app>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Field
                    ?html`<mateu-field id="${this.id}">

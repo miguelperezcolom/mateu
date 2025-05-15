@@ -3,7 +3,8 @@ export enum ComponentMetadataType {
     Element = "Element",
     MicroFrontend = "MicroFrontend",
     Form = "Form",
-    Crud = "Crud",
+    TableCrud = "TableCrud",
+    CardCrud = "CardCrud",
     Result = "Result",
     Card = "Card",
     Directory = "Directory",
@@ -17,6 +18,7 @@ export enum ComponentMetadataType {
     FieldGroup = "FieldGroup",
     FieldLine = "FieldLine",
     Field = "Field",
-    Table = "Table"
+    Table = "Table",
+    App = "App",
 
 }
