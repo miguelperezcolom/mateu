@@ -110,7 +110,6 @@ export class MateuTestBench extends LitElement {
            <vaadin-button @click="${this.loadCardCrud}">Card Crud</vaadin-button>
            <vaadin-button @click="${this.loadApp}">App</vaadin-button>
            <vaadin-button @click="${this.loadCard}">Card</vaadin-button>
-           
        `
     }
 
