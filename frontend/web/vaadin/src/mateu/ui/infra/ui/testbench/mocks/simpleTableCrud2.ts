@@ -6,7 +6,7 @@ import { ActionType } from "@mateu/shared/apiClients/dtos/componentmetadata/Acti
 import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionStereotype";
 
 
-export const mockedSimpleTableCrud1: Component = {
+export const mockedSimpleTableCrud2: Component = {
     id: 'crud1',
     serverSideType: '',
     metadata: {
@@ -59,18 +59,7 @@ export const mockedSimpleTableCrud1: Component = {
         clientSidePagination: false,
     } as Crud,
     initialData: {
-        items: [
-            {
-                col1: 'aaa',
-                col2: 'bbb',
-                col3: 'cccc'
-            },
-            {
-                col1: 'xxxx',
-                col2: 'yyyy',
-                col3: 'zzz'
-            }
-        ]
+        items: []
     },
     children: []
 }

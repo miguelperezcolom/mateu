@@ -30,6 +30,7 @@ export class MateuTable extends ComponentElement {
                             path="${column.id}" 
                             header="${column.header}"></vaadin-grid-column>
                 `)}
+                <span slot="empty-state">No items found.</span>
             </vaadin-grid>
             <slot></slot>
        `
