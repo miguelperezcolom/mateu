@@ -17,7 +17,6 @@ export enum ComponentMetadataType {
     Section = "Section",
     FieldGroup = "FieldGroup",
     FieldLine = "FieldLine",
-    Field = "Field",
     Table = "Table",
     App = "App",
 

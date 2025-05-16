@@ -1,9 +1,8 @@
 import Validation from "./Validation";
 import Pair from "./Pair";
 import Badge from "./Badge";
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
-export default interface Field extends ComponentMetadata {
+export default interface Field {
 
     fieldId: string
     dataType: string

@@ -1,10 +1,8 @@
 import Component from "../../../../../shared/apiClients/dtos/Component";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
-import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
 import { ActionType } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionType";
 import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionStereotype";
-import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
 
 
 export const mockedSimpleForm1: Component = {
@@ -14,6 +12,40 @@ export const mockedSimpleForm1: Component = {
         type: ComponentMetadataType.Form,
         title: 'My form',
         subtitle: 'This is the first form, bla, bla, bla, bla, bla...',
+        sections: [
+            {
+                groups: [
+                    {
+                        fields: [
+                            {
+                                fieldId: 'nombre',
+                                label: 'Nombre',
+                                dataType: 'string',
+                                stereotype: 'text'
+                            },
+                            {
+                                fieldId: 'edad',
+                                label: 'Edad',
+                                dataType: 'integer',
+                                stereotype: 'text'
+                            },
+                            {
+                                fieldId: 'poblacion',
+                                label: 'Población',
+                                dataType: 'string',
+                                stereotype: 'text'
+                            },
+                            {
+                                fieldId: 'idioma',
+                                label: 'Idioma',
+                                dataType: 'string',
+                                stereotype: 'text'
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         actions: [
             {
                 id: 'submit',
@@ -25,68 +57,6 @@ export const mockedSimpleForm1: Component = {
     } as Form,
     initialData: {},
     children: [
-        {
-            id: '1',
-            serverSideType: '',
-            metadata: {
-                type: ComponentMetadataType.FormLayout,
-                columns: 2
-            } as FormLayout,
-            initialData: {},
-            children: [
-                {
-                    id: '2',
-                    serverSideType: '',
-                    metadata: {
-                        fieldId: 'nombre',
-                        label: 'Nombre',
-                        type: ComponentMetadataType.Field,
-                        dataType: 'string',
-                        stereotype: 'text'
-                    } as Field,
-                    initialData: {},
-                    children: []
-                },
-                {
-                    id: '3',
-                    serverSideType: '',
-                    metadata: {
-                        fieldId: 'edad',
-                        label: 'Edad',
-                        type: ComponentMetadataType.Field,
-                        dataType: 'integer',
-                        stereotype: 'text'
-                    } as Field,
-                    initialData: {},
-                    children: []
-                },
-                {
-                    id: '5',
-                    serverSideType: '',
-                    metadata: {
-                        fieldId: 'poblacion',
-                        label: 'Población',
-                        type: ComponentMetadataType.Field,
-                        dataType: 'string',
-                        stereotype: 'text'
-                    } as Field,
-                    initialData: {},
-                    children: []
-                },
-                {
-                    id: '6',
-                    serverSideType: '',
-                    metadata: {
-                        fieldId: 'idioma',
-                        label: 'Idioma',
-                        type: ComponentMetadataType.Field,
-                        dataType: 'string',
-                        stereotype: 'text'
-                    } as Field,
-                    initialData: {},
-                    children: []
-                }
-            ]
-        },
+
     ]
 }

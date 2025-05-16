@@ -1,5 +1,5 @@
-import { customElement } from "lit/decorators.js";
-import { css, html, nothing } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -12,24 +12,49 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
-import ComponentElement from "@infra/ui/ComponentElement";
 
 
 @customElement('mateu-field')
-export class MateuField extends ComponentElement {
+export class MateuField extends LitElement {
 
+    @property()
+    field: Field | undefined = undefined
+
+    valueChanged = (e: CustomEvent) => {
+        console.log('e', e.detail.value)
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: {
+                value: e.detail.value,
+                //@ts-ignore
+                fieldId: e.target.id
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
 
     render() {
-        const metadata = this.metadata as Field
         return html`
-            ${metadata?.dataType == 'string'?html`
-                <vaadin-text-field label="${metadata.label}"></vaadin-text-field>
+            ${this.field?.dataType == 'string'?html`
+                <vaadin-text-field 
+                        id="${this.field.fieldId}" 
+                        label="${this.field.label}"
+                        @value-changed="${this.valueChanged}"
+                ></vaadin-text-field>
             `:nothing}
-            ${metadata?.dataType == 'number'?html`
-                <vaadin-number-field label="${metadata.label}"></vaadin-number-field>
+            ${this.field?.dataType == 'number'?html`
+                <vaadin-number-field
+                        id="${this.field.fieldId}"
+                        label="${this.field.label}"
+                        @value-changed="${this.valueChanged}"
+                ></vaadin-number-field>
             `:nothing}
-            ${metadata?.dataType == 'integer'?html`
-                <vaadin-integer-field label="${metadata.label}"></vaadin-integer-field>
+            ${this.field?.dataType == 'integer'?html`
+                <vaadin-integer-field
+                        id="${this.field.fieldId}"
+                        label="${this.field.label}"
+                        @value-changed="${this.valueChanged}"
+                ></vaadin-integer-field>
             `:nothing}
             <slot></slot>
        `
