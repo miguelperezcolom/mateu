@@ -13,7 +13,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
-import Message from "@mateu/shared/apiClients/dtos/Message";
+import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 
 
@@ -43,9 +43,9 @@ export class MateuUx extends ConnectedElement {
     }
 
     // write state to reactive properties
-    stampState(message: Message) {
-        if (message.component) {
-            this.root = message.component
+    applyFragment(fragment: UIFragment) {
+        if (fragment.component) {
+            this.root = fragment.component
         } else {
             this.root = undefined
         }

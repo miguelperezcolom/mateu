@@ -1,6 +1,6 @@
 import UI from "../../shared/apiClients/dtos/UI";
 import { Subject } from "rxjs";
-import MessageWrapper from "@domain/MessageWrapper";
+import Message from "@domain/Message";
 
 export class State {
     ui: UI | undefined = undefined
@@ -20,4 +20,4 @@ export interface Store {
 export const store: Store = {
     state: new State()
 }
-export const upstream = new Subject<MessageWrapper>()
+export const upstream = new Subject<Message>()

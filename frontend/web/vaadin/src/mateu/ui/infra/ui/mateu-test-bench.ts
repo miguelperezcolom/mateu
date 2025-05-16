@@ -15,7 +15,7 @@ import { mockedSimpleTableCrud1 } from "@domain/mocks/simpleTableCrud1";
 import { mockedSimpleCardCrud1 } from "@domain/mocks/simpleCardCrud1";
 import { mockedSimpleApp1 } from "@domain/mocks/simpleApp1";
 import { mockedSimpleCard1 } from "@domain/mocks/simpleCard1";
-import Message from "@mateu/shared/apiClients/dtos/Message";
+import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 
 
 @customElement('mateu-test-bench')
@@ -51,7 +51,7 @@ export class MateuTestBench extends LitElement {
     }
 
     loadTableData = () => {
-        const message = {
+        const fragment = {
             targetComponentId: 'table1',
             component: {
                 data: {
@@ -64,9 +64,9 @@ export class MateuTestBench extends LitElement {
                     ]
                 }
             }
-        } as Message
+        } as UIFragment
         upstream.next({
-            message,
+            fragment,
             ui:undefined
         })
     }
@@ -88,12 +88,12 @@ export class MateuTestBench extends LitElement {
     }
 
     loadComponent = (component: Component) => {
-        const message = {
+        const fragment = {
             targetComponentId: '_ux',
             component
-        } as Message
+        } as UIFragment
         upstream.next({
-            message,
+            fragment: fragment,
             ui:undefined
         })
     }

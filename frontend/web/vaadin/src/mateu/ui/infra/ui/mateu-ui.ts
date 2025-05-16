@@ -7,7 +7,7 @@ import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
 import { parseOverrides } from "@infra/ui/common";
-import MessageWrapper from "@domain/MessageWrapper";
+import Message from "@domain/Message";
 import { Subscription } from "rxjs";
 
 
@@ -31,9 +31,9 @@ export class MateuUi extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((messageWrapper: MessageWrapper) => {
-            if (messageWrapper.ui) {
-                this.stampState(messageWrapper.ui)
+        this.upstreamSubscription = upstream.subscribe((message: Message) => {
+            if (message.ui) {
+                this.apply(message.ui)
             }
         })
 
@@ -88,7 +88,7 @@ export class MateuUi extends LitElement {
 
 
     // write state to reactive properties
-    stampState(ui: UI) {
+    apply(ui: UI) {
         this.ui = ui
         if (this.ui?.title) {
             document.title = this.ui.title

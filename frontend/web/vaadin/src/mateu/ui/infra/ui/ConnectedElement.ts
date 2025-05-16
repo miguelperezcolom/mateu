@@ -1,9 +1,9 @@
 import { Subscription } from "rxjs";
 import { upstream } from "@domain/state";
-import Message from "@mateu/shared/apiClients/dtos/Message";
+import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import MessageWrapper from "@domain/MessageWrapper";
+import Message from "@domain/Message";
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -15,11 +15,11 @@ export default abstract class ConnectedElement extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((messageWrapper: MessageWrapper) => {
-            if (messageWrapper.message) {
-                const message = messageWrapper.message
-                if (this.id == message.targetComponentId) {
-                    this.stampState(message)
+        this.upstreamSubscription = upstream.subscribe((message: Message) => {
+            if (message.fragment) {
+                const fragment = message.fragment
+                if (this.id == fragment.targetComponentId) {
+                    this.applyFragment(fragment)
                 }
 
             }
@@ -31,5 +31,5 @@ export default abstract class ConnectedElement extends LitElement {
         this.upstreamSubscription?.unsubscribe();
     }
 
-    abstract stampState(message: Message):void
+    abstract applyFragment(fragment: UIFragment):void
 }
