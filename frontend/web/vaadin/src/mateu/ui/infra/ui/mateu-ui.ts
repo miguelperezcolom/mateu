@@ -17,6 +17,7 @@ export class MateuUi extends LitElement {
     // public properties
     @property()
     baseUrl = ''
+
     @property()
     journeyTypeId: string | undefined = undefined;
 

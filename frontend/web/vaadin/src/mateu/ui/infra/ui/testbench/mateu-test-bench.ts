@@ -2,19 +2,19 @@ import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement } from "lit";
 import '@vaadin/vertical-layout'
 import { upstream } from "@domain/state";
-import './mateu-ux'
-import { mockedSimpleRoot1 } from "@domain/mocks/simpleRoot1";
+import '../mateu-ux'
+import { mockedSimpleRoot1 } from "@infra/ui/testbench/mocks/simpleRoot1";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { nanoid } from "nanoid";
-import { mockedSimpleRoot2 } from "@domain/mocks/simpleRoot2";
-import { mockedSimpleForm1 } from "@domain/mocks/simpleForm1";
-import './mateu-ui'
-import { mockedSimpleTable1 } from "@domain/mocks/simpleTable1";
-import { mockedSimpleTableCrud1 } from "@domain/mocks/simpleTableCrud1";
-import { mockedSimpleCardCrud1 } from "@domain/mocks/simpleCardCrud1";
-import { mockedSimpleApp1 } from "@domain/mocks/simpleApp1";
-import { mockedSimpleCard1 } from "@domain/mocks/simpleCard1";
+import { mockedSimpleRoot2 } from "@infra/ui/testbench/mocks/simpleRoot2";
+import { mockedSimpleForm1 } from "@infra/ui/testbench/mocks/simpleForm1";
+import '../mateu-ui'
+import { mockedSimpleTable1 } from "@infra/ui/testbench/mocks/simpleTable1";
+import { mockedSimpleTableCrud1 } from "@infra/ui/testbench/mocks/simpleTableCrud1";
+import { mockedSimpleCardCrud1 } from "@infra/ui/testbench/mocks/simpleCardCrud1";
+import { mockedSimpleApp1 } from "@infra/ui/testbench/mocks/simpleApp1";
+import { mockedSimpleCard1 } from "@infra/ui/testbench/mocks/simpleCard1";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 
 

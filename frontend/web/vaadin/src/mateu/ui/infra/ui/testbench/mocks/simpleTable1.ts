@@ -1,4 +1,4 @@
-import Component from "../../../shared/apiClients/dtos/Component";
+import Component from "../../../../../shared/apiClients/dtos/Component";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 
