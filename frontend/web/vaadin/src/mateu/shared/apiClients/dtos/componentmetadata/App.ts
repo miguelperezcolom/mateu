@@ -1,11 +1,13 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
-import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
+import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
 
 export default interface App extends ComponentMetadata {
 
     id: string
+    variant: AppVariant,
     title: string | undefined
     subtitle: string | undefined
-    actions: Action[]
+    options: MenuOption[]
 
 }

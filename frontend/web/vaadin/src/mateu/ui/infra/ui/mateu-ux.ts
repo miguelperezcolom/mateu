@@ -75,6 +75,7 @@ ${component.children?.map(child => this.renderComponent(child))}
 
     render() {
         return html`
+            <h5>${this.journeyTypeId}</h5>
            ${this.root?this.renderComponent(this.root):nothing}
        `
     }

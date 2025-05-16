@@ -4,12 +4,12 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
 
 
-export const mockedSimpleApp1: Component = {
+export const mockedSimpleApp2: Component = {
     id: 'app1',
     serverSideType: '',
     metadata: {
         type: ComponentMetadataType.App,
-        variant: AppVariant.MENU_ON_TOP,
+        variant: AppVariant.MENU_ON_LEFT,
         title: 'My app',
         subtitle: 'My app subtitle bla, bla, bla',
         options: [
