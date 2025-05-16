@@ -2,6 +2,7 @@ import UI from "../../../shared/apiClients/dtos/UI"
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "../../domain/MateuApiClient";
+import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 let abortControllers: AbortController[] = []
 
@@ -105,6 +106,20 @@ export class AxiosMateuApiClient implements MateuApiClient {
         })
             .then((response) => response.data), initiator)
     }
+
+    async runAction(baseUrl: string, journeyTypeId: string,
+                    actionId: string, initiatorComponentId: string,
+              config: any, serverSideType: string,
+              data: any, initiator: HTMLElement): Promise<UIIncrement> {
+        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' + journeyTypeId + '/' + actionId, {
+            serverSideType,
+            config,
+            data,
+            initiatorComponentId
+        })
+            .then((response) => response.data), initiator)
+    }
+
 }
 
 export const mateuApiClient = new AxiosMateuApiClient()

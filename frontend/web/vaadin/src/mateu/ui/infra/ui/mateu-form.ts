@@ -34,8 +34,16 @@ export class MateuForm extends ComponentElement {
     }
 
     handleButtonClick = (actionId: string) => {
-        console.log(this.values)
-        console.log(actionId)
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                userData: this.values,
+                actionId,
+                serverSideType: this.serverSideType,
+                initiatorComponentId: this.id
+            },
+            bubbles: true,
+            composed: true
+        }))
     }
 
     connectedCallback() {

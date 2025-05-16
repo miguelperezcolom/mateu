@@ -15,6 +15,8 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
+import { service } from "@application/service";
+import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 
 
 @customElement('mateu-ux')
@@ -37,9 +39,48 @@ export class MateuUx extends ConnectedElement {
     @state()
     root: Component | undefined = undefined;
 
+    /*
+                    userData: this.values,
+                actionId,
+                serverSideType: this.serverSideType,
+                initiatorComponentId: this.id
+
+
+    service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this, upstream).then();
+     */
+
+    actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            const detail = e.detail as {
+                userData: any
+                actionId: string
+                serverSideType: string
+                initiatorComponentId: string
+            }
+            if (e.type == 'action-requested') {
+                service.runAction(mateuApiClient, this.baseUrl,
+                    this.journeyTypeId!,
+                    detail.actionId,
+                    detail.initiatorComponentId,
+                    parseOverrides(this.overrides),
+                    detail.serverSideType,
+                    detail.userData,
+                    this).then();
+            }
+        }
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this.overridesParsed = parseOverrides(this.overrides);
+        this.addEventListener('action-requested', this.actionRequestedListener)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.removeEventListener('action-requested', this.actionRequestedListener)
     }
 
     // write state to reactive properties
@@ -64,7 +105,8 @@ export class MateuUx extends ConnectedElement {
             }
             return html`<mateu-component id="${component.id}" 
                                          .metadata="${component.metadata}" 
-                                         .data="${component.initialData}" 
+                                         .data="${component.initialData}"
+                                         serverSideType="${component.serverSideType}"
                                          signature="${JSON.stringify(component.metadata) 
                                          + JSON.stringify(component.initialData)}">
 ${component.children?.map(child => this.renderComponent(child))}

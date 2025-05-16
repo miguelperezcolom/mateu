@@ -11,6 +11,9 @@ export default abstract class ComponentElement extends ConnectedElement {
     metadata: ComponentMetadata | undefined
 
     @property()
+    serverSideType: string | undefined
+
+    @property()
     data: any
 
 
@@ -22,6 +25,9 @@ export default abstract class ComponentElement extends ConnectedElement {
             }
             if (fragment.component?.initialData) {
                 this.data = fragment.component?.initialData
+            }
+            if (fragment.component?.serverSideType) {
+                this.serverSideType = fragment.component?.serverSideType
             }
             /*
             if (JSON.stringify(this.metadata) != JSON.stringify(state.components[this.id]?.metadata)) {

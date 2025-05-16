@@ -39,25 +39,55 @@ export class MateuComponent extends ComponentElement {
         return html`
 
            ${metadata.type == ComponentMetadataType.Form
-                   ?html`<mateu-form id="${this.id}" .metadata="${metadata}">
+                   ?html`<mateu-form 
+                           id="${this.id}" 
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   >
         <slot></slot>        
 </mateu-form>`:nothing}
            
            ${metadata.type == ComponentMetadataType.Table
-                   ?html`<mateu-table id="${this.id}" .metadata="${metadata}" .data="${this.data}">
+                   ?html`<mateu-table
+                           id="${this.id}"
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   >
                        <slot></slot>
                    </mateu-table>`:nothing}
 
            ${metadata.type == ComponentMetadataType.TableCrud
-                   ?html`<mateu-crud id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-crud>`:nothing}
+                   ?html`<mateu-crud
+                           id="${this.id}"
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   ></mateu-crud>`:nothing}
            ${metadata.type == ComponentMetadataType.CardCrud
-                   ?html`<mateu-crud id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-crud>`:nothing}
+                   ?html`<mateu-crud
+                           id="${this.id}"
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   ></mateu-crud>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Card
-                   ?html`<mateu-card id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-card>`:nothing}
+                   ?html`<mateu-card
+                           id="${this.id}"
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   ></mateu-card>`:nothing}
 
            ${metadata.type == ComponentMetadataType.App
-                   ?html`<mateu-app id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-app>`:nothing}
+                   ?html`<mateu-app
+                           id="${this.id}"
+                           .metadata="${metadata}"
+                           .data="${this.data}"
+                           serversidetype="${this.serverSideType}"
+                   ></mateu-app>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Element
                    ?this.renderElement(metadata as Element):nothing}

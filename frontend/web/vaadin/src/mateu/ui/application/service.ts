@@ -1,11 +1,13 @@
 import { loadUiCommandHandler } from "@domain/commands/loadUi/LoadUiCommandHandler";
 import { AxiosMateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { Subject } from "rxjs";
-import Message from "@domain/Message";
+import { upstream } from "@domain/state";
+import { runActionCommandHandler } from "@domain/commands/runAction/RunActionCommandHandler";
+import { RunActionCommand } from "@domain/commands/runAction/RunActionCommand";
 
 export class Service {
 
-    async loadUi(mateuApiClient: AxiosMateuApiClient, baseUrl: string, config: any, initiator: HTMLElement, upstream: Subject<Message>) {
+    async loadUi(mateuApiClient: AxiosMateuApiClient, baseUrl: string,
+                 config: any, initiator: HTMLElement) {
         const changes = await loadUiCommandHandler.handle(mateuApiClient, {
             baseUrl: baseUrl,
             initiator: initiator,
@@ -16,6 +18,30 @@ export class Service {
             ui: changes.ui
         })
     }
+
+    async runAction(mateuApiClient: AxiosMateuApiClient,
+                    baseUrl: string, journeyTypeId: string,
+                    actionId: string, initiatorComponentId: string,
+              config: any, serverSideType: string,
+              userData: any, initiator: HTMLElement) {
+        const changes = await runActionCommandHandler.handle(mateuApiClient, {
+            baseUrl,
+            journeyTypeId,
+            actionId,
+            config,
+            initiatorComponentId,
+            userData,
+            serverSideType,
+            initiator
+        } as RunActionCommand)
+        changes.uiIncrement.fragments.forEach(fragment => {
+            upstream.next({
+                fragment,
+                ui: undefined
+            })
+        })
+    }
+
 }
 
 export const service = new Service()

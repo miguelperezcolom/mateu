@@ -7,7 +7,7 @@ import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadat
 
 export const mockedSimpleForm1: Component = {
     id: '_root',
-    serverSideType: '',
+    serverSideType: 'com.example.Formulario',
     metadata: {
         type: ComponentMetadataType.Form,
         title: 'My form',
