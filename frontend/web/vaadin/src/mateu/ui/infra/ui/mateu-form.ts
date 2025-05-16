@@ -39,7 +39,8 @@ export class MateuForm extends ComponentElement {
                 userData: this.values,
                 actionId,
                 serverSideType: this.serverSideType,
-                initiatorComponentId: this.id
+                initiatorComponentId: this.id,
+                initiator: this
             },
             bubbles: true,
             composed: true

@@ -57,7 +57,8 @@ export class MateuUx extends ConnectedElement {
                 userData: any
                 actionId: string
                 serverSideType: string
-                initiatorComponentId: string
+                initiatorComponentId: string,
+                initiator: HTMLElement
             }
             if (e.type == 'action-requested') {
                 service.runAction(mateuApiClient, this.baseUrl,
@@ -67,7 +68,7 @@ export class MateuUx extends ConnectedElement {
                     parseOverrides(this.overrides),
                     detail.serverSideType,
                     detail.userData,
-                    this).then();
+                    detail.initiator).then();
             }
         }
     }

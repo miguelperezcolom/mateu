@@ -15,7 +15,8 @@ export class Service {
         })
         upstream.next({
             fragment: undefined,
-            ui: changes.ui
+            ui: changes.ui,
+            error: undefined
         })
     }
 
@@ -37,7 +38,8 @@ export class Service {
         changes.uiIncrement.fragments.forEach(fragment => {
             upstream.next({
                 fragment,
-                ui: undefined
+                ui: undefined,
+                error: undefined
             })
         })
     }

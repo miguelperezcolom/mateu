@@ -7,6 +7,7 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
+import "@vaadin/progress-bar"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -15,6 +16,7 @@ import './mateu-table'
 import './mateu-crud'
 import './mateu-card'
 import './mateu-app'
+import './mateu-api-caller'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
@@ -37,9 +39,11 @@ export class MateuComponent extends ComponentElement {
     render() {
         const metadata = this.metadata!
         return html`
-
+            
+            <mateu-api-caller>
+                
            ${metadata.type == ComponentMetadataType.Form
-                   ?html`<mateu-form 
+            ?html`<mateu-form 
                            id="${this.id}" 
                            .metadata="${metadata}"
                            .data="${this.data}"
@@ -49,7 +53,7 @@ export class MateuComponent extends ComponentElement {
 </mateu-form>`:nothing}
            
            ${metadata.type == ComponentMetadataType.Table
-                   ?html`<mateu-table
+            ?html`<mateu-table
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
@@ -59,14 +63,14 @@ export class MateuComponent extends ComponentElement {
                    </mateu-table>`:nothing}
 
            ${metadata.type == ComponentMetadataType.TableCrud
-                   ?html`<mateu-crud
+            ?html`<mateu-crud
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
                    ></mateu-crud>`:nothing}
            ${metadata.type == ComponentMetadataType.CardCrud
-                   ?html`<mateu-crud
+            ?html`<mateu-crud
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
@@ -74,7 +78,7 @@ export class MateuComponent extends ComponentElement {
                    ></mateu-crud>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Card
-                   ?html`<mateu-card
+            ?html`<mateu-card
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
@@ -82,7 +86,7 @@ export class MateuComponent extends ComponentElement {
                    ></mateu-card>`:nothing}
 
            ${metadata.type == ComponentMetadataType.App
-                   ?html`<mateu-app
+            ?html`<mateu-app
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
@@ -90,8 +94,10 @@ export class MateuComponent extends ComponentElement {
                    ></mateu-app>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Element
-                   ?this.renderElement(metadata as Element):nothing}
-           
+            ?this.renderElement(metadata as Element):nothing}
+
+            </mateu-api-caller>
+            
        `
     }
 
