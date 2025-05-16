@@ -9,6 +9,7 @@ export const mockedSimpleRoot1: Component = {
         type: ComponentMetadataType.Element,
         name: 'div'
     } as Element,
+    data: {},
     children: [
         {
             id: '1',
@@ -17,6 +18,7 @@ export const mockedSimpleRoot1: Component = {
                 type: ComponentMetadataType.Element,
                 name: 'div'
             } as Element,
+            data: {},
             children: [
                 {
                     id: '2',
@@ -25,6 +27,7 @@ export const mockedSimpleRoot1: Component = {
                         type: ComponentMetadataType.Element,
                         name: 'div'
                     } as Element,
+                    data: {},
                     children: []
                 }
             ]
@@ -36,6 +39,7 @@ export const mockedSimpleRoot1: Component = {
                 type: ComponentMetadataType.Element,
                 name: 'div',
             } as Element,
+            data: {},
             children: [
                 {
                     id: '4',
@@ -45,6 +49,7 @@ export const mockedSimpleRoot1: Component = {
                         name: 'div',
                         content: 'Hola!'
                     } as Element,
+                    data: {},
                     children: []
                 }
             ]

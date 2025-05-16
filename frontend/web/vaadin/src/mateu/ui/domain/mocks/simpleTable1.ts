@@ -4,10 +4,9 @@ import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 
 
 export const mockedSimpleTable1: Component = {
-    id: '_root',
+    id: 'table1',
     serverSideType: '',
     metadata: {
-        id: 'table1',
         type: ComponentMetadataType.Table,
         columns: [
             {
@@ -25,5 +24,19 @@ export const mockedSimpleTable1: Component = {
         ],
         rows: undefined,
     } as Table,
+    data: {
+        items: [
+            {
+                col1: 'aaa',
+                col2: 'bbb',
+                col3: 'cccc'
+            },
+            {
+                col1: 'xxxx',
+                col2: 'yyyy',
+                col3: 'zzz'
+            }
+        ]
+    },
     children: []
 }

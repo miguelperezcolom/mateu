@@ -7,10 +7,9 @@ import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadat
 
 
 export const mockedSimpleTableCrud1: Component = {
-    id: '_root',
+    id: 'crud1',
     serverSideType: '',
     metadata: {
-        id: 'crud1',
         type: ComponentMetadataType.TableCrud,
         title: 'My crud',
         subtitle: 'My crud subtitle bla, bla, bla',
@@ -59,8 +58,21 @@ export const mockedSimpleTableCrud1: Component = {
             rows: undefined,
         } as Table,
         pageSize: 10,
-        clientSidePagination: false
-
+        clientSidePagination: false,
     } as Crud,
+    data: {
+        items: [
+            {
+                col1: 'aaa',
+                col2: 'bbb',
+                col3: 'cccc'
+            },
+            {
+                col1: 'xxxx',
+                col2: 'yyyy',
+                col3: 'zzz'
+            }
+        ]
+    },
     children: []
 }

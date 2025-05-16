@@ -23,6 +23,7 @@ export const mockedSimpleForm1: Component = {
             }
         ]
     } as Form,
+    data: {},
     children: [
         {
             id: '1',
@@ -31,6 +32,7 @@ export const mockedSimpleForm1: Component = {
                 type: ComponentMetadataType.FormLayout,
                 columns: 2
             } as FormLayout,
+            data: {},
             children: [
                 {
                     id: '2',
@@ -42,6 +44,7 @@ export const mockedSimpleForm1: Component = {
                         dataType: 'string',
                         stereotype: 'text'
                     } as Field,
+                    data: {},
                     children: []
                 },
                 {
@@ -54,6 +57,7 @@ export const mockedSimpleForm1: Component = {
                         dataType: 'integer',
                         stereotype: 'text'
                     } as Field,
+                    data: {},
                     children: []
                 },
                 {
@@ -66,6 +70,7 @@ export const mockedSimpleForm1: Component = {
                         dataType: 'string',
                         stereotype: 'text'
                     } as Field,
+                    data: {},
                     children: []
                 },
                 {
@@ -78,6 +83,7 @@ export const mockedSimpleForm1: Component = {
                         dataType: 'string',
                         stereotype: 'text'
                     } as Field,
+                    data: {},
                     children: []
                 }
             ]

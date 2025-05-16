@@ -7,10 +7,9 @@ import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadat
 
 
 export const mockedSimpleCardCrud1: Component = {
-    id: '_root',
+    id: 'crud1',
     serverSideType: '',
     metadata: {
-        id: 'crud1',
         type: ComponentMetadataType.CardCrud,
         title: 'My crud',
         subtitle: 'My crud subtitle bla, bla, bla',
@@ -62,5 +61,6 @@ export const mockedSimpleCardCrud1: Component = {
         clientSidePagination: false
 
     } as Crud,
+    data: {},
     children: []
 }

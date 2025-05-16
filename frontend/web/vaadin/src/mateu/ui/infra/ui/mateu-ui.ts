@@ -1,17 +1,18 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, PropertyValues } from "lit";
+import { css, html, LitElement, PropertyValues } from "lit";
 import UI from "@mateu/shared/apiClients/dtos/UI"
 import '@vaadin/vertical-layout'
-import { State, upstream } from "@domain/state";
+import { upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
 import { parseOverrides } from "@infra/ui/common";
-import ConnectedElement from "@infra/ui/ConnectedElement";
+import MessageWrapper from "@domain/MessageWrapper";
+import { Subscription } from "rxjs";
 
 
 @customElement('mateu-ui')
-export class MateuUi extends ConnectedElement {
+export class MateuUi extends LitElement {
 
     // public properties
     @property()
@@ -26,8 +27,15 @@ export class MateuUi extends ConnectedElement {
     @state()
     ui: UI | undefined = undefined;
 
+    private upstreamSubscription: Subscription | undefined;
+
     connectedCallback() {
         super.connectedCallback()
+        this.upstreamSubscription = upstream.subscribe((messageWrapper: MessageWrapper) => {
+            if (messageWrapper.ui) {
+                this.stampState(messageWrapper.ui)
+            }
+        })
 
         window.onpopstate = (e) => {
             const w = e.target as Window
@@ -35,6 +43,11 @@ export class MateuUi extends ConnectedElement {
         };
 
         this.loadUrl(window)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.upstreamSubscription?.unsubscribe()
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -75,21 +88,22 @@ export class MateuUi extends ConnectedElement {
 
 
     // write state to reactive properties
-    stampState(state: State) {
-        this.ui = state.ui
-        if (state.ui?.title) {
-            document.title = state.ui.title
+    stampState(ui: UI) {
+        this.ui = ui
+        if (this.ui?.title) {
+            document.title = this.ui.title
         }
     }
 
 
     render() {
        return html`
-           <mateu-ux baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
+           <mateu-ux id="_ux" baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
        `
     }
 
     static styles = css`
+        
   `
 }
 

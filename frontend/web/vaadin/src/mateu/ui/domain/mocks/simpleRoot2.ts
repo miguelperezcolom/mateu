@@ -10,6 +10,7 @@ export const mockedSimpleRoot2: Component = {
         type: ComponentMetadataType.HorizontalLayout,
         name: 'div'
     } as Element,
+    data: {},
     children: [
         {
             id: '1',
@@ -18,6 +19,7 @@ export const mockedSimpleRoot2: Component = {
                 type: ComponentMetadataType.Element,
                 name: 'div'
             } as Element,
+            data: {},
             children: [
                 {
                     id: '2',
@@ -26,6 +28,7 @@ export const mockedSimpleRoot2: Component = {
                         type: ComponentMetadataType.Element,
                         name: 'div'
                     } as Element,
+                    data: {},
                     children: []
                 }
             ]
@@ -37,6 +40,7 @@ export const mockedSimpleRoot2: Component = {
                 type: ComponentMetadataType.Element,
                 name: 'div',
             } as Element,
+            data: {},
             children: [
                 {
                     id: '6',
@@ -46,6 +50,7 @@ export const mockedSimpleRoot2: Component = {
                         name: 'div',
                         content: 'Hola 6!'
                     } as Element,
+                    data: {},
                     children: []
                 }
             ]

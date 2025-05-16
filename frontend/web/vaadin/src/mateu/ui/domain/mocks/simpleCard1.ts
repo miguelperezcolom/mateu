@@ -4,12 +4,12 @@ import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
 
 
 export const mockedSimpleCard1: Component = {
-    id: '_root',
+    id: 'card1',
     serverSideType: '',
     metadata: {
-        id: 'card1',
         type: ComponentMetadataType.Card,
         columns: []
     } as Card,
+    data: {},
     children: []
 }

@@ -12,12 +12,12 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
-import ComponentElement from "@infra/ui/ComponentElement";
 import './mateu-filter-bar'
 import './mateu-pagination'
 import './mateu-table'
 import TableCrud from "@mateu/shared/apiClients/dtos/componentmetadata/TableCrud";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import ComponentElement from "@infra/ui/ComponentElement";
 
 
 @customElement('mateu-crud')
@@ -28,9 +28,9 @@ export class MateuCrud extends ComponentElement {
         return html`
             <mateu-filter-bar></mateu-filter-bar>
             ${this.metadata?.type == ComponentMetadataType.TableCrud?html`
-                <mateu-table .metadata="${metadata.table}"></mateu-table>
+                <mateu-table .metadata="${metadata.table}" .data="${this.data}"></mateu-table>
             `:html`
-                <mateu-card .metadata="${metadata.table}"></mateu-card>
+                <mateu-card .metadata="${metadata.table}" .data="${this.data}"></mateu-card>
             `}
             <slot></slot>
             <mateu-pagination></mateu-pagination>

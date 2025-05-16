@@ -1,7 +1,7 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement } from "lit";
 import '@vaadin/vertical-layout'
-import { State, store, upstream } from "@domain/state";
+import { upstream } from "@domain/state";
 import './mateu-ux'
 import { mockedSimpleRoot1 } from "@domain/mocks/simpleRoot1";
 import Component from "@mateu/shared/apiClients/dtos/Component";
@@ -15,6 +15,7 @@ import { mockedSimpleTableCrud1 } from "@domain/mocks/simpleTableCrud1";
 import { mockedSimpleCardCrud1 } from "@domain/mocks/simpleCardCrud1";
 import { mockedSimpleApp1 } from "@domain/mocks/simpleApp1";
 import { mockedSimpleCard1 } from "@domain/mocks/simpleCard1";
+import Message from "@mateu/shared/apiClients/dtos/Message";
 
 
 @customElement('mateu-test-bench')
@@ -38,7 +39,7 @@ export class MateuTestBench extends LitElement {
         const component = { ...mockedSimpleRoot2 };
         // @ts-ignore
         (component.children[1].children[0].metadata as Element).content = newContent
-        this.loadComponent(mockedSimpleRoot2)
+        this.loadComponent(component)
     }
 
     loadForm = () => {
@@ -47,6 +48,27 @@ export class MateuTestBench extends LitElement {
 
     loadTable = () => {
         this.loadComponent(mockedSimpleTable1)
+    }
+
+    loadTableData = () => {
+        const message = {
+            targetComponentId: 'table1',
+            component: {
+                data: {
+                    items: [
+                        {
+                            col1: 'ewwerwer',
+                            col2: 'werer',
+                            col3: 'werwer'
+                        },
+                    ]
+                }
+            }
+        } as Message
+        upstream.next({
+            message,
+            ui:undefined
+        })
     }
 
     loadTableCrud = () => {
@@ -66,27 +88,14 @@ export class MateuTestBench extends LitElement {
     }
 
     loadComponent = (component: Component) => {
-        const newState = {
-            ...store.state
-        }
-        if (!newState.ui) {
-            newState.ui = {
-                title: 'Hola',
-                favIcon: 'favicon',
-                root: {...component}
-            }
-        } else {
-            newState.ui!.root = {...component}
-        }
-        this.plainComponents(newState, {...component});
-        store.state = newState
-        upstream.next(newState)
-    }
-
-
-    plainComponents = (state: State, component: Component) => {
-        state.components[component.id] = component
-        component.children?.map(child => this.plainComponents(state, child))
+        const message = {
+            targetComponentId: '_ux',
+            component
+        } as Message
+        upstream.next({
+            message,
+            ui:undefined
+        })
     }
 
     render() {
@@ -96,10 +105,12 @@ export class MateuTestBench extends LitElement {
            <vaadin-button @click="${this.updateUi}">Update</vaadin-button>
            <vaadin-button @click="${this.loadForm}">Form</vaadin-button>
            <vaadin-button @click="${this.loadTable}">Table</vaadin-button>
+           <vaadin-button @click="${this.loadTableData}">Table Data</vaadin-button>
            <vaadin-button @click="${this.loadTableCrud}">Table Crud</vaadin-button>
            <vaadin-button @click="${this.loadCardCrud}">Card Crud</vaadin-button>
            <vaadin-button @click="${this.loadApp}">App</vaadin-button>
            <vaadin-button @click="${this.loadCard}">Card</vaadin-button>
+           
        `
     }
 

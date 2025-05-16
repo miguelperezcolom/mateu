@@ -1,4 +1,4 @@
-import { customElement } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -7,7 +7,6 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { store, upstream } from "@domain/state";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -17,24 +16,13 @@ import './mateu-crud'
 import './mateu-card'
 import './mateu-app'
 import ComponentElement from "@infra/ui/ComponentElement";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
-
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        setTimeout(() => {
-            console.log('garbage collecting component', this.id)
-            // todo: remove component from state
-            upstream.next({
-                ...store.state
-            })
-        }, 1000)
-    }
-
-
+    @property()
+    signature: ComponentMetadata | undefined
 
     renderElement = (element: Element): TemplateResult => {
         if (element.name == 'div') {
@@ -51,28 +39,28 @@ export class MateuComponent extends ComponentElement {
         return html`
 
            ${metadata.type == ComponentMetadataType.Form
-                   ?html`<mateu-form id="${this.id}">
+                   ?html`<mateu-form id="${this.id}" .metadata="${metadata}">
         <slot></slot>        
 </mateu-form>`:nothing}
-
+           
            ${metadata.type == ComponentMetadataType.Table
-                   ?html`<mateu-table id="${this.id}">
+                   ?html`<mateu-table id="${this.id}" .metadata="${metadata}" .data="${this.data}">
                        <slot></slot>
                    </mateu-table>`:nothing}
 
            ${metadata.type == ComponentMetadataType.TableCrud
-                   ?html`<mateu-crud id="${this.id}"></mateu-crud>`:nothing}
+                   ?html`<mateu-crud id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-crud>`:nothing}
            ${metadata.type == ComponentMetadataType.CardCrud
-                   ?html`<mateu-crud id="${this.id}"></mateu-crud>`:nothing}
+                   ?html`<mateu-crud id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-crud>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Card
-                   ?html`<mateu-card id="${this.id}"></mateu-card>`:nothing}
+                   ?html`<mateu-card id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-card>`:nothing}
 
            ${metadata.type == ComponentMetadataType.App
-                   ?html`<mateu-app id="${this.id}"></mateu-app>`:nothing}
+                   ?html`<mateu-app id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-app>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Field
-                   ?html`<mateu-field id="${this.id}">
+                   ?html`<mateu-field id="${this.id}" .metadata="${metadata}" .data="${this.data}">
         <slot></slot>        
 </mateu-field>`:nothing}
 

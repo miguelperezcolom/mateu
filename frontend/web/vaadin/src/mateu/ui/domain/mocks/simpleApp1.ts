@@ -6,10 +6,9 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App";
 
 
 export const mockedSimpleApp1: Component = {
-    id: '_root',
+    id: 'app1',
     serverSideType: '',
     metadata: {
-        id: 'app1',
         type: ComponentMetadataType.App,
         title: 'My crud',
         subtitle: 'My crud subtitle bla, bla, bla',
@@ -22,5 +21,6 @@ export const mockedSimpleApp1: Component = {
             }
         ],
     } as App,
+    data: {},
     children: []
 }

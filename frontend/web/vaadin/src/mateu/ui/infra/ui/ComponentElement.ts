@@ -1,33 +1,33 @@
-import { PropertyValues } from "lit";
-import { State, store } from "@domain/state";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { property } from "lit/decorators.js";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import Message from "@mateu/shared/apiClients/dtos/Message";
 
 export default abstract class ComponentElement extends ConnectedElement {
 
     // public properties
-    @property()
-    id = ''
 
     @property()
-    metadata: ComponentMetadata | undefined = undefined
+    metadata: ComponentMetadata | undefined
 
-    protected update(changedProperties: PropertyValues) {
-        if (changedProperties.has('id')) {
-            this.stampState({...store.state})
-        }
-        if (changedProperties.has('metadata')) {
-            super.update(changedProperties);
-        }
-    }
+    @property()
+    data: any
+
 
     // write state to reactive properties
-    stampState(state: State) {
-        if (this.id) {
+    stampState(message: Message) {
+        if (this.id == message.targetComponentId) {
+            if (message.component?.metadata) {
+                this.metadata = message.component?.metadata
+            }
+            if (message.component?.data) {
+                this.data = message.component?.data
+            }
+            /*
             if (JSON.stringify(this.metadata) != JSON.stringify(state.components[this.id]?.metadata)) {
                 this.metadata = {...state.components[this.id].metadata}
             }
+             */
         }
     }
 

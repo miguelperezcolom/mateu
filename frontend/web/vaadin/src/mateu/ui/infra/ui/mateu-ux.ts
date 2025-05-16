@@ -8,12 +8,12 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
-import { State } from "@domain/state";
 import './mateu-component'
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
+import Message from "@mateu/shared/apiClients/dtos/Message";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 
 
@@ -22,6 +22,8 @@ export class MateuUx extends ConnectedElement {
 
     // public properties
     @property()
+    id = ''
+    @property()
     baseUrl = ''
     @property()
     overrides: string | undefined = undefined;
@@ -29,8 +31,6 @@ export class MateuUx extends ConnectedElement {
     journeyTypeId: string | undefined = undefined;
 
     // state
-    @state()
-    titleFromUI: string | undefined = undefined;
 
     overridesParsed: Object = {};
 
@@ -43,32 +43,34 @@ export class MateuUx extends ConnectedElement {
     }
 
     // write state to reactive properties
-    stampState(state: State) {
-        this.titleFromUI = state.ui?.title
-        if (state.ui?.root) {
-            this.root = {...state.ui?.root}
+    stampState(message: Message) {
+        if (message.component) {
+            this.root = message.component
         } else {
             this.root = undefined
         }
     }
 
     renderComponent = (component: Component): TemplateResult => {
-        if (component.metadata.type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(component, this.renderComponent)
-        }
-        if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(component, this.renderComponent)
-        }
-        if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(component, this.renderComponent)
-        }
-        return html`<mateu-component id="${component.id}">
+        if (component.metadata) {
+            if (component.metadata.type == ComponentMetadataType.FormLayout) {
+                return renderFormLayout(component, this.renderComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
+                return renderHorizontalLayout(component, this.renderComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
+                return renderVerticalLayout(component, this.renderComponent)
+            }
+            return html`<mateu-component id="${component.id}" .metadata="${component.metadata}" .data="${component.data}" signature="${JSON.stringify(component.metadata) + JSON.stringify(component.data)}">
 ${component.children?.map(child => this.renderComponent(child))}
            </mateu-component>`
+        }
+        return html`<p>No metadata for component ${component.id}</p>`
     }
 
     render() {
-       return html`
+        return html`
            ${this.root?this.renderComponent(this.root):nothing}
        `
     }
