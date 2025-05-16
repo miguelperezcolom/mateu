@@ -10,6 +10,6 @@ export const mockedSimpleCard1: Component = {
         type: ComponentMetadataType.Card,
         columns: []
     } as Card,
-    data: {},
+    initialData: {},
     children: []
 }

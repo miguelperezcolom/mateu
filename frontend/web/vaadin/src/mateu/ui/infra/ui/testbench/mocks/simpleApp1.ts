@@ -21,6 +21,6 @@ export const mockedSimpleApp1: Component = {
             }
         ],
     } as App,
-    data: {},
+    initialData: {},
     children: []
 }

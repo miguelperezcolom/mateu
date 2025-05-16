@@ -20,8 +20,8 @@ export default abstract class ComponentElement extends ConnectedElement {
             if (fragment.component?.metadata) {
                 this.metadata = fragment.component?.metadata
             }
-            if (fragment.component?.data) {
-                this.data = fragment.component?.data
+            if (fragment.component?.initialData) {
+                this.data = fragment.component?.initialData
             }
             /*
             if (JSON.stringify(this.metadata) != JSON.stringify(state.components[this.id]?.metadata)) {

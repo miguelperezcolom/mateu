@@ -54,7 +54,7 @@ export class MateuTestBench extends LitElement {
         const fragment = {
             targetComponentId: 'table1',
             component: {
-                data: {
+                initialData: {
                     items: [
                         {
                             col1: 'ewwerwer',

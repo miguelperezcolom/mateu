@@ -61,6 +61,6 @@ export const mockedSimpleCardCrud1: Component = {
         clientSidePagination: false
 
     } as Crud,
-    data: {},
+    initialData: {},
     children: []
 }

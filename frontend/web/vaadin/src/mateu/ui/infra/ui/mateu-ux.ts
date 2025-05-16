@@ -62,7 +62,11 @@ export class MateuUx extends ConnectedElement {
             if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
                 return renderVerticalLayout(component, this.renderComponent)
             }
-            return html`<mateu-component id="${component.id}" .metadata="${component.metadata}" .data="${component.data}" signature="${JSON.stringify(component.metadata) + JSON.stringify(component.data)}">
+            return html`<mateu-component id="${component.id}" 
+                                         .metadata="${component.metadata}" 
+                                         .data="${component.initialData}" 
+                                         signature="${JSON.stringify(component.metadata) 
+                                         + JSON.stringify(component.initialData)}">
 ${component.children?.map(child => this.renderComponent(child))}
            </mateu-component>`
         }

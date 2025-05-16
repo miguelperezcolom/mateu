@@ -6,6 +6,6 @@ export default interface Component {
     id: string | undefined
     serverSideType: string | undefined
     children: Component[] | undefined
-    data: any | undefined
+    initialData: any | undefined
 
 }

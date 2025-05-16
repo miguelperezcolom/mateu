@@ -60,7 +60,7 @@ export const mockedSimpleTableCrud1: Component = {
         pageSize: 10,
         clientSidePagination: false,
     } as Crud,
-    data: {
+    initialData: {
         items: [
             {
                 col1: 'aaa',

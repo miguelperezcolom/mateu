@@ -24,7 +24,7 @@ export const mockedSimpleTable1: Component = {
         ],
         rows: undefined,
     } as Table,
-    data: {
+    initialData: {
         items: [
             {
                 col1: 'aaa',
