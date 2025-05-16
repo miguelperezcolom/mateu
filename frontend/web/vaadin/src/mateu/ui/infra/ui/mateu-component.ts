@@ -59,11 +59,6 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.App
                    ?html`<mateu-app id="${this.id}" .metadata="${metadata}" .data="${this.data}"></mateu-app>`:nothing}
 
-           ${metadata.type == ComponentMetadataType.Field
-                   ?html`<mateu-field id="${this.id}" .metadata="${metadata}" .data="${this.data}">
-        <slot></slot>        
-</mateu-field>`:nothing}
-
            ${metadata.type == ComponentMetadataType.Element
                    ?this.renderElement(metadata as Element):nothing}
            

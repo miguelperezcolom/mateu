@@ -21,13 +21,15 @@ export const mockedSimpleForm1: Component = {
                                 fieldId: 'nombre',
                                 label: 'Nombre',
                                 dataType: 'string',
-                                stereotype: 'text'
+                                stereotype: 'text',
+                                initialValue: 'Mateu'
                             },
                             {
                                 fieldId: 'edad',
                                 label: 'Edad',
                                 dataType: 'integer',
-                                stereotype: 'text'
+                                stereotype: 'text',
+                                initialValue: 17
                             },
                             {
                                 fieldId: 'poblacion',

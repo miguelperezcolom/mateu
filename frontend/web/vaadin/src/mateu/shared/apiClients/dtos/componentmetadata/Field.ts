@@ -19,5 +19,6 @@ export default interface Field {
     colspan: number | undefined
     rightAligned: boolean | undefined
     bold: boolean | undefined
+    initialValue: any
 
 }

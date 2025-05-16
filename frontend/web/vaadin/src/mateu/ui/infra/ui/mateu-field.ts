@@ -21,7 +21,6 @@ export class MateuField extends LitElement {
     field: Field | undefined = undefined
 
     valueChanged = (e: CustomEvent) => {
-        console.log('e', e.detail.value)
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value: e.detail.value,
@@ -40,6 +39,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}" 
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
+                        value="${this.field.initialValue}"
                 ></vaadin-text-field>
             `:nothing}
             ${this.field?.dataType == 'number'?html`
@@ -47,6 +47,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
+                        value="${this.field.initialValue}"
                 ></vaadin-number-field>
             `:nothing}
             ${this.field?.dataType == 'integer'?html`
@@ -54,6 +55,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
+                        value="${this.field.initialValue}"
                 ></vaadin-integer-field>
             `:nothing}
             <slot></slot>
