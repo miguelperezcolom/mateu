@@ -5,18 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AQUIELTITULODELAPAGINA</title>
-    <script src="https://editor.unlayer.com/embed.js"></script>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
-    <script type="module" src="https://unpkg.com/test-custom-components/dist/assets/custom-elements.js"></script>
     <script type="module" src="/src/lumo.js"></script>
     <script type="module" src="/src/mateu/ui/infra/ui/testbench/mateu-test-bench.ts"></script>
   </head>
   <body>
 
+  <mateu-ui baseUrl="/antonia"
+            config='{"tenantId": "1111","profile": "dev"}'
+  >
+  </mateu-ui>
+
+  <!--
   <mateu-test-bench baseUrl="/helloworld"
             config='{"tenantId": "1111","profile": "dev"}'
   >
   </mateu-test-bench>
+  -->
 
   <script>
     if (window.matchMedia) {

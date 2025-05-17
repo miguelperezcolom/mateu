@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Import;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.SerdeImport;
 
+/*
 @Introspected(packages = "io.mateu.dtos")
 @SerdeImport(packageName = "io.mateu.dtos")
 @Import(packages = {
@@ -17,5 +18,6 @@ import io.micronaut.serde.annotation.SerdeImport;
         "io.mateu.core.domain.reflection"
     },
     annotated = "*")
+*/
 public class ${simpleClassName}Config {
 }

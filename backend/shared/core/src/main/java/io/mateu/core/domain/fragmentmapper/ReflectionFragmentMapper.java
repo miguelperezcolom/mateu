@@ -31,9 +31,9 @@ public class ReflectionFragmentMapper implements FragmentMapper {
     var formDto =
         new FormDto(
             "icon",
-                getTitle(form),
+            getTitle(form),
             false,
-                getSubtitle(form),
+            getSubtitle(form),
             new StatusDto(StatusTypeDto.SUCCESS, "message"),
             List.of(),
             List.of(),

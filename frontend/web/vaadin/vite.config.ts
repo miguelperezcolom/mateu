@@ -32,6 +32,7 @@ export default defineConfig({
   server: {
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
+      '/antonia': 'http://localhost:8091',
       '/helloworld': 'http://localhost:8091',
       '/mateu': 'http://localhost:8091',
       '/images': 'http://localhost:8091',

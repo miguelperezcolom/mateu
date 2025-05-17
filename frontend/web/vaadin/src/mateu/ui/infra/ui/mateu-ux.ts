@@ -145,7 +145,6 @@ ${component.children?.map(child => this.renderComponent(child))}
 
     render() {
         return html`
-            <span>${this.route}</span>
            ${this.root?this.renderComponent(this.root):nothing}
        `
     }
