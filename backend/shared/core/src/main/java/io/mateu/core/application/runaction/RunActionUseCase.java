@@ -38,7 +38,11 @@ public class RunActionUseCase {
             result ->
                 uiIncrementMapperProvider
                     .get(result)
-                    .map(result, command.baseUrl(), command.httpRequest()));
+                    .map(
+                        result,
+                        command.baseUrl(),
+                        command.initiatorComponentId(),
+                        command.httpRequest()));
   }
 
   private Mono<?> resolveRoute(Object instance, String route, HttpRequest httpRequest) {

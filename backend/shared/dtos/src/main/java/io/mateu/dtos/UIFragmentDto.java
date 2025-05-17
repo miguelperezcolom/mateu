@@ -1,22 +1,10 @@
 package io.mateu.dtos;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
  * UI update
  *
- * @param root New content
- * @param components List of new components
+ * @param targetComponentId where to place this content
+ * @param component New content
+ * @param data data
  */
-public record UIFragmentDto(SingleComponentDto root, Map<String, ComponentDto> components) {
-
-  public UIFragmentDto {
-    components = Collections.unmodifiableMap(components);
-  }
-
-  @Override
-  public Map<String, ComponentDto> components() {
-    return Collections.unmodifiableMap(components);
-  }
-}
+public record UIFragmentDto(String targetComponentId, ComponentDto component, Object data) {}

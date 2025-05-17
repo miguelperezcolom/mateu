@@ -49,6 +49,7 @@ class RunActionUseCaseTest {
                       componentType.getName(),
                       Map.of(),
                       Map.of(),
+                      "initiator_component_id",
                       new FakeHttpRequest()))
               .block();
       assertThat(increment).isNotNull();

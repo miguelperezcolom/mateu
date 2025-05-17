@@ -19,6 +19,7 @@ export default abstract class ComponentElement extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
+        console.log('apply', fragment)
         if (this.id == fragment.targetComponentId) {
             if (fragment.component?.metadata) {
                 this.metadata = fragment.component?.metadata

@@ -64,11 +64,11 @@ export class MateuForm extends ComponentElement {
            <p>${metadata?.subtitle}</p>
            
            <vaadin-form-layout>
-               ${metadata.sections.map(section => html`
+               ${metadata.sections?.map(section => html`
 
-                   ${section.groups.map(group => html`
+                   ${section.groups?.map(group => html`
             
-                ${group.fields.map(field => html`
+                ${group.fields?.map(field => html`
 
                     <mateu-field .field="${field}"></mateu-field>
                     

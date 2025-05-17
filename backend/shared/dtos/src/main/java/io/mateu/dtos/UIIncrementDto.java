@@ -8,12 +8,12 @@ import java.util.List;
  *
  * @param commands List of command to run in the frontend
  * @param messages List of messages to be shown in the UI
- * @param uiFragments List of new UI fragments
+ * @param fragments List of new UI fragments
  */
 public record UIIncrementDto(
     List<UICommandDto> commands,
     List<MessageDto> messages,
-    List<UIFragmentDto> uiFragments,
+    List<UIFragmentDto> fragments,
     Object userData,
     Object sharedData,
     Object appData) {
@@ -21,7 +21,7 @@ public record UIIncrementDto(
   public UIIncrementDto {
     commands = Collections.unmodifiableList(commands != null ? commands : List.of());
     messages = Collections.unmodifiableList(messages != null ? messages : List.of());
-    uiFragments = Collections.unmodifiableList(uiFragments != null ? uiFragments : List.of());
+    fragments = Collections.unmodifiableList(fragments != null ? fragments : List.of());
   }
 
   @Override
@@ -34,8 +34,7 @@ public record UIIncrementDto(
     return Collections.unmodifiableList(commands);
   }
 
-  @Override
-  public List<UIFragmentDto> uiFragments() {
-    return Collections.unmodifiableList(uiFragments);
+  public List<UIFragmentDto> fragments() {
+    return Collections.unmodifiableList(fragments);
   }
 }

@@ -12,5 +12,6 @@ public interface UiIncrementMapper {
     return Integer.MAX_VALUE;
   }
 
-  Mono<UIIncrementDto> map(Object instance, String baseUrl, HttpRequest httpRequest);
+  Mono<UIIncrementDto> map(
+      Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest);
 }

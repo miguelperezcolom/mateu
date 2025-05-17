@@ -12,6 +12,7 @@ public record RunActionCommand(
     String componentType,
     Map<String, Object> data,
     Map<String, Object> appData,
+    String initiatorComponentId,
     HttpRequest httpRequest) {
 
   public RunActionCommand {

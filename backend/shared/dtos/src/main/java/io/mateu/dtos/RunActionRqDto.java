@@ -4,11 +4,14 @@ import java.util.Collections;
 import java.util.Map;
 
 public record RunActionRqDto(
-    String componentType, Map<String, Object> data, Map<String, Object> contextData) {
+    String componentType,
+    Map<String, Object> data,
+    Map<String, Object> config,
+    String initiatorComponentId) {
 
   public RunActionRqDto {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();
-    contextData = contextData != null ? Collections.unmodifiableMap(contextData) : Map.of();
+    config = config != null ? Collections.unmodifiableMap(config) : Map.of();
   }
 
   @Override
@@ -17,7 +20,7 @@ public record RunActionRqDto(
   }
 
   @Override
-  public Map<String, Object> contextData() {
-    return Collections.unmodifiableMap(contextData);
+  public Map<String, Object> config() {
+    return Collections.unmodifiableMap(config);
   }
 }

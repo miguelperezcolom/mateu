@@ -26,7 +26,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   @Override
   // todo: add metadata from the method annotations
-  public Mono<UIIncrementDto> map(Object instance, String baseUrl, HttpRequest httpRequest) {
+  public Mono<UIIncrementDto> map(
+      Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     if (instance == null) {
       return Mono.empty();
     }
@@ -40,7 +41,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         new UIIncrementDto(
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
-            mapToFragments(instance, baseUrl, httpRequest),
+            mapToFragments(instance, baseUrl, initiatorComponentId, httpRequest),
             mapToData(instance, baseUrl, httpRequest),
             Map.of(),
             Map.of()));
@@ -56,8 +57,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
   }
 
   private List<UIFragmentDto> mapToFragments(
-      Object instance, String baseUrl, HttpRequest httpRequest) {
-    return fragmentMapper.mapToFragments(instance, baseUrl, httpRequest);
+      Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
+    return fragmentMapper.mapToFragments(instance, baseUrl, initiatorComponentId, httpRequest);
   }
 
   private Object mapToData(Object instance, String baseUrl, HttpRequest httpRequest) {

@@ -96,7 +96,7 @@ export class MateuApp extends ComponentElement {
                             @item-selected="${this.itemSelected}">
                     </vaadin-menu-bar>
                     <mateu-api-caller>
-                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
                 
@@ -111,7 +111,7 @@ export class MateuApp extends ComponentElement {
                             `)}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
-                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-horizontal-layout>
 
@@ -127,7 +127,7 @@ export class MateuApp extends ComponentElement {
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller>
-                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
             

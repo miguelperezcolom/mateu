@@ -12,7 +12,9 @@ class ReflectionFragmentMapperTest {
   void formIsMapped() {
 
     var mapper = new ReflectionFragmentMapper();
-    var fragments = mapper.mapToFragments(new SimpleForm(), "base_url", new FakeHttpRequest());
+    var fragments =
+        mapper.mapToFragments(
+            new SimpleForm(), "base_url", "initiator_component_id", new FakeHttpRequest());
     assertEquals(1, fragments.size());
     var fragment = fragments.get(0);
     assertNotNull(fragment);

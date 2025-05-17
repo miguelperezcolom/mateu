@@ -96,17 +96,19 @@ export class MateuUx extends ConnectedElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        this.manageActionEvent(new CustomEvent('action-requested', {
-            detail: {
-                userData: undefined,
-                actionId: 'create',
-                serverSideType: undefined,
-                initiatorComponentId: this.id,
-                initiator: this
-            },
-            bubbles: true,
-            composed: true
-        }))
+        if (_changedProperties.has('baseurl') || _changedProperties.has('route')) {
+            this.manageActionEvent(new CustomEvent('action-requested', {
+                detail: {
+                    userData: undefined,
+                    actionId: 'create',
+                    serverSideType: undefined,
+                    initiatorComponentId: this.id,
+                    initiator: this
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
     }
 
     // write state to reactive properties
@@ -143,7 +145,7 @@ ${component.children?.map(child => this.renderComponent(child))}
 
     render() {
         return html`
-            <h5>${this.route}</h5>
+            <span>${this.route}</span>
            ${this.root?this.renderComponent(this.root):nothing}
        `
     }

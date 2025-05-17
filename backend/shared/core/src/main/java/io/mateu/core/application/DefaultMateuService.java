@@ -44,7 +44,8 @@ public class DefaultMateuService implements MateuService {
             actionId,
             rq.componentType(),
             rq.data(),
-            rq.contextData(),
+            rq.config(),
+            rq.initiatorComponentId(),
             httpRequest));
   }
 }

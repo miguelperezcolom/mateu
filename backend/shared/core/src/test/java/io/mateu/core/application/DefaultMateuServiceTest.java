@@ -3,7 +3,7 @@ package io.mateu.core.application;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.example.uis.HelloWorld;
-import com.example.uis.HelloWorldHandlingActions;
+import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.application.getui.GetUIUseCase;
 import io.mateu.core.application.runaction.RunActionUseCase;
 import io.mateu.core.domain.DefaultActionRunnerProvider;
@@ -53,10 +53,10 @@ class DefaultMateuServiceTest {
     assertNotNull(
         defaultMateuService
             .runAction(
-                "ui_id",
+                UsingInterfacesUI.class.getName(),
                 "route",
                 "action_id",
-                new RunActionRqDto(HelloWorldHandlingActions.class.getName(), Map.of(), Map.of()),
+                new RunActionRqDto(null, Map.of(), Map.of(), "initiator_component_id"),
                 "base_url",
                 new FakeHttpRequest())
             .block());
