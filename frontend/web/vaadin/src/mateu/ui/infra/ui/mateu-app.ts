@@ -16,8 +16,10 @@ import ComponentElement from "@infra/ui/ComponentElement";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
 import "./mateu-ux"
+import './mateu-api-caller'
 import { MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import { nanoid } from "nanoid";
 
 
 @customElement('mateu-app')
@@ -93,7 +95,9 @@ export class MateuApp extends ComponentElement {
                             .items="${items}"
                             @item-selected="${this.itemSelected}">
                     </vaadin-menu-bar>
-                    <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}"></mateu-ux>
+                    <mateu-api-caller>
+                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                    </mateu-api-caller>
                 </vaadin-vertical-layout>
                 
             `:nothing}
@@ -106,7 +110,9 @@ export class MateuApp extends ComponentElement {
                                 <vaadin-button @click="${() => this.selectedJourneyTypeId = option.journeyTypeId}">${option.label}</vaadin-button>
                             `)}
                     </vaadin-vertical-layout>
-                    <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}"></mateu-ux>
+                    <mateu-api-caller>
+                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                    </mateu-api-caller>
                 </vaadin-horizontal-layout>
 
                 
@@ -120,7 +126,9 @@ export class MateuApp extends ComponentElement {
                                 <vaadin-tab @click="${() => this.selectedJourneyTypeId = option.journeyTypeId}">${option.label}</vaadin-tab>
                             `)}
                     </vaadin-tabs>
-                    <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}"></mateu-ux>
+                    <mateu-api-caller>
+                        <mateu-ux journeyTypeId="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                    </mateu-api-caller>
                 </vaadin-vertical-layout>
             
             `:nothing}

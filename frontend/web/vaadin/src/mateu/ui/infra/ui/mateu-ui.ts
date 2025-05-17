@@ -6,6 +6,7 @@ import { upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
+import './mateu-api-caller'
 import { parseOverrides } from "@infra/ui/common";
 import Message from "@domain/Message";
 import { Subscription } from "rxjs";
@@ -58,7 +59,7 @@ export class MateuUi extends LitElement {
             || _changedProperties.has('config')
         ) {
 
-            service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this, upstream).then();
+            service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this).then();
 
         }
 
@@ -99,7 +100,9 @@ export class MateuUi extends LitElement {
 
     render() {
        return html`
-           <mateu-ux id="_ux" baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
+           <mateu-api-caller>
+                <mateu-ux id="_ux" baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
+           </mateu-api-caller>
        `
     }
 

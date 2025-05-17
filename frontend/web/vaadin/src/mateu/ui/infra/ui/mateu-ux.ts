@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, nothing, TemplateResult } from "lit";
+import { css, html, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -53,23 +53,29 @@ export class MateuUx extends ConnectedElement {
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
-            const detail = e.detail as {
-                userData: any
-                actionId: string
-                serverSideType: string
-                initiatorComponentId: string,
-                initiator: HTMLElement
-            }
-            if (e.type == 'action-requested') {
-                service.runAction(mateuApiClient, this.baseUrl,
-                    this.journeyTypeId!,
-                    detail.actionId,
-                    detail.initiatorComponentId,
-                    parseOverrides(this.overrides),
-                    detail.serverSideType,
-                    detail.userData,
-                    detail.initiator).then();
-            }
+            this.manageActionEvent(e)
+        }
+    }
+
+    manageActionEvent = (e: CustomEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const detail = e.detail as {
+            userData: any
+            actionId: string
+            serverSideType: string
+            initiatorComponentId: string,
+            initiator: HTMLElement
+        }
+        if (e.type == 'action-requested') {
+            service.runAction(mateuApiClient, this.baseUrl,
+                this.journeyTypeId!,
+                detail.actionId,
+                detail.initiatorComponentId,
+                parseOverrides(this.overrides),
+                detail.serverSideType,
+                detail.userData,
+                detail.initiator).then();
         }
     }
 
@@ -82,6 +88,21 @@ export class MateuUx extends ConnectedElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('action-requested', this.actionRequestedListener)
+    }
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        this.manageActionEvent(new CustomEvent('action-requested', {
+            detail: {
+                userData: undefined,
+                actionId: 'create',
+                serverSideType: undefined,
+                initiatorComponentId: this.id,
+                initiator: this
+            },
+            bubbles: true,
+            composed: true
+        }))
     }
 
     // write state to reactive properties

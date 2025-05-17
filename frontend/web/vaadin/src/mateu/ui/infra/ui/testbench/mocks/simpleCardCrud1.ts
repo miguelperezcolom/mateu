@@ -18,14 +18,12 @@ export const mockedSimpleCardCrud1: Component = {
             {
                 fieldId: 'nombre',
                 label: 'Nombre',
-                type: ComponentMetadataType.Field,
                 dataType: 'string',
                 stereotype: 'text'
             },
             {
                 fieldId: 'edad',
                 label: 'Edad',
-                type: ComponentMetadataType.Field,
                 dataType: 'integer',
                 stereotype: 'text'
             },
@@ -59,7 +57,6 @@ export const mockedSimpleCardCrud1: Component = {
         } as Table,
         pageSize: 10,
         clientSidePagination: false
-
     } as Crud,
     initialData: {},
     children: []
