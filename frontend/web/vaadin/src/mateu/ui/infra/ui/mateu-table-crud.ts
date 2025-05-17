@@ -20,8 +20,8 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import ComponentElement from "@infra/ui/ComponentElement";
 
 
-@customElement('mateu-crud')
-export class MateuCrud extends ComponentElement {
+@customElement('mateu-table-crud')
+export class MateuTableCrud extends ComponentElement {
 
     values: Record<string, any> = {}
 
@@ -53,7 +53,7 @@ export class MateuCrud extends ComponentElement {
         }
     }
 
-    handleButtonClick = (actionId: string) => {
+    handleActionClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 userData: this.values,
@@ -65,6 +65,11 @@ export class MateuCrud extends ComponentElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    pageChanged(e: CustomEvent) {
+        this.values.page.page = e.detail.page;
+        this.handleSearchRequested()
     }
 
     handleSearchRequested = () => {
@@ -111,7 +116,13 @@ export class MateuCrud extends ComponentElement {
                 <mateu-card .metadata="${metadata.table}" .data="${this.data}"></mateu-card>
             `}
             <slot></slot>
-            <mateu-pagination .metadata="${metadata}"></mateu-pagination>
+            <mateu-pagination
+                    @page-changed="${this.pageChanged}"
+                    totalElements="${this.data.page?.totalElements}"
+                    pageSize="${this.data.page?.pageSize}"
+                    data-testid="pagination"
+                    pageNumber=${this.data?.page?.pageNumber}
+            ></mateu-pagination>
        `
     }
 
@@ -121,7 +132,7 @@ export class MateuCrud extends ComponentElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        'mateu-crud': MateuCrud
+        'mateu-table-crud': MateuTableCrud
     }
 }
 

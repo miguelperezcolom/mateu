@@ -57,6 +57,9 @@ export class MateuFilterBar extends LitElement {
                             @value-changed="${this.valueChanged}"
                             value=""
                     ></vaadin-text-field>
+                    ${this.metadata.filters?html`
+                        <vaadin-button>Filters</vaadin-button>
+                    `:nothing}
                     <vaadin-button @click="${this.handleButtonClick}">Search</vaadin-button>
                 `:nothing}
                 ${this.metadata?.filters?html`

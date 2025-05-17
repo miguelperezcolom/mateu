@@ -23,7 +23,7 @@ export class MateuTable extends ComponentElement {
         const metadata = this.metadata as Table
         return html`
             <vaadin-grid
-                    .items="${this.data?.items}"
+                    .items="${this.data?.page?.items}"
                     all-rows-visible>
                 ${metadata?.columns?.map(column => html`
                     <vaadin-grid-column

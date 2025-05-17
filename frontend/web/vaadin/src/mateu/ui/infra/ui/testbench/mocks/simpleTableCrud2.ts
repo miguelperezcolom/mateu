@@ -59,7 +59,6 @@ export const mockedSimpleTableCrud2: Component = {
         clientSidePagination: false,
     } as Crud,
     initialData: {
-        items: []
     },
     children: []
 }

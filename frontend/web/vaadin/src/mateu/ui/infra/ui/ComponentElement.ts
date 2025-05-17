@@ -23,8 +23,8 @@ export default abstract class ComponentElement extends ConnectedElement {
             if (fragment.component?.metadata) {
                 this.metadata = fragment.component?.metadata
             }
-            if (fragment.component?.initialData) {
-                this.data = fragment.component?.initialData
+            if (fragment.data) {
+                this.data = fragment.data
             }
             if (fragment.component?.serverSideType) {
                 this.serverSideType = fragment.component?.serverSideType

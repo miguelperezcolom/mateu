@@ -1,6 +1,7 @@
 import Component from "../../../../../shared/apiClients/dtos/Component";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
+import { Page } from "@mateu/shared/apiClients/dtos/Page";
 
 
 export const mockedSimpleTable1: Component = {
@@ -25,18 +26,20 @@ export const mockedSimpleTable1: Component = {
         rows: undefined,
     } as Table,
     initialData: {
-        items: [
-            {
-                col1: 'aaa',
-                col2: 'bbb',
-                col3: 'cccc'
-            },
-            {
-                col1: 'xxxx',
-                col2: 'yyyy',
-                col3: 'zzz'
-            }
-        ]
+        page: {
+            items: [
+                {
+                    col1: 'aaa',
+                    col2: 'bbb',
+                    col3: 'cccc'
+                },
+                {
+                    col1: 'xxxx',
+                    col2: 'yyyy',
+                    col3: 'zzz'
+                }
+            ]
+        } as Page
     },
     children: []
 }

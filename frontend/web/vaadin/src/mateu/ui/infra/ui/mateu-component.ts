@@ -13,7 +13,7 @@ import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
 import './mateu-field'
 import './mateu-table'
-import './mateu-crud'
+import './mateu-table-crud'
 import './mateu-card'
 import './mateu-app'
 import './mateu-api-caller'
@@ -63,19 +63,19 @@ export class MateuComponent extends ComponentElement {
                    </mateu-table>`:nothing}
 
            ${metadata.type == ComponentMetadataType.TableCrud
-            ?html`<mateu-crud
+            ?html`<mateu-table-crud
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
-                   ></mateu-crud>`:nothing}
+                   ></mateu-table-crud>`:nothing}
            ${metadata.type == ComponentMetadataType.CardCrud
-            ?html`<mateu-crud
+            ?html`<mateu-table-crud
                            id="${this.id}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
-                   ></mateu-crud>`:nothing}
+                   ></mateu-table-crud>`:nothing}
 
            ${metadata.type == ComponentMetadataType.Card
             ?html`<mateu-card

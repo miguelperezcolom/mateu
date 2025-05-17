@@ -59,18 +59,23 @@ export const mockedSimpleTableCrud1: Component = {
         clientSidePagination: false,
     } as Crud,
     initialData: {
-        items: [
-            {
-                col1: 'aaa',
-                col2: 'bbb',
-                col3: 'cccc'
-            },
-            {
-                col1: 'xxxx',
-                col2: 'yyyy',
-                col3: 'zzz'
-            }
-        ]
+        page: {
+            pageNumber: 0,
+            pageSize: 10,
+            totalElements   : 100,
+            items: [
+                {
+                    col1: 'aaa',
+                    col2: 'bbb',
+                    col3: 'cccc'
+                },
+                {
+                    col1: 'xxxx',
+                    col2: 'yyyy',
+                    col3: 'zzz'
+                }
+            ]
+        }
     },
     children: []
 }

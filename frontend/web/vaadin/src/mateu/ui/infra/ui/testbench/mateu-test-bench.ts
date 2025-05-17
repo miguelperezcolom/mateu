@@ -19,6 +19,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { mockedSimpleApp2 } from "@infra/ui/testbench/mocks/simpleApp2";
 import { mockedSimpleApp3 } from "@infra/ui/testbench/mocks/simpleApp3";
 import { mockedSimpleTableCrud2 } from "@infra/ui/testbench/mocks/simpleTableCrud2";
+import { mockedSimpleTableCrudMessage1 } from "@infra/ui/testbench/mocks/mockedSimpleTableCrudMessage1";
 
 
 @customElement('mateu-test-bench')
@@ -56,8 +57,8 @@ export class MateuTestBench extends LitElement {
     loadTableData = () => {
         const fragment = {
             targetComponentId: 'table1',
-            component: {
-                initialData: {
+            data: {
+                page: {
                     items: [
                         {
                             col1: 'ewwerwer',
@@ -77,6 +78,17 @@ export class MateuTestBench extends LitElement {
 
     loadTableCrud1 = () => {
         this.loadComponent(mockedSimpleTableCrud1)
+    }
+
+    loadTableCrudData1 = () => {
+        const data = mockedSimpleTableCrudMessage1
+        data.fragments?.forEach(fragment => {
+            upstream.next({
+                fragment,
+                ui:undefined,
+                error: undefined
+            })
+        })
     }
 
     loadTableCrud2 = () => {
@@ -124,6 +136,7 @@ export class MateuTestBench extends LitElement {
            <vaadin-button @click="${this.loadTable}">Table</vaadin-button>
            <vaadin-button @click="${this.loadTableData}">Table Data</vaadin-button>
            <vaadin-button @click="${this.loadTableCrud1}">Table Crud 1</vaadin-button>
+           <vaadin-button @click="${this.loadTableCrudData1}">Table Crud Data 1</vaadin-button>
            <vaadin-button @click="${this.loadTableCrud2}">Table Crud 2</vaadin-button>
            <vaadin-button @click="${this.loadCardCrud}">Card Crud</vaadin-button>
            <vaadin-button @click="${this.loadApp1}">App 1</vaadin-button>
