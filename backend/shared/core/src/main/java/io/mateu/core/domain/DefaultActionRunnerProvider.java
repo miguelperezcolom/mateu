@@ -39,6 +39,20 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         };
       }
     }
+    if ("create".equals(actionId)) {
+      return new ActionRunner() {
+        @Override
+        public boolean supports(Object instance, String actionId) {
+          return false;
+        }
+
+        @Override
+        public Mono<?> run(
+            Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
+          return Mono.just(instance);
+        }
+      };
+    }
     var runner =
         beanProvider.getBeans(ActionRunner.class).stream()
             .filter(factory -> factory.supports(instance, actionId))

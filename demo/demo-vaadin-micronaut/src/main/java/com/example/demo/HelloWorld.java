@@ -1,13 +1,16 @@
 package com.example.demo;
 
 import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
 
 @MateuUI("/helloworld")
-public class HelloWorld implements HandlesRoute, HandlesActions {
+@Serdeable
+public class HelloWorld implements HandlesRoute, HandlesActions, Form {
     @Override
     public Mono<?> handleRoute(String route, HttpRequest httpRequest) {
         return Mono.just(this);

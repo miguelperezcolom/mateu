@@ -3,7 +3,6 @@ package ${pkgName};
 import io.mateu.MicronautHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
-import io.mateu.dtos.JourneyCreationRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -44,23 +43,13 @@ public class ${simpleClassName}MateuController {
         new MicronautHttpRequest(serverHttpRequest));
     }
 
-    @Post("v3/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<UIIncrementDto> createJourney(
-        @PathVariable("journeyTypeId") String journeyTypeId,
-        @PathVariable("journeyId") String journeyId,
-        @Body JourneyCreationRqDto rq,
-        HttpRequest serverHttpRequest) throws Throwable {
-      return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq,
-        new MicronautHttpRequest(serverHttpRequest));
-    }
-
-    @Post("v3/components/{componentId}/{actionId}")
+    @Post("v3/{route}/{actionId}")
     public Mono<UIIncrementDto> runStep(
-        @PathVariable("componentId") String componentId,
+        @PathVariable("route") String route,
         @PathVariable("actionId") String actionId,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(componentId, actionId, rq, baseUrl,
+      return service.runAction(uiId, route, actionId, rq, baseUrl,
         new MicronautHttpRequest(serverHttpRequest));
     }
 

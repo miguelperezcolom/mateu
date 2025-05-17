@@ -34,6 +34,7 @@ class ReflectionUiMapperTest {
         new UIDto(
             baseUrl,
             httpRequest.toString(),
+            "home_route",
             new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of()));
     var instance =
         new DynamicUI() {
@@ -43,6 +44,7 @@ class ReflectionUiMapperTest {
                 new UIDto(
                     baseUrl,
                     httpRequest.toString(),
+                    "home_route",
                     new UIIncrementDto(
                         List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of())));
           }

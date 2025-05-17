@@ -30,7 +30,7 @@ export class MateuUx extends ConnectedElement {
     @property()
     overrides: string | undefined = undefined;
     @property()
-    journeyTypeId: string | undefined = undefined;
+    route: string | undefined = undefined;
 
     // state
 
@@ -68,14 +68,18 @@ export class MateuUx extends ConnectedElement {
             initiator: HTMLElement
         }
         if (e.type == 'action-requested') {
-            service.runAction(mateuApiClient, this.baseUrl,
-                this.journeyTypeId!,
-                detail.actionId,
-                detail.initiatorComponentId,
-                parseOverrides(this.overrides),
-                detail.serverSideType,
-                detail.userData,
-                detail.initiator).then();
+            if (this.route) {
+                service.runAction(mateuApiClient, this.baseUrl,
+                    this.route,
+                    detail.actionId,
+                    detail.initiatorComponentId,
+                    parseOverrides(this.overrides),
+                    detail.serverSideType,
+                    detail.userData,
+                    detail.initiator).then();
+            } else {
+                console.log('no route')
+            }
         }
     }
 
@@ -139,7 +143,7 @@ ${component.children?.map(child => this.renderComponent(child))}
 
     render() {
         return html`
-            <h5>${this.journeyTypeId}</h5>
+            <h5>${this.route}</h5>
            ${this.root?this.renderComponent(this.root):nothing}
        `
     }

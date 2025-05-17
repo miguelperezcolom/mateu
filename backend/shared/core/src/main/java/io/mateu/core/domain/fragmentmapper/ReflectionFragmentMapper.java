@@ -1,7 +1,6 @@
 package io.mateu.core.domain.fragmentmapper;
 
 import io.mateu.core.domain.FragmentMapper;
-import io.mateu.dtos.ActionTargetDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.SingleComponentDto;
@@ -41,16 +40,11 @@ public class ReflectionFragmentMapper implements FragmentMapper {
             List.of(),
             List.of(),
             List.of(),
-            List.of(),
-            List.of(),
-            Map.of());
+            List.of());
     Map<String, ComponentDto> components =
         Map.of(
             "component_id",
-            new ComponentDto(
-                formDto, "component_id", form.getClass().getName(), List.of(), form, List.of()));
-    return new UIFragmentDto(
-            new SingleComponentDto("component_id"),
-        components);
+            new ComponentDto(formDto, "component_id", form.getClass().getName(), List.of()));
+    return new UIFragmentDto(new SingleComponentDto("component_id"), components);
   }
 }

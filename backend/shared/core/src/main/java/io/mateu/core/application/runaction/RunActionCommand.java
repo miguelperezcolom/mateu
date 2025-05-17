@@ -6,7 +6,8 @@ import java.util.Map;
 
 public record RunActionCommand(
     String baseUrl,
-    String componentId,
+    String uiId,
+    String route,
     String actionId,
     String componentType,
     Map<String, Object> data,

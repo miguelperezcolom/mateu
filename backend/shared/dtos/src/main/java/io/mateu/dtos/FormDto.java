@@ -2,7 +2,6 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Form metadata
@@ -13,7 +12,6 @@ import java.util.Map;
  * @param subtitle This form subtitle
  * @param status This form status. This has a special visual representation on top of the form
  * @param badges Badges to be shown for this form
- * @param tabs List of tabs used in this form
  * @param banners Banners to be shown in this form
  * @param sections Sections of this form. This is the container for teh fields
  * @param actions Actions for this form. To be shown at the top
@@ -80,5 +78,4 @@ public record FormDto(
   public List<RuleDto> rules() {
     return Collections.unmodifiableList(rules);
   }
-
 }

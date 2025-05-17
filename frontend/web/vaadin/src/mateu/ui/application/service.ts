@@ -21,13 +21,13 @@ export class Service {
     }
 
     async runAction(mateuApiClient: AxiosMateuApiClient,
-                    baseUrl: string, journeyTypeId: string,
+                    baseUrl: string, route: string,
                     actionId: string, initiatorComponentId: string,
-              config: any, serverSideType: string,
-              userData: any, initiator: HTMLElement) {
+                    config: any, serverSideType: string,
+                    userData: any, initiator: HTMLElement) {
         const changes = await runActionCommandHandler.handle(mateuApiClient, {
             baseUrl,
-            journeyTypeId,
+            journeyTypeId: route,
             actionId,
             config,
             initiatorComponentId,
@@ -35,7 +35,7 @@ export class Service {
             serverSideType,
             initiator
         } as RunActionCommand)
-        changes.uiIncrement.fragments.forEach(fragment => {
+        changes.uiIncrement.fragments?.forEach(fragment => {
             upstream.next({
                 fragment,
                 ui: undefined,

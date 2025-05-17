@@ -1,11 +1,12 @@
 ---
 header_alt: true
-Title: 👋 Welcome to **Mateu** – The Backend-Driven Distributed UI Framework
+Title: Backend-Driven UIs. Simpler, Faster, Smarter.
 <meta name="description" content="Mateu: Create backend-driven UIs with Java, Go, or C#.">
   <meta property="og:title" content="Mateu – Backend-Driven UI Framework">
   <meta property="og:description" content="Build full UIs directly from your backend code, with zero frontend work.">
   <meta property="og:image" content="https://mateu.io/og-image.png">
 ---
+##  Create responsive, scalable applications directly from your backend—no frontend code required.
 
 **Mateu** empowers backend developers to build full-featured, responsive web applications—directly from their Java code. (Support for C# and Go is on the way.)
 

@@ -9,9 +9,7 @@ import java.util.Map;
  * @param root New content
  * @param components List of new components
  */
-public record UIFragmentDto(
-    SingleComponentDto root,
-    Map<String, ComponentDto> components) {
+public record UIFragmentDto(SingleComponentDto root, Map<String, ComponentDto> components) {
 
   public UIFragmentDto {
     components = Collections.unmodifiableMap(components);

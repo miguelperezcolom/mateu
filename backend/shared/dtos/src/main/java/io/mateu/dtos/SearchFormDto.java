@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A search form for a crud. It only contains a list of fields
  *
- * @param fields
+ * @param fields filters
  */
 public record SearchFormDto(List<FieldDto> fields) {
 

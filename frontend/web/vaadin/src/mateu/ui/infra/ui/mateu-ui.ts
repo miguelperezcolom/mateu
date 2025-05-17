@@ -101,7 +101,7 @@ export class MateuUi extends LitElement {
     render() {
        return html`
            <mateu-api-caller>
-                <mateu-ux id="_ux" baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ux>
+                <mateu-ux id="_ux" baseurl="${this.baseUrl}" route="${this.ui?.homeRoute}" overrides="${this.overrides}"></mateu-ux>
            </mateu-api-caller>
        `
     }

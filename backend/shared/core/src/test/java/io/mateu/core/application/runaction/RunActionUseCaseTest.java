@@ -43,6 +43,7 @@ class RunActionUseCaseTest {
               .handle(
                   new RunActionCommand(
                       "base_url",
+                      "ui_id",
                       "component_id",
                       "sayHello",
                       componentType.getName(),

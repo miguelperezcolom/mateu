@@ -5,6 +5,7 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HasFavicon;
+import io.mateu.uidl.interfaces.HasHomeRoute;
 import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
@@ -32,6 +33,7 @@ public class ReflectionUiMapper implements UiMapper {
         new UIDto(
             getFavIcon(uiInstance),
             getTitle(uiInstance),
+            getHomeRoute(uiInstance),
             new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of())));
   }
 
@@ -50,5 +52,12 @@ public class ReflectionUiMapper implements UiMapper {
       return hasPageTitle.getPageTitle();
     }
     return Humanizer.capitalize(uiInstance.getClass().getSimpleName());
+  }
+
+  private String getHomeRoute(Object uiInstance) {
+    if (uiInstance instanceof HasHomeRoute hasHomeRoute) {
+      return hasHomeRoute.getHomeRoute();
+    }
+    return "home";
   }
 }

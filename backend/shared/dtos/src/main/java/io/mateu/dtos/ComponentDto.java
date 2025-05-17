@@ -4,10 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 public record ComponentDto(
-    ComponentMetadataDto metadata,
-    String id,
-    String serverSideType,
-    List<ComponentDto> children) {
+    ComponentMetadataDto metadata, String id, String serverSideType, List<ComponentDto> children) {
 
   public ComponentDto {
     children = Collections.unmodifiableList(children);
