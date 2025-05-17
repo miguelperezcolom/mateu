@@ -6,13 +6,9 @@ Title: Backend-Driven UIs. Simpler, Faster, Smarter.
   <meta property="og:description" content="Build full UIs directly from your backend code, with zero frontend work.">
   <meta property="og:image" content="https://mateu.io/og-image.png">
 ---
-##  Create responsive, scalable applications directly from your backend—no frontend code required.
+**Mateu** is an open-source framework that lets backend developers create complete, responsive web applications using only backend code—no need for HTML, CSS, or JavaScript.
 
-**Mateu** empowers backend developers to build full-featured, responsive web applications—directly from their Java code. (Support for C# and Go is on the way.)
-
-Forget about HTML, JavaScript, or CSS. With Mateu, you can create complex user interfaces using only Java (or other backend languages in the future), with minimal code and maximum speed.
-
-Mateu is especially powerful for large-scale enterprise applications built by distributed teams. It’s designed to make UI development fast, reliable, and backend-friendly.
+With just Java (and soon C# and Go), you can design powerful user interfaces, define workflows, and deploy distributed applications that scale.
 
 ---
 
