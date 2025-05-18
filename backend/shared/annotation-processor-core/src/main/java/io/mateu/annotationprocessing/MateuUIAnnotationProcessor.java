@@ -150,7 +150,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "caption",
+                  "label",
                   caption,
                   "path",
                   path,
@@ -241,7 +241,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "caption",
+                  "label",
                   caption,
                   "path",
                   path));
@@ -281,7 +281,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "caption",
+                  "label",
                   caption,
                   "path",
                   path));

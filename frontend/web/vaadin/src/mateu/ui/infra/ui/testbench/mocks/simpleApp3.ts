@@ -12,7 +12,7 @@ export const mockedSimpleApp3: Component = {
         variant: AppVariant.TABS,
         title: 'My app',
         subtitle: 'My app subtitle bla, bla, bla',
-        options: [
+        menu: [
             {
                 route: 'journey1',
                 label: 'Opción 1',

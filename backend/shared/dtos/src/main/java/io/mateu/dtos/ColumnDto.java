@@ -9,7 +9,7 @@ import java.util.List;
  * @param id The column targetId
  * @param type The column data type
  * @param stereotype The column stereotype. How this must be shown
- * @param caption The column caption
+ * @param caption The column label
  * @param description A help text. Usually a tooltip
  * @param width The preferred width for this column
  * @param attributes Some extra column attributes/data

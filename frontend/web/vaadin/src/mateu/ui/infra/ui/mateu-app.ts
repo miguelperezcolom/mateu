@@ -30,7 +30,7 @@ export class MateuApp extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('metadata')) {
-            this.selectedRoute = this.getInitialRoute((this.metadata as App).options)
+            this.selectedRoute = this.getInitialRoute((this.metadata as App).menu)
         }
     }
 
@@ -53,7 +53,7 @@ export class MateuApp extends ComponentElement {
     getInitialRoute = (options: MenuOption[]): string | undefined => {
         const selectedOption = this.getSelectedOption(options)
         if (selectedOption) {
-            return selectedOption.route
+            return selectedOption.destination.route
         }
         return undefined;
     }
@@ -68,13 +68,13 @@ export class MateuApp extends ComponentElement {
             if (option.children) {
                 return {
                     text: option.label,
-                    route: option.route,
+                    route: option.destination.route,
                     children: this.mapItems(option.children)
                 }
             }
             return {
                 text: option.label,
-                route: option.route,
+                route: option.destination.route,
             }
         })
     }
@@ -82,11 +82,9 @@ export class MateuApp extends ComponentElement {
     render() {
         const metadata = this.metadata as App
 
-        const items = this.mapItems(metadata.options)
+        const items = this.mapItems(metadata.menu)
         return html`
 
-            <h5>selectedJourneyTypeId: ${this.selectedRoute}</h5>
-            
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
                 <vaadin-vertical-layout>
@@ -105,8 +103,8 @@ export class MateuApp extends ComponentElement {
 
                 <vaadin-horizontal-layout>
                     <vaadin-vertical-layout>
-                        ${metadata.options.map(option => html`
-                                <vaadin-button @click="${() => this.selectedRoute = option.route}">${option.label}</vaadin-button>
+                        ${metadata.menu.map(option => html`
+                                <vaadin-button @click="${() => this.selectedRoute = option.destination.route}">${option.label}</vaadin-button>
                             `)}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
@@ -121,8 +119,8 @@ export class MateuApp extends ComponentElement {
 
                 <vaadin-vertical-layout>
                     <vaadin-tabs>
-                        ${metadata.options.map(option => html`
-                                <vaadin-tab @click="${() => this.selectedRoute = option.route}">${option.label}</vaadin-tab>
+                        ${metadata.menu.map(option => html`
+                                <vaadin-tab @click="${() => this.selectedRoute = option.destination.route}">${option.label}</vaadin-tab>
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller>

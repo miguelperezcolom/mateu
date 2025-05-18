@@ -8,6 +8,6 @@ export default interface App extends ComponentMetadata {
     variant: AppVariant,
     title: string | undefined
     subtitle: string | undefined
-    options: MenuOption[]
+    menu: MenuOption[]
 
 }

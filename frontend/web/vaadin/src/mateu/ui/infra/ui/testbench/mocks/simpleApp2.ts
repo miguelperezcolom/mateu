@@ -12,7 +12,7 @@ export const mockedSimpleApp2: Component = {
         variant: AppVariant.MENU_ON_LEFT,
         title: 'My app',
         subtitle: 'My app subtitle bla, bla, bla',
-        options: [
+        menu: [
             {
                 route: 'journey1',
                 label: 'Opción 1',

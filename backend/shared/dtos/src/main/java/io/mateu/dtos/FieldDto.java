@@ -11,7 +11,7 @@ import java.util.List;
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation
  * @param wantsFocus Set to true if you want it to be focused when rendered
- * @param caption The caption/label for this field
+ * @param caption The label/label for this field
  * @param placeholder A placeholder for this field
  * @param cssClasses Css cssClasses to be applied to this field
  * @param description A help text to be used as tooltip

@@ -7,9 +7,8 @@ import java.util.List;
 public record MenuDto(
     MenuTypeDto type,
     String icon,
-    String caption,
-    String baseUrl,
-    String route,
+    String label,
+    GoToRouteDto destination,
     List<MenuDto> submenus,
     @JsonIgnore int order,
     boolean visible) {

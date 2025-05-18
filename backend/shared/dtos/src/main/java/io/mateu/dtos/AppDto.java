@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record AppDto(
+    AppVariantDto variant,
     String icon,
     String logo,
     String title,
@@ -15,7 +16,8 @@ public record AppDto(
     String loginUrl,
     String welcomeMessage,
     String logoutUrl,
-    List<AppDescriptorDto> apps) {
+    List<AppDescriptorDto> apps)
+    implements ComponentMetadataDto {
 
   public AppDto {
     menu = Collections.unmodifiableList(menu != null ? menu : List.of());

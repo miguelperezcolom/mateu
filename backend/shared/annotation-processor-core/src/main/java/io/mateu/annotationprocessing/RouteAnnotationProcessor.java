@@ -116,7 +116,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "caption",
+                  "label",
                   caption,
                   "route",
                   path));
