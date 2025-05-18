@@ -22,7 +22,7 @@ public class RunActionUseCase {
 
   public Mono<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action for {}", command);
-    // todo: use route somehow
+    // todo: use path somehow
     var instanceTypeName = getInstanceTypeName(command);
     var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
     return Mono.just(command)

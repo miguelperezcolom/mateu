@@ -21,17 +21,16 @@ import { MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { nanoid } from "nanoid";
 
-
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
 
     @state()
-    selectedJourneyTypeId: string | undefined = undefined
+    selectedRoute: string | undefined = undefined
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('metadata')) {
-            this.selectedJourneyTypeId = this.getInitialJourneyTypeId((this.metadata as App).options)
+            this.selectedRoute = this.getInitialRoute((this.metadata as App).options)
         }
     }
 
@@ -51,10 +50,10 @@ export class MateuApp extends ComponentElement {
         return null
     }
 
-    getInitialJourneyTypeId = (options: MenuOption[]): string | undefined => {
+    getInitialRoute = (options: MenuOption[]): string | undefined => {
         const selectedOption = this.getSelectedOption(options)
         if (selectedOption) {
-            return selectedOption.journeyTypeId
+            return selectedOption.route
         }
         return undefined;
     }
@@ -69,13 +68,13 @@ export class MateuApp extends ComponentElement {
             if (option.children) {
                 return {
                     text: option.label,
-                    journeyTypeId: option.journeyTypeId,
+                    route: option.route,
                     children: this.mapItems(option.children)
                 }
             }
             return {
                 text: option.label,
-                journeyTypeId: option.journeyTypeId,
+                route: option.route,
             }
         })
     }
@@ -86,7 +85,7 @@ export class MateuApp extends ComponentElement {
         const items = this.mapItems(metadata.options)
         return html`
 
-            <h5>selectedJourneyTypeId: ${this.selectedJourneyTypeId}</h5>
+            <h5>selectedJourneyTypeId: ${this.selectedRoute}</h5>
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
@@ -96,7 +95,7 @@ export class MateuApp extends ComponentElement {
                             @item-selected="${this.itemSelected}">
                     </vaadin-menu-bar>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
                 
@@ -107,11 +106,11 @@ export class MateuApp extends ComponentElement {
                 <vaadin-horizontal-layout>
                     <vaadin-vertical-layout>
                         ${metadata.options.map(option => html`
-                                <vaadin-button @click="${() => this.selectedJourneyTypeId = option.journeyTypeId}">${option.label}</vaadin-button>
+                                <vaadin-button @click="${() => this.selectedRoute = option.route}">${option.label}</vaadin-button>
                             `)}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-horizontal-layout>
 
@@ -123,11 +122,11 @@ export class MateuApp extends ComponentElement {
                 <vaadin-vertical-layout>
                     <vaadin-tabs>
                         ${metadata.options.map(option => html`
-                                <vaadin-tab @click="${() => this.selectedJourneyTypeId = option.journeyTypeId}">${option.label}</vaadin-tab>
+                                <vaadin-tab @click="${() => this.selectedRoute = option.route}">${option.label}</vaadin-tab>
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedJourneyTypeId}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
             

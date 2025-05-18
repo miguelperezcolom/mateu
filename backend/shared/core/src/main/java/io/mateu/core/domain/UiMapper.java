@@ -14,5 +14,9 @@ public interface UiMapper {
   }
 
   Mono<UIDto> map(
-      Object instance, String baseUrl, Map<String, Object> appState, HttpRequest httpRequest);
+      Object instance,
+      String baseUrl,
+      String route,
+      Map<String, Object> appState,
+      HttpRequest httpRequest);
 }

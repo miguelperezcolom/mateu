@@ -8,11 +8,13 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 export class Service {
 
     async loadUi(mateuApiClient: AxiosMateuApiClient, baseUrl: string,
+                 path: string | undefined,
                  config: any, initiator: HTMLElement) {
         const changes = await loadUiCommandHandler.handle(mateuApiClient, {
             baseUrl: baseUrl,
             initiator: initiator,
-            config: config
+            config,
+            path: path
         })
         upstream.next({
             fragment: undefined,

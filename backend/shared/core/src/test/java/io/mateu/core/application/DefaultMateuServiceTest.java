@@ -54,7 +54,7 @@ class DefaultMateuServiceTest {
         defaultMateuService
             .runAction(
                 UsingInterfacesUI.class.getName(),
-                "route",
+                "path",
                 "action_id",
                 new RunActionRqDto(null, Map.of(), Map.of(), "initiator_component_id"),
                 "base_url",

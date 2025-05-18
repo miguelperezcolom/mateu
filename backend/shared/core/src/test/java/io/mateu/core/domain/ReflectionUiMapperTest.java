@@ -24,7 +24,8 @@ class ReflectionUiMapperTest {
   @Test
   void mapsToDto() {
     var instance = new Object();
-    var dto = reflectionUiMapper.map(instance, "/", Map.of(), new FakeHttpRequest()).block();
+    var dto =
+        reflectionUiMapper.map(instance, "/", "/home", Map.of(), new FakeHttpRequest()).block();
     assertNotNull(dto);
   }
 
@@ -48,7 +49,7 @@ class ReflectionUiMapperTest {
                     new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of())));
           }
         };
-    var dto = reflectionUiMapper.map(instance, baseUrl, Map.of(), httpRequest).block();
+    var dto = reflectionUiMapper.map(instance, baseUrl, "/home", Map.of(), httpRequest).block();
     assertNotNull(dto);
     assertThat(dto).usingRecursiveComparison().isEqualTo(expectedDto);
   }
@@ -56,7 +57,7 @@ class ReflectionUiMapperTest {
   @Test
   void favIconIsFilled() {
     for (var instance : List.of(new AnnotatedUI(), new UsingInterfacesUI())) {
-      var dto = reflectionUiMapper.map(instance, baseUrl, Map.of(), httpRequest).block();
+      var dto = reflectionUiMapper.map(instance, baseUrl, "/home", Map.of(), httpRequest).block();
       assertNotNull(dto);
       assertThat(dto.favIcon()).isNotNull();
       assertThat(dto.favIcon()).isEqualTo("fav_icon");

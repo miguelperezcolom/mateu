@@ -3,9 +3,9 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 export interface MateuApiClient {
 
-    fetchUi(baseUrl: string, config: any, initiator: HTMLElement): Promise<UI>
+    fetchUi(baseUrl: string, path: string | undefined, config: any, initiator: HTMLElement): Promise<UI>
 
-    runAction(baseUrl: string, journeyTypeId: string,
+    runAction(baseUrl: string, route: string,
               actionId: string, initiatorComponentId: string,
               appState: any, serverSideType: string,
               data: any, initiator: HTMLElement): Promise<UIIncrement>

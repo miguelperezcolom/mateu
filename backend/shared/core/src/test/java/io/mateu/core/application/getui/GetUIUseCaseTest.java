@@ -43,7 +43,8 @@ class GetUIUseCaseTest {
 
     for (var type : List.of(DynamicHelloWorld.class, HelloWorld.class)) {
       GetUIQuery request =
-          new GetUIQuery(type.getName(), "base_url", Map.of(), new FakeHttpRequest());
+          new GetUIQuery(
+              type.getName(), "base_url", "current_route", Map.of(), new FakeHttpRequest());
       var ui = useCase.handle(request).block();
 
       assertThat(ui).isNotNull();
@@ -55,7 +56,12 @@ class GetUIUseCaseTest {
   @Test
   void usesCustomInstanceFactory() {
     GetUIQuery request =
-        new GetUIQuery(HolaMundo.class.getName(), "base_url", Map.of(), new FakeHttpRequest());
+        new GetUIQuery(
+            HolaMundo.class.getName(),
+            "base_url",
+            "current_route",
+            Map.of(),
+            new FakeHttpRequest());
     var ui = useCase.handle(request).block();
 
     assertThat(ui).isNotNull();

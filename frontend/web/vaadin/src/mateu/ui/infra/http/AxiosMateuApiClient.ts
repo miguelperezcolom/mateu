@@ -99,19 +99,22 @@ export class AxiosMateuApiClient implements MateuApiClient {
         abortControllers = []
     }
 
-    async fetchUi(baseUrl: string, contextData: any, initiator: HTMLElement): Promise<UI> {
+    async fetchUi(baseUrl: string, path: string | undefined, config: any, initiator: HTMLElement): Promise<UI> {
         return await this.wrap<UI>(this.post(baseUrl + '/mateu/v3/ui', {
-            "config": contextData,
-            "hash": window.location.hash
+            config,
+            path
         })
             .then((response) => response.data), initiator)
     }
 
-    async runAction(baseUrl: string, journeyTypeId: string,
+    async runAction(baseUrl: string, route: string,
                     actionId: string, initiatorComponentId: string,
-              appState: any, serverSideType: string,
-              data: any, initiator: HTMLElement): Promise<UIIncrement> {
-        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' + journeyTypeId + '/' + actionId, {
+                    appState: any, serverSideType: string,
+                    data: any, initiator: HTMLElement): Promise<UIIncrement> {
+        if (route && route.startsWith('/')) {
+            route = route.substring(1)
+        }
+        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' + route + '/' + actionId, {
             serverSideType,
             appState,
             data,

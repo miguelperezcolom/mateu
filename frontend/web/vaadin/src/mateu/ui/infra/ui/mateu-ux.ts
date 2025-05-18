@@ -32,6 +32,9 @@ export class MateuUx extends ConnectedElement {
     overrides: string | undefined = undefined;
     @property()
     route: string | undefined = undefined;
+    @property()
+    top: boolean | undefined = undefined;
+
 
     // state
 
@@ -114,6 +117,16 @@ export class MateuUx extends ConnectedElement {
                     serverSideType: undefined,
                     initiatorComponentId: this.id,
                     initiator: this
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+        console.log(_changedProperties, _changedProperties.has('route') && !!this.top)
+        if (_changedProperties.has('route') && !!this.top) {
+            this.dispatchEvent(new CustomEvent('route-changed', {
+                detail: {
+                    route: this.route
                 },
                 bubbles: true,
                 composed: true

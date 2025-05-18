@@ -8,12 +8,11 @@ public record MenuDto(
     MenuTypeDto type,
     String icon,
     String caption,
-    String journeyTypeId,
+    String baseUrl,
+    String route,
     List<MenuDto> submenus,
     @JsonIgnore int order,
-    boolean visible,
-    String remoteBaseUrl,
-    String contextData) {
+    boolean visible) {
 
   public MenuDto {
     submenus = Collections.unmodifiableList(submenus);

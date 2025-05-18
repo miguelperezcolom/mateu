@@ -23,7 +23,11 @@ public class ReflectionUiMapper implements UiMapper {
 
   @Override
   public Mono<UIDto> map(
-      Object uiInstance, String baseUrl, Map<String, Object> config, HttpRequest httpRequest) {
+      Object uiInstance,
+      String baseUrl,
+      String route,
+      Map<String, Object> config,
+      HttpRequest httpRequest) {
     if (uiInstance == null) {
       return null;
     }
@@ -34,7 +38,7 @@ public class ReflectionUiMapper implements UiMapper {
         new UIDto(
             getFavIcon(uiInstance),
             getTitle(uiInstance),
-            getHomeRoute(uiInstance),
+            getHomeRoute(uiInstance, route),
             new UIIncrementDto(
                 List.of(), List.of(), List.of(), Map.of(), Map.of("config", config))));
   }
@@ -56,10 +60,13 @@ public class ReflectionUiMapper implements UiMapper {
     return Humanizer.capitalize(uiInstance.getClass().getSimpleName());
   }
 
-  private String getHomeRoute(Object uiInstance) {
+  private String getHomeRoute(Object uiInstance, String currentRoute) {
+    if (currentRoute != null && !currentRoute.isEmpty()) {
+      return currentRoute;
+    }
     if (uiInstance instanceof HasHomeRoute hasHomeRoute) {
       return hasHomeRoute.getHomeRoute();
     }
-    return "home";
+    return "/home";
   }
 }

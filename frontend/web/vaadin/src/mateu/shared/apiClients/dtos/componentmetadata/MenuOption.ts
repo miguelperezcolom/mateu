@@ -1,6 +1,6 @@
 export default interface MenuOption {
     label: string
-    journeyTypeId: string
+    route: string
     selected: boolean
     children: MenuOption[]
 }

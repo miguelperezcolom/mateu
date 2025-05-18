@@ -14,26 +14,26 @@ export const mockedSimpleApp3: Component = {
         subtitle: 'My app subtitle bla, bla, bla',
         options: [
             {
-                journeyTypeId: 'journey1',
+                route: 'journey1',
                 label: 'Opción 1',
             },
             {
-                journeyTypeId: 'journey2',
+                route: 'journey2',
                 label: 'Opción 2',
                 children: [
                     {
-                        journeyTypeId: 'journey5',
+                        route: 'journey5',
                         label: 'Opción 5',
                         selected: true
                     },
                     {
-                        journeyTypeId: 'journey6',
+                        route: 'journey6',
                         label: 'Opción 6',
                     },
                 ]
             },
             {
-                journeyTypeId: 'journey3',
+                route: 'journey3',
                 label: 'Opción 3',
             }
         ],

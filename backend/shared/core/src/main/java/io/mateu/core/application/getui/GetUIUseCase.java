@@ -26,6 +26,6 @@ public class GetUIUseCase {
             ui ->
                 uiMapperProvider
                     .get(ui)
-                    .map(ui, query.baseUrl(), query.config(), query.httpRequest()));
+                    .map(ui, query.baseUrl(), query.route(), query.config(), query.httpRequest()));
   }
 }
