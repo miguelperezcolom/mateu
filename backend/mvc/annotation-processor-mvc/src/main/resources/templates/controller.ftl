@@ -33,31 +33,22 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-
-    @PostMapping(value = "v3/ui")
+    @Post(value = "v3/ui")
     public Mono<UIDto> getUI(
-            @RequestBody GetUIRqDto rq,
-            HttpServletRequest serverHttpRequest) throws Exception {
-        return service.getUI(uiId, baseUrl, rq, new SpringHttpRequest(serverHttpRequest));
+        @Body GetUIRqDto rq,
+        HttpRequest serverHttpRequest) throws Exception {
+      return service.getUI(uiId, baseUrl, rq,
+        new SpringHttpRequest(serverHttpRequest));
     }
 
-    @PostMapping("v3/journeys/{journeyTypeId}/{journeyId}")
-    public Mono<UIIncrementDto> createJourney(
-            @PathVariable("journeyTypeId") String journeyTypeId,
-            @PathVariable("journeyId") String journeyId,
-            @RequestBody JourneyCreationRqDto rq,
-            HttpServletRequest serverHttpRequest) throws Throwable {
-        return service.createJourney(uiId, baseUrl, journeyTypeId, journeyId, rq,
-                new SpringHttpRequest(serverHttpRequest));
-    }
-
-    @PostMapping("v3/components/{componentId}/{actionId}")
+    @Post("v3/{route}/{actionId}")
     public Mono<UIIncrementDto> runStep(
-            @PathVariable("componentId") String componentId,
-            @PathVariable("actionId") String actionId,
-            @RequestBody RunActionRqDto rq,
-            HttpServletRequest serverHttpRequest) throws Throwable {
-        return service.runAction(componentId, actionId, rq, baseUrl, new SpringHttpRequest(serverHttpRequest));
+        @PathVariable("route") String route,
+        @PathVariable("actionId") String actionId,
+        @Body RunActionRqDto rq,
+        HttpRequest serverHttpRequest) throws Throwable {
+      return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
+        new SpringHttpRequest(serverHttpRequest));
     }
-
+        
 }

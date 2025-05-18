@@ -34,7 +34,6 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-
     @Post(value = "v3/ui")
     public Mono<UIDto> getUI(
         @Body GetUIRqDto rq,
