@@ -19,7 +19,7 @@ class ReflectionUiMapperTest {
 
   final String baseUrl = "http://example.com";
   final HttpRequest httpRequest = new FakeHttpRequest();
-  final UiMapper reflectionUiMapper = new ReflectionUiMapper();
+  final ReflectionUiMapper reflectionUiMapper = new ReflectionUiMapper();
 
   @Test
   void mapsToDto() {
@@ -63,5 +63,15 @@ class ReflectionUiMapperTest {
       assertThat(dto.favIcon()).isEqualTo("fav_icon");
     }
     ;
+  }
+
+  @Test
+  void homeRouteIsReturned() {
+    var homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "");
+    assertThat(homeRoute).isEqualTo("/home");
+    homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "/");
+    assertThat(homeRoute).isEqualTo("/home");
+    homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "/xxx");
+    assertThat(homeRoute).isEqualTo("/xxx");
   }
 }

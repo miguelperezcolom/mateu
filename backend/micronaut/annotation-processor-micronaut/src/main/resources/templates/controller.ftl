@@ -49,7 +49,7 @@ public class ${simpleClassName}MateuController {
         @PathVariable("actionId") String actionId,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, route, actionId, rq, baseUrl,
+      return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
         new MicronautHttpRequest(serverHttpRequest));
     }
 

@@ -17,6 +17,7 @@ class RunActionUseCaseTest {
 
   final RunActionUseCase useCase =
       new RunActionUseCase(
+          new FakeBeanProvider(),
           new DefaultInstanceFactoryProvider(
               new BeanProvider() {
                 @Override

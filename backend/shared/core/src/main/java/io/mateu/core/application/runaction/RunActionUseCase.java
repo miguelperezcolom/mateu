@@ -1,12 +1,15 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.ActionRunnerProvider;
+import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
+import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -16,6 +19,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RunActionUseCase {
 
+  private final BeanProvider beanProvider;
   private final InstanceFactoryProvider instanceFactoryProvider;
   private final ActionRunnerProvider actionRunnerProvider;
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
@@ -54,6 +58,13 @@ public class RunActionUseCase {
 
   private String getInstanceTypeName(RunActionCommand command) {
     var instanceTypeName = command.componentType();
+    for (RouteResolver bean :
+        beanProvider.getBeans(RouteResolver.class).stream()
+            .filter(resolver -> resolver.supportsRoute(command.route()))
+            .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
+            .toList()) {
+      return bean.resolveRoute(command.route(), command.httpRequest()).getName();
+    }
     if (instanceTypeName == null || instanceTypeName.isEmpty()) {
       instanceTypeName = command.uiId();
     }

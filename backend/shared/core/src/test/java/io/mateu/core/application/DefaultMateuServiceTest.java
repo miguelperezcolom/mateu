@@ -32,6 +32,7 @@ class DefaultMateuServiceTest {
       new DefaultMateuService(
           new GetUIUseCase(instanceFactoryProvider, uiMapperProvider),
           new RunActionUseCase(
+              new FakeBeanProvider(),
               instanceFactoryProvider,
               new DefaultActionRunnerProvider(new FakeBeanProvider()),
               uiIncrementMapperProvider));

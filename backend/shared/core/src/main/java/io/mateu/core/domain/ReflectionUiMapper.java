@@ -60,8 +60,8 @@ public class ReflectionUiMapper implements UiMapper {
     return Humanizer.capitalize(uiInstance.getClass().getSimpleName());
   }
 
-  private String getHomeRoute(Object uiInstance, String currentRoute) {
-    if (currentRoute != null && !currentRoute.isEmpty()) {
+  String getHomeRoute(Object uiInstance, String currentRoute) {
+    if (currentRoute != null && !currentRoute.isEmpty() && !"/".equals(currentRoute)) {
       return currentRoute;
     }
     if (uiInstance instanceof HasHomeRoute hasHomeRoute) {
