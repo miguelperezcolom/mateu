@@ -17,6 +17,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
+import { appState } from "@domain/state";
 
 
 @customElement('mateu-ux')
@@ -73,7 +74,7 @@ export class MateuUx extends ConnectedElement {
                     this.route,
                     detail.actionId,
                     detail.initiatorComponentId,
-                    parseOverrides(this.overrides),
+                    this.getCustomisedAppState(),
                     detail.serverSideType,
                     detail.userData,
                     detail.initiator).then();
@@ -81,6 +82,15 @@ export class MateuUx extends ConnectedElement {
                 console.log('no route')
             }
         }
+    }
+
+    getCustomisedAppState = () => {
+        let customisedAppState = {...appState.value}
+        if (this.overrides) {
+            const overrides = parseOverrides(this.overrides)
+            customisedAppState = {...customisedAppState, ...overrides}
+        }
+        return customisedAppState
     }
 
     connectedCallback() {

@@ -4,7 +4,6 @@ import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
-import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Named;
@@ -42,7 +41,6 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
             mapToFragments(instance, baseUrl, initiatorComponentId, httpRequest),
-            mapToData(instance, baseUrl, httpRequest),
             Map.of(),
             Map.of()));
   }
@@ -59,12 +57,5 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
   private List<UIFragmentDto> mapToFragments(
       Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     return fragmentMapper.mapToFragments(instance, baseUrl, initiatorComponentId, httpRequest);
-  }
-
-  private Object mapToData(Object instance, String baseUrl, HttpRequest httpRequest) {
-    if (instance instanceof Form) {
-      return instance;
-    }
-    return Map.of();
   }
 }

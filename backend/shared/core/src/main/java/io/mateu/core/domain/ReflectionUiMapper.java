@@ -22,7 +22,8 @@ public class ReflectionUiMapper implements UiMapper {
   }
 
   @Override
-  public Mono<UIDto> map(Object uiInstance, String baseUrl, HttpRequest httpRequest) {
+  public Mono<UIDto> map(
+      Object uiInstance, String baseUrl, Map<String, Object> config, HttpRequest httpRequest) {
     if (uiInstance == null) {
       return null;
     }
@@ -34,7 +35,8 @@ public class ReflectionUiMapper implements UiMapper {
             getFavIcon(uiInstance),
             getTitle(uiInstance),
             getHomeRoute(uiInstance),
-            new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of(), Map.of())));
+            new UIIncrementDto(
+                List.of(), List.of(), List.of(), Map.of(), Map.of("config", config))));
   }
 
   private String getFavIcon(Object uiInstance) {

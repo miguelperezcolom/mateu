@@ -24,7 +24,7 @@ public class DefaultMateuService implements MateuService {
 
   @Override
   public Mono<UIDto> getUI(String uiId, String baseUrl, GetUIRqDto rq, HttpRequest httpRequest) {
-    return getUIUseCase.handle(new GetUIQuery(uiId, baseUrl, httpRequest));
+    return getUIUseCase.handle(new GetUIQuery(uiId, baseUrl, rq.config(), httpRequest));
   }
 
   @Override
@@ -44,7 +44,7 @@ public class DefaultMateuService implements MateuService {
             actionId,
             rq.componentType(),
             rq.data(),
-            rq.config(),
+            rq.appState(),
             rq.initiatorComponentId(),
             httpRequest));
   }

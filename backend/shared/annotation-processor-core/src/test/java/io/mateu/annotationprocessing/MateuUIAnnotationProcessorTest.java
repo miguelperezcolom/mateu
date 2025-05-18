@@ -33,15 +33,18 @@ public class MateuUIAnnotationProcessorTest {
     when(filer.createSourceFile(any())).thenReturn(javaFileObject);
     when(processor.getFiler()).thenReturn(filer);
     var mateuUiAnnotation = mock(MateuUI.class);
-    when(mateuUiAnnotation.value()).thenReturn("");
+    when(mateuUiAnnotation.value()).thenReturn("/");
     var mateuUi = mock(TypeElement.class);
     Set<? extends TypeElement> annotations = Set.of(mateuUi);
     RoundEnvironment roundEnv = mock(RoundEnvironment.class);
     var helloWorld = mock(TypeElement.class);
     when(helloWorld.toString()).thenReturn("com.example.HelloWorld");
     var name = mock(Name.class);
+    when(name.toString()).thenReturn("com.example.HelloWorld");
     when(helloWorld.getQualifiedName()).thenReturn(name);
-    when(helloWorld.getSimpleName()).thenReturn(name);
+    var simpleName = mock(Name.class);
+    when(simpleName.toString()).thenReturn("HelloWorld");
+    when(helloWorld.getSimpleName()).thenReturn(simpleName);
     when(helloWorld.getAnnotation(any())).thenReturn(null);
     when(helloWorld.getAnnotation(MateuUI.class)).thenReturn(mateuUiAnnotation);
 

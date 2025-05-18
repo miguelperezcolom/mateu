@@ -14,9 +14,8 @@ public record UIIncrementDto(
     List<UICommandDto> commands,
     List<MessageDto> messages,
     List<UIFragmentDto> fragments,
-    Object userData,
     Object sharedData,
-    Object appData) {
+    Object appState) {
 
   public UIIncrementDto {
     commands = Collections.unmodifiableList(commands != null ? commands : List.of());

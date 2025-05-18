@@ -7,7 +7,7 @@ export interface MateuApiClient {
 
     runAction(baseUrl: string, journeyTypeId: string,
               actionId: string, initiatorComponentId: string,
-              config: any, serverSideType: string,
+              appState: any, serverSideType: string,
               data: any, initiator: HTMLElement): Promise<UIIncrement>
 
 }

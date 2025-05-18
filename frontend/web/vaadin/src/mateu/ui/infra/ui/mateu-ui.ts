@@ -20,10 +20,10 @@ export class MateuUi extends LitElement {
     baseUrl = ''
 
     @property()
-    journeyTypeId: string | undefined = undefined;
+    route: string | undefined = undefined;
 
     @property()
-    overrides: string | undefined = undefined;
+    config: string | undefined = undefined;
 
     // state
     @state()
@@ -59,33 +59,33 @@ export class MateuUi extends LitElement {
             || _changedProperties.has('config')
         ) {
 
-            service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this).then();
+            service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.config), this).then();
 
         }
 
     }
 
     loadUrl(w: Window) {
-        this.journeyTypeId = this.extractJourneyTypeIdFromUrl(w)
+        this.route = this.extractRouteFromUrl(w)
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
             const configParam = urlParams.get('overrides')
             if (configParam) {
-                this.overrides = configParam
+                this.config = configParam
             }
         }
 
     }
 
-    extractJourneyTypeIdFromUrl(w: Window) {
-        let journeyTypeId = w.location.pathname
+    extractRouteFromUrl(w: Window) {
+        let route = w.location.pathname
         if (this.baseUrl) {
-            journeyTypeId = journeyTypeId.substring(this.baseUrl.length)
+            route = route.substring(this.baseUrl.length)
         }
-        if (journeyTypeId.startsWith('/')) {
-            journeyTypeId = journeyTypeId.substring(1)
+        if (route.startsWith('/')) {
+            route = route.substring(1)
         }
-        return journeyTypeId;
+        return route;
     }
 
 
@@ -101,7 +101,7 @@ export class MateuUi extends LitElement {
     render() {
        return html`
            <mateu-api-caller>
-                <mateu-ux id="_ux" baseurl="${this.baseUrl}" route="${this.ui?.homeRoute}" overrides="${this.overrides}"></mateu-ux>
+                <mateu-ux id="_ux" baseurl="${this.baseUrl}" route="${this.ui?.homeRoute}"></mateu-ux>
            </mateu-api-caller>
        `
     }

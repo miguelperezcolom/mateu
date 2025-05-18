@@ -21,3 +21,11 @@ export const store: Store = {
     state: new State()
 }
 export const upstream = new Subject<Message>()
+
+interface AppState {
+    value: any
+}
+
+export const appState: AppState = {
+    value: {}
+}

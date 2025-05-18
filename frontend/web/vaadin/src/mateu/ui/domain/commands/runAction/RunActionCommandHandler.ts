@@ -11,7 +11,7 @@ export class RunActionCommandHandler {
             command.journeyTypeId,
             command.actionId,
             command.initiatorComponentId,
-            command.config,
+            command.appState,
             command.serverSideType,
             command.userData,
             command.initiator)

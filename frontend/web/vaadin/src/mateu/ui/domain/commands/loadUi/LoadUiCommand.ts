@@ -1,5 +1,5 @@
 export interface LoadUiCommand {
     baseUrl: string,
-    contextData: any,
+    config: any,
     initiator: HTMLElement
 }

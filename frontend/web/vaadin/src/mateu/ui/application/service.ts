@@ -1,8 +1,9 @@
 import { loadUiCommandHandler } from "@domain/commands/loadUi/LoadUiCommandHandler";
 import { AxiosMateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { upstream } from "@domain/state";
+import { appState, upstream } from "@domain/state";
 import { runActionCommandHandler } from "@domain/commands/runAction/RunActionCommandHandler";
 import { RunActionCommand } from "@domain/commands/runAction/RunActionCommand";
+import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 export class Service {
 
@@ -11,37 +12,45 @@ export class Service {
         const changes = await loadUiCommandHandler.handle(mateuApiClient, {
             baseUrl: baseUrl,
             initiator: initiator,
-            contextData: config
+            config: config
         })
         upstream.next({
             fragment: undefined,
             ui: changes.ui,
             error: undefined
         })
+        this.handleUIIncrement(changes.ui.home)
     }
 
-    async runAction(mateuApiClient: AxiosMateuApiClient,
-                    baseUrl: string, route: string,
-                    actionId: string, initiatorComponentId: string,
-                    config: any, serverSideType: string,
-                    userData: any, initiator: HTMLElement) {
-        const changes = await runActionCommandHandler.handle(mateuApiClient, {
-            baseUrl,
-            journeyTypeId: route,
-            actionId,
-            config,
-            initiatorComponentId,
-            userData,
-            serverSideType,
-            initiator
-        } as RunActionCommand)
-        changes.uiIncrement.fragments?.forEach(fragment => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
+        uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 fragment,
                 ui: undefined,
                 error: undefined
             })
         })
+        if (uiIncrement?.appState) {
+            appState.value = uiIncrement.appState
+        }
+    }
+
+    async runAction(mateuApiClient: AxiosMateuApiClient,
+                    baseUrl: string, route: string,
+                    actionId: string, initiatorComponentId: string,
+                    appState: any, serverSideType: string,
+                    userData: any, initiator: HTMLElement) {
+        const changes = await runActionCommandHandler.handle(mateuApiClient, {
+            baseUrl,
+            journeyTypeId: route,
+            actionId,
+            appState,
+            initiatorComponentId,
+            userData,
+            serverSideType,
+            initiator
+        } as RunActionCommand)
+        this.handleUIIncrement(changes.uiIncrement)
     }
 
 }

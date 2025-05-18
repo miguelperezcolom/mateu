@@ -1,4 +1,4 @@
-import Component from "./Component";
+import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 export default interface UI {
 
@@ -6,6 +6,6 @@ export default interface UI {
     favIcon: string | undefined
     homeRoute: string | undefined
 
-    root: Component | undefined
+    home: UIIncrement | undefined
 
 }

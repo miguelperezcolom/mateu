@@ -6,12 +6,12 @@ import java.util.Map;
 public record RunActionRqDto(
     String componentType,
     Map<String, Object> data,
-    Map<String, Object> config,
+    Map<String, Object> appState,
     String initiatorComponentId) {
 
   public RunActionRqDto {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();
-    config = config != null ? Collections.unmodifiableMap(config) : Map.of();
+    appState = appState != null ? Collections.unmodifiableMap(appState) : Map.of();
   }
 
   @Override
@@ -19,8 +19,7 @@ public record RunActionRqDto(
     return Collections.unmodifiableMap(data);
   }
 
-  @Override
-  public Map<String, Object> config() {
-    return Collections.unmodifiableMap(config);
+  public Map<String, Object> appState() {
+    return Collections.unmodifiableMap(appState);
   }
 }

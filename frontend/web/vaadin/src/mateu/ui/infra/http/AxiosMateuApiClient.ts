@@ -101,7 +101,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
 
     async fetchUi(baseUrl: string, contextData: any, initiator: HTMLElement): Promise<UI> {
         return await this.wrap<UI>(this.post(baseUrl + '/mateu/v3/ui', {
-            "context-data": contextData,
+            "config": contextData,
             "hash": window.location.hash
         })
             .then((response) => response.data), initiator)
@@ -109,11 +109,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
 
     async runAction(baseUrl: string, journeyTypeId: string,
                     actionId: string, initiatorComponentId: string,
-              config: any, serverSideType: string,
+              appState: any, serverSideType: string,
               data: any, initiator: HTMLElement): Promise<UIIncrement> {
         return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' + journeyTypeId + '/' + actionId, {
             serverSideType,
-            config,
+            appState,
             data,
             initiatorComponentId
         })

@@ -22,6 +22,10 @@ public class GetUIUseCase {
     var instanceFactory = instanceFactoryProvider.get(query.uiId());
     return Mono.just(query)
         .flatMap(rq -> instanceFactory.createInstance(rq.uiId(), Map.of(), rq.httpRequest()))
-        .flatMap(ui -> uiMapperProvider.get(ui).map(ui, query.baseUrl(), query.httpRequest()));
+        .flatMap(
+            ui ->
+                uiMapperProvider
+                    .get(ui)
+                    .map(ui, query.baseUrl(), query.config(), query.httpRequest()));
   }
 }

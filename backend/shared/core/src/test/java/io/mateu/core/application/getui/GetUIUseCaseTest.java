@@ -14,6 +14,7 @@ import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class GetUIUseCaseTest {
@@ -41,7 +42,8 @@ class GetUIUseCaseTest {
   void returnsUI() {
 
     for (var type : List.of(DynamicHelloWorld.class, HelloWorld.class)) {
-      GetUIQuery request = new GetUIQuery(type.getName(), "base_url", new FakeHttpRequest());
+      GetUIQuery request =
+          new GetUIQuery(type.getName(), "base_url", Map.of(), new FakeHttpRequest());
       var ui = useCase.handle(request).block();
 
       assertThat(ui).isNotNull();
@@ -53,7 +55,7 @@ class GetUIUseCaseTest {
   @Test
   void usesCustomInstanceFactory() {
     GetUIQuery request =
-        new GetUIQuery(HolaMundo.class.getName(), "base_url", new FakeHttpRequest());
+        new GetUIQuery(HolaMundo.class.getName(), "base_url", Map.of(), new FakeHttpRequest());
     var ui = useCase.handle(request).block();
 
     assertThat(ui).isNotNull();
