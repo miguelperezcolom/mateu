@@ -29,20 +29,22 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-    @Post(value = "v3/ui")
+    @Path("v3/ui")
+    @POST
     public Mono<UIDto> getUI(
-        @Body GetUIRqDto rq,
-        HttpRequest serverHttpRequest) throws Exception {
+        GetUIRqDto rq,
+    HttpServerRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
         new QuarkusHttpRequest(serverHttpRequest));
     }
 
-    @Post("v3/{route}/{actionId}")
+    @Path("v3/{route}/{actionId}")
+    @POST
     public Mono<UIIncrementDto> runStep(
-        @PathVariable("route") String route,
-        @PathVariable("actionId") String actionId,
-        @Body RunActionRqDto rq,
-        HttpRequest serverHttpRequest) throws Throwable {
+        String route,
+        String actionId,
+        RunActionRqDto rq,
+        HttpServerRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
         new QuarkusHttpRequest(serverHttpRequest));
     }

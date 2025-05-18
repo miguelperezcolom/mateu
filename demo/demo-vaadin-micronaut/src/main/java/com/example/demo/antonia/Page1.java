@@ -1,33 +1,21 @@
 package com.example.demo.antonia;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HandlesActions;
-import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
 
-@Route("/home")
+@Route("/page1")
 @Serdeable
-public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
-
-    @Override
-    public boolean supportsAction(String actionId) {
-        return true;
-    }
-
-    @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
-    }
+public class Page1 implements HasTitle, HasSubtitle, Form {
 
     @Override
     public String getTitle() {
-        return "Home";
+        return "Page 1";
     }
 
     @Override

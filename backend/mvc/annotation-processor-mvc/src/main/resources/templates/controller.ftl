@@ -33,22 +33,22 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-    @Post(value = "v3/ui")
+    @PostMapping(value = "v3/ui")
     public Mono<UIDto> getUI(
-        @Body GetUIRqDto rq,
-        HttpRequest serverHttpRequest) throws Exception {
+            @RequestBody GetUIRqDto rq,
+            HttpServletRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
         new SpringHttpRequest(serverHttpRequest));
     }
 
-    @Post("v3/{route}/{actionId}")
+    @PostMapping("v3/{route}/{actionId}")
     public Mono<UIIncrementDto> runStep(
         @PathVariable("route") String route,
         @PathVariable("actionId") String actionId,
-        @Body RunActionRqDto rq,
-        HttpRequest serverHttpRequest) throws Throwable {
+        @RequestBody RunActionRqDto rq,
+        HttpServletRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
         new SpringHttpRequest(serverHttpRequest));
     }
-        
+
 }
