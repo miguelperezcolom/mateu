@@ -10,6 +10,6 @@ import java.util.List;
 public class SimpleApp implements App, HasMenu {
   @Override
   public List<Menu> createMenu() {
-    return List.of(new Menu("label", new GoToRoute("route", RouteTarget.Top), List.of()));
+    return List.of(new Menu("label", new GoToRoute("route", RouteTarget.Top), List.of(), true));
   }
 }

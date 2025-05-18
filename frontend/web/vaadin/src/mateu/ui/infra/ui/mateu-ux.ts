@@ -158,6 +158,7 @@ export class MateuUx extends ConnectedElement {
                                          .metadata="${component.metadata}" 
                                          .data="${component.initialData}"
                                          serverSideType="${component.serverSideType}"
+                                         baseUrl="${this.baseUrl}"
                                          signature="${JSON.stringify(component.metadata) 
                                          + JSON.stringify(component.initialData)}">
 ${component.children?.map(child => this.renderComponent(child))}

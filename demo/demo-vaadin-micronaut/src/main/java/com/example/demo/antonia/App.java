@@ -24,9 +24,9 @@ public class App implements HasPageTitle, HasMenu, io.mateu.uidl.interfaces.App 
     @Override
     public List<Menu> createMenu() {
         return List.of(
-                new Menu("Home", new GoToRoute("/home", RouteTarget.Top), List.of()),
-                new Menu("Page 1", new GoToRoute("/page1", RouteTarget.Top), List.of()),
-                new Menu("Page 2", new GoToRoute("/page2", RouteTarget.Top), List.of())
+                new Menu("Home", new GoToRoute("/home", RouteTarget.Top), List.of(), true),
+                new Menu("Page 1", new GoToRoute("/page1", RouteTarget.Top), List.of(), false),
+                new Menu("Page 2", new GoToRoute("/page2", RouteTarget.Top), List.of(), false)
         );
     }
 }

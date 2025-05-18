@@ -1,4 +1,4 @@
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { css, html, nothing, PropertyValues } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -26,6 +26,9 @@ export class MateuApp extends ComponentElement {
 
     @state()
     selectedRoute: string | undefined = undefined
+
+    @property()
+    baseUrl: string | undefined = undefined
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
@@ -93,7 +96,7 @@ export class MateuApp extends ComponentElement {
                             @item-selected="${this.itemSelected}">
                     </vaadin-menu-bar>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
                 
@@ -108,7 +111,7 @@ export class MateuApp extends ComponentElement {
                             `)}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-horizontal-layout>
 
@@ -124,7 +127,7 @@ export class MateuApp extends ComponentElement {
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}"></mateu-ux>
+                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
             

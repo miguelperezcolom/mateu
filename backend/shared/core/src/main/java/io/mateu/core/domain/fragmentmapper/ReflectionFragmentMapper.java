@@ -101,7 +101,8 @@ public class ReflectionFragmentMapper implements FragmentMapper {
                       new GoToRouteDto("", menu.destination().route(), ""),
                       List.of(),
                       0,
-                      true))
+                      true,
+                      menu.selected()))
           .toList();
     }
     return List.of();

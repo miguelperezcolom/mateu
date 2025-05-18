@@ -26,6 +26,10 @@ export class MateuComponent extends ComponentElement {
     @property()
     signature: ComponentMetadata | undefined
 
+    @property()
+    baseUrl: string | undefined
+
+
     renderElement = (element: Element): TemplateResult => {
         if (element.name == 'div') {
             return html`<div>
@@ -45,6 +49,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.Form
             ?html`<mateu-form 
                            id="${this.id}" 
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
@@ -55,6 +60,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.Table
             ?html`<mateu-table
                            id="${this.id}"
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
@@ -65,6 +71,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.TableCrud
             ?html`<mateu-table-crud
                            id="${this.id}"
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
@@ -72,6 +79,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.CardCrud
             ?html`<mateu-table-crud
                            id="${this.id}"
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
@@ -80,6 +88,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.Card
             ?html`<mateu-card
                            id="${this.id}"
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"
@@ -88,6 +97,7 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.App
             ?html`<mateu-app
                            id="${this.id}"
+                           baseUrl="${this.baseUrl}"
                            .metadata="${metadata}"
                            .data="${this.data}"
                            serversidetype="${this.serverSideType}"

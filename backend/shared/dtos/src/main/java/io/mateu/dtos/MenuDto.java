@@ -11,7 +11,8 @@ public record MenuDto(
     GoToRouteDto destination,
     List<MenuDto> submenus,
     @JsonIgnore int order,
-    boolean visible) {
+    boolean visible,
+    boolean selected) {
 
   public MenuDto {
     submenus = Collections.unmodifiableList(submenus);
