@@ -33,7 +33,7 @@ export const mockedSimpleTableCrudMessage1: UIIncrement = {
             component: undefined
         }
     ],
-    appData: undefined,
+    appState: undefined,
     commands: undefined,
     sharedData: undefined
 }

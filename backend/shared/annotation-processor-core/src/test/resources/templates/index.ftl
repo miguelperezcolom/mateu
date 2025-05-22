@@ -49,7 +49,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
         html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
-        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
+        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${pageTitle}");
 <#if keycloak??>
         String keycloakStuff = """
 <script src='${keycloak.jsUrl}'></script>

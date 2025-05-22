@@ -127,8 +127,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).indexHtmlPath())) {
           indexHtmlPath = e.getAnnotation(MateuUI.class).indexHtmlPath();
         }
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponenPath())) {
-          frontendPath = e.getAnnotation(MateuUI.class).frontendComponenPath();
+        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponentPath())) {
+          frontendPath = e.getAnnotation(MateuUI.class).frontendComponentPath();
           if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
             frontendPath = path + frontendPath;
           }
@@ -150,7 +150,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "label",
+                  "pageTitle",
                   caption,
                   "path",
                   path,
@@ -241,7 +241,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "label",
+                  "pageTitle",
                   caption,
                   "path",
                   path));
@@ -281,7 +281,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   generatedClassName,
                   "generatedFullClassName",
                   generatedFullClassName,
-                  "label",
+                  "pageTitle",
                   caption,
                   "path",
                   path));

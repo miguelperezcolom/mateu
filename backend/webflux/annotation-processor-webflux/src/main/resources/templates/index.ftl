@@ -1,29 +1,12 @@
 package ${pkgName};
 
-import lombok.SneakyThrows;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.beans.factory.annotation.Value;
 import io.mateu.core.infra.InputStreamReader;
-import io.mateu.core.infra.JsonSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.annotation.PostConstruct;
-import org.springframework.web.server.ServerWebExchange;
-
-import java.util.HashMap;
-import java.util.Map;
-
-
 
 @RestController("${pkgName}.${simpleClassName}Controller")
 @RequestMapping("${path}")
@@ -34,18 +17,18 @@ public class ${simpleClassName}Controller {
     private boolean liveReloadEnabled;
 
     @GetMapping(value = "*", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndexAlways(ServerHttpRequest request) {
-        return getIndex(request);
+    public String getIndexAlways() {
+        return getIndex();
     }
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndex(ServerHttpRequest request) {
+    public String getIndex() {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
 <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
 </#list>
         html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
-        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${caption}");
+        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${pageTitle}");
 <#if keycloak??>
         String keycloakStuff = """
 <script src='${keycloak.jsUrl}'></script>
@@ -104,61 +87,9 @@ public class ${simpleClassName}Controller {
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
                             + (liveReloadEnabled?
                                     "<script src='http://localhost:35729/livereload.js'></script>":""));
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}' contextData='" + getContextData(request) + "'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}'></mateu-ui>");
 </#if>
         return html;
-    }
-
-    @SneakyThrows
-    private String getContextData(ServerHttpRequest request) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.putAll(request.getQueryParams());
-
-        Map<String, Object> data = new HashMap<>();
-        params.forEach((key, value) -> {
-            Object v = value;
-            if (value.size() == 1) {
-                v = value.get(0);
-            }
-            data.put(key, v);
-        });
-
-        return JsonSerializer.toJson(data).replaceAll("\\n","");
-    }
-
-    private MultiValueMap<String, String> getFormData(ServerWebExchange serverWebExchange) {
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        serverWebExchange.getFormData().subscribe(formData::addAll);
-        return formData;
-    }
-
-
-
-    @GetMapping(value = "/assets/**")
-    public ResponseEntity<String> getAssets(ServerHttpRequest request) {
-        return getFromClasspath(request.getURI().toString(), "assets", "/npm/mateu/assets/");
-    }
-
-    private ResponseEntity<String> getFromClasspath(String uri, String key, String pkg) {
-        String[] tokens = uri.split("/" + key);
-        String path = tokens.length > 1 ? tokens[1] : "";
-        String suffix =
-        path.contains(".") ? path.substring(path.lastIndexOf('.')).replaceAll("\\.", "") : "";
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(
-        "Content-Type",
-        Map.of("js", "application/javascript", "css", "text/css")
-        .getOrDefault(suffix, MediaType.TEXT_PLAIN_VALUE.toString()));
-        if (path.startsWith("/")) {
-        path = path.substring(1);
-        }
-        String html = InputStreamReader.readFromClasspath(this.getClass(), pkg + path);
-        return new ResponseEntity(html, httpHeaders, HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/dist/**")
-    public ResponseEntity<String> getDist(ServerHttpRequest request) {
-        return getFromClasspath(request.getURI().toString(), "dist", "/npm/mateu/dist/");
     }
 
 }

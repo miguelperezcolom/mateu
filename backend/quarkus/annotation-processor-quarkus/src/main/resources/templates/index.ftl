@@ -10,9 +10,6 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,21 +18,17 @@ import java.util.Map;
 @Slf4j
 public class ${simpleClassName}Controller {
 
-    @Value("${r"${spring.devtools.livereload.enabled:false}"}")
-    private boolean liveReloadEnabled;
-
-    @Path("*")
+    @Path("/{path}")
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getIndexAlways(HttpServerRequest request) {
-        return getIndex(request);
+    @Produces(MediaType.TEXT_HTML)
+    public String getIndexAlways(String path) {
+        return getIndex();
     }
 
-
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getIndex(HttpServerRequest request) {
-        String html = InputStreamReader.readFromClasspath(this.getClass(), "/index/index.html");
+    @Produces(MediaType.TEXT_HTML)
+    public String getIndex() {
+        String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
         <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
         </#list>
@@ -81,7 +74,6 @@ public class ${simpleClassName}Controller {
                 document.head.appendChild(s);
 
                 const u = document.createElement('mateu-ui');
-                u.setAttribute('uiId', '${className}')
                 u.setAttribute('baseUrl', '${path}')
                 document.body.appendChild(u);
 
@@ -95,54 +87,10 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
-        //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
+        html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl=\"${path}\"></mateu-ui>");
 </#if>
         return html;
     }
 
-    @SneakyThrows
-    private String getContextData(HttpServerRequest request) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        request.params().forEach((key, value) -> params.add(key, value));
-
-        Map<String, Object> data = new HashMap<>();
-        params.forEach((key, value) -> {
-            Object v = value;
-            if (value.size() == 1) {
-                v = value.get(0);
-            }
-            data.put(key, v);
-        });
-
-        return JsonSerializer.toJson(data).replaceAll("\\n","");
-    }
-
-    @Path("/assets/**")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public RestResponse getAssets(HttpServerRequest request) {
-        return getFromClasspath(request.uri().toString(), "assets", "/npm/mateu/assets/");
-    }
-
-    private RestResponse getFromClasspath(String uri, String key, String pkg) {
-        String[] tokens = uri.split("/" + key);
-        String path = tokens.length > 1 ? tokens[1] : "";
-        String suffix =
-        path.contains(".") ? path.substring(path.lastIndexOf('.')).replaceAll("\\.", "") : "";
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        String html = InputStreamReader.readFromClasspath(this.getClass(), pkg + path);
-        return RestResponse.ResponseBuilder.ok(html).header("Content-Type",
-        Map.of("js", "application/javascript", "css", "text/css")
-            .getOrDefault(suffix, MediaType.TEXT_HTML.toString())).build();
-    }
-
-    @Path("/dist/**")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public RestResponse getDist(HttpServerRequest request) {
-        return getFromClasspath(request.uri().toString(), "dist", "/npm/mateu/dist/");
-    }
 }
 

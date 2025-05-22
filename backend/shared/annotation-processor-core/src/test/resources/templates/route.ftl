@@ -1,26 +1,29 @@
 package ${pkgName};
 
-import io.mateu.uidl.interfaces.HandlesRoute;
+import io.mateu.uidl.interfaces.RouteResolver;
+import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Named;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
-@Managed
-public class ${simpleClassName}RouteHandler implements HandlesRoute {
+@Named
+public class ${simpleClassName}RouteResolver implements RouteResolver {
 
-    boolean supportsAction(String route) {
-        return route != null && route.startsWith("${path}");
+    private final List<Pattern> patterns = List.of(
+            Pattern.compile("${route}")
+    );
+
+    @Override
+    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+        return ${simpleClassName}.class;
     }
 
-    default int weight(String route) {
-        if (route != null) {
-            return route.split("/").length;
-        }
-        return Integer.MIN_VALUE;
+    @Override
+    public List<Pattern> getSupportedRoutesPatterns() {
+        return patterns;
     }
-
-    Mono<?> handleRoute(String route, HttpRequest httpRequest) {
-        return Mono.empty();
-    }
-
 
 }

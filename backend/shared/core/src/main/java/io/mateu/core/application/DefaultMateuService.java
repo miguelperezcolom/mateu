@@ -24,7 +24,15 @@ public class DefaultMateuService implements MateuService {
 
   @Override
   public Mono<UIDto> getUI(String uiId, String baseUrl, GetUIRqDto rq, HttpRequest httpRequest) {
-    return getUIUseCase.handle(new GetUIQuery(uiId, baseUrl, rq.path(), rq.config(), httpRequest));
+    return getUIUseCase.handle(
+        new GetUIQuery(uiId, baseUrl, getRoute(baseUrl, rq.path()), rq.config(), httpRequest));
+  }
+
+  private String getRoute(String baseUrl, String path) {
+    if (path.startsWith(baseUrl)) {
+      return path.substring(baseUrl.length());
+    }
+    return path;
   }
 
   @Override

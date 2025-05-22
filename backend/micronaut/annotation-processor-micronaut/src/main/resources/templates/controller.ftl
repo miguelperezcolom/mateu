@@ -14,7 +14,6 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.server.cors.CrossOrigin;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
 

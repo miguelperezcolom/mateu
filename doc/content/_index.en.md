@@ -44,15 +44,6 @@ Vaadin is a fantastic tool (we even use its design system!), but Mateu offers a 
 
 ---
 
-## 📦 Production-Proven
-
-Mateu is already in production across multiple enterprise projects, powering complex UI systems with minimal development effort.
-
-**Case Study:**  
-At **Wefox**, Mateu was extended to seamlessly integrate with their corporate design system—demonstrating its flexibility and adaptability in real-world environments.
-
----
-
 ## 🛠️ Current Status: Version 3 in Development
 
 Since May 2024, work has begun on **Mateu v3**, which includes:

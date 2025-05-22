@@ -36,8 +36,7 @@ export class MateuUi extends LitElement {
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
-            window.history.pushState({},"", e.detail.route);
-            //dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+            window.history.pushState({},"", this.baseUrl + e.detail.route);
         }
     }
 

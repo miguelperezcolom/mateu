@@ -5,17 +5,25 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 @Named
 public class ${simpleClassName}RouteResolver implements RouteResolver {
 
-    @Override
-    public boolean supportsRoute(String route) {
-        return route != null && route.startsWith("${route}");
-    }
+    private final List<Pattern> patterns = List.of(
+            Pattern.compile("${route}")
+    );
 
     @Override
     public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
         return ${simpleClassName}.class;
+    }
+
+    @Override
+    public List<Pattern> getSupportedRoutesPatterns() {
+        return patterns;
     }
 
 }

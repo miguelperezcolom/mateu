@@ -43,34 +43,10 @@
         </dependency>
 
         <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>embedded-front</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-webflux</artifactId>
-            <version>0.0.1-MATEU</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-boot-starter</artifactId>
             <version>3.0.0</version>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mdd-springboot-security</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
-        -->
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -92,31 +68,32 @@
         </dependency>
 
         <dependency>
-            <groupId>io.mateu.article2</groupId>
-            <artifactId>sdk</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>demo-app-definition</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        -->
 
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <version>4.1.116.Final</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-webflux</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>webflux-core</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>
 

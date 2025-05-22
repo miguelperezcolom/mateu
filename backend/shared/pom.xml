@@ -18,6 +18,7 @@
     <module>dtos</module>
     <module>annotation-processor-core</module>
     <module>core</module>
+    <module>frontend/vaadin-lit</module>
   </modules>
 
 </project>
