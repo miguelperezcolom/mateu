@@ -3,9 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>backend</artifactId>
+        <artifactId>shared</artifactId>
         <version>0.0.1-MATEU</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>integration-tests</artifactId>
