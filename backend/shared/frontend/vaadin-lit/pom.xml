@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>shared</artifactId>
+        <artifactId>frontend</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
