@@ -18,8 +18,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "build": "tsc && vite build",
-    "copy": "tsc && vite build && cp -rf dist ../../../backend/webflux/optionals/embedded-front/src/main/resources/npm/mateu",
-    "copyw": "xcopy /e/h/y/q \"./dist\" \"../../../backend/webflux/optionals/embedded-front/src/main/resources/npm/mateu/dist\""
+    "copy": "tsc && vite build && cp -rf dist/assets/mateu.js ../../../backend/shared/frontend/vaadin-lit/src/main/resources/static/assets && cp -rf dist/assets/mateu.js ../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources/assets",
+    "copyw": "xcopy /e/h/y/q \"./dist\" \"../../../backend/shared/frontend/vaadin-lit/src/main/resources/static\""
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.1",
