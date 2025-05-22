@@ -40,19 +40,16 @@ jobs:
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
 
       - name: Build backend shared
-        run: mvn -B install --file backend/shared/pom.xml
-
-      - name: Build backend webflux
-        run: mvn -B install --file backend/webflux/pom.xml
+        run: mvn -B install --file backend/pom.xml
 
       - name: Publish to Maven Central Shared
-        run: mvn deploy -f shared/webflux/pom.xml
+        run: mvn deploy -f backend/pom.xml
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
 
       - name: Publish to Maven Central Webflux
-        run: mvn deploy -f backend/webflux/pom.xml
+        run: mvn deploy -f backend/pom.xml
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
