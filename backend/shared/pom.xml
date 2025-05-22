@@ -19,6 +19,7 @@
     <module>annotation-processor-core</module>
     <module>core</module>
     <module>frontend</module>
+    <module>integration-tests</module>
   </modules>
 
 </project>

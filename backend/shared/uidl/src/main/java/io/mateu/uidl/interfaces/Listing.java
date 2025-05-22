@@ -6,6 +6,5 @@ import reactor.core.publisher.Mono;
 
 public interface Listing<Filters, Row> {
 
-    Mono<Page<Row>> search(String text, Filters filters, Pageable pageable);
-
+  Mono<Page<Row>> search(String text, Filters filters, Pageable pageable);
 }

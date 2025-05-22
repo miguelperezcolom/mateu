@@ -4,5 +4,5 @@ import io.mateu.dtos.UIIncrementDto;
 
 public interface MapsToDto {
 
-    UIIncrementDto toUIIncrementDto();
+  UIIncrementDto toUIIncrementDto();
 }

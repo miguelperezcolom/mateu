@@ -1,4 +1,3 @@
 package io.mateu.uidl.interfaces;
 
-public interface HttpRequest {
-}
+public interface HttpRequest {}

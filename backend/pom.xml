@@ -49,7 +49,6 @@
     <module>micronaut</module>
     <module>quarkus</module>
     <module>mvc</module>
-      <module>shared/integration-tests</module>
   </modules>
 
   <dependencyManagement>
@@ -75,12 +74,6 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
       <version>3.0.0</version>
-    </dependency>
-    <!-- fix CVE-2024-38809(8.7) -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-web</artifactId>
-      <version>6.1.12</version>
     </dependency>
 
   </dependencies>

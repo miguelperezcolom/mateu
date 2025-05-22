@@ -4,8 +4,7 @@ import reactor.core.publisher.Mono;
 
 public interface HandlesActions {
 
-    boolean supportsAction(String actionId);
+  boolean supportsAction(String actionId);
 
-    Mono<?> handleAction(String actionId, HttpRequest httpRequest);
-
+  Mono<?> handleAction(String actionId, HttpRequest httpRequest);
 }
