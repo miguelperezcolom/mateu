@@ -5,7 +5,7 @@ package io.mateu.dtos;
  *
  * @param id This action targetId
  * @param icon Icon to be used
- * @param caption Button text
+ * @param label Button text
  * @param type Action type: primary, secondary
  * @param visible If this button is visible
  * @param validationRequired If validation of the form is required for firing this action
@@ -25,7 +25,7 @@ package io.mateu.dtos;
 public record ActionDto(
     String id,
     String icon,
-    String caption,
+    String label,
     ActionTypeDto type,
     ActionStereotypeDto stereotype,
     ActionThemeVariantDto[] variants,

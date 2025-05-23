@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * UI increment. Components to be added / replacements / actions to run
@@ -10,6 +11,7 @@ import java.util.List;
  * @param messages List of messages to be shown in the UI
  * @param fragments List of new UI fragments
  */
+@Builder
 public record UIIncrementDto(
     List<UICommandDto> commands,
     List<MessageDto> messages,

@@ -1,6 +1,13 @@
 package io.mateu.core.domain.fragmentmapper;
 
 import io.mateu.core.domain.FragmentMapper;
+import io.mateu.core.domain.Humanizer;
+import io.mateu.core.domain.reflection.AllMethodsProvider;
+import io.mateu.dtos.ActionDto;
+import io.mateu.dtos.ActionPositionDto;
+import io.mateu.dtos.ActionStereotypeDto;
+import io.mateu.dtos.ActionTargetDto;
+import io.mateu.dtos.ActionTypeDto;
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ComponentDto;
@@ -11,6 +18,7 @@ import io.mateu.dtos.MenuTypeDto;
 import io.mateu.dtos.StatusDto;
 import io.mateu.dtos.StatusTypeDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HasMenu;
@@ -23,6 +31,9 @@ import java.util.List;
 
 @Named
 public class ReflectionFragmentMapper implements FragmentMapper {
+
+  private final AllMethodsProvider allMethodsProvider = new AllMethodsProvider();
+
   @Override
   public List<UIFragmentDto> mapToFragments(
       Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
@@ -67,12 +78,45 @@ public class ReflectionFragmentMapper implements FragmentMapper {
             List.of(),
             List.of(),
             List.of(),
-            List.of(),
+            createActions(form),
             List.of(),
             List.of(),
             List.of());
     var component = new ComponentDto(formDto, "component_id", form.getClass().getName(), List.of());
     return new UIFragmentDto(initiatorComponentId, component, form);
+  }
+
+  private List<ActionDto> createActions(Form form) {
+    List<ActionDto> actions = new ArrayList<>();
+    actions.addAll(
+        allMethodsProvider.getAllMethods(form.getClass()).stream()
+            .filter(method -> method.isAnnotationPresent(Action.class))
+            .map(
+                method ->
+                    new ActionDto(
+                        method.getName(),
+                        "icon",
+                        Humanizer.capitalize(method.getName()),
+                        ActionTypeDto.Primary,
+                        ActionStereotypeDto.valueOf(
+                            method.getAnnotation(Action.class).type().name()),
+                        null,
+                        true,
+                        false,
+                        false,
+                        false,
+                        null,
+                        ActionTargetDto.Component,
+                        null,
+                        null,
+                        null,
+                        null,
+                        false,
+                        ActionPositionDto.Left,
+                        0,
+                        0))
+            .toList());
+    return actions;
   }
 
   private String getTitle(Object instance) {

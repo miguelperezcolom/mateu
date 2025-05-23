@@ -2,6 +2,7 @@ package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.ActionRunnerProvider;
 import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.InstanceFactory;
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
@@ -10,6 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
 import java.util.Comparator;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -31,8 +33,13 @@ public class RunActionUseCase {
     var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
     return Mono.just(command)
         .flatMap(
-            rq -> instanceFactory.createInstance(instanceTypeName, rq.data(), rq.httpRequest()))
-        .flatMap(instance -> resolveRoute(instance, command.route(), command.httpRequest()))
+            ignored ->
+                resolveRoute(
+                    instanceTypeName,
+                    instanceFactory,
+                    command.route(),
+                    command.data(),
+                    command.httpRequest()))
         .flatMap(
             instance ->
                 actionRunnerProvider
@@ -49,11 +56,32 @@ public class RunActionUseCase {
                         command.httpRequest()));
   }
 
-  private Mono<?> resolveRoute(Object instance, String route, HttpRequest httpRequest) {
-    if (instance instanceof HandlesRoute handlesRoute) {
-      return handlesRoute.handleRoute(route, httpRequest);
+  private Mono<?> resolveRoute(
+      String instanceTypeName,
+      InstanceFactory instanceFactory,
+      String route,
+      Map<String, Object> data,
+      HttpRequest httpRequest) {
+    return instanceFactory
+        .createInstance(
+            getInstanceNameUsingResolvers(instanceTypeName, route, httpRequest), data, httpRequest)
+        .flatMap(
+            instance -> {
+              if (instance instanceof HandlesRoute handlesRoute) {
+                return handlesRoute.handleRoute(route, httpRequest);
+              }
+              return Mono.just(instance);
+            });
+  }
+
+  private String getInstanceNameUsingResolvers(
+      String instanceTypeName, String route, HttpRequest httpRequest) {
+    for (RouteResolver resolver : beanProvider.getBeans(RouteResolver.class)) {
+      if (resolver.supportsRoute(route)) {
+        return resolver.resolveRoute(route, httpRequest).getName();
+      }
     }
-    return Mono.just(instance);
+    return instanceTypeName;
   }
 
   private String getInstanceTypeName(RunActionCommand command) {
