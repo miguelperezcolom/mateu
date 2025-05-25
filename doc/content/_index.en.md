@@ -1,14 +1,14 @@
 ---
 header_alt: true
 Title: Backend-Driven UIs. Simpler, Faster, Smarter.
-<meta name="description" content="Mateu: Create backend-driven UIs with Java, Go, or C#.">
+<meta name="description" content="Mateu: Create backend-driven UIs with Java, C#, or Python.">
   <meta property="og:title" content="Mateu – Backend-Driven UI Framework">
   <meta property="og:description" content="Build full UIs directly from your backend code, with zero frontend work.">
   <meta property="og:image" content="https://mateu.io/og-image.png">
 ---
 **Mateu** is an open-source framework that lets backend developers create complete, responsive web applications using only backend code—no need for HTML, CSS, or JavaScript.
 
-With just Java (and soon C# and Go), you can design powerful user interfaces, define workflows, and deploy distributed applications that scale.
+With just Java (and soon C# and Python), you can design powerful user interfaces, define workflows, and deploy distributed applications that scale.
 
 ---
 
@@ -34,13 +34,13 @@ Mateu introduces a simple yet powerful UI Domain-Specific Language (DSL) through
 
 Vaadin is a fantastic tool (we even use its design system!), but Mateu offers a different perspective:
 
-| Feature                     | Vaadin                           | Mateu                                      |
-|----------------------------|----------------------------------|--------------------------------------------|
-| **Focus**                  | UI components                    | Full application structure                 |
-| **Architecture**           | Stateful                         | Stateless (ideal for microservices)        |
-| **Microfrontend support**  | Indirect                         | First-class citizen                        |
-| **Multi-language roadmap** | Java only                        | Java, C#, Go (planned)                     |
-| **Frontend flexibility**   | Coupled                          | Fully decoupled and swappable              |
+| Feature                     | Vaadin                           | Mateu                               |
+|----------------------------|----------------------------------|-------------------------------------|
+| **Focus**                  | UI components                    | Full application structure          |
+| **Architecture**           | Stateful                         | Stateless (ideal for microservices) |
+| **Microfrontend support**  | Indirect                         | First-class citizen                 |
+| **Multi-language roadmap** | Java only                        | Java, C#, Python (planned)          |
+| **Frontend flexibility**   | Coupled                          | Fully decoupled and swappable       |
 
 ---
 
