@@ -10,7 +10,7 @@ type: "docs"
 _build:
   list: always
   publishResources: true
-  render: never
+  render: always
 ---
 
 TBD
