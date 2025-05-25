@@ -8,6 +8,7 @@ public record RunActionCommand(
     String baseUrl,
     String uiId,
     String route,
+    String consumedRoute,
     String actionId,
     String componentType,
     Map<String, Object> data,

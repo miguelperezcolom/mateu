@@ -7,7 +7,8 @@ public record RunActionRqDto(
     String componentType,
     Map<String, Object> data,
     Map<String, Object> appState,
-    String initiatorComponentId) {
+    String initiatorComponentId,
+    String consumedRoute) {
 
   public RunActionRqDto {
     data = data != null ? Collections.unmodifiableMap(data) : Map.of();

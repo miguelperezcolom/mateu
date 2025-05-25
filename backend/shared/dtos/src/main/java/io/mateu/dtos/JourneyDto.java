@@ -3,7 +3,7 @@ package io.mateu.dtos;
 /**
  * Info about the journey
  *
- * @param type The journey type
+ * @param type The journey dataType
  * @param status The journey status
  * @param statusMessage The journey status message
  * @param currentStepId The current step targetId

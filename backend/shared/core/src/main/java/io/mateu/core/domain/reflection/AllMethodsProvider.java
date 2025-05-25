@@ -5,9 +5,9 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllMethodsProvider {
+public final class AllMethodsProvider {
 
-  public List<Method> getAllMethods(Class c) {
+  public static List<Method> getAllMethods(Class c) {
 
     if (c == null || c.equals(Class.class) || c.equals(Object.class) || c.equals(Record.class)) {
       return new ArrayList<>();
@@ -27,7 +27,7 @@ public class AllMethodsProvider {
     return l;
   }
 
-  private String getSignature(Method m) {
+  private static String getSignature(Method m) {
     return m.getGenericReturnType().getTypeName()
         + " "
         + m.getName()
@@ -36,7 +36,7 @@ public class AllMethodsProvider {
         + ")";
   }
 
-  private String getSignature(Parameter[] parameters) {
+  private static String getSignature(Parameter[] parameters) {
     StringBuilder s = new StringBuilder();
     if (parameters != null)
       for (Parameter p : parameters) {

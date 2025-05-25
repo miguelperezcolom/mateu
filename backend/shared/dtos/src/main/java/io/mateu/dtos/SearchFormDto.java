@@ -8,14 +8,14 @@ import java.util.List;
  *
  * @param fields filters
  */
-public record SearchFormDto(List<FieldDto> fields) {
+public record SearchFormDto(List<FormFieldDto> fields) {
 
   public SearchFormDto {
     fields = Collections.unmodifiableList(fields);
   }
 
   @Override
-  public List<FieldDto> fields() {
+  public List<FormFieldDto> fields() {
     return Collections.unmodifiableList(fields);
   }
 }

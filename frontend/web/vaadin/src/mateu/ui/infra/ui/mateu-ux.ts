@@ -29,6 +29,8 @@ export class MateuUx extends ConnectedElement {
     @property()
     baseUrl = ''
     @property()
+    consumedRoute = ''
+    @property()
     overrides: string | undefined = undefined;
     @property()
     route: string | undefined = undefined;
@@ -75,6 +77,7 @@ export class MateuUx extends ConnectedElement {
             if (this.route) {
                 service.runAction(mateuApiClient, this.baseUrl,
                     this.route,
+                    this.consumedRoute,
                     detail.actionId,
                     detail.initiatorComponentId,
                     this.getCustomisedAppState(),

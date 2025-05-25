@@ -1,5 +1,5 @@
-import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 
 export interface FieldGroup {
-    fields: Field[]
+    fields: FormField[]
 }

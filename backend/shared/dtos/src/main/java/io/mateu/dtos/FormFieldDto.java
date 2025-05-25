@@ -7,11 +7,11 @@ import java.util.List;
  * A field in a form
  *
  * @param id Field targetId
- * @param type Field data type
+ * @param dataType Field data dataType
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation
  * @param wantsFocus Set to true if you want it to be focused when rendered
- * @param caption The label/label for this field
+ * @param label The label/label for this field
  * @param placeholder A placeholder for this field
  * @param cssClasses Css cssClasses to be applied to this field
  * @param description A help text to be used as tooltip
@@ -20,13 +20,13 @@ import java.util.List;
  * @param attributes Some generic attributes
  * @param colspan Colspan for this field
  */
-public record FieldDto(
+public record FormFieldDto(
     String id,
-    String type,
+    String dataType,
     String stereotype,
     boolean observed,
     boolean wantsFocus,
-    String caption,
+    String label,
     String placeholder,
     String cssClasses,
     String description,
@@ -35,9 +35,10 @@ public record FieldDto(
     List<PairDto> attributes,
     int colspan,
     boolean rightAligned,
-    boolean bold) {
+    boolean bold)
+    implements ComponentMetadataDto {
 
-  public FieldDto {
+  public FormFieldDto {
     badges = Collections.unmodifiableList(badges);
     validations = Collections.unmodifiableList(validations);
     attributes = Collections.unmodifiableList(attributes);

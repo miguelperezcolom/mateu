@@ -1,15 +1,15 @@
 package io.mateu.core.domain.reflection;
 
+import static io.mateu.core.domain.reflection.AllMethodsProvider.getAllMethods;
+
 import java.lang.reflect.Method;
 
-public class MethodProvider {
+public final class MethodProvider {
 
-  private final AllMethodsProvider allMethodsProvider = new AllMethodsProvider();
-
-  public Method getMethod(Class<?> c, String methodName) {
+  public static Method getMethod(Class<?> c, String methodName) {
     Method m = null;
     if (c != null) {
-      for (Method q : allMethodsProvider.getAllMethods(c)) {
+      for (Method q : getAllMethods(c)) {
         if (methodName.equals(q.getName())) {
           m = q;
           break;

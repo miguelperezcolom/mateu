@@ -1,6 +1,6 @@
 package io.mateu.dtos;
 
-/** A result/message type */
+/** A result/message dataType */
 public enum ResultTypeDto {
   Success,
   Info,

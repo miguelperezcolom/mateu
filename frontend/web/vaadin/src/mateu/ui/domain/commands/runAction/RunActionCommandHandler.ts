@@ -8,7 +8,8 @@ export class RunActionCommandHandler {
         Promise<{uiIncrement: UIIncrement}> {
         const uiIncrement = await mateuApiClient.runAction(
             command.baseUrl,
-            command.journeyTypeId,
+            command.route,
+            command.consumedRoute,
             command.actionId,
             command.initiatorComponentId,
             command.appState,

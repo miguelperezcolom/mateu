@@ -7,7 +7,7 @@ import java.util.List;
  * A crud column
  *
  * @param id The column targetId
- * @param type The column data type
+ * @param type The column data dataType
  * @param stereotype The column stereotype. How this must be shown
  * @param caption The column label
  * @param description A help text. Usually a tooltip

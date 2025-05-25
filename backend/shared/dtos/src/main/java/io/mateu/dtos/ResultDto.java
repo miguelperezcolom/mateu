@@ -7,7 +7,7 @@ import java.util.List;
  * Result metadata
  *
  * @param title The title
- * @param resultType The result type: error, success, info
+ * @param resultType The result dataType: error, success, info
  * @param message The message
  * @param interestingLinks A list of interesting links
  * @param nowTo The preferred destination

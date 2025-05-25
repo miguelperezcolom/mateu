@@ -5,7 +5,7 @@ export interface MateuApiClient {
 
     fetchUi(baseUrl: string, path: string | undefined, config: any, initiator: HTMLElement): Promise<UI>
 
-    runAction(baseUrl: string, route: string,
+    runAction(baseUrl: string, route: string, consumedRoute: string,
               actionId: string, initiatorComponentId: string,
               appState: any, serverSideType: string,
               data: any, initiator: HTMLElement): Promise<UIIncrement>

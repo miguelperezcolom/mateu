@@ -14,9 +14,7 @@ export enum ComponentMetadataType {
     SplitLayout = "SplitLayout",
     TabLayout = "TabLayout",
     FormLayout = "FormLayout",
-    Section = "Section",
-    FieldGroup = "FieldGroup",
-    FieldLine = "FieldLine",
+    FormField = "FormField",
     Table = "Table",
     App = "App",
 

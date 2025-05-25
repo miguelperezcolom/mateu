@@ -4,9 +4,11 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 
 export default interface App extends ComponentMetadata {
 
-    variant: AppVariant,
+    route: string
+    variant: AppVariant
     title: string | undefined
     subtitle: string | undefined
     menu: MenuOption[]
+    homeRoute: string
 
 }

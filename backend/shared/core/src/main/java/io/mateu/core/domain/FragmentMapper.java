@@ -7,5 +7,9 @@ import java.util.List;
 public interface FragmentMapper {
 
   List<UIFragmentDto> mapToFragments(
-      Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest);
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest);
 }

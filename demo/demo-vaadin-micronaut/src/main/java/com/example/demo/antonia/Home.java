@@ -11,7 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
 
-@Route("/home")
+@Route("/app/home")
 @Serdeable
 public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
 

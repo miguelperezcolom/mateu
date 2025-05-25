@@ -6,13 +6,14 @@ import lombok.Builder;
 
 @Builder
 public record AppDto(
+    String route,
     AppVariantDto variant,
     String icon,
     String logo,
     String title,
     String subtitle,
     List<MenuDto> menu,
-    String homeJourneyTypeId,
+    String homeRoute,
     String loginUrl,
     String welcomeMessage,
     String logoutUrl,

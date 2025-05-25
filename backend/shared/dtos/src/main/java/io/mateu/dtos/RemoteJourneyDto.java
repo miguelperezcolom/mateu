@@ -5,7 +5,7 @@ package io.mateu.dtos;
  *
  * @param remoteBaseUrl the remote journey base url
  * @param remoteUiId the remote journey UI id
- * @param remoteJourneyType the remote journey type
+ * @param remoteJourneyType the remote journey dataType
  * @param contextData the context data to send to the remote journey
  */
 public record RemoteJourneyDto(

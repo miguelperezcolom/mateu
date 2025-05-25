@@ -21,7 +21,7 @@ public class XController {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "/static/index.html");
         html = html.replaceAll("<!-- AQUIFAVICON -->", "");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "Antonia app");
-    //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
+    //html = html.replaceAll("<!-- AQUIMATEU -->", "<script dataType='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
         return html;
     }
 

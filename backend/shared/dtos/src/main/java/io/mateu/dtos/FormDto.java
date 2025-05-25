@@ -13,7 +13,6 @@ import java.util.List;
  * @param status This form status. This has a special visual representation on top of the form
  * @param badges Badges to be shown for this form
  * @param banners Banners to be shown in this form
- * @param sections Sections of this form. This is the container for teh fields
  * @param actions Actions for this form. To be shown at the top
  * @param mainActions Actions for this form. To be shown at the bottom
  * @param validations Client side validations for this form
@@ -27,7 +26,6 @@ public record FormDto(
     StatusDto status,
     List<BadgeDto> badges,
     List<BannerDto> banners,
-    List<SectionDto> sections,
     List<ActionDto> actions,
     List<ActionDto> mainActions,
     List<ValidationDto> validations,
@@ -37,7 +35,6 @@ public record FormDto(
   public FormDto {
     badges = Collections.unmodifiableList(badges);
     banners = Collections.unmodifiableList(banners);
-    sections = Collections.unmodifiableList(sections);
     actions = Collections.unmodifiableList(actions);
     mainActions = Collections.unmodifiableList(mainActions);
     validations = Collections.unmodifiableList(validations);
@@ -52,11 +49,6 @@ public record FormDto(
   @Override
   public List<BannerDto> banners() {
     return Collections.unmodifiableList(banners);
-  }
-
-  @Override
-  public List<SectionDto> sections() {
-    return Collections.unmodifiableList(sections);
   }
 
   @Override

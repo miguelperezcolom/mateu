@@ -106,8 +106,14 @@ export class MateuComponent extends ComponentElement {
            ${metadata.type == ComponentMetadataType.Element
             ?this.renderElement(metadata as Element):nothing}
 
+                ${metadata.type == ComponentMetadataType.FormField
+                        ?html`<mateu-field
+                           id="${this.id}"
+                           .field="${this.metadata}"
+                   ></mateu-field>`:nothing}
+
             </mateu-api-caller>
-            
+
        `
     }
 

@@ -10,6 +10,8 @@ public class SimpleForm implements Form {
 
   int intField;
 
+  boolean booleanField;
+
   @Action(type = ActionType.Main)
   void simpleAction() {}
 }

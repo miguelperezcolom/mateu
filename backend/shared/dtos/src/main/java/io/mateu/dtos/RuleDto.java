@@ -14,7 +14,7 @@ public class RuleDto {
 
   // this is a js expression which must evaluate to true
   // examples:
-  // event.type == change && event.source == 'name'
+  // event.dataType == change && event.source == 'name'
   // name == 'Mateu' && age < 20
   // (name == 'Mateu') || (name == 'Antonia')
   private String filter;

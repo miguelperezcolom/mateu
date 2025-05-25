@@ -6,7 +6,7 @@ package io.mateu.dtos;
  * @param id This action targetId
  * @param icon Icon to be used
  * @param label Button text
- * @param type Action type: primary, secondary
+ * @param type Action dataType: primary, secondary
  * @param visible If this button is visible
  * @param validationRequired If validation of the form is required for firing this action
  * @param confirmationRequired If confirmation of the form is required for firing this action

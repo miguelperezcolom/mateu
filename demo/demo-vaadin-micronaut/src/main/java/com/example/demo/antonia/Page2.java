@@ -6,7 +6,7 @@ import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.micronaut.serde.annotation.Serdeable;
 
-@Route("/page2")
+@Route("/app/page2")
 @Serdeable
 public class Page2 implements HasTitle, HasSubtitle, Form {
 

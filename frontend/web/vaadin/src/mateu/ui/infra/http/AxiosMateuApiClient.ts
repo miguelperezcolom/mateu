@@ -107,18 +107,21 @@ export class AxiosMateuApiClient implements MateuApiClient {
             .then((response) => response.data), initiator)
     }
 
-    async runAction(baseUrl: string, route: string,
+    async runAction(baseUrl: string, route: string, consumedRoute: string,
                     actionId: string, initiatorComponentId: string,
                     appState: any, serverSideType: string,
                     data: any, initiator: HTMLElement): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
         }
-        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' + route + '/' + actionId, {
+        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' +
+            route.replace('/','_')
+            + '/' + actionId, {
             serverSideType,
             appState,
             data,
-            initiatorComponentId
+            initiatorComponentId,
+            consumedRoute
         })
             .then((response) => response.data), initiator)
     }

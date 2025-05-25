@@ -38,13 +38,14 @@ export class Service {
     }
 
     async runAction(mateuApiClient: AxiosMateuApiClient,
-                    baseUrl: string, route: string,
+                    baseUrl: string, route: string, consumedRoute: string,
                     actionId: string, initiatorComponentId: string,
                     appState: any, serverSideType: string,
                     userData: any, initiator: HTMLElement) {
         const changes = await runActionCommandHandler.handle(mateuApiClient, {
             baseUrl,
-            journeyTypeId: route,
+            route,
+            consumedRoute,
             actionId,
             appState,
             initiatorComponentId,

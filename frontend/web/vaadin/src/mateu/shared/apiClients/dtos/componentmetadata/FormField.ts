@@ -2,7 +2,7 @@ import Validation from "./Validation";
 import Pair from "./Pair";
 import Badge from "./Badge";
 
-export default interface Field {
+export default interface FormField {
 
     fieldId: string
     dataType: string

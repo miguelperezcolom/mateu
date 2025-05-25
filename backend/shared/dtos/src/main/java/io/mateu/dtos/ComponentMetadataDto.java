@@ -18,6 +18,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = VerticalLayoutDto.class, name = "VerticalLayout"),
   @JsonSubTypes.Type(value = SplitLayoutDto.class, name = "SplitLayout"),
   @JsonSubTypes.Type(value = TabLayoutDto.class, name = "TabLayout"),
-  @JsonSubTypes.Type(value = ElementDto.class, name = "Element")
+  @JsonSubTypes.Type(value = FormLayoutDto.class, name = "FormLayout"),
+  @JsonSubTypes.Type(value = ElementDto.class, name = "Element"),
+  @JsonSubTypes.Type(value = FormFieldDto.class, name = "FormField")
 })
 public interface ComponentMetadataDto {}

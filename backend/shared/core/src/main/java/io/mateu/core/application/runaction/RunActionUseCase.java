@@ -38,6 +38,7 @@ public class RunActionUseCase {
                     instanceTypeName,
                     instanceFactory,
                     command.route(),
+                    command.consumedRoute(),
                     command.data(),
                     command.httpRequest()))
         .flatMap(
@@ -52,6 +53,7 @@ public class RunActionUseCase {
                     .map(
                         result,
                         command.baseUrl(),
+                        command.route(),
                         command.initiatorComponentId(),
                         command.httpRequest()));
   }
@@ -60,11 +62,14 @@ public class RunActionUseCase {
       String instanceTypeName,
       InstanceFactory instanceFactory,
       String route,
+      String consumedRoute,
       Map<String, Object> data,
       HttpRequest httpRequest) {
     return instanceFactory
         .createInstance(
-            getInstanceNameUsingResolvers(instanceTypeName, route, httpRequest), data, httpRequest)
+            getInstanceNameUsingResolvers(instanceTypeName, route, consumedRoute, httpRequest),
+            data,
+            httpRequest)
         .flatMap(
             instance -> {
               if (instance instanceof HandlesRoute handlesRoute) {
@@ -75,9 +80,12 @@ public class RunActionUseCase {
   }
 
   private String getInstanceNameUsingResolvers(
-      String instanceTypeName, String route, HttpRequest httpRequest) {
-    for (RouteResolver resolver : beanProvider.getBeans(RouteResolver.class)) {
-      if (resolver.supportsRoute(route)) {
+      String instanceTypeName, String route, String consumedRoute, HttpRequest httpRequest) {
+    for (RouteResolver resolver :
+        beanProvider.getBeans(RouteResolver.class).stream()
+            .sorted(Comparator.comparingInt(a -> a.weight(route)))
+            .toList()) {
+      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
         return resolver.resolveRoute(route, httpRequest).getName();
       }
     }

@@ -11,14 +11,14 @@ import '@vaadin/text-field'
 import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
-import Field from "@mateu/shared/apiClients/dtos/componentmetadata/Field";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
 
     @property()
-    field: Field | undefined = undefined
+    field: FormField | undefined = undefined
 
     valueChanged = (e: CustomEvent) => {
         this.dispatchEvent(new CustomEvent('value-changed', {

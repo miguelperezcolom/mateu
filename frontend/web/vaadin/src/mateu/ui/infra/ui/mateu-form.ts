@@ -63,23 +63,7 @@ export class MateuForm extends ComponentElement {
            <h2>${metadata?.title}</h2>
            <p>${metadata?.subtitle}</p>
            
-           <vaadin-form-layout>
-               ${metadata.sections?.map(section => html`
-
-                   ${section.groups?.map(group => html`
-            
-                ${group.fields?.map(field => html`
-
-                    <mateu-field .field="${field}"></mateu-field>
-                    
-                `)}
-            
-            `)}
-
-               `)}
-           </vaadin-form-layout>
-           
-           <vaadin-horizontal-layout>
+           <vaadin-horizontal-layout theme="spacing">
                ${metadata?.actions?.map(action => html`
                 <vaadin-button
                         data-action-id="${action.id}"

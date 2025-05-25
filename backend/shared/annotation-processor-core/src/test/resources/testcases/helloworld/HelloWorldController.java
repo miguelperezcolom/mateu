@@ -38,8 +38,8 @@ public class HelloWorldController {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "/index/index.html");
         html = html.replaceAll("<!-- AQUIFAVICON -->", "");
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "Hello world");
-        //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
-        html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='/dist/assets/mateu.js'></script>"
+        //html = html.replaceAll("<!-- AQUIMATEU -->", "<script dataType='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
+        html = html.replaceAll("<!-- AQUIMATEU -->", "<script dataType='module' src='/dist/assets/mateu.js'></script>"
                 + (liveReloadEnabled?
                 "<script src='http://localhost:35729/livereload.js'></script>":""));
         html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl=''></mateu-ui>");

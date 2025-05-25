@@ -13,5 +13,9 @@ public interface UiIncrementMapper {
   }
 
   Mono<UIIncrementDto> map(
-      Object instance, String baseUrl, String initiatorComponentId, HttpRequest httpRequest);
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest);
 }

@@ -33,7 +33,17 @@ export class MateuApp extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('metadata')) {
-            this.selectedRoute = this.getInitialRoute((this.metadata as App).menu)
+            this.selectedRoute = this.getInitialRoute(this.metadata as App)
+        }
+        if (_changedProperties.has('selectedRoute')) {
+            this.dispatchEvent(new CustomEvent('route-changed', {
+                detail: {
+                    route: this.selectedRoute
+                },
+                bubbles: true,
+                composed: true
+            }))
+
         }
     }
 
@@ -53,17 +63,17 @@ export class MateuApp extends ComponentElement {
         return null
     }
 
-    getInitialRoute = (options: MenuOption[]): string | undefined => {
-        const selectedOption = this.getSelectedOption(options)
+    getInitialRoute = (app: App): string | undefined => {
+        const selectedOption = this.getSelectedOption(app.menu)
         if (selectedOption) {
             return selectedOption.destination.route
         }
-        return undefined;
+        return app.homeRoute;
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
-        this.selectedJourneyTypeId = e.detail.value.journeyTypeId
+        this.selectedRoute = e.detail.value.route
     }
 
     mapItems = (options: MenuOption[]): any => {
@@ -72,20 +82,35 @@ export class MateuApp extends ComponentElement {
                 return {
                     text: option.label,
                     route: option.destination.route,
+                    selected: option.selected,
                     children: this.mapItems(option.children)
                 }
             }
             return {
                 text: option.label,
                 route: option.destination.route,
+                selected: option.selected,
             }
         })
+    }
+
+    getSelectedIndex = (menu: MenuOption[] | null) => {
+        if (menu) {
+            const selectedOption = this.getSelectedOption(menu)
+            if (selectedOption) {
+                return menu.indexOf(selectedOption)
+            }
+        }
+        return undefined
     }
 
     render() {
         const metadata = this.metadata as App
 
         const items = this.mapItems(metadata.menu)
+
+        console.log(metadata, items)
+
         return html`
 
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
@@ -96,7 +121,12 @@ export class MateuApp extends ComponentElement {
                             @item-selected="${this.itemSelected}">
                     </vaadin-menu-bar>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
+                        <mateu-ux 
+                                route="${this.selectedRoute}" 
+                                id="${nanoid()}" 
+                                baseUrl="${this.baseUrl}"
+                                consumedRoute="${metadata.route}"
+                        ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
                 
@@ -111,7 +141,12 @@ export class MateuApp extends ComponentElement {
                             `)}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
+                        <mateu-ux
+                                route="${this.selectedRoute}"
+                                id="${nanoid()}"
+                                baseUrl="${this.baseUrl}"
+                                consumedRoute="${metadata.route}"
+                        ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-horizontal-layout>
 
@@ -119,15 +154,25 @@ export class MateuApp extends ComponentElement {
             `:nothing}
 
             ${metadata.variant == AppVariant.TABS?html`
-
+                
                 <vaadin-vertical-layout>
-                    <vaadin-tabs>
-                        ${metadata.menu.map(option => html`
-                                <vaadin-tab @click="${() => this.selectedRoute = option.destination.route}">${option.label}</vaadin-tab>
-                            `)}
+                    <vaadin-tabs selected="${this.getSelectedIndex(metadata.menu)}">
+                        ${metadata.menu.map(option => {
+                            console.log(option)
+                            return html`
+                                <vaadin-tab 
+                                        @click="${() => this.selectedRoute = option.destination.route}"
+                                >${option.label}</vaadin-tab>
+                            `
+        })}
                     </vaadin-tabs>
                     <mateu-api-caller>
-                        <mateu-ux route="${this.selectedRoute}" id="${nanoid()}" baseUrl="${this.baseUrl}"></mateu-ux>
+                        <mateu-ux
+                                route="${this.selectedRoute}"
+                                id="${nanoid()}"
+                                baseUrl="${this.baseUrl}"
+                                consumedRoute="${metadata.route}"
+                        ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-vertical-layout>
             

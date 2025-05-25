@@ -1,6 +1,7 @@
 export interface RunActionCommand {
     baseUrl: string
-    journeyTypeId: string
+    route: string
+    consumedRoute: string
     appState: any
     actionId: any
     userData: any
