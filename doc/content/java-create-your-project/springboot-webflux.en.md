@@ -1,6 +1,6 @@
 ---
-title: "Create your project"
-weight: 2
+title: "Springboot Webflux"
+weight: 4
 ---
 
 ## Step 1: Have an Spring Boot web project
@@ -14,16 +14,27 @@ In case you are using maven:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>embedded-front</artifactId>
-    <version>3.0-alpha.90</version>
+    <artifactId>annotation-processor-webflux</artifactId>
+    <version>0.0.1-MATEU</version>
+</dependency>
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>webflux-core</artifactId>
+    <version>0.0.1-MATEU</version>
+</dependency>
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>vaadin-lit</artifactId>
+    <version>0.0.1-MATEU</version>
 </dependency>
 ```
 
 Or, in case you are using Gradle:
 
 ```kotlin
-    implementation("io.mateu:embedded-front:3.0-alpha.90")
-    annotationProcessor("io.mateu:annotation-processing:3.0-alpha.90")
+    annotationProcessor("io.mateu:annotation-processor-webflux:3.0-alpha.90")
+    implementation("io.mateu:webflux-core:3.0-alpha.90")
+    implementation("io.mateu:vaadin-lit:3.0-alpha.90")
 ```
 
 
@@ -48,7 +59,7 @@ public class HelloWorld {
 When you run you spring boot application, you will find your ui at [http:localhost:8080](http:localhost:8080) (for the code above) as expected:
 
 
-<p align="center"><img src="../../images/helloworld.png?raw=true" width="600"/></p>
+<p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
 
 ## Troubleshooting
 
@@ -76,7 +87,7 @@ In case you are using a maven project and you are setting custom annotation proc
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processing</artifactId>
+                            <artifactId>annotation-processor-webflux</artifactId>
                             <version>3.0-alpha.90</version>
                         </path>
                         <!-- other annotation processors -->

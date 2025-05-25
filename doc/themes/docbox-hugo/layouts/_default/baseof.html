@@ -13,7 +13,7 @@
   </head>
 
   <body>
-  <div class="flex flex-col h-screen justify-between">
+  <div class="flex flex-col h-screen">
     <!-- cache partial only in production -->
     {{ if hugo.IsProduction }}
     {{ partialCached "preloader.html" . }}
@@ -37,10 +37,14 @@
 
     <!-- cache partial only in production -->
     {{ if hugo.IsProduction }}
+    {{ if false }}
     {{ partialCached "essentials/footer.html" . }}
+    {{ end }}
     {{ partialCached "essentials/script.html" . }}
     {{ else }}
+    {{ if false }}
     {{ partial "essentials/footer.html" . }}
+    {{ end }}
     {{ partial "essentials/script.html" . }}
     {{ end }}
 

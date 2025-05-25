@@ -1,5 +1,5 @@
 ---
-title: "See it in action"
+title: "See it in action *"
 weight: 3
 ---
 

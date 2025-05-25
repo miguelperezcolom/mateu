@@ -3,9 +3,29 @@
 # main menu
 
 [[main]]
-name = "Docs"
-url = "user-manual/create-your-project/"
+name = "Java"
+url = "user-manual-java/"
 weight = 1
+
+[[main]]
+name = "C#"
+url = "user-manual-csharp/"
+weight = 2
+
+[[main]]
+name = "Python"
+url = "user-manual-python/"
+weight = 3
+
+[[main]]
+name = "Design systems"
+url = "design-systems/"
+weight = 4
+
+[[main]]
+name = "Native"
+url = "native/"
+weight = 5
 
 #[[main]]
 #name = "Faq"
