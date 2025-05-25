@@ -8,24 +8,29 @@ url = "user-manual-java/"
 weight = 1
 
 [[main]]
+name = "Kotlin"
+url = "user-manual-kotlin/"
+weight = 2
+
+[[main]]
 name = "C#"
 url = "user-manual-csharp/"
-weight = 2
+weight = 3
 
 [[main]]
 name = "Python"
 url = "user-manual-python/"
-weight = 3
+weight = 4
 
 [[main]]
 name = "Design systems"
 url = "design-systems/"
-weight = 4
+weight = 5
 
 [[main]]
 name = "Native"
 url = "native/"
-weight = 5
+weight = 6
 
 #[[main]]
 #name = "Faq"
