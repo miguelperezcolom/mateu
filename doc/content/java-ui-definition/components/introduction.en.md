@@ -71,3 +71,7 @@ public class MyUi implements DynamicUI {
 }
 
 ```
+
+You can obviously combine both ways as yu want.
+
+Please notice you can also leverage java inheritance and dependencies for building your UIs with Mateu.
