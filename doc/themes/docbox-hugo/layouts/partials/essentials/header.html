@@ -70,13 +70,13 @@
         {{ range site.Menus.main }}
           {{ $menuURL := .URL | absLangURL }}
           {{ $pageURL:= $currentPage.Permalink | absLangURL }}
-          {{ $active := eq $menuURL $pageURL }}
-          {{ if .HasChildren }}
+        {{ $active := hasPrefix $pageURL (index (strings.Split $menuURL "-") 0) }}
+        {{ if .HasChildren }}
             <li class="nav-item nav-dropdown group relative">
               <span
                 class="nav-link {{ range .Children }}
                   {{ $childURL := .URL | absLangURL }}
-                  {{ $active := eq $childURL $pageURL }}
+                  {{ $active := hasPrefix $pageURL (index (strings.Split $childURL "-") 0) }}
                   {{ if $active }}
                     active
                   {{ end }}
@@ -88,7 +88,7 @@
                 class="nav-dropdown-list lg:group-hover:visible lg:group-hover:opacity-100">
                 {{ range .Children }}
                   {{ $childURL := .URL | absLangURL }}
-                  {{ $active := eq $childURL $pageURL }}
+                  {{ $active := hasPrefix $pageURL (index (strings.Split $childURL "-") 0) }}
                   <li class="nav-dropdown-item">
                     <a
                       class="nav-dropdown-link {{ if $active }}

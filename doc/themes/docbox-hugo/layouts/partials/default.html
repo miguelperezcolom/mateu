@@ -28,11 +28,15 @@
           </form>
           <!-- End Search Bar -->
           <ul class="sidebar-list">
+            {{ $currentPath := .Path }}
             {{ $currentNode := . }}
             {{ range site.Home.Sections.ByWeight }}
               <!-- not render any single page -->
               {{ $numberOfMainPages := len .Pages }}
-              {{ if or (eq $numberOfMainPages 0) (eq .Section "pages") (eq .Section "sections") }}
+              {{ if or (eq $numberOfMainPages 0)
+                       (eq .Section "pages") (eq .Section "sections")
+                       (not (hasPrefix $currentPath (index (strings.Split .Path "-") 0)))
+            }}
               {{ else }}
                 <!-- /not render any single page -->
                 {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode }}

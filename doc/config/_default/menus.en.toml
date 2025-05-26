@@ -4,22 +4,22 @@
 
 [[main]]
 name = "Java"
-url = "user-manual-java/"
+url = "java-user-manual/"
 weight = 1
 
 [[main]]
 name = "Kotlin"
-url = "user-manual-kotlin/"
+url = "kotlin-user-manual/"
 weight = 2
 
 [[main]]
 name = "C#"
-url = "user-manual-csharp/"
+url = "csharp-user-manual/"
 weight = 3
 
 [[main]]
 name = "Python"
-url = "user-manual-python/"
+url = "python-user-manual/"
 weight = 4
 
 [[main]]
