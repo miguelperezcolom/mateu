@@ -131,6 +131,11 @@
 }
 
 .sidebar-list {
+
+  h2 {
+    font-size: 12px;
+  }
+
   > li {
     @apply block py-4 #{!important};
 
@@ -140,10 +145,13 @@
 
     & > ul {
       @apply max-h-0 overflow-hidden pl-5;
+      font-size: 12px;
 
       & > li a,
       & > li button {
         @apply border-l-border text-text hover:border-l-theme-dark hover:text-dark block w-full border-l py-[.5rem] pl-4 text-left font-light transition-colors duration-300 sm:py-2.5;
+
+        font-size: 12px;
 
         &.active {
           @apply border-l-theme-dark text-dark block border-l py-1 pl-4 font-medium sm:py-3;
@@ -155,6 +163,7 @@
 
         li a,
         li button {
+          font-size: 12px;
           @apply my-2 py-1 sm:py-[6px];
         }
       }
