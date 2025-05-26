@@ -12,7 +12,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
 
-@Route("/app.*")
+@Route("/app")
 @Serdeable
 public class App implements HasPageTitle, HasMenu, HasHomeRoute, io.mateu.uidl.interfaces.App {
 

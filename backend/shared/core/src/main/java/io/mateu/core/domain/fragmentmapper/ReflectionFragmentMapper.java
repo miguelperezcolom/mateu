@@ -108,7 +108,11 @@ public class ReflectionFragmentMapper implements FragmentMapper {
     if (pattern == null) {
       if (app.getClass().isAnnotationPresent(Route.class)) {
         for (Route routeAnnotation : app.getClass().getAnnotationsByType(Route.class)) {
-          var annotationPattern = Pattern.compile(routeAnnotation.value());
+          String patternString = routeAnnotation.value();
+          if (!patternString.endsWith(".*")) {
+            patternString += ".*";
+          }
+          var annotationPattern = Pattern.compile(patternString);
           if (annotationPattern.matcher(route).matches()) {
             pattern = annotationPattern;
           }
