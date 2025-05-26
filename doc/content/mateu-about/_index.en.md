@@ -10,5 +10,9 @@ type: "docs"
 _build:
   list: always
   publishResources: true
-  render: never
+  render: always
 ---
+
+Mateu is an always free, always open source polyglot framework for building awesome UIs the easy way.
+
+I hope it helps you :).
