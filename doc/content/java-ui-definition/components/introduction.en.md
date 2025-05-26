@@ -40,10 +40,9 @@ public class MyUi {
 
 ```
 
+Usually **Mateu** allows you to define your UIs in both a declarative and imperative way. That means, using annotations or implementing interfaces.
 
-Usually **Mateu** allows you to define your UIs in both a declarative and imperative way. That mean, using annotations or implementing interfaces.
-
-You can find below the same UI defined using a fluent style imperative way:
+You can find below the same UI defined in an imperative way, using a fluent style code:
 
 ```java
 
