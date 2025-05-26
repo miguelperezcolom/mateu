@@ -3,34 +3,39 @@
 # main menu
 
 [[main]]
+name = "About Mateu"
+url = "mateu-about/"
+weight = 1
+
+[[main]]
 name = "Java"
 url = "java-user-manual/"
-weight = 1
+weight = 2
 
 [[main]]
 name = "Kotlin"
 url = "kotlin-user-manual/"
-weight = 2
+weight = 3
 
 [[main]]
 name = "C#"
 url = "csharp-user-manual/"
-weight = 3
+weight = 4
 
 [[main]]
 name = "Python"
 url = "python-user-manual/"
-weight = 4
+weight = 5
 
 [[main]]
 name = "Design systems"
 url = "design-systems/"
-weight = 5
+weight = 6
 
 [[main]]
 name = "Native"
 url = "native/"
-weight = 6
+weight = 7
 
 #[[main]]
 #name = "Faq"

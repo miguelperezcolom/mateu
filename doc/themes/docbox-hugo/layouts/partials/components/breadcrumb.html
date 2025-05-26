@@ -1,7 +1,35 @@
 {{ $context := .Context | default . }}
 <nav aria-label="breadcrumb">
   <ul class="breadcrumb not-prose mt-0">
+
+    {{ $chapter := "Unknown" }}
+    {{ $prefix := index (strings.Split .Context.Path "-") 0}}
+    {{ if eq $prefix "/mateu"}}
+    {{ $chapter = "Mateu" }}
+    {{ end }}
+    {{ if eq $prefix "/java"}}
+    {{ $chapter = "Java" }}
+    {{ end }}
+    {{ if eq $prefix "/kotlin"}}
+    {{ $chapter = "Kotlin" }}
+    {{ end }}
+    {{ if eq $prefix "/csharp"}}
+    {{ $chapter = "C#" }}
+    {{ end }}
+    {{ if eq $prefix "/python"}}
+    {{ $chapter = "Python" }}
+    {{ end }}
+    {{ if eq $prefix "/design"}}
+    {{ $chapter = "Design Systems" }}
+    {{ end }}
+    {{ if eq $prefix "/native"}}
+    {{ $chapter = "Native" }}
+    {{ end }}
+
+    <li>{{ $chapter }}</li>
+
     {{ range $i, $e := $context.Ancestors.Reverse }}
+
       {{ if ne $i 0 }}
         <li>
           {{ $title := .LinkTitle }}
