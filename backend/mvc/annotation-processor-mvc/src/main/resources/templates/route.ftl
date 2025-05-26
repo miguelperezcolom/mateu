@@ -13,7 +13,9 @@ import java.util.regex.Pattern;
 public class ${simpleClassName}RouteResolver implements RouteResolver {
 
     private final List<Pattern> patterns = List.of(
-            Pattern.compile("${route}")
+        Pattern.compile(io.mateu.uidl.interfaces.App.class
+                        .isAssignableFrom(${simpleClassName}.class)
+            && !"${route}".endsWith(".*")?"${route}" + ".*":"${route}")
     );
 
     @Override
