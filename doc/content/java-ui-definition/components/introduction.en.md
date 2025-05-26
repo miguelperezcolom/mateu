@@ -42,3 +42,50 @@ public class MyUi {
 
 
 Usually **Mateu** allows you to define your UIs in both a declarative and imperative way. That mean, using annotations or implementing interfaces.
+
+You can find below the same UI defined using a fluent style:
+
+```java
+
+class Content implements List {
+  String item1 = "Item 1 in a list";
+  String item2 = "Item 2 in a list";
+  String item3 = "Item 3 in a list";
+  String item4 = "Item 4 in a list";
+}
+
+class Footer implements VerticalLayout {
+  @H4
+  String copyright = "Copyright Mateu 2025";
+}
+
+public class MyUi implements DynamicUI {
+
+  public UIIncrement getUIIncrement() {
+    return UIIncrement.builder()
+      .add(VerticalLayout.builder()
+        .add(new H2("Hello, this is the title."))
+        .add("This is the subtitle, bla, bla, bla.")
+        .build())
+      .add(List.builder()
+        .add("Item 1 in a list")
+        .add("Item 2 in a list")
+        .add("Item 3 in a list")
+        .add("Item 4 in a list")
+        .build())
+      .add(VerticalLayout.builder()
+        .add(new H2("Hello, this is the title."))
+        .build())
+      .build();
+  }
+  
+  Header header;
+  
+  Content content;
+  
+  Footer footer;
+  
+}
+
+
+```
