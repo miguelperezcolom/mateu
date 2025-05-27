@@ -15,12 +15,12 @@ In case you are using maven:
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>micronaut-core</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 ```
 
@@ -37,7 +37,7 @@ You also need to add the annotation processor:
                     <path>
                         <groupId>io.mateu</groupId>
                         <artifactId>annotation-processor-micronaut</artifactId>
-                        <version>0.0.1-MATEU</version>
+                        <version>{{< java-artifact-version >}}</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -49,9 +49,9 @@ You also need to add the annotation processor:
 Or, in case you are using Gradle:
 
 ```kotlin
-    implementation("io.mateu:micronaut-core:3.0-alpha.90")
-    implementation("io.mateu:vaadin-lit:3.0-alpha.90")
-    annotationProcessor("io.mateu:annotation-processor-micronaut:3.0-alpha.90")
+    implementation("io.mateu:micronaut-core:{{< java-artifact-version >}}")
+    implementation("io.mateu:vaadin-lit:{{< java-artifact-version >}}")
+    annotationProcessor("io.mateu:annotation-processor-micronaut:{{< java-artifact-version >}}")
 ```
 
 ## Step 3: Add some configuration

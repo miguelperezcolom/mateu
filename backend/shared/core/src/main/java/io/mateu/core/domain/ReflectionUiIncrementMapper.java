@@ -1,5 +1,7 @@
 package io.mateu.core.domain;
 
+import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -16,7 +18,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
-  private final FragmentMapper fragmentMapper;
+  private final ComponentFragmentMapper componentFragmentMapper;
+  private final ReflectionFragmentMapper reflectionFragmentMapper;
 
   @Override
   public boolean supports(Object instance) {
@@ -64,7 +67,13 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return fragmentMapper.mapToFragments(
-        instance, baseUrl, route, initiatorComponentId, httpRequest);
+    return List.of(
+        reflectionFragmentMapper.mapToFragment(
+            componentFragmentMapper.mapToFragment(
+                instance, baseUrl, route, initiatorComponentId, httpRequest),
+            baseUrl,
+            route,
+            initiatorComponentId,
+            httpRequest));
   }
 }

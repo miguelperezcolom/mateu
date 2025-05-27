@@ -1,8 +1,7 @@
 package com.example.demo.antonia;
 
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.GoToRoute;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RouteTarget;
 import io.mateu.uidl.interfaces.HasHomeRoute;
@@ -25,9 +24,9 @@ public class App implements HasPageTitle, HasMenu, HasHomeRoute, io.mateu.uidl.i
     @Override
     public List<Menu> createMenu() {
         return List.of(
-                new Menu("Home", new GoToRoute("/app/home", RouteTarget.Top), List.of(), true),
-                new Menu("Page 1", new GoToRoute("/app/page1", RouteTarget.Top), List.of(), false),
-                new Menu("Page 2", new GoToRoute("/app/page2", RouteTarget.Top), List.of(), false)
+                new Menu("Home", new RouteLink("/app/home", RouteTarget.Top), List.of(), true),
+                new Menu("Page 1", new RouteLink("/app/page1", RouteTarget.Top), List.of(), false),
+                new Menu("Page 2", new RouteLink("/app/page2", RouteTarget.Top), List.of(), false)
         );
     }
 

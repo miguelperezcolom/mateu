@@ -15,26 +15,26 @@ In case you are using maven:
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>annotation-processor-webflux</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>webflux-core</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 ```
 
 Or, in case you are using Gradle:
 
 ```kotlin
-    annotationProcessor("io.mateu:annotation-processor-webflux:3.0-alpha.90")
-    implementation("io.mateu:webflux-core:3.0-alpha.90")
-    implementation("io.mateu:vaadin-lit:3.0-alpha.90")
+    annotationProcessor("io.mateu:annotation-processor-webflux:{{< java-artifact-version >}}")
+    implementation("io.mateu:webflux-core:{{< java-artifact-version >}}")
+    implementation("io.mateu:vaadin-lit:{{< java-artifact-version >}}")
 ```
 
 
@@ -88,7 +88,7 @@ In case you are using a maven project and you are setting custom annotation proc
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>annotation-processor-webflux</artifactId>
-                            <version>3.0-alpha.90</version>
+                            <version>{{< java-artifact-version >}}</version>
                         </path>
                         <!-- other annotation processors -->
                     </annotationProcessorPaths>

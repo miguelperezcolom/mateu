@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ${simpleClassName}Controller {
 
-    @Get(value = "/{+path:[a-zA-Z0-9/]+}", produces = MediaType.TEXT_HTML)
+    @Get(value = "/{+path:[\\-a-zA-Z0-9/]+}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path) {
         return getIndex();
     }

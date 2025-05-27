@@ -4,6 +4,8 @@ import freemarker.template.TemplateException;
 import io.mateu.uidl.annotations.Route;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -16,7 +18,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes({"io.mateu.uidl.annotations.Route"})
+@SupportedAnnotationTypes({"io.mateu.uidl.annotations.Route", "io.mateu.uidl.annotations.Routes"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class RouteAnnotationProcessor extends AbstractProcessor {
 
@@ -28,7 +30,10 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
       for (Element e : annotatedElements) {
         String className = ((TypeElement) e).getQualifiedName().toString();
         String simpleClassName = e.getSimpleName().toString();
-        String route = e.getAnnotation(Route.class).value();
+        List<String> routes =
+            Arrays.stream(e.getAnnotationsByType(Route.class))
+                .map(routeAnnotation -> routeAnnotation.value())
+                .toList();
 
         System.out.println("RouteAnnotationProcessor running on " + simpleClassName);
 
@@ -51,7 +56,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
               e,
               generatedClassName,
               caption,
-              route);
+              routes);
         } catch (IOException ex) {
           ex.printStackTrace();
         }
@@ -96,7 +101,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
       Element e,
       String generatedClassName,
       String caption,
-      String path)
+      List<String> paths)
       throws IOException {
     JavaFileObject builderFile = getFiler().createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
@@ -118,8 +123,8 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
                   generatedFullClassName,
                   "label",
                   caption,
-                  "route",
-                  path));
+                  "routes",
+                  paths));
       try {
         out.println(formatter.apply());
       } catch (TemplateException ex) {

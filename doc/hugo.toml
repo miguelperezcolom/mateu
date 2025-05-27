@@ -17,6 +17,8 @@ disableLanguages = [
 hasCJKLanguage = false #  If hasCJKLanguage true, auto-detect Chinese/Japanese/Korean Languages in the content. see: https://gohugo.io/getting-started/configuration/#hascjklanguage
 enableGitInfo = false
 
+enableInlineShortcodes = true
+
 ########################## Permalinks ############################
 [permalinks.page]
 "pages" = "/:slugorfilename/"

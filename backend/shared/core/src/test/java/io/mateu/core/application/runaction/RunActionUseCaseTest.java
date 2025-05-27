@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.components.AnnotatedComponent;
 import com.example.components.UsingInterfacesComponent;
 import io.mateu.core.domain.*;
+import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
@@ -50,7 +51,9 @@ class RunActionUseCaseTest {
           }
           if (UiIncrementMapper.class.equals(clazz)) {
             return (Collection<T>)
-                List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()));
+                List.of(
+                    new ReflectionUiIncrementMapper(
+                        new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
           }
           return (Collection<T>)
               List.of(

@@ -12,6 +12,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
 
 @Route("/app/home")
+@Route("/fluent-app/home")
 @Serdeable
 public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
 

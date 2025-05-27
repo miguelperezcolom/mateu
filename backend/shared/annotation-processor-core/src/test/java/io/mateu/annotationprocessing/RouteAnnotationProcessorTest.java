@@ -46,6 +46,7 @@ public class RouteAnnotationProcessorTest {
     when(helloWorld.getSimpleName()).thenReturn(simpleName);
     when(helloWorld.getAnnotation(any())).thenReturn(null);
     when(helloWorld.getAnnotation(Route.class)).thenReturn(routeAnnotation);
+    when(helloWorld.getAnnotationsByType(Route.class)).thenReturn(new Route[] {routeAnnotation});
 
     Set<? extends Element> annotatedTypes = Set.of(helloWorld);
     when(roundEnv.getElementsAnnotatedWith(any(TypeElement.class)))

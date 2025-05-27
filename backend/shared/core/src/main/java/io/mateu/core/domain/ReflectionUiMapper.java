@@ -3,6 +3,7 @@ package io.mateu.core.domain;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.FavIcon;
+import io.mateu.uidl.fluent.UISupplier;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HasFavicon;
 import io.mateu.uidl.interfaces.HasHomeRoute;
@@ -18,7 +19,7 @@ public class ReflectionUiMapper implements UiMapper {
 
   @Override
   public boolean supports(Object instance) {
-    return true;
+    return !(instance instanceof UISupplier);
   }
 
   @Override

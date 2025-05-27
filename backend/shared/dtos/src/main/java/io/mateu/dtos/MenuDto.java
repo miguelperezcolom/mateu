@@ -3,7 +3,9 @@ package io.mateu.dtos;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 
+@Builder
 public record MenuDto(
     MenuTypeDto type,
     String icon,
@@ -15,7 +17,7 @@ public record MenuDto(
     boolean selected) {
 
   public MenuDto {
-    submenus = Collections.unmodifiableList(submenus);
+    submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());
   }
 
   @Override

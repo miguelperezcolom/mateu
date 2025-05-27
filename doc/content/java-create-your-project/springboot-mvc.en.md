@@ -15,27 +15,27 @@ In case you are using maven:
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>annotation-processor-mvc</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>mvc-core</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 <!-- you need the one below if you want to also serve the static content -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>{{< java-artifact-version >}}</version>
 </dependency>
 ```
 
 Or, in case you are using Gradle:
 
 ```kotlin
-    annotationProcessor("io.mateu:annotation-processor-mvc:3.0-alpha.90")
-    implementation("io.mateu:mvc-core:3.0-alpha.90")
-    implementation("io.mateu:vaadin-lit:3.0-alpha.90")
+    annotationProcessor("io.mateu:annotation-processor-mvc:{{< java-artifact-version >}}")
+    implementation("io.mateu:mvc-core:{{< java-artifact-version >}}")
+    implementation("io.mateu:vaadin-lit:{{< java-artifact-version >}}")
 ```
 
 
@@ -89,7 +89,7 @@ In case you are using a maven project and you are setting custom annotation proc
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>annotation-processor-mvc</artifactId>
-                            <version>3.0-alpha.90</version>
+                            <version>{{< java-artifact-version >}}</version>
                         </path>
                         <!-- other annotation processors -->
                     </annotationProcessorPaths>

@@ -26,6 +26,9 @@ copyright = "© Copyright 2025 Mateu"
 # Table of Contents
 tableofcontents = true
 
+java_artifact_version = "3.0-alpha.99"
+
+
 # Preloader
 [preloader]
 enable = true

@@ -9,6 +9,7 @@ import io.mateu.core.domain.ReflectionUiIncrementMapper;
 import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.domain.UiIncrementMapper;
 import io.mateu.core.domain.UiMapper;
+import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
@@ -32,14 +33,18 @@ public class FakeBeanProvider implements BeanProvider {
     }
     if (UiIncrementMapper.class.equals(clazz)) {
       return (Collection<T>)
-          List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()));
+          List.of(
+              new ReflectionUiIncrementMapper(
+                  new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
     }
     if (UiMapper.class.equals(clazz)) {
       return (Collection<T>) List.of(new ReflectionUiMapper());
     }
     if (FragmentMapper.class.equals(clazz)) {
       return (Collection<T>)
-          List.of(new ReflectionUiIncrementMapper(new ReflectionFragmentMapper()));
+          List.of(
+              new ReflectionUiIncrementMapper(
+                  new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
     }
     if (ActionRunner.class.equals(clazz)) {
       return (Collection<T>) List.of(new RunMethodActionRunner());

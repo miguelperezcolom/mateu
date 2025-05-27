@@ -3,17 +3,15 @@ package com.example.demo.antonia;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.ActionType;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.GoToRoute;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.RouteTarget;
 import io.mateu.uidl.interfaces.Form;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
-import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
-import reactor.core.publisher.Mono;
 
 @Route("/app/page1")
+@Route("/fluent-app/page1")
 @Serdeable
 public class Page1 implements HasTitle, HasSubtitle, Form {
 
@@ -37,8 +35,8 @@ public class Page1 implements HasTitle, HasSubtitle, Form {
     }
 
     @Action(type = ActionType.Main)
-    public GoToRoute goToPage2() {
-        return new GoToRoute("/app/page2", RouteTarget.Top);
+    public RouteLink goToPage2() {
+        return new RouteLink("/app/page2", RouteTarget.Top);
     }
 
     @Override

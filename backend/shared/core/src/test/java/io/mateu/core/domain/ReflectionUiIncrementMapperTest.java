@@ -2,6 +2,7 @@ package io.mateu.core.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIIncrementDto;
@@ -14,7 +15,9 @@ class ReflectionUiIncrementMapperTest {
 
   @Test
   void mapsToNull() {
-    var mapper = new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
+    var mapper =
+        new ReflectionUiIncrementMapper(
+            new ComponentFragmentMapper(), new ReflectionFragmentMapper());
     var result =
         mapper
             .map(null, "base_url", "route", "initiator_component_id", new FakeHttpRequest())
@@ -24,7 +27,9 @@ class ReflectionUiIncrementMapperTest {
 
   @Test
   void mapsToSelf() {
-    var mapper = new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
+    var mapper =
+        new ReflectionUiIncrementMapper(
+            new ComponentFragmentMapper(), new ReflectionFragmentMapper());
     var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of());
     var result =
         mapper
@@ -35,7 +40,9 @@ class ReflectionUiIncrementMapperTest {
 
   @Test
   void callsMethod() {
-    var mapper = new ReflectionUiIncrementMapper(new ReflectionFragmentMapper());
+    var mapper =
+        new ReflectionUiIncrementMapper(
+            new ComponentFragmentMapper(), new ReflectionFragmentMapper());
     var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of());
     var instance =
         new MapsToDto() {

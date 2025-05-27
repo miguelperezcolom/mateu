@@ -96,7 +96,10 @@ public class RunActionUseCase {
     var instanceTypeName = command.componentType();
     for (RouteResolver bean :
         beanProvider.getBeans(RouteResolver.class).stream()
-            .filter(resolver -> resolver.supportsRoute(command.route()))
+            .filter(
+                resolver ->
+                    resolver.supportsRoute(command.route())
+                        && !resolver.supportsRoute(command.consumedRoute()))
             .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
             .toList()) {
       return bean.resolveRoute(command.route(), command.httpRequest()).getName();

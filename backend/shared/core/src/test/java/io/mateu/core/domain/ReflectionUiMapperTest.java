@@ -8,6 +8,8 @@ import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.fluent.UI;
+import io.mateu.uidl.fluent.UISupplier;
 import io.mateu.uidl.interfaces.DynamicUI;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -20,6 +22,20 @@ class ReflectionUiMapperTest {
   final String baseUrl = "http://example.com";
   final HttpRequest httpRequest = new FakeHttpRequest();
   final ReflectionUiMapper reflectionUiMapper = new ReflectionUiMapper();
+
+  @Test
+  void doesNotSupportUISuppliers() {
+    var uiSupplier =
+        new UISupplier() {
+          @Override
+          public UI getUI(HttpRequest httpRequest) {
+            return UI.builder().build();
+          }
+        };
+    ;
+    assertFalse(reflectionUiMapper.supports(uiSupplier));
+    assertTrue(reflectionUiMapper.supports(""));
+  }
 
   @Test
   void mapsToDto() {

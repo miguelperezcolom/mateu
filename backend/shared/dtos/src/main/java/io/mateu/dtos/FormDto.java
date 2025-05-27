@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * Form metadata
@@ -18,6 +19,7 @@ import java.util.List;
  * @param validations Client side validations for this form
  * @param rules Rules to be run after each value change
  */
+@Builder
 public record FormDto(
     String icon,
     String title,
