@@ -11,6 +11,10 @@ TBD
 
 TBD
 
+## Versus Blazor
+
+TBD
+
 ## Versus old page based frontend development
 
 TBD
