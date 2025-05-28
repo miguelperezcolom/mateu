@@ -24,7 +24,7 @@ The code above produces the following UI, when you run the microservice and navi
 
 <p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
 
-## @MateuUI
+## The @MateuUI anotation
 
 The `@MateuUI` annotation expects just 1 parameter, which is used to know at which url you want the UI to be found at.
 
