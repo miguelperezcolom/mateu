@@ -1,14 +1,12 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
-import io.micronaut.serde.annotation.Serdeable;
 
 @Route("/app/page2")
 @Route("/fluent-app/page2")
-@Serdeable
 public class Page2 implements HasTitle, HasSubtitle, Form {
 
     @Override

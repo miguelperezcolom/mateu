@@ -1,4 +1,4 @@
-package com.example.demo.fluent;
+package com.example.demo.infra.in.ui.fluent;
 
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.fluent.UI;

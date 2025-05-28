@@ -1,23 +1,16 @@
-package com.example.demo.fluent;
+package com.example.demo.infra.in.ui.fluent;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.data.RouteTarget;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
-import io.mateu.uidl.fluent.ComponentSupplier;
-import io.mateu.uidl.interfaces.HasHomeRoute;
-import io.mateu.uidl.interfaces.HasMenu;
-import io.mateu.uidl.interfaces.HasPageTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
 
 @Route("/fluent-app")
-@Serdeable
 public class FluentApp implements AppSupplier {
 
     @Override

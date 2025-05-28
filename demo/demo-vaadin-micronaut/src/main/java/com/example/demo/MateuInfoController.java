@@ -1,16 +1,17 @@
-package com.example.demo.antonia;
+package com.example.demo;
 
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.uidl.interfaces.RouteResolver;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import lombok.extern.slf4j.Slf4j;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
 
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-@Path("/antonia/mateu-info")
+import lombok.extern.slf4j.Slf4j;
+
+@Controller("/antonia/mateu-info")
 @Slf4j
 public class MateuInfoController {
 
@@ -20,7 +21,7 @@ public class MateuInfoController {
         this.beanProvider = beanProvider;
     }
 
-  @GET
+    @Get
   public Object get() throws Exception {
     return Map.of("routes", getRoutes());
   }

@@ -1,18 +1,16 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.RouteTarget;
 import io.mateu.uidl.interfaces.HasHomeRoute;
 import io.mateu.uidl.interfaces.HasMenu;
 import io.mateu.uidl.interfaces.HasPageTitle;
-import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
 
 @Route("/app")
-@Serdeable
 public class App implements HasPageTitle, HasMenu, HasHomeRoute, io.mateu.uidl.interfaces.App {
 
     @Override

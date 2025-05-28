@@ -1,4 +1,4 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Form;
@@ -8,7 +8,8 @@ import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
-@Route("/home")
+@Route("/app/home")
+@Route("/fluent-app/home")
 public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
 
     @Override

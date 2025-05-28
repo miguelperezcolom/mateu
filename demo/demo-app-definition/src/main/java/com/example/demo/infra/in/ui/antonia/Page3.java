@@ -1,4 +1,4 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.Details;
 import io.mateu.uidl.annotations.Route;
@@ -7,7 +7,6 @@ import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HorizontalLayout;
-import io.micronaut.serde.annotation.Serdeable;
 
 @Details(summary = "This is the summary")
 class Content implements HorizontalLayout {
@@ -20,7 +19,6 @@ class Content implements HorizontalLayout {
 }
 
 @Route("/app/page3")
-@Serdeable
 @VerticalLayout
 public class Page3 implements HasTitle, HasSubtitle, Form {
 

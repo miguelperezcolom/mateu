@@ -1,12 +1,10 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.interfaces.HasHomeRoute;
 import io.mateu.uidl.interfaces.HasPageTitle;
-import io.micronaut.serde.annotation.Serdeable;
 
 @MateuUI("/antonia")
-@Serdeable
 public class AntoniaApp implements HasPageTitle, HasHomeRoute {
 
     @Override

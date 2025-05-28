@@ -1,15 +1,20 @@
-package com.example.demo.antonia;
+package com.example.demo.infra.in.ui;
 
-import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
-@Route("/home")
-public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
+@MateuUI("")
+public class HelloWorld implements HandlesRoute, HandlesActions, HasTitle, HasSubtitle, Form {
+    @Override
+    public Mono<?> handleRoute(String route, HttpRequest httpRequest) {
+        return Mono.just(this);
+    }
 
     @Override
     public boolean supportsAction(String actionId) {
@@ -23,7 +28,7 @@ public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
 
     @Override
     public String getTitle() {
-        return "Home";
+        return "Hello World";
     }
 
     @Override
