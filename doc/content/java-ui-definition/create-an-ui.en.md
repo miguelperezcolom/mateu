@@ -120,10 +120,19 @@ public class HelloWorld implements HasPageTitle {
 
 ## Fluent style dynamic UIs
 
-If you want to declare your UI using a fluent style code you can do so by implementing the `DynamicUI` interface, like in the example below:
+If you want to declare your UI using a fluent style code you can do so by implementing the `UISupplier` interface, like in the example below:
 
 ```java
 
-TBD
+@MateuUI("/fluent")
+public class FluentUI implements UISupplier {
+  @Override
+  public UI getUI(HttpRequest httpRequest) {
+    return UI.builder()
+      .pageTitle("Fluent UI")
+      .homeRoute("/fluent-app")
+      .build();
+  }
+}
 
 ```
