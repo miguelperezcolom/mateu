@@ -1,5 +1,5 @@
 ---
-title: "Advantages *"
+title: "Advantages"
 weight: 2
 ---
 
