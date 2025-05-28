@@ -1,5 +1,5 @@
 ---
-title: "App *"
+title: "App"
 weight: 4
 ---
 
@@ -37,7 +37,7 @@ public class Home implements Form {
 }
 ```
 
-## Declaratively declare the menu
+## Declaratively define the menu
 
 Instead of implementing the `HasMenu` interface, you can just use the `@Menu` annotation to define your menu options. So, for the example above, the same can be declared as below:
 
@@ -65,3 +65,31 @@ By default tabs will be created if there is no submenu. If there is a submenu th
 ## Nesting Apps
 
 you can nest as many Apps as you want, for creating your UI.
+
+## Do it using a fluent style
+
+You can do the same using fluent style code, as below:
+
+```java
+
+@Route("/fluent-app")
+@Serdeable
+public class FluentApp implements AppSupplier {
+
+    @Override
+    public App getApp(HttpRequest httpRequest) {
+        return App.builder()
+                .pageTitle("Fluent app")
+                .title("Antonia")
+                .subtitle("This is the subtitle bla, bla, bla")
+                .variant(AppVariant.MENU_ON_LEFT)
+                .menu(List.of(
+                        new Menu("Home", new RouteLink("/fluent-app/home"), true),
+                        new Menu("Page 1", new RouteLink("/fluent-app/page1")),
+                        new Menu("Page 2", new RouteLink("/fluent-app/page2"))
+                ))
+                .build();
+    }
+}
+
+```
