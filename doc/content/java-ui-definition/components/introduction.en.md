@@ -3,7 +3,9 @@ title: "Introduction *"
 weight: 2
 ---
 
-You create the UIs by composing different components together. With `Mateu`, you use plain java classes for declaring those components and how they are combined to create your UIs.
+You create the UIs by composing different components together. With **Mateu**, you use plain java classes for declaring those components and how they are combined to create your UIs.
+
+You can indeed do it using a declarative way using annotations, in a declarative though more dynamic way implementing some interfaces or in an imperative way using fluent code.  
 
 Here you have an example:
 
@@ -40,16 +42,14 @@ public class MyUi {
 
 ```
 
-Usually **Mateu** allows you to define your UIs in both a declarative and imperative way. That means, using annotations or implementing interfaces.
-
 You can find below the same UI defined in an imperative way, using a fluent style code:
 
 ```java
 
-public class MyUi implements DynamicUI {
-
-  public UIIncrement getUIIncrement() {
-    return UIIncrement.builder()
+public class MyUi implements FormSupplier {
+  @Override
+  public Form getForm(HttpRequest httpRequest) {
+    return Form.builder()
       .fragment(VerticalLayout.builder()
         .add(VerticalLayout.builder()
           .add(new H2("Hello, this is the title."))
