@@ -20,6 +20,7 @@ package io.mateu.dtos;
  * @param runOnEnter Set to true if you want to add a shortcut on Enter key
  * @param position Position in the action bar. Can be left or right
  * @param timeoutMillis Run this action automatically after a timeout
+ * @param times Run this action for indicated times
  * @param order Preferred order inside the actions list
  */
 public record ActionDto(
@@ -42,4 +43,5 @@ public record ActionDto(
     boolean runOnEnter,
     ActionPositionDto position,
     int timeoutMillis,
+    int times,
     int order) {}

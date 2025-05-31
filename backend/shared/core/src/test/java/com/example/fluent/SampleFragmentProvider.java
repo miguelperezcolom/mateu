@@ -1,12 +1,12 @@
 package com.example.fluent;
 
-import io.mateu.uidl.fluent.Page;
-import io.mateu.uidl.fluent.PageSupplier;
+import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-public class SampleFragmentProvider implements PageSupplier {
+public class SampleFragmentProvider implements FormSupplier {
   @Override
-  public Page getPage(HttpRequest httpRequest) {
-    return Page.builder().title("Hola!").build();
+  public Form getForm(HttpRequest httpRequest) {
+    return Form.builder().title("Hola!").build();
   }
 }

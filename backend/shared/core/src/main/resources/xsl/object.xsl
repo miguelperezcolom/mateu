@@ -18,20 +18,20 @@
 
 
             <fo:layout-master-set>
-                <fo:simple-page-master master-name="odd" page-height="{/root/@height}" page-width="{/root/@width}" margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
+                <fo:simple-form-master master-name="odd" form-height="{/root/@height}" form-width="{/root/@width}" margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
                     <!--
-                    <fo:simple-page-master master-value="odd" page-height="29.7cm" page-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
+                    <fo:simple-form-master master-value="odd" form-height="29.7cm" form-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
                      -->
                     <fo:region-body region-name="xsl-region-body" margin-top="0.5cm" margin-bottom="0.5cm" margin-left="0cm" margin-right="0cm"/>
                     <!-- DEFINICION CABECERA DE PAGINA -->
                     <fo:region-before precedence="true" region-name="xsl-region-before" extent="0.5cm"/>
                     <!-- DEFINICION PIE DE PAGINA -->
                     <fo:region-after region-name="xsl-region-after" extent="0.5cm" precedence="true"/>
-                </fo:simple-page-master>
+                </fo:simple-form-master>
             </fo:layout-master-set>
 
 
-            <fo:page-sequence master-reference="odd" force-page-count="no-force" initial-page-number="1">
+            <fo:form-sequence master-reference="odd" force-form-count="no-force" initial-form-number="1">
                 <!-- CABECERA -->
                 <fo:static-content flow-name="xsl-region-before">
                     <fo:table table-layout="fixed" padding-top="0.2cm">
@@ -54,7 +54,7 @@
                 <fo:static-content flow-name="xsl-region-after" display-align="after">
                     <fo:block font-size="7px" text-align="center"></fo:block>
                     <fo:block font-size="7px" text-align="center">
-                        Página <fo:page-number/> de <fo:page-number-citation ref-id="last-page"/>
+                        Página <fo:form-number/> de <fo:form-number-citation ref-id="last-form"/>
                     </fo:block>
                 </fo:static-content>
 
@@ -91,12 +91,12 @@
 -->
 
 
-                    <fo:block id="last-page"/>
+                    <fo:block id="last-form"/>
 
                 </fo:flow>
 
 
-            </fo:page-sequence>
+            </fo:form-sequence>
 
         </fo:root>
 

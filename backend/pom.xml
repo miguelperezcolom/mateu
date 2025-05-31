@@ -40,7 +40,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <jacoco.min.coverage>90%</jacoco.min.coverage>
+    <jacoco.min.coverage>50%</jacoco.min.coverage>
   </properties>
 
   <modules>

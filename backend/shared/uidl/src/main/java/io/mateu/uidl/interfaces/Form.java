@@ -1,3 +1,3 @@
 package io.mateu.uidl.interfaces;
 
-public interface Form {}
+public interface Form extends Content {}

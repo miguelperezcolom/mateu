@@ -12,6 +12,5 @@ public interface InstanceFactory {
     return Integer.MAX_VALUE;
   }
 
-  Mono<? extends Object> createInstance(
-      String className, Map<String, Object> data, HttpRequest httpRequest);
+  Mono<?> createInstance(String className, Map<String, Object> data, HttpRequest httpRequest);
 }

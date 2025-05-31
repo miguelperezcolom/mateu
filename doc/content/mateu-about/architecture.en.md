@@ -29,7 +29,7 @@ The API is a pretty simple one, and is explained with the following sequence dia
 
 The api spec is available here: http://demo.mateu.io/webjars/swagger-ui/index.html
 
-Please notice that the urls autonomy is intended for making it easy to route them and protect them at edge side. 
+Please notice that the urls anatomy is intended for making it easy to route them and protect them at edge side. 
 
 ## What happens in the server side
 

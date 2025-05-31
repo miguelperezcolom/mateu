@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.components.AnnotatedComponent;
 import com.example.components.UsingInterfacesComponent;
+import com.example.fluent.SampleAppProvider;
 import io.mateu.core.domain.*;
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
@@ -102,6 +103,26 @@ class RunActionUseCaseTest {
                     "consumed_route",
                     "sayHello",
                     AnnotatedComponent.class.getName(),
+                    Map.of(),
+                    Map.of(),
+                    "initiator_component_id",
+                    new FakeHttpRequest()))
+            .block();
+    assertThat(increment).isNotNull();
+  }
+
+  @Test
+  void returnsComponent() {
+    var increment =
+        useCase
+            .handle(
+                new RunActionCommand(
+                    "base_url",
+                    "ui_id",
+                    "/sample-app/route_3",
+                    "",
+                    "create",
+                    SampleAppProvider.class.getName(),
                     Map.of(),
                     Map.of(),
                     "initiator_component_id",

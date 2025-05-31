@@ -5,7 +5,7 @@ title: "Design Systems"
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
 weight: 40
 
-# don't create a separete page
+# don't create a separete form
 type: "docs"
 _build:
   list: always

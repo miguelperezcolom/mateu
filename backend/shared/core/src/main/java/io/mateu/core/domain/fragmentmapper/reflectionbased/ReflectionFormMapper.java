@@ -107,6 +107,7 @@ public final class ReflectionFormMapper {
                         false,
                         ActionPositionDto.Left,
                         0,
+                        0,
                         0))
             .toList());
     return actions;

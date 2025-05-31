@@ -1,6 +1,6 @@
 package io.mateu.uidl.fluent;
 
-import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
 
@@ -10,5 +10,6 @@ public record App(
     String pageTitle,
     String title,
     String subtitle,
-    List<Menu> menu,
-    AppVariant variant) {}
+    List<Actionable> menu,
+    AppVariant variant)
+    implements Component {}

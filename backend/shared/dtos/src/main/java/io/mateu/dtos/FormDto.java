@@ -35,12 +35,14 @@ public record FormDto(
     implements ComponentMetadataDto {
 
   public FormDto {
-    badges = Collections.unmodifiableList(badges);
-    banners = Collections.unmodifiableList(banners);
-    actions = Collections.unmodifiableList(actions);
-    mainActions = Collections.unmodifiableList(mainActions);
-    validations = Collections.unmodifiableList(validations);
-    rules = Collections.unmodifiableList(rules);
+    badges = Collections.unmodifiableList(badges != null ? badges : Collections.emptyList());
+    banners = Collections.unmodifiableList(banners != null ? banners : Collections.emptyList());
+    actions = Collections.unmodifiableList(actions != null ? actions : Collections.emptyList());
+    mainActions =
+        Collections.unmodifiableList(mainActions != null ? mainActions : Collections.emptyList());
+    validations =
+        Collections.unmodifiableList(validations != null ? validations : Collections.emptyList());
+    rules = Collections.unmodifiableList(rules != null ? rules : Collections.emptyList());
   }
 
   @Override

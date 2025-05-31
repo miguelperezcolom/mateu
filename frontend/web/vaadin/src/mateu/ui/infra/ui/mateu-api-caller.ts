@@ -89,7 +89,7 @@ export class MateuApiCaller extends LitElement {
 
     render() {
         return html`<vaadin-vertical-layout>
-                <vaadin-progress-bar indeterminate style="visibility: ${this.loading?'visible':'hidden'};"></vaadin-progress-bar>
+                <vaadin-progress-bar indeterminate style="visibility: ${this.loading?'visible':'hidden'}; margin: 0;"></vaadin-progress-bar>
                 <slot></slot>
             </vaadin-vertical-layout>
         <vaadin-notification

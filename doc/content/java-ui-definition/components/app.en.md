@@ -56,16 +56,6 @@ public class MyApp implements App {
 ```
 and you will have exactly the same result.
 
-## Where to place the menu
-
-When you declare an `App` you have 3 options for positioning the menu: in a menu bar in the top, in a menu bar on the left or as tabs.
-
-By default tabs will be created if there is no submenu. If there is a submenu then a menu on the top will be created. You can override the defaults by implementing one of the following interfaces: `HasMenuOnTop`, `HasMenuOnLeft` or `HasMenuAsTabs`.
-
-## Nesting Apps
-
-you can nest as many Apps as you want, for creating your UI.
-
 ## Do it using a fluent style
 
 You can do the same using fluent style code, as below:
@@ -93,3 +83,14 @@ public class FluentApp implements AppSupplier {
 }
 
 ```
+
+## Where to place the menu
+
+When you declare an `App` you have 3 options for positioning the menu: in a menu bar in the top, in a menu bar on the left or as tabs.
+
+By default tabs will be created if there is no submenu. If there is a submenu then a menu on the top will be created. You can override the defaults by implementing one of the following interfaces: `HasMenuOnTop`, `HasMenuOnLeft` or `HasMenuAsTabs`.
+
+## Nesting Apps
+
+you can nest as many Apps as you want, for creating your UI.
+

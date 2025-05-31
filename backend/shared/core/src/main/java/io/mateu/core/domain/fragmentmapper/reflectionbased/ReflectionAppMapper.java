@@ -11,7 +11,7 @@ import io.mateu.dtos.MenuDto;
 import io.mateu.dtos.MenuTypeDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.HasMenu;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -25,7 +25,7 @@ public class ReflectionAppMapper {
   public static UIFragmentDto mapAppToFragment(
       App app, String baseUrl, String route, String initiatorComponentId, HttpRequest httpRequest) {
     var appRoute = getRoute(app, httpRequest, route);
-    var menu = getMenu(app, route, appRoute);
+    var menu = getMenu(app, route, appRoute, httpRequest);
     var appDto =
         new AppDto(
             appRoute,
@@ -35,7 +35,7 @@ public class ReflectionAppMapper {
             getTitle(app),
             getSubtitle(app),
             menu,
-            getHomeRoute(menu),
+            getHomeRoute(menu, route),
             "login_url",
             "welcome_message",
             "logout_url",
@@ -44,21 +44,20 @@ public class ReflectionAppMapper {
     return new UIFragmentDto(initiatorComponentId, component, app);
   }
 
-  /*
-  private String getSelectedRoute(String appRoute, String fullRoute) {
-    if (fullRoute.startsWith(appRoute)) {
-      return fullRoute.substring(appRoute.length());
-    }
-    return fullRoute;
-  }
-   */
-
-  public static String getHomeRoute(List<MenuDto> menu) {
+  public static String getHomeRoute(List<MenuDto> menu, String route) {
     if (menu != null) {
+      for (MenuDto option : menu) {
+        if (option.destination().route().equals(route)) {
+          return option.destination().route();
+        }
+      }
       for (MenuDto option : menu) {
         if (option.selected()) {
           return option.destination().route();
         }
+      }
+      if (!menu.isEmpty()) {
+        return menu.get(0).destination().route();
       }
     }
     return "/home";
@@ -104,15 +103,16 @@ public class ReflectionAppMapper {
     return null;
   }
 
-  public static List<MenuDto> getMenu(Object instance, String route, String appRoute) {
+  public static List<MenuDto> getMenu(
+      Object instance, String route, String appRoute, HttpRequest httpRequest) {
     if (instance instanceof HasMenu hasMenu) {
-      var menuFromApp = hasMenu.createMenu();
+      var menuFromApp = hasMenu.createMenu(httpRequest);
       var selectedRoute =
           appRoute.equals(route)
               ? menuFromApp.stream()
-                  .filter(Menu::selected)
+                  .filter(Actionable::selected)
                   .findFirst()
-                  .map(option -> option.destination().route())
+                  .map(Actionable::path)
                   .orElse(route)
               : route;
       var menu =
@@ -123,21 +123,21 @@ public class ReflectionAppMapper {
                           MenuTypeDto.MenuOption,
                           "icon",
                           option.label(),
-                          new GoToRouteDto("", option.destination().route(), ""),
+                          new GoToRouteDto("", option.path(), ""),
                           List.of(),
                           0,
                           true,
-                          isSelected(option, selectedRoute)))
+                          isSelected(option, appRoute, selectedRoute)))
               .toList();
       return menu;
     }
     return List.of();
   }
 
-  public static boolean isSelected(Menu menu, String route) {
-    if (route != null && !"".equals(route)) {
-      return menu.destination().route().equals(route);
+  public static boolean isSelected(Actionable actionable, String appRoute, String route) {
+    if (route != null && !route.isEmpty() && !appRoute.equals(route)) {
+      return actionable.path() != null && actionable.path().equals(route);
     }
-    return menu.selected();
+    return actionable.selected();
   }
 }

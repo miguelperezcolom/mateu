@@ -1,11 +1,11 @@
 package io.mateu.core.domain.fragmentmapper;
 
-import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentAppMapper.mapAppToFragment;
-import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentPageMapper.mapPageToFragment;
+import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToFragment;
 
 import io.mateu.core.domain.FragmentMapper;
 import io.mateu.uidl.fluent.AppSupplier;
-import io.mateu.uidl.fluent.PageSupplier;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 
@@ -26,7 +26,7 @@ public class ComponentFragmentMapper implements FragmentMapper {
       HttpRequest httpRequest) {
 
     if (instance instanceof AppSupplier appSupplier) {
-      return mapAppToFragment(
+      return mapComponentToFragment(
           appSupplier,
           appSupplier.getApp(httpRequest),
           baseUrl,
@@ -35,14 +35,19 @@ public class ComponentFragmentMapper implements FragmentMapper {
           httpRequest);
     }
 
-    if (instance instanceof PageSupplier pageSupplier) {
-      return mapPageToFragment(
-          pageSupplier,
-          pageSupplier.getPage(httpRequest),
+    if (instance instanceof FormSupplier formSupplier) {
+      return mapComponentToFragment(
+          formSupplier,
+          formSupplier.getForm(httpRequest),
           baseUrl,
           route,
           initiatorComponentId,
           httpRequest);
+    }
+
+    if (instance instanceof Component component) {
+      return mapComponentToFragment(
+          null, component, baseUrl, route, initiatorComponentId, httpRequest);
     }
 
     return instance;

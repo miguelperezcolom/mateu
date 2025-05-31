@@ -9,6 +9,8 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(packageName = "io.mateu.dtos")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.antonia")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.declarative")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.imperative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui")
 @Import(packages = {
         "io.mateu",

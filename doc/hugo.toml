@@ -20,7 +20,7 @@ enableGitInfo = false
 enableInlineShortcodes = true
 
 ########################## Permalinks ############################
-[permalinks.page]
+[permalinks.form]
 "pages" = "/:slugorfilename/"
 
 ############################# Modules ############################

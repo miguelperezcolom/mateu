@@ -1,11 +1,18 @@
 package io.mateu.core.application.runaction;
 
+import static io.mateu.core.domain.Humanizer.camelcasize;
+
 import io.mateu.core.domain.ActionRunnerProvider;
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactory;
 import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.data.ContentLink;
+import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.fluent.AppSupplier;
+import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
@@ -29,18 +36,8 @@ public class RunActionUseCase {
   public Mono<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action for {}", command);
     // todo: use path somehow
-    var instanceTypeName = getInstanceTypeName(command);
-    var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
     return Mono.just(command)
-        .flatMap(
-            ignored ->
-                resolveRoute(
-                    instanceTypeName,
-                    instanceFactory,
-                    command.route(),
-                    command.consumedRoute(),
-                    command.data(),
-                    command.httpRequest()))
+        .flatMap(ignored -> createInstance(command))
         .flatMap(
             instance ->
                 actionRunnerProvider
@@ -56,6 +53,24 @@ public class RunActionUseCase {
                         command.route(),
                         command.initiatorComponentId(),
                         command.httpRequest()));
+  }
+
+  private Mono<?> createInstance(RunActionCommand command) {
+    // si command.componentType entonces prevalece
+    // si hay una ruta, entonces la utilizamos
+    // si hay una app, entonces miramos si tiene una opciónd e menu que coincide
+    var instanceTypeName = getInstanceTypeName(command);
+    if (instanceTypeName != null) {
+      var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+      return resolveRoute(
+          instanceTypeName,
+          instanceFactory,
+          command.route(),
+          command.consumedRoute(),
+          command.data(),
+          command.httpRequest());
+    }
+    return tryWithApp(command.route(), command.data(), command.httpRequest());
   }
 
   private Mono<?> resolveRoute(
@@ -79,6 +94,58 @@ public class RunActionUseCase {
             });
   }
 
+  private Mono<?> tryWithApp(String route, Map<String, Object> data, HttpRequest httpRequest) {
+    for (RouteResolver resolver :
+        beanProvider.getBeans(RouteResolver.class).stream()
+            .sorted(Comparator.comparingInt(a -> a.weight(route)))
+            .toList()) {
+      if (resolver.supportsRoute(route)) {
+        var instanceTypeName = resolver.resolveRoute(route, httpRequest).getName();
+        if (instanceTypeName != null) {
+          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+          return instanceFactory
+              .createInstance(instanceTypeName, data, httpRequest)
+              .flatMap(
+                  instance -> {
+                    if (instance instanceof AppSupplier appSupplier) {
+                      var appRoute = getMinimalAppRoute(resolver, route);
+                      var app = appSupplier.getApp(httpRequest);
+                      for (Actionable actionable : app.menu()) {
+                        if (getPathInApp(appRoute, actionable).equals(route)) {
+                          if (actionable instanceof ContentLink contentLink) {
+                            return Mono.just(contentLink.componentSupplier().get(httpRequest));
+                          }
+                          if (actionable instanceof Menu menu) {
+                            return Mono.just(new TextComponent("Es un menu"));
+                          }
+                        }
+                      }
+                    }
+                    return Mono.empty();
+                  });
+        }
+      }
+    }
+    return Mono.empty();
+  }
+
+  private String getMinimalAppRoute(RouteResolver resolver, String route) {
+    var minimalRoute = route;
+    var nextRoute = minimalRoute;
+    while (!nextRoute.isEmpty() && resolver.supportsRoute(nextRoute)) {
+      minimalRoute = nextRoute;
+      nextRoute = nextRoute.contains("/") ? nextRoute.substring(0, nextRoute.lastIndexOf("/")) : "";
+    }
+    return minimalRoute;
+  }
+
+  private static String getPathInApp(String appRoute, Actionable option) {
+    if (option.path() == null) {
+      return appRoute + "/" + camelcasize(option.label());
+    }
+    return option.path();
+  }
+
   private String getInstanceNameUsingResolvers(
       String instanceTypeName, String route, String consumedRoute, HttpRequest httpRequest) {
     for (RouteResolver resolver :
@@ -93,7 +160,9 @@ public class RunActionUseCase {
   }
 
   private String getInstanceTypeName(RunActionCommand command) {
-    var instanceTypeName = command.componentType();
+    if (command.componentType() != null && !command.componentType().isEmpty()) {
+      return command.componentType();
+    }
     for (RouteResolver bean :
         beanProvider.getBeans(RouteResolver.class).stream()
             .filter(
@@ -104,9 +173,6 @@ public class RunActionUseCase {
             .toList()) {
       return bean.resolveRoute(command.route(), command.httpRequest()).getName();
     }
-    if (instanceTypeName == null || instanceTypeName.isEmpty()) {
-      instanceTypeName = command.uiId();
-    }
-    return instanceTypeName;
+    return null;
   }
 }

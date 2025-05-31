@@ -5,7 +5,7 @@ title: "Routing and parameterization"
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
 weight: 3
 
-# don't create a separete page
+# don't create a separete form
 type: "docs"
 _build:
   list: always

@@ -4,7 +4,7 @@ icon_bg: ""
 title: "Theme Facility"
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
 weight: 4
-# don't create a separete page
+# don't create a separete form
 type: "docs"
 _build:
   list: always
