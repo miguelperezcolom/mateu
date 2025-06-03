@@ -1,5 +1,6 @@
 package io.mateu.core.domain.fragmentmapper;
 
+import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.uis.apps.SimpleApp;
@@ -25,7 +26,7 @@ class ReflectionFragmentMapperTest {
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
-    assertTrue(fragment.component().metadata() instanceof FormDto);
+      assertInstanceOf(FormDto.class, fragment.component().metadata());
   }
 
   @Test
@@ -42,8 +43,7 @@ class ReflectionFragmentMapperTest {
 
   @Test
   void minimalMatchingRouteIsReturned() {
-    var mapper = new ReflectionAppMapper();
-    var appRoute = mapper.getRoute(new MyApp(), new FakeHttpRequest(), "/app/home");
+    var appRoute = getRoute(new MyApp(), new FakeHttpRequest(), "/app/home");
     assertNotNull(appRoute);
     assertEquals("/app", appRoute);
   }

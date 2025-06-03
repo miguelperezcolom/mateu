@@ -21,17 +21,23 @@ public record AppDto(
     implements ComponentMetadataDto {
 
   public AppDto {
+    variant = AppVariantDto.TABS;
     menu = Collections.unmodifiableList(menu != null ? menu : List.of());
     apps = Collections.unmodifiableList(apps != null ? apps : List.of());
   }
 
   @Override
+  public AppVariantDto variant() {
+    return variant != null ? variant : AppVariantDto.TABS;
+  }
+
+  @Override
   public List<MenuDto> menu() {
-    return Collections.unmodifiableList(menu);
+    return Collections.unmodifiableList(menu != null ? menu : List.of());
   }
 
   @Override
   public List<AppDescriptorDto> apps() {
-    return Collections.unmodifiableList(apps);
+    return Collections.unmodifiableList(apps != null ? apps : List.of());
   }
 }

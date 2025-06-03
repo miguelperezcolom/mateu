@@ -47,7 +47,7 @@ public class ReflectionAppMapper {
   public static String getHomeRoute(List<MenuDto> menu, String route) {
     if (menu != null) {
       for (MenuDto option : menu) {
-        if (option.destination().route().equals(route)) {
+        if (option.destination() != null && option.destination().route().equals(route)) {
           return option.destination().route();
         }
       }

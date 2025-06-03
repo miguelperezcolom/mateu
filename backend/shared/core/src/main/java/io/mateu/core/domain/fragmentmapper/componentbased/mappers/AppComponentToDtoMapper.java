@@ -10,7 +10,9 @@ import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuDto;
+import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.ComponentSupplier;
 import io.mateu.uidl.interfaces.Actionable;
@@ -50,8 +52,10 @@ public final class AppComponentToDtoMapper {
             option ->
                 MenuDto.builder()
                     .label(option.label())
-                    .destination(new GoToRouteDto("", getPath(appRoute, option), null))
+                    .destination(option instanceof RouteLink || option instanceof ContentLink ?
+                            new GoToRouteDto("", getPath(appRoute, option), null):null)
                     .selected(isSelected(option, appRoute, route))
+                        .visible(true)
                     .submenus(
                         option instanceof Menu asMenu
                             ? buildMenu(asMenu.submenu(), route, appRoute)
