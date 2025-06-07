@@ -1,9 +1,8 @@
 package io.mateu.uidl.fluent;
 
 import io.mateu.uidl.interfaces.Actionable;
-import lombok.Builder;
-
 import java.util.List;
+import lombok.Builder;
 
 @Builder
 public record App(
@@ -15,8 +14,8 @@ public record App(
     AppVariant variant)
     implements Component {
 
-    public App {
-        variant = variant != null?variant:AppVariant.TABS;
-        menu = menu != null?menu:List.of();
-    }
+  public App {
+    variant = variant != null ? variant : AppVariant.TABS;
+    menu = menu != null ? menu : List.of();
+  }
 }

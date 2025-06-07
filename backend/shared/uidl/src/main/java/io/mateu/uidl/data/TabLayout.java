@@ -5,4 +5,4 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record TabLayout(List<Tab> tabs, String style) implements Component {}
+public record TabLayout(String id, List<Tab> tabs, String style) implements Component {}

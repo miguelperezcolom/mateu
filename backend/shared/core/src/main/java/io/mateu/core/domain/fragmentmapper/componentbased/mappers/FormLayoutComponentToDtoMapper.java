@@ -10,13 +10,13 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class FormLayoutComponentToDtoMapper {
 
   public static ComponentDto mapFormLayoutToDto(
-      FormLayout verticalLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      FormLayout formLayout, String baseUrl, String route, HttpRequest httpRequest) {
     var metadataDto = FormLayoutDto.builder().build();
     return new ComponentDto(
         metadataDto,
-        "component_id",
+        formLayout.id(),
         null,
-        verticalLayout.content().stream()
+        formLayout.content().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
             .toList());
   }

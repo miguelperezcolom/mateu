@@ -14,7 +14,7 @@ public class TabLayoutComponentToDtoMapper {
     var metadataDto = TabLayoutDto.builder().build();
     return new ComponentDto(
         metadataDto,
-        "component_id",
+        tabLayout.id(),
         null,
         tabLayout.tabs().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))

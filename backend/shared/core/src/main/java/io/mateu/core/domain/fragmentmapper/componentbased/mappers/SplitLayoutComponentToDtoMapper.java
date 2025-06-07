@@ -15,7 +15,7 @@ public class SplitLayoutComponentToDtoMapper {
     var metadataDto = HorizontalLayoutDto.builder().build();
     return new ComponentDto(
         metadataDto,
-        "component_id",
+        splitLayout.id(),
         null,
         List.of(
             mapComponentToDto(null, splitLayout.master(), baseUrl, route, httpRequest),

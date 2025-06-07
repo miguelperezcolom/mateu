@@ -21,7 +21,7 @@ public record AppDto(
     implements ComponentMetadataDto {
 
   public AppDto {
-    variant = AppVariantDto.TABS;
+    variant = variant != null ? variant : AppVariantDto.TABS;
     menu = Collections.unmodifiableList(menu != null ? menu : List.of());
     apps = Collections.unmodifiableList(apps != null ? apps : List.of());
   }

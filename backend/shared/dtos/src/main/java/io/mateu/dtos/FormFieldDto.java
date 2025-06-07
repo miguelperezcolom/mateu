@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * A field in a form
@@ -20,6 +21,7 @@ import java.util.List;
  * @param attributes Some generic attributes
  * @param colspan Colspan for this field
  */
+@Builder
 public record FormFieldDto(
     String id,
     String dataType,
@@ -39,9 +41,14 @@ public record FormFieldDto(
     implements ComponentMetadataDto {
 
   public FormFieldDto {
-    badges = Collections.unmodifiableList(badges);
-    validations = Collections.unmodifiableList(validations);
-    attributes = Collections.unmodifiableList(attributes);
+    badges =
+        Collections.unmodifiableList(badges != null ? badges : Collections.<BadgeDto>emptyList());
+    validations =
+        Collections.unmodifiableList(
+            validations != null ? validations : Collections.<ValidationDto>emptyList());
+    attributes =
+        Collections.unmodifiableList(
+            attributes != null ? attributes : Collections.<PairDto>emptyList());
   }
 
   @Override

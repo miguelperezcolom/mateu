@@ -29,7 +29,6 @@ export class MateuComponent extends ComponentElement {
     @property()
     baseUrl: string | undefined
 
-
     renderElement = (element: Element): TemplateResult => {
         if (element.name == 'div') {
             return html`<div>
@@ -113,7 +112,6 @@ export class MateuComponent extends ComponentElement {
                    ></mateu-field>`:nothing}
 
             </mateu-api-caller>
-
        `
     }
 

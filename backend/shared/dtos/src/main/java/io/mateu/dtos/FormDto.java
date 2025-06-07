@@ -15,7 +15,7 @@ import lombok.Builder;
  * @param badges Badges to be shown for this form
  * @param banners Banners to be shown in this form
  * @param actions Actions for this form. To be shown at the top
- * @param mainActions Actions for this form. To be shown at the bottom
+ * @param buttons Actions for this form. To be shown at the bottom
  * @param validations Client side validations for this form
  * @param rules Rules to be run after each value change
  */
@@ -29,17 +29,23 @@ public record FormDto(
     List<BadgeDto> badges,
     List<BannerDto> banners,
     List<ActionDto> actions,
-    List<ActionDto> mainActions,
+    List<TriggerDto> triggers,
+    List<ButtonDto> toolbar,
+    List<ButtonDto> buttons,
     List<ValidationDto> validations,
-    List<RuleDto> rules)
+    List<RuleDto> rules,
+    List<ComponentDto> content,
+    List<ComponentDto> header,
+    List<ComponentDto> footer)
     implements ComponentMetadataDto {
 
   public FormDto {
     badges = Collections.unmodifiableList(badges != null ? badges : Collections.emptyList());
     banners = Collections.unmodifiableList(banners != null ? banners : Collections.emptyList());
     actions = Collections.unmodifiableList(actions != null ? actions : Collections.emptyList());
-    mainActions =
-        Collections.unmodifiableList(mainActions != null ? mainActions : Collections.emptyList());
+    triggers = Collections.unmodifiableList(triggers != null ? triggers : Collections.emptyList());
+    buttons = Collections.unmodifiableList(buttons != null ? buttons : Collections.emptyList());
+    toolbar = Collections.unmodifiableList(toolbar != null ? toolbar : Collections.emptyList());
     validations =
         Collections.unmodifiableList(validations != null ? validations : Collections.emptyList());
     rules = Collections.unmodifiableList(rules != null ? rules : Collections.emptyList());
@@ -61,8 +67,13 @@ public record FormDto(
   }
 
   @Override
-  public List<ActionDto> mainActions() {
-    return Collections.unmodifiableList(mainActions);
+  public List<ButtonDto> buttons() {
+    return Collections.unmodifiableList(buttons);
+  }
+
+  @Override
+  public List<ButtonDto> toolbar() {
+    return Collections.unmodifiableList(toolbar);
   }
 
   @Override

@@ -10,6 +10,8 @@ import io.mateu.uidl.interfaces.HasTitle;
 
 @Route("/app/page1")
 @Route("/fluent-app/page1")
+@Route("/fluent-app/nested-app/page1")
+@Route("/fluent-app/nested-app/nested-app/page1")
 public class Page1 implements HasTitle, HasSubtitle, Form {
 
     String name;

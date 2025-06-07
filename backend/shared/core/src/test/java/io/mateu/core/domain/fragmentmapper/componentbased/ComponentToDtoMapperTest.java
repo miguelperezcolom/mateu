@@ -5,40 +5,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.dtos.AppDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
-import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuDto;
 import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.data.ContentLink;
-import io.mateu.uidl.data.Menu;
-import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.TextComponent;
-import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.AppSupplier;
-import io.mateu.uidl.fluent.AppVariant;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.FormSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
 class ComponentToDtoMapperTest {
 
   @Test
   void mapsToElementDto() {
-      var expected = UIFragmentDto.builder()
-              .targetComponentId("initiator")
-              .component(new ComponentDto(
-                      new ElementDto("div", Map.of(), "Hola"),
-                      "id",
-                      null,
-                      List.of()
-              ))
-              .build();
+    var expected =
+        UIFragmentDto.builder()
+            .targetComponentId("initiator")
+            .component(
+                new ComponentDto(new ElementDto("div", Map.of(), "Hola"), "id", null, List.of()))
+            .build();
     var dto =
         mapComponentToFragment(
             null,
@@ -48,9 +32,6 @@ class ComponentToDtoMapperTest {
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
-      assertThat(dto)
-              .usingRecursiveComparison()
-              .isEqualTo(expected);
+    assertThat(dto).usingRecursiveComparison().isEqualTo(expected);
   }
-
 }

@@ -5,6 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record SplitLayout(
+    String id,
     Component master,
     Component detail,
     SplitLayoutOrientation orientation,
@@ -13,6 +14,6 @@ public record SplitLayout(
     implements Component {
 
   public SplitLayout(Component master, Component detail) {
-    this(master, detail, null, null, "");
+    this(null, master, detail, null, null, "");
   }
 }

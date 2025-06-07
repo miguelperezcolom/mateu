@@ -14,7 +14,7 @@ public class HorizontalLayoutComponentToDtoMapper {
     var metadataDto = HorizontalLayoutDto.builder().build();
     return new ComponentDto(
         metadataDto,
-        "component_id",
+        horizontalLayout.id(),
         null,
         horizontalLayout.content().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))

@@ -81,14 +81,14 @@ export class MateuApp extends ComponentElement {
             if (option.children) {
                 return {
                     text: option.label,
-                    route: option.destination.route,
+                    route: option.destination?.route,
                     selected: option.selected,
                     children: this.mapItems(option.children)
                 }
             }
             return {
                 text: option.label,
-                route: option.destination.route,
+                route: option.destination?.route,
                 selected: option.selected,
             }
         })
@@ -107,9 +107,11 @@ export class MateuApp extends ComponentElement {
     render() {
         const metadata = this.metadata as App
 
+        console.log(metadata)
+
         const items = this.mapItems(metadata.menu)
 
-        console.log(metadata, items)
+
 
         return html`
 

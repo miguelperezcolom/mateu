@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record HorizontalLayout(
+    String id,
     List<Component> content,
     boolean spacing,
     boolean padding,
@@ -20,6 +21,6 @@ public record HorizontalLayout(
     implements Component {
 
   public HorizontalLayout(List<Component> content) {
-    this(content, false, false, false, null, null, null, false, List.of(), false, null);
+    this(null, content, false, false, false, null, null, null, false, List.of(), false, null);
   }
 }

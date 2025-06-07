@@ -7,16 +7,11 @@ import static io.mateu.core.domain.reflection.AllEditableFieldsProvider.getAllEd
 import static io.mateu.core.domain.reflection.AllMethodsProvider.getAllMethods;
 
 import io.mateu.dtos.ActionDto;
-import io.mateu.dtos.ActionPositionDto;
-import io.mateu.dtos.ActionStereotypeDto;
 import io.mateu.dtos.ActionTargetDto;
-import io.mateu.dtos.ActionTypeDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
-import io.mateu.dtos.StatusDto;
-import io.mateu.dtos.StatusTypeDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.interfaces.Form;
@@ -29,18 +24,12 @@ public final class ReflectionFormMapper {
   public static UIFragmentDto mapFormToFragment(
       Form form, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     var formDto =
-        new FormDto(
-            "icon",
-            getTitle(form),
-            false,
-            getSubtitle(form),
-            new StatusDto(StatusTypeDto.SUCCESS, "message"),
-            List.of(),
-            List.of(),
-            createActions(form),
-            List.of(),
-            List.of(),
-            List.of());
+        FormDto.builder()
+            .icon("icon")
+            .title(getTitle(form))
+            .subtitle(getSubtitle(form))
+            .actions(createActions(form))
+            .build();
     var component =
         new ComponentDto(
             formDto, "component_id", form.getClass().getName(), createFormContent(form));
@@ -60,7 +49,7 @@ public final class ReflectionFormMapper {
                     new FormFieldDto(
                         field.getName(),
                         "string",
-                        "stereootype",
+                        "stereotype",
                         false,
                         false,
                         capitalize(field.getName()),
@@ -88,13 +77,6 @@ public final class ReflectionFormMapper {
                 method ->
                     new ActionDto(
                         method.getName(),
-                        "icon",
-                        capitalize(method.getName()),
-                        ActionTypeDto.Primary,
-                        ActionStereotypeDto.valueOf(
-                            method.getAnnotation(Action.class).type().name()),
-                        null,
-                        true,
                         false,
                         false,
                         false,
@@ -103,12 +85,7 @@ public final class ReflectionFormMapper {
                         null,
                         null,
                         null,
-                        null,
-                        false,
-                        ActionPositionDto.Left,
-                        0,
-                        0,
-                        0))
+                        null))
             .toList());
     return actions;
   }

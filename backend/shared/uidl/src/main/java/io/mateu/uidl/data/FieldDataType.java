@@ -1,0 +1,10 @@
+package io.mateu.uidl.data;
+
+public enum FieldDataType {
+  integer,
+  string,
+  decimal,
+  date,
+  time,
+  dateTime
+}

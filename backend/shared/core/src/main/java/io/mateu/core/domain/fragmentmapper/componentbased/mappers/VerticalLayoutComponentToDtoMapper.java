@@ -14,7 +14,7 @@ public class VerticalLayoutComponentToDtoMapper {
     var metadataDto = VerticalLayoutDto.builder().build();
     return new ComponentDto(
         metadataDto,
-        "component_id",
+        verticalLayout.id(),
         null,
         verticalLayout.content().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))

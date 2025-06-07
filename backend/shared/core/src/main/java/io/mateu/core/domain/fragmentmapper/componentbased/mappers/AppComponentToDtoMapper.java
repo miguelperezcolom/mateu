@@ -52,10 +52,12 @@ public final class AppComponentToDtoMapper {
             option ->
                 MenuDto.builder()
                     .label(option.label())
-                    .destination(option instanceof RouteLink || option instanceof ContentLink ?
-                            new GoToRouteDto("", getPath(appRoute, option), null):null)
+                    .destination(
+                        option instanceof RouteLink || option instanceof ContentLink
+                            ? new GoToRouteDto("", getPath(appRoute, option), null)
+                            : null)
                     .selected(isSelected(option, appRoute, route))
-                        .visible(true)
+                    .visible(true)
                     .submenus(
                         option instanceof Menu asMenu
                             ? buildMenu(asMenu.submenu(), route, appRoute)

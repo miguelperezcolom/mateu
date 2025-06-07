@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record FormLayout(
+    String id,
     List<Component> content,
     int columns,
     LabelPosition labelPosition,

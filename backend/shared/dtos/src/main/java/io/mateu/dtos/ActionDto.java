@@ -1,13 +1,11 @@
 package io.mateu.dtos;
 
+import lombok.Builder;
+
 /**
  * A button
  *
  * @param id This action targetId
- * @param icon Icon to be used
- * @param label Button text
- * @param type Action dataType: primary, secondary
- * @param visible If this button is visible
  * @param validationRequired If validation of the form is required for firing this action
  * @param confirmationRequired If confirmation of the form is required for firing this action
  * @param rowsSelectedRequired If rows selected from the crud is required for firing this action
@@ -17,20 +15,10 @@ package io.mateu.dtos;
  * @param modalTitle The value for the dialog header
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
- * @param runOnEnter Set to true if you want to add a shortcut on Enter key
- * @param position Position in the action bar. Can be left or right
- * @param timeoutMillis Run this action automatically after a timeout
- * @param times Run this action for indicated times
- * @param order Preferred order inside the actions list
  */
+@Builder
 public record ActionDto(
     String id,
-    String icon,
-    String label,
-    ActionTypeDto type,
-    ActionStereotypeDto stereotype,
-    ActionThemeVariantDto[] variants,
-    boolean visible,
     boolean validationRequired,
     boolean confirmationRequired,
     boolean rowsSelectedRequired,
@@ -39,9 +27,4 @@ public record ActionDto(
     String modalStyle,
     String modalTitle,
     String customEvent,
-    String href,
-    boolean runOnEnter,
-    ActionPositionDto position,
-    int timeoutMillis,
-    int times,
-    int order) {}
+    String href) {}

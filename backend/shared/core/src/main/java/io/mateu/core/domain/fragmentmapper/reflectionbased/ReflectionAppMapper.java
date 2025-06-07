@@ -80,10 +80,15 @@ public class ReflectionAppMapper {
       Pattern basePattern =
           Pattern.compile(pattern.pattern().substring(0, pattern.pattern().indexOf(".*")));
       StringBuilder accumulated = new StringBuilder();
+      var matched = false;
       for (String token :
           Arrays.stream(route.split("/")).filter(token -> !"".equals(token)).toList()) {
         if (!basePattern.matcher(accumulated + "/" + token).matches()) {
-          break;
+          if (matched) {
+            break;
+          }
+        } else {
+          matched = true;
         }
         accumulated.append("/").append(token);
       }

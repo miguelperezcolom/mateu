@@ -1,6 +1,8 @@
 package io.mateu.core.domain.fragmentmapper.componentbased;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.mapAppToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
@@ -12,6 +14,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Vertica
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.SplitLayout;
@@ -21,6 +24,7 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentSupplier;
+import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -51,7 +55,10 @@ public final class ComponentToFragmentDtoMapper {
       return mapAppToDto(app, componentSupplier, baseUrl, route, httpRequest);
     }
     if (component instanceof Form form) {
-      return mapFormToDto(form, componentSupplier);
+      return mapFormToDto(form, componentSupplier, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Crudl crudl) {
+      return mapCrudlToDto(crudl, componentSupplier, baseUrl, route, httpRequest);
     }
     if (component instanceof HorizontalLayout horizontalLayout) {
       return mapHorizontalLayoutToDto(horizontalLayout, baseUrl, route, httpRequest);
@@ -70,6 +77,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof TextComponent textComponent) {
       return mapTextToDto(textComponent);
+    }
+    if (component instanceof Field field) {
+      return mapFieldToDto(field);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "id", null, List.of());

@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record VerticalLayout(
+    String id,
     List<Component> content,
     boolean spacing,
     boolean padding,
@@ -22,6 +23,8 @@ public record VerticalLayout(
     implements Component {
 
   public VerticalLayout(List<Component> content) {
-    this(content, false, false, false, null, null, null, null, false, List.of(), false, false, "");
+    this(
+        null, content, false, false, false, null, null, null, null, false, List.of(), false, false,
+        "");
   }
 }
