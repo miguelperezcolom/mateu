@@ -2,8 +2,8 @@ import Component from "../../../../../shared/apiClients/dtos/Component";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
-import { ActionType } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionType";
-import { ActionStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ActionStereotype";
+import { ButtonType } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonType";
+import { ButtonStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStereotype";
 
 
 export const mockedSimpleCardCrud1: Component = {
@@ -31,8 +31,8 @@ export const mockedSimpleCardCrud1: Component = {
         actions: [
             {
                 id: 'submit',
-                type: ActionType.Secondary,
-                stereotype: ActionStereotype.Regular,
+                type: ButtonType.Secondary,
+                stereotype: ButtonStereotype.Regular,
                 label: 'Enviar',
             }
         ],

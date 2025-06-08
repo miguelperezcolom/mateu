@@ -7,6 +7,7 @@ import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validati
 import Rule from "@mateu/shared/apiClients/dtos/componentmetadata/Rule";
 import Trigger from "@mateu/shared/apiClients/dtos/componentmetadata/Trigger";
 import { Section } from "@mateu/shared/apiClients/dtos/componentmetadata/Section";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 
 export default interface Form extends ComponentMetadata {
 
@@ -18,6 +19,8 @@ export default interface Form extends ComponentMetadata {
     badges: Badge[]
     banners: Banner[]
     actions: Action[]
+    toolbar: Button[]
+    buttons: Button[]
     sections: Section[]
     triggers: Trigger[]
     validations: Validation[]

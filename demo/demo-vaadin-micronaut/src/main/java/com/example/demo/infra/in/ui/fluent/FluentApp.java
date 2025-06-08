@@ -24,7 +24,7 @@ public class FluentApp implements AppSupplier {
                 .variant(AppVariant.MENU_ON_TOP)
                 .menu(List.of(
                         new RouteLink("/fluent-app/home", "Home"),
-                        new RouteLink("/fluent-app/page1", "Page 1"),
+                        new RouteLink("/fluent-app/form1", "Form 1"),
                         new RouteLink("/fluent-app/page2", "Page 2", true),
                         new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new TextComponent("Hola 0")),
                         new RouteLink("/fluent-app/nested-app", "Nested 0"),

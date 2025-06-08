@@ -11,8 +11,6 @@ import "@vaadin/menu-bar"
 import './mateu-component'
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
-import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
@@ -125,7 +123,6 @@ export class MateuUx extends ConnectedElement {
                 composed: true
             }))
         }
-        console.log(_changedProperties, _changedProperties.has('route') && !!this.top)
         if (_changedProperties.has('route') && !!this.top) {
             this.dispatchEvent(new CustomEvent('route-changed', {
                 detail: {
@@ -148,23 +145,14 @@ export class MateuUx extends ConnectedElement {
 
     renderComponent = (component: Component): TemplateResult => {
         if (component.metadata) {
-            if (component.metadata.type == ComponentMetadataType.FormLayout) {
-                return renderFormLayout(component, this.renderComponent)
-            }
-            if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
-                return renderHorizontalLayout(component, this.renderComponent)
-            }
-            if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
-                return renderVerticalLayout(component, this.renderComponent)
-            }
             return html`<mateu-component id="${component.id}" 
                                          .metadata="${component.metadata}" 
+                                         .component="${component}"
                                          .data="${component.initialData}"
-                                         serverSideType="${component.serverSideType}"
+                                         serverSideType="${component.serverSideType}"  
                                          baseUrl="${this.baseUrl}"
                                          signature="${JSON.stringify(component.metadata) 
                                          + JSON.stringify(component.initialData)}">
-${component.children?.map(child => this.renderComponent(child))}
            </mateu-component>`
         }
         return html`<p>No metadata for component ${component.id}</p>`

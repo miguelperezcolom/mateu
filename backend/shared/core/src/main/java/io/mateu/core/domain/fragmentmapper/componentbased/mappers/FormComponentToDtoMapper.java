@@ -16,7 +16,6 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.List;
 
 public class FormComponentToDtoMapper {
 
@@ -38,15 +37,14 @@ public class FormComponentToDtoMapper {
                 form.triggers().stream().map(FormComponentToDtoMapper::mapToTriggerDto).toList())
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
-            .content(
-                form.content().stream()
-                    .map(
-                        component ->
-                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
-                    .toList())
             .build();
     return new ComponentDto(
-        formMetadataDto, form.id(), componentSupplier.getClass().getName(), List.of());
+        formMetadataDto,
+        form.id(),
+        componentSupplier.getClass().getName(),
+        form.content().stream()
+            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
+            .toList());
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {

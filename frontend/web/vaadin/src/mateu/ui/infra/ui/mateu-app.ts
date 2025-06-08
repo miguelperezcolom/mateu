@@ -107,11 +107,7 @@ export class MateuApp extends ComponentElement {
     render() {
         const metadata = this.metadata as App
 
-        console.log(metadata)
-
         const items = this.mapItems(metadata.menu)
-
-
 
         return html`
 
@@ -160,7 +156,6 @@ export class MateuApp extends ComponentElement {
                 <vaadin-vertical-layout>
                     <vaadin-tabs selected="${this.getSelectedIndex(metadata.menu)}">
                         ${metadata.menu.map(option => {
-                            console.log(option)
                             return html`
                                 <vaadin-tab 
                                         @click="${() => this.selectedRoute = option.destination.route}"

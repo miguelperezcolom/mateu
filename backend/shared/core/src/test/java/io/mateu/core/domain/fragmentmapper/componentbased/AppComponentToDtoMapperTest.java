@@ -2,6 +2,8 @@ package io.mateu.core.domain.fragmentmapper.componentbased;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToFragment;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.mateu.core.infra.FakeHttpRequest;
@@ -19,7 +21,9 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 class AppComponentToDtoMapperTest {
@@ -175,5 +179,46 @@ class AppComponentToDtoMapperTest {
             new FakeHttpRequest());
     assertNotNull(dto);
     assertThat(dto).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  class MyAppSupplier implements AppSupplier, RouteResolver {
+    @Override
+    public App getApp(HttpRequest httpRequest) {
+      return App.builder()
+          .menu(
+              List.of(
+                  new RouteLink("/fluent-app/home", "Home"),
+                  new RouteLink("/fluent-app/page1", "Page 1"),
+                  new RouteLink("/fluent-app/nested-app", "Nested app")))
+          .build();
+    }
+
+    @Override
+    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+      return MyAppSupplier.class;
+    }
+
+    @Override
+    public List<Pattern> getSupportedRoutesPatterns() {
+      return List.of(Pattern.compile("/fluent-app.*"));
+    }
+  }
+
+  @Test
+  void mapsNestedAppToDto() {
+    var supplier = new MyAppSupplier();
+    var dto =
+        mapComponentToFragment(
+            supplier,
+            supplier.getApp(new FakeHttpRequest()),
+            "base_url",
+            "/fluent-app/nested-app/page2",
+            "initiator",
+            new FakeHttpRequest());
+    assertNotNull(dto);
+    assertInstanceOf(AppDto.class, dto.component().metadata());
+    var appDto = (AppDto) dto.component().metadata();
+    assertEquals("/fluent-app/nested-app/page2", appDto.homeRoute());
+    assertEquals("/fluent-app", appDto.route());
   }
 }

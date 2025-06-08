@@ -1,4 +1,4 @@
-export enum ActionType {
+export enum ButtonType {
 
     Primary = "Primary", Secondary = "Secondary", Tertiary = "Tertiary"
 

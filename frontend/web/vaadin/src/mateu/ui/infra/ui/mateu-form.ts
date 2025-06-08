@@ -10,12 +10,12 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import '@vaadin/button'
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
-import ComponentElement from "@infra/ui/ComponentElement";
 import './mateu-field'
+import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 
 
 @customElement('mateu-form')
-export class MateuForm extends ComponentElement {
+export class MateuForm extends MetadataDrivenElement {
 
     values: Record<string, any> = {}
 
@@ -64,14 +64,22 @@ export class MateuForm extends ComponentElement {
            <p>${metadata?.subtitle}</p>
            
            <vaadin-horizontal-layout theme="spacing">
-               ${metadata?.actions?.map(action => html`
+               ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
-                        data-action-id="${action.id}"
-                        @click="${() => this.handleButtonClick(action.id)}"
-                >${action.label}</vaadin-button>
+                        data-action-id="${button.id}"
+                        @click="${() => this.handleButtonClick(button.actionId)}"
+                >${button.label}</vaadin-button>
 `)}
            </vaadin-horizontal-layout>
            <slot></slot>
+           <vaadin-horizontal-layout theme="spacing">
+               ${metadata?.buttons?.map(button => html`
+                <vaadin-button
+                        data-action-id="${button.id}"
+                        @click="${() => this.handleButtonClick(button.actionId)}"
+                >${button.label}</vaadin-button>
+`)}
+           </vaadin-horizontal-layout>
        `
     }
 

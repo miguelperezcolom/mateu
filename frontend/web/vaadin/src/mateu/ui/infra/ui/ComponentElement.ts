@@ -1,28 +1,18 @@
-import ConnectedElement from "@infra/ui/ConnectedElement";
-import { property } from "lit/decorators.js";
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
+import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 
-export default abstract class ComponentElement extends ConnectedElement {
+export default abstract class ComponentElement extends MetadataDrivenElement {
 
     // public properties
 
-    @property()
-    metadata: ComponentMetadata | undefined
-
-    @property()
-    serverSideType: string | undefined
-
-    @property()
-    data: any
-
-
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
-        console.log('apply', fragment)
         if (this.id == fragment.targetComponentId) {
             if (fragment.component?.metadata) {
                 this.metadata = fragment.component?.metadata
+            }
+            if (fragment.component) {
+                this.component = fragment.component
             }
             if (fragment.data) {
                 this.data = fragment.data

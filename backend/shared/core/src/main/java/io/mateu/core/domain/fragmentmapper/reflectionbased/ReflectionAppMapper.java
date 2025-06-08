@@ -17,6 +17,7 @@ import io.mateu.uidl.interfaces.HasMenu;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -49,6 +50,17 @@ public class ReflectionAppMapper {
       for (MenuDto option : menu) {
         if (option.destination() != null && option.destination().route().equals(route)) {
           return option.destination().route();
+        }
+      }
+      for (MenuDto option :
+          menu.stream()
+              .sorted(
+                  Comparator.comparingInt(
+                      option ->
+                          option.destination() != null ? option.destination().route().length() : 0))
+              .toList()) {
+        if (option.destination() != null && route.startsWith(option.destination().route())) {
+          return route;
         }
       }
       for (MenuDto option : menu) {

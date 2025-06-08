@@ -1,4 +1,4 @@
-export enum ActionPosition {
+export enum ButtonPosition {
     Left = "Left",
     Right = "Right"
 }

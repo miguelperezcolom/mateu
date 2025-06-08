@@ -118,45 +118,43 @@ class FormComponentToDtoMapperTest {
                                     .icon(null)
                                     .actionId("action_id")
                                     .build()))
-                        .content(
-                            List.of(
-                                new ComponentDto(
-                                    FormLayoutDto.builder().build(),
-                                    "form_layout_id",
-                                    null,
-                                    List.of(
-                                        new ComponentDto(
-                                            new FormFieldDto(
-                                                "name",
-                                                "string",
-                                                "regular",
-                                                false,
-                                                false,
-                                                "Name",
-                                                "placeholder",
-                                                "css_classes",
-                                                "description",
-                                                List.of(),
-                                                List.of(),
-                                                List.of(),
-                                                0,
-                                                false,
-                                                false),
-                                            "name",
-                                            null,
-                                            List.of()),
-                                        new ComponentDto(
-                                            new FormFieldDto(
-                                                "age", "integer", "regular", false, false, "Age",
-                                                null, null, null, List.of(), List.of(), List.of(),
-                                                0, false, false),
-                                            "age",
-                                            null,
-                                            List.of())))))
                         .build(),
                     "form_id",
                     supplier.getClass().getName(),
-                    List.of()))
+                    List.of(
+                        new ComponentDto(
+                            FormLayoutDto.builder().build(),
+                            "form_layout_id",
+                            null,
+                            List.of(
+                                new ComponentDto(
+                                    new FormFieldDto(
+                                        "name",
+                                        "string",
+                                        "regular",
+                                        false,
+                                        false,
+                                        "Name",
+                                        "placeholder",
+                                        "css_classes",
+                                        "description",
+                                        List.of(),
+                                        List.of(),
+                                        List.of(),
+                                        0,
+                                        false,
+                                        false),
+                                    "name",
+                                    null,
+                                    List.of()),
+                                new ComponentDto(
+                                    new FormFieldDto(
+                                        "age", "integer", "regular", false, false, "Age", null,
+                                        null, null, List.of(), List.of(), List.of(), 0, false,
+                                        false),
+                                    "age",
+                                    null,
+                                    List.of()))))))
             .data(supplier)
             .build();
     var dto =
