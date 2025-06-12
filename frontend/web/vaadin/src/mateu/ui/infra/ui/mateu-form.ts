@@ -84,6 +84,9 @@ export class MateuForm extends MetadataDrivenElement {
     }
 
     static styles = css`
+        :host {
+            width: 100%;
+        }
   `
 }
 

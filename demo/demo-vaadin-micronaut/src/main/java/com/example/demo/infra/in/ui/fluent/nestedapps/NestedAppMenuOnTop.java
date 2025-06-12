@@ -1,4 +1,4 @@
-package com.example.demo.infra.in.ui.fluent;
+package com.example.demo.infra.in.ui.fluent.nestedapps;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.RouteLink;
@@ -9,8 +9,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/nested-app/nested-app")
-public class FluentNestedAgainApp implements AppSupplier {
+@Route("/fluent-app/nested-apps/top")
+public class NestedAppMenuOnTop implements AppSupplier {
 
     @Override
     public App getApp(HttpRequest httpRequest) {
@@ -18,10 +18,10 @@ public class FluentNestedAgainApp implements AppSupplier {
                 .pageTitle("Nested fluent app")
                 .title("Nested")
                 .subtitle("This is the subtitle bla, bla, bla")
-                .variant(AppVariant.TABS)
+                .variant(AppVariant.MENU_ON_TOP)
                 .menu(List.of(
-                        new RouteLink("/fluent-app/nested-app/nested-app/home", "Home"),
-                        new RouteLink("/fluent-app/nested-app/nested-app/page1", "Page 1")
+                        new RouteLink("/fluent-app/nested-apps/top/home", "Home"),
+                        new RouteLink("/fluent-app/nested-apps/top/page1", "Page 1")
                 ))
                 .build();
     }

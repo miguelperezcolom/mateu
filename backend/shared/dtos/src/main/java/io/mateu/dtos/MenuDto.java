@@ -14,7 +14,8 @@ public record MenuDto(
     List<MenuDto> submenus,
     @JsonIgnore int order,
     boolean visible,
-    boolean selected) {
+    boolean selected,
+    boolean separator) {
 
   public MenuDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

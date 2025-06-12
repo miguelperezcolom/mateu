@@ -2,12 +2,17 @@ import { customElement, property } from "lit/decorators.js";
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
+import '@vaadin/split-layout'
+import '@vaadin/master-detail-layout'
 import '@vaadin/app-layout'
 import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
+import '@vaadin/tabsheet'
 import "@vaadin/menu-bar"
 import "@vaadin/progress-bar"
+import "@vaadin/scroller"
+import "@vaadin/accordion"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -20,7 +25,13 @@ import './mateu-api-caller'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import Component from "@mateu/shared/apiClients/dtos/Component";
-import { renderFormLayout, renderHorizontalLayout, renderVerticalLayout } from "@infra/ui/renderLayouts";
+import {
+    renderAccordionLayout, renderContainer,
+    renderFormLayout, renderFullWidth,
+    renderHorizontalLayout, renderMasterDetailLayout, renderScroller,
+    renderSplitLayout, renderTabLayout,
+    renderVerticalLayout
+} from "@infra/ui/renderLayouts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -64,6 +75,7 @@ export class MateuComponent extends ComponentElement {
 
     renderComponent = (component: Component | undefined): TemplateResult => {
         if (component?.metadata) {
+
             if (component.metadata.type == ComponentMetadataType.FormLayout) {
                 return renderFormLayout(component, this.renderChildComponent)
             }
@@ -72,6 +84,27 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
                 return renderVerticalLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.SplitLayout) {
+                return renderSplitLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.MasterDetailLayout) {
+                return renderMasterDetailLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.TabLayout) {
+                return renderTabLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
+                return renderAccordionLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.Scroller) {
+                return renderScroller(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.FullWidth) {
+                return renderFullWidth(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.Container) {
+                return renderContainer(component, this.renderChildComponent)
             }
             if (component.metadata.type == ComponentMetadataType.Form) {
                 return html`<mateu-api-caller><mateu-form 
@@ -165,6 +198,9 @@ export class MateuComponent extends ComponentElement {
     }
 
     static styles = css`
+        :host {
+            width: 100%;
+        }
   `
 }
 

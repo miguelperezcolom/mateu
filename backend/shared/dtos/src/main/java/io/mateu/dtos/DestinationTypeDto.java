@@ -1,6 +1,6 @@
 package io.mateu.dtos;
 
-/** Destination / link dataType */
+/** Destination / link dataType * */
 public enum DestinationTypeDto {
   ActionId,
   Url,

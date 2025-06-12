@@ -12,6 +12,7 @@ import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.ComponentSupplier;
@@ -62,6 +63,7 @@ public final class AppComponentToDtoMapper {
                         option instanceof Menu asMenu
                             ? buildMenu(asMenu.submenu(), route, appRoute)
                             : List.of())
+                    .separator(option instanceof MenuSeparator)
                     .build())
         .toList();
   }

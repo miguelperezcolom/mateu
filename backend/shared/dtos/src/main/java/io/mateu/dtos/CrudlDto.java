@@ -11,7 +11,6 @@ import lombok.Builder;
  * @param subtitle The subtitle
  * @param canEdit If records can be edited. This make the Edit button visible
  * @param searchable If list can be searched
- * @param filtersForm The form for searching. It can include several filters
  * @param columns The columns
  * @param actions The actions which can be run for this crud. They end up as buttons
  * @param child This crud is a child of another view. This makes the title smaller

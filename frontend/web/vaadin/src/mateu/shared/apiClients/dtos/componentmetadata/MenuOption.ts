@@ -4,5 +4,6 @@ export default interface MenuOption {
     label: string
     destination: GoToRoute
     selected: boolean
-    children: MenuOption[]
+    submenus: MenuOption[]
+    separator: boolean
 }

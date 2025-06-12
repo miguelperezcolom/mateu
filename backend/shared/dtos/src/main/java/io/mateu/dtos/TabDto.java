@@ -1,10 +1,13 @@
 package io.mateu.dtos;
 
+import lombok.Builder;
+
 /**
  * A tab
  *
  * @param id The tab targetId
  * @param active If this tab is active
- * @param caption The tab label
+ * @param label The tab label
  */
-public record TabDto(String id, boolean active, String caption) {}
+@Builder
+public record TabDto(String id, boolean active, String label) implements ComponentMetadataDto {}

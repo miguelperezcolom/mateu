@@ -1,6 +1,5 @@
-package com.example.demo.infra.in.ui.antonia;
+package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
@@ -16,8 +15,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-@Route("/fluent-app/form1")
-public class Form1 implements FormSupplier, HandlesActions {
+@Route("/fluent-app/forms/basic")
+public class BasicForm implements FormSupplier, HandlesActions {
     @Override
     public Form getForm(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children

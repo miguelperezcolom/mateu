@@ -144,7 +144,8 @@ public class ReflectionAppMapper {
                           List.of(),
                           0,
                           true,
-                          isSelected(option, appRoute, selectedRoute)))
+                          isSelected(option, appRoute, selectedRoute),
+                          false))
               .toList();
       return menu;
     }

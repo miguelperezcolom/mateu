@@ -29,6 +29,7 @@ public class MicronautBeanProvider implements BeanProvider {
     try {
       return applicationContext.getBeansOfType(clazz);
     } catch (Exception ignored) {
+      System.out.println(ignored);
       return List.of();
     }
   }

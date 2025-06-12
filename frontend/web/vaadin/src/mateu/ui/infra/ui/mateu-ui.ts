@@ -79,6 +79,7 @@ export class MateuUi extends LitElement {
 
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
+        console.log('baseurl, route', this.baseUrl, this.route)
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
             const configParam = urlParams.get('overrides')
@@ -90,7 +91,19 @@ export class MateuUi extends LitElement {
     }
 
     extractRouteFromUrl(w: Window) {
-        return w.location.pathname;
+        const route = this.extractGrossRouteFromUrl(w)
+        if ('/' == route) {
+            return ''
+        }
+        return route
+    }
+
+    extractGrossRouteFromUrl(w: Window) {
+        const route = w.location.pathname
+        if (route.startsWith(this.baseUrl)) {
+            return route.substring(this.baseUrl.length)
+        }
+        return route
     }
 
 
@@ -108,7 +121,7 @@ export class MateuUi extends LitElement {
            <mateu-api-caller>
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
-                          route="${this.ui?.homeRoute}"
+                          route="${this.route?this.route:this.ui?.homeRoute}"
                           top="true"
                 ></mateu-ux>
            </mateu-api-caller>
@@ -116,7 +129,9 @@ export class MateuUi extends LitElement {
     }
 
     static styles = css`
-        
+        :root {
+            width: 100%;
+        }
   `
 }
 

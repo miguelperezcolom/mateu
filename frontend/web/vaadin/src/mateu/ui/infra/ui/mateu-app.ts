@@ -12,12 +12,14 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
+import '@vaadin/details'
+import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
 import "./mateu-ux"
 import './mateu-api-caller'
-import { MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
+import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { nanoid } from "nanoid";
 
@@ -26,6 +28,9 @@ export class MateuApp extends ComponentElement {
 
     @state()
     selectedRoute: string | undefined = undefined
+
+    @state()
+    instant: string | undefined = undefined
 
     @property()
     baseUrl: string | undefined = undefined
@@ -54,7 +59,7 @@ export class MateuApp extends ComponentElement {
                 if (option.selected) {
                     return option
                 }
-                const foundInChildren = this.getSelectedOption(option.children)
+                const foundInChildren = this.getSelectedOption(option.submenus)
                 if (foundInChildren) {
                     return foundInChildren
                 }
@@ -74,16 +79,22 @@ export class MateuApp extends ComponentElement {
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
         this.selectedRoute = e.detail.value.route
+        this.instant = nanoid()
     }
 
     mapItems = (options: MenuOption[]): any => {
         return options.map(option => {
-            if (option.children) {
+            if (option.submenus) {
                 return {
                     text: option.label,
                     route: option.destination?.route,
                     selected: option.selected,
-                    children: this.mapItems(option.children)
+                    children: this.mapItems(option.submenus)
+                }
+            }
+            if (option.separator) {
+                return {
+                    component: 'hr'
                 }
             }
             return {
@@ -104,6 +115,51 @@ export class MateuApp extends ComponentElement {
         return undefined
     }
 
+    renderOptionOnLeftMenu = (option: MenuOption): any => {
+        if (option.submenus) {
+            return html`
+                <vaadin-details summary="${option.label}" theme="reverse">
+                    <vaadin-vertical-layout>
+                        ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
+                    </vaadin-vertical-layout>
+                </vaadin-details>
+`
+        }
+        return html`<vaadin-button theme="tertiary" 
+                @click="${() => this.selectedRoute = option.destination.route}"
+        >${option.label}</vaadin-button>`
+    }
+
+    navItemSelected = (e: Event & {
+        path: string | undefined
+    }) => {
+        this.selectedRoute = e.path
+        this.instant = nanoid()
+    }
+
+    renderSideNav = (items: any, slot: string | undefined) => {
+        return items?html`${items.map((item: MenuBarItem & {
+            route: string | undefined
+            icon: string | undefined
+        }) => html`
+
+                        ${item.component == 'hr'?html`<hr slot="children"/>`:html`
+                                <vaadin-side-nav-item 
+                                .path="${item.route?item.route:undefined}"
+                                .pathAliases="${[this.baseUrl + (item.route?item.route:'')]}"
+                                slot="${slot}"                                  
+                                >
+                                    ${item.icon?html`
+                                        <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+                                    `:nothing}
+                                    ${item.text}
+                                    ${this.renderSideNav(item.children, 'children')}
+                                </vaadin-side-nav-item>
+                        `}
+
+                            `)}`:nothing
+    }
+
     render() {
         const metadata = this.metadata as App
 
@@ -111,12 +167,36 @@ export class MateuApp extends ComponentElement {
 
         return html`
 
+            ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
+
+                <vaadin-app-layout>
+                    <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+                    <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
+                    <vaadin-scroller slot="drawer" class="p-s">
+                        <vaadin-side-nav .onNavigate="${this.navItemSelected}">
+                            ${this.renderSideNav(items, undefined)}
+                        </vaadin-side-nav>
+                    </vaadin-scroller>
+                    <mateu-api-caller>
+                        <mateu-ux
+                                route="${this.selectedRoute}"
+                                id="${nanoid()}"
+                                baseUrl="${this.baseUrl}"
+                                consumedRoute="${metadata.route}"
+                        ></mateu-ux>
+                    </mateu-api-caller>
+                </vaadin-app-layout>
+
+            `:nothing}
+            
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
                 <vaadin-vertical-layout>
                     <vaadin-menu-bar
                             .items="${items}"
-                            @item-selected="${this.itemSelected}">
+                            @item-selected="${this.itemSelected}"
+                            theme="dropdown-indicators"
+                    >
                     </vaadin-menu-bar>
                     <mateu-api-caller>
                         <mateu-ux 
@@ -134,9 +214,7 @@ export class MateuApp extends ComponentElement {
 
                 <vaadin-horizontal-layout>
                     <vaadin-vertical-layout>
-                        ${metadata.menu.map(option => html`
-                                <vaadin-button @click="${() => this.selectedRoute = option.destination.route}">${option.label}</vaadin-button>
-                            `)}
+                        ${metadata.menu.map(option => this.renderOptionOnLeftMenu(option))}
                     </vaadin-vertical-layout>
                     <mateu-api-caller>
                         <mateu-ux
@@ -180,6 +258,15 @@ export class MateuApp extends ComponentElement {
     }
 
     static styles = css`
+        :host {
+            width: 100%;
+        }
+        vaadin-app-layout {
+            width: 100%;
+        }
+        vaadin-tabs {
+            width: 100%;
+        }
   `
 }
 

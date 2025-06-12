@@ -1,6 +1,7 @@
 package io.mateu.uidl.fluent;
 
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.Widget;
 import java.util.List;
 import lombok.Builder;
 
@@ -11,7 +12,8 @@ public record App(
     String title,
     String subtitle,
     List<Actionable> menu,
-    AppVariant variant)
+    AppVariant variant,
+    List<Widget> widgets)
     implements Component {
 
   public App {
