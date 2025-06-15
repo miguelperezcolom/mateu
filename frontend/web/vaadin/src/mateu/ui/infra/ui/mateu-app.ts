@@ -183,6 +183,7 @@ export class MateuApp extends ComponentElement {
                                 id="${nanoid()}"
                                 baseUrl="${this.baseUrl}"
                                 consumedRoute="${metadata.route}"
+                                style="padding-left: 2em;"
                         ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-app-layout>
@@ -213,15 +214,18 @@ export class MateuApp extends ComponentElement {
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
                 <vaadin-horizontal-layout>
-                    <vaadin-vertical-layout>
-                        ${metadata.menu.map(option => this.renderOptionOnLeftMenu(option))}
-                    </vaadin-vertical-layout>
+                    <vaadin-scroller style="border-right: 2px solid var(--lumo-contrast-5pct);">
+                        <vaadin-vertical-layout style="width: 16em;">
+                            ${metadata.menu.map(option => this.renderOptionOnLeftMenu(option))}
+                        </vaadin-vertical-layout>
+                    </vaadin-scroller>
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${this.selectedRoute}"
                                 id="${nanoid()}"
                                 baseUrl="${this.baseUrl}"
                                 consumedRoute="${metadata.route}"
+                                style="padding: 1em;"
                         ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-horizontal-layout>

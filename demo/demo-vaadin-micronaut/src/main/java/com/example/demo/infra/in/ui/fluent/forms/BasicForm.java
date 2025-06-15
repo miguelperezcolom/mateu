@@ -17,6 +17,9 @@ import java.util.List;
 
 @Route("/fluent-app/forms/basic")
 public class BasicForm implements FormSupplier, HandlesActions {
+
+
+
     @Override
     public Form getForm(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
