@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/nested-apps/panels")
+@Route("/fluent-app/nested-apps/tabs")
 public class NestedAppTabs implements AppSupplier {
 
     @Override
@@ -21,8 +21,8 @@ public class NestedAppTabs implements AppSupplier {
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.TABS)
                 .menu(List.of(
-                        new RouteLink("/fluent-app/nested-apps/panels/home", "Home"),
-                        new RouteLink("/fluent-app/nested-apps/panels/page1", "Page 1")
+                        new RouteLink("/fluent-app/nested-apps/tabs/home", "Home"),
+                        new RouteLink("/fluent-app/nested-apps/tabs/page1", "Page 1")
                 ))
                 .build();
     }

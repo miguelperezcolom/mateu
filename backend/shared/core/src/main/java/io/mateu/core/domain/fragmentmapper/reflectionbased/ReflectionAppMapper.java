@@ -17,7 +17,6 @@ import io.mateu.uidl.interfaces.HasMenu;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -47,21 +46,13 @@ public class ReflectionAppMapper {
 
   public static String getHomeRoute(List<MenuDto> menu, String route) {
     if (menu != null) {
-      for (MenuDto option : menu) {
-        if (option.destination() != null && option.destination().route().equals(route)) {
-          return option.destination().route();
-        }
+      var selectedRoute = getSelectedRoute(menu, route, true);
+      if (selectedRoute != null) {
+        return selectedRoute;
       }
-      for (MenuDto option :
-          menu.stream()
-              .sorted(
-                  Comparator.comparingInt(
-                      option ->
-                          option.destination() != null ? option.destination().route().length() : 0))
-              .toList()) {
-        if (option.destination() != null && route.startsWith(option.destination().route())) {
-          return route;
-        }
+      selectedRoute = getSelectedRoute(menu, route, false);
+      if (selectedRoute != null) {
+        return selectedRoute;
       }
       for (MenuDto option : menu) {
         if (option.selected()) {
@@ -73,6 +64,25 @@ public class ReflectionAppMapper {
       }
     }
     return "/home";
+  }
+
+  private static String getSelectedRoute(List<MenuDto> menu, String route, boolean exact) {
+    for (MenuDto option : menu) {
+      if (option.destination() != null) {
+        var matches =
+            exact
+                ? option.destination().route().equals(route)
+                : route.startsWith(option.destination().route());
+        if (matches) {
+          return route;
+        }
+      }
+      var selectedRoute = getSelectedRoute(option.submenus(), route, exact);
+      if (selectedRoute != null) {
+        return selectedRoute;
+      }
+    }
+    return null;
   }
 
   public static String getRoute(Object app, HttpRequest httpRequest, String route) {

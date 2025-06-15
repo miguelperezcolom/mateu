@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 @Route("/fluent-app/home")
 @Route("/fluent-app/nested-apps/left/home")
 @Route("/fluent-app/nested-apps/top/home")
-@Route("/fluent-app/nested-apps/panels/home")
+@Route("/fluent-app/nested-apps/tabs/home")
 public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
 
     @Override
