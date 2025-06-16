@@ -118,7 +118,7 @@ export class MateuApp extends ComponentElement {
     renderOptionOnLeftMenu = (option: MenuOption): any => {
         if (option.submenus) {
             return html`
-                <vaadin-details summary="${option.label}" theme="reverse">
+                <vaadin-details summary="${option.label}" theme="reverse" style="width: 100%;">
                     <vaadin-vertical-layout>
                         ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
                     </vaadin-vertical-layout>
@@ -214,8 +214,8 @@ export class MateuApp extends ComponentElement {
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
                 <vaadin-horizontal-layout>
-                    <vaadin-scroller style="border-right: 2px solid var(--lumo-contrast-5pct);">
-                        <vaadin-vertical-layout style="width: 16em;">
+                    <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
+                        <vaadin-vertical-layout>
                             ${metadata.menu.map(option => this.renderOptionOnLeftMenu(option))}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>

@@ -166,7 +166,7 @@ export class MateuUx extends ConnectedElement {
 
     static styles = css`
         :host {
-            width: 100%;
+            
         }
   `
 }
