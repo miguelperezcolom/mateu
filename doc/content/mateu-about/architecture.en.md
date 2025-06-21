@@ -38,4 +38,29 @@ Mateu basically generates controllers for your server side classes annotated wit
 - Serve the static content (index.html and mateu.js) for instantiating the renderer web component in the browser
 - Implement the API the frontend consumes, connecting it to your server-side objects which define your UI
 
+## What happens in the client side
+
+This part highly depends on the implementation but, for the vaadin/lit element one, these are the main guidelines.
+
+The UI is created using some base components, which mainly have an id, metadata, data and actions properties as shown in the following diagram:
+
+<p align="center"><img src="../../../images/arch-client-1.svg" width="500"/></p>
+
+Components can have children, and the communication between components is done the usual way (prop drilling and event bubbling), as shown below:
+
+<p align="center"><img src="../../../images/arch-client-2.svg" width="500"/></p>
+
+In this implementation of the client side I do not use a central store for now, the reason being performance sake.
+
+| Central state                             | Component state                                                       |
+|-------------------------------------------|-----------------------------------------------------------------------|
+| triggers updates on each component        | seems to be more efficient (only affected components are re-rendered) |
+| garbage collection of unused components   | accessing data outside the component (e.g. from parent / global)      |
+| easier to manage                          |       |
+| data shareable between components         |                                                                       |
+
+Instead, I'm using a rx stream for async UI updates, as shown below:
+
+<p align="center"><img src="../../../images/arch-client-3.svg" width="500"/></p>
+
 
