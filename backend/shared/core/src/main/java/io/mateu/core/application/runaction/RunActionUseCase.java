@@ -10,7 +10,7 @@ import io.mateu.core.domain.UiIncrementMapperProvider;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
@@ -18,7 +18,6 @@ import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
-import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -156,7 +155,7 @@ public class RunActionUseCase {
                             return Mono.just(contentLink.componentSupplier().get(httpRequest));
                           }
                           if (actionable instanceof Menu menu) {
-                            return Mono.just(new TextComponent("Es un menu"));
+                            return Mono.just(new Text("Es un menu"));
                           }
                         }
                       }

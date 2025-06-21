@@ -5,7 +5,7 @@ import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
@@ -51,7 +51,7 @@ public class FluentApp implements AppSupplier {
 
                         )),
                         new Menu("Components", List.of(
-                                new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new TextComponent("Hola 0")),
+                                new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
                                 new RouteLink("/fluent-app/components/avatar", "Avatar"),
                                 new RouteLink("/fluent-app/components/badge", "Badge"),
                                 new RouteLink("/fluent-app/components/board", "Board"),
@@ -69,6 +69,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/date-time-picker", "Date Time Picker"),
                                 new RouteLink("/fluent-app/components/details", "Details"),
                                 new RouteLink("/fluent-app/components/dialog", "Dialog"),
+                                new RouteLink("/fluent-app/components/element", "Element"),
                                 new RouteLink("/fluent-app/components/email-field", "Email Field"),
                                 new RouteLink("/fluent-app/components/grid", "Grid"),
                                 new RouteLink("/fluent-app/components/icon", "Icons"),
@@ -92,6 +93,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/select", "Select"),
                                 new RouteLink("/fluent-app/components/side-navigation", "Side Navigation"),
                                 new RouteLink("/fluent-app/components/tabs", "Tabs"),
+                                new RouteLink("/fluent-app/components/text", "Text"),
                                 new RouteLink("/fluent-app/components/text-area", "Text Area"),
                                 new RouteLink("/fluent-app/components/text-field", "Text Field"),
                                 new RouteLink("/fluent-app/components/time-picker", "Time Picker"),

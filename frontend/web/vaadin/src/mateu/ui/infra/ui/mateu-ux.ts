@@ -83,7 +83,7 @@ export class MateuUx extends ConnectedElement {
                     detail.userData,
                     detail.initiator).then();
             } else {
-                console.log('no route')
+                console.log('no route', e)
             }
         }
     }

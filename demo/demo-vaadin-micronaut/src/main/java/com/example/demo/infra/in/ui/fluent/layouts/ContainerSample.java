@@ -2,8 +2,7 @@ package com.example.demo.infra.in.ui.fluent.layouts;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Container;
-import io.mateu.uidl.data.FullWidth;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
@@ -19,8 +18,8 @@ public class ContainerSample implements FormSupplier {
                 .title("Container")
                 .content(List.of(new Container(VerticalLayout.builder()
                         .content(List.of(
-                                new TextComponent("Top"),
-                                new TextComponent("Bottom")
+                                new Text("Top"),
+                                new Text("Bottom")
                         ))
                         .build())))
                 .build();

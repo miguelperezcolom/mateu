@@ -3,18 +3,18 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 
-public record TextComponent(String text, TextContainer container, List<TextVariant> variants)
+public record Text(String text, TextContainer container, List<TextVariant> variants)
     implements Component {
 
-  public TextComponent(String text) {
+  public Text(String text) {
     this(text, TextContainer.p, List.of());
   }
 
-  public TextComponent(String text, List<TextVariant> variants) {
+  public Text(String text, List<TextVariant> variants) {
     this(text, TextContainer.p, variants);
   }
 
-  public TextComponent(String text, TextContainer container) {
+  public Text(String text, TextContainer container) {
     this(text, container, List.of());
   }
 }

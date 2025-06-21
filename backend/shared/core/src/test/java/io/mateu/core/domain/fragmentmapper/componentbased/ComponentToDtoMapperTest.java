@@ -6,9 +6,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.ComponentDto;
-import io.mateu.dtos.ElementDto;
+import io.mateu.dtos.TextContainerDto;
+import io.mateu.dtos.TextDto;
 import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -22,16 +23,11 @@ class ComponentToDtoMapperTest {
             .targetComponentId("initiator")
             .component(
                 new ComponentDto(
-                    new ElementDto("div", Map.of(), "Hola"), "fieldId", null, List.of()))
+                    new TextDto(TextContainerDto.p, Map.of(), "Hola"), "fieldId", null, List.of()))
             .build();
     var dto =
         mapComponentToFragment(
-            null,
-            new TextComponent("Hola"),
-            "base_url",
-            "route",
-            "initiator",
-            new FakeHttpRequest());
+            null, new Text("Hola"), "base_url", "route", "initiator", new FakeHttpRequest());
     assertNotNull(dto);
     assertThat(dto).usingRecursiveComparison().isEqualTo(expected);
   }

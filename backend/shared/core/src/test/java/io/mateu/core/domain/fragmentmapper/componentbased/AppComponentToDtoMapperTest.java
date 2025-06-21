@@ -16,7 +16,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
@@ -45,31 +45,29 @@ class AppComponentToDtoMapperTest {
                         new RouteLink("/fluent-app/page1", "Page 1"),
                         new RouteLink("/fluent-app/page2", "Page 2", true),
                         new ContentLink(
-                            "/fluent-app/content0",
-                            "Content 0",
-                            (rq) -> new TextComponent("Hola 0")),
+                            "/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
                         new Menu(
                             "Page 3",
                             List.of(
                                 new ContentLink(
                                     "/fluent-app/content1",
                                     "Content 1",
-                                    (rq) -> new TextComponent("Hola 1")),
+                                    (rq) -> new Text("Hola 1")),
                                 new ContentLink(
                                     "/fluent-app/content2",
                                     "Content 2",
-                                    (rq) -> new TextComponent("Hola 2")),
+                                    (rq) -> new Text("Hola 2")),
                                 new Menu(
                                     "Page 4",
                                     List.of(
                                         new ContentLink(
                                             "/fluent-app/content3",
                                             "Content 3",
-                                            (rq) -> new TextComponent("Hola 3")),
+                                            (rq) -> new Text("Hola 3")),
                                         new ContentLink(
                                             "/fluent-app/content4",
                                             "Content 4",
-                                            (rq) -> new TextComponent("Hola 4"))))))))
+                                            (rq) -> new Text("Hola 4"))))))))
                 .build();
           }
         };

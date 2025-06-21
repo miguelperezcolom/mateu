@@ -4,10 +4,10 @@ import java.util.Collections;
 import java.util.Map;
 
 /** Metadata for a html element */
-public record ElementDto(String name, Map<String, String> attributes, String content)
+public record TextDto(TextContainerDto container, Map<String, String> attributes, String text)
     implements ComponentMetadataDto {
 
-  public ElementDto {
+  public TextDto {
     attributes = attributes != null ? Collections.unmodifiableMap(attributes) : Map.of();
   }
 

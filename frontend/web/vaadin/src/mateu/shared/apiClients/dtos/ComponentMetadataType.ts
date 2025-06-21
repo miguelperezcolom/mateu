@@ -22,5 +22,6 @@ export enum ComponentMetadataType {
     FormField = "FormField",
     Table = "Table",
     App = "App",
+    Text = "Text"
 
 }

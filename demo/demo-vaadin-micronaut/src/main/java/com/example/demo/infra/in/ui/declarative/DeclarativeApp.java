@@ -6,7 +6,7 @@ import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Form;
@@ -53,13 +53,13 @@ public class DeclarativeApp implements App {
     @Menu
     Actionable page2 = new RouteLink("/app/page2");
     @Menu
-    Actionable content = new ContentLink(rq -> new TextComponent("Hola"));
+    Actionable content = new ContentLink(rq -> new Text("Hola"));
     @Menu
-    Supplier<?> page4 = () -> new TextComponent("Hola");
+    Supplier<?> page4 = () -> new Text("Hola");
     @Menu
-    Callable<?> page5 = () -> new TextComponent("Hola");
+    Callable<?> page5 = () -> new Text("Hola");
     @Menu
-    Function<?,?> page6 = (rq) -> new TextComponent("Hola");
+    Function<?,?> page6 = (rq) -> new Text("Hola");
     @Menu
     SampleContent page7;
     @Menu
@@ -69,14 +69,14 @@ public class DeclarativeApp implements App {
         @Override
         public List<Actionable> createMenu(HttpRequest httpRequest) {
             return List.of(
-                    new ContentLink(rq -> new TextComponent("Hola 1")),
-                    new ContentLink(rq -> new TextComponent("Hola 2")),
+                    new ContentLink(rq -> new Text("Hola 1")),
+                    new ContentLink(rq -> new Text("Hola 2")),
                     new io.mateu.uidl.data.Menu("Page 3", List.of(
-                            new ContentLink("/app/content1", "Content 1", (rq) -> new TextComponent("Hola 1")),
-                            new ContentLink("/app/content2", "Content 2", (rq) -> new TextComponent("Hola 2")),
+                            new ContentLink("/app/content1", "Content 1", (rq) -> new Text("Hola 1")),
+                            new ContentLink("/app/content2", "Content 2", (rq) -> new Text("Hola 2")),
                             new io.mateu.uidl.data.Menu("Page 4", List.of(
-                                    new ContentLink("/app/content3", "Content 3", (rq) -> new TextComponent("Hola 3")),
-                                    new ContentLink("/app/content4", "Content 4", (rq) -> new TextComponent("Hola 4"))
+                                    new ContentLink("/app/content3", "Content 3", (rq) -> new Text("Hola 3")),
+                                    new ContentLink("/app/content4", "Content 4", (rq) -> new Text("Hola 4"))
                             ))
                     ))
             );

@@ -1,5 +1,6 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, nothing, TemplateResult } from "lit";
+import { css, html, TemplateResult } from "lit";
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/split-layout'
@@ -26,12 +27,18 @@ import ComponentElement from "@infra/ui/ComponentElement";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import {
-    renderAccordionLayout, renderContainer,
-    renderFormLayout, renderFullWidth,
-    renderHorizontalLayout, renderMasterDetailLayout, renderScroller,
-    renderSplitLayout, renderTabLayout,
+    renderAccordionLayout,
+    renderContainer,
+    renderFormLayout,
+    renderFullWidth,
+    renderHorizontalLayout,
+    renderMasterDetailLayout,
+    renderScroller,
+    renderSplitLayout,
+    renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderLayouts";
+import { renderText } from "@infra/ui/renderComponets";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -43,19 +50,15 @@ export class MateuComponent extends ComponentElement {
     baseUrl: string | undefined
 
     renderElement = (element: Element): TemplateResult => {
-        if (element.name == 'div') {
-            return html`<div>
-                ${element.content??nothing}
-                <slot></slot>
-            </div>`
+        let attributes = ''
+        if (element.attributes) {
+            for (let key in element.attributes) {
+                // @ts-ignore
+                attributes += ` ${key}="${element.attributes[key]}"`
+            }
         }
-        if (element.name == 'p') {
-            return html`<p>
-                ${element.content??nothing}
-                <slot></slot>
-            </p>`
-        }
-        return html`<div>unknown element: ${element.name}</div>`
+        const h = `<${element.name}${attributes}>${element.content?element.content:''}<slot></slot></${element.name}>`
+        return html`${unsafeHTML(h)}`
     }
 
     renderChildComponent = (component: Component): TemplateResult => {
@@ -186,6 +189,9 @@ export class MateuComponent extends ComponentElement {
                 >
                         ${component.children?.map(child => this.renderChildComponent(child))}
                     </mateu-field>`
+            }
+            if (component.metadata.type == ComponentMetadataType.Text) {
+                return renderText(component)
             }
 
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`

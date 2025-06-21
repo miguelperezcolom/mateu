@@ -1,8 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.HorizontalLayout;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
@@ -18,8 +17,8 @@ public class VerticalLayoutSample implements FormSupplier {
                 .title("Vertical Layout")
                 .content(List.of(VerticalLayout.builder()
                                 .content(List.of(
-                                        new TextComponent("Top"),
-                                        new TextComponent("Bottom")
+                                        new Text("Top"),
+                                        new Text("Bottom")
                                 ))
                         .build()))
                 .build();

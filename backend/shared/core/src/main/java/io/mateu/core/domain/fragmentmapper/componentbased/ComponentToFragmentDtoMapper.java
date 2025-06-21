@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Accordi
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.mapAppToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
@@ -24,6 +25,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
 import io.mateu.uidl.data.Container;
+import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FullWidth;
@@ -33,7 +35,7 @@ import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
@@ -110,8 +112,11 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof Container container) {
       return mapContainerToDto(container, baseUrl, route, httpRequest);
     }
-    if (component instanceof TextComponent textComponent) {
-      return mapTextToDto(textComponent);
+    if (component instanceof Element element) {
+      return mapElementToDto(element);
+    }
+    if (component instanceof Text text) {
+      return mapTextToDto(text);
     }
     if (component instanceof Field field) {
       return mapFieldToDto(field);

@@ -32,7 +32,6 @@ export class MateuUi extends LitElement {
     private upstreamSubscription: Subscription | undefined;
 
     routeChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
-        console.log(e)
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
@@ -81,7 +80,6 @@ export class MateuUi extends LitElement {
 
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
-        console.log('baseurl, route', this.baseUrl, this.route)
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
             const configParam = urlParams.get('overrides')

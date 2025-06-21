@@ -26,7 +26,7 @@ import io.mateu.uidl.data.SplitLayoutOrientation;
 import io.mateu.uidl.data.SplitLayoutVariant;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
-import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalAlignment;
 import io.mateu.uidl.data.VerticalLayout;
 import java.util.List;
@@ -94,7 +94,7 @@ class ComponentFragmentMapperTest {
                 .padding(true)
                 .spacing(true)
                 .margin(true)
-                .content(List.of(new TextComponent("Hola 1!"), new TextComponent("Hola 2!")))
+                .content(List.of(new Text("Hola 1!"), new Text("Hola 2!")))
                 .wrap(true)
                 .flexGrows(List.of(1))
                 .fullWidth(true)
@@ -119,7 +119,7 @@ class ComponentFragmentMapperTest {
                 .padding(true)
                 .spacing(true)
                 .margin(true)
-                .content(List.of(new TextComponent("Hola 1!"), new TextComponent("Hola 2!")))
+                .content(List.of(new Text("Hola 1!"), new Text("Hola 2!")))
                 .wrap(true)
                 .flexGrows(List.of(1))
                 .fullWidth(true)
@@ -141,7 +141,7 @@ class ComponentFragmentMapperTest {
         mapper.mapToFragment(
             FormLayout.builder()
                 .style("style")
-                .content(List.of(new TextComponent("Hola 1!"), new TextComponent("Hola 2!")))
+                .content(List.of(new Text("Hola 1!"), new Text("Hola 2!")))
                 .columns(2)
                 .columnSpacing(SpacingVariant.l)
                 .itemLabelSpacing(SpacingVariant.m)
@@ -164,8 +164,8 @@ class ComponentFragmentMapperTest {
                 .style("style")
                 .tabs(
                     List.of(
-                        new Tab("Tab 1", new TextComponent("Hola 1!")),
-                        new Tab("Tab 2", new TextComponent("Hola 2!"))))
+                        new Tab("Tab 1", new Text("Hola 1!")),
+                        new Tab("Tab 2", new Text("Hola 2!"))))
                 .build(),
             "base_url",
             "route",
@@ -181,8 +181,8 @@ class ComponentFragmentMapperTest {
         mapper.mapToFragment(
             SplitLayout.builder()
                 .style("style")
-                .detail(new TextComponent("Hola 1!"))
-                .master(new TextComponent("Hola 2!"))
+                .detail(new Text("Hola 1!"))
+                .master(new Text("Hola 2!"))
                 .orientation(SplitLayoutOrientation.horizontal)
                 .variant(SplitLayoutVariant.minimal)
                 .build(),
@@ -198,7 +198,7 @@ class ComponentFragmentMapperTest {
     var mapper = new ComponentFragmentMapper();
     var fragment =
         mapper.mapToFragment(
-            new TextComponent("hola!"),
+            new Text("hola!"),
             "base_url",
             "route",
             "initiator_component_id",
