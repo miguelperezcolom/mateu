@@ -5,6 +5,33 @@ import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/T
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
 import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
 import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
+import Anchor from "@mateu/shared/apiClients/dtos/componentmetadata/Anchor";
+import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
+
+
+export const renderCard = (component: Component) => {
+    const metadata = component.metadata as Card
+    return html`
+        <vaadin-card>
+            <div slot="title">Lapland</div>
+            <!-- tag::[] -->
+            <div slot="subtitle">The Exotic North</div>
+            <!-- end::[] -->
+            <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+        </vaadin-card>
+    `
+}
+
+export const renderAnchor = (component: Component) => {
+    const metadata = component.metadata as Anchor
+    return html`<a href="${metadata.url}">${metadata.text}</a>`
+}
+
+export const renderButton = (component: Component) => {
+    const metadata = component.metadata as Button
+    return html`<vaadin-button>${metadata.label}</vaadin-button>`
+}
 
 
 export const renderBadge = (component: Component) => {

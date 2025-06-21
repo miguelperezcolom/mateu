@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Card;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,7 @@ public class CardComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Card")
                 .content(List.of(
-                        
+                        Card.builder().build()
                 ))
                 .build();
     }

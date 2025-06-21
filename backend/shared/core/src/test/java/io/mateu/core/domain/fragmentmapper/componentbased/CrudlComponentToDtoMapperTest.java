@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.ActionDto;
-import io.mateu.dtos.ActionTypeDto;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ColumnDto;
 import io.mateu.dtos.ComponentDto;
@@ -14,11 +13,11 @@ import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Column;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.Button;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -68,7 +67,8 @@ class CrudlComponentToDtoMapperTest {
                             .build()))
                 .toolbar(
                     List.of(
-                        new Button("Button 1", "action_id"), new Button("Button 2", "action_id")))
+                        Button.builder().label("Button 1").actionId("action_id").build(),
+                        Button.builder().label("Button 2").actionId("action_id").build()))
                 .columns(
                     List.of(
                         Column.builder()
@@ -99,17 +99,11 @@ class CrudlComponentToDtoMapperTest {
                                 ButtonDto.builder()
                                     .id(null)
                                     .label("Button 1")
-                                    .type(ActionTypeDto.Primary)
-                                    .visible(true)
-                                    .icon(null)
                                     .actionId("action_id")
                                     .build(),
                                 ButtonDto.builder()
                                     .id(null)
                                     .label("Button 2")
-                                    .type(ActionTypeDto.Primary)
-                                    .visible(true)
-                                    .icon(null)
                                     .actionId("action_id")
                                     .build()))
                         .columns(

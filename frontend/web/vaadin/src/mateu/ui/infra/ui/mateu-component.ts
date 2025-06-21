@@ -41,7 +41,14 @@ import {
     renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderLayouts";
-import { renderAvatar, renderAvatarGroup, renderBadge, renderText } from "@infra/ui/renderComponents";
+import {
+    renderAnchor,
+    renderAvatar,
+    renderAvatarGroup,
+    renderBadge,
+    renderButton, renderCard,
+    renderText
+} from "@infra/ui/renderComponents";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -204,6 +211,15 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.Badge) {
                 return renderBadge(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Anchor) {
+                return renderAnchor(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Button) {
+                return renderButton(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Card) {
+                return renderCard(component)
             }
 
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`

@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,9 @@ public class ButtonComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Button")
                 .content(List.of(
-                        
+                        Button.builder()
+                                .label("Do something")
+                                .build()
                 ))
                 .build();
     }

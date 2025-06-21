@@ -1,17 +1,10 @@
-import { ButtonType } from "./ButtonType";
-import { ButtonPosition } from "./ButtonPosition";
-import { ButtonStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStereotype";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
-export default interface Button {
+export default interface Button extends ComponentMetadata {
 
     id: string
     icon: string
     label: string
-    type: ButtonType
-    stereotype: ButtonStereotype
-    variants: string[]
-    visible: boolean
-    position: ButtonPosition
     actionId: string
 
 }

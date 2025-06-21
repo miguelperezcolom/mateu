@@ -25,6 +25,8 @@ export enum ComponentMetadataType {
     Text = "Text",
     Avatar = "Avatar",
     AvatarGroup = "AvatarGroup",
-    Badge = "Badge"
+    Badge = "Badge",
+    Anchor = "Anchor",
+    Button = "Button"
 
 }

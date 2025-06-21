@@ -1,11 +1,11 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.Button;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -35,8 +35,18 @@ public class BasicForm implements FormSupplier, HandlesActions {
                 .triggers(List.of(new OnLoadTrigger("onload_action")))
                 .toolbar(
                         List.of(
-                                new Button("Button 1", "button1_action"), new Button("Button 2", "button2_action")))
-                .buttons(List.of(new Button("Button 3", "button3_action")))
+                                Button.builder()
+                                        .label("Button 1")
+                                        .actionId("button1_action")
+                                        .build(),
+                                Button.builder()
+                                        .label("Button 2")
+                                        .actionId("button2_action")
+                                        .build()))
+                .buttons(List.of(Button.builder()
+                        .label("Button 3")
+                        .actionId("button3_action")
+                        .build()))
                 .header(List.of()) // will be placed in header, below title, subtitle and toolbar
                 .content(
                         List.of(

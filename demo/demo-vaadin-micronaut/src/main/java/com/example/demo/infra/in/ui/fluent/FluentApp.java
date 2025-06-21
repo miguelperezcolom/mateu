@@ -31,6 +31,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/layouts/split", "Split Layout"),
                                 new RouteLink("/fluent-app/layouts/tab", "Tab Layout"),
                                 new RouteLink("/fluent-app/layouts/form", "Form Layout"),
+                                new RouteLink("/fluent-app/layouts/board", "Board Layout"),
                                 new RouteLink("/fluent-app/layouts/accordion", "Accordion Layout"),
                                 new RouteLink("/fluent-app/layouts/master-detail", "Master Detail Layout"),
                                 new MenuSeparator(),
@@ -52,9 +53,9 @@ public class FluentApp implements AppSupplier {
                         )),
                         new Menu("Components", List.of(
                                 new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
+                                new RouteLink("/fluent-app/components/anchor", "Anchor"),
                                 new RouteLink("/fluent-app/components/avatar", "Avatar"),
                                 new RouteLink("/fluent-app/components/badge", "Badge"),
-                                new RouteLink("/fluent-app/components/board", "Board"),
                                 new RouteLink("/fluent-app/components/button", "Button"),
                                 new RouteLink("/fluent-app/components/card", "Card"),
                                 new RouteLink("/fluent-app/components/charts", "Charts"),

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.ActionDto;
-import io.mateu.dtos.ActionTypeDto;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
@@ -14,11 +13,11 @@ import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.Button;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -51,8 +50,9 @@ class FormComponentToDtoMapperTest {
                 .triggers(List.of(new OnLoadTrigger("action_id")))
                 .toolbar(
                     List.of(
-                        new Button("Button 1", "action_id"), new Button("Button 2", "action_id")))
-                .buttons(List.of(new Button("Button 3", "action_id")))
+                        Button.builder().label("Button 1").actionId("action_id").build(),
+                        Button.builder().label("Button 2").actionId("action_id").build()))
+                .buttons(List.of(Button.builder().label("Button 3").actionId("action_id").build()))
                 .header(List.of()) // will be placed in header, below title, subtitle and toolbar
                 .content(
                     List.of(
@@ -95,17 +95,11 @@ class FormComponentToDtoMapperTest {
                                 ButtonDto.builder()
                                     .id(null)
                                     .label("Button 1")
-                                    .type(ActionTypeDto.Primary)
-                                    .visible(true)
-                                    .icon(null)
                                     .actionId("action_id")
                                     .build(),
                                 ButtonDto.builder()
                                     .id(null)
                                     .label("Button 2")
-                                    .type(ActionTypeDto.Primary)
-                                    .visible(true)
-                                    .icon(null)
                                     .actionId("action_id")
                                     .build()))
                         .buttons(
@@ -113,9 +107,6 @@ class FormComponentToDtoMapperTest {
                                 ButtonDto.builder()
                                     .id(null)
                                     .label("Button 3")
-                                    .type(ActionTypeDto.Primary)
-                                    .visible(true)
-                                    .icon(null)
                                     .actionId("action_id")
                                     .build()))
                         .build(),
