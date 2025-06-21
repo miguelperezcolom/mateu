@@ -11,13 +11,16 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.TextComponent;
+import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
+import java.awt.*;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +41,7 @@ public class RunActionUseCase {
     // todo: use path somehow
     return Mono.just(command)
         .flatMap(ignored -> createInstance(command))
+        .flatMap(instance -> resolveMenuIfApp(instance, command))
         .flatMap(
             instance ->
                 actionRunnerProvider
@@ -53,6 +57,42 @@ public class RunActionUseCase {
                         command.route(),
                         command.initiatorComponentId(),
                         command.httpRequest()));
+  }
+
+  private Mono<?> resolveMenuIfApp(Object instance, RunActionCommand command) {
+    var app = getApp(instance, command);
+    if (app != null) {
+      Actionable actionable = resolveMenu(app.menu(), command.route());
+      if (actionable instanceof ContentLink contentLink) {
+        return Mono.just(contentLink.componentSupplier().get(command.httpRequest()));
+      }
+    }
+    return Mono.just(instance);
+  }
+
+  private App getApp(Object instance, RunActionCommand command) {
+    if (instance instanceof AppSupplier appSupplier) {
+      return appSupplier.getApp(command.httpRequest());
+    }
+    if (instance instanceof App app) {
+      return app;
+    }
+    return null;
+  }
+
+  private Actionable resolveMenu(List<Actionable> actionables, String route) {
+    for (Actionable actionable : actionables) {
+      if (route.equals(actionable.path())) {
+        return actionable;
+      }
+      if (actionable instanceof Menu menu) {
+        var found = resolveMenu(menu.submenu(), route);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 
   private Mono<?> createInstance(RunActionCommand command) {
@@ -163,12 +203,20 @@ public class RunActionUseCase {
     if (command.componentType() != null && !command.componentType().isEmpty()) {
       return command.componentType();
     }
+    var routeResolverBeans = beanProvider.getBeans(RouteResolver.class);
     for (RouteResolver bean :
-        beanProvider.getBeans(RouteResolver.class).stream()
+        routeResolverBeans.stream()
             .filter(
                 resolver ->
                     resolver.supportsRoute(command.route())
                         && !resolver.supportsRoute(command.consumedRoute()))
+            .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
+            .toList()) {
+      return bean.resolveRoute(command.route(), command.httpRequest()).getName();
+    }
+    for (RouteResolver bean :
+        routeResolverBeans.stream()
+            .filter(resolver -> resolver.supportsRoute(command.route()))
             .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
             .toList()) {
       return bean.resolveRoute(command.route(), command.httpRequest()).getName();

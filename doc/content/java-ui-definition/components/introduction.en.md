@@ -1,9 +1,9 @@
 ---
 title: "Introduction"
-weight: 2
+weight: 1
 ---
 
-You create the UIs by composing different components together. With **Mateu**, you use plain java classes for declaring those components and how they are combined to create your UIs.
+You create the UIs by composing 47 different components together. With **Mateu**, you use plain java classes for declaring those components and how they are combined to create your UIs.
 
 You can indeed do it using a declarative way using annotations, in a declarative though more dynamic way implementing some interfaces or in an imperative way using fluent code.  
 
@@ -71,6 +71,6 @@ public class MyUi implements FormSupplier {
 
 ```
 
-You can obviously combine both ways as yu want.
+You can obviously combine both ways as you want.
 
-Please notice you can also leverage java inheritance and dependencies for building your UIs with Mateu.
+Please notice you can also leverage java inheritance and maven dependencies for building your UIs with Mateu.

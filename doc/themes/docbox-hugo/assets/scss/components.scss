@@ -406,7 +406,7 @@
 
   p,
   li {
-    @apply text-[16px] sm:text-[18px] #{!important};
+    @apply text-[16px] sm:text-[15px] #{!important};
   }
 
   & > *:first-child {
