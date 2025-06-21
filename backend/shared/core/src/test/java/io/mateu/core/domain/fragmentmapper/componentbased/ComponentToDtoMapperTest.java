@@ -21,7 +21,8 @@ class ComponentToDtoMapperTest {
         UIFragmentDto.builder()
             .targetComponentId("initiator")
             .component(
-                new ComponentDto(new ElementDto("div", Map.of(), "Hola"), "id", null, List.of()))
+                new ComponentDto(
+                    new ElementDto("div", Map.of(), "Hola"), "fieldId", null, List.of()))
             .build();
     var dto =
         mapComponentToFragment(

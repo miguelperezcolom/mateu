@@ -117,6 +117,6 @@ public final class ComponentToFragmentDtoMapper {
       return mapFieldToDto(field);
     }
     return new ComponentDto(
-        new ElementDto("div", Map.of(), component.toString()), "id", null, List.of());
+        new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());
   }
 }

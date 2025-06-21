@@ -7,7 +7,7 @@ import lombok.Builder;
 /**
  * A field in a form
  *
- * @param id Field targetId
+ * @param fieldId Field targetId
  * @param dataType Field data dataType
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation
@@ -23,7 +23,7 @@ import lombok.Builder;
  */
 @Builder
 public record FormFieldDto(
-    String id,
+    String fieldId,
     String dataType,
     String stereotype,
     boolean observed,

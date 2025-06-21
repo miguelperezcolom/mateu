@@ -45,7 +45,7 @@ public class CrudlComponentToDtoMapper {
                     .map(
                         filter ->
                             FormFieldDto.builder()
-                                .id(filter.id())
+                                .fieldId(filter.id())
                                 .label(filter.label())
                                 .dataType(filter.dataType().name())
                                 .stereotype(filter.stereotype().name())

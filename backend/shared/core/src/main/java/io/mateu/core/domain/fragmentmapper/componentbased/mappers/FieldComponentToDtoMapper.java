@@ -10,7 +10,7 @@ public class FieldComponentToDtoMapper {
   public static ComponentDto mapFieldToDto(Field field) {
     return new ComponentDto(
         FormFieldDto.builder()
-            .id(field.id())
+            .fieldId(field.id())
             .label(field.label())
             .dataType(field.dataType().toString())
             .stereotype(field.stereotype().toString())
