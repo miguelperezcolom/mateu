@@ -183,7 +183,7 @@ export class MateuApp extends ComponentElement {
                                 id="${nanoid()}"
                                 baseUrl="${this.baseUrl}"
                                 consumedRoute="${metadata.route}"
-                                style="padding-left: 2em;"
+                                style="padding-left: 2em; padding-right: 2em;"
                         ></mateu-ux>
                     </mateu-api-caller>
                 </vaadin-app-layout>

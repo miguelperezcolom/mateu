@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = ContainerDto.class, name = "Container"),
   @JsonSubTypes.Type(value = ElementDto.class, name = "Element"),
   @JsonSubTypes.Type(value = FormFieldDto.class, name = "FormField"),
-  @JsonSubTypes.Type(value = TextDto.class, name = "Text")
+  @JsonSubTypes.Type(value = TextDto.class, name = "Text"),
+  @JsonSubTypes.Type(value = AvatarDto.class, name = "Avatar"),
+  @JsonSubTypes.Type(value = AvatarGroupDto.class, name = "AvatarGroup")
 })
 public interface ComponentMetadataDto {}

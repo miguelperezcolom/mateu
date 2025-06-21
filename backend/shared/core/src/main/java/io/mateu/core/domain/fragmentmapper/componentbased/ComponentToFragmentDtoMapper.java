@@ -3,6 +3,8 @@ package io.mateu.core.domain.fragmentmapper.componentbased;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AccordionLayoutComponentToDtoMapper.mapAccordionLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AccordionPanelComponentToDtoMapper.mapAccordionPanelToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.mapAppToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarComponentToDtoMapper.mapAvatarToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarGroupComponentToDtoMapper.mapAvatarGroupToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
@@ -24,6 +26,8 @@ import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
+import io.mateu.uidl.data.Avatar;
+import io.mateu.uidl.data.AvatarGroup;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
@@ -120,6 +124,12 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Field field) {
       return mapFieldToDto(field);
+    }
+    if (component instanceof Avatar avatar) {
+      return mapAvatarToDto(avatar);
+    }
+    if (component instanceof AvatarGroup avatarGroup) {
+      return mapAvatarGroupToDto(avatarGroup);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

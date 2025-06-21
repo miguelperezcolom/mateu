@@ -2,6 +2,24 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { html } from "lit";
 import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
+import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
+import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
+
+export const renderAvatar = (component: Component) => {
+    const metadata = component.metadata as Avatar
+    return html`<vaadin-avatar
+            img="${metadata.image}"
+            name="${metadata.name}"
+            abbr="${metadata.abbreviation}"
+    ></vaadin-avatar>`
+}
+
+export const renderAvatarGroup = (component: Component) => {
+    const metadata = component.metadata as AvatarGroup
+    return html`<vaadin-avatar-group max-items-visible="${metadata.maxItemsVisible}"
+                                     .items="${metadata.avatars}">
+    </vaadin-avatar-group>`
+}
 
 export const renderText = (component: Component) => {
     const metadata = component.metadata as Text
@@ -45,13 +63,6 @@ export const renderText = (component: Component) => {
             <h6>
                 ${metadata.text}
             </h6>
-        `
-    }
-    if (TextContainer.h7 == metadata.container) {
-        return html`
-            <h7>
-                ${metadata.text}
-            </h7>
         `
     }
     if (TextContainer.p == metadata.container) {

@@ -25,6 +25,8 @@
     "@alenaksu/json-viewer": "^2.1.1",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@vaadin/app-layout": "^24.7.6",
+    "@vaadin/avatar": "^24.7.6",
+    "@vaadin/avatar-group": "^24.7.6",
     "@vaadin/button": "^24.7.6",
     "@vaadin/checkbox": "^24.7.6",
     "@vaadin/card": "^24.7.6",

@@ -14,6 +14,8 @@ import "@vaadin/menu-bar"
 import "@vaadin/progress-bar"
 import "@vaadin/scroller"
 import "@vaadin/accordion"
+import "@vaadin/avatar"
+import "@vaadin/avatar-group"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -38,7 +40,7 @@ import {
     renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderLayouts";
-import { renderText } from "@infra/ui/renderComponets";
+import { renderAvatar, renderAvatarGroup, renderText } from "@infra/ui/renderComponents";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -192,6 +194,12 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.Text) {
                 return renderText(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Avatar) {
+                return renderAvatar(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.AvatarGroup) {
+                return renderAvatarGroup(component)
             }
 
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
