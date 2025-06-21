@@ -63,6 +63,10 @@ Instead, I'm using a rx stream for async UI updates, as shown below:
 
 <p align="center"><img src="../../../images/arch-client-3.svg" width="500"/></p>
 
+Even though I'm considering a central store based approach:
+
+<p align="center"><img src="../../../images/arch-client-4.svg" width="500"/></p>
+
 For using our own design system, we could just provide a different implementation of the mateu-component web component 
 and tell the UI to load the javascript, instead of the default one.
 
