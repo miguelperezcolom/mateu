@@ -1,9 +1,16 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
 import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
+import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
+
+
+export const renderBadge = (component: Component) => {
+    const metadata = component.metadata as Badge
+    return html`<span theme="badge ${metadata.color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${metadata.text}</span>`
+}
 
 export const renderAvatar = (component: Component) => {
     const metadata = component.metadata as Avatar

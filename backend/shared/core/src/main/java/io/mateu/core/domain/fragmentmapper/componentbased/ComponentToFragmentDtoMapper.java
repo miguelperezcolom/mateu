@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Accordi
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.mapAppToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarComponentToDtoMapper.mapAvatarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarGroupComponentToDtoMapper.mapAvatarGroupToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BadgeComponentToDtoMapper.mapBadgeToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
@@ -28,6 +29,7 @@ import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.AvatarGroup;
+import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
@@ -130,6 +132,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof AvatarGroup avatarGroup) {
       return mapAvatarGroupToDto(avatarGroup);
+    }
+    if (component instanceof Badge badge) {
+      return mapBadgeToDto(badge);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

@@ -57,15 +57,3 @@ body {
   margin: unset;
 }
 
-
-[theme~='badge'][theme~='success'] {
-  color: white;
-  background-color: green;
-}
-
-span {
-  color: white;
-  background-color: green;
-}
-
-

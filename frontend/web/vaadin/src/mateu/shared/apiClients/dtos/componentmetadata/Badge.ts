@@ -1,13 +1,13 @@
-import {BadgeTheme} from "./BadgeTheme";
-import {BadgeStyle} from "./BadgeStyle";
-import { BadgeIconPosition } from "./BadgeIconPosition";
+import { BadgeColor } from "./BadgeColor";
 
 export default interface Badge {
 
-    theme: BadgeTheme
-    message: string | undefined
-    icon: string
-    badgeStyle: BadgeStyle
-    iconPosition: BadgeIconPosition
+    text: string
+    iconOnLeft: string
+    iconOnRight: string
+    color: BadgeColor
+    primary: boolean
+    small: boolean
+    pill: boolean
 
 }

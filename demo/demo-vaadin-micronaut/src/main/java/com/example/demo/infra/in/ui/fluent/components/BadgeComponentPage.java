@@ -1,6 +1,8 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Badge;
+import io.mateu.uidl.data.BadgeColor;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +16,17 @@ public class BadgeComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Badge")
                 .content(List.of(
-                        
+                        Badge.builder()
+                                .text("Hola")
+                                .pill(true)
+                                .primary(true)
+                                .color(BadgeColor.success)
+                                .build(),
+                        Badge.builder()
+                                .text("Hola")
+                                .color(BadgeColor.success)
+                                .small(true)
+                                .build()
                 ))
                 .build();
     }

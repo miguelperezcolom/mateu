@@ -1,6 +1,7 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, TemplateResult } from "lit";
+import { css, html, TemplateResult, unsafeCSS } from "lit";
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import {badge} from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/split-layout'
@@ -40,7 +41,7 @@ import {
     renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderLayouts";
-import { renderAvatar, renderAvatarGroup, renderText } from "@infra/ui/renderComponents";
+import { renderAvatar, renderAvatarGroup, renderBadge, renderText } from "@infra/ui/renderComponents";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -201,6 +202,9 @@ export class MateuComponent extends ComponentElement {
             if (component.metadata.type == ComponentMetadataType.AvatarGroup) {
                 return renderAvatarGroup(component)
             }
+            if (component.metadata.type == ComponentMetadataType.Badge) {
+                return renderBadge(component)
+            }
 
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }
@@ -215,6 +219,9 @@ export class MateuComponent extends ComponentElement {
         :host {
             width: 100%;
         }
+
+        ${unsafeCSS(badge.cssText)}
+        
   `
 }
 
