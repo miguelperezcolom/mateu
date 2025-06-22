@@ -37,7 +37,7 @@ class PathTest {
 
     @Test
     void testPathWorks() {
-        var r = client.toBlocking().exchange("/x");
+        var r = client.toBlocking().exchange("/fluent");
 
         assertEquals(200, r.getStatus().getCode()); // (7)
     }

@@ -8,7 +8,27 @@ import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import Anchor from "@mateu/shared/apiClients/dtos/componentmetadata/Anchor";
 import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
+import Chart from "@mateu/shared/apiClients/dtos/componentmetadata/Chart";
 
+
+export const renderChart = (component: Component) => {
+    const metadata = component.metadata as Chart
+
+    const columnOptions = { yAxis: { title: { text: '' } } }
+
+    return html`
+        <vaadin-chart
+      type="column"
+      .categories="${['Jan', 'Feb', 'Mar']}"
+      .additionalOptions="${columnOptions}"
+      style="width: 300px;"
+    >
+      <vaadin-chart-series title="Tokyo" .values="${[49.9, 71.5, 106.4]}"></vaadin-chart-series>
+      <vaadin-chart-series title="New York" .values="${[83.6, 78.8, 98.5]}"></vaadin-chart-series>
+      <vaadin-chart-series title="London" .values="${[48.9, 38.8, 39.3]}"></vaadin-chart-series>
+    </vaadin-chart>
+    `
+}
 
 export const renderCard = (component: Component) => {
     const metadata = component.metadata as Card

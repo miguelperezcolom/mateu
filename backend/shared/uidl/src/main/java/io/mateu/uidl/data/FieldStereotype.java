@@ -4,5 +4,11 @@ public enum FieldStereotype {
   regular,
   radio,
   checkbox,
-  textarea
+  textarea,
+  toggle,
+  combobox,
+  select,
+  email,
+  password,
+  richText
 }

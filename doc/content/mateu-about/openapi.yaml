@@ -1,0 +1,215 @@
+openapi: 3.0.1
+info:
+  title: demo-vaadin-micronaut
+  version: 1.0.0
+paths:
+  /your-context-path/mateu/v3/ui:
+    post:
+      operationId: getUI
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetUIRqDto"
+        required: true
+      responses:
+        "200":
+          description: getUI 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UIDto"
+  /your-context-path/mateu/v3/{route}/{actionId}:
+    post:
+      operationId: runStep
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunActionRqDto"
+        required: true
+      responses:
+        "200":
+          description: runStep 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UIIncrementDto"
+components:
+  schemas:
+    ComponentDto:
+      required:
+        - children
+        - id
+        - metadata
+        - serverSideType
+      type: object
+      properties:
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/ComponentDto"
+        metadata:
+          $ref: "#/components/schemas/ComponentMetadataDto"
+        id:
+          type: string
+        serverSideType:
+          type: string
+    ComponentMetadataDto:
+      type: object
+    GetUIRqDto:
+      required:
+        - config
+        - path
+      type: object
+      properties:
+        config:
+          type: object
+          additionalProperties: true
+        path:
+          type: string
+    MessageDto:
+      required:
+        - duration
+        - text
+        - title
+        - type
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ResultTypeDto"
+        title:
+          type: string
+        text:
+          type: string
+        duration:
+          type: integer
+          format: int32
+    ResultTypeDto:
+      type: string
+      enum:
+        - Success
+        - Info
+        - Warning
+        - Error
+        - Ignored
+      x-enum-varnames:
+        - Success
+        - Info
+        - Warning
+        - Error
+        - Ignored
+    RunActionRqDto:
+      required:
+        - appState
+        - componentType
+        - consumedRoute
+        - data
+        - initiatorComponentId
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+        appState:
+          type: object
+          additionalProperties: true
+        componentType:
+          type: string
+        initiatorComponentId:
+          type: string
+        consumedRoute:
+          type: string
+    UICommandDto:
+      required:
+        - data
+        - type
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/UICommandTypeDto"
+        data: {}
+    UICommandTypeDto:
+      type: string
+      enum:
+        - CloseModal
+        - UpdateUrl
+        - UpdateHash
+        - ReplaceWithUrl
+        - OpenNewTab
+        - OpenNewWindow
+        - SetLocation
+        - SetWindowTitle
+        - ReplaceJourney
+      x-enum-varnames:
+        - CloseModal
+        - UpdateUrl
+        - UpdateHash
+        - ReplaceWithUrl
+        - OpenNewTab
+        - OpenNewWindow
+        - SetLocation
+        - SetWindowTitle
+        - ReplaceJourney
+    UIDto:
+      required:
+        - favIcon
+        - home
+        - homeRoute
+        - title
+      type: object
+      properties:
+        favIcon:
+          type: string
+        title:
+          type: string
+        homeRoute:
+          type: string
+        home:
+          $ref: "#/components/schemas/UIIncrementDto"
+    UIFragmentDto:
+      required:
+        - component
+        - data
+        - targetComponentId
+      type: object
+      properties:
+        targetComponentId:
+          type: string
+        component:
+          $ref: "#/components/schemas/ComponentDto"
+        data: {}
+    UIIncrementDto:
+      required:
+        - appState
+        - commands
+        - fragments
+        - messages
+        - sharedData
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageDto"
+        commands:
+          type: array
+          items:
+            $ref: "#/components/schemas/UICommandDto"
+        fragments:
+          type: array
+          items:
+            $ref: "#/components/schemas/UIFragmentDto"
+        sharedData: {}
+        appState: {}

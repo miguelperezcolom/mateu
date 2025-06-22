@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,7 @@ public class ChartsComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Charts")
                 .content(List.of(
-                        
+                    new Chart()
                 ))
                 .build();
     }

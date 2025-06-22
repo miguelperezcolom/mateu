@@ -19,6 +19,8 @@ And the following diagram explains the diferent artifacts that Mateu provides:
 
 <p align="center"><img src="../../../images/arch-overall-2.svg" width="300"/></p>
 
+The artifacts in green are the one I'm currently working on.
+
 ## The API
 
 The API is a pretty simple one, and is explained with the following sequence diagram:

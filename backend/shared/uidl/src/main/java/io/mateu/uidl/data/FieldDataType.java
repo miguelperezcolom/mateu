@@ -6,5 +6,8 @@ public enum FieldDataType {
   decimal,
   date,
   time,
-  dateTime
+  dateTime,
+  bool,
+  reference,
+  array
 }

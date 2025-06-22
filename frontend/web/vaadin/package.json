@@ -30,6 +30,7 @@
     "@vaadin/button": "^24.8.0",
     "@vaadin/checkbox": "^24.8.0",
     "@vaadin/card": "^24.8.0",
+    "@vaadin/charts": "^24.8.0",
     "@vaadin/checkbox-group": "^24.8.0",
     "@vaadin/combo-box": "^24.8.0",
     "@vaadin/context-menu": "^24.8.0",

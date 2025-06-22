@@ -17,6 +17,7 @@ import "@vaadin/scroller"
 import "@vaadin/accordion"
 import "@vaadin/avatar"
 import "@vaadin/avatar-group"
+import "@vaadin/charts"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -46,7 +47,7 @@ import {
     renderAvatar,
     renderAvatarGroup,
     renderBadge,
-    renderButton, renderCard,
+    renderButton, renderCard, renderChart,
     renderText
 } from "@infra/ui/renderComponents";
 
@@ -220,6 +221,9 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.Card) {
                 return renderCard(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Chart) {
+                return renderChart(component)
             }
 
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`

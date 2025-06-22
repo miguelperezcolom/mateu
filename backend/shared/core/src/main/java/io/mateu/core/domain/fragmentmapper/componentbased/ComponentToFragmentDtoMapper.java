@@ -9,6 +9,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarG
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BadgeComponentToDtoMapper.mapBadgeToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
@@ -36,6 +37,7 @@ import io.mateu.uidl.data.AvatarGroup;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
@@ -150,6 +152,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Card card) {
       return mapCardToDto(card);
+    }
+    if (component instanceof Chart chart) {
+      return mapChartToDto(chart);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());
