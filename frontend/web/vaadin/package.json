@@ -71,6 +71,7 @@
     "@vaadin/master-detail-layout": "^24.8.0",
     "@vaadin/details": "^24.8.0",
     "@vaadin/accordion": "^24.8.0",
+    "@vaadin/message-input": "^24.8.0",
     "@web-comp/core": "^1.0.2",
     "@web-comp/json-viewer": "^1.0.2",
     "axios": "^1.7.7",

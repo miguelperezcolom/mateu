@@ -27,12 +27,18 @@ import ProgressBar from "@mateu/shared/apiClients/dtos/componentmetadata/Progres
 import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
+import MessageInput from "@mateu/shared/apiClients/dtos/componentmetadata/MessageInput";
 
+
+export const renderMessageInput = (component: Component) => {
+    const metadata = component.metadata as MessageInput
+    return html`
+        <vaadin-message-input ></vaadin-message-input>
+    `
+}
 
 export const renderTooltip = (component: Component, renderComponent: Function) => {
     const metadata = component.metadata as Tooltip
-    html`${renderComponent(metadata.wrapped)}`
-
     return html`
         <div id="show-notifications">${renderComponent(metadata.wrapped)}</div>
         <vaadin-tooltip for="show-notifications" text="${metadata.text}" position="top-start"></vaadin-tooltip>

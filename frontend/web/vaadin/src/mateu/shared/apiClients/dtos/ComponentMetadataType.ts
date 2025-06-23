@@ -42,5 +42,6 @@ export enum ComponentMetadataType {
     ProgressBar = "ProgressBar",
     Popover = "Popover",
     Tooltip = "Tooltip",
+    MessageInput = "MessageInput",
 
 }

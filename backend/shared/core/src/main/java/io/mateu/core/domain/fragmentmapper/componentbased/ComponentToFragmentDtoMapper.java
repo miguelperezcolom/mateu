@@ -28,6 +28,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ImageCo
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MapComponentToDtoMapper.mapMapToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MarkdownComponentToDtoMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MasterDetailLayoutComponentToDtoMapper.mapMasterDetailLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MessageInputComponentToDtoMapper.mapMessageInputToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MicroFrontendComponentToDtoMapper.mapMicroFrontendToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.NotificationComponentToDtoMapper.mapNotificationToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.PopoverComponentToDtoMapper.mapPopoverToDto;
@@ -67,6 +68,7 @@ import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MasterDetailLayout;
+import io.mateu.uidl.data.MessageInput;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.Notification;
 import io.mateu.uidl.data.Popover;
@@ -224,6 +226,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Tooltip tooltip) {
       return mapTooltipToDto(tooltip, baseUrl, route, httpRequest);
+    }
+    if (component instanceof MessageInput messageInput) {
+      return mapMessageInputToDto(messageInput);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

@@ -34,6 +34,7 @@ import "@vaadin/progress-bar"
 import "@vaadin/popover"
 import "@vaadin/scroller"
 import "@vaadin/tooltip"
+import "@vaadin/message-input"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -75,7 +76,7 @@ import {
     renderIcon,
     renderImage,
     renderMap,
-    renderMarkdown,
+    renderMarkdown, renderMessageInput,
     renderMicroFrontend,
     renderNotification,
     renderPopover,
@@ -298,6 +299,9 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.Tooltip) {
                 return renderTooltip(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.MessageInput) {
+                return renderMessageInput(component)
             }
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }

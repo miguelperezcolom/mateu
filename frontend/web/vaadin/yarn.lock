@@ -1092,6 +1092,21 @@
     "@vaadin/vaadin-themable-mixin" "^24.8.0"
     lit "^3.0.0"
 
+"@vaadin/message-input@^24.8.0":
+  version "24.8.0"
+  resolved "https://registry.yarnpkg.com/@vaadin/message-input/-/message-input-24.8.0.tgz#0e087e1275c86d28d2d4dd11900967bc029317a2"
+  integrity sha512-FDME7WiyNoceBR5QvlkFzrxE6NWbbCiMeoJJAT760YHEpAUTg/QqNh7Ix0vr4nDvYG6M8PfdOE5plbw8PUrumQ==
+  dependencies:
+    "@open-wc/dedupe-mixin" "^1.3.0"
+    "@polymer/polymer" "^3.0.0"
+    "@vaadin/button" "^24.8.0"
+    "@vaadin/component-base" "^24.8.0"
+    "@vaadin/text-area" "^24.8.0"
+    "@vaadin/vaadin-lumo-styles" "^24.8.0"
+    "@vaadin/vaadin-material-styles" "^24.8.0"
+    "@vaadin/vaadin-themable-mixin" "^24.8.0"
+    lit "^3.0.0"
+
 "@vaadin/multi-select-combo-box@^24.8.0":
   version "24.8.0"
   resolved "https://registry.npmjs.org/@vaadin/multi-select-combo-box/-/multi-select-combo-box-24.8.0.tgz"
