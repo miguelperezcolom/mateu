@@ -19,6 +19,7 @@ import "@vaadin/date-time-picker"
 import "@vaadin/time-picker"
 import "@vaadin/rich-text-editor"
 import "@vaadin/email-field"
+import "@vaadin/upload"
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 
 
@@ -41,6 +42,12 @@ export class MateuField extends LitElement {
     }
 
     render() {
+        if (this.field?.dataType == 'file') {
+            return html`
+                <vaadin-upload
+                        target="/api/fileupload"></vaadin-upload>
+            `
+        }
         if (this.field?.dataType == 'string') {
             if (this.field?.stereotype == 'select') {
                 return html`

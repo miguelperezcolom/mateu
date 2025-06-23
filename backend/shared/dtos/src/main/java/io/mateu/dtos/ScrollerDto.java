@@ -2,10 +2,6 @@ package io.mateu.dtos;
 
 import lombok.Builder;
 
-/**
- * A tab
- *
- * @param id The tab targetId
- */
+/** A tab */
 @Builder
-public record ScrollerDto(String id) implements ComponentMetadataDto {}
+public record ScrollerDto() implements ComponentMetadataDto {}

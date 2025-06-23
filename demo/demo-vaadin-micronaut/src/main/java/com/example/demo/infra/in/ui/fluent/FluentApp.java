@@ -93,7 +93,6 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/scroller", "Scroller"),
                                 new RouteLink("/fluent-app/components/select", "Select"),
                                 new RouteLink("/fluent-app/components/side-navigation", "Side Navigation"),
-                                new RouteLink("/fluent-app/components/tabs", "Tabs"),
                                 new RouteLink("/fluent-app/components/text", "Text"),
                                 new RouteLink("/fluent-app/components/text-area", "Text Area"),
                                 new RouteLink("/fluent-app/components/text-field", "Text Field"),

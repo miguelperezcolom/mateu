@@ -9,5 +9,6 @@ public enum FieldDataType {
   dateTime,
   bool,
   reference,
-  array
+  array,
+  file
 }

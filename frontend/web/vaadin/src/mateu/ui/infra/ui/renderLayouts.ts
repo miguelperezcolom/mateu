@@ -124,7 +124,7 @@ export const renderAccordionPanel = (panel: Component, renderComponent: Function
 
 export const renderScroller = (component: Component, renderComponent: Function) => {
     return html`
-               <vaadin-scroller>
+               <vaadin-scroller style="width: 300px; height: 300px;">
                    ${component.children?.map(child => renderComponent(child))}
                </vaadin-scroller>
             `

@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Scroller(Component content) implements Component {}
+public record Popover(Component content, Component wrapped) implements Component {}

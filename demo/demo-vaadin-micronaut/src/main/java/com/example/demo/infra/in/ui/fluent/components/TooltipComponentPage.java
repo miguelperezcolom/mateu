@@ -1,6 +1,8 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.Tooltip;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +16,10 @@ public class TooltipComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Tooltip")
                 .content(List.of(
-                        
+                        Tooltip.builder()
+                                .text("Hola tooltip")
+                                .wrapped(new Text("Hola!"))
+                                .build()
                 ))
                 .build();
     }

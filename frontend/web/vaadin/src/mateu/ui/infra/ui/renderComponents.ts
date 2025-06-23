@@ -24,6 +24,38 @@ import Notification from "@mateu/shared/apiClients/dtos/componentmetadata/Notifi
 import { nanoid } from "nanoid";
 import { notificationRenderer } from "@vaadin/notification/lit";
 import ProgressBar from "@mateu/shared/apiClients/dtos/componentmetadata/ProgressBar";
+import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
+import { popoverRenderer } from "@vaadin/popover/lit";
+import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
+
+
+export const renderTooltip = (component: Component, renderComponent: Function) => {
+    const metadata = component.metadata as Tooltip
+    html`${renderComponent(metadata.wrapped)}`
+
+    return html`
+        <div id="show-notifications">${renderComponent(metadata.wrapped)}</div>
+        <vaadin-tooltip for="show-notifications" text="${metadata.text}" position="top-start"></vaadin-tooltip>
+    `
+}
+
+export const renderPopover = (component: Component, renderComponent: Function) => {
+    const metadata = component.metadata as Popover
+    html`${renderComponent(metadata.content)}`
+
+    return html`
+        <div id="show-notifications">${renderComponent(metadata.wrapped)}</div>
+        <vaadin-popover
+                for="show-notifications"
+                theme="arrow no-padding"
+                modal
+                accessible-name-ref="notifications-heading"
+                content-width="300px"
+                position="bottom"
+                ${popoverRenderer(popover => html`${renderComponent(metadata.content)}`, [])}
+        ></vaadin-popover>
+    `
+}
 
 export const renderProgressBar = (component: Component) => {
     const metadata = component.metadata as ProgressBar
@@ -202,9 +234,6 @@ export const renderConfirmDialog = (component: Component, renderComponent: Funct
   ${metadata.text}
             ${component.children?.map(child => renderComponent(child))}
 </vaadin-confirm-dialog>
-               <vaadin-scroller>
-                   
-               </vaadin-scroller>
             `
 }
 

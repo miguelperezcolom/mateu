@@ -30,12 +30,14 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Markdow
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MasterDetailLayoutComponentToDtoMapper.mapMasterDetailLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MicroFrontendComponentToDtoMapper.mapMicroFrontendToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.NotificationComponentToDtoMapper.mapNotificationToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.PopoverComponentToDtoMapper.mapPopoverToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ProgressBarComponentToDtoMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ScrollerComponentToDtoMapper.mapScrollerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.SplitLayoutComponentToDtoMapper.mapSplitLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabComponentToDtoMapper.mapTabToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabLayoutComponentToDtoMapper.mapTabLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TextComponentToDtoMapper.mapTextToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TooltipComponentToDtoMapper.mapTooltipToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
 
 import io.mateu.dtos.ComponentDto;
@@ -67,12 +69,14 @@ import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MasterDetailLayout;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.Notification;
+import io.mateu.uidl.data.Popover;
 import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.Tooltip;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
@@ -214,6 +218,12 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof ProgressBar progressBar) {
       return mapProgressBarToDto(progressBar);
+    }
+    if (component instanceof Popover popover) {
+      return mapPopoverToDto(popover, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Tooltip tooltip) {
+      return mapTooltipToDto(tooltip, baseUrl, route, httpRequest);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());
