@@ -428,7 +428,7 @@
     @apply prose-thead:bg-primary border-separate border-spacing-0 overflow-hidden rounded-xl sm:rounded-2xl;
 
     th {
-      @apply font-primary w-[33.33%] text-sm md:text-[22px];
+      @apply font-primary w-[33.33%] text-sm md:text-[15px];
     }
 
     &,
@@ -437,7 +437,7 @@
     }
 
     td {
-      @apply border-b-0 text-[14px] font-medium md:text-[20px];
+      @apply border-b-0 text-[12px] font-medium md:text-[15px];
     }
 
     thead tr th {
