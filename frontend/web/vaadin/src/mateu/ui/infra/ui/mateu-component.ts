@@ -18,6 +18,19 @@ import "@vaadin/accordion"
 import "@vaadin/avatar"
 import "@vaadin/avatar-group"
 import "@vaadin/charts"
+import "@vaadin/combo-box"
+import "@vaadin/radio-group"
+import "@vaadin/checkbox-group"
+import "@vaadin/select"
+import "@vaadin/multi-select-combo-box"
+import "@vaadin/confirm-dialog"
+import "@vaadin/context-menu"
+import "@vaadin/cookie-consent"
+import "@vaadin/dialog"
+import "@vaadin/map"
+import "@vaadin/markdown"
+import "@vaadin/notification"
+import "@vaadin/progress-bar"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -27,6 +40,7 @@ import './mateu-table-crud'
 import './mateu-card'
 import './mateu-app'
 import './mateu-api-caller'
+import './mateu-ux'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import Component from "@mateu/shared/apiClients/dtos/Component";
@@ -47,7 +61,14 @@ import {
     renderAvatar,
     renderAvatarGroup,
     renderBadge,
-    renderButton, renderCard, renderChart,
+    renderButton,
+    renderCard,
+    renderChart,
+    renderConfirmDialog,
+    renderContextMenu,
+    renderCookieConsent,
+    renderDetails, renderDialog,
+    renderIcon, renderImage, renderMap, renderMarkdown, renderMicroFrontend, renderNotification, renderProgressBar,
     renderText
 } from "@infra/ui/renderComponents";
 
@@ -225,7 +246,42 @@ export class MateuComponent extends ComponentElement {
             if (component.metadata.type == ComponentMetadataType.Chart) {
                 return renderChart(component)
             }
-
+            if (component.metadata.type == ComponentMetadataType.Icon) {
+                return renderIcon(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.ConfirmDialog) {
+                return renderConfirmDialog(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.ContextMenu) {
+                return renderContextMenu(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.CookieConsent) {
+                return renderCookieConsent(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Details) {
+                return renderDetails(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.Dialog) {
+                return renderDialog(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.Image) {
+                return renderImage(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Map) {
+                return renderMap(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Markdown) {
+                return renderMarkdown(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.MicroFrontend) {
+                return renderMicroFrontend(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Notification) {
+                return renderNotification(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.ProgressBar) {
+                return renderProgressBar(component)
+            }
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }
         return html`<p>No metadata for component ${component?.id}</p>`

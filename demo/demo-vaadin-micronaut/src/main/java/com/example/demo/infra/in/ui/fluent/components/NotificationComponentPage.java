@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Notification;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,10 @@ public class NotificationComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Notification")
                 .content(List.of(
-                        
+                        Notification.builder()
+                                .title("Title")
+                                .text("bla, bla, bla")
+                                .build()
                 ))
                 .build();
     }

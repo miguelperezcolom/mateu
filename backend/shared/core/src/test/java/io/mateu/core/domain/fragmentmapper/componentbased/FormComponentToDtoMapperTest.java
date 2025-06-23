@@ -134,7 +134,8 @@ class FormComponentToDtoMapperTest {
                                         List.of(),
                                         0,
                                         false,
-                                        false),
+                                        false,
+                                        List.of()),
                                     "name",
                                     null,
                                     List.of()),
@@ -142,7 +143,7 @@ class FormComponentToDtoMapperTest {
                                     new FormFieldDto(
                                         "age", "integer", "regular", false, false, "Age", null,
                                         null, null, List.of(), List.of(), List.of(), 0, false,
-                                        false),
+                                        false, List.of()),
                                     "age",
                                     null,
                                     List.of()))))))

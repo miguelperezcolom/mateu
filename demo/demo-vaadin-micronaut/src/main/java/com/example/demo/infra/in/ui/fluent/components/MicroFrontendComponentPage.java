@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,11 @@ public class MicroFrontendComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Micro frontend")
                 .content(List.of(
-                        
+                        MicroFrontend.builder()
+                                .baseUrl("/fluent")
+                                .route("/fluent-app/components/card")
+                                .consumedRoute("/fluent-app")
+                                .build()
                 ))
                 .build();
     }

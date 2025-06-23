@@ -1,6 +1,7 @@
 import Validation from "./Validation";
 import Pair from "./Pair";
 import Badge from "./Badge";
+import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 
 export default interface FormField {
 
@@ -20,5 +21,6 @@ export default interface FormField {
     rightAligned: boolean | undefined
     bold: boolean | undefined
     initialValue: any
+    options: Option[] | undefined
 
 }

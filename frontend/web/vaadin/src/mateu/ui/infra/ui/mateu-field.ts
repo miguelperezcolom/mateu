@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -42,6 +42,45 @@ export class MateuField extends LitElement {
 
     render() {
         if (this.field?.dataType == 'string') {
+            if (this.field?.stereotype == 'select') {
+                return html`
+                    <vaadin-select
+                            label="${this.field.label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.field.options}"
+                            .helperText="${this.field.description}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                    ></vaadin-select>
+                `
+            }
+            if (this.field?.stereotype == 'combobox') {
+                return html`
+                    <vaadin-combo-box
+                            label="${this.field.label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.field.options}"
+                            .helperText="${this.field.description}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                    ></vaadin-combo-box>
+                    `
+            }
+            if (this.field?.stereotype == 'radio') {
+                return html`
+                    <vaadin-radio-group 
+                            label="${this.field.label}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                            theme="vertical">
+                        ${this.field.options?.map(option => html`
+                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
+                        `)}
+</vaadin-radio-group>
+                    `
+            }
             if (this.field?.stereotype == 'richText') {
                 return html`
                     <vaadin-rich-text-editor
@@ -142,6 +181,62 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${this.field.initialValue}"
                 ></vaadin-time-picker>`
+        }
+        if (this.field?.dataType == 'array') {
+            if (this.field?.stereotype == 'combobox') {
+                return html`
+                    <vaadin-multi-select-combo-box
+                            label="${this.field.label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.field.options}"
+                            .helperText="${this.field.description}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                    ></vaadin-multi-select-combo-box>
+                    `
+            }
+            return html `
+                <vaadin-checkbox-group
+                        id="${this.field.fieldId}"
+                        label="${this.field.label}"
+                        @value-changed="${this.valueChanged}"
+                        value="${this.field.initialValue}"
+                        theme="vertical"
+                >
+                    ${this.field.options?.map(option => html`
+                        <vaadin-checkbox value="${option.value}" label="${option.label}"></vaadin-checkbox>
+                    `)}
+                </vaadin-checkbox-group>
+            `
+        }
+        if (this.field?.dataType == 'reference') {
+            if (this.field?.stereotype == 'combobox') {
+                return html`
+                    <vaadin-combo-box
+                            label="${this.field.label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.field.options}"
+                            .helperText="${this.field.description}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                    ></vaadin-combo-box>
+                    `
+            }
+            if (this.field?.stereotype == 'radio') {
+                return html`
+                    <vaadin-radio-group 
+                            label="${this.field.label}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${this.field.initialValue}"
+                            theme="vertical">
+                        ${this.field.options?.map(option => html`
+                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
+                        `)}
+</vaadin-radio-group>
+                    `
+            }
         }
         return html `<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`
     }

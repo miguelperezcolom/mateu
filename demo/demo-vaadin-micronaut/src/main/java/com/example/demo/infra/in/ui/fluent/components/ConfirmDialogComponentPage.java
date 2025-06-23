@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.ConfirmDialog;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +15,10 @@ public class ConfirmDialogComponentPage implements FormSupplier {
         return Form.builder()
                 .title("Confirm dialog")
                 .content(List.of(
-                        
+                        ConfirmDialog.builder()
+                                .title("Title")
+                                .text("bla, bla, bla")
+                                .build()
                 ))
                 .build();
     }

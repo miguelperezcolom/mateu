@@ -37,7 +37,8 @@ public record FormFieldDto(
     List<PairDto> attributes,
     int colspan,
     boolean rightAligned,
-    boolean bold)
+    boolean bold,
+    List<OptionDto> options)
     implements ComponentMetadataDto {
 
   public FormFieldDto {
@@ -49,6 +50,9 @@ public record FormFieldDto(
     attributes =
         Collections.unmodifiableList(
             attributes != null ? attributes : Collections.<PairDto>emptyList());
+    options =
+        Collections.unmodifiableList(
+            options != null ? options : Collections.<OptionDto>emptyList());
   }
 
   @Override
@@ -64,5 +68,10 @@ public record FormFieldDto(
   @Override
   public List<PairDto> attributes() {
     return Collections.unmodifiableList(attributes);
+  }
+
+  @Override
+  public List<OptionDto> options() {
+    return Collections.unmodifiableList(options);
   }
 }

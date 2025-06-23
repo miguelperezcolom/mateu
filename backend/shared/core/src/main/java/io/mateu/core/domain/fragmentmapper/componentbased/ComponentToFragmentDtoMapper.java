@@ -10,15 +10,27 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BadgeCo
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ConfirmDialogComponentToDtoMapper.mapConfirmDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContextMenuComponentToDtoMapper.mapContextMenuToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CookieConsentComponentToDtoMapper.mapCookieConsentToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DetailsComponentToDtoMapper.mapDetailsToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogComponentToDtoMapper.mapDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.IconComponentToDtoMapper.mapIconToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ImageComponentToDtoMapper.mapImageToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MapComponentToDtoMapper.mapMapToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MarkdownComponentToDtoMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MasterDetailLayoutComponentToDtoMapper.mapMasterDetailLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MicroFrontendComponentToDtoMapper.mapMicroFrontendToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.NotificationComponentToDtoMapper.mapNotificationToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ProgressBarComponentToDtoMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ScrollerComponentToDtoMapper.mapScrollerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.SplitLayoutComponentToDtoMapper.mapSplitLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabComponentToDtoMapper.mapTabToDto;
@@ -38,13 +50,24 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Chart;
+import io.mateu.uidl.data.ConfirmDialog;
 import io.mateu.uidl.data.Container;
+import io.mateu.uidl.data.ContextMenu;
+import io.mateu.uidl.data.CookieConsent;
+import io.mateu.uidl.data.Details;
+import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.HorizontalLayout;
+import io.mateu.uidl.data.Icon;
+import io.mateu.uidl.data.Image;
+import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MasterDetailLayout;
+import io.mateu.uidl.data.MicroFrontend;
+import io.mateu.uidl.data.Notification;
+import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Tab;
@@ -155,6 +178,42 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Chart chart) {
       return mapChartToDto(chart);
+    }
+    if (component instanceof Icon icon) {
+      return mapIconToDto(icon);
+    }
+    if (component instanceof ConfirmDialog confirmDialog) {
+      return mapConfirmDialogToDto(confirmDialog);
+    }
+    if (component instanceof ContextMenu contextMenu) {
+      return mapContextMenuToDto(contextMenu, baseUrl, route, httpRequest);
+    }
+    if (component instanceof CookieConsent cookieConsent) {
+      return mapCookieConsentToDto(cookieConsent);
+    }
+    if (component instanceof Details details) {
+      return mapDetailsToDto(details, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Dialog dialog) {
+      return mapDialogToDto(dialog, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Image image) {
+      return mapImageToDto(image);
+    }
+    if (component instanceof io.mateu.uidl.data.Map map) {
+      return mapMapToDto(map);
+    }
+    if (component instanceof Markdown markdown) {
+      return mapMarkdownToDto(markdown);
+    }
+    if (component instanceof MicroFrontend microFrontend) {
+      return mapMicroFrontendToDto(microFrontend);
+    }
+    if (component instanceof Notification notification) {
+      return mapNotificationToDto(notification);
+    }
+    if (component instanceof ProgressBar progressBar) {
+      return mapProgressBarToDto(progressBar);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

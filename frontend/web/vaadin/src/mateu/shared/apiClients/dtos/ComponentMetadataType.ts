@@ -29,6 +29,16 @@ export enum ComponentMetadataType {
     Anchor = "Anchor",
     Button = "Button",
     Chart = "Chart",
-
+    Icon = "Icon",
+    ConfirmDialog = "ConfirmDialog",
+    ContextMenu = "ContextMenu",
+    CookieConsent = "CookieConsent",
+    Details = "Details",
+    Dialog = "Dialog",
+    Image = "Image",
+    Map = "Map",
+    Markdown = "Markdown",
+    Notification = "Notification",
+    ProgressBar = "ProgressBar",
 
 }

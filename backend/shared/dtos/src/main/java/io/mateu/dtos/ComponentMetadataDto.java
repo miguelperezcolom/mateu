@@ -34,6 +34,17 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = BadgeDto.class, name = "Badge"),
   @JsonSubTypes.Type(value = AnchorDto.class, name = "Anchor"),
   @JsonSubTypes.Type(value = ButtonDto.class, name = "Button"),
-  @JsonSubTypes.Type(value = ChartDto.class, name = "Chart")
+  @JsonSubTypes.Type(value = ChartDto.class, name = "Chart"),
+  @JsonSubTypes.Type(value = IconDto.class, name = "Icon"),
+  @JsonSubTypes.Type(value = ConfirmDialogDto.class, name = "ConfirmDialog"),
+  @JsonSubTypes.Type(value = ContextMenuDto.class, name = "ContextMenu"),
+  @JsonSubTypes.Type(value = CookieConsentDto.class, name = "CookieConsent"),
+  @JsonSubTypes.Type(value = DetailsDto.class, name = "Details"),
+  @JsonSubTypes.Type(value = DialogDto.class, name = "Dialog"),
+  @JsonSubTypes.Type(value = ImageDto.class, name = "Image"),
+  @JsonSubTypes.Type(value = MapDto.class, name = "Map"),
+  @JsonSubTypes.Type(value = MarkdownDto.class, name = "Markdown"),
+  @JsonSubTypes.Type(value = NotificationDto.class, name = "Notification"),
+  @JsonSubTypes.Type(value = ProgressBarDto.class, name = "ProgressBar")
 })
 public interface ComponentMetadataDto {}

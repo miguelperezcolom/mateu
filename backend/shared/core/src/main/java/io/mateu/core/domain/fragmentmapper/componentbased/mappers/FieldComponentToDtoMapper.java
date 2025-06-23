@@ -2,6 +2,7 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormFieldDto;
+import io.mateu.dtos.OptionDto;
 import io.mateu.uidl.data.Field;
 import java.util.List;
 
@@ -17,6 +18,12 @@ public class FieldComponentToDtoMapper {
             .placeholder(field.placeholder())
             .description(field.description())
             .cssClasses(field.cssClasses())
+            .options(
+                field.options().stream()
+                    .map(
+                        option ->
+                            new OptionDto(option.value(), option.label(), option.description()))
+                    .toList())
             .build(),
         field.id(),
         null,

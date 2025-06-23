@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.fluent.Component;
+import java.util.List;
 import lombok.Builder;
 
 @Builder
@@ -12,10 +13,19 @@ public record Field(
     boolean required,
     String placeholder,
     String description,
-    String cssClasses)
+    String cssClasses,
+    List<Option> options)
     implements Component {
 
   public Field {
     stereotype = stereotype != null ? stereotype : FieldStereotype.regular;
+  }
+
+  @Override
+  public List<Option> options() {
+    if (options == null) {
+      return List.of();
+    }
+    return options;
   }
 }

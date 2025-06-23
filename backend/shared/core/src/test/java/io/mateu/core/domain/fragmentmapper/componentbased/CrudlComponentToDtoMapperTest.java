@@ -135,10 +135,12 @@ class CrudlComponentToDtoMapperTest {
                                     List.of(),
                                     0,
                                     false,
-                                    false),
+                                    false,
+                                    List.of()),
                                 new FormFieldDto(
                                     "age", "integer", "regular", false, false, "Age", null, null,
-                                    null, List.of(), List.of(), List.of(), 0, false, false)))
+                                    null, List.of(), List.of(), List.of(), 0, false, false,
+                                    List.of())))
                         .build(),
                     "crudl_id",
                     supplier.getClass().getName(),

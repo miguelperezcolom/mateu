@@ -4,6 +4,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.Option;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.FormSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,10 +19,26 @@ public class RadioButtonComponentPage implements FormSupplier {
                 .title("Radio button")
                 .content(List.of(
                         Field.builder()
-                                .id("name")
-                                .label("Name")
+                                .id("string")
+                                .label("String")
                                 .dataType(FieldDataType.string)
                                 .stereotype(FieldStereotype.radio)
+                                .options(List.of(
+                                        new Option("1", "Uno", ""),
+                                        new Option("2", "Dos", ""),
+                                        new Option("3", "Tres", "")
+                                ))
+                                .build(),
+                        Field.builder()
+                                .id("name")
+                                .label("Name")
+                                .dataType(FieldDataType.reference)
+                                .stereotype(FieldStereotype.radio)
+                                .options(List.of(
+                                        new Option("1", "Uno", ""),
+                                        new Option("2", "Dos", ""),
+                                        new Option("3", "Tres", "")
+                                ))
                                 .build()
                 ))
                 .build();
