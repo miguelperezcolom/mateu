@@ -10,5 +10,6 @@ public enum FieldStereotype {
   select,
   email,
   password,
-  richText
+  richText,
+  listBox
 }

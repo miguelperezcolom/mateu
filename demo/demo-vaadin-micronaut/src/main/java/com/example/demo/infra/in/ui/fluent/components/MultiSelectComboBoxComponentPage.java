@@ -22,6 +22,12 @@ public class MultiSelectComboBoxComponentPage implements FormSupplier {
                                 .label("Name")
                                 .dataType(FieldDataType.array)
                                 .stereotype(FieldStereotype.combobox)
+                                .build(),
+                        Field.builder()
+                                .id("list")
+                                .label("List box")
+                                .dataType(FieldDataType.array)
+                                .stereotype(FieldStereotype.listBox)
                                 .build()
                 ))
                 .build();

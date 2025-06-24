@@ -20,7 +20,10 @@ import "@vaadin/time-picker"
 import "@vaadin/rich-text-editor"
 import "@vaadin/email-field"
 import "@vaadin/upload"
+import "@vaadin/list-box"
+import '@vaadin/item'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
+import Field from "../../../../../types/shared/apiClients/dtos/componentmetadata/Field";
 
 
 @customElement('mateu-field')
@@ -33,6 +36,36 @@ export class MateuField extends LitElement {
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value: e.detail.value,
+                //@ts-ignore
+                fieldId: e.target.id
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    selectedIndex = () => {
+        if (this.field?.initialValue) {
+            const value = this.field.initialValue
+            const selectedOption = this.field.options?.find(option => option.value == value)
+            if (selectedOption) {
+                return this.field.options?.indexOf(selectedOption)
+            }
+        }
+        return undefined
+    }
+
+    listItemSelected = (e: CustomEvent) => {
+        let value = undefined
+        if (e.detail.value) {
+            const selectedOption = this.field!.options![e.detail.value]
+            if (selectedOption) {
+                value = selectedOption.value
+            }
+        }
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: {
+                value,
                 //@ts-ignore
                 fieldId: e.target.id
             },
@@ -74,6 +107,17 @@ export class MateuField extends LitElement {
                             .value="${this.field.initialValue}"
                     ></vaadin-combo-box>
                     `
+            }
+            if (this.field?.stereotype == 'listBox') {
+                return html`aaa
+                    <vaadin-list-box ?selected="${this.selectedIndex()}"
+                                     @value-changed="${this.listItemSelected}"
+                    >
+                        ${this.field.options?.map(option => html`
+                            <vaadin-item>${option.label}</vaadin-item>
+                        `)}
+                    </vaadin-list-box>                
+                `
             }
             if (this.field?.stereotype == 'radio') {
                 return html`
@@ -190,6 +234,17 @@ export class MateuField extends LitElement {
                 ></vaadin-time-picker>`
         }
         if (this.field?.dataType == 'array') {
+            if (this.field?.stereotype == 'listBox') {
+                return html`aaa
+                    <vaadin-list-box multiple ?selected="${this.selectedIndex()}"
+                                     @value-changed="${this.listItemSelected}"
+                    >
+                        ${this.field.options?.map(option => html`
+                            <vaadin-item>${option.label}</vaadin-item>
+                        `)}
+                    </vaadin-list-box>                
+                `
+            }
             if (this.field?.stereotype == 'combobox') {
                 return html`
                     <vaadin-multi-select-combo-box
@@ -230,6 +285,17 @@ export class MateuField extends LitElement {
                             .value="${this.field.initialValue}"
                     ></vaadin-combo-box>
                     `
+            }
+            if (this.field?.stereotype == 'listBox') {
+                return html`aaa
+                    <vaadin-list-box ?selected="${this.selectedIndex()}"
+                                     @value-changed="${this.listItemSelected}"
+                    >
+                        ${this.field.options?.map(option => html`
+                            <vaadin-item>${option.label}</vaadin-item>
+                        `)}
+                    </vaadin-list-box>                
+                `
             }
             if (this.field?.stereotype == 'radio') {
                 return html`

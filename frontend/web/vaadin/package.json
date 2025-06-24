@@ -46,6 +46,7 @@
     "@vaadin/icons": "^24.8.0",
     "@vaadin/integer-field": "^24.8.0",
     "@vaadin/item": "^24.8.0",
+    "@vaadin/list-box": "^24.8.0",
     "@vaadin/map": "^24.8.0",
     "@vaadin/markdown": "^24.8.0",
     "@vaadin/menu-bar": "^24.8.0",

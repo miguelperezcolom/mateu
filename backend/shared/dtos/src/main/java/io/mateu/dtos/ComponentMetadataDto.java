@@ -48,6 +48,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = ProgressBarDto.class, name = "ProgressBar"),
   @JsonSubTypes.Type(value = PopoverDto.class, name = "Popover"),
   @JsonSubTypes.Type(value = TooltipDto.class, name = "Tooltip"),
-  @JsonSubTypes.Type(value = MessageInputDto.class, name = "MessageInput")
+  @JsonSubTypes.Type(value = MessageInputDto.class, name = "MessageInput"),
+  @JsonSubTypes.Type(value = CustomFieldDto.class, name = "CustomField")
 })
 public interface ComponentMetadataDto {}

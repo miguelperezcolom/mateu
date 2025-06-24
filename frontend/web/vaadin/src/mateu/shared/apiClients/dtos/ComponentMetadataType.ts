@@ -43,5 +43,6 @@ export enum ComponentMetadataType {
     Popover = "Popover",
     Tooltip = "Tooltip",
     MessageInput = "MessageInput",
+    CustomField = "CustomField",
 
 }

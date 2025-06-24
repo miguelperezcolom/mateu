@@ -28,7 +28,19 @@ import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
 import MessageInput from "@mateu/shared/apiClients/dtos/componentmetadata/MessageInput";
+import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
+import CustomField from "@mateu/shared/apiClients/dtos/componentmetadata/CustomField";
 
+
+export const renderCustomField = (component: Component, renderComponent: Function) => {
+    const metadata = component.metadata as CustomField
+
+    return html`
+        <vaadin-custom-field label="${metadata.label}">
+            ${renderComponent(metadata.content)}
+        </vaadin-custom-field>
+            `
+}
 
 export const renderMessageInput = (component: Component) => {
     const metadata = component.metadata as MessageInput
@@ -130,7 +142,7 @@ export const renderImage = (component: Component) => {
 }
 
 export const renderDialog = (component: Component, renderComponent: Function) => {
-    const metadata = component.metadata as Details
+    const metadata = component.metadata as Dialog
 
     /*
                     @opened-changed="${(event: DialogOpenedChangedEvent) => {

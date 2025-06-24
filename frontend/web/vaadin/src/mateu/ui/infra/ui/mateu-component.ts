@@ -35,6 +35,7 @@ import "@vaadin/popover"
 import "@vaadin/scroller"
 import "@vaadin/tooltip"
 import "@vaadin/message-input"
+import "@vaadin/custom-field"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -70,7 +71,7 @@ import {
     renderChart,
     renderConfirmDialog,
     renderContextMenu,
-    renderCookieConsent,
+    renderCookieConsent, renderCustomField,
     renderDetails,
     renderDialog,
     renderIcon,
@@ -302,6 +303,9 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.MessageInput) {
                 return renderMessageInput(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.CustomField) {
+                return renderCustomField(component, this.renderChildComponent)
             }
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }
