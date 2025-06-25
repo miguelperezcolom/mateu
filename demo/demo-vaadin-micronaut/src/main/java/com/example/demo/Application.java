@@ -13,6 +13,7 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.crudls")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.forms")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.layouts")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.styling")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.nestedapps")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.declarative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.imperative")

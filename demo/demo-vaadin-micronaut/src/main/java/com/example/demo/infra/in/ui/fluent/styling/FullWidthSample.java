@@ -1,4 +1,4 @@
-package com.example.demo.infra.in.ui.fluent.layouts;
+package com.example.demo.infra.in.ui.fluent.styling;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FullWidth;
@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/layouts/full-width")
+@Route("/fluent-app/styling/full-width")
 public class FullWidthSample implements FormSupplier {
     @Override
     public Form getForm(HttpRequest httpRequest) {

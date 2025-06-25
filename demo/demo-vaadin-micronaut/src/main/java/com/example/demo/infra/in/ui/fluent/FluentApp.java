@@ -28,16 +28,18 @@ public class FluentApp implements AppSupplier {
                         new Menu("Layouts", List.of(
                                 new RouteLink("/fluent-app/layouts/horizontal", "Horizontal Layout"),
                                 new RouteLink("/fluent-app/layouts/vertical", "Vertical Layout"),
+                                new MenuSeparator(),
                                 new RouteLink("/fluent-app/layouts/split", "Split Layout"),
                                 new RouteLink("/fluent-app/layouts/tab", "Tab Layout"),
                                 new RouteLink("/fluent-app/layouts/form", "Form Layout"),
-                                new RouteLink("/fluent-app/layouts/board", "Board Layout"),
                                 new RouteLink("/fluent-app/layouts/accordion", "Accordion Layout"),
-                                new RouteLink("/fluent-app/layouts/master-detail", "Master Detail Layout"),
                                 new MenuSeparator(),
-                                new RouteLink("/fluent-app/layouts/scroller", "Scroller"),
-                                new RouteLink("/fluent-app/layouts/full-width", "Full Width"),
-                                new RouteLink("/fluent-app/layouts/container", "Container")
+                                new RouteLink("/fluent-app/layouts/board", "Board Layout"),
+                                new RouteLink("/fluent-app/layouts/master-detail", "Master Detail Layout")
+                        )),
+                        new Menu("Styling", List.of(
+                                new RouteLink("/fluent-app/styling/full-width", "Full Width"),
+                                new RouteLink("/fluent-app/styling/container", "Container")
                         )),
                         new Menu("Forms", List.of(
                                 new RouteLink("/fluent-app/forms/basic", "Basic")
