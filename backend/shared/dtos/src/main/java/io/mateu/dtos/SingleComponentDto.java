@@ -1,7 +1,7 @@
 package io.mateu.dtos;
 
 /**
- * A single component content
+ * A single component items
  *
  * @param componentId The component targetId
  */

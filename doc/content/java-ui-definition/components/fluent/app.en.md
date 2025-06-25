@@ -5,7 +5,7 @@ weight: 4
 
 ## Introduction
 
-An `App` is a component which allows the user to navigate among other components by using a navigation menu.
+An `App` is a component which allows the user to navigate among other components by using a navigation menuBar.
 
 ```java
 
@@ -20,7 +20,7 @@ public class FluentApp implements AppSupplier {
                 .title("Antonia")
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.MENU_ON_LEFT)
-                .menu(List.of(
+                .menuBar(List.of(
                         new Menu("Home", new RouteLink("/fluent-app/home"), true),
                         new Menu("Page 1", new RouteLink("/fluent-app/page1")),
                         new Menu("Page 2", new RouteLink("/fluent-app/page2"))
@@ -41,11 +41,11 @@ public class Home {
 ```
 
 
-## Where to place the menu
+## Where to place the menuBar
 
-When you declare an `App` you have 4 options for positioning the menu: with a hamburger menu, in a menu bar in the top, in a menu bar on the left or as tabs.
+When you declare an `App` you have 4 options for positioning the menuBar: with a hamburger menuBar, in a menuBar bar in the top, in a menuBar bar on the left or as tabs.
 
-By default, tabs will be created if there is no submenu. If there is a submenu then a menu on the top will be created.
+By default, tabs will be created if there is no submenu. If there is a submenu then a menuBar on the top will be created.
 
 ## Nesting Apps
 

@@ -35,7 +35,10 @@ import "@vaadin/popover"
 import "@vaadin/scroller"
 import "@vaadin/tooltip"
 import "@vaadin/message-input"
+import "@vaadin/message-list"
 import "@vaadin/custom-field"
+import "@vaadin/grid"
+import '@vaadin/grid/vaadin-grid-tree-column.js';
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -73,11 +76,11 @@ import {
     renderContextMenu,
     renderCookieConsent, renderCustomField,
     renderDetails,
-    renderDialog,
+    renderDialog, renderGrid,
     renderIcon,
     renderImage,
     renderMap,
-    renderMarkdown, renderMessageInput,
+    renderMarkdown, renderMenuBar, renderMessageInput, renderMessageList,
     renderMicroFrontend,
     renderNotification,
     renderPopover,
@@ -304,8 +307,17 @@ export class MateuComponent extends ComponentElement {
             if (component.metadata.type == ComponentMetadataType.MessageInput) {
                 return renderMessageInput(component)
             }
+            if (component.metadata.type == ComponentMetadataType.MessageList) {
+                return renderMessageList(component)
+            }
             if (component.metadata.type == ComponentMetadataType.CustomField) {
                 return renderCustomField(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.MenuBar) {
+                return renderMenuBar(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.Grid) {
+                return renderGrid(component)
             }
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }

@@ -43,6 +43,9 @@ export enum ComponentMetadataType {
     Popover = "Popover",
     Tooltip = "Tooltip",
     MessageInput = "MessageInput",
+    MessageList = "MessageList",
     CustomField = "CustomField",
+    MenuBar = "MenuBar",
+    Grid = "Grid",
 
 }

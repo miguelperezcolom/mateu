@@ -1,6 +1,6 @@
 ############# English navigation ##############
 
-# main menu
+# main menuBar
 
 [[main]]
 name = "Docs"
@@ -17,7 +17,7 @@ name = "Elements"
 url = "getting-started/elements/"
 weight = 3
 
-# footer menu
+# footer menuBar
 [[footer_primary]]
 name = "Changelog"
 url = "changelog/"
@@ -28,7 +28,7 @@ name = "Contact us"
 url = "contact/"
 weight = 2
 
-# footer menu
+# footer menuBar
 [[footer_secondary]]
 name = "Privacy Policy"
 url = "privacy-policy/"

@@ -23,13 +23,16 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldCo
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.IconComponentToDtoMapper.mapIconToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ImageComponentToDtoMapper.mapImageToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MapComponentToDtoMapper.mapMapToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MarkdownComponentToDtoMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MasterDetailLayoutComponentToDtoMapper.mapMasterDetailLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MenuBarComponentToDtoMapper.mapMenuBarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MessageInputComponentToDtoMapper.mapMessageInputToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MessageListComponentToDtoMapper.mapMessageListToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MicroFrontendComponentToDtoMapper.mapMicroFrontendToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.NotificationComponentToDtoMapper.mapNotificationToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.PopoverComponentToDtoMapper.mapPopoverToDto;
@@ -65,12 +68,14 @@ import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FullWidth;
+import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MasterDetailLayout;
 import io.mateu.uidl.data.MessageInput;
+import io.mateu.uidl.data.MessageList;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.Notification;
 import io.mateu.uidl.data.Popover;
@@ -87,6 +92,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentSupplier;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
@@ -232,8 +238,17 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof MessageInput messageInput) {
       return mapMessageInputToDto(messageInput);
     }
+    if (component instanceof MessageList messageList) {
+      return mapMessageListToDto(messageList);
+    }
     if (component instanceof CustomField customField) {
       return mapCustomFieldToDto(customField, baseUrl, route, httpRequest);
+    }
+    if (component instanceof MenuBar menuBar) {
+      return mapMenuBarToDto(menuBar);
+    }
+    if (component instanceof Grid grid) {
+      return mapGridToDto(grid);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

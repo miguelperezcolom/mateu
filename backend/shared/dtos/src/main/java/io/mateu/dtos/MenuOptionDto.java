@@ -6,23 +6,23 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record MenuDto(
+public record MenuOptionDto(
     MenuTypeDto type,
     String icon,
     String label,
     GoToRouteDto destination,
-    List<MenuDto> submenus,
+    List<MenuOptionDto> submenus,
     @JsonIgnore int order,
     boolean visible,
     boolean selected,
     boolean separator) {
 
-  public MenuDto {
+  public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());
   }
 
   @Override
-  public List<MenuDto> submenus() {
+  public List<MenuOptionDto> submenus() {
     return Collections.unmodifiableList(submenus);
   }
 }

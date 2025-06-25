@@ -10,7 +10,7 @@ import java.util.List;
  * @param subtitle The directory subtitle
  * @param menu The menus
  */
-public record DirectoryDto(String title, String subtitle, List<MenuDto> menu)
+public record DirectoryDto(String title, String subtitle, List<MenuOptionDto> menu)
     implements ComponentMetadataDto {
 
   public DirectoryDto {
@@ -18,7 +18,7 @@ public record DirectoryDto(String title, String subtitle, List<MenuDto> menu)
   }
 
   @Override
-  public List<MenuDto> menu() {
+  public List<MenuOptionDto> menu() {
     return Collections.unmodifiableList(menu);
   }
 }

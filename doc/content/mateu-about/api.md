@@ -6,7 +6,7 @@ weight: 17
 
 <h1 id="demo-vaadin-micronaut">demo-vaadin-micronaut v1.0.0</h1>
 
-> Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
+> Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menuBar.
 
 <h1 id="demo-vaadin-micronaut-default">Default</h1>
 

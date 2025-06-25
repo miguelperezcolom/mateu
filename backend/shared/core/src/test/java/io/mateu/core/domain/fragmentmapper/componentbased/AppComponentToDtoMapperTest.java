@@ -11,7 +11,7 @@ import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuDto;
+import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
@@ -84,38 +84,38 @@ class AppComponentToDtoMapperTest {
                         .variant(AppVariantDto.MENU_ON_TOP)
                         .menu(
                             List.of(
-                                MenuDto.builder()
+                                MenuOptionDto.builder()
                                     .label("Home")
                                     .destination(new GoToRouteDto("", "/fluent-app/home", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
-                                MenuDto.builder()
+                                MenuOptionDto.builder()
                                     .label("Page 1")
                                     .destination(new GoToRouteDto("", "/fluent-app/page1", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
-                                MenuDto.builder()
+                                MenuOptionDto.builder()
                                     .label("Page 2")
                                     .destination(new GoToRouteDto("", "/fluent-app/page2", null))
                                     .visible(true)
                                     .selected(true)
                                     .build(),
-                                MenuDto.builder()
+                                MenuOptionDto.builder()
                                     .label("Content 0")
                                     .destination(new GoToRouteDto("", "/fluent-app/content0", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
-                                MenuDto.builder()
+                                MenuOptionDto.builder()
                                     .label("Page 3")
                                     .destination(null)
                                     .visible(true)
                                     .selected(false)
                                     .submenus(
                                         List.of(
-                                            MenuDto.builder()
+                                            MenuOptionDto.builder()
                                                 .label("Content 1")
                                                 .destination(
                                                     new GoToRouteDto(
@@ -123,7 +123,7 @@ class AppComponentToDtoMapperTest {
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
-                                            MenuDto.builder()
+                                            MenuOptionDto.builder()
                                                 .label("Content 2")
                                                 .destination(
                                                     new GoToRouteDto(
@@ -131,14 +131,14 @@ class AppComponentToDtoMapperTest {
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
-                                            MenuDto.builder()
+                                            MenuOptionDto.builder()
                                                 .label("Page 4")
                                                 .destination(null)
                                                 .visible(true)
                                                 .selected(false)
                                                 .submenus(
                                                     List.of(
-                                                        MenuDto.builder()
+                                                        MenuOptionDto.builder()
                                                             .label("Content 3")
                                                             .destination(
                                                                 new GoToRouteDto(
@@ -148,7 +148,7 @@ class AppComponentToDtoMapperTest {
                                                             .visible(true)
                                                             .selected(false)
                                                             .build(),
-                                                        MenuDto.builder()
+                                                        MenuOptionDto.builder()
                                                             .label("Content 4")
                                                             .destination(
                                                                 new GoToRouteDto(

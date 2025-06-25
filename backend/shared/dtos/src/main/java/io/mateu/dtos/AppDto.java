@@ -12,7 +12,7 @@ public record AppDto(
     String logo,
     String title,
     String subtitle,
-    List<MenuDto> menu,
+    List<MenuOptionDto> menu,
     String homeRoute,
     String loginUrl,
     String welcomeMessage,
@@ -32,7 +32,7 @@ public record AppDto(
   }
 
   @Override
-  public List<MenuDto> menu() {
+  public List<MenuOptionDto> menu() {
     return Collections.unmodifiableList(menu != null ? menu : List.of());
   }
 

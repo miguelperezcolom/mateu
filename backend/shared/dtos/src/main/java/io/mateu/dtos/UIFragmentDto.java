@@ -5,8 +5,8 @@ import lombok.Builder;
 /**
  * UI update
  *
- * @param targetComponentId where to place this content
- * @param component New content
+ * @param targetComponentId where to place this items
+ * @param component New items
  * @param data data
  */
 @Builder

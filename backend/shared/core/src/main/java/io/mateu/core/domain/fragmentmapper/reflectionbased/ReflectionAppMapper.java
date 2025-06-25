@@ -7,7 +7,7 @@ import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuDto;
+import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
@@ -44,7 +44,7 @@ public class ReflectionAppMapper {
     return new UIFragmentDto(initiatorComponentId, component, app);
   }
 
-  public static String getHomeRoute(List<MenuDto> menu, String route) {
+  public static String getHomeRoute(List<MenuOptionDto> menu, String route) {
     if (menu != null) {
       var selectedRoute = getSelectedRoute(menu, route, true);
       if (selectedRoute != null) {
@@ -54,7 +54,7 @@ public class ReflectionAppMapper {
       if (selectedRoute != null) {
         return selectedRoute;
       }
-      for (MenuDto option : menu) {
+      for (MenuOptionDto option : menu) {
         if (option.selected()) {
           return option.destination().route();
         }
@@ -66,8 +66,8 @@ public class ReflectionAppMapper {
     return "/home";
   }
 
-  private static String getSelectedRoute(List<MenuDto> menu, String route, boolean exact) {
-    for (MenuDto option : menu) {
+  private static String getSelectedRoute(List<MenuOptionDto> menu, String route, boolean exact) {
+    for (MenuOptionDto option : menu) {
       if (option.destination() != null) {
         var matches =
             exact
@@ -130,7 +130,7 @@ public class ReflectionAppMapper {
     return null;
   }
 
-  public static List<MenuDto> getMenu(
+  public static List<MenuOptionDto> getMenu(
       Object instance, String route, String appRoute, HttpRequest httpRequest) {
     if (instance instanceof HasMenu hasMenu) {
       var menuFromApp = hasMenu.createMenu(httpRequest);
@@ -146,7 +146,7 @@ public class ReflectionAppMapper {
           menuFromApp.stream()
               .map(
                   option ->
-                      new MenuDto(
+                      new MenuOptionDto(
                           MenuTypeDto.MenuOption,
                           "icon",
                           option.label(),

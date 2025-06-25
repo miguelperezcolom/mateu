@@ -6,7 +6,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ContextMenuDto;
 import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuDto;
+import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.ContextMenu;
 import io.mateu.uidl.data.Menu;
@@ -29,11 +29,11 @@ public class ContextMenuComponentToDtoMapper {
         List.of());
   }
 
-  private static List<MenuDto> buildMenu(List<Actionable> menu) {
+  protected static List<MenuOptionDto> buildMenu(List<Actionable> menu) {
     return menu.stream()
         .map(
             option ->
-                MenuDto.builder()
+                MenuOptionDto.builder()
                     .label(option.label())
                     .destination(
                         option instanceof RouteLink || option instanceof ContentLink

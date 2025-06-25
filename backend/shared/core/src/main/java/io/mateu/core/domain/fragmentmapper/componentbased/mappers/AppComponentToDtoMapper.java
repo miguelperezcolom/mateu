@@ -9,7 +9,7 @@ import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuDto;
+import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
@@ -43,15 +43,16 @@ public final class AppComponentToDtoMapper {
         appDto, "component_id", componentSupplier.getClass().getName(), List.of());
   }
 
-  private static List<MenuDto> getMenu(App app, String route, String appRoute) {
+  private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {
     return buildMenu(app.menu(), route, appRoute);
   }
 
-  private static List<MenuDto> buildMenu(List<Actionable> menu, String route, String appRoute) {
+  private static List<MenuOptionDto> buildMenu(
+      List<Actionable> menu, String route, String appRoute) {
     return menu.stream()
         .map(
             option ->
-                MenuDto.builder()
+                MenuOptionDto.builder()
                     .label(option.label())
                     .destination(
                         option instanceof RouteLink || option instanceof ContentLink

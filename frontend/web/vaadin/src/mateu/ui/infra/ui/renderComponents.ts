@@ -30,7 +30,89 @@ import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
 import MessageInput from "@mateu/shared/apiClients/dtos/componentmetadata/MessageInput";
 import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
 import CustomField from "@mateu/shared/apiClients/dtos/componentmetadata/CustomField";
+import MenuBar from "@mateu/shared/apiClients/dtos/componentmetadata/MenuBar";
+import MessageList from "@mateu/shared/apiClients/dtos/componentmetadata/MessageList";
+import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
+import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
 
+
+export const renderGrid = (component: Component) => {
+    const metadata = component.metadata as Grid
+    if (metadata.tree) {
+        const dataProvider = async (
+            params: GridDataProviderParams<any>,
+            callback: GridDataProviderCallback<any>
+    ) => {
+            // The requested page and the full length of the corresponding
+            // hierarchy level is requested from the data service
+            /*
+            const { people, hierarchyLevelSize } = await getPeople({
+                count: params.pageSize,
+                startIndex: params.page * params.pageSize,
+                managerId: params.parentItem ? params.parentItem.id : null,
+            });
+             */
+            const items = params.parentItem?params.parentItem.children:metadata.page.items
+
+            callback(items, items.length);
+        }
+
+        return html`
+        <vaadin-grid style="width: 500px; height: 300px;"
+                     .itemHasChildrenPath="${'children'}" .dataProvider="${dataProvider}"
+        >
+            ${metadata.columns.map((column, index) => index > 0?html`
+            <vaadin-grid-column path="${column.id}">${index} - ${column.label}</vaadin-grid-column>
+`:html`
+            <vaadin-grid-tree-column path="${column.id}">${index} - ${column.label}</vaadin-grid-tree-column>
+`)}
+        </vaadin-grid>
+    `
+    }
+    return html`
+        <vaadin-grid style="width: 500px; height: 300px;" .items="${metadata.page.items}">
+            ${metadata.columns.map(column => html`
+            <vaadin-grid-column path="${column.id}">${column.label}</vaadin-grid-column>
+`)}
+        </vaadin-grid>
+    `
+
+}
+
+export const renderMessageList = (component: Component) => {
+    const metadata = component.metadata as MessageList
+    return html`
+        <vaadin-message-list
+                .items="${[
+    {
+    text: '**Hello team!** Did everyone review the *design document* for the new project?',
+    userName: 'Alex Johnson',
+    },
+    {
+    text: `## Project Update
+I've completed the initial research phase and documented my findings.
+
+* UI mockups ✅
+* Market analysis ✅
+* [See detailed report](https://vaadin.com)
+
+Let me know your thoughts!`,
+    userName: 'Sam Rivera',
+    },
+    ]
+                }"
+        ></vaadin-message-list>
+    `
+}
+
+export const renderMenuBar = (component: Component) => {
+    const metadata = component.metadata as MenuBar
+
+    return html`
+        <vaadin-menu-bar .items=${mapItems(metadata.options)}>
+        </vaadin-menu-bar>
+            `
+}
 
 export const renderCustomField = (component: Component, renderComponent: Function) => {
     const metadata = component.metadata as CustomField

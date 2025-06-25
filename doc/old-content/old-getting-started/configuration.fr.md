@@ -29,8 +29,8 @@ link = "define plugins path"
 [[params.plugins.js]]
 link = "define plugins path"
 
-# main menu
-[[menu.main]]
+# main menuBar
+[[menuBar.main]]
 name = "contact"
 url = "contact/"
 weight = 1
