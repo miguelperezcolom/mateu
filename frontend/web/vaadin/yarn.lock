@@ -1500,6 +1500,20 @@
     "@vaadin/vaadin-themable-mixin" "^24.8.0"
     lit "^3.0.0"
 
+"@vaadin/virtual-list@^24.8.0":
+  version "24.8.0"
+  resolved "https://registry.yarnpkg.com/@vaadin/virtual-list/-/virtual-list-24.8.0.tgz#1167e2746071febb40ba078880a1c31e79c09277"
+  integrity sha512-nby507eJfL8CkuFFdALGQsO7Zf7hfZzOfwlv4alFyJDyOS5B25JzDUBksRCAKWxkLBn+lYPNGzkHGb7ky8eiiA==
+  dependencies:
+    "@open-wc/dedupe-mixin" "^1.3.0"
+    "@polymer/polymer" "^3.0.0"
+    "@vaadin/component-base" "^24.8.0"
+    "@vaadin/lit-renderer" "^24.8.0"
+    "@vaadin/vaadin-lumo-styles" "^24.8.0"
+    "@vaadin/vaadin-material-styles" "^24.8.0"
+    "@vaadin/vaadin-themable-mixin" "^24.8.0"
+    lit "^3.0.0"
+
 "@vitest/browser@latest":
   version "3.2.4"
   resolved "https://registry.npmjs.org/@vitest/browser/-/browser-3.2.4.tgz"

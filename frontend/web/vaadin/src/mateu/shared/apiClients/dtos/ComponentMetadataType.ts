@@ -47,5 +47,6 @@ export enum ComponentMetadataType {
     CustomField = "CustomField",
     MenuBar = "MenuBar",
     Grid = "Grid",
+    VirtualList = "VirtualList",
 
 }

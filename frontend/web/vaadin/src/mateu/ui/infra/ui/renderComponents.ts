@@ -34,7 +34,23 @@ import MenuBar from "@mateu/shared/apiClients/dtos/componentmetadata/MenuBar";
 import MessageList from "@mateu/shared/apiClients/dtos/componentmetadata/MessageList";
 import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
 import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
+import VirtualList from "@mateu/shared/apiClients/dtos/componentmetadata/VirtualList";
+import { virtualListRenderer } from "@vaadin/virtual-list/lit";
 
+export const renderVirtualList = (component: Component) => {
+    const metadata = component.metadata as VirtualList
+
+    const renderer = (item: any) => html`
+            ${JSON.stringify(item)}
+`
+
+    return html`
+        <vaadin-virtual-list
+                .items="${metadata.page.items}"
+                ${virtualListRenderer(renderer, [])}
+        ></vaadin-virtual-list>
+    `
+}
 
 export const renderGrid = (component: Component) => {
     const metadata = component.metadata as Grid

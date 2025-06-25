@@ -44,6 +44,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabLayo
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TextComponentToDtoMapper.mapTextToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TooltipComponentToDtoMapper.mapTooltipToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.VirtualListComponentToDtoMapper.mapVirtualListToDto;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
@@ -87,6 +88,7 @@ import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.Tooltip;
 import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.data.VirtualList;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentSupplier;
@@ -249,6 +251,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Grid grid) {
       return mapGridToDto(grid);
+    }
+    if (component instanceof VirtualList virtualList) {
+      return mapVirtualListToDto(virtualList);
     }
     return new ComponentDto(
         new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());

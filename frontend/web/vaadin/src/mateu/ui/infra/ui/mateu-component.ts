@@ -39,6 +39,7 @@ import "@vaadin/message-list"
 import "@vaadin/custom-field"
 import "@vaadin/grid"
 import '@vaadin/grid/vaadin-grid-tree-column.js';
+import "@vaadin/virtual-list"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -85,7 +86,7 @@ import {
     renderNotification,
     renderPopover,
     renderProgressBar,
-    renderText, renderTooltip
+    renderText, renderTooltip, renderVirtualList
 } from "@infra/ui/renderComponents";
 
 @customElement('mateu-component')
@@ -318,6 +319,9 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.Grid) {
                 return renderGrid(component)
+            }
+            if (component.metadata.type == ComponentMetadataType.VirtualList) {
+                return renderVirtualList(component)
             }
             return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
         }
