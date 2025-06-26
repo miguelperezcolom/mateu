@@ -40,6 +40,7 @@ import "@vaadin/custom-field"
 import "@vaadin/grid"
 import '@vaadin/grid/vaadin-grid-tree-column.js';
 import "@vaadin/virtual-list"
+import "@vaadin/board"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import './mateu-form'
@@ -54,7 +55,7 @@ import ComponentElement from "@infra/ui/ComponentElement";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import {
-    renderAccordionLayout,
+    renderAccordionLayout, renderBoardLayout, renderBoardLayoutRow,
     renderContainer,
     renderFormLayout,
     renderFullWidth,
@@ -148,6 +149,12 @@ export class MateuComponent extends ComponentElement {
             }
             if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
                 return renderAccordionLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.BoardLayout) {
+                return renderBoardLayout(component, this.renderChildComponent)
+            }
+            if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
+                return renderBoardLayoutRow(component, this.renderChildComponent)
             }
             if (component.metadata.type == ComponentMetadataType.Scroller) {
                 return renderScroller(component, this.renderChildComponent)

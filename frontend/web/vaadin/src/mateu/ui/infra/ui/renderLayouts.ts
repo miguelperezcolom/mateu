@@ -145,3 +145,19 @@ export const renderContainer = (component: Component, renderComponent: Function)
                </div>
             `
 }
+
+export const renderBoardLayout = (component: Component, renderComponent: Function) => {
+    return html`
+        <vaadin-board style="width: 900px;">
+            ${component.children?.map(child => renderBoardLayoutRow(child, renderComponent))}
+        </vaadin-board>
+            `
+}
+
+export const renderBoardLayoutRow = (tab: Component, renderComponent: Function) => {
+    return html`
+        <vaadin-board-row>
+                   ${tab.children?.map(child => renderComponent(child))}
+               </vaadin-board-row>
+            `
+}

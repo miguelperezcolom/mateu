@@ -54,6 +54,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = MenuBarDto.class, name = "MenuBar"),
   @JsonSubTypes.Type(value = GridDto.class, name = "Grid"),
   @JsonSubTypes.Type(value = GridColumnDto.class, name = "GridColumn"),
-  @JsonSubTypes.Type(value = VirtualListDto.class, name = "VirtualList")
+  @JsonSubTypes.Type(value = VirtualListDto.class, name = "VirtualList"),
+  @JsonSubTypes.Type(value = BoardLayoutDto.class, name = "BoardLayout"),
+  @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow")
 })
 public interface ComponentMetadataDto {}

@@ -17,6 +17,7 @@ export enum ComponentMetadataType {
     AccordionLayout = "AccordionLayout",
     FormLayout = "FormLayout",
     BoardLayout = "BoardLayout",
+    BoardLayoutRow = "BoardLayoutRow",
     Scroller = "Scroller",
     FullWidth = "FullWidth",
     Container = "Container",
