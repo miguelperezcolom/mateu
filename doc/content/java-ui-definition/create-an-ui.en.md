@@ -86,11 +86,11 @@ public class HelloWorld implements HasFavicon {
 
 ## Page title
 
-Another thing you can do on your `@MateuUI` annotated class is provide a form title. Again, you can do that in a declarative or imperative way.
+Another thing you can do on your `@MateuUI` annotated class is provide a page title. Again, you can do that in a declarative or imperative way.
 
-If you do not provide it, `Mateu` will infer it from the class name so, a UI created from a class like `class HelloWorld {}` would have a title like `Hello World` by default.
+If you do not explicitly provide it, `Mateu` will infer it from the class name so, a UI created from a class like `class HelloWorld {}` would have a title like `Hello World` by default.
 
-### Declaratively provide form title
+### Declaratively provide the page title
 
 Just annotate your class with `@PageTitle`, as in the example below:
 
@@ -102,9 +102,9 @@ public class HelloWorld {
 }
 ```
 
-### Imperatively provide form title
+### Imperatively provide the page title
 
-If you want to supply your form title in a more dynamic way, you can just implement the `HasPageTitle` interface as in the example below:
+If you want to supply your page title in a more dynamic way, you can just implement the `HasPageTitle` interface as in the example below:
 
 ```java
 @MateuUI("/hello")

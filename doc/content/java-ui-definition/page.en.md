@@ -1,11 +1,11 @@
 ---
-title: "Routes"
-weight: 4
+title: "Pages"
+weight: 2
 ---
 
-With **Mateu** you do not strictly need to define routes, but it's a good practice.
+In `Mateu` a `Page` means indeed the more general view. It is indeed just a component with an associated route.
 
-As an example, here you have the simplest route definition:
+As an example, here you have the simplest page definition:
 
 ```java
 @Route("/home")

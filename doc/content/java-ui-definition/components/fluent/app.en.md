@@ -5,7 +5,7 @@ weight: 4
 
 ## Introduction
 
-An `App` is a component which allows the user to navigate among other components by using a navigation menuBar.
+An `App` is a high level convenience component which allows the user to navigate among other components by using a navigation menuBar.
 
 ```java
 
@@ -43,11 +43,20 @@ public class Home {
 
 ## Where to place the menuBar
 
-When you declare an `App` you have 4 options for positioning the menuBar: with a hamburger menuBar, in a menuBar bar in the top, in a menuBar bar on the left or as tabs.
+When you declare an `App` you have four options for positioning the menuBar: with a hamburger menuBar, in a menuBar bar in the top, in a menuBar bar on the left or as tabs.
 
 By default, tabs will be created if there is no submenu. If there is a submenu then a menuBar on the top will be created.
 
 ## Nesting Apps
 
 You can nest as many Apps as you want, for creating your UI.
+
+## Better one app only per page
+
+Even though it is technically possible to include more than one app component per page, you will usually include only one. 
+
+If you include more than one app component per page please notice that, as per today, you can have conflicts as there is 
+only one url for the browser. If you put more than one app component in the same page you will be unintendedly overwriting
+the browser url which comes from the user having selected an option in one app, when the user selects a menu option 
+in the other app.
 
