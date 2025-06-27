@@ -1,5 +1,46 @@
 ---
-title: "Shared app state *"
+title: "Shared app state"
 weight: 6
 ---
-TBD
+
+As said in the Mateu home page, Mateu backend is stateless. However, a general app state is maintained in the browser, 
+for each UI.
+
+That app state travel to the backend for each request, so components can use it to share data and to keep a kid of 
+session store.
+
+E.g. this is the payload for a sample http request to the server, from Mateu:
+
+```json
+{
+  "appState": {
+    "config": {
+      "tenantId": "1111",
+      "profile": "dev"
+    }
+  },
+  "initiatorComponentId":"tZWK0sW3HMUEAuXBBvy-D",
+  "consumedRoute":"/fluent-app"}
+```
+
+From the server side, you can update the app shared state by returning a **UIIncrement** object which includes the new 
+app state, as in the example below:
+
+```java
+tbd
+```
+
+From that moment, the new app state will travel in each http request to the server, and will be readable by any server
+side object managing an action. E.g. like in the example below:
+
+```java
+tbd
+```
+
+How to set the initial value for the app state is up to you, e.g. by using application.properties or application.yaml 
+file in springboot in the server side. You can also set it when embedding a mateu-ui or mateu-ux component in your html,
+using the xxxx attribute like below:
+
+```html
+tbd
+```
