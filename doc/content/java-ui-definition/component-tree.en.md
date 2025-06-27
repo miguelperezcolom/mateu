@@ -1,5 +1,5 @@
 ---
-title: "Components"
+title: "Component tree"
 weight: 4
 ---
 
