@@ -38,9 +38,23 @@ tbd
 ```
 
 How to set the initial value for the app state is up to you, e.g. by using application.properties or application.yaml 
-file in springboot in the server side. You can also set it when embedding a mateu-ui or mateu-ux component in your html,
+file in springboot in the server side. E.g.:
+
+```properties
+
+mateu.app-state.key1= "value1"
+mateu.app-state.key2= "value2"
+
+```
+
+You can also overwrite the default app state initial value supplier by providing your own bean, implementing the 
+**AppStateProvider** interface.  
+
+You can also set it when embedding a mateu-ui or mateu-ux component in your html,
 using the xxxx attribute like below:
 
 ```html
 tbd
 ```
+
+

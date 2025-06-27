@@ -1,8 +1,17 @@
 ---
-title: "Extension points *"
+title: "Extension points"
 weight: 12
 ---
 
-Client side and server side.
+You can easily extend Mateu to fit your needs.
 
-TBD
+On the **server side** you can:
+
+- Provide your own beans to overwrite the default logic of Mateu
+- Provide your own Mateu API server, for supporting a new language or for providing a different implementation than the ones Mateu provides.
+
+On the **client side** you can:
+
+- Provide your own css files
+- Provide your own web components, which can be then used in your UI s any other Mateu component
+- Provide your own frontend, perhaps using your own design system or just because you want to do it
