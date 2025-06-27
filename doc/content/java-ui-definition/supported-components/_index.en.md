@@ -1,5 +1,5 @@
 ---
-title: "Available components"
+title: "Supported components"
 #icon: "/images/icons/start.svg" # https://fonts.google.com/icons
 #icon_bg: ""
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
