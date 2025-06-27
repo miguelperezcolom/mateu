@@ -1,9 +1,9 @@
 ---
-title: "Components"
+title: "Components list"
 #icon: "/images/icons/start.svg" # https://fonts.google.com/icons
 #icon_bg: ""
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
-weight: 4
+weight: 10
 
 # don't create a separete form
 type: "docs"
