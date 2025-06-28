@@ -1,5 +1,5 @@
 ---
-title: "CRUDL"
+title: "Icons"
 weight: 100
 ---
 TBD

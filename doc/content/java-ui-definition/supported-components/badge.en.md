@@ -1,5 +1,5 @@
 ---
-title: "CRUDL"
+title: "Badge"
 weight: 100
 ---
 TBD
