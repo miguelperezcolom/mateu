@@ -34,13 +34,13 @@ Mateu introduces a simple yet powerful UI Domain-Specific Language (DSL) through
 
 Vaadin is a fantastic tool (we even use its design system!), but Mateu offers a different perspective:
 
-| Feature                    | Vaadin                           | Mateu                               |
-|----------------------------|----------------------------------|-------------------------------------|
-| **Focus**                  | UI components                    | Full application structure          |
-| **Architecture**           | Stateful                         | Stateless (ideal for microservices) |
-| **Microfrontend support**  | Indirect                         | First-class citizen                 |
-| **Multi-language support** | Java only                        | Java, C#, Python (planned)          |
-| **Frontend flexibility**   | Coupled                          | Fully decoupled and swappable       |
+| Feature                    | Vaadin                           | Mateu                                              |
+|----------------------------|----------------------------------|----------------------------------------------------|
+| **Focus**                  | UI components                    | Full application structure                         |
+| **Architecture**           | Stateful                         | Stateless (ideal for microservices and serverless) |
+| **Microfrontend support**  | Indirect                         | First-class citizen                                |
+| **Multi-language support** | Java only                        | Java, C#, Python (planned)                         |
+| **Frontend flexibility**   | Coupled                          | Fully decoupled and swappable                      |
 
 ---
 
