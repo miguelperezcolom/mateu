@@ -52,7 +52,7 @@ public class Home implements HasActions {
 @Action(id = "action1", requiresConfirmation = true)
 public class Home {
 
-  @Action(id = "action2", background = true)
+  @Action(background = true)
   Runnable action2 = () -> "Hola!";
 
 }
@@ -62,9 +62,9 @@ or
 
 ```java
 @Action(id = "action1", requiresConfirmation = true)
+@Action(id = "action2", background = true)
 public class Home {
 
-  @Action(id = "action2", background = true)
   void action2() {
     return "Hola!";
   }
