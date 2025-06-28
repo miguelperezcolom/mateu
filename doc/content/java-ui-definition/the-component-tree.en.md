@@ -3,7 +3,7 @@ title: "The component tree"
 weight: 4
 ---
 
-You create the UIs by composing 47 different components together. With **Mateu**, you use plain java classes for 
+You create the UIs by composing 40 different components together. With **Mateu**, you use plain java classes for 
 declaring those components and how they are combined to create your UIs.
 
 You can indeed do it using a declarative way using annotations, in a declarative though more dynamic way implementing 
