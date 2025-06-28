@@ -1,3 +1,4 @@
+{{ $minWordsForToc := 60 }}
 {{ $isTocEnable := site.Params.tableofcontents }}
 <section>
   <div
@@ -89,7 +90,7 @@
         class="{{ if $isTocEnable }}
           lg:w-[calc(100%-380px)] lg:border-l lg:border-l-border lg:pl-0
           2xl:w-[calc(100%-380px-350px)] 2xl:pr-0
-          {{ if gt .WordCount 180 }}
+          {{ if gt .WordCount $minWordsForToc }}
             2xl:border-r 2xl:border-r-border
           {{ end }}
         {{ else }}
@@ -105,7 +106,7 @@
           <article class="content prose max-w-full px-0 py-0">
             {{ partial "components/breadcrumb" (dict "Context" .) }}
 
-            {{ if and ($isTocEnable) (gt .WordCount 180) }}
+            {{ if and ($isTocEnable) (gt .WordCount $minWordsForToc) }}
               <div
                 class="toc-responsive bg-theme-light group rounded-xl sm:rounded-2xl 2xl:hidden">
                 <div
@@ -158,7 +159,7 @@
           {{ partial "call-to-action.html" (dict "Context" . "Class" "mt-8") }}
         </div>
       </div>
-      {{ if and ($isTocEnable) (gt .WordCount 180) }}
+      {{ if and ($isTocEnable) (gt .WordCount $minWordsForToc) }}
         <div class="hidden w-[350px] lg:pl-[28px] 2xl:block">
           <div
             class="cs-scrollbar sticky top-[105px] hidden max-h-[calc(100vh-100px)] overflow-auto pt-10 lg:block lg:overflow-auto lg:transition-none 2xl:block">

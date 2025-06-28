@@ -24,7 +24,7 @@ The code above produces the following UI, when you run the microservice and navi
 
 <p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
 
-## The @MateuUI anotation
+## Context path
 
 The `@MateuUI` annotation expects just 1 parameter, which is used to know at which url you want the UI to be found at.
 
@@ -46,7 +46,7 @@ public class HelloWorld {
 ```
 will show the UI if you navigate to `hhtp://localhost:8080/hello`.
 
-## Restrictions on paths
+### Restrictions on paths
 
 You can create as many UIs as you want, in your project. You only need to be careful that the context path needs to be unique. More specific paths are allowed, though.
 

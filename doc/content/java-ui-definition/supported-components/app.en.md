@@ -1,11 +1,15 @@
 ---
-title: "Apps"
+title: "App"
 weight: 4
 ---
 
 ## Introduction
 
 An `App` is a high level convenience component which allows the user to navigate among other components by using a navigation menuBar.
+
+{{< tabs "tab-group-name" >}}
+
+{{< tab "Fluent" >}}
 
 ```java
 
@@ -30,6 +34,17 @@ public class FluentApp implements AppSupplier {
 }
 
 ```
+
+{{< /tab >}}
+
+{{< tab "Declarative" >}}
+
+TBD
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
 
 Please notice that in the example above we need to have some java classes related to the mentioned routes, like in the example below:
 

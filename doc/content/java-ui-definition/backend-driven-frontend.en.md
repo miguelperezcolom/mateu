@@ -21,11 +21,31 @@ public class Counter {
 
 }
 ```
+
 Becomes this in the browser:
 
-<p align="center"><img src="../../../images/counter.png" width="500"/></p>
+<p align="center"><img src="../../../images/counter.png" width="400"/></p>
 
+Or, you can say the same in a fluent imperative way:
 
+```java
+@MateuUI("")
+public class Counter implements ComponentSupplier {
+
+  int count = 0;
+
+  @Override
+  public Object getComponent(HttpRequest httpRequest) {
+    return new VerticalLayout(
+      new Text(new Binding("count")),
+      new Button("Increment", () -> count++)
+    );
+  }
+
+}
+```
+
+## Linking to the frontend
 
 In **Mateu** any class can be a server side component. You link that class to the frontend by:
 
@@ -33,11 +53,10 @@ In **Mateu** any class can be a server side component. You link that class to th
 - Annotating the class with **@Route**.
 - Returning an object from another class which is already linked to the frontend, as response to some event in the browser.
 
+## Interact with the frontend
+
 That java class can interact with the frontend by:
 
 - Supplying frontend content.
 - Supplying data to the frontend.
 - Handling requests from the frontend.
-
-All that can be declared in an imperative or a declarative way, so you can explicitly say what must happen or it can 
-be inferred from your java code.  

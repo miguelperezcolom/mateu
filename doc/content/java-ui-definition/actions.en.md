@@ -11,6 +11,36 @@ order to override the default behavior (e.g. to perform client side validations 
 You will also define **actions** when you want to state that an action happens in the background (no loader is showed 
 while making the call).
 
+## Explicitly defining actions
+
+You can explicitly define actions by implementing the **HasActions** interface. 
+
+```java
+public class Home implements HasActions {
+
+    @Override
+    public List<Action> getActions(HttpRequest httpRequest) {
+        return List.of(
+          
+          Action.builder()
+            .id("action1")
+            .requiresConfirmation(true)
+            .build(),
+          
+          Action.builder()
+            .id("action2")
+            .background(true)
+            .runnable(() -> "Hola!")
+            .build()
+
+        );
+    }
+
+}
+```
+
+## Explicitly handling actions
+
 As said, you usually create actions transparently when providing callbacks or lambdas, but you can also provide an
 action manager for your component. You just need to implement the **HandlesActions** interface, like below:
 
@@ -32,6 +62,8 @@ public class Home implements HandlesActions {
 
 The **HandlesActions** interface has a reactive counterpart, which is the **HandlesActionsReactive** interface.
 
+## Response 
+
 Depending on the object returned, Mateu will infer what you want to happen in the client side:
 
 - If you return an object implementing the **ComponentSupplier** or the **Component** interfaces, new content will be rendered in the browser
@@ -40,6 +72,8 @@ Depending on the object returned, Mateu will infer what you want to happen in th
   - UI components
   - Data
   - Commands
+
+## Triggers
 
 Triggers can also be defined for actions. E.g.:
 

@@ -37,6 +37,8 @@ side object managing an action. E.g. like in the example below:
 tbd
 ```
 
+## Initial values
+
 How to set the initial value for the app state is up to you, e.g. by using application.properties or application.yaml 
 file in springboot in the server side. E.g.:
 
