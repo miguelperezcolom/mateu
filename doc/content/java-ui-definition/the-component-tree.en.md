@@ -30,7 +30,7 @@ public class Counter implements ComponentSupplier {
 
 The example above will create the following component tree, in the browser:
 
-<p align="center"><img src="../../../images/arch-overall-5.svg" width="500"/></p>
+<p align="center"><img src="../../../images/arch-client-5.svg" width="500"/></p>
 
 
 Please notice you can also leverage java inheritance and maven dependencies for building your UIs with Mateu.

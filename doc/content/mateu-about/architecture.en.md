@@ -33,6 +33,13 @@ The api spec is available here: http://demo.mateu.io/webjars/swagger-ui/index.ht
 
 Please notice that the urls anatomy is intended for making it easy to route them and protect them at edge side. 
 
+## Backend-driven frontend
+
+Basically, java objects on the server side, when pushed to the frontend, become html elements (e.g. web components) 
+inside the browser like in the diagram below:
+
+<p align="center"><img src="../../../images/arch-overall-7.svg" width="600"/></p>
+
 ## What happens in the server side
 
 Mateu basically generates controllers for your server side classes annotated with `@MateuUI`, which mainly provide 2 things:
