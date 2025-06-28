@@ -2,15 +2,14 @@
 title: "API"
 weight: 17
 ---
-<!-- Generator: Widdershins v4.0.1 -->
 
-<h1 id="demo-vaadin-micronaut">demo-vaadin-micronaut v1.0.0</h1>
+# Mateu API v3.0.0
 
 > Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menuBar.
 
-<h1 id="demo-vaadin-micronaut-default">Default</h1>
+## Endpoints
 
-## getUI
+### Get UI
 
 <a id="opIdgetUI"></a>
 
@@ -29,135 +28,6 @@ POST /your-context-path/mateu/v3/ui HTTP/1.1
 
 Content-Type: application/json
 Accept: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "config": {},
-  "path": "string"
-}';
-const headers = {
-  'Content-Type':'application/json',
-  'Accept':'application/json'
-};
-
-fetch('/your-context-path/mateu/v3/ui',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json',
-  'Accept' => 'application/json'
-}
-
-result = RestClient.post '/your-context-path/mateu/v3/ui',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-}
-
-r = requests.post('/your-context-path/mateu/v3/ui', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-    'Accept' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','/your-context-path/mateu/v3/ui', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("/your-context-path/mateu/v3/ui");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-        "Accept": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "/your-context-path/mateu/v3/ui", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
 
 ```
 
@@ -232,7 +102,7 @@ func main() {
 This operation does not require authentication
 </aside>
 
-## runStep
+### Run Action
 
 <a id="opIdrunStep"></a>
 
@@ -251,138 +121,6 @@ POST /your-context-path/mateu/v3/{route}/{actionId} HTTP/1.1
 
 Content-Type: application/json
 Accept: application/json
-
-```
-
-```javascript
-const inputBody = '{
-  "data": {},
-  "appState": {},
-  "componentType": "string",
-  "initiatorComponentId": "string",
-  "consumedRoute": "string"
-}';
-const headers = {
-  'Content-Type':'application/json',
-  'Accept':'application/json'
-};
-
-fetch('/your-context-path/mateu/v3/{route}/{actionId}',
-{
-  method: 'POST',
-  body: inputBody,
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Content-Type' => 'application/json',
-  'Accept' => 'application/json'
-}
-
-result = RestClient.post '/your-context-path/mateu/v3/{route}/{actionId}',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```python
-import requests
-headers = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-}
-
-r = requests.post('/your-context-path/mateu/v3/{route}/{actionId}', headers = headers)
-
-print(r.json())
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Content-Type' => 'application/json',
-    'Accept' => 'application/json',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','/your-context-path/mateu/v3/{route}/{actionId}', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```java
-URL obj = new URL("/your-context-path/mateu/v3/{route}/{actionId}");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Content-Type": []string{"application/json"},
-        "Accept": []string{"application/json"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "/your-context-path/mateu/v3/{route}/{actionId}", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
 
 ```
 
@@ -459,7 +197,7 @@ This operation does not require authentication
 
 # Schemas
 
-<h2 id="tocS_ComponentDto">ComponentDto</h2>
+## ComponentDto
 <!-- backwards compatibility -->
 <a id="schemacomponentdto"></a>
 <a id="schema_ComponentDto"></a>
@@ -483,7 +221,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
@@ -492,7 +230,7 @@ This operation does not require authentication
 |id|string|true|none|none|
 |serverSideType|string|true|none|none|
 
-<h2 id="tocS_ComponentMetadataDto">ComponentMetadataDto</h2>
+## ComponentMetadataDto
 <!-- backwards compatibility -->
 <a id="schemacomponentmetadatadto"></a>
 <a id="schema_ComponentMetadataDto"></a>
@@ -504,11 +242,11 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 *None*
 
-<h2 id="tocS_GetUIRqDto">GetUIRqDto</h2>
+## GetUIRqDto
 <!-- backwards compatibility -->
 <a id="schemagetuirqdto"></a>
 <a id="schema_GetUIRqDto"></a>
@@ -523,14 +261,14 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
 |config|object|true|none|none|
 |path|string|true|none|none|
 
-<h2 id="tocS_MessageDto">MessageDto</h2>
+## MessageDto
 <!-- backwards compatibility -->
 <a id="schemamessagedto"></a>
 <a id="schema_MessageDto"></a>
@@ -547,7 +285,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
@@ -556,7 +294,7 @@ This operation does not require authentication
 |text|string|true|none|none|
 |duration|integer(int32)|true|none|none|
 
-<h2 id="tocS_ResultTypeDto">ResultTypeDto</h2>
+## ResultTypeDto
 <!-- backwards compatibility -->
 <a id="schemaresulttypedto"></a>
 <a id="schema_ResultTypeDto"></a>
@@ -568,13 +306,13 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
 |*anonymous*|string|false|none|none|
 
-#### Enumerated Values
+<h3>Enumerated Values</h3>
 
 |Property|Value|
 |---|---|
@@ -584,7 +322,7 @@ This operation does not require authentication
 |*anonymous*|Error|
 |*anonymous*|Ignored|
 
-<h2 id="tocS_RunActionRqDto">RunActionRqDto</h2>
+## RunActionRqDto
 <!-- backwards compatibility -->
 <a id="schemarunactionrqdto"></a>
 <a id="schema_RunActionRqDto"></a>
@@ -602,7 +340,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
@@ -612,7 +350,7 @@ This operation does not require authentication
 |initiatorComponentId|string|true|none|none|
 |consumedRoute|string|true|none|none|
 
-<h2 id="tocS_UICommandDto">UICommandDto</h2>
+## UICommandDto
 <!-- backwards compatibility -->
 <a id="schemauicommanddto"></a>
 <a id="schema_UICommandDto"></a>
@@ -627,14 +365,14 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
 |type|[UICommandTypeDto](#schemauicommandtypedto)|true|none|none|
 |data|any|true|none|none|
 
-<h2 id="tocS_UICommandTypeDto">UICommandTypeDto</h2>
+## UICommandTypeDto
 <!-- backwards compatibility -->
 <a id="schemauicommandtypedto"></a>
 <a id="schema_UICommandTypeDto"></a>
@@ -646,13 +384,13 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
 |*anonymous*|string|false|none|none|
 
-#### Enumerated Values
+<h3>Enumerated Values</h3>
 
 |Property|Value|
 |---|---|
@@ -666,7 +404,7 @@ This operation does not require authentication
 |*anonymous*|SetWindowTitle|
 |*anonymous*|ReplaceJourney|
 
-<h2 id="tocS_UIDto">UIDto</h2>
+## UIDto
 <!-- backwards compatibility -->
 <a id="schemauidto"></a>
 <a id="schema_UIDto"></a>
@@ -714,7 +452,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
@@ -723,7 +461,7 @@ This operation does not require authentication
 |homeRoute|string|true|none|none|
 |home|[UIIncrementDto](#schemauiincrementdto)|true|none|none|
 
-<h2 id="tocS_UIFragmentDto">UIFragmentDto</h2>
+## UIFragmentDto
 <!-- backwards compatibility -->
 <a id="schemauifragmentdto"></a>
 <a id="schema_UIFragmentDto"></a>
@@ -746,7 +484,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
@@ -754,7 +492,7 @@ This operation does not require authentication
 |component|[ComponentDto](#schemacomponentdto)|true|none|none|
 |data|any|true|none|none|
 
-<h2 id="tocS_UIIncrementDto">UIIncrementDto</h2>
+## UIIncrementDto
 <!-- backwards compatibility -->
 <a id="schemauiincrementdto"></a>
 <a id="schema_UIIncrementDto"></a>
@@ -797,7 +535,7 @@ This operation does not require authentication
 
 ```
 
-### Properties
+<h3>Properties</h3>
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|

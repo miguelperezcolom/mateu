@@ -44,6 +44,8 @@ Mateu basically generates controllers for your server side classes annotated wit
 
 This part highly depends on the implementation but, for the vaadin/lit element one, these are the main guidelines.
 
+### Components
+
 The UI is created using some base components, which mainly have an id, metadata, data and actions properties as shown in the following diagram:
 
 <p align="center"><img src="../../../images/arch-client-1.svg" width="500"/></p>
@@ -52,22 +54,13 @@ Components can have children, and the communication between components is done t
 
 <p align="center"><img src="../../../images/arch-client-2.svg" width="500"/></p>
 
-In this implementation of the client side I do not use a central store for now, the reason being performance sake.
+### Flux pattern
 
-| Central state                             | Component state                                                       |
-|-------------------------------------------|-----------------------------------------------------------------------|
-| triggers updates on each component        | seems to be more efficient (only affected components are re-rendered) |
-| garbage collection of unused components   | accessing data outside the component (e.g. from parent / global)      |
-| easier to manage                          |       |
-| data shareable between components         |                                                                       |
-
-Instead, I'm using a rx stream for async UI updates, as shown below:
+As per today, I'm using a rx stream for async UI updates, as shown below:
 
 <p align="center"><img src="../../../images/arch-client-3.svg" width="500"/></p>
 
-Even though I'm considering a central store based approach:
-
-<p align="center"><img src="../../../images/arch-client-4.svg" width="500"/></p>
+### Bring your own design system
 
 For using our own design system, we could just provide a different implementation of the mateu-component web component 
 and tell the UI to load the javascript, instead of the default one.
