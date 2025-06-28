@@ -15,6 +15,11 @@ while making the call).
 
 You can explicitly define actions by implementing the **HasActions** interface. 
 
+
+{{< tabs "tab-group-name" >}}
+
+{{< tab "Fluent" >}}
+
 ```java
 public class Home implements HasActions {
 
@@ -38,6 +43,39 @@ public class Home implements HasActions {
 
 }
 ```
+
+{{< /tab >}}
+
+{{< tab "Declarative" >}}
+
+```java
+@Action(id = "action1", requiresConfirmation = true)
+public class Home {
+
+  @Action(id = "action2", background = true)
+  Runnable action2 = () -> "Hola!";
+
+}
+```
+
+or 
+
+```java
+@Action(id = "action1", requiresConfirmation = true)
+public class Home {
+
+  @Action(id = "action2", background = true)
+  void action2() {
+    return "Hola!";
+  }
+
+}
+```
+
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 ## Explicitly handling actions
 
