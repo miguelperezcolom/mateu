@@ -40,7 +40,7 @@
   }
 
   &.active .accordion-content {
-    @apply max-h-[1000px] p-6 pl-6 text-sm leading-relaxed sm:text-base md:pl-8;
+    @apply max-h-[3000px] p-6 pl-6 text-sm leading-relaxed sm:text-base md:pl-8;
 
     padding-top: 0px !important;
   }
@@ -99,7 +99,7 @@
         @apply mb-0;
       }
 
-      @apply font-secondary block max-h-[1000px] text-sm leading-relaxed sm:text-base;
+      @apply font-secondary block max-h-[3000px] text-sm leading-relaxed sm:text-base;
     }
   }
 }

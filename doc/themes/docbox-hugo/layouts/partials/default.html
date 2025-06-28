@@ -130,7 +130,7 @@
                   </div>
                 </div>
                 <div
-                  class="toc-content border-t-theme-light bg-theme-light hidden max-h-0 overflow-hidden rounded-b-lg border-t px-4 pb-5 pt-0 group-[.active]:block group-[.active]:max-h-[1000px] md:px-6">
+                  class="toc-content border-t-theme-light bg-theme-light hidden max-h-0 overflow-hidden rounded-b-lg border-t px-4 pb-5 pt-0 group-[.active]:block group-[.active]:max-h-[3000px] md:px-6">
                   {{ .TableOfContents }}
                 </div>
               </div>
@@ -258,7 +258,7 @@
       <!-- End Title & Icon -->
       {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}
       {{ if ne $numberOfPages 0 }}
-        <ul class="group-[.active]:mt-4 group-[.active]:max-h-[1000px]">
+        <ul class="group-[.active]:mt-4 group-[.active]:max-h-[3000px]">
           {{ $currentNode.Scratch.Set "pages" .Pages }}
           {{ if .Sections }}
             {{ $currentNode.Scratch.Set "pages" (.Pages | union .Sections) }}
