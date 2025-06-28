@@ -18,7 +18,7 @@ public class Counter implements ComponentSupplier {
   int count = 0;
 
   @Override
-  public Object getComponent(HttpRequest httpRequest) {
+  public Component getComponent(HttpRequest httpRequest) {
     return new VerticalLayout(
       new Text(new Binding("count")),
       new Button("Increment", () -> count++)
