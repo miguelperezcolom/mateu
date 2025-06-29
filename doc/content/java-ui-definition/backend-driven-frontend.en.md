@@ -7,7 +7,8 @@ In **Mateu** the frontend is backed by an ephemeral java object in the server si
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
 
-Please notice the java object is instantiated and hydrated on every api request. It does not survive between api calls. 
+Please notice that, unless you defined your java class as a singleton bean, the java object is instantiated and hydrated 
+on every api request. It does not survive between api calls. Mateu server side is stateless.
 
 So, the following java code:
 

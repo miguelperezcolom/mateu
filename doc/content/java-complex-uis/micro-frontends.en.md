@@ -22,8 +22,7 @@ Mateu frontend reference implementation uses web components, so you only need to
     <script type="module" src="https://unpkg.com/mateu-ui/dist/assets/mateu.js"></script>
 </head>
 <body>
-    <mateu-ui uiId="com.example.demoremote.ui.demoApp.DemoApp"
-              baseUrl="https://explorer.mateu.io/mateu/v1">
+    <mateu-ui baseUrl="https://explorer.mateu.io">
     </mateu-ui>
 </body>
 </html>
@@ -42,16 +41,20 @@ That would embed the whole UI (including menus) in any website. If you want to e
     <script type="module" src="https://unpkg.com/mateu-ui/dist/assets/mateu.js"></script>
 </head>
 <body>
-    <journey-starter uiId="com.example.demoremote.ui.demoApp.DemoApp"
-                     journeytypeid="forms_returnsResult"
-                     baseurl="https://explorer.mateu.io/mateu/v1">
-        
-    </journey-starter>
+    <mateu-ux route="forms_returnsResult"
+                     baseurl="https://explorer.mateu.io/mateu/v1">       
+    </mateu-ux>
 </body>
 </html>
 ``` 
 
 In the end they are just web components, so you can place them wherever you want.
+
+### How to know the base url and the route
+
+Mateu provides a special url for that: https://xxxx/your-context-path/mateu-info
+
+It returns a json with information about the defined routes, so you just need to copy-paste.
 
 ### Passing parameters from the frontend
 
