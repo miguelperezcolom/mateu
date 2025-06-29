@@ -1,6 +1,6 @@
 ---
 title: "Create an UI"
-weight: 1
+weight: 2
 ---
 
 Creating a UI with Mateu is as easy as creating a java class and annotating it with `@MateuUI`. 
