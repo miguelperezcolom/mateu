@@ -1,6 +1,6 @@
 ---
 title: "The component tree"
-weight: 4
+weight: 2
 ---
 
 You create the UIs by composing any of the 40 available components together. With **Mateu**, you use plain java classes for 
@@ -39,3 +39,13 @@ The example above will create the following component tree, in the browser:
 Please notice you can also leverage java inheritance and maven dependencies for building your UIs with Mateu, so you can
 create components which extend other components, create libraries with sets of components, and even use dependency injection 
 inside your components.
+
+## Reusing components
+
+As you are defining your UI using plain java classes, inheritance, dependency injection and maven packages can be
+used.
+
+This means that you can extend existing UIs, forms or cruds, or create artifacts which contain component libraries
+which can be used in another UI built with Mateu.
+
+You can also integrate components from other microservices, as micro frontends in your own UI.

@@ -1,6 +1,6 @@
 ---
 title: "Actions"
-weight: 5
+weight: 3
 ---
 
 With Mateu the UI you define is rendered in the browser, and you can link the user interactions (e.g. clicking a button, 
