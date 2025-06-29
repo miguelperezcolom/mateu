@@ -63,3 +63,11 @@ That java class can interact with the frontend by:
 - Supplying frontend content.
 - Supplying data to the frontend.
 - Handling requests from the frontend.
+
+## Singletons
+
+You can declare your java class as a singleton according to the java framework you use, e.g. by annotating it with 
+**@Singleton** or **@Service**.
+
+If you do that your java class will be shared among all your requests, but please notice that it could lead to undesired
+effects, e.g. all users seeing the same values in the input fields.
