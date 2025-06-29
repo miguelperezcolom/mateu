@@ -3,9 +3,11 @@ title: "Backend-driven frontend"
 weight: 2
 ---
 
-In **Mateu** the frontend is backed by a java class in the server side, like illustrated in the following diagram:
+In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
+
+Please notice the java object is instantiated and hydrated on every api request. It does not survive between api calls. 
 
 So, the following java code:
 
