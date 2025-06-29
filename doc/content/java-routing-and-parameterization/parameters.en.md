@@ -21,3 +21,5 @@ public class Home implements HasInitMethod {
 }
 
 ```
+
+The **init** method is called after instantiating and hydrating the java object, for every request. 

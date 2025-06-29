@@ -47,7 +47,7 @@ public class Counter implements ComponentSupplier {
 }
 ```
 
-## Linking to the frontend
+## Linking backend and frontend
 
 In **Mateu** any class can be a server side component. You link that class to the frontend by:
 
