@@ -3,7 +3,7 @@ title: "Routes"
 weight: 4
 ---
 
-With **Mateu** you do not strictly need to define routes, but it's a good practice.
+With **Mateu** you do not technically need to define routes (they are transparently defined for you, from your java code), but it's a good practice.
 
 As an example, here you have the simplest route definition:
 

@@ -4,23 +4,26 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ButtonDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.OnLoadTriggerDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.fluent.ComponentSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 
 public class FormComponentToDtoMapper {
 
   public static ComponentDto mapFormToDto(
       Form form,
-      ComponentSupplier componentSupplier,
+      ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
       HttpRequest httpRequest) {
@@ -37,13 +40,18 @@ public class FormComponentToDtoMapper {
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .build();
-    return new ComponentDto(
-        formMetadataDto,
+    return new ServerSideComponentDto(
         form.id(),
         componentSupplier.getClass().getName(),
-        form.content().stream()
-            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
-            .toList());
+        List.of(
+            new ClientSideComponentDto(
+                formMetadataDto,
+                form.id(),
+                form.content().stream()
+                    .map(
+                        component ->
+                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                    .toList())));
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {

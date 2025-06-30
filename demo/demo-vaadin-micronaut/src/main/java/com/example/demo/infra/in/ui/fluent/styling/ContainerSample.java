@@ -5,15 +5,15 @@ import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.FormSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
 @Route("/fluent-app/styling/container")
-public class ContainerSample implements FormSupplier {
+public class ContainerSample implements ComponentTreeSupplier {
     @Override
-    public Form getForm(HttpRequest httpRequest) {
+    public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Container")
                 .content(List.of(new Container(VerticalLayout.builder()

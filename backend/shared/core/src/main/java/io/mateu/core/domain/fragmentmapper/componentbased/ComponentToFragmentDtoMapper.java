@@ -48,6 +48,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Tooltip
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.VirtualListComponentToDtoMapper.mapVirtualListToDto;
 
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -95,7 +96,7 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.VirtualList;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.ComponentSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.MenuBar;
@@ -106,7 +107,7 @@ import java.util.Map;
 public final class ComponentToFragmentDtoMapper {
 
   public static UIFragmentDto mapComponentToFragment(
-      ComponentSupplier componentSupplier,
+      ComponentTreeSupplier componentSupplier,
       Component component,
       String baseUrl,
       String route,
@@ -119,13 +120,13 @@ public final class ComponentToFragmentDtoMapper {
   }
 
   public static ComponentDto mapComponentToDto(
-      ComponentSupplier componentSupplier,
+      ComponentTreeSupplier componentSupplier,
       Component component,
       String baseUrl,
       String route,
       HttpRequest httpRequest) {
     if (component instanceof App app) {
-      return mapAppToDto(app, componentSupplier, baseUrl, route, httpRequest);
+      return mapAppToDto(app, baseUrl, route, httpRequest);
     }
     if (component instanceof Form form) {
       return mapFormToDto(form, componentSupplier, baseUrl, route, httpRequest);
@@ -265,7 +266,7 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof VirtualList virtualList) {
       return mapVirtualListToDto(virtualList);
     }
-    return new ComponentDto(
-        new ElementDto("div", Map.of(), component.toString()), "fieldId", null, List.of());
+    return new ClientSideComponentDto(
+        new ElementDto("div", Map.of(), component.toString()), "fieldId", List.of());
   }
 }

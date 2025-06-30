@@ -17,10 +17,11 @@ public record HorizontalLayout(
     boolean wrap,
     List<Integer> flexGrows,
     boolean fullWidth,
-    String style)
+    String style,
+    String cssClasses)
     implements Component {
 
   public HorizontalLayout(List<Component> content) {
-    this(null, content, false, false, false, null, null, null, false, List.of(), false, null);
+    this(null, content, false, false, false, null, null, null, false, List.of(), false, null, null);
   }
 }

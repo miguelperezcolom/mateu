@@ -6,11 +6,7 @@ import io.mateu.uidl.data.Binding;
 
 public class BindingToDtoMapper {
 
-  public static BindingDto mapBindingToDto(
-          Binding binding) {
-    return new BindingDto(
-            BindingSourceDto.valueOf(binding.source().name()),
-            binding.propertyId()
-        );
+  public static BindingDto mapBindingToDto(Binding binding) {
+    return new BindingDto(BindingSourceDto.valueOf(binding.source().name()), binding.propertyId());
   }
 }

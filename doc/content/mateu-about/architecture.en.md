@@ -35,7 +35,11 @@ Please notice that the urls anatomy is intended for making it easy to route them
 
 ## Backend-driven frontend
 
-Basically, java objects on the server side, when pushed to the frontend, become html elements (e.g. web components) 
+In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
+
+<p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
+
+On the other hand, java objects on the server side, when pushed to the frontend, become html elements (e.g. web components) 
 inside the browser like in the diagram below:
 
 <p align="center"><img src="../../../images/arch-overall-7.svg" width="600"/></p>

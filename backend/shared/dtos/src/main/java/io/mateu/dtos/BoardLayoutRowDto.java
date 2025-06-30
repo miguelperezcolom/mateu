@@ -5,4 +5,5 @@ import lombok.Builder;
 
 /** A tab */
 @Builder
-public record BoardLayoutRowDto(List<ComponentDto> content) implements ComponentMetadataDto {}
+public record BoardLayoutRowDto(List<ClientSideComponentDto> content)
+    implements ComponentMetadataDto {}

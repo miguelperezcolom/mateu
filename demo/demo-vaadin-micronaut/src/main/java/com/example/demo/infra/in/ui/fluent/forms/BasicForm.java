@@ -7,7 +7,7 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.FormSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -16,12 +16,12 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Route("/fluent-app/forms/basic")
-public class BasicForm implements FormSupplier, HandlesActions {
+public class BasicForm implements ComponentTreeSupplier, HandlesActions {
 
 
 
     @Override
-    public Form getForm(HttpRequest httpRequest) {
+    public Form getComponent(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
                 .id("form_id")
                 .title("title")

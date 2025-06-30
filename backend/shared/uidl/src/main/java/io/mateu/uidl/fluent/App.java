@@ -12,7 +12,9 @@ public record App(
     String subtitle,
     List<Actionable> menu,
     AppVariant variant,
-    List<Component> widgets)
+    List<Component> widgets,
+    String style,
+    String cssClasses)
     implements Component {
 
   public App {

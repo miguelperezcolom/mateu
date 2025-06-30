@@ -17,7 +17,9 @@ public record AppDto(
     String loginUrl,
     String welcomeMessage,
     String logoutUrl,
-    List<AppDescriptorDto> apps)
+    List<AppDescriptorDto> apps,
+    String style,
+    String cssClasses)
     implements ComponentMetadataDto {
 
   public AppDto {

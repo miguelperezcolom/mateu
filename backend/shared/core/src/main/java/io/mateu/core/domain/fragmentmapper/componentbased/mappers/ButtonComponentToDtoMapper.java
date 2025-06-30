@@ -1,14 +1,14 @@
 package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import io.mateu.dtos.ButtonDto;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.uidl.data.Button;
 import java.util.List;
 
 public class ButtonComponentToDtoMapper {
 
-  public static ComponentDto mapButtonToDto(Button button) {
-    return new ComponentDto(
+  public static ClientSideComponentDto mapButtonToDto(Button button) {
+    return new ClientSideComponentDto(
         new ButtonDto(
             button.id(),
             button.actionId(),
@@ -16,7 +16,6 @@ public class ButtonComponentToDtoMapper {
             button.iconOnRight(),
             button.label()),
         "fieldId",
-        null,
         List.of());
   }
 }

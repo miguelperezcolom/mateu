@@ -1,6 +1,6 @@
 package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.OptionDto;
 import io.mateu.uidl.data.Field;
@@ -8,8 +8,8 @@ import java.util.List;
 
 public class FieldComponentToDtoMapper {
 
-  public static ComponentDto mapFieldToDto(Field field) {
-    return new ComponentDto(
+  public static ClientSideComponentDto mapFieldToDto(Field field) {
+    return new ClientSideComponentDto(
         FormFieldDto.builder()
             .fieldId(field.id())
             .label(field.label())
@@ -26,7 +26,6 @@ public class FieldComponentToDtoMapper {
                     .toList())
             .build(),
         field.id(),
-        null,
         List.of());
   }
 }

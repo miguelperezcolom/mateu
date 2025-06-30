@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.TextContainerDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -22,8 +22,8 @@ class ComponentToDtoMapperTest {
         UIFragmentDto.builder()
             .targetComponentId("initiator")
             .component(
-                new ComponentDto(
-                    new TextDto(TextContainerDto.p, Map.of(), "Hola"), "fieldId", null, List.of()))
+                new ClientSideComponentDto(
+                    new TextDto(TextContainerDto.p, Map.of(), "Hola"), "fieldId", List.of()))
             .build();
     var dto =
         mapComponentToFragment(

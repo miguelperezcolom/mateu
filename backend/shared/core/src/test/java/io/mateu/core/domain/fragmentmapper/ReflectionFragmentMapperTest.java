@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.uis.apps.SimpleApp;
 import com.example.uis.forms.ExtendedSimpleForm;
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.dtos.FormDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.App;
@@ -25,7 +25,7 @@ class ReflectionFragmentMapperTest {
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
-    assertInstanceOf(FormDto.class, fragment.component().metadata());
+    assertInstanceOf(ServerSideComponentDto.class, fragment.component());
   }
 
   @Test

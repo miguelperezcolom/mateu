@@ -1,6 +1,6 @@
 package io.mateu.core.domain.fragmentmapper.reflectionbased;
 
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -12,8 +12,7 @@ public final class ReflectionObjectMapper {
   public static UIFragmentDto mapObjectToFragment(
       Object object, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     var elementDto = new ElementDto("p", Map.of(), object != null ? object.toString() : "-");
-    var component =
-        new ComponentDto(elementDto, "component_id", object.getClass().getName(), List.of());
+    var component = new ClientSideComponentDto(elementDto, "component_id", List.of());
     return new UIFragmentDto(initiatorComponentId, component, object);
   }
 }

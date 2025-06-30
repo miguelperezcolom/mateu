@@ -34,8 +34,8 @@ public record FormDto(
     List<ButtonDto> buttons,
     List<ValidationDto> validations,
     List<RuleDto> rules,
-    List<ComponentDto> header,
-    List<ComponentDto> footer)
+    List<ClientSideComponentDto> header,
+    List<ClientSideComponentDto> footer)
     implements ComponentMetadataDto {
 
   public FormDto {

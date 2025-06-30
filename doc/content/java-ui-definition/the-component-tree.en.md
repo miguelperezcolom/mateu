@@ -49,3 +49,7 @@ This means that you can extend existing UIs, forms or cruds, or create artifacts
 which can be used in another UI built with Mateu.
 
 You can also integrate components from other microservices, as micro frontends in your own UI.
+
+## Bring your own components
+
+You can easily create your own web components and use them, just like any other html element.

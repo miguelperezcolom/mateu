@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -75,7 +75,7 @@ class AppComponentToDtoMapperTest {
         UIFragmentDto.builder()
             .targetComponentId("initiator")
             .component(
-                new ComponentDto(
+                new ClientSideComponentDto(
                     AppDto.builder()
                         .homeRoute("/fluent-app/page2")
                         .route("route")
@@ -162,7 +162,6 @@ class AppComponentToDtoMapperTest {
                                     .build()))
                         .build(),
                     "component_id",
-                    supplier.getClass().getName(),
                     List.of()))
             .data(supplier)
             .build();
@@ -214,9 +213,9 @@ class AppComponentToDtoMapperTest {
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
-    assertInstanceOf(AppDto.class, dto.component().metadata());
-    var appDto = (AppDto) dto.component().metadata();
+    assertInstanceOf(ClientSideComponentDto.class, dto.component());
+    var appDto = (AppDto) ((ClientSideComponentDto) dto.component()).metadata();
     assertEquals("/fluent-app/nested-app/page2", appDto.homeRoute());
-    assertEquals("/fluent-app", appDto.route());
+    assertEquals("/fluent-app/nested-app/page2", appDto.route());
   }
 }

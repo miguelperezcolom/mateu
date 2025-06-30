@@ -8,10 +8,12 @@ import static io.mateu.core.domain.reflection.AllMethodsProvider.getAllMethods;
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ActionTargetDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.interfaces.Form;
@@ -31,41 +33,43 @@ public final class ReflectionFormMapper {
             .actions(createActions(form))
             .build();
     var component =
-        new ComponentDto(
-            formDto, "component_id", form.getClass().getName(), createFormContent(form));
+        new ServerSideComponentDto(
+            "component_id",
+            form.getClass().getName(),
+            List.of(new ClientSideComponentDto(formDto, "", createFormContent(form))));
     return new UIFragmentDto(initiatorComponentId, component, form);
   }
 
   private static List<ComponentDto> createFormContent(Form form) {
     var formLayout = new FormLayoutDto();
-    return List.of(new ComponentDto(formLayout, "", null, createFields(form)));
+    return List.of(new ClientSideComponentDto(formLayout, "", createFields(form)));
   }
 
   private static List<ComponentDto> createFields(Form form) {
     return getAllEditableFields(form.getClass()).stream()
         .map(
             field ->
-                new ComponentDto(
-                    new FormFieldDto(
-                        field.getName(),
-                        "string",
-                        "stereotype",
-                        false,
-                        false,
-                        capitalize(field.getName()),
-                        "placeholder",
-                        "css_classes",
-                        "description",
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        0,
-                        false,
-                        false,
-                        List.of()),
-                    "field_id",
-                    null,
-                    List.of()))
+                (ComponentDto)
+                    new ClientSideComponentDto(
+                        new FormFieldDto(
+                            field.getName(),
+                            "string",
+                            "stereotype",
+                            false,
+                            false,
+                            capitalize(field.getName()),
+                            "placeholder",
+                            "css_classes",
+                            "description",
+                            List.of(),
+                            List.of(),
+                            List.of(),
+                            0,
+                            false,
+                            false,
+                            List.of()),
+                        "field_id",
+                        List.of()))
         .toList();
   }
 

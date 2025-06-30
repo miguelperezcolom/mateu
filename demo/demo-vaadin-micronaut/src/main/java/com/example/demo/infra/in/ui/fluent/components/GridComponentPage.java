@@ -5,16 +5,16 @@ import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.FormSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/components/grid")
-public class GridComponentPage implements FormSupplier {
+public class GridComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getForm(HttpRequest httpRequest) {
+    public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Grid")
                 .content(List.of(

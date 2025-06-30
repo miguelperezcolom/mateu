@@ -13,7 +13,7 @@ import io.mateu.core.domain.fragmentmapper.componentbased.mappers.SplitLayoutCom
 import io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabLayoutComponentToDtoMapper;
 import io.mateu.core.domain.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper;
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.dtos.FormDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -68,7 +68,7 @@ class ComponentFragmentMapperTest {
                 "initiator_component_id",
                 new FakeHttpRequest());
     assertNotNull(fragment);
-    assertInstanceOf(FormDto.class, fragment.component().metadata());
+    assertInstanceOf(ServerSideComponentDto.class, fragment.component());
   }
 
   @Test

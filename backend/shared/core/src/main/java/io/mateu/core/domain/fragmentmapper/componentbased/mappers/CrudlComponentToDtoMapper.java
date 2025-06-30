@@ -1,24 +1,25 @@
 package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import io.mateu.dtos.ActionDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ColumnDto;
-import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.FormFieldDto;
-import io.mateu.uidl.fluent.ComponentSupplier;
+import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 public class CrudlComponentToDtoMapper {
 
-  public static ComponentDto mapCrudlToDto(
+  public static ServerSideComponentDto mapCrudlToDto(
       Crudl crudl,
-      ComponentSupplier componentSupplier,
+      ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
       HttpRequest httpRequest) {
-    var formMetadataDto =
+    var crudlDto =
         CrudlDto.builder()
             .title(crudl.title())
             .subtitle(crudl.subtitle())
@@ -55,7 +56,9 @@ public class CrudlComponentToDtoMapper {
                                 .build())
                     .toList())
             .build();
-    return new ComponentDto(
-        formMetadataDto, crudl.id(), componentSupplier.getClass().getName(), List.of());
+    return new ServerSideComponentDto(
+        crudl.id(),
+        componentSupplier.getClass().getName(),
+        List.of(new ClientSideComponentDto(crudlDto, crudl.id(), List.of())));
   }
 }

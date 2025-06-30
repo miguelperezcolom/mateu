@@ -5,15 +5,15 @@ import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.FormSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
 @Route("/fluent-app/layouts/tab")
-public class TabLayoutSample implements FormSupplier {
+public class TabLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getForm(HttpRequest httpRequest) {
+    public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Tab Layout")
                 .content(List.of(TabLayout.builder()

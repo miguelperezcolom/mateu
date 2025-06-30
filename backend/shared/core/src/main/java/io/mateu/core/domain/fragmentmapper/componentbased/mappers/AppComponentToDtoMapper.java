@@ -7,7 +7,7 @@ import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppM
 
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContentLink;
@@ -15,32 +15,28 @@ import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.ComponentSupplier;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 public final class AppComponentToDtoMapper {
 
-  public static ComponentDto mapAppToDto(
-      App app,
-      ComponentSupplier componentSupplier,
-      String baseUrl,
-      String route,
-      HttpRequest httpRequest) {
-    var appRoute = getRoute(componentSupplier, httpRequest, route);
+  public static ClientSideComponentDto mapAppToDto(
+      App app, String baseUrl, String route, HttpRequest httpRequest) {
+    var appRoute = getRoute(app, httpRequest, route);
     var menu = getMenu(app, route, appRoute);
     var appDto =
         AppDto.builder()
             .title(app.title())
             .subtitle(app.subtitle())
-            .route(getRoute(componentSupplier, httpRequest, route))
+            .route(getRoute(app, httpRequest, route))
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(menu, route))
             .menu(menu)
+            .style(app.style())
+            .cssClasses(app.cssClasses())
             .build();
-    return new ComponentDto(
-        appDto, "component_id", componentSupplier.getClass().getName(), List.of());
+    return new ClientSideComponentDto(appDto, "component_id", List.of());
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

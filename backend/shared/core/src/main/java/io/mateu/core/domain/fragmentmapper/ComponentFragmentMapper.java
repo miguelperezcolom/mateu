@@ -3,9 +3,8 @@ package io.mateu.core.domain.fragmentmapper;
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToFragment;
 
 import io.mateu.core.domain.FragmentMapper;
-import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.FormSupplier;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 
@@ -25,20 +24,10 @@ public class ComponentFragmentMapper implements FragmentMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
 
-    if (instance instanceof AppSupplier appSupplier) {
+    if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(
-          appSupplier,
-          appSupplier.getApp(httpRequest),
-          baseUrl,
-          route,
-          initiatorComponentId,
-          httpRequest);
-    }
-
-    if (instance instanceof FormSupplier formSupplier) {
-      return mapComponentToFragment(
-          formSupplier,
-          formSupplier.getForm(httpRequest),
+          componentTreeSupplier,
+          componentTreeSupplier.getComponent(httpRequest),
           baseUrl,
           route,
           initiatorComponentId,

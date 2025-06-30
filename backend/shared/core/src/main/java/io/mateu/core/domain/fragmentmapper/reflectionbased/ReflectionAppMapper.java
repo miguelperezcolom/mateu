@@ -5,10 +5,11 @@ import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionComm
 
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
@@ -39,8 +40,14 @@ public class ReflectionAppMapper {
             "login_url",
             "welcome_message",
             "logout_url",
-            List.of());
-    var component = new ComponentDto(appDto, "component_id", app.getClass().getName(), List.of());
+            List.of(),
+            null,
+            null);
+    var component =
+        new ServerSideComponentDto(
+            "component_id",
+            app.getClass().getName(),
+            List.of(new ClientSideComponentDto(appDto, "", List.of())));
     return new UIFragmentDto(initiatorComponentId, component, app);
   }
 

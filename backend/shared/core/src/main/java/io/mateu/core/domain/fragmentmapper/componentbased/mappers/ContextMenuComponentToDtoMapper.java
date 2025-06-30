@@ -3,7 +3,7 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 import static io.mateu.core.domain.Humanizer.camelcasize;
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ContextMenuDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
@@ -18,14 +18,13 @@ import java.util.List;
 
 public class ContextMenuComponentToDtoMapper {
 
-  public static ComponentDto mapContextMenuToDto(
+  public static ClientSideComponentDto mapContextMenuToDto(
       ContextMenu contextMenu, String baseUrl, String route, HttpRequest httpRequest) {
-    return new ComponentDto(
+    return new ClientSideComponentDto(
         new ContextMenuDto(
             buildMenu(contextMenu.menu()),
             mapComponentToDto(null, contextMenu.wrapped(), baseUrl, route, httpRequest)),
         "fieldId",
-        null,
         List.of());
   }
 
