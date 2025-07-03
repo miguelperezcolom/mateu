@@ -26,6 +26,8 @@ public class FieldComponentToDtoMapper {
                     .toList())
             .build(),
         field.id(),
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

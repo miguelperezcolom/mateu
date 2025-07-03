@@ -36,13 +36,15 @@ public final class ReflectionFormMapper {
         new ServerSideComponentDto(
             "component_id",
             form.getClass().getName(),
-            List.of(new ClientSideComponentDto(formDto, "", createFormContent(form))));
+            List.of(new ClientSideComponentDto(formDto, "", createFormContent(form), "", "")),
+            "",
+            "");
     return new UIFragmentDto(initiatorComponentId, component, form);
   }
 
   private static List<ComponentDto> createFormContent(Form form) {
     var formLayout = new FormLayoutDto();
-    return List.of(new ClientSideComponentDto(formLayout, "", createFields(form)));
+    return List.of(new ClientSideComponentDto(formLayout, "", createFields(form), "", ""));
   }
 
   private static List<ComponentDto> createFields(Form form) {
@@ -69,7 +71,9 @@ public final class ReflectionFormMapper {
                             false,
                             List.of()),
                         "field_id",
-                        List.of()))
+                        List.of(),
+                        "",
+                        ""))
         .toList();
   }
 

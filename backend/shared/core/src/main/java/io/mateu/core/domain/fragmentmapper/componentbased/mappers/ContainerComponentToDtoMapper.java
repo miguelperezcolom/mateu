@@ -16,6 +16,8 @@ public class ContainerComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, container.content(), baseUrl, route, httpRequest)));
+        List.of(mapComponentToDto(null, container.content(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }

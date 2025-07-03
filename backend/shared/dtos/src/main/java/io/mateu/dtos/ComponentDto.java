@@ -14,4 +14,8 @@ public interface ComponentDto {
   String id();
 
   List<ComponentDto> children();
+
+  String style();
+
+  String cssClasses();
 }

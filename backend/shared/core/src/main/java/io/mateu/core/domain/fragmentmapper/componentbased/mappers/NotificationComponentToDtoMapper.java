@@ -9,6 +9,10 @@ public class NotificationComponentToDtoMapper {
 
   public static ClientSideComponentDto mapNotificationToDto(Notification notification) {
     return new ClientSideComponentDto(
-        new NotificationDto(notification.title(), notification.text()), "fieldId", List.of());
+        new NotificationDto(notification.title(), notification.text()),
+        "fieldId",
+        List.of(),
+        "",
+        "");
   }
 }

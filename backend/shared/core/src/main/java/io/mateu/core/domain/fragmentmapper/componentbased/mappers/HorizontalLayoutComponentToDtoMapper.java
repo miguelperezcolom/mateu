@@ -17,6 +17,8 @@ public class HorizontalLayoutComponentToDtoMapper {
         horizontalLayout.id(),
         horizontalLayout.content().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
-            .toList());
+            .toList(),
+        "",
+        "");
   }
 }

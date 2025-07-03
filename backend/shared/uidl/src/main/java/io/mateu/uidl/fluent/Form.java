@@ -17,7 +17,9 @@ public record Form(
     List<Component> header,
     List<Component> footer,
     List<UserTrigger> toolbar,
-    List<UserTrigger> buttons)
+    List<UserTrigger> buttons,
+    String style,
+    String cssClasses)
     implements Component {
 
   public Form {

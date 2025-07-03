@@ -8,6 +8,6 @@ import java.util.List;
 public class ChartComponentToDtoMapper {
 
   public static ClientSideComponentDto mapChartToDto(Chart chart) {
-    return new ClientSideComponentDto(ChartDto.builder().build(), "fieldId", List.of());
+    return new ClientSideComponentDto(ChartDto.builder().build(), "fieldId", List.of(), "", "");
   }
 }

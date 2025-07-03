@@ -13,6 +13,8 @@ public class VirtualListComponentToDtoMapper {
         new VirtualListDto(
             new DataPageDto(virtualList.page().content(), virtualList.page().totalElements())),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

@@ -11,6 +11,6 @@ public final class MenuBarComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMenuBarToDto(MenuBar menuBar) {
     var menuDto = MenuBarDto.builder().options(buildMenu(menuBar.options())).build();
-    return new ClientSideComponentDto(menuDto, "component_id", List.of());
+    return new ClientSideComponentDto(menuDto, "component_id", List.of(), "", "");
   }
 }

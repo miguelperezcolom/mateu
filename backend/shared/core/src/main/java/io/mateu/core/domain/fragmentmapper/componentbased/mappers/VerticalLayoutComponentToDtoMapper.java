@@ -17,6 +17,8 @@ public class VerticalLayoutComponentToDtoMapper {
         verticalLayout.id(),
         verticalLayout.content().stream()
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
-            .toList());
+            .toList(),
+        "",
+        "");
   }
 }

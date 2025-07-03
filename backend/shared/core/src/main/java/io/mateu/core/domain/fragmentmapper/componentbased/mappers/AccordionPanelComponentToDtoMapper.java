@@ -16,6 +16,8 @@ public class AccordionPanelComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, panel.content(), baseUrl, route, httpRequest)));
+        List.of(mapComponentToDto(null, panel.content(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }

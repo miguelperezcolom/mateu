@@ -15,6 +15,7 @@ import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -22,21 +23,25 @@ import java.util.List;
 public final class AppComponentToDtoMapper {
 
   public static ClientSideComponentDto mapAppToDto(
-      App app, String baseUrl, String route, HttpRequest httpRequest) {
-    var appRoute = getRoute(app, httpRequest, route);
+      ComponentTreeSupplier componentSupplier,
+      App app,
+      String baseUrl,
+      String route,
+      HttpRequest httpRequest) {
+    var appRoute = getRoute(componentSupplier, app, httpRequest, route);
     var menu = getMenu(app, route, appRoute);
     var appDto =
         AppDto.builder()
             .title(app.title())
             .subtitle(app.subtitle())
-            .route(getRoute(app, httpRequest, route))
+            .route(getRoute(componentSupplier, app, httpRequest, route))
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(menu, route))
             .menu(menu)
             .style(app.style())
             .cssClasses(app.cssClasses())
             .build();
-    return new ClientSideComponentDto(appDto, "component_id", List.of());
+    return new ClientSideComponentDto(appDto, "component_id", List.of(), "", "");
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

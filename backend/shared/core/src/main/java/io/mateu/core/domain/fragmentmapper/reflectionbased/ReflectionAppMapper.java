@@ -24,8 +24,13 @@ import java.util.regex.Pattern;
 public class ReflectionAppMapper {
 
   public static UIFragmentDto mapAppToFragment(
-      App app, String baseUrl, String route, String initiatorComponentId, HttpRequest httpRequest) {
-    var appRoute = getRoute(app, httpRequest, route);
+      Object componentSupplier,
+      App app,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var appRoute = getRoute(componentSupplier, app, httpRequest, route);
     var menu = getMenu(app, route, appRoute, httpRequest);
     var appDto =
         new AppDto(
@@ -47,7 +52,9 @@ public class ReflectionAppMapper {
         new ServerSideComponentDto(
             "component_id",
             app.getClass().getName(),
-            List.of(new ClientSideComponentDto(appDto, "", List.of())));
+            List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "")),
+            "",
+            "");
     return new UIFragmentDto(initiatorComponentId, component, app);
   }
 
@@ -92,14 +99,16 @@ public class ReflectionAppMapper {
     return null;
   }
 
-  public static String getRoute(Object app, HttpRequest httpRequest, String route) {
+  public static String getRoute(
+      Object componentSupplier, Object app, HttpRequest httpRequest, String route) {
     Pattern pattern = null;
-    if (app instanceof RouteResolver routeResolver) {
+    if (componentSupplier instanceof RouteResolver routeResolver) {
       pattern = routeResolver.getMatchingPattern(route).orElse(null);
     }
     if (pattern == null) {
-      if (app.getClass().isAnnotationPresent(Route.class)) {
-        for (Route routeAnnotation : app.getClass().getAnnotationsByType(Route.class)) {
+      if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
+        for (Route routeAnnotation :
+            componentSupplier.getClass().getAnnotationsByType(Route.class)) {
           String patternString = routeAnnotation.value();
           pattern = returnPatternIfMatches(patternString, route);
         }

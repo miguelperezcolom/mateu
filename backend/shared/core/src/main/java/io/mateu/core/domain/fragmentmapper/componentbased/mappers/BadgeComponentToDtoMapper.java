@@ -19,6 +19,8 @@ public class BadgeComponentToDtoMapper {
             badge.small(),
             badge.pill()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

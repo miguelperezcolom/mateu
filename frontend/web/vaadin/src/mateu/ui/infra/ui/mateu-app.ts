@@ -22,6 +22,7 @@ import './mateu-api-caller'
 import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { nanoid } from "nanoid";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -37,8 +38,8 @@ export class MateuApp extends ComponentElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has('metadata')) {
-            this.selectedRoute = this.getInitialRoute(this.metadata as App)
+        if (_changedProperties.has('component')) {
+            this.selectedRoute = this.getInitialRoute((this.component as ClientSideComponent).metadata as App)
         }
         if (_changedProperties.has('selectedRoute')) {
             this.dispatchEvent(new CustomEvent('route-changed', {
@@ -161,14 +162,13 @@ export class MateuApp extends ComponentElement {
     }
 
     render() {
-        const metadata = this.metadata as App
+        const metadata = (this.component as ClientSideComponent).metadata as App
 
         const items = this.mapItems(metadata.menu)
 
         return html`
 
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
-
                 <vaadin-app-layout>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
@@ -177,15 +177,16 @@ export class MateuApp extends ComponentElement {
                             ${this.renderSideNav(items, undefined)}
                         </vaadin-side-nav>
                     </vaadin-scroller>
-                    <mateu-api-caller>
-                        <mateu-ux
-                                route="${this.selectedRoute}"
-                                id="${nanoid()}"
-                                baseUrl="${this.baseUrl}"
-                                consumedRoute="${metadata.route}"
-                                style="padding-left: 2em; padding-right: 2em;"
-                        ></mateu-ux>
-                    </mateu-api-caller>
+                    <div style="padding-left: 2em; padding-right: 2em;">
+                        <mateu-api-caller>
+                            <mateu-ux
+                                    route="${this.selectedRoute}"
+                                    id="${nanoid()}"
+                                    baseUrl="${this.baseUrl}"
+                                    consumedRoute="${metadata.route}"
+                            ></mateu-ux>
+                        </mateu-api-caller>
+                    </div>
                 </vaadin-app-layout>
 
             `:nothing}

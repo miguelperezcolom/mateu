@@ -9,6 +9,10 @@ public class AvatarComponentToDtoMapper {
 
   public static ClientSideComponentDto mapAvatarToDto(Avatar avatar) {
     return new ClientSideComponentDto(
-        new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()), "fieldId", List.of());
+        new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()),
+        "fieldId",
+        List.of(),
+        "",
+        "");
   }
 }

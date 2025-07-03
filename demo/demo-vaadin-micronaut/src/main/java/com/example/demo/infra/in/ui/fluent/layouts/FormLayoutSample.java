@@ -22,6 +22,8 @@ public class FormLayoutSample implements ComponentTreeSupplier {
                                         new Text("Text 3")
                                 ))
                         .build()))
+                .style("width: 100%;")
+                .cssClasses("test")
                 .build();
     }
 }

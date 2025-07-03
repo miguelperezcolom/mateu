@@ -4,7 +4,12 @@ import java.util.Collections;
 import java.util.List;
 
 public record ClientSideComponentDto(
-    ComponentMetadataDto metadata, String id, List<ComponentDto> children) implements ComponentDto {
+    ComponentMetadataDto metadata,
+    String id,
+    List<ComponentDto> children,
+    String style,
+    String cssClasses)
+    implements ComponentDto {
 
   public ClientSideComponentDto {
     children = Collections.unmodifiableList(children);

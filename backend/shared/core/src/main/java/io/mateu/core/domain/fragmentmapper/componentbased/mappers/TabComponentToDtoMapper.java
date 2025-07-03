@@ -16,6 +16,8 @@ public class TabComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, tab.content(), baseUrl, route, httpRequest)));
+        List.of(mapComponentToDto(null, tab.content(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }

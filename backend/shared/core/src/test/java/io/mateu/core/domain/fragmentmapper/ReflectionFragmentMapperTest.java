@@ -42,7 +42,8 @@ class ReflectionFragmentMapperTest {
 
   @Test
   void minimalMatchingRouteIsReturned() {
-    var appRoute = getRoute(new MyApp(), new FakeHttpRequest(), "/app/home");
+    var app = new MyApp();
+    var appRoute = getRoute(app, app, new FakeHttpRequest(), "/app/home");
     assertNotNull(appRoute);
     assertEquals("/app", appRoute);
   }

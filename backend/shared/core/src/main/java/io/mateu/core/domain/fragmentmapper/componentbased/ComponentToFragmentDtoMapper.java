@@ -126,7 +126,7 @@ public final class ComponentToFragmentDtoMapper {
       String route,
       HttpRequest httpRequest) {
     if (component instanceof App app) {
-      return mapAppToDto(app, baseUrl, route, httpRequest);
+      return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
     }
     if (component instanceof Form form) {
       return mapFormToDto(form, componentSupplier, baseUrl, route, httpRequest);
@@ -267,6 +267,6 @@ public final class ComponentToFragmentDtoMapper {
       return mapVirtualListToDto(virtualList);
     }
     return new ClientSideComponentDto(
-        new ElementDto("div", Map.of(), component.toString()), "fieldId", List.of());
+        new ElementDto("div", Map.of(), component.toString()), "fieldId", List.of(), "", "");
   }
 }

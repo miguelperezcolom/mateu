@@ -23,7 +23,11 @@ class ComponentToDtoMapperTest {
             .targetComponentId("initiator")
             .component(
                 new ClientSideComponentDto(
-                    new TextDto(TextContainerDto.p, Map.of(), "Hola"), "fieldId", List.of()))
+                    new TextDto(TextContainerDto.p, Map.of(), "Hola"),
+                    "fieldId",
+                    List.of(),
+                    "",
+                    ""))
             .build();
     var dto =
         mapComponentToFragment(

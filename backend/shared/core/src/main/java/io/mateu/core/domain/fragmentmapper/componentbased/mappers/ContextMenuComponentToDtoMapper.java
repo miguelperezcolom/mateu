@@ -25,7 +25,9 @@ public class ContextMenuComponentToDtoMapper {
             buildMenu(contextMenu.menu()),
             mapComponentToDto(null, contextMenu.wrapped(), baseUrl, route, httpRequest)),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 
   protected static List<MenuOptionDto> buildMenu(List<Actionable> menu) {

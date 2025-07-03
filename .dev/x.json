@@ -1,2 +1,36 @@
-http://localhost:5173/ircs/mateu/v3/com.example.demo.infra.ircs.IrcsHome/journeys/environments/DlYqit09psB_XrRClESyK/steps/none/component-0//lists/unique/rows?page=0&page_size=10&ordering=W10=
-http://localhost:8080/ircs/mateu/v3/com.example.main.infra.primary.ui.IrcsHome/journeys/environments/BmHIkRrEXOoS-f-K5BTap/steps/none/component-0//lists/unique/rows?page=0&page_size=10&ordering=W10=
+{
+  "fragments": [
+    {
+      "targetComponentId": "epjgtK5Q-5AzG7sLXvn72",
+      "component": {
+        "type": "ServerSide",
+        "id": "component_id",
+        "serverSideType": "com.example.demo.infra.in.ui.antonia.Home",
+        "children": [
+          {
+            "type": "ClientSide",
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "FormLayout"
+                }
+              }
+            ],
+            "metadata": {
+              "type": "Form",
+              "icon": "icon",
+              "title": "Home",
+              "readOnly": false,
+              "subtitle": "This is a simple subtitle"
+            }
+          }
+        ]
+      },
+      "data": {
+        "title": "Home",
+        "subtitle": "This is a simple subtitle"
+      }
+    }
+  ]
+}

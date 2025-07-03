@@ -8,6 +8,7 @@ import java.util.List;
 public class MarkdownComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMarkdownToDto(Markdown markdown) {
-    return new ClientSideComponentDto(new MarkdownDto(markdown.markdown()), "fieldId", List.of());
+    return new ClientSideComponentDto(
+        new MarkdownDto(markdown.markdown()), "fieldId", List.of(), "", "");
   }
 }

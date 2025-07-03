@@ -13,6 +13,8 @@ public class TextComponentToDtoMapper {
     return new ClientSideComponentDto(
         new TextDto(TextContainerDto.valueOf(text.container().name()), Map.of(), text.text()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

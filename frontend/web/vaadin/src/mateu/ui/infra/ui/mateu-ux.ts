@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, nothing, PropertyValues, TemplateResult } from "lit";
+import { css, html, nothing, PropertyValues } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -16,6 +16,7 @@ import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import { appState } from "@domain/state";
+import { renderComponent } from "@infra/ui/renderComponents";
 
 
 @customElement('mateu-ux')
@@ -143,30 +144,15 @@ export class MateuUx extends ConnectedElement {
         }
     }
 
-    renderComponent = (component: Component): TemplateResult => {
-        if (component.metadata) {
-            return html`<mateu-component id="${component.id}" 
-                                         .metadata="${component.metadata}" 
-                                         .component="${component}"
-                                         .data="${component.initialData}"
-                                         serverSideType="${component.serverSideType}"  
-                                         baseUrl="${this.baseUrl}"
-                                         signature="${JSON.stringify(component.metadata) 
-                                         + JSON.stringify(component.initialData)}">
-           </mateu-component>`
-        }
-        return html`<p>No metadata for component ${component.id}</p>`
-    }
-
     render() {
         return html`
-           ${this.root?this.renderComponent(this.root):nothing}
+           ${this.root?renderComponent(this.root, this.baseUrl, {}):nothing}
        `
     }
 
     static styles = css`
         :host {
-            
+            width: 100%;
         }
   `
 }

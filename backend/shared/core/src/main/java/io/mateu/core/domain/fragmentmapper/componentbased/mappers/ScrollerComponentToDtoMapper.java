@@ -16,6 +16,8 @@ public class ScrollerComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, scroller.content(), baseUrl, route, httpRequest)));
+        List.of(mapComponentToDto(null, scroller.content(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }

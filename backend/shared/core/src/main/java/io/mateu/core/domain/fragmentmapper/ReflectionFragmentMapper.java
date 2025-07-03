@@ -28,7 +28,7 @@ public class ReflectionFragmentMapper implements FragmentMapper {
       return mapFormToFragment(form, baseUrl, initiatorComponentId, httpRequest);
     }
     if (instance instanceof App app) {
-      return mapAppToFragment(app, baseUrl, route, initiatorComponentId, httpRequest);
+      return mapAppToFragment(instance, app, baseUrl, route, initiatorComponentId, httpRequest);
     }
     return mapObjectToFragment(instance, baseUrl, initiatorComponentId, httpRequest);
   }

@@ -1,11 +1,11 @@
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 
 export default interface Component {
 
-    metadata: ComponentMetadata | undefined
+    type: ComponentType
     id: string | undefined
-    serverSideType: string | undefined
     children: Component[] | undefined
-    initialData: any | undefined
+    style: string
+    cssClasses: string
 
 }

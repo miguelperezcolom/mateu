@@ -59,6 +59,8 @@ public class CrudlComponentToDtoMapper {
     return new ServerSideComponentDto(
         crudl.id(),
         componentSupplier.getClass().getName(),
-        List.of(new ClientSideComponentDto(crudlDto, crudl.id(), List.of())));
+        List.of(new ClientSideComponentDto(crudlDto, crudl.id(), List.of(), "", "")),
+        "",
+        "");
   }
 }

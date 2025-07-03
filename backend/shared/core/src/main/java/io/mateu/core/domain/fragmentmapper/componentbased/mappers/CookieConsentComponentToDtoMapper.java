@@ -8,6 +8,6 @@ import java.util.List;
 public class CookieConsentComponentToDtoMapper {
 
   public static ClientSideComponentDto mapCookieConsentToDto(CookieConsent cookieConsent) {
-    return new ClientSideComponentDto(new CookieConsentDto(), "fieldId", List.of());
+    return new ClientSideComponentDto(new CookieConsentDto(), "fieldId", List.of(), "", "");
   }
 }

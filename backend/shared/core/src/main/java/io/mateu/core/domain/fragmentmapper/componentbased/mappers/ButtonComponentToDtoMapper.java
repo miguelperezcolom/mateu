@@ -16,6 +16,8 @@ public class ButtonComponentToDtoMapper {
             button.iconOnRight(),
             button.label()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

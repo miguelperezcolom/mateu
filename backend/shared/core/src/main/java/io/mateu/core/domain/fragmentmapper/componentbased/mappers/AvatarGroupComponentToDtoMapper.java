@@ -16,6 +16,8 @@ public class AvatarGroupComponentToDtoMapper {
                 .toList(),
             avatarGroup.maxItemsVisible()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

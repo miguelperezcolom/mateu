@@ -162,7 +162,9 @@ class AppComponentToDtoMapperTest {
                                     .build()))
                         .build(),
                     "component_id",
-                    List.of()))
+                    List.of(),
+                    "",
+                    ""))
             .data(supplier)
             .build();
 
@@ -216,6 +218,6 @@ class AppComponentToDtoMapperTest {
     assertInstanceOf(ClientSideComponentDto.class, dto.component());
     var appDto = (AppDto) ((ClientSideComponentDto) dto.component()).metadata();
     assertEquals("/fluent-app/nested-app/page2", appDto.homeRoute());
-    assertEquals("/fluent-app/nested-app/page2", appDto.route());
+    assertEquals("/fluent-app", appDto.route());
   }
 }

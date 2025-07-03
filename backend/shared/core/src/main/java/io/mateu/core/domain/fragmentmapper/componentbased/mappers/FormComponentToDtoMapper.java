@@ -51,7 +51,12 @@ public class FormComponentToDtoMapper {
                     .map(
                         component ->
                             mapComponentToDto(null, component, baseUrl, route, httpRequest))
-                    .toList())));
+                    .toList(),
+                "", // todo: no tiene sentido repetir style y clases css, pero puede que haga falta
+                // (ej. width:100%)
+                "")),
+        form.style(),
+        form.cssClasses());
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {

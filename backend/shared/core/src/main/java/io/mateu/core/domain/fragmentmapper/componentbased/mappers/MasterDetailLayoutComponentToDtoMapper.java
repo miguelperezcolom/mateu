@@ -21,6 +21,8 @@ public class MasterDetailLayoutComponentToDtoMapper {
         masterDetailLayout.id(),
         List.of(
             mapComponentToDto(null, masterDetailLayout.master(), baseUrl, route, httpRequest),
-            mapComponentToDto(null, masterDetailLayout.detail(), baseUrl, route, httpRequest)));
+            mapComponentToDto(null, masterDetailLayout.detail(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }

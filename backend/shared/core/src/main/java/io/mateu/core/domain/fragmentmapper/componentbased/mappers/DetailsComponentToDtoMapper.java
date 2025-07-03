@@ -17,6 +17,8 @@ public class DetailsComponentToDtoMapper {
             details.title(),
             mapComponentToDto(null, details.content(), baseUrl, route, httpRequest)),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

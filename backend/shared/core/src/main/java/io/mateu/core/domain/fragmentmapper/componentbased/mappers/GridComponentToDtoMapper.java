@@ -18,6 +18,8 @@ public class GridComponentToDtoMapper {
             new DataPageDto(grid.page().content(), grid.page().totalElements()),
             grid.tree()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

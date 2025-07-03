@@ -9,6 +9,10 @@ public class ConfirmDialogComponentToDtoMapper {
 
   public static ClientSideComponentDto mapConfirmDialogToDto(ConfirmDialog confirmDialog) {
     return new ClientSideComponentDto(
-        new ConfirmDialogDto(confirmDialog.title(), confirmDialog.text()), "fieldId", List.of());
+        new ConfirmDialogDto(confirmDialog.title(), confirmDialog.text()),
+        "fieldId",
+        List.of(),
+        "",
+        "");
   }
 }

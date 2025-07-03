@@ -11,6 +11,8 @@ public class ElementComponentToDtoMapper {
     return new ClientSideComponentDto(
         new ElementDto(element.name(), element.attributes(), element.content()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

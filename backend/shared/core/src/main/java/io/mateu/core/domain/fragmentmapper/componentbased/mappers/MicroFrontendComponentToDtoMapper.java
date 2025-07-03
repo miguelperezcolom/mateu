@@ -12,6 +12,8 @@ public class MicroFrontendComponentToDtoMapper {
         new MicroFrontendDto(
             microFrontend.baseUrl(), microFrontend.route(), microFrontend.consumedRoute()),
         "fieldId",
-        List.of());
+        List.of(),
+        "",
+        "");
   }
 }

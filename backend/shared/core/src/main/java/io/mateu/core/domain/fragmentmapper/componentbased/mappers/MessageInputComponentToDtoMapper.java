@@ -8,6 +8,6 @@ import java.util.List;
 public class MessageInputComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMessageInputToDto(MessageInput messageInput) {
-    return new ClientSideComponentDto(new MessageInputDto(), "fieldId", List.of());
+    return new ClientSideComponentDto(new MessageInputDto(), "fieldId", List.of(), "", "");
   }
 }

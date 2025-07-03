@@ -16,6 +16,8 @@ public class FullWidthComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, fullWidth.content(), baseUrl, route, httpRequest)));
+        List.of(mapComponentToDto(null, fullWidth.content(), baseUrl, route, httpRequest)),
+        "",
+        "");
   }
 }
