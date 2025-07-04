@@ -26,12 +26,7 @@ public class ComponentFragmentMapper implements FragmentMapper {
 
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(
-          componentTreeSupplier,
-          componentTreeSupplier.getComponent(httpRequest),
-          baseUrl,
-          route,
-          initiatorComponentId,
-          httpRequest);
+          componentTreeSupplier, null, baseUrl, route, initiatorComponentId, httpRequest);
     }
 
     if (instance instanceof Component component) {

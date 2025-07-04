@@ -53,6 +53,7 @@ public class ReflectionAppMapper {
             "component_id",
             app.getClass().getName(),
             List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "")),
+            app,
             "",
             "");
     return new UIFragmentDto(initiatorComponentId, component, app);

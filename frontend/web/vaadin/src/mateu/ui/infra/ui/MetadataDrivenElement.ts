@@ -14,8 +14,4 @@ export default class MetadataDrivenElement extends ConnectedElement {
     @property()
     component: Component | undefined
 
-    @property()
-    data: any
-
-
 }

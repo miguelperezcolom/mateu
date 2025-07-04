@@ -1,5 +1,6 @@
 package io.mateu.core.domain.reflection;
 
+import static io.mateu.core.domain.reflection.Hydrater.hydrate;
 import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
@@ -101,6 +102,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
               o = (T) con.newInstance(buildConstructorParams(con, data));
             } else {
               o = (T) con.newInstance();
+              o = hydrate(o, data);
             }
           }
         }

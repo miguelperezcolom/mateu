@@ -433,9 +433,22 @@ export const renderAnchor = (component: ClientSideComponent) => {
     return html`<a href="${metadata.url}">${metadata.text}</a>`
 }
 
+export const handleButtonClick = (event: Event) => {
+    const actionId = (event.target as HTMLElement).dataset.actionId
+    event.target?.dispatchEvent(new CustomEvent('action-requested', {
+        detail: {
+            actionId,
+        },
+        bubbles: true,
+        composed: true
+    }))
+}
+
 export const renderButton = (component: ClientSideComponent) => {
     const metadata = component.metadata as Button
-    return html`<vaadin-button>${metadata.label}</vaadin-button>`
+    return html`<vaadin-button
+            data-action-id="${component.id}"
+            @click="${handleButtonClick}">${metadata.label}</vaadin-button>`
 }
 
 

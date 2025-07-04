@@ -19,42 +19,14 @@ export class MateuForm extends MetadataDrivenElement {
 
     values: Record<string, any> = {}
 
-    valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (e instanceof CustomEvent) {
-            const detail = e.detail as {
-                value: any,
-                fieldId: string
-            }
-            if (e.type == 'value-changed') {
-                this.values[detail.fieldId] = detail.value
-            }
-        }
-    }
-
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
-                userData: this.values,
                 actionId,
-                serverSideType: this.serverSideType,
-                initiatorComponentId: this.id,
-                initiator: this
             },
             bubbles: true,
             composed: true
         }))
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.addEventListener('value-changed', this.valueChangedListener)
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.removeEventListener('value-changed', this.valueChangedListener)
     }
 
     render() {

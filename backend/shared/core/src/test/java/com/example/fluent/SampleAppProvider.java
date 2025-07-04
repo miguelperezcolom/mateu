@@ -28,4 +28,9 @@ public class SampleAppProvider implements AppSupplier {
                 new ContentLink("/sample-app/route_3", "Route 3", rq -> new Text("Hola!"))))
         .build();
   }
+
+  @Override
+  public String id() {
+    return "sample-app";
+  }
 }

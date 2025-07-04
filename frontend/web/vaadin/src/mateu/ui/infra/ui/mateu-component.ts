@@ -48,6 +48,7 @@ import './mateu-api-caller'
 import './mateu-ux'
 import ComponentElement from "@infra/ui/ComponentElement";
 import { renderComponent } from "@infra/ui/renderComponents";
+import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -56,9 +57,57 @@ export class MateuComponent extends ComponentElement {
     baseUrl: string | undefined
 
 
+    valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        console.log('changed', e)
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            const detail = e.detail as {
+                value: any,
+                fieldId: string
+            }
+            if (e.type == 'value-changed') {
+                this.values[detail.fieldId] = detail.value
+                console.log('values', this.values)
+            }
+        }
+    }
+
+    actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            const detail = e.detail as {
+                actionId: string
+            }
+            if (e.type == 'action-requested') {
+                console.log('values', this.values)
+                const serverSideComponent = this.component as ServerSideComponent
+                console.log('detail up', {
+                    userData: this.values,
+                    actionId: detail.actionId,
+                    serverSideType: serverSideComponent.serverSideType,
+                    initiatorComponentId: serverSideComponent.id,
+                    initiator: this
+                })
+                this.dispatchEvent(new CustomEvent('server-side-action-requested', {
+                    detail: {
+                        userData: {...this.values},
+                        actionId: detail.actionId,
+                        serverSideType: serverSideComponent.serverSideType,
+                        initiatorComponentId: serverSideComponent.id,
+                        initiator: this
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
+    }
+
     render() {
         return html`
-            <mateu-api-caller>
+            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
             ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, {}))}
             </mateu-api-caller>
         `

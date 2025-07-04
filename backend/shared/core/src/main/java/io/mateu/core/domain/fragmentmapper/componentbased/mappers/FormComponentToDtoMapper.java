@@ -55,6 +55,7 @@ public class FormComponentToDtoMapper {
                 "", // todo: no tiene sentido repetir style y clases css, pero puede que haga falta
                 // (ej. width:100%)
                 "")),
+        componentSupplier,
         form.style(),
         form.cssClasses());
   }

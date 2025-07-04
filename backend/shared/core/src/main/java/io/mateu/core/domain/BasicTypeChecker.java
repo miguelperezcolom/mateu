@@ -5,37 +5,37 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Named
 public class BasicTypeChecker {
 
-  private final List<Class> basicTypes = new ArrayList<>();
+  private static final List<Class> basicTypes =
+      List.of(
+          String.class,
+          Integer.class,
+          Long.class,
+          Float.class,
+          Double.class,
+          BigDecimal.class,
+          Boolean.class,
+          LocalDate.class,
+          LocalDateTime.class,
+          LocalTime.class,
+          int.class,
+          long.class,
+          float.class,
+          double.class,
+          boolean.class);
 
-  public BasicTypeChecker() {
-    basicTypes.add(String.class);
-    basicTypes.add(Integer.class);
-    basicTypes.add(Long.class);
-    basicTypes.add(Float.class);
-    basicTypes.add(Double.class);
-    basicTypes.add(BigDecimal.class);
-    basicTypes.add(Boolean.class);
-    basicTypes.add(LocalDate.class);
-    basicTypes.add(LocalDateTime.class);
-    basicTypes.add(LocalTime.class);
-    basicTypes.add(int.class);
-    basicTypes.add(long.class);
-    basicTypes.add(float.class);
-    basicTypes.add(double.class);
-    basicTypes.add(boolean.class);
-  }
-
-  public boolean isBasic(Class c) {
+  public static boolean isBasic(Class c) {
+    if (c == null) {
+      return false;
+    }
     return basicTypes.contains(c);
   }
 
-  public boolean isBasic(Object o) {
+  public static boolean isBasic(Object o) {
     if (o == null) {
       return false;
     }

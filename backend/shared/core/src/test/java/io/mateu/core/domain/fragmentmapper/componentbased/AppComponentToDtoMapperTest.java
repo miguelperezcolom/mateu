@@ -33,6 +33,11 @@ class AppComponentToDtoMapperTest {
     var supplier =
         new AppSupplier() {
           @Override
+          public String id() {
+            return "sample-app";
+          }
+
+          @Override
           public App getApp(HttpRequest httpRequest) {
             return App.builder()
                 .pageTitle("Fluent app")
@@ -200,6 +205,11 @@ class AppComponentToDtoMapperTest {
     @Override
     public List<Pattern> getSupportedRoutesPatterns() {
       return List.of(Pattern.compile("/fluent-app.*"));
+    }
+
+    @Override
+    public String id() {
+      return "myapp";
     }
   }
 

@@ -37,6 +37,7 @@ public final class ReflectionFormMapper {
             "component_id",
             form.getClass().getName(),
             List.of(new ClientSideComponentDto(formDto, "", createFormContent(form), "", "")),
+            form,
             "",
             "");
     return new UIFragmentDto(initiatorComponentId, component, form);

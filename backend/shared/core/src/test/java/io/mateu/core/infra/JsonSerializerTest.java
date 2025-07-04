@@ -16,7 +16,11 @@ class JsonSerializerTest {
 
   final String expectedJson =
       """
-{"id":"12221","name":"Mateu","age":123}""";
+{
+  "id" : "12221",
+  "name" : "Mateu",
+  "age" : 123
+}""";
 
   @Test
   void returnsJson() {

@@ -12,6 +12,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLa
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapComponentTreeSupplierToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ConfirmDialogComponentToDtoMapper.mapConfirmDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ContextMenuComponentToDtoMapper.mapContextMenuToDto;
@@ -125,6 +126,9 @@ public final class ComponentToFragmentDtoMapper {
       String baseUrl,
       String route,
       HttpRequest httpRequest) {
+    if (component == null && componentSupplier != null) {
+      return mapComponentTreeSupplierToDto(componentSupplier, baseUrl, route, httpRequest);
+    }
     if (component instanceof App app) {
       return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
     }

@@ -11,6 +11,7 @@ import java.util.List;
 
 @Route("/fluent-app/layouts/vertical")
 public class VerticalLayoutSample implements ComponentTreeSupplier {
+
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()

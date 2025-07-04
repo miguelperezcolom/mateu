@@ -5,10 +5,10 @@ import java.lang.reflect.Field;
 public final class GetterProvider {
 
   public static String getGetter(Field f) {
-    return getGetter(f.getType(), f.getName());
+    return getGetterByFieldName(f.getType(), f.getName());
   }
 
-  private static String getGetter(Class fieldType, String fieldName) {
+  public static String getGetterByFieldName(Class fieldType, String fieldName) {
     return (boolean.class.equals(fieldType) ? "is" : "get") + getFirstUpper(fieldName);
   }
 

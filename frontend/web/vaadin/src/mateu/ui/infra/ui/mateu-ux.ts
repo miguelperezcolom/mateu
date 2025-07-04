@@ -65,6 +65,7 @@ export class MateuUx extends ConnectedElement {
     manageActionEvent = (e: CustomEvent) => {
         e.preventDefault()
         e.stopPropagation()
+        console.log('e.detail', e.detail)
         const detail = e.detail as {
             userData: any
             actionId: string
@@ -72,7 +73,7 @@ export class MateuUx extends ConnectedElement {
             initiatorComponentId: string,
             initiator: HTMLElement
         }
-        if (e.type == 'action-requested') {
+        if (e.type == 'server-side-action-requested') {
             if (this.route) {
                 service.runAction(mateuApiClient, this.baseUrl,
                     this.route,
@@ -101,18 +102,18 @@ export class MateuUx extends ConnectedElement {
     connectedCallback() {
         super.connectedCallback()
         this.overridesParsed = parseOverrides(this.overrides);
-        this.addEventListener('action-requested', this.actionRequestedListener)
+        this.addEventListener('server-side-action-requested', this.actionRequestedListener)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.removeEventListener('action-requested', this.actionRequestedListener)
+        this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
     }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('baseurl') || _changedProperties.has('route')) {
-            this.manageActionEvent(new CustomEvent('action-requested', {
+            this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {
                     userData: undefined,
                     actionId: 'create',
