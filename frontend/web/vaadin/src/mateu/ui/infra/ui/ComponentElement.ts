@@ -19,7 +19,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             } else {
                 this.values = {}
             }
-            console.log('values', this.values)
             this.requestUpdate()
         }
     }
