@@ -18,7 +18,7 @@
     <target-resolution>72</target-resolution>
 
     <!-- default form-height and form-width, in case
-         value is specified as auto -->
+         initialValue is specified as auto -->
     <default-form-settings height="11in" width="8.26in"/>
 
     <!-- etc. etc..... -->

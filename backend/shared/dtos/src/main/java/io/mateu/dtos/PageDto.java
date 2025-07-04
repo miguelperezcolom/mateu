@@ -16,7 +16,7 @@ import lombok.Builder;
  * @param banners Banners to be shown in this form
  * @param actions Actions for this form. To be shown at the top
  * @param mainActions Actions for this form. To be shown at the bottom
- * @param rules Rules to be run after each value change
+ * @param rules Rules to be run after each initialValue change
  */
 @Builder
 public record PageDto(

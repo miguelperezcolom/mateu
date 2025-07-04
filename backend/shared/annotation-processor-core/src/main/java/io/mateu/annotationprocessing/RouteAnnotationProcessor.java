@@ -77,13 +77,13 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
     /*
     todo: bring back at some point
     if (e.getAnnotation(PageTitle.class) != null) {
-      return e.getAnnotation(PageTitle.class).value();
+      return e.getAnnotation(PageTitle.class).initialValue();
     }
     if (e.getAnnotation(AppTitle.class) != null) {
-      return e.getAnnotation(AppTitle.class).value();
+      return e.getAnnotation(AppTitle.class).initialValue();
     }
     if (e.getAnnotation(Title.class) != null) {
-      return e.getAnnotation(Title.class).value();
+      return e.getAnnotation(Title.class).initialValue();
     }
      */
     return Helper.capitalize(simpleClassName);

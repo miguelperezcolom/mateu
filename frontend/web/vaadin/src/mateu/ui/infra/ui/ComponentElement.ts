@@ -10,15 +10,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
-        console.log('applying', fragment)
         if (this.id == fragment.targetComponentId) {
             if (fragment.component) {
-                this.component!.children = [fragment.component]
+                this.component!.children = fragment.component.children
             }
             if (fragment.data) {
                 this.values = fragment.data
-                console.log('new data', this.values)
+            } else {
+                this.values = {}
             }
+            console.log('values', this.values)
             this.requestUpdate()
         }
     }

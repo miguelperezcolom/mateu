@@ -65,7 +65,6 @@ export class MateuUx extends ConnectedElement {
     manageActionEvent = (e: CustomEvent) => {
         e.preventDefault()
         e.stopPropagation()
-        console.log('e.detail', e.detail)
         const detail = e.detail as {
             userData: any
             actionId: string

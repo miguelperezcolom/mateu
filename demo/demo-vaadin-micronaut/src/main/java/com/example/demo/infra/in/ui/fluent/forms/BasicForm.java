@@ -63,12 +63,14 @@ public class BasicForm implements ComponentTreeSupplier, HandlesActions {
                                                                 .description("description")
                                                                 .placeholder("placeholder")
                                                                 .cssClasses("css_classes")
+                                                                .initialValue(name)
                                                                 .build(),
                                                         Field.builder()
                                                                 .id("age")
                                                                 .label("Age")
                                                                 .dataType(FieldDataType.integer)
                                                                 .required(false)
+                                                                .initialValue(age)
                                                                 .build()))
                                         .build()))
                 .footer(List.of()) // will be placed in footer, between left and right side buttons

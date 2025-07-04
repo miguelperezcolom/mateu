@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionComm
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
 import static io.mateu.core.domain.reflection.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.domain.reflection.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.domain.reflection.ValueProvider.getValue;
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ActionTargetDto;
@@ -70,7 +71,8 @@ public final class ReflectionFormMapper {
                             0,
                             false,
                             false,
-                            List.of()),
+                            List.of(),
+                            getValue(field, form)),
                         "field_id",
                         List.of(),
                         "",

@@ -20,7 +20,7 @@
             <fo:layout-master-set>
                 <fo:simple-form-master master-name="odd" form-height="{/root/@height}" form-width="{/root/@width}" margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
                     <!--
-                    <fo:simple-form-master master-value="odd" form-height="29.7cm" form-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
+                    <fo:simple-form-master master-initialValue="odd" form-height="29.7cm" form-width="21cm" margin-top="1cm" margin-bottom="1cm" margin-left="1.5cm" margin-right="1.5cm">
                      -->
                     <fo:region-body region-name="xsl-region-body" margin-top="0.5cm" margin-bottom="0.5cm" margin-left="0cm" margin-right="0cm"/>
                     <!-- DEFINICION CABECERA DE PAGINA -->
@@ -77,7 +77,7 @@
                                         <xsl:variable name="pos" select="position()"/>
                                         <xsl:if test="$pos &lt;= count(/root/header/column)">
                                             <fo:table-cell border-width="0.1mm" border-style="solid" padding="2pt">
-                                                <fo:block text-align="{/root/header/column[position() = $pos]/@align}" font-size="8px" space-before="0.1mm" space-after="0.1mm"><xsl:value-of select="."/></fo:block>
+                                                <fo:block text-align="{/root/header/column[position() = $pos]/@align}" font-size="8px" space-before="0.1mm" space-after="0.1mm"><xsl:initialValue-of select="."/></fo:block>
                                             </fo:table-cell>
                                         </xsl:if>
                                     </xsl:for-each>

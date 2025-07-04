@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 
 public final class AllFieldsProvider {
 
-  // @Cacheable(value = "all-fields-per-class")
+  // @Cacheable(initialValue = "all-fields-per-class")
   public static List<Field> getAllFields(Class c) {
     List<String> vistos = new ArrayList<>();
     Map<String, Field> originales = new HashMap<>();

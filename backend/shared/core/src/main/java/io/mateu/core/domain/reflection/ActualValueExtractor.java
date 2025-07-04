@@ -82,7 +82,7 @@ public class ActualValueExtractor {
       } else if (Class.class.equals(targetType)) {
         targetValue = Class.forName("" + value);
         //            } else if (IconChooser.class.equals(targetType)) {
-        //                targetValue = new IconChooser(Icon.valueOf("" + value));
+        //                targetValue = new IconChooser(Icon.valueOf("" + initialValue));
       }
     }
     return targetValue;
@@ -133,7 +133,7 @@ public class ActualValueExtractor {
         //                            continue;
         //                        }
         //                        Map<String, Object> m = (Map<String, Object>) o;
-        //                        t.add(new ExternalReference(m.get("value"), (String)
+        //                        t.add(new ExternalReference(m.get("initialValue"), (String)
         // m.get("key")));
         //                    }
         //                    return t;
@@ -260,7 +260,7 @@ public class ActualValueExtractor {
           //                        List t = new ArrayList();
           //                        for (int i = 0; i < l.size(); i++) {
           //                            Map<String, Object> v = (Map<String, Object>) l.get(i);
-          //                            t.add(new ExternalReference(v.get("value"), (String)
+          //                            t.add(new ExternalReference(v.get("initialValue"), (String)
           // v.get("key")));
           //                        }
           //                        return t.toArray(new ExternalReference[0]);
@@ -285,9 +285,11 @@ public class ActualValueExtractor {
             targetValue = toFile(f, genericType, value);
           }
           //                } else if (ExternalReference.class.isAssignableFrom(f.getType())) {
-          //                    Map<String, Object> value = (Map<String, Object>) entry.getValue();
-          //                    targetValue = new ExternalReference(value.get("value"), (String)
-          // value.get("key"));
+          //                    Map<String, Object> initialValue = (Map<String, Object>)
+          // entry.getValue();
+          //                    targetValue = new
+          // ExternalReference(initialValue.get("initialValue"), (String)
+          // initialValue.get("key"));
         } else if (entry.getValue() instanceof String) {
           targetValue = getActualValue(f.getType(), entry.getValue());
         } else if (entry.getValue() instanceof Map) {
@@ -333,13 +335,13 @@ public class ActualValueExtractor {
     Object targetValue = null;
     /*
     if (String.class.equals(genericType)) {
-        targetValue = storageService.getUrl((String) value.get("id"), (String) value.get("name"));
-        // targetValue =  value.get("targetUrl") + "/" + value.get("name");
+        targetValue = storageService.getUrl((String) initialValue.get("id"), (String) initialValue.get("name"));
+        // targetValue =  initialValue.get("targetUrl") + "/" + initialValue.get("name");
     } else if (java.io.File.class.equals(genericType)) {
         try {
             targetValue =
                     storageService
-                            .loadAsResource((String) value.get("id"), (String) value.get("name"))
+                            .loadAsResource((String) initialValue.get("id"), (String) initialValue.get("name"))
                             .getFile();
         } catch (IOException e) {
             e.printStackTrace();

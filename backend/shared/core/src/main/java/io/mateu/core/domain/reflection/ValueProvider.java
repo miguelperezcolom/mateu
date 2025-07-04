@@ -37,7 +37,7 @@ public class ValueProvider {
         v = f.get(o);
       }
     } catch (IllegalAccessException | InvocationTargetException e) {
-      log.error("when getting value for field " + f.getName(), e);
+      log.error("when getting initialValue for field " + f.getName(), e);
     }
     return v;
   }

@@ -86,13 +86,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     /*
     todo: bring back at some point
     if (e.getAnnotation(PageTitle.class) != null) {
-      return e.getAnnotation(PageTitle.class).value();
+      return e.getAnnotation(PageTitle.class).initialValue();
     }
     if (e.getAnnotation(AppTitle.class) != null) {
-      return e.getAnnotation(AppTitle.class).value();
+      return e.getAnnotation(AppTitle.class).initialValue();
     }
     if (e.getAnnotation(Title.class) != null) {
-      return e.getAnnotation(Title.class).value();
+      return e.getAnnotation(Title.class).initialValue();
     }
      */
     return Helper.capitalize(simpleClassName);
@@ -116,7 +116,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       /*
       todo: bring back at some point
       if (e.getAnnotation(ExternalScripts.class) != null) {
-        externalScripts = e.getAnnotation(ExternalScripts.class).value();
+        externalScripts = e.getAnnotation(ExternalScripts.class).initialValue();
       }
        */
       if (externalScripts == null) externalScripts = new String[0];
@@ -166,7 +166,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       FavIcon favIconAnnotation = e.getAnnotation(FavIcon.class);
       if (favIconAnnotation != null) {
         model.put(
-            "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.value() + "\\\" />");
+            "favicon", "<link rel=\\\"icon\\\" href=\\\"" + favIconAnnotation.initialValue() + "\\\" />");
       } else {
         model.put("favicon", "");
       }

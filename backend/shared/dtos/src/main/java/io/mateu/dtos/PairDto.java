@@ -1,9 +1,9 @@
 package io.mateu.dtos;
 
 /**
- * A key-value pair container
+ * A key-initialValue pair container
  *
  * @param key The key
- * @param value The value
+ * @param value The initialValue
  */
 public record PairDto(String key, Object value) {}

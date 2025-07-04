@@ -11,8 +11,8 @@ import lombok.Builder;
  * @param rowsSelectedRequired If rows selected from the crud is required for firing this action
  * @param confirmationTexts Confirmation dialog text
  * @param target Target for this action: modal, new tab, ...
- * @param modalStyle The value for the dialog style attribute
- * @param modalTitle The value for the dialog header
+ * @param modalStyle The initialValue for the dialog style attribute
+ * @param modalTitle The initialValue for the dialog header
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
  */

@@ -14,7 +14,8 @@ public record Field(
     String placeholder,
     String description,
     String cssClasses,
-    List<Option> options)
+    List<Option> options,
+    Object initialValue)
     implements Component {
 
   public Field {

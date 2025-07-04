@@ -447,7 +447,7 @@ export const handleButtonClick = (event: Event) => {
 export const renderButton = (component: ClientSideComponent) => {
     const metadata = component.metadata as Button
     return html`<vaadin-button
-            data-action-id="${component.id}"
+            data-action-id="${metadata.actionId}"
             @click="${handleButtonClick}">${metadata.label}</vaadin-button>`
 }
 
@@ -552,7 +552,7 @@ export const renderComponent = (component: Component, baseUrl: string | undefine
     return html`
         <mateu-component id="${component.id}" 
                                      .component="${component}"
-                                     .data="${serverSideComponent.initialData}"
+                                     .values="${serverSideComponent.initialData}"
                                      baseUrl="${baseUrl}">
        </mateu-component>`
 }

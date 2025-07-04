@@ -51,7 +51,7 @@ public class ValueWriter {
         setter.invoke(o, v);
         //                        BeanUtils.setProperty(o, fn, v);
       } catch (IllegalAccessException | InvocationTargetException e) {
-        log.error("when setting value for field " + f.getName(), e);
+        log.error("when setting initialValue for field " + f.getName(), e);
       }
     } catch (NoSuchMethodException ignored) {
       if (!Modifier.isPublic(f.getModifiers())) {

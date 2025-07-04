@@ -17,7 +17,7 @@ import lombok.Builder;
  * @param actions Actions for this form. To be shown at the top
  * @param buttons Actions for this form. To be shown at the bottom
  * @param validations Client side validations for this form
- * @param rules Rules to be run after each value change
+ * @param rules Rules to be run after each initialValue change
  */
 @Builder
 public record FormDto(

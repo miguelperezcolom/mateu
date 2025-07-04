@@ -58,7 +58,6 @@ export class MateuComponent extends ComponentElement {
 
 
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
-        console.log('changed', e)
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
@@ -68,7 +67,6 @@ export class MateuComponent extends ComponentElement {
             }
             if (e.type == 'value-changed') {
                 this.values[detail.fieldId] = detail.value
-                console.log('values', this.values)
             }
         }
     }
@@ -81,15 +79,7 @@ export class MateuComponent extends ComponentElement {
                 actionId: string
             }
             if (e.type == 'action-requested') {
-                console.log('values', this.values)
                 const serverSideComponent = this.component as ServerSideComponent
-                console.log('detail up', {
-                    userData: this.values,
-                    actionId: detail.actionId,
-                    serverSideType: serverSideComponent.serverSideType,
-                    initiatorComponentId: serverSideComponent.id,
-                    initiator: this
-                })
                 this.dispatchEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
                         userData: {...this.values},

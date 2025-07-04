@@ -14,7 +14,7 @@ import java.util.List;
 
 public class GenericClassProvider {
 
-  // @Cacheable(value = "generic-class-per-class")
+  // @Cacheable(initialValue = "generic-class-per-class")
   public static Class<?> getGenericClass(Class type) {
     Class<?> gc = null;
     if (type.getGenericInterfaces() != null)
@@ -30,7 +30,7 @@ public class GenericClassProvider {
     return gc;
   }
 
-  // @Cacheable(value = "generic-class-per-method")
+  // @Cacheable(initialValue = "generic-class-per-method")
   public static Class<?> getGenericClass(Method m) {
     Type gi = m.getGenericReturnType();
     Class<?> gc = null;
@@ -43,7 +43,7 @@ public class GenericClassProvider {
     return gc;
   }
 
-  // @Cacheable(value = "generic-class-per-type")
+  // @Cacheable(initialValue = "generic-class-per-type")
   public static Class<?> getGenericClass(Type type) {
     Class<?> gc = null;
     if (type instanceof ParameterizedType) {
@@ -55,7 +55,7 @@ public class GenericClassProvider {
     return gc;
   }
 
-  // @Cacheable(value = "generic-class-per-field")
+  // @Cacheable(initialValue = "generic-class-per-field")
   public static Class getGenericClass(
       Field field, Class asClassOrInterface, String genericArgumentName) {
     Type t = field.getGenericType();
