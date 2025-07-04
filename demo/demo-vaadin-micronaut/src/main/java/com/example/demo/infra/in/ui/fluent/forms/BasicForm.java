@@ -18,13 +18,14 @@ import java.util.List;
 @Route("/fluent-app/forms/basic")
 public class BasicForm implements ComponentTreeSupplier, HandlesActions {
 
+    String title = "Hola";
 
 
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
                 .id("form_id")
-                .title("title")
+                .title(title)
                 .subtitle("subtitle")
                 .pageTitle("page_title")
                 .favicon("favicon")
@@ -84,7 +85,9 @@ public class BasicForm implements ComponentTreeSupplier, HandlesActions {
 
         System.out.println("received action: " + actionId);
 
+        this.title = "xxx";
 
-        return Mono.just("hola");
+
+        return Mono.just(this);
     }
 }

@@ -263,6 +263,7 @@ export class MateuApp extends ComponentElement {
     }
 
     static styles = css`
+        --_vaadin-app-layout-navbar-offset-size: 20px;
         :host {
             width: 100%;
         }

@@ -60,8 +60,8 @@ export class MateuForm extends MetadataDrivenElement {
     render() {
         const metadata = this.metadata as Form
         return html`
-           <h2>${metadata?.title}</h2>
-           <p>${metadata?.subtitle}</p>
+           <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
+           <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
            
            <vaadin-horizontal-layout theme="spacing">
                ${metadata?.toolbar?.map(button => html`
