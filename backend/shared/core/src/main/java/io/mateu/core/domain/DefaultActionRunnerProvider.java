@@ -19,7 +19,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
   @SneakyThrows
   @Override
-  public ActionRunner get(Object instance, String actionId) {
+  public ActionRunner get(Object instance, String actionId, HttpRequest httpRequest) {
     if (instance == null) {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }
@@ -27,7 +27,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
       if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
           @Override
-          public boolean supports(Object instance, String actionId) {
+          public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
             return false;
           }
 
@@ -42,7 +42,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     if ("create".equals(actionId)) {
       return new ActionRunner() {
         @Override
-        public boolean supports(Object instance, String actionId) {
+        public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
           return false;
         }
 
@@ -55,7 +55,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     }
     var runner =
         beanProvider.getBeans(ActionRunner.class).stream()
-            .filter(factory -> factory.supports(instance, actionId))
+            .filter(factory -> factory.supports(instance, actionId, httpRequest))
             .min(Comparator.comparingInt(ActionRunner::priority));
     if (runner.isEmpty()) {
       throw new NoSuchMethodException(

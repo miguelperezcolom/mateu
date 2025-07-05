@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.HasContent;
 import java.util.List;
 import lombok.Builder;
 
@@ -20,7 +21,7 @@ public record VerticalLayout(
     boolean fullWidth,
     boolean hiddenOverflow,
     String style)
-    implements Component {
+    implements Component, HasContent {
 
   public VerticalLayout(List<Component> content) {
     this(

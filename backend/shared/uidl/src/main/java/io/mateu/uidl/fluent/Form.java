@@ -20,7 +20,7 @@ public record Form(
     List<UserTrigger> buttons,
     String style,
     String cssClasses)
-    implements Component {
+    implements Component, HasContent {
 
   public Form {
     actions = actions != null ? actions : Collections.emptyList();

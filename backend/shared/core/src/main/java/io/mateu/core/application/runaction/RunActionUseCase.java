@@ -44,7 +44,7 @@ public class RunActionUseCase {
         .flatMap(
             instance ->
                 actionRunnerProvider
-                    .get(instance, command.actionId())
+                    .get(instance, command.actionId(), command.httpRequest())
                     .run(instance, command.actionId(), command.data(), command.httpRequest()))
         .flatMap(
             result ->

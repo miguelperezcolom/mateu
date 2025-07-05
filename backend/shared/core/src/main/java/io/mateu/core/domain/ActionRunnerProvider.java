@@ -1,6 +1,8 @@
 package io.mateu.core.domain;
 
+import io.mateu.uidl.interfaces.HttpRequest;
+
 public interface ActionRunnerProvider {
 
-  ActionRunner get(Object instance, String actionId);
+  ActionRunner get(Object instance, String actionId, HttpRequest httpRequest);
 }

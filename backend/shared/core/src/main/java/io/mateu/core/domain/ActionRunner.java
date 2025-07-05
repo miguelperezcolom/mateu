@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface ActionRunner {
 
-  boolean supports(Object instance, String actionId);
+  boolean supports(Object instance, String actionId, HttpRequest httpRequest);
 
   default int priority() {
     return Integer.MAX_VALUE;

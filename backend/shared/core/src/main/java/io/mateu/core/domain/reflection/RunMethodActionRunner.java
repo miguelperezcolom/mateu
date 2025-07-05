@@ -14,7 +14,7 @@ public class RunMethodActionRunner implements ActionRunner {
   private final MethodProvider methodProvider = new MethodProvider();
 
   @Override
-  public boolean supports(Object instance, String actionId) {
+  public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
     return methodProvider.getMethod(instance.getClass(), actionId) != null;
   }
 

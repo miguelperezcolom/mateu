@@ -7,16 +7,12 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
-import reactor.core.publisher.Mono;
 
-import java.util.List;
-
-@Route("/fluent-app/forms/counter2")
+@Route("/fluent-app/forms/counter4")
 @Serdeable
-public class Counter2 implements ComponentTreeSupplier {
+public class Counter4 implements ComponentTreeSupplier {
 
     int count = 0;
 
@@ -24,7 +20,7 @@ public class Counter2 implements ComponentTreeSupplier {
     public Component getComponent(HttpRequest httpRequest) {
         return new VerticalLayout(
                 new Text("${data.count}"),
-                new Button("Increment", (Runnable) () -> count++)
+                new Button("Increment", () -> ++count)
         );
     }
 
