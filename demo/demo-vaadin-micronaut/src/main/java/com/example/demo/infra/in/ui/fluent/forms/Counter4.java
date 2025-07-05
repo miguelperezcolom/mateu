@@ -3,6 +3,7 @@ package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.VerticalLayout;
@@ -17,11 +18,16 @@ public class Counter4 implements ComponentTreeSupplier {
 
     int count = 0;
 
+    Counter4 increment() {
+        count++;
+        return this;
+    }
+
     @Override
     public Component getComponent(HttpRequest httpRequest) {
         return new VerticalLayout(
                 new Text("${data.count}"),
-                new Button("Increment", () -> ++count)
+                new Button("Increment", () -> new Data(increment()))
         );
     }
 

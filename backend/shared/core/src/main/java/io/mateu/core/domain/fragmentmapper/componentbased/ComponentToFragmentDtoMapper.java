@@ -19,6 +19,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Context
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CookieConsentComponentToDtoMapper.mapCookieConsentToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CrudlComponentToDtoMapper.mapCrudlToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CustomFieldComponentToDtoMapper.mapCustomFieldToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapDataToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DetailsComponentToDtoMapper.mapDetailsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogComponentToDtoMapper.mapDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
@@ -69,6 +70,7 @@ import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.ContextMenu;
 import io.mateu.uidl.data.CookieConsent;
 import io.mateu.uidl.data.CustomField;
+import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Element;
@@ -114,6 +116,9 @@ public final class ComponentToFragmentDtoMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (component instanceof Data data) {
+      return mapDataToDto(data, initiatorComponentId);
+    }
     return new UIFragmentDto(
         initiatorComponentId,
         mapComponentToDto(componentSupplier, component, baseUrl, route, httpRequest),
