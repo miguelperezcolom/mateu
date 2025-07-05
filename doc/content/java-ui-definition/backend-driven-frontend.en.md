@@ -33,15 +33,15 @@ Or, you can say the same in a fluent imperative way:
 
 ```java
 @MateuUI("")
-public class Counter implements ComponentSupplier {
+public class Counter implements ComponentTreeSupplier {
 
   int count = 0;
 
   @Override
-  public Object getComponent(HttpRequest httpRequest) {
+  public Component getComponent(HttpRequest httpRequest) {
     return new VerticalLayout(
-      new Text(new Binding("count")),
-      new Button("Increment", () -> count++)
+      new Text("" + count),
+      new Button("Increment", (Runnable) () -> count++)
     );
   }
 
