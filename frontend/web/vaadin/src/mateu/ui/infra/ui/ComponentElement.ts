@@ -15,9 +15,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 this.component!.children = fragment.component.children
             }
             if (fragment.data) {
-                this.values = fragment.data
-            } else {
-                this.values = {}
+                this.values = { ...this.values, ...fragment.data }
             }
             this.requestUpdate()
         }

@@ -12,12 +12,11 @@ import '@vaadin/button'
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
 import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 
 @customElement('mateu-form')
 export class MateuForm extends MetadataDrivenElement {
-
-    values: Record<string, any> = {}
 
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -30,7 +29,7 @@ export class MateuForm extends MetadataDrivenElement {
     }
 
     render() {
-        const metadata = this.metadata as Form
+        const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
            <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
            <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>

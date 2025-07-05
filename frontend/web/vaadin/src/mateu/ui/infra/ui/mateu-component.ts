@@ -98,7 +98,7 @@ export class MateuComponent extends ComponentElement {
     render() {
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, {}))}
+            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.values))}
             </mateu-api-caller>
         `
     }

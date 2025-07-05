@@ -3,9 +3,9 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ColumnDto;
+import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.FormFieldDto;
-import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -13,7 +13,7 @@ import java.util.List;
 
 public class CrudlComponentToDtoMapper {
 
-  public static ServerSideComponentDto mapCrudlToDto(
+  public static ComponentDto mapCrudlToDto(
       Crudl crudl,
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
@@ -56,12 +56,6 @@ public class CrudlComponentToDtoMapper {
                                 .build())
                     .toList())
             .build();
-    return new ServerSideComponentDto(
-        crudl.id(),
-        componentSupplier.getClass().getName(),
-        List.of(new ClientSideComponentDto(crudlDto, crudl.id(), List.of(), "", "")),
-        componentSupplier,
-        "",
-        "");
+    return new ClientSideComponentDto(crudlDto, crudl.id(), List.of(), "", "");
   }
 }

@@ -8,7 +8,6 @@ import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.dtos.OnLoadTriggerDto;
-import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;
@@ -17,7 +16,6 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.List;
 
 public class FormComponentToDtoMapper {
 
@@ -40,24 +38,15 @@ public class FormComponentToDtoMapper {
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .build();
-    return new ServerSideComponentDto(
+    return new ClientSideComponentDto(
+        formMetadataDto,
         form.id(),
-        componentSupplier.getClass().getName(),
-        List.of(
-            new ClientSideComponentDto(
-                formMetadataDto,
-                form.id(),
-                form.content().stream()
-                    .map(
-                        component ->
-                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
-                    .toList(),
-                "", // todo: no tiene sentido repetir style y clases css, pero puede que haga falta
-                // (ej. width:100%)
-                "")),
-        componentSupplier,
-        form.style(),
-        form.cssClasses());
+        form.content().stream()
+            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
+            .toList(),
+        "", // todo: no tiene sentido repetir style y clases css, pero puede que haga falta
+        // (ej. width:100%)
+        "");
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
