@@ -5,7 +5,7 @@ import lombok.Builder;
 @Builder
 public record Action(
     String id,
-    boolean foreground,
+    boolean background,
     boolean validationRequired,
     boolean confirmationRequired,
     boolean rowsSelectedRequired,

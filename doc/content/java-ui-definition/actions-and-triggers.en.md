@@ -1,12 +1,18 @@
 ---
-title: "Actions"
+title: "Actions and Triggers"
 weight: 3
 ---
 
 With Mateu the UI you define is rendered in the browser, and you can link the user interactions (e.g. clicking a button, 
 hovering something, writing some text in an input field, ...) to calls to the server. Usually you do that transparently
 by providing a callback or a lambda when you create the component, but you can also explicitly define an **action** in 
-order to override the default behavior (e.g. to perform client side validations or show a confirm dialog before calling the backend).  
+order to override the default behavior.
+
+You can also define triggers to trigger an action upon some events.   
+
+# Actions
+
+As said, you will define **actions** to override the default behavior (e.g. to perform client side validations or show a confirm dialog before calling the backend).
 
 You will also define **actions** when you want to state that an action happens in the background (no loader is showed 
 while making the call).
@@ -111,7 +117,7 @@ Depending on the object returned, Mateu will infer what you want to happen in th
   - Data
   - Commands
 
-## Triggers
+# Triggers
 
 Triggers can also be defined for actions. E.g.:
 
