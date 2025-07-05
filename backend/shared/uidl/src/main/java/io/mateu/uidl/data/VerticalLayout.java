@@ -27,4 +27,22 @@ public record VerticalLayout(
         null, content, false, false, false, null, null, null, null, false, List.of(), false, false,
         "");
   }
+
+  public VerticalLayout(Component... components) {
+    this(
+        null,
+        List.of(components),
+        false,
+        false,
+        false,
+        null,
+        null,
+        null,
+        null,
+        false,
+        List.of(),
+        false,
+        false,
+        "");
+  }
 }

@@ -473,54 +473,60 @@ export const renderAvatarGroup = (component: ClientSideComponent) => {
     </vaadin-avatar-group>`
 }
 
-export const renderText = (component: ClientSideComponent) => {
+export const renderText = (component: ClientSideComponent, data: any) => {
     const metadata = component.metadata as Text
+    let content = metadata.text;
+    try {
+        content = eval('`' + metadata.text + '`')
+    } catch (e) {
+        content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data
+    }
     if (TextContainer.h1 == metadata.container) {
         return html`
             <h1>
-                ${metadata.text}
+                ${content}
             </h1>
         `
     }
     if (TextContainer.h2 == metadata.container) {
         return html`
             <h2>
-                ${metadata.text}
+                ${content}
             </h2>
         `
     }
     if (TextContainer.h3 == metadata.container) {
         return html`
             <h3>
-                ${metadata.text}
+                ${content}
             </h3>
         `
     }
     if (TextContainer.h4 == metadata.container) {
         return html`
             <h4>
-                ${metadata.text}
+                ${content}
             </h4>
         `
     }
     if (TextContainer.h5 == metadata.container) {
         return html`
             <h5>
-                ${metadata.text}
+                ${content}
             </h5>
         `
     }
     if (TextContainer.h6 == metadata.container) {
         return html`
             <h6>
-                ${metadata.text}
+                ${content}
             </h6>
         `
     }
     if (TextContainer.p == metadata.container) {
         return html`
                <p>
-                   ${metadata.text}
+                   ${content}
                </p>
             `
     }
@@ -561,40 +567,40 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
     if (component?.metadata) {
 
         if (component.metadata.type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(component, baseUrl)
+            return renderFormLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(component, baseUrl)
+            return renderHorizontalLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(component, baseUrl)
+            return renderVerticalLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.SplitLayout) {
-            return renderSplitLayout(component, baseUrl)
+            return renderSplitLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.MasterDetailLayout) {
-            return renderMasterDetailLayout(component, baseUrl)
+            return renderMasterDetailLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.TabLayout) {
-            return renderTabLayout(component, baseUrl)
+            return renderTabLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
-            return renderAccordionLayout(component, baseUrl)
+            return renderAccordionLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayout) {
-            return renderBoardLayout(component, baseUrl)
+            return renderBoardLayout(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
-            return renderBoardLayoutRow(component, baseUrl)
+            return renderBoardLayoutRow(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.Scroller) {
-            return renderScroller(component, baseUrl)
+            return renderScroller(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.FullWidth) {
-            return renderFullWidth(component, baseUrl)
+            return renderFullWidth(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.Container) {
-            return renderContainer(component, baseUrl)
+            return renderContainer(component, baseUrl, data)
         }
         if (component.metadata.type == ComponentMetadataType.Form) {
             return html`<mateu-form 
@@ -672,7 +678,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                     </mateu-field>`
         }
         if (component.metadata.type == ComponentMetadataType.Text) {
-            return renderText(component)
+            return renderText(component, data)
         }
         if (component.metadata.type == ComponentMetadataType.Avatar) {
             return renderAvatar(component)

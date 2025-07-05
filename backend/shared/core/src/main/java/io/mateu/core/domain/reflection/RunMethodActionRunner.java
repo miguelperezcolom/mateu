@@ -1,7 +1,6 @@
 package io.mateu.core.domain.reflection;
 
 import io.mateu.core.domain.ActionRunner;
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.lang.reflect.*;
@@ -30,7 +29,7 @@ public class RunMethodActionRunner implements ActionRunner {
       return mono;
     }
     if (result == null) {
-      return Mono.just(UIIncrementDto.builder().build());
+      return Mono.just(instance);
     }
     return Mono.just(result);
   }

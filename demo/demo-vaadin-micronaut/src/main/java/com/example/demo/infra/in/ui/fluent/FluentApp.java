@@ -43,7 +43,9 @@ public class FluentApp implements AppSupplier {
                         )),
                         new Menu("Forms", List.of(
                                 new RouteLink("/fluent-app/forms/basic", "Basic"),
-                                new RouteLink("/fluent-app/forms/counter1", "Counter 1")
+                                new RouteLink("/fluent-app/forms/counter1", "Counter 1"),
+                                new RouteLink("/fluent-app/forms/counter2", "Counter 2"),
+                                new RouteLink("/fluent-app/forms/counter3", "Counter 3")
                         )),
                         new Menu("Crudls", List.of(
                                 new RouteLink("/fluent-app/crudls/basic", "Basic")
