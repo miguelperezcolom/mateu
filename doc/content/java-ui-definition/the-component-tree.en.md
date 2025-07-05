@@ -15,7 +15,7 @@ So, this is a simple example which illustrates a component tree creation:
 
 ```java
 @MateuUI("")
-public class Counter implements ComponentSupplier {
+public class Counter implements ComponentTreeSupplier {
 
   int count = 0;
 
