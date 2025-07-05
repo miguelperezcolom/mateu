@@ -4,6 +4,7 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;

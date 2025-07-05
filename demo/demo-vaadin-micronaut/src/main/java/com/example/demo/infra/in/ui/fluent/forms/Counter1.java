@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Binding;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;
@@ -22,22 +23,8 @@ public class Counter1 implements ComponentTreeSupplier, HandlesActions {
 
     int count = 0;
 
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
-    }
-
     @Override
     public Component getComponent(HttpRequest httpRequest) {
-        /*
-        return new VerticalLayout(
-                new Text(new Binding("count")),
-                new Button("Increment", () -> count++)
-        );
-         */
         return VerticalLayout.builder()
                 .content(List.of(
                                 new Text("" + count),
@@ -59,4 +46,13 @@ public class Counter1 implements ComponentTreeSupplier, HandlesActions {
         count++;
         return Mono.just(this);
     }
+
+    // micronaut's serialization does not like lombok's @Getter and @Setter
+    public int getCount() {
+        return count;
+    }
+    public void setCount(int count) {
+        this.count = count;
+    }
+
 }

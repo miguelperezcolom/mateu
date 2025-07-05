@@ -23,7 +23,7 @@ public class Counter implements ComponentSupplier {
   public Component getComponent(HttpRequest httpRequest) {
     return new VerticalLayout(
       new Text(new Binding("count")),
-      new Button("Increment", () -> count++)
+      new Button("Increment", (Runnable) () -> count++)
     );
   }
 
@@ -33,6 +33,10 @@ public class Counter implements ComponentSupplier {
 The example above will create the following component tree, in the browser:
 
 <p align="center"><img src="../../../images/arch-client-5.svg" width="500"/></p>
+
+Which, in the end, becomes this:
+
+<p align="center"><img src="../../../images/counter.png" width="500"/></p>
 
 ## Inheritance, dependency injection and packaging
 
