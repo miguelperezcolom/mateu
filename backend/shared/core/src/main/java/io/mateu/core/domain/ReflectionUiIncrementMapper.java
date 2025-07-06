@@ -1,5 +1,9 @@
 package io.mateu.core.domain;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.infra.JsonSerializer.fromJson;
+import static io.mateu.core.infra.JsonSerializer.toJson;
+
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.dtos.MessageDto;
@@ -12,6 +16,7 @@ import jakarta.inject.Named;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -68,12 +73,32 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return List.of(
-        reflectionFragmentMapper.mapToFragment(
-            componentFragmentMapper.mapToFragment(
-                instance, baseUrl, route, initiatorComponentId, httpRequest),
-            baseUrl,
-            route,
-            initiatorComponentId,
-            httpRequest));
+        serializeData(
+            reflectionFragmentMapper.mapToFragment(
+                componentFragmentMapper.mapToFragment(
+                    instance, baseUrl, route, initiatorComponentId, httpRequest),
+                baseUrl,
+                route,
+                initiatorComponentId,
+                httpRequest)));
+  }
+
+  private UIFragmentDto serializeData(UIFragmentDto fragment) {
+    return new UIFragmentDto(
+        fragment.targetComponentId(), fragment.component(), toMap(fragment.data()));
+  }
+
+  @SneakyThrows
+  private Object toMap(Object data) {
+    if (data == null) {
+      return null;
+    }
+    if (data instanceof Map) {
+      return data;
+    }
+    if (isBasic(data)) {
+      return data;
+    }
+    return fromJson(toJson(data));
   }
 }
