@@ -15,11 +15,21 @@ public class GridComponentToDtoMapper {
             grid.columns().stream()
                 .map(column -> new GridColumnDto(column.id(), column.label()))
                 .toList(),
-            new DataPageDto(grid.page().content(), grid.page().totalElements()),
+            gatePage(grid),
             grid.tree()),
         "fieldId",
         List.of(),
         "",
         "");
+  }
+
+  private static DataPageDto gatePage(Grid grid) {
+    if (grid == null) {
+      return null;
+    }
+    if (grid.page() == null) {
+      return null;
+    }
+    return new DataPageDto(grid.page().content(), grid.page().totalElements());
   }
 }

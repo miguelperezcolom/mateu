@@ -106,7 +106,7 @@ export const renderGrid = (component: ClientSideComponent) => {
     `
     }
     return html`
-        <vaadin-grid style="width: 500px; height: 300px;" .items="${metadata.page.items}">
+        <vaadin-grid style="width: 500px; height: 300px;" .items="${metadata.page?.items}">
             ${metadata.columns.map(column => html`
             <vaadin-grid-column path="${column.id}">${column.label}</vaadin-grid-column>
 `)}
