@@ -18,6 +18,8 @@ import './mateu-table'
 import TableCrud from "@mateu/shared/apiClients/dtos/componentmetadata/TableCrud";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import ComponentElement from "@infra/ui/ComponentElement";
+import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 
 @customElement('mateu-table-crud')
@@ -30,7 +32,7 @@ export class MateuTableCrud extends ComponentElement {
             detail: {
                 userData: this.values,
                 actionId: 'search',
-                serverSideType: this.serverSideType,
+                serverSideType: (this.component as ServerSideComponent).serverSideType,
                 initiatorComponentId: this.id,
                 initiator: this
             },
@@ -58,7 +60,7 @@ export class MateuTableCrud extends ComponentElement {
             detail: {
                 userData: this.values,
                 actionId,
-                serverSideType: this.serverSideType,
+                serverSideType: (this.component as ServerSideComponent).serverSideType,
                 initiatorComponentId: this.id,
                 initiator: this
             },
@@ -77,7 +79,7 @@ export class MateuTableCrud extends ComponentElement {
             detail: {
                 userData: this.values,
                 actionId: 'search',
-                serverSideType: this.serverSideType,
+                serverSideType: (this.component as ServerSideComponent).serverSideType,
                 initiatorComponentId: this.id,
                 initiator: this
             },
@@ -99,29 +101,29 @@ export class MateuTableCrud extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.size > 1 || !_changedProperties.has('data')) {
-            this.search()
+            //this.search()
         }
     }
 
     render() {
-        const metadata = this.metadata as TableCrud
+        const metadata = (this.component as ClientSideComponent).metadata as TableCrud
         return html`
             <mateu-filter-bar 
                     .metadata="${metadata}"
                     @search-requested="${this.handleSearchRequested}"
             ></mateu-filter-bar>
-            ${this.metadata?.type == ComponentMetadataType.TableCrud?html`
-                <mateu-table .metadata="${metadata.table}" .data="${this.data}"></mateu-table>
+            ${metadata?.type == ComponentMetadataType.TableCrud?html`
+                <mateu-table .metadata="${metadata.table}" .data="${this.values}"></mateu-table>
             `:html`
-                <mateu-card .metadata="${metadata.table}" .data="${this.data}"></mateu-card>
+                <mateu-card .metadata="${metadata.table}" .data="${this.values}"></mateu-card>
             `}
             <slot></slot>
             <mateu-pagination
                     @page-changed="${this.pageChanged}"
-                    totalElements="${this.data.page?.totalElements}"
-                    pageSize="${this.data.page?.pageSize}"
+                    totalElements="${this.values.page?.totalElements}"
+                    pageSize="${this.values.page?.pageSize}"
                     data-testid="pagination"
-                    pageNumber=${this.data?.page?.pageNumber}
+                    pageNumber=${this.values?.page?.pageNumber}
             ></mateu-pagination>
        `
     }

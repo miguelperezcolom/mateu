@@ -18,4 +18,25 @@ public record Crudl(
     List<Column> columns,
     boolean searchable,
     List<Field> filters)
-    implements Component {}
+    implements Component {
+
+  @Override
+  public List<Action> actions() {
+    return actions != null ? actions : List.of();
+  }
+
+  @Override
+  public List<Trigger> triggers() {
+    return triggers != null ? triggers : List.of();
+  }
+
+  @Override
+  public List<UserTrigger> toolbar() {
+    return toolbar != null ? toolbar : List.of();
+  }
+
+  @Override
+  public List<Column> columns() {
+    return columns != null ? columns : List.of();
+  }
+}

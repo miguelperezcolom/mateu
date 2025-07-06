@@ -611,7 +611,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                 id="${component.id}" 
             baseUrl="${baseUrl}"
                 .component="${component}"
-                .data="${data}"
+                .values="${data}"
                 >
                     ${component.children?.map(child => renderComponent(child, baseUrl, data))}        
                 </mateu-form>`
@@ -630,8 +630,8 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return html`<mateu-table-crud
                             id="${component.id}"
             baseUrl="${baseUrl}"
-                .metadata="${component.metadata}"
-                .data="${data}"
+                .component="${component}"
+                .values="${data}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
              </mateu-table-crud>`

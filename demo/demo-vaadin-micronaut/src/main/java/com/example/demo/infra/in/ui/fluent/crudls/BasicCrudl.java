@@ -1,6 +1,10 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Column;
+import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
@@ -13,12 +17,29 @@ import java.util.List;
 public class BasicCrudl implements ComponentTreeSupplier, HandlesActions {
 
 
-
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
-        return Form.builder() // vertical layout as default container for children
+    public Crudl getComponent(HttpRequest httpRequest) {
+        return Crudl.builder() // vertical layout as default container for children
                 .title("Basic crudl")
-                .footer(List.of()) // will be placed in footer, between left and right side buttons
+                .filters(List.of(
+                        Field.builder()
+                                .id("age")
+                                .label("Age")
+                                .dataType(FieldDataType.integer)
+                                .bindToData(true)
+                                .build()
+                ))
+                .searchable(true)
+                .columns(List.of(
+                        Column.builder()
+                                .id("name")
+                                .label("Name")
+                                .build(),
+                        Column.builder()
+                                .id("age")
+                                .label("Age")
+                                .build()
+                ))
                 .build();
     }
 
@@ -29,7 +50,6 @@ public class BasicCrudl implements ComponentTreeSupplier, HandlesActions {
 
     @Override
     public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-
         System.out.println("received action: " + actionId);
 
 

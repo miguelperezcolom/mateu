@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = FormDto.class, name = "Form"),
   @JsonSubTypes.Type(value = AppDto.class, name = "App"),
-  @JsonSubTypes.Type(value = CrudlDto.class, name = "Crud"),
+  @JsonSubTypes.Type(value = CrudlDto.class, name = "TableCrud"),
   @JsonSubTypes.Type(value = ResultDto.class, name = "Result"),
   @JsonSubTypes.Type(value = MicroFrontendDto.class, name = "MicroFrontend"),
   @JsonSubTypes.Type(value = CardDto.class, name = "Card"),
