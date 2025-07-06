@@ -24,6 +24,36 @@ You can explicitly define actions by implementing the **HasActions** interface.
 
 {{< tabs "tab-group-name" >}}
 
+{{< tab "Declarative" >}}
+
+```java
+@Action(id = "action1", requiresConfirmation = true)
+public class Home {
+
+  @Action(background = true)
+  Runnable action2 = () -> "Hola!";
+
+}
+```
+
+or
+
+```java
+@Action(id = "action1", requiresConfirmation = true)
+@Action(id = "action2", background = true)
+public class Home {
+
+  void action2() {
+    return "Hola!";
+  }
+
+}
+```
+
+
+{{< /tab >}}
+
+
 {{< tab "Fluent" >}}
 
 ```java
@@ -49,35 +79,6 @@ public class Home implements HasActions {
 
 }
 ```
-
-{{< /tab >}}
-
-{{< tab "Declarative" >}}
-
-```java
-@Action(id = "action1", requiresConfirmation = true)
-public class Home {
-
-  @Action(background = true)
-  Runnable action2 = () -> "Hola!";
-
-}
-```
-
-or 
-
-```java
-@Action(id = "action1", requiresConfirmation = true)
-@Action(id = "action2", background = true)
-public class Home {
-
-  void action2() {
-    return "Hola!";
-  }
-
-}
-```
-
 
 {{< /tab >}}
 

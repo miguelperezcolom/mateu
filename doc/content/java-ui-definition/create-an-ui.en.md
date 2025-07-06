@@ -54,7 +54,9 @@ You can create as many UIs as you want, in your project. You only need to be car
 
 Another thing you can do on your `@MateuUI` annotated class is provide a favicon. You can do that in a declarative or imperative way.
 
-### Declaratively provide Favicon
+{{< tabs "favicon" >}}
+
+{{< tab "Declarative" >}}
 
 Just annotate your class with `@Favicon`, as in the example below:
 
@@ -68,7 +70,10 @@ public class HelloWorld {
 
 Please notice that you can serve static content from your microservice. For springboot, e.g., you just need to place it in your `resources/static` folder.
 
-### Imperatively provide favicon
+
+{{< /tab >}}
+
+{{< tab "Imperatively" >}}
 
 If you want to supply your favicon in a more dynamic way, you can just implement the `HasFavicon` interface as in the example below:
 
@@ -84,13 +89,19 @@ public class HelloWorld implements HasFavicon {
 }
 ```
 
+{{< /tab >}}
+
+{{< /tabs >}}
+
 ## Page title
 
 Another thing you can do on your `@MateuUI` annotated class is provide a page title. Again, you can do that in a declarative or imperative way.
 
 If you do not explicitly provide it, `Mateu` will infer it from the class name so, a UI created from a class like `class HelloWorld {}` would have a title like `Hello World` by default.
 
-### Declaratively provide the page title
+{{< tabs "favicon" >}}
+
+{{< tab "Declarative" >}}
 
 Just annotate your class with `@PageTitle`, as in the example below:
 
@@ -102,23 +113,10 @@ public class HelloWorld {
 }
 ```
 
-### Imperatively provide the page title
 
-If you want to supply your page title in a more dynamic way, you can just implement the `HasPageTitle` interface as in the example below:
+{{< /tab >}}
 
-```java
-@MateuUI("/hello")
-public class HelloWorld implements HasPageTitle {
-
-  @Override
-  String getPageTitle() {
-    return "Hello World";
-  }
-  
-}
-```
-
-## Fluent style dynamic UIs
+{{< tab "Imperatively" >}}
 
 If you want to declare your UI using a fluent style code you can do so by implementing the `UISupplier` interface, like in the example below:
 
@@ -136,3 +134,8 @@ public class FluentUI implements UISupplier {
 }
 
 ```
+
+
+{{< /tab >}}
+
+{{< /tabs >}}
