@@ -5,19 +5,20 @@ import java.util.Map;
 
 public record RunActionRqDto(
     String componentType,
-    Map<String, Object> data,
+    Map<String, Object> componentState,
     Map<String, Object> appState,
+    Map<String, Object> parameters,
     String initiatorComponentId,
     String consumedRoute) {
 
   public RunActionRqDto {
-    data = data != null ? Collections.unmodifiableMap(data) : Map.of();
+    componentState =
+        componentState != null ? Collections.unmodifiableMap(componentState) : Map.of();
     appState = appState != null ? Collections.unmodifiableMap(appState) : Map.of();
   }
 
-  @Override
-  public Map<String, Object> data() {
-    return Collections.unmodifiableMap(data);
+  public Map<String, Object> componentState() {
+    return Collections.unmodifiableMap(componentState);
   }
 
   public Map<String, Object> appState() {

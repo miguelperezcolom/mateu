@@ -14,7 +14,8 @@ export class RunActionCommandHandler {
             command.initiatorComponentId,
             command.appState,
             command.serverSideType,
-            command.userData,
+            command.componentState,
+            command.parameters,
             command.initiator)
         return {
             uiIncrement

@@ -50,6 +50,7 @@ import ComponentElement from "@infra/ui/ComponentElement";
 import { renderComponent } from "@infra/ui/renderComponents";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
+import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -106,13 +107,22 @@ export class MateuComponent extends ComponentElement {
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
             if (action && action.confirmationRequired) {
-                if (window.confirm('Are you sure?')) {
-                    this.requestActionCallToServer(detail, serverSideComponent)
-                }
+                this.callAfterConfirmation(action, () => this.requestActionCallToServer(detail, serverSideComponent))
             } else {
                 this.requestActionCallToServer(detail, serverSideComponent)
             }
         }
+    }
+
+    callAfterConfirmation = (action: Action, callback: Function) => {
+        let message = 'Are you sure?'
+        if (action.confirmationTexts) {
+            message = action.confirmationTexts.message
+        }
+        if (window.confirm(message)) {
+            callback()
+        }
+
     }
 
     requestActionCallToServer = (detail: {
@@ -120,7 +130,7 @@ export class MateuComponent extends ComponentElement {
     }, serverSideComponent: ServerSideComponent) => {
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
-                userData: {...this.values},
+                componentState: {...this.values},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
                 initiatorComponentId: serverSideComponent.id,

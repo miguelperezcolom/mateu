@@ -4,7 +4,8 @@ export interface RunActionCommand {
     consumedRoute: string
     appState: any
     actionId: any
-    userData: any
+    componentState: any
+    parameters: any
     serverSideType: string
     initiatorComponentId: string
     initiator: HTMLElement

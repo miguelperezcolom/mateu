@@ -61,6 +61,7 @@ class DefaultMateuServiceTest {
                     UsingInterfacesUI.class.getName(),
                     Map.of(),
                     Map.of(),
+                    Map.of(),
                     "initiator_component_id",
                     "consumed_route"),
                 "base_url",

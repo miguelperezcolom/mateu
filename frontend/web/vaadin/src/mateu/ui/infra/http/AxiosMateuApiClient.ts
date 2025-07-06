@@ -108,9 +108,13 @@ export class AxiosMateuApiClient implements MateuApiClient {
     }
 
     async runAction(baseUrl: string, route: string, consumedRoute: string,
-                    actionId: string, initiatorComponentId: string,
-                    appState: any, serverSideType: string,
-                    data: any, initiator: HTMLElement): Promise<UIIncrement> {
+                    actionId: string,
+                    initiatorComponentId: string,
+                    appState: any,
+                    serverSideType: string,
+                    componentState: any,
+                    parameters: any,
+                    initiator: HTMLElement): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
         }
@@ -119,7 +123,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
             + '/' + actionId, {
             serverSideType,
             appState,
-            data,
+            componentState,
+            parameters,
             initiatorComponentId,
             consumedRoute
         })

@@ -66,7 +66,8 @@ export class MateuUx extends ConnectedElement {
         e.preventDefault()
         e.stopPropagation()
         const detail = e.detail as {
-            userData: any
+            parameters: any
+            componentState: any
             actionId: string
             serverSideType: string
             initiatorComponentId: string,
@@ -81,7 +82,8 @@ export class MateuUx extends ConnectedElement {
                     detail.initiatorComponentId,
                     this.getCustomisedAppState(),
                     detail.serverSideType,
-                    detail.userData,
+                    detail.componentState,
+                    detail.parameters,
                     detail.initiator).then();
             } else {
                 console.log('no route', e)

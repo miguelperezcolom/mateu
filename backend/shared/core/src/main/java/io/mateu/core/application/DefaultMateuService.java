@@ -52,7 +52,7 @@ public class DefaultMateuService implements MateuService {
             rq.consumedRoute(),
             actionId,
             rq.componentType(),
-            rq.data(),
+            rq.componentState(),
             rq.appState(),
             rq.initiatorComponentId(),
             httpRequest));
