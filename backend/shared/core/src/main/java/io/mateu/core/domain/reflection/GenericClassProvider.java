@@ -112,8 +112,10 @@ public class GenericClassProvider {
 
       if (sourceClass.isInterface()) {
         List<Type> jerarquiaInterfaces = buscarInterfaz(sourceClass, asClassOrInterface);
-        if (asClassOrInterface.equals(sourceClass))
-          jerarquiaInterfaces = List.of(asClassOrInterface);
+        if (asClassOrInterface.equals(sourceClass)) {
+          jerarquiaInterfaces = new ArrayList<>();
+          jerarquiaInterfaces.add(asClassOrInterface);
+        }
 
         boolean laImplementa = jerarquiaInterfaces != null;
 

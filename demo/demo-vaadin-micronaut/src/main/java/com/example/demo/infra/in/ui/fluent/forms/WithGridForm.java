@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.mateu.core.infra.JsonSerializer.toJson;
+
 @Serdeable
 record Person(String name, int age) {
 
@@ -106,7 +108,7 @@ public class WithGridForm implements ComponentTreeSupplier, HandlesActions {
     @Override
     public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
 
-        System.out.println("received action: " + actionId);
+        System.out.println("received action: " + actionId + " " + toJson(this));
 
         people.add(new Person(name, age));
 
