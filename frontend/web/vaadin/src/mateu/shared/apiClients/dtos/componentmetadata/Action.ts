@@ -16,5 +16,6 @@ export default interface Action {
     runOnEnter: boolean
     onSuccess: string[]
     onError: string[]
+    background: boolean
 
 }

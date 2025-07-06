@@ -8,5 +8,7 @@ public record ServerSideComponentDto(
     List<ComponentDto> children,
     Object initialData,
     String style,
-    String cssClasses)
+    String cssClasses,
+    List<ActionDto> actions,
+    List<TriggerDto> triggers)
     implements ComponentDto {}

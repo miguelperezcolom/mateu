@@ -54,7 +54,7 @@ In **Mateu** any class can be a server side component. You link that class to th
 
 - Annotating the class with **@MateuUI**.
 - Annotating the class with **@Route**.
-- Returning an object from another class which is already linked to the frontend, as response to some event in the browser.
+- Returning an object from a method in a class which is already linked to the frontend, as response to some event in the browser.
 
 ## Interact with the frontend
 

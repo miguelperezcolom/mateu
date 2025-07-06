@@ -55,7 +55,9 @@ public class ReflectionAppMapper {
             List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "")),
             app,
             "",
-            "");
+            "",
+            List.of(),
+            List.of());
     return new UIFragmentDto(initiatorComponentId, component, app);
   }
 

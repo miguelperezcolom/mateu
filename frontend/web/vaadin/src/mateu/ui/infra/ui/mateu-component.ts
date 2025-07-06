@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, unsafeCSS } from "lit";
+import { css, html, PropertyValues, unsafeCSS } from "lit";
 import { badge } from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -49,6 +49,7 @@ import './mateu-ux'
 import ComponentElement from "@infra/ui/ComponentElement";
 import { renderComponent } from "@infra/ui/renderComponents";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
+import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -56,6 +57,24 @@ export class MateuComponent extends ComponentElement {
     @property()
     baseUrl: string | undefined
 
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        if (_changedProperties.has('component')) {
+            console.log('component updated')
+            const serverSideComponent = this.component as ServerSideComponent
+            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
+                .forEach(trigger => {
+                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: trigger.actionId
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                })
+        }
+    }
 
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
@@ -75,24 +94,42 @@ export class MateuComponent extends ComponentElement {
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
-            const detail = e.detail as {
-                actionId: string
-            }
-            if (e.type == 'action-requested') {
-                const serverSideComponent = this.component as ServerSideComponent
-                this.dispatchEvent(new CustomEvent('server-side-action-requested', {
-                    detail: {
-                        userData: {...this.values},
-                        actionId: detail.actionId,
-                        serverSideType: serverSideComponent.serverSideType,
-                        initiatorComponentId: serverSideComponent.id,
-                        initiator: this
-                    },
-                    bubbles: true,
-                    composed: true
-                }))
+            this.manageActionRequestedEvent(e)
+        }
+    }
+
+    manageActionRequestedEvent = (e: CustomEvent) => {
+        const detail = e.detail as {
+            actionId: string
+        }
+        if (e.type == 'action-requested') {
+            const serverSideComponent = this.component as ServerSideComponent
+            const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
+            if (action && action.confirmationRequired) {
+                if (window.confirm('Are you sure?')) {
+                    this.requestActionCallToServer(detail, serverSideComponent)
+                }
+            } else {
+                this.requestActionCallToServer(detail, serverSideComponent)
             }
         }
+    }
+
+    requestActionCallToServer = (detail: {
+        actionId: string
+    }, serverSideComponent: ServerSideComponent) => {
+        this.dispatchEvent(new CustomEvent('server-side-action-requested', {
+            detail: {
+                userData: {...this.values},
+                actionId: detail.actionId,
+                serverSideType: serverSideComponent.serverSideType,
+                initiatorComponentId: serverSideComponent.id,
+                initiator: this
+            },
+            bubbles: true,
+            composed: true
+        }))
+
     }
 
     render() {

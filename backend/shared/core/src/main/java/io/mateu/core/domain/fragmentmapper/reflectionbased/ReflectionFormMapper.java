@@ -40,7 +40,9 @@ public final class ReflectionFormMapper {
             List.of(new ClientSideComponentDto(formDto, "", createFormContent(form), "", "")),
             form,
             "",
-            "");
+            "",
+            List.of(),
+            List.of());
     return new UIFragmentDto(initiatorComponentId, component, form);
   }
 
@@ -97,7 +99,8 @@ public final class ReflectionFormMapper {
                         null,
                         null,
                         null,
-                        null))
+                        null,
+                        false))
             .toList());
     return actions;
   }
