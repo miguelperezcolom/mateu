@@ -21,7 +21,6 @@ export class MateuFilterBar extends LitElement {
     @property()
     metadata: Crud | undefined
 
-
     values: Record<string, any> = {}
 
     valueChanged = (e: CustomEvent) => {

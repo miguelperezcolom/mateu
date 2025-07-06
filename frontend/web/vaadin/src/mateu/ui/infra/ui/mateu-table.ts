@@ -1,5 +1,5 @@
-import { customElement } from "lit/decorators.js";
-import { css, html } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import { css, html, LitElement } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -13,19 +13,23 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
-import ComponentElement from "@infra/ui/ComponentElement";
 
 
 @customElement('mateu-table')
-export class MateuTable extends ComponentElement {
+export class MateuTable extends LitElement {
+
+    @property()
+    metadata: Table | undefined
+
+    @property()
+    data: Record<string, any> = {}
 
     render() {
-        const metadata = this.metadata as Table
         return html`
             <vaadin-grid
-                    .items="${this.data?.page?.items}"
+                    .items="${this.data?.page?.content}"
                     all-rows-visible>
-                ${metadata?.columns?.map(column => html`
+                ${this.metadata?.columns?.map(column => html`
                     <vaadin-grid-column
                             path="${column.id}" 
                             header="${column.header}"></vaadin-grid-column>

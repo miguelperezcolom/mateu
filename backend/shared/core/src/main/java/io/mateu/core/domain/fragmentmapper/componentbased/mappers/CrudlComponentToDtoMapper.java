@@ -23,6 +23,7 @@ public class CrudlComponentToDtoMapper {
         CrudlDto.builder()
             .title(crudl.title())
             .subtitle(crudl.subtitle())
+            .searchable(crudl.searchable())
             .actions(
                 crudl.actions().stream()
                     .map(action -> ActionDto.builder().id(action.id()).href(action.href()).build())

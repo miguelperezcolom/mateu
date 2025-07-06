@@ -37,7 +37,6 @@ export class MateuPagination extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        console.log('_changedProperties', _changedProperties)
         if (_changedProperties.has("totalElements") || _changedProperties.has("pageNumber")) {
             const pages:Page[] = []
             const totalPages = Math.ceil(this.totalElements / this.pageSize);
