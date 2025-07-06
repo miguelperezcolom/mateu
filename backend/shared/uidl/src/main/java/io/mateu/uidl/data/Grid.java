@@ -5,4 +5,6 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record Grid(List<GridColumn> columns, Page<?> page, boolean tree) implements Component {}
+public record Grid(
+    String id, List<GridColumn> columns, Page<?> page, boolean tree, boolean bindToData)
+    implements Component {}

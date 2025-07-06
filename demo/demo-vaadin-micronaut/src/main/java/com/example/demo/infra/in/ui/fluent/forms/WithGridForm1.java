@@ -28,9 +28,9 @@ record Person(String name, int age) {
 
 }
 
-@Route("/fluent-app/forms/with-grid")
+@Route("/fluent-app/forms/with-grid1")
 @Serdeable
-public class WithGridForm implements ComponentTreeSupplier, HandlesActions {
+public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions {
 
     String name = "Mateu";
     int age = 17;

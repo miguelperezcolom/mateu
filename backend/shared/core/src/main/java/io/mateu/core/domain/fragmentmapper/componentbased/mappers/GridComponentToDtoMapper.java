@@ -16,8 +16,9 @@ public class GridComponentToDtoMapper {
                 .map(column -> new GridColumnDto(column.id(), column.label()))
                 .toList(),
             gatePage(grid),
-            grid.tree()),
-        "fieldId",
+            grid.tree(),
+            grid.bindToData()),
+        grid.id(),
         List.of(),
         "",
         "");

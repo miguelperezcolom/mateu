@@ -72,7 +72,7 @@ export const renderVirtualList = (component: ClientSideComponent) => {
     `
 }
 
-export const renderGrid = (component: ClientSideComponent) => {
+export const renderGrid = (component: ClientSideComponent, data: any) => {
     const metadata = component.metadata as Grid
     if (metadata.tree) {
         const dataProvider = async (
@@ -105,8 +105,12 @@ export const renderGrid = (component: ClientSideComponent) => {
         </vaadin-grid>
     `
     }
+    let items = metadata.page?.items
+    if (metadata.bindToData && component.id && data) {
+        items = data[component.id]
+    }
     return html`
-        <vaadin-grid style="width: 500px; height: 300px;" .items="${metadata.page?.items}">
+        <vaadin-grid style="width: 500px; height: 300px;" .items="${items}">
             ${metadata.columns.map(column => html`
             <vaadin-grid-column path="${column.id}">${column.label}</vaadin-grid-column>
 `)}
@@ -756,7 +760,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderMenuBar(component)
         }
         if (component.metadata.type == ComponentMetadataType.Grid) {
-            return renderGrid(component)
+            return renderGrid(component, data)
         }
         if (component.metadata.type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component)
