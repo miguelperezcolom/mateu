@@ -75,14 +75,14 @@ public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions {
                                                                 .description("description")
                                                                 .placeholder("placeholder")
                                                                 .cssClasses("css_classes")
-                                                                .initialValue(name)
+                                                                .bindToData(true)
                                                                 .build(),
                                                         Field.builder()
                                                                 .id("age")
                                                                 .label("Age")
                                                                 .dataType(FieldDataType.integer)
                                                                 .required(false)
-                                                                .initialValue(age)
+                                                                .bindToData(true)
                                                                 .build(),
                                                         Grid.builder()
                                                                 .id("people")

@@ -39,7 +39,8 @@ public record FormFieldDto(
     boolean rightAligned,
     boolean bold,
     List<OptionDto> options,
-    Object initialValue)
+    Object initialValue,
+    boolean bindToData)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

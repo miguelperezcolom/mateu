@@ -22,5 +22,6 @@ export default interface FormField {
     bold: boolean | undefined
     initialValue: any
     options: Option[] | undefined
+    bindToData: boolean
 
 }

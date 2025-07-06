@@ -677,6 +677,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return html`<mateu-field
                        id="${component.id}"
                 .field="${component.metadata}"
+                       .data="${data}"
                 >
                         ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                     </mateu-field>`

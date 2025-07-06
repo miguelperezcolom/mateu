@@ -62,7 +62,6 @@ export class MateuComponent extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('component')) {
-            console.log('component updated')
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
                 .forEach(trigger => {

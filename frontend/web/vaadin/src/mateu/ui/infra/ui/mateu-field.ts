@@ -23,7 +23,6 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import '@vaadin/item'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
-import Field from "../../../../../types/shared/apiClients/dtos/componentmetadata/Field";
 
 
 @customElement('mateu-field')
@@ -31,6 +30,10 @@ export class MateuField extends LitElement {
 
     @property()
     field: FormField | undefined = undefined
+
+    @property()
+    data: any | undefined = undefined
+
 
     valueChanged = (e: CustomEvent) => {
         this.dispatchEvent(new CustomEvent('value-changed', {
@@ -75,6 +78,7 @@ export class MateuField extends LitElement {
     }
 
     render() {
+        const value = this.data?this.data[this.id]:this.field?.initialValue
         if (this.field?.dataType == 'file') {
             return html`
                 <vaadin-upload
@@ -91,7 +95,7 @@ export class MateuField extends LitElement {
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                     ></vaadin-select>
                 `
             }
@@ -104,7 +108,7 @@ export class MateuField extends LitElement {
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                     ></vaadin-combo-box>
                     `
             }
@@ -124,7 +128,7 @@ export class MateuField extends LitElement {
                     <vaadin-radio-group 
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                             theme="vertical">
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
@@ -137,7 +141,7 @@ export class MateuField extends LitElement {
                     <vaadin-rich-text-editor
                             label="${this.field.label}"
                             .maxlength="${this.field.charLimit}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                     ></vaadin-rich-text-editor>`
@@ -147,7 +151,7 @@ export class MateuField extends LitElement {
                     <vaadin-text-area
                             label="${this.field.label}"
                             .maxlength="${this.field.charLimit}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                     ></vaadin-text-area>`
@@ -158,7 +162,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
-                            value="${this.field.initialValue}"
+                            value="${value}"
                     ></vaadin-email-field>
                 `
             }
@@ -168,7 +172,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
-                            value="${this.field.initialValue}"
+                            value="${value}"
                     ></vaadin-password-field>
                 `
             }
@@ -177,7 +181,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-text-field>
 `
         }
@@ -186,7 +190,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
@@ -195,7 +199,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-integer-field>
             `
         }
@@ -205,7 +209,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-checkbox>
             `
         }
@@ -214,7 +218,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-date-picker>`
         }
         if (this.field?.dataType == 'dateTime') {
@@ -222,7 +226,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-date-time-picker>`
         }
         if (this.field?.dataType == 'time') {
@@ -230,7 +234,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                 ></vaadin-time-picker>`
         }
         if (this.field?.dataType == 'array') {
@@ -254,7 +258,7 @@ export class MateuField extends LitElement {
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                     ></vaadin-multi-select-combo-box>
                     `
             }
@@ -263,7 +267,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
-                        value="${this.field.initialValue}"
+                        value="${value}"
                         theme="vertical"
                 >
                     ${this.field.options?.map(option => html`
@@ -282,7 +286,7 @@ export class MateuField extends LitElement {
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                     ></vaadin-combo-box>
                     `
             }
@@ -302,7 +306,7 @@ export class MateuField extends LitElement {
                     <vaadin-radio-group 
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
-                            .value="${this.field.initialValue}"
+                            .value="${value}"
                             theme="vertical">
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>

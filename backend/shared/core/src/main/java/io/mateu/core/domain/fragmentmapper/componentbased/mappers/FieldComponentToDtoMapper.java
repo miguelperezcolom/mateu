@@ -25,6 +25,7 @@ public class FieldComponentToDtoMapper {
                             new OptionDto(option.value(), option.label(), option.description()))
                     .toList())
             .initialValue(field.initialValue())
+            .bindToData(field.bindToData())
             .build(),
         field.id(),
         List.of(),

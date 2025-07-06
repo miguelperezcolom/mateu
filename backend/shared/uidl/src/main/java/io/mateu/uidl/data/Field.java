@@ -15,7 +15,8 @@ public record Field(
     String description,
     String cssClasses,
     List<Option> options,
-    Object initialValue)
+    Object initialValue,
+    boolean bindToData)
     implements Component {
 
   public Field {
