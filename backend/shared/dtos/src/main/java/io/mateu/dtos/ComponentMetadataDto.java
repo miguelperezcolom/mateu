@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Parent interface for all component metadata types */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -58,4 +59,58 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = BoardLayoutDto.class, name = "BoardLayout"),
   @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow")
 })
+@Schema(
+    oneOf = {
+      FormDto.class,
+      AppDto.class,
+      CrudlDto.class,
+      ResultDto.class,
+      MicroFrontendDto.class,
+      CardDto.class,
+      DirectoryDto.class,
+      StepperDto.class,
+      HorizontalLayoutDto.class,
+      VerticalLayoutDto.class,
+      SplitLayoutDto.class,
+      MasterDetailLayoutDto.class,
+      TabLayoutDto.class,
+      TabDto.class,
+      AccordionLayoutDto.class,
+      AccordionPanelDto.class,
+      FormLayoutDto.class,
+      ScrollerDto.class,
+      FullWidthDto.class,
+      ContainerDto.class,
+      ElementDto.class,
+      FormFieldDto.class,
+      TextDto.class,
+      AvatarDto.class,
+      AvatarGroupDto.class,
+      BadgeDto.class,
+      AnchorDto.class,
+      ButtonDto.class,
+      ChartDto.class,
+      IconDto.class,
+      ConfirmDialogDto.class,
+      ContextMenuDto.class,
+      CookieConsentDto.class,
+      DetailsDto.class,
+      DialogDto.class,
+      ImageDto.class,
+      MapDto.class,
+      MarkdownDto.class,
+      NotificationDto.class,
+      ProgressBarDto.class,
+      PopoverDto.class,
+      TooltipDto.class,
+      MessageInputDto.class,
+      MessageListDto.class,
+      CustomFieldDto.class,
+      MenuBarDto.class,
+      GridDto.class,
+      GridColumnDto.class,
+      VirtualListDto.class,
+      BoardLayoutDto.class,
+      BoardLayoutRowDto.class
+    })
 public interface ComponentMetadataDto {}

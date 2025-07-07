@@ -4,13 +4,14 @@ import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import { ButtonType } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonType";
 import { ButtonStereotype } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStereotype";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 
-export const mockedSimpleTableCrud1: Component = {
+export const mockedSimpleTableCrud1: ClientSideComponent = {
     id: 'crud1',
-    serverSideType: '',
     metadata: {
         type: ComponentMetadataType.TableCrud,
+        id: 'crud',
         title: 'My crud',
         subtitle: 'My crud subtitle bla, bla, bla',
         searchable: true,
@@ -56,7 +57,7 @@ export const mockedSimpleTableCrud1: Component = {
             rows: undefined,
         } as Table,
         pageSize: 10,
-        clientSidePagination: false,
+        clientSidePagination: false
     } as Crud,
     initialData: {
         page: {

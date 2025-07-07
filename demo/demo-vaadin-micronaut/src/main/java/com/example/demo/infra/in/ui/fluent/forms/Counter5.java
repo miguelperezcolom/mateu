@@ -19,7 +19,6 @@ import io.micronaut.serde.annotation.Serdeable;
 import java.util.List;
 
 @Route("/fluent-app/forms/counter5")
-@Serdeable
 public class Counter5 implements ComponentTreeSupplier, HasActions, HasTriggers {
 
     int count = 0;
@@ -48,14 +47,6 @@ public class Counter5 implements ComponentTreeSupplier, HasActions, HasTriggers 
                 new Text("${data.count}"),
                 new Button("Increment", (Runnable) () -> count++)
         );
-    }
-
-    // micronaut's serialization does not like lombok's @Getter and @Setter
-    public int getCount() {
-        return count;
-    }
-    public void setCount(int count) {
-        this.count = count;
     }
 
 }

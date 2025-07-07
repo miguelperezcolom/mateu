@@ -12,13 +12,15 @@ import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.Setter;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/counter1")
-@Serdeable
+@Schema
 public class Counter1 implements ComponentTreeSupplier, HandlesActions {
 
     int count = 0;
@@ -47,12 +49,13 @@ public class Counter1 implements ComponentTreeSupplier, HandlesActions {
         return Mono.just(this);
     }
 
-    // micronaut's serialization does not like lombok's @Getter and @Setter
+
+    // required for micronaut
     public int getCount() {
         return count;
     }
+
     public void setCount(int count) {
         this.count = count;
     }
-
 }

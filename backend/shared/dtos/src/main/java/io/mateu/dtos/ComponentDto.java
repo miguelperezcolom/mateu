@@ -2,6 +2,7 @@ package io.mateu.dtos;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -9,6 +10,7 @@ import java.util.List;
   @JsonSubTypes.Type(value = ServerSideComponentDto.class, name = "ServerSide"),
   @JsonSubTypes.Type(value = ClientSideComponentDto.class, name = "ClientSide")
 })
+@Schema(oneOf = {ServerSideComponentDto.class, ClientSideComponentDto.class})
 public interface ComponentDto {
 
   String id();

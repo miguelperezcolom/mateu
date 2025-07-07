@@ -13,7 +13,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Route("/fluent-app/forms/counter4")
-@Serdeable
 public class Counter4 implements ComponentTreeSupplier {
 
     int count = 0;
@@ -29,14 +28,6 @@ public class Counter4 implements ComponentTreeSupplier {
                 new Text("${data.count}"),
                 new Button("Increment", () -> new Data(increment()))
         );
-    }
-
-    // micronaut's serialization does not like lombok's @Getter and @Setter
-    public int getCount() {
-        return count;
-    }
-    public void setCount(int count) {
-        this.count = count;
     }
 
 }

@@ -38,7 +38,7 @@ import VirtualList from "@mateu/shared/apiClients/dtos/componentmetadata/Virtual
 import { virtualListRenderer } from "@vaadin/virtual-list/lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import {
     renderAccordionLayout,
@@ -54,7 +54,6 @@ import {
     renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderLayouts";
-import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 
 export const renderVirtualList = (component: ClientSideComponent) => {
@@ -558,11 +557,10 @@ export const renderComponent = (component: Component, baseUrl: string | undefine
     if (component.type == ComponentType.ClientSide ) {
         return renderClientSideComponent(component as ClientSideComponent, baseUrl, data)
     }
-    const serverSideComponent = component as ServerSideComponent
     return html`
         <mateu-component id="${component.id}" 
                                      .component="${component}"
-                                     .values="${serverSideComponent.initialData}"
+                                     .values="${data}"
                                      baseUrl="${baseUrl}">
        </mateu-component>`
 }

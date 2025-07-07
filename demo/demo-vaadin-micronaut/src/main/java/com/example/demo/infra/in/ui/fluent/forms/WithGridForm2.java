@@ -25,7 +25,6 @@ import java.util.List;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
-@Serdeable
 public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions {
 
     String name = "Mateu";
@@ -112,23 +111,4 @@ public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions {
         return Mono.just(new Data(this));
     }
 
-    // micronaut's serialization does not like lombok's @Getter and @Setter
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public int getAge() {
-        return age;
-    }
-    public void setAge(int age) {
-        this.age = age;
-    }
-    public List<Person> getPeople() {
-        return people;
-    }
-    public void setPeople(List<Person> people) {
-        this.people = people;
-    }
 }

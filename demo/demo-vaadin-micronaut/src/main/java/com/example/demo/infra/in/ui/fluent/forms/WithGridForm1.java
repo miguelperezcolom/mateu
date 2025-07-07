@@ -29,7 +29,6 @@ record Person(String name, int age) {
 }
 
 @Route("/fluent-app/forms/with-grid1")
-@Serdeable
 public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions {
 
     String name = "Mateu";
@@ -113,25 +112,5 @@ public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions {
         people.add(new Person(name, age));
 
         return Mono.just(this);
-    }
-
-    // micronaut's serialization does not like lombok's @Getter and @Setter
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public int getAge() {
-        return age;
-    }
-    public void setAge(int age) {
-        this.age = age;
-    }
-    public List<Person> getPeople() {
-        return people;
-    }
-    public void setPeople(List<Person> people) {
-        this.people = people;
     }
 }

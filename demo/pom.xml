@@ -23,6 +23,7 @@
     <module>demo-vaadin-mvc</module>
     <module>demo-vaadin-quarkus</module>
     <module>demo-vaadin-micronaut</module>
+    <module>demo-vaadin-helidon</module>
   </modules>
 
 </project>

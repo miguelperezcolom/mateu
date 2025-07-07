@@ -8,20 +8,20 @@ export default interface FormField {
     fieldId: string
     dataType: string
     stereotype: string
-    observed: boolean | undefined
-    wantsFocus: boolean | undefined
+    observed?: boolean | undefined
+    wantsFocus?: boolean | undefined
     label: string | undefined
-    placeholder: string | undefined
-    cssClasses: string | undefined
-    description: string | undefined
-    badges: Badge[] | undefined
-    validations: Validation[] | undefined
-    attributes: Pair[] | undefined
-    colspan: number | undefined
-    rightAligned: boolean | undefined
-    bold: boolean | undefined
-    initialValue: any
-    options: Option[] | undefined
-    bindToData: boolean
+    placeholder?: string | undefined
+    cssClasses?: string | undefined
+    description?: string | undefined
+    badges?: Badge[] | undefined
+    validations?: Validation[] | undefined
+    attributes?: Pair[] | undefined
+    colspan?: number | undefined
+    rightAligned?: boolean | undefined
+    bold?: boolean | undefined
+    initialValue?: any
+    options?: Option[] | undefined
+    bindToData?: boolean | undefined
 
 }

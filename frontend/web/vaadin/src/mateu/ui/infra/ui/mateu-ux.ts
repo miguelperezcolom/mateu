@@ -9,7 +9,6 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import './mateu-component'
-import Component from "@mateu/shared/apiClients/dtos/Component";
 import { parseOverrides } from "@infra/ui/common";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
@@ -42,7 +41,7 @@ export class MateuUx extends ConnectedElement {
     overridesParsed: Object = {};
 
     @state()
-    root: Component | undefined = undefined;
+    fragment: UIFragment | undefined = undefined;
 
     /*
                     userData: this.values,
@@ -139,16 +138,12 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
-        if (fragment.component) {
-            this.root = fragment.component
-        } else {
-            this.root = undefined
-        }
+        this.fragment = fragment
     }
 
     render() {
         return html`
-           ${this.root?renderComponent(this.root, this.baseUrl, {}):nothing}
+           ${this.fragment?.component?renderComponent(this.fragment?.component, this.baseUrl, this.fragment?.data):nothing}
        `
     }
 
