@@ -17,7 +17,7 @@ public class AccordionPanelComponentToDtoMapper {
         metadataDto,
         null,
         List.of(mapComponentToDto(null, panel.content(), baseUrl, route, httpRequest)),
-        "",
-        "");
+        panel.style(),
+        panel.cssClasses());
   }
 }

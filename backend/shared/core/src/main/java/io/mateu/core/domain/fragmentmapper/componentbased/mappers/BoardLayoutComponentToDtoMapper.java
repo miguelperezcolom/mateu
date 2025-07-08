@@ -18,7 +18,7 @@ public class BoardLayoutComponentToDtoMapper {
         boardLayout.rows().stream()
             .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
             .toList(),
-        "",
-        "");
+        boardLayout.style(),
+        boardLayout.cssClasses());
   }
 }

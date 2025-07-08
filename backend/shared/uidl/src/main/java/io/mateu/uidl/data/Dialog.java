@@ -4,4 +4,5 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Dialog(String title, Component content) implements Component {}
+public record Dialog(String title, Component content, String style, String cssClasses)
+    implements Component {}

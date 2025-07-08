@@ -11,4 +11,8 @@ public interface Component {
   default Map<String, Object> properties() {
     return Map.of();
   }
+
+  String style();
+
+  String cssClasses();
 }

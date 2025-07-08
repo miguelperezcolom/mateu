@@ -8,6 +8,7 @@ import java.util.List;
 public class ImageComponentToDtoMapper {
 
   public static ClientSideComponentDto mapImageToDto(Image image) {
-    return new ClientSideComponentDto(new ImageDto(image.src()), "fieldId", List.of(), "", "");
+    return new ClientSideComponentDto(
+        new ImageDto(image.src()), "fieldId", List.of(), image.style(), image.cssClasses());
   }
 }

@@ -4,4 +4,5 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record ConfirmDialog(String title, String text) implements Component {}
+public record ConfirmDialog(String title, String text, String style, String cssClasses)
+    implements Component {}

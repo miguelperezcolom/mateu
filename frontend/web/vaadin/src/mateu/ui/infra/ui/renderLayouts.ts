@@ -18,7 +18,7 @@ export const renderFormLayout = (component: ClientSideComponent, baseUrl: string
     ];
 
     return html`
-               <vaadin-form-layout .responsiveSteps="${responsiveSteps}">
+               <vaadin-form-layout .responsiveSteps="${responsiveSteps}"  style="${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </vaadin-form-layout>
             `
@@ -26,7 +26,7 @@ export const renderFormLayout = (component: ClientSideComponent, baseUrl: string
 
 export const renderHorizontalLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-horizontal-layout>
+               <vaadin-horizontal-layout style="${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </vaadin-horizontal-layout>
             `
@@ -34,7 +34,7 @@ export const renderHorizontalLayout = (component: Component, baseUrl: string | u
 
 export const renderVerticalLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-vertical-layout>
+               <vaadin-vertical-layout style="${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </vaadin-vertical-layout>
             `
@@ -48,7 +48,7 @@ export const renderVerticalLayout = (component: Component, baseUrl: string | und
  */
 export const renderSplitLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-split-layout>
+               <vaadin-split-layout style="${component.style}" class="${component.cssClasses}">
                    <master-content>${renderComponent(component.children![0], baseUrl, data)}</master-content>
                    <detail-content>${renderComponent(component.children![1], baseUrl, data)}</detail-content>
                </vaadin-split-layout>
@@ -57,7 +57,7 @@ export const renderSplitLayout = (component: Component, baseUrl: string | undefi
 
 export const renderMasterDetailLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-master-detail-layout has-detail>
+               <vaadin-master-detail-layout has-detail style="${component.style}" class="${component.cssClasses}">
                    <div>${renderComponent(component.children![0], baseUrl, data)}</div>
                    <div slot="detail">${renderComponent(component.children![1], baseUrl, data)}</div>
                </vaadin-master-detail-layout>
@@ -75,9 +75,9 @@ export const renderMasterDetailLayout = (component: Component, baseUrl: string |
 export const renderTabLayout = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
     return html`
         <vaadin-tabsheet>
-            <vaadin-tabs slot="tabs">
+            <vaadin-tabs slot="tabs" style="${component.style}" class="${component.cssClasses}">
                 ${component.children?.map(child => child as ClientSideComponent).map(child => html`
-                    <vaadin-tab id="${(child.metadata as Tab).label}">${(child.metadata as Tab).label}</vaadin-tab>
+                    <vaadin-tab id="${(child.metadata as Tab).label}" style="${child.style}" class="${child.cssClasses}">${(child.metadata as Tab).label}</vaadin-tab>
                 `)}
             </vaadin-tabs>
 
@@ -109,7 +109,7 @@ export const renderTab = (tab: ClientSideComponent, baseUrl: string | undefined,
  */
 export const renderAccordionLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-accordion>
+               <vaadin-accordion style="${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderAccordionPanel(child as ClientSideComponent, baseUrl, data))}
                </vaadin-accordion>
             `
@@ -117,7 +117,7 @@ export const renderAccordionLayout = (component: Component, baseUrl: string | un
 
 export const renderAccordionPanel = (panel: ClientSideComponent, baseUrl: string | undefined, data: any) => {
     return html`
-        <vaadin-accordion-panel>
+        <vaadin-accordion-panel style="${panel.style}" class="${panel.cssClasses}">
             <vaadin-accordion-heading slot="summary">${(panel.metadata as AccordionPanel).label}</vaadin-accordion-heading>
             ${panel.children?.map(child => renderComponent(child, baseUrl, data))}
         </vaadin-accordion-panel>
@@ -126,7 +126,7 @@ export const renderAccordionPanel = (panel: ClientSideComponent, baseUrl: string
 
 export const renderScroller = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <vaadin-scroller style="width: 300px; height: 300px;">
+               <vaadin-scroller style="${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </vaadin-scroller>
             `
@@ -134,7 +134,7 @@ export const renderScroller = (component: Component, baseUrl: string | undefined
 
 export const renderFullWidth = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <div style="width: 100%">
+               <div style="width: 100%; ${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </div>
             `
@@ -142,7 +142,7 @@ export const renderFullWidth = (component: Component, baseUrl: string | undefine
 
 export const renderContainer = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-               <div style="max-width: 800px; margin: auto;">
+               <div style="max-width: 800px; margin: auto; ${component.style}" class="${component.cssClasses}">
                    ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                </div>
             `
@@ -150,7 +150,7 @@ export const renderContainer = (component: Component, baseUrl: string | undefine
 
 export const renderBoardLayout = (component: Component, baseUrl: string | undefined, data: any) => {
     return html`
-        <vaadin-board>
+        <vaadin-board style="${component.style}" class="${component.cssClasses}">
             ${component.children?.map(child => renderBoardLayoutRow(child, baseUrl, data))}
         </vaadin-board>
             `
@@ -158,7 +158,7 @@ export const renderBoardLayout = (component: Component, baseUrl: string | undefi
 
 export const renderBoardLayoutRow = (tab: Component, baseUrl: string | undefined, data: any) => {
     return html`
-        <vaadin-board-row>
+        <vaadin-board-row style="${tab.style}" class="${tab.cssClasses}">
                    ${tab.children?.map(child => renderComponent(child, baseUrl, data))}
                </vaadin-board-row>
             `

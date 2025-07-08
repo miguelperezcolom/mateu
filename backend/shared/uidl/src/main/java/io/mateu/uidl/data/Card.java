@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Card() implements Component {}
+public record Card(String style, String cssClasses) implements Component {}

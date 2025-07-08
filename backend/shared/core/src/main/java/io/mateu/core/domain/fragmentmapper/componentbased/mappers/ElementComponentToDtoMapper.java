@@ -12,7 +12,7 @@ public class ElementComponentToDtoMapper {
         new ElementDto(element.name(), element.attributes(), element.content()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        element.style(),
+        element.cssClasses());
   }
 }

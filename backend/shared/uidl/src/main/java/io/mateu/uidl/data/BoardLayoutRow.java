@@ -6,4 +6,5 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record BoardLayoutRow(List<Component> content) implements Component, HasContent {}
+public record BoardLayoutRow(List<Component> content, String style, String cssClasses)
+    implements Component, HasContent {}

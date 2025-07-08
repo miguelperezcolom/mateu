@@ -18,7 +18,7 @@ public class AccordionLayoutComponentToDtoMapper {
         accordionLayout.panels().stream()
             .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
             .toList(),
-        "",
-        "");
+        accordionLayout.style(),
+        accordionLayout.cssClasses());
   }
 }

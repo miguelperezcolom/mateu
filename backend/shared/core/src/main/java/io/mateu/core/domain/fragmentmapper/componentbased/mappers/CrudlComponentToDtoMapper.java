@@ -6,8 +6,8 @@ import io.mateu.dtos.ColumnDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.FormFieldDto;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
@@ -57,6 +57,7 @@ public class CrudlComponentToDtoMapper {
                                 .build())
                     .toList())
             .build();
-    return new ClientSideComponentDto(crudlDto, crudl.id(), List.of(), "", "");
+    return new ClientSideComponentDto(
+        crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses());
   }
 }

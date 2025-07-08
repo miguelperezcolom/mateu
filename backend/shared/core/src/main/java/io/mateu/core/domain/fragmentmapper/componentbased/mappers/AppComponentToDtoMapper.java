@@ -15,8 +15,8 @@ import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 

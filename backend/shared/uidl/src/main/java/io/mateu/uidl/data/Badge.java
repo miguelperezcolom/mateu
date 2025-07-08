@@ -11,7 +11,9 @@ public record Badge(
     BadgeColor color,
     boolean primary,
     boolean small,
-    boolean pill)
+    boolean pill,
+    String style,
+    String cssClasses)
     implements Component {
 
   @Override

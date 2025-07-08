@@ -17,7 +17,7 @@ public class ScrollerComponentToDtoMapper {
         metadataDto,
         null,
         List.of(mapComponentToDto(null, scroller.content(), baseUrl, route, httpRequest)),
-        "",
-        "");
+        scroller.style(),
+        scroller.cssClasses());
   }
 }

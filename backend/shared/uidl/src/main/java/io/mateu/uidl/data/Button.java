@@ -20,7 +20,9 @@ public record Button(
     String actionId,
     Actionable actionable,
     Runnable runnable,
-    Callable<?> callable)
+    Callable<?> callable,
+    String style,
+    String cssClasses)
     implements Component, UserTrigger {
 
   @Override
@@ -42,6 +44,8 @@ public record Button(
         camelcasize(label),
         null,
         runnable,
+        null,
+        null,
         null);
   }
 
@@ -59,7 +63,9 @@ public record Button(
         camelcasize(label),
         null,
         null,
-        callable);
+        callable,
+        null,
+        null);
   }
 
   private static String camelcasize(String s) {
@@ -95,6 +101,21 @@ public record Button(
   }
 
   public Button(String label) {
-    this("", label, "", "", "", null, false, false, false, camelcasize(label), null, null, null);
+    this(
+        "",
+        label,
+        "",
+        "",
+        "",
+        null,
+        false,
+        false,
+        false,
+        camelcasize(label),
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 }

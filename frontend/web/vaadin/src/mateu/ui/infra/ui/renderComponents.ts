@@ -67,6 +67,7 @@ export const renderVirtualList = (component: ClientSideComponent) => {
         <vaadin-virtual-list
                 .items="${metadata.page.items}"
                 ${virtualListRenderer(renderer, [])}
+                style="${component.style}" class="${component.cssClasses}"
         ></vaadin-virtual-list>
     `
 }
@@ -93,7 +94,7 @@ export const renderGrid = (component: ClientSideComponent, data: any) => {
         }
 
         return html`
-        <vaadin-grid style="width: 500px; height: 300px;"
+        <vaadin-grid style="${component.style}" class="${component.cssClasses}"
                      .itemHasChildrenPath="${'children'}" .dataProvider="${dataProvider}"
         >
             ${metadata.columns.map((column, index) => index > 0?html`
@@ -109,7 +110,7 @@ export const renderGrid = (component: ClientSideComponent, data: any) => {
         items = data[component.id]
     }
     return html`
-        <vaadin-grid style="width: 500px; height: 300px;" .items="${items}">
+        <vaadin-grid style="${component.style}" class="${component.cssClasses}" .items="${items}">
             ${metadata.columns.map(column => html`
             <vaadin-grid-column path="${column.id}">${column.label}</vaadin-grid-column>
 `)}
@@ -123,6 +124,7 @@ export const renderMessageList = (component: ClientSideComponent) => {
     const metadata = component.metadata as MessageList
     return html`
         <vaadin-message-list
+                style="${component.style}" class="${component.cssClasses}"
                 .items="${[
     {
     text: '**Hello team!** Did everyone review the *design document* for the new project?',
@@ -149,7 +151,8 @@ export const renderMenuBar = (component: ClientSideComponent) => {
     const metadata = component.metadata as MenuBar
 
     return html`
-        <vaadin-menu-bar .items=${mapItems(metadata.options)}>
+        <vaadin-menu-bar .items=${mapItems(metadata.options)}
+                         style="${component.style}" class="${component.cssClasses}">
         </vaadin-menu-bar>
             `
 }
@@ -158,7 +161,8 @@ export const renderCustomField = (component: ClientSideComponent, baseUrl: strin
     const metadata = component.metadata as CustomField
 
     return html`
-        <vaadin-custom-field label="${metadata.label}">
+        <vaadin-custom-field label="${metadata.label}"
+                             style="${component.style}" class="${component.cssClasses}">
             ${renderComponent(metadata.content, baseUrl, data)}
         </vaadin-custom-field>
             `
@@ -168,7 +172,7 @@ export const renderMessageInput = (component: ClientSideComponent) => {
     // @ts-ignore
     const metadata = component.metadata as MessageInput
     return html`
-        <vaadin-message-input ></vaadin-message-input>
+        <vaadin-message-input style="${component.style}" class="${component.cssClasses}"></vaadin-message-input>
     `
 }
 
@@ -176,7 +180,9 @@ export const renderTooltip = (component: ClientSideComponent, baseUrl: string | 
     const metadata = component.metadata as Tooltip
     return html`
         <div id="show-notifications">${renderComponent(metadata.wrapped, baseUrl, data)}</div>
-        <vaadin-tooltip for="show-notifications" text="${metadata.text}" position="top-start"></vaadin-tooltip>
+        <vaadin-tooltip
+                style="${component.style}" class="${component.cssClasses}"
+                for="show-notifications" text="${metadata.text}" position="top-start"></vaadin-tooltip>
     `
 }
 
@@ -197,6 +203,7 @@ export const renderPopover = (component: ClientSideComponent, baseUrl: string | 
                     console.log('popover', popover)
                     return html`${renderComponent(metadata.content, baseUrl, data)}`
                 }, [])}
+                style="${component.style}" class="${component.cssClasses}"
         ></vaadin-popover>
     `
 }
@@ -206,7 +213,7 @@ export const renderProgressBar = (component: ClientSideComponent) => {
     const metadata = component.metadata as ProgressBar
 
     return html`
-        <vaadin-progress-bar indeterminate></vaadin-progress-bar>
+        <vaadin-progress-bar indeterminate style="${component.style}" class="${component.cssClasses}"></vaadin-progress-bar>
     `
 }
 
@@ -233,6 +240,7 @@ export const renderNotification = (component: ClientSideComponent) => {
                     </vaadin-horizontal-layout>
                 `
                 }, [])}
+                style="${component.style}" class="${component.cssClasses}"
         ></vaadin-notification>
             `
 }
@@ -242,7 +250,12 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
 
     return html`
         <mateu-api-caller>
-        <mateu-ux baseUrl="${metadata.baseUrl}"  route="${metadata.route}" consumedRoute="${metadata.consumedRoute}" id="${nanoid()}"></mateu-ux>
+        <mateu-ux baseUrl="${metadata.baseUrl}"  
+                  route="${metadata.route}" 
+                  consumedRoute="${metadata.consumedRoute}" 
+                  id="${nanoid()}"
+                  style="${component.style}" class="${component.cssClasses}"
+        ></mateu-ux>
         </mateu-api-caller>
             `
 }
@@ -251,7 +264,8 @@ export const renderMarkdown = (component: ClientSideComponent) => {
     const metadata = component.metadata as Markdown
 
     return html`
-        <vaadin-markdown .content=${metadata.markdown}></vaadin-markdown>
+        <vaadin-markdown .content=${metadata.markdown}
+                         style="${component.style}" class="${component.cssClasses}"></vaadin-markdown>
             `
 }
 
@@ -259,7 +273,8 @@ export const renderMap = (component: ClientSideComponent) => {
     const metadata = component.metadata as Map
 
     return html`
-        <vaadin-map src="${metadata.position}" zoom="${metadata.zoom}" style="width: 400px; height: 400px;"></vaadin-map>
+        <vaadin-map src="${metadata.position}" zoom="${metadata.zoom}"
+                    style="${component.style}" class="${component.cssClasses}"></vaadin-map>
             `
 }
 
@@ -267,7 +282,7 @@ export const renderImage = (component: ClientSideComponent) => {
     const metadata = component.metadata as Image
 
     return html`
-        <img src="${metadata.src}">
+        <img src="${metadata.src}" style="${component.style}" class="${component.cssClasses}">
             `
 }
 
@@ -295,6 +310,7 @@ export const renderDialog = (component: ClientSideComponent, baseUrl: string | u
                     console.log('dialog', dialog)
         return html`${renderComponent(metadata.content, baseUrl, data)}`
     }, [])}
+                style="${component.style}" class="${component.cssClasses}"
         ></vaadin-dialog>
             `
 }
@@ -303,7 +319,7 @@ export const renderDetails = (component: ClientSideComponent, baseUrl: string | 
     const metadata = component.metadata as Details
 
     return html`
-        <vaadin-details summary="${metadata.title}" opened>
+        <vaadin-details summary="${metadata.title}" opened style="${component.style}" class="${component.cssClasses}">
             ${renderComponent(metadata.content, baseUrl, data)}
         </vaadin-details>
             `
@@ -314,7 +330,7 @@ export const renderCookieConsent = (component: ClientSideComponent) => {
     const metadata = component.metadata as CookieConsent
 
     return html`
-        <vaadin-cookie-consent></vaadin-cookie-consent>
+        <vaadin-cookie-consent style="${component.style}" class="${component.cssClasses}"></vaadin-cookie-consent>
     `
 }
 
@@ -345,7 +361,7 @@ export const renderContextMenu = (component: ClientSideComponent, baseUrl: strin
     const metadata = component.metadata as ContextMenu
 
     return html`
-        <vaadin-context-menu .items=${mapItems(metadata.menu)}>
+        <vaadin-context-menu .items=${mapItems(metadata.menu)} style="${component.style}" class="${component.cssClasses}">
             ${renderComponent(metadata.wrapped, baseUrl, data)}
         </vaadin-context-menu>
             `
@@ -382,6 +398,7 @@ export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: str
   reject-text="Discard"
   confirm-text="Save"
   .opened="${true}"
+  style="${component.style}" class="${component.cssClasses}"
 >
   ${metadata.text}
             ${component.children?.map(child => renderComponent(child, baseUrl, data))}
@@ -393,7 +410,7 @@ export const renderIcon = (component: ClientSideComponent) => {
     const metadata = component.metadata as Icon
 
     return html`
-        <vaadin-icon icon="${metadata.icon}"></vaadin-icon>
+        <vaadin-icon icon="${metadata.icon}" style="${component.style}" class="${component.cssClasses}"></vaadin-icon>
     `
 }
 
@@ -408,7 +425,7 @@ export const renderChart = (component: ClientSideComponent) => {
       type="column"
       .categories="${['Jan', 'Feb', 'Mar']}"
       .additionalOptions="${columnOptions}"
-      style="width: 300px;"
+      style="${component.style}" class="${component.cssClasses}"
     >
       <vaadin-chart-series title="Tokyo" .values="${[49.9, 71.5, 106.4]}"></vaadin-chart-series>
       <vaadin-chart-series title="New York" .values="${[83.6, 78.8, 98.5]}"></vaadin-chart-series>
@@ -421,7 +438,7 @@ export const renderCard = (component: ClientSideComponent) => {
     // @ts-ignore
     const metadata = component.metadata as Card
     return html`
-        <vaadin-card>
+        <vaadin-card style="${component.style}" class="${component.cssClasses}">
             <div slot="title">Lapland</div>
             <!-- tag::[] -->
             <div slot="subtitle">The Exotic North</div>
@@ -433,7 +450,7 @@ export const renderCard = (component: ClientSideComponent) => {
 
 export const renderAnchor = (component: ClientSideComponent) => {
     const metadata = component.metadata as Anchor
-    return html`<a href="${metadata.url}">${metadata.text}</a>`
+    return html`<a href="${metadata.url}" style="${component.style}" class="${component.cssClasses}">${metadata.text}</a>`
 }
 
 export const handleButtonClick = (event: Event) => {
@@ -451,13 +468,15 @@ export const renderButton = (component: ClientSideComponent) => {
     const metadata = component.metadata as Button
     return html`<vaadin-button
             data-action-id="${metadata.actionId}"
-            @click="${handleButtonClick}">${metadata.label}</vaadin-button>`
+            @click="${handleButtonClick}"
+            style="${component.style}" class="${component.cssClasses}">${metadata.label}</vaadin-button>`
 }
 
 
 export const renderBadge = (component: ClientSideComponent) => {
     const metadata = component.metadata as Badge
-    return html`<span theme="badge ${metadata.color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${metadata.text}</span>`
+    return html`<span theme="badge ${metadata.color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}"
+                      style="${component.style}" class="${component.cssClasses}">${metadata.text}</span>`
 }
 
 export const renderAvatar = (component: ClientSideComponent) => {
@@ -466,13 +485,15 @@ export const renderAvatar = (component: ClientSideComponent) => {
             img="${metadata.image}"
             name="${metadata.name}"
             abbr="${metadata.abbreviation}"
+            style="${component.style}" class="${component.cssClasses}"
     ></vaadin-avatar>`
 }
 
 export const renderAvatarGroup = (component: ClientSideComponent) => {
     const metadata = component.metadata as AvatarGroup
     return html`<vaadin-avatar-group max-items-visible="${metadata.maxItemsVisible}"
-                                     .items="${metadata.avatars}">
+                                     .items="${metadata.avatars}"
+                                     style="${component.style}" class="${component.cssClasses}">
     </vaadin-avatar-group>`
 }
 
@@ -486,49 +507,49 @@ export const renderText = (component: ClientSideComponent, data: any) => {
     }
     if (TextContainer.h1 == metadata.container) {
         return html`
-            <h1>
+            <h1 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h1>
         `
     }
     if (TextContainer.h2 == metadata.container) {
         return html`
-            <h2>
+            <h2 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h2>
         `
     }
     if (TextContainer.h3 == metadata.container) {
         return html`
-            <h3>
+            <h3 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h3>
         `
     }
     if (TextContainer.h4 == metadata.container) {
         return html`
-            <h4>
+            <h4 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h4>
         `
     }
     if (TextContainer.h5 == metadata.container) {
         return html`
-            <h5>
+            <h5 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h5>
         `
     }
     if (TextContainer.h6 == metadata.container) {
         return html`
-            <h6>
+            <h6 style="${component.style}" class="${component.cssClasses}">
                 ${content}
             </h6>
         `
     }
     if (TextContainer.p == metadata.container) {
         return html`
-               <p>
+               <p style="${component.style}" class="${component.cssClasses}">
                    ${content}
                </p>
             `
@@ -561,7 +582,8 @@ export const renderComponent = (component: Component, baseUrl: string | undefine
         <mateu-component id="${component.id}" 
                                      .component="${component}"
                                      .values="${data}"
-                                     baseUrl="${baseUrl}">
+                                     baseUrl="${baseUrl}"
+                         style="${component.style}" class="${component.cssClasses}">
        </mateu-component>`
 }
 
@@ -610,6 +632,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .values="${data}"
+                style="${component.style}" class="${component.cssClasses}"
                 >
                     ${component.children?.map(child => renderComponent(child, baseUrl, data))}        
                 </mateu-form>`
@@ -620,6 +643,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .metadata="${component.metadata}"
                 .data="${data}"
+                            style="${component.style}" class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                 </mateu-table>`
@@ -630,6 +654,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .values="${data}"
+                            style="${component.style}" class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
              </mateu-table-crud>`
@@ -640,6 +665,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .metadata="${component.metadata}"
                 .data="${data}"
+                            style="${component.style}" class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
              </mateu-table-crud>`
@@ -651,6 +677,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .metadata="${component.metadata}"
                 .data="${data}"
+                            style="${component.style}" class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
              </mateu-card>`
@@ -662,6 +689,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .data="${data}"
+                            style="${component.style}" class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, data))}
              </mateu-app></mateu-api-caller>`
@@ -676,6 +704,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                        id="${component.id}"
                 .field="${component.metadata}"
                        .data="${data}"
+                       style="${component.style}" class="${component.cssClasses}"
                 >
                         ${component.children?.map(child => renderComponent(child, baseUrl, data))}
                     </mateu-field>`

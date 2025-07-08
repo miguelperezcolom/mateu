@@ -4,5 +4,6 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record MicroFrontend(String baseUrl, String route, String consumedRoute)
+public record MicroFrontend(
+    String baseUrl, String route, String consumedRoute, String style, String cssClasses)
     implements Component {}

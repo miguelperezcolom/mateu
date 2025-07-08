@@ -13,7 +13,7 @@ public class MicroFrontendComponentToDtoMapper {
             microFrontend.baseUrl(), microFrontend.route(), microFrontend.consumedRoute()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        microFrontend.style(),
+        microFrontend.cssClasses());
   }
 }

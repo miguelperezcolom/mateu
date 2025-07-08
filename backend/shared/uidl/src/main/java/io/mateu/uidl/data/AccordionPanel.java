@@ -4,4 +4,10 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record AccordionPanel(String label, Component content) implements Component {}
+public record AccordionPanel(String label, Component content, String style, String cssClasses)
+    implements Component {
+
+  public AccordionPanel(String label, Component content) {
+    this(label, content, "", "");
+  }
+}

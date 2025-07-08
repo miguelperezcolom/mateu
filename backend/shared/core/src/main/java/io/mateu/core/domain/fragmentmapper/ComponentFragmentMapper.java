@@ -4,7 +4,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 
 import io.mateu.core.domain.FragmentMapper;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 

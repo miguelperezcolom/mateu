@@ -13,5 +13,6 @@ public record FormLayout(
     SpacingVariant columnSpacing,
     SpacingVariant itemRowSpacing,
     SpacingVariant itemLabelSpacing,
-    String style)
+    String style,
+    String cssClasses)
     implements Component {}

@@ -13,10 +13,11 @@ public record Field(
     boolean required,
     String placeholder,
     String description,
-    String cssClasses,
     List<Option> options,
     Object initialValue,
-    boolean bindToData)
+    boolean bindToData,
+    String style,
+    String cssClasses)
     implements Component {
 
   public Field {

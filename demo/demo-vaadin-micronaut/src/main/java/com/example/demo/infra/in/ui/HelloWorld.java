@@ -2,7 +2,7 @@ package com.example.demo.infra.in.ui;
 
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.interfaces.Form;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
 @MateuUI("")
-public class HelloWorld implements HandlesRoute, HandlesActions, HasTitle, HasSubtitle, Form {
+public class HelloWorld implements HandlesRoute, ReactiveHandlesActions, HasTitle, HasSubtitle, Form {
     @Override
     public Mono<?> handleRoute(String route, HttpRequest httpRequest) {
         return Mono.just(this);

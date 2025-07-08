@@ -1,6 +1,6 @@
-package io.mateu.uidl.fluent;
+package io.mateu.uidl.interfaces;
 
-import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.fluent.Component;
 
 public interface ComponentTreeSupplier {
 

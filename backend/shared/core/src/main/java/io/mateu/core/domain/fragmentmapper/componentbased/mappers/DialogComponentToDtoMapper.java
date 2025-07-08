@@ -17,7 +17,7 @@ public class DialogComponentToDtoMapper {
             dialog.title(), mapComponentToDto(null, dialog.content(), baseUrl, route, httpRequest)),
         "fieldId",
         List.of(),
-        "",
-        "");
+        dialog.style(),
+        dialog.cssClasses());
   }
 }

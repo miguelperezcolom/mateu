@@ -8,6 +8,7 @@ import java.util.List;
 public class ProgressBarComponentToDtoMapper {
 
   public static ClientSideComponentDto mapProgressBarToDto(ProgressBar progressBar) {
-    return new ClientSideComponentDto(new ProgressBarDto(), "fieldId", List.of(), "", "");
+    return new ClientSideComponentDto(
+        new ProgressBarDto(), "fieldId", List.of(), progressBar.style(), progressBar.cssClasses());
   }
 }

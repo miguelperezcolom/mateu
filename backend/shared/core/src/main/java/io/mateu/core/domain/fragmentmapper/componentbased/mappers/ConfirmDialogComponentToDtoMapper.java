@@ -12,7 +12,7 @@ public class ConfirmDialogComponentToDtoMapper {
         new ConfirmDialogDto(confirmDialog.title(), confirmDialog.text()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        confirmDialog.style(),
+        confirmDialog.cssClasses());
   }
 }

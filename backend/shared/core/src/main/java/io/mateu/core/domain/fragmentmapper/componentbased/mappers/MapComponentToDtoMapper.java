@@ -9,6 +9,10 @@ public class MapComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMapToDto(Map map) {
     return new ClientSideComponentDto(
-        new MapDto(map.position(), map.zoom()), "fieldId", List.of(), "", "");
+        new MapDto(map.position(), map.zoom()),
+        "fieldId",
+        List.of(),
+        map.style(),
+        map.cssClasses());
   }
 }

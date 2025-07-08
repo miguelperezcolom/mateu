@@ -7,10 +7,10 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
@@ -32,8 +32,8 @@ public class ComponentTreeSupplierToDtoMapper {
                 route,
                 httpRequest)),
         componentTreeSupplier,
-        "",
-        "",
+        componentTreeSupplier.style(),
+        componentTreeSupplier.cssClasses(),
         mapActions(componentTreeSupplier),
         mapTriggers(componentTreeSupplier));
   }

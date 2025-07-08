@@ -5,4 +5,5 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record BoardLayout(String id, List<BoardLayoutRow> rows) implements Component {}
+public record BoardLayout(String id, List<BoardLayoutRow> rows, String style, String cssClasses)
+    implements Component {}

@@ -6,5 +6,11 @@ import lombok.Builder;
 
 @Builder
 public record Grid(
-    String id, List<GridColumn> columns, Page<?> page, boolean tree, boolean bindToData)
+    String id,
+    List<GridColumn> columns,
+    Page<?> page,
+    boolean tree,
+    boolean bindToData,
+    String style,
+    String cssClasses)
     implements Component {}

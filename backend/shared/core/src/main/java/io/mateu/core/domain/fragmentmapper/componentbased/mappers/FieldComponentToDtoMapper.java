@@ -29,7 +29,7 @@ public class FieldComponentToDtoMapper {
             .build(),
         field.id(),
         List.of(),
-        "",
-        "");
+        field.style(),
+        field.cssClasses());
   }
 }

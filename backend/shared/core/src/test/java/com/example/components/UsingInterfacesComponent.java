@@ -1,11 +1,11 @@
 package com.example.components;
 
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import reactor.core.publisher.Mono;
 
-public class UsingInterfacesComponent implements HandlesActions, HandlesRoute {
+public class UsingInterfacesComponent implements ReactiveHandlesActions, HandlesRoute {
   @Override
   public boolean supportsAction(String actionId) {
     return "sayHello".equals(actionId);

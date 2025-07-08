@@ -1,13 +1,13 @@
 package com.example.uis.basic;
 
 import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import reactor.core.publisher.Mono;
 
 @MateuUI("/hello")
-public class HelloWorld implements HandlesActions, HandlesRoute {
+public class HelloWorld implements ReactiveHandlesActions, HandlesRoute {
   @Override
   public boolean supportsAction(String actionId) {
     return true;

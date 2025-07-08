@@ -8,6 +8,7 @@ import java.util.List;
 public class MessageListComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMessageListToDto(MessageList messageList) {
-    return new ClientSideComponentDto(new MessageListDto(), "fieldId", List.of(), "", "");
+    return new ClientSideComponentDto(
+        new MessageListDto(), "fieldId", List.of(), messageList.style(), messageList.cssClasses());
   }
 }

@@ -18,7 +18,7 @@ public class CustomFieldComponentToDtoMapper {
             mapComponentToDto(null, customField.content(), baseUrl, route, httpRequest)),
         "fieldId",
         List.of(),
-        "",
-        "");
+        customField.style(),
+        customField.cssClasses());
   }
 }

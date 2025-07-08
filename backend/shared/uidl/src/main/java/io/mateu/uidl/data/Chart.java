@@ -4,4 +4,9 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Chart() implements Component {}
+public record Chart(String style, String cssClasses) implements Component {
+
+  public Chart() {
+    this("", "");
+  }
+}

@@ -18,7 +18,7 @@ public class PopoverComponentToDtoMapper {
             mapComponentToDto(null, popover.wrapped(), baseUrl, route, httpRequest)),
         "fieldId",
         List.of(),
-        "",
-        "");
+        popover.style(),
+        popover.cssClasses());
   }
 }

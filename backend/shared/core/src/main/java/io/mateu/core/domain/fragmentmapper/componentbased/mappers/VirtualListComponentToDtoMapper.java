@@ -14,7 +14,7 @@ public class VirtualListComponentToDtoMapper {
             new DataPageDto(virtualList.page().content(), virtualList.page().totalElements())),
         "fieldId",
         List.of(),
-        "",
-        "");
+        virtualList.style(),
+        virtualList.cssClasses());
   }
 }

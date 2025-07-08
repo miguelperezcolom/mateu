@@ -2,7 +2,7 @@ package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Form;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @Route("/fluent-app/nested-apps/left/home")
 @Route("/fluent-app/nested-apps/top/home")
 @Route("/fluent-app/nested-apps/tabs/home")
-public class Home implements HandlesActions, HasTitle, HasSubtitle, Form {
+public class Home implements ReactiveHandlesActions, HasTitle, HasSubtitle, Form {
 
     @Override
     public boolean supportsAction(String actionId) {

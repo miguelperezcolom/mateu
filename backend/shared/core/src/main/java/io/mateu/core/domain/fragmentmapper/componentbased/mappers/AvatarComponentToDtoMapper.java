@@ -12,7 +12,7 @@ public class AvatarComponentToDtoMapper {
         new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        avatar.style(),
+        avatar.cssClasses());
   }
 }

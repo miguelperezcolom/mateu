@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record MessageList() implements Component {}
+public record MessageList(String style, String cssClasses) implements Component {}

@@ -20,8 +20,8 @@ public class GridComponentToDtoMapper {
             grid.bindToData()),
         grid.id(),
         List.of(),
-        "",
-        "");
+        grid.style(),
+        grid.cssClasses());
   }
 
   private static DataPageDto gatePage(Grid grid) {

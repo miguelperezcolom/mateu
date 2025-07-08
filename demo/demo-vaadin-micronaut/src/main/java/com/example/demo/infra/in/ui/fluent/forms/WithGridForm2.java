@@ -8,24 +8,21 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
-public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions {
+public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     String name = "Mateu";
     int age = 17;

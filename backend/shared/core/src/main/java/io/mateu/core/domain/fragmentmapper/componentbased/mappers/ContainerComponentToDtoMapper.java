@@ -17,7 +17,7 @@ public class ContainerComponentToDtoMapper {
         metadataDto,
         null,
         List.of(mapComponentToDto(null, container.content(), baseUrl, route, httpRequest)),
-        "",
-        "");
+        container.style(),
+        container.cssClasses());
   }
 }

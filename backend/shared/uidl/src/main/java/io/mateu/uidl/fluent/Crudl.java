@@ -17,7 +17,9 @@ public record Crudl(
     List<UserTrigger> toolbar,
     List<Column> columns,
     boolean searchable,
-    List<Field> filters)
+    List<Field> filters,
+    String style,
+    String cssClasses)
     implements Component {
 
   @Override

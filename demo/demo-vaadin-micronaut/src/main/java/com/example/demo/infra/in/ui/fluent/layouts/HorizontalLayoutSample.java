@@ -4,7 +4,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
@@ -17,8 +17,14 @@ public class HorizontalLayoutSample implements ComponentTreeSupplier {
                 .title("Horizontal Layout")
                 .content(List.of(HorizontalLayout.builder()
                                 .content(List.of(
-                                        new Text("Left"),
-                                        new Text("Right")
+                                        Text.builder()
+                                                .text("Left")
+                                                .style("background-color: red;")
+                                                .build(),
+                                        Text.builder()
+                                                .text("Right")
+                                                .style("background-color: green;")
+                                                .build()
                                 ))
                         .build()))
                 .build();

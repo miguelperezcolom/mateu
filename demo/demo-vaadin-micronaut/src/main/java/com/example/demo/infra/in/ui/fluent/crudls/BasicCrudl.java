@@ -7,9 +7,8 @@ import io.mateu.uidl.data.Field;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
@@ -19,7 +18,7 @@ import java.util.Map;
 record CrudData(Page<?> page) {}
 
 @Route("/fluent-app/crudls/basic")
-public class BasicCrudl implements ComponentTreeSupplier, HandlesActions {
+public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     CrudData crud = new CrudData(new Page<Object>(0, 0, List.of()));
 

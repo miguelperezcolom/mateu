@@ -20,7 +20,7 @@ public class BadgeComponentToDtoMapper {
             badge.pill()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        badge.style(),
+        badge.cssClasses());
   }
 }

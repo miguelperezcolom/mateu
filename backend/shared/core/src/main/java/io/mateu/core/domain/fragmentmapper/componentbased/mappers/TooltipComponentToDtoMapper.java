@@ -18,7 +18,7 @@ public class TooltipComponentToDtoMapper {
             mapComponentToDto(null, tooltip.wrapped(), baseUrl, route, httpRequest)),
         "fieldId",
         List.of(),
-        "",
-        "");
+        tooltip.style(),
+        tooltip.cssClasses());
   }
 }

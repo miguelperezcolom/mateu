@@ -10,11 +10,11 @@ import io.mateu.dtos.FormDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class FormComponentToDtoMapper {
@@ -44,9 +44,8 @@ public class FormComponentToDtoMapper {
         form.content().stream()
             .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
             .toList(),
-        "", // todo: no tiene sentido repetir style y clases css, pero puede que haga falta
-        // (ej. width:100%)
-        "");
+        form.style(),
+        form.cssClasses());
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {

@@ -12,7 +12,7 @@ public class NotificationComponentToDtoMapper {
         new NotificationDto(notification.title(), notification.text()),
         "fieldId",
         List.of(),
-        "",
-        "");
+        notification.style(),
+        notification.cssClasses());
   }
 }

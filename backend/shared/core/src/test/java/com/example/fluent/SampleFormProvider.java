@@ -1,7 +1,7 @@
 package com.example.fluent;
 
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class SampleFormProvider implements ComponentTreeSupplier {

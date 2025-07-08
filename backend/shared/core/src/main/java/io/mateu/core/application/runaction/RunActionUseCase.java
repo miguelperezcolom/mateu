@@ -63,7 +63,7 @@ public class RunActionUseCase {
     if (app != null) {
       Actionable actionable = resolveMenu(app.menu(), command.route());
       if (actionable instanceof ContentLink contentLink) {
-        return Mono.just(contentLink.componentSupplier().get(command.httpRequest()));
+        return Mono.just(contentLink.componentSupplier().getComponent(command.httpRequest()));
       }
     }
     return Mono.just(instance);
@@ -152,7 +152,8 @@ public class RunActionUseCase {
                       for (Actionable actionable : app.menu()) {
                         if (getPathInApp(appRoute, actionable).equals(route)) {
                           if (actionable instanceof ContentLink contentLink) {
-                            return Mono.just(contentLink.componentSupplier().get(httpRequest));
+                            return Mono.just(
+                                contentLink.componentSupplier().getComponent(httpRequest));
                           }
                           if (actionable instanceof Menu menu) {
                             return Mono.just(new Text("Es un menu"));

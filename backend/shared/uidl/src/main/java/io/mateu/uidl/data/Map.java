@@ -4,4 +4,5 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Map(String position, String zoom) implements Component {}
+public record Map(String position, String zoom, String style, String cssClasses)
+    implements Component {}

@@ -8,6 +8,7 @@ import java.util.List;
 public class CardComponentToDtoMapper {
 
   public static ClientSideComponentDto mapCardToDto(Card card) {
-    return new ClientSideComponentDto(CardDto.builder().build(), "fieldId", List.of(), "", "");
+    return new ClientSideComponentDto(
+        CardDto.builder().build(), "fieldId", List.of(), card.style(), card.cssClasses());
   }
 }

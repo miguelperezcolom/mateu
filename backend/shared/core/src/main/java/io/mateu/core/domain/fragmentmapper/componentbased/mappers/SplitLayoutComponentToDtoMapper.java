@@ -19,7 +19,7 @@ public class SplitLayoutComponentToDtoMapper {
         List.of(
             mapComponentToDto(null, splitLayout.master(), baseUrl, route, httpRequest),
             mapComponentToDto(null, splitLayout.detail(), baseUrl, route, httpRequest)),
-        "",
-        "");
+        splitLayout.style(),
+        splitLayout.cssClasses());
   }
 }

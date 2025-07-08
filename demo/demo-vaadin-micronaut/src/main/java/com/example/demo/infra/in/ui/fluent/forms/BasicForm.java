@@ -7,16 +7,16 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/basic")
-public class BasicForm implements ComponentTreeSupplier, HandlesActions {
+public class BasicForm implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     String name = "Mateu";
     int age = 17;

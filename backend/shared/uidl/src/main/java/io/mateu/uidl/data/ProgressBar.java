@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record ProgressBar() implements Component {}
+public record ProgressBar(String style, String cssClasses) implements Component {}

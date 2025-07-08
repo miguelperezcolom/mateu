@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record MessageInput() implements Component {}
+public record MessageInput(String style, String cssClasses) implements Component {}

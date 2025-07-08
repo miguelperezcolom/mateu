@@ -9,10 +9,10 @@ import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Mono;
@@ -29,7 +29,7 @@ record Person(String name, int age) {
 }
 
 @Route("/fluent-app/forms/with-grid1")
-public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions {
+public class WithGridForm1 implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     String name = "Mateu";
     int age = 17;

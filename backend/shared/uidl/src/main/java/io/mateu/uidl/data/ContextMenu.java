@@ -6,4 +6,5 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record ContextMenu(List<Actionable> menu, Component wrapped) implements Component {}
+public record ContextMenu(List<Actionable> menu, Component wrapped, String style, String cssClasses)
+    implements Component {}

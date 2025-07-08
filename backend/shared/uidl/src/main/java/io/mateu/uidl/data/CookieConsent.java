@@ -4,4 +4,4 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record CookieConsent() implements Component {}
+public record CookieConsent(String style, String cssClasses) implements Component {}

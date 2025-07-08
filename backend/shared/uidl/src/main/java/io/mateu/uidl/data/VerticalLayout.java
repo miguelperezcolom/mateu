@@ -20,13 +20,14 @@ public record VerticalLayout(
     List<Integer> flexGrows,
     boolean fullWidth,
     boolean hiddenOverflow,
-    String style)
+    String style,
+    String cssClasses)
     implements Component, HasContent {
 
   public VerticalLayout(List<Component> content) {
     this(
         null, content, false, false, false, null, null, null, null, false, List.of(), false, false,
-        "");
+        "", "");
   }
 
   public VerticalLayout(Component... components) {
@@ -44,6 +45,7 @@ public record VerticalLayout(
         List.of(),
         false,
         false,
+        "",
         "");
   }
 }
