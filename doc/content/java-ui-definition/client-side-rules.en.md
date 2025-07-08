@@ -3,7 +3,7 @@ title: "Client-side Rules"
 weight: 4
 ---
 
-With Mateu you can define business **rules** to drive the behavior at client side. A list of rules is deployed for every 
+With Mateu you can define business **rules** to drive the behavior at client side. An ordered list of rules is deployed for every 
 backend-driven component, and they have the following fields:
 
 - Filter
