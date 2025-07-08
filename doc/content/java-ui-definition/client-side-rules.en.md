@@ -33,3 +33,7 @@ The list of available actions is:
 - RemoveClass
 - SetStyleValue
 
+The list of possible results is:
+
+- Continue
+- Stop
