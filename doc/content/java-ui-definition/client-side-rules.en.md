@@ -13,7 +13,23 @@ backend-driven component, and they have the following fields:
 
 So, the list of rules is evaluated every time the data changes for any backend-driven component, in the browser.
 
-If any of the rules apply (the **filter** field evaluation results) then the **action** is performed. Depending on the 
+If any of the rules apply (the **filter** field evaluation returns a truthy value) then the **action** is performed. Depending on the 
 field **result** the evaluation of teh other rules will continue or it will be aborted.
 
+The list of available actions is:
+
+- Show
+- Hide
+- Enable
+- Disable 
+- RunAction
+- ShowAction
+- HideAction
+- EnableAction
+- DisableAction
+- RunJS
+- SetAttributeValue
+- AddClass
+- RemoveClass
+- SetStyleValue
 
