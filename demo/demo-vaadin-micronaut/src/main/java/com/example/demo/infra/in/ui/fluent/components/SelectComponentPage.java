@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Option;
@@ -18,7 +18,7 @@ public class SelectComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Select")
                 .content(List.of(
-                        Field.builder()
+                        FormField.builder()
                                 .id("name")
                                 .label("Name")
                                 .dataType(FieldDataType.string)

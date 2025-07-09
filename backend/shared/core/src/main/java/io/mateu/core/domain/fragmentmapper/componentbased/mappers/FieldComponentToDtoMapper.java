@@ -3,33 +3,64 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.OptionDto;
-import io.mateu.uidl.data.Field;
+import io.mateu.dtos.ValidationDto;
+import io.mateu.dtos.ValidationTypeDto;
+import io.mateu.uidl.data.FieldValidation;
+import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.JsValidation;
+import io.mateu.uidl.data.MaxValidation;
+import io.mateu.uidl.data.MinValidation;
+import io.mateu.uidl.data.PatternValidation;
 import java.util.List;
+import java.util.Objects;
 
 public class FieldComponentToDtoMapper {
 
-  public static ClientSideComponentDto mapFieldToDto(Field field) {
+  public static ClientSideComponentDto mapFormFieldToDto(FormField formField) {
     return new ClientSideComponentDto(
         FormFieldDto.builder()
-            .fieldId(field.id())
-            .label(field.label())
-            .dataType(field.dataType().toString())
-            .stereotype(field.stereotype().toString())
-            .placeholder(field.placeholder())
-            .description(field.description())
-            .cssClasses(field.cssClasses())
+            .fieldId(formField.id())
+            .label(formField.label())
+            .dataType(formField.dataType().toString())
+            .stereotype(formField.stereotype().toString())
+            .placeholder(formField.placeholder())
+            .description(formField.description())
+            .cssClasses(formField.cssClasses())
+            .validations(mapValidations(formField.validations()))
             .options(
-                field.options().stream()
+                formField.options().stream()
                     .map(
                         option ->
                             new OptionDto(option.value(), option.label(), option.description()))
                     .toList())
-            .initialValue(field.initialValue())
-            .bindToData(field.bindToData())
+            .initialValue(formField.initialValue())
+            .bindToData(formField.bindToData())
             .build(),
-        field.id(),
+        formField.id(),
         List.of(),
-        field.style(),
-        field.cssClasses());
+        formField.style(),
+        formField.cssClasses());
+  }
+
+  private static List<ValidationDto> mapValidations(List<FieldValidation> validations) {
+    return validations.stream()
+        .filter(Objects::nonNull)
+        .map(FieldComponentToDtoMapper::mapValidation)
+        .toList();
+  }
+
+  private static ValidationDto mapValidation(FieldValidation validation) {
+    return new ValidationDto(
+        mapValidationType(validation), validation.message(), validation.data());
+  }
+
+  private static ValidationTypeDto mapValidationType(FieldValidation validation) {
+    return switch (validation) {
+      case MaxValidation max -> ValidationTypeDto.Max;
+      case MinValidation min -> ValidationTypeDto.Min;
+      case PatternValidation pattern -> ValidationTypeDto.Pattern;
+      case JsValidation js -> ValidationTypeDto.Js;
+      default -> ValidationTypeDto.NotEmpty;
+    };
   }
 }

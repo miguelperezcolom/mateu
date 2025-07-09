@@ -23,7 +23,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DataCom
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DetailsComponentToDtoMapper.mapDetailsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogComponentToDtoMapper.mapDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
-import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFieldToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
@@ -74,7 +74,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Element;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.Grid;
@@ -191,8 +191,8 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof Text text) {
       return mapTextToDto(text);
     }
-    if (component instanceof Field field) {
-      return mapFieldToDto(field);
+    if (component instanceof FormField formField) {
+      return mapFormFieldToDto(formField);
     }
     if (component instanceof Avatar avatar) {
       return mapAvatarToDto(avatar);

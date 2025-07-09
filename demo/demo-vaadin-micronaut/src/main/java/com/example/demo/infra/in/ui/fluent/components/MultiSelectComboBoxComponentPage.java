@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.fluent.Form;
@@ -17,13 +17,13 @@ public class MultiSelectComboBoxComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Multi-select combo box")
                 .content(List.of(
-                        Field.builder()
+                        FormField.builder()
                                 .id("name")
                                 .label("Name")
                                 .dataType(FieldDataType.array)
                                 .stereotype(FieldStereotype.combobox)
                                 .build(),
-                        Field.builder()
+                        FormField.builder()
                                 .id("list")
                                 .label("List box")
                                 .dataType(FieldDataType.array)

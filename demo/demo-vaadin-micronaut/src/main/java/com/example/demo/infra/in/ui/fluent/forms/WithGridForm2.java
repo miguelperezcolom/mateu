@@ -3,7 +3,7 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
@@ -63,7 +63,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
                                         .id("form_layout_id")
                                         .content(
                                                 List.of(
-                                                        Field.builder()
+                                                        FormField.builder()
                                                                 .id("name")
                                                                 .label("Name")
                                                                 .dataType(FieldDataType.string)
@@ -73,7 +73,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
                                                                 .cssClasses("css_classes")
                                                                 .bindToData(true)
                                                                 .build(),
-                                                        Field.builder()
+                                                        FormField.builder()
                                                                 .id("age")
                                                                 .label("Age")
                                                                 .dataType(FieldDataType.integer)

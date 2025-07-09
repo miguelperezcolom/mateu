@@ -4,5 +4,6 @@ public enum ValidationTypeDto {
   Min,
   Max,
   Pattern,
-  NotEmpty
+  NotEmpty,
+  Js
 }

@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -16,12 +16,12 @@ public class NumberFieldComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Number field")
                 .content(List.of(
-                        Field.builder()
+                        FormField.builder()
                                 .id("integer")
                                 .label("Integer")
                                 .dataType(FieldDataType.integer)
                                 .build(),
-                        Field.builder()
+                        FormField.builder()
                                 .id("decimal")
                                 .label("Decimal")
                                 .dataType(FieldDataType.decimal)

@@ -1,7 +1,7 @@
 package io.mateu.uidl.fluent;
 
 import io.mateu.uidl.data.Column;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import java.util.List;
 import lombok.Builder;
 
@@ -17,7 +17,7 @@ public record Crudl(
     List<UserTrigger> toolbar,
     List<Column> columns,
     boolean searchable,
-    List<Field> filters,
+    List<FormField> filters,
     String style,
     String cssClasses)
     implements Component {

@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Option;
@@ -18,12 +18,12 @@ public class CheckboxComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Checkbox")
                 .content(List.of(
-                        Field.builder()
+                        FormField.builder()
                                 .id("name")
                                 .label("Name")
                                 .dataType(FieldDataType.bool)
                                 .build(),
-                        Field.builder()
+                        FormField.builder()
                                 .id("array")
                                 .label("Array")
                                 .dataType(FieldDataType.array)

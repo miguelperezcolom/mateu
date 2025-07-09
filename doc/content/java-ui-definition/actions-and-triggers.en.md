@@ -4,7 +4,7 @@ weight: 3
 ---
 
 With Mateu the UI you define is rendered in the browser, and you can link the user interactions (e.g. clicking a button, 
-hovering something, writing some text in an input field, ...) to calls to the server. Usually you do that transparently
+hovering something, writing some text in an input formField, ...) to calls to the server. Usually you do that transparently
 by providing a callback or a lambda when you create the component, but you can also explicitly define an **action** in 
 order to override the default behavior.
 

@@ -3,7 +3,7 @@ package com.example.demo.infra.in.ui.fluent.crudls;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Column;
 import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.Field;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Crudl;
@@ -28,7 +28,7 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions
                 .title("Basic crudl")
                 .id("crud")
                 .filters(List.of(
-                        Field.builder()
+                        FormField.builder()
                                 .id("age")
                                 .label("Age")
                                 .dataType(FieldDataType.integer)

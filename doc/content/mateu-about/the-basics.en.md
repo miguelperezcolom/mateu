@@ -13,7 +13,7 @@ We begin by linking a URL to a Java class. This sets up the initial interactionâ
 
 From there, the behavior is entirely under your control:
 
-- Add a Java method (or a `Callable` field) and annotate it with `@Action` to expose it as a **button** in the UI.  
+- Add a Java method (or a `Callable` formField) and annotate it with `@Action` to expose it as a **button** in the UI.  
   When the user clicks the button, the method executes on the server, and the UI updates based on its result.
 
 - To **collect input from the user**, simply add fields to your Java class. Mateu will automatically generate the appropriate UI controls, and user-entered values will populate the corresponding server-side fields before any method is called.

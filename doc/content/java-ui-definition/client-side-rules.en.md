@@ -14,8 +14,8 @@ backend-driven component, and they have the following fields:
 
 So, the list of rules is evaluated every time the data changes for any backend-driven component, in the browser.
 
-If any of the rules apply (the **filter** field evaluation returns a truthy value) then the **action** is performed. Depending on the 
-field **result** the evaluation of teh other rules will continue, or it will be aborted.
+If any of the rules apply (the **filter** formField evaluation returns a truthy value) then the **action** is performed. Depending on the 
+formField **result** the evaluation of the other rules will continue, or it will be aborted.
 
 The list of available actions is:
 
@@ -33,6 +33,7 @@ The list of available actions is:
 - AddClass
 - RemoveClass
 - SetStyleValue
+- SetValue
 
 
 The list of possible results is:

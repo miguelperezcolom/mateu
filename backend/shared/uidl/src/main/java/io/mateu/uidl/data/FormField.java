@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record Field(
+public record FormField(
     String id,
     String label,
     FieldDataType dataType,
@@ -17,18 +17,21 @@ public record Field(
     Object initialValue,
     boolean bindToData,
     String style,
-    String cssClasses)
+    String cssClasses,
+    List<FieldValidation> validations)
     implements Component {
 
-  public Field {
+  public FormField {
     stereotype = stereotype != null ? stereotype : FieldStereotype.regular;
   }
 
   @Override
+  public List<FieldValidation> validations() {
+    return validations != null ? validations : List.of();
+  }
+
+  @Override
   public List<Option> options() {
-    if (options == null) {
-      return List.of();
-    }
-    return options;
+    return options != null ? options : List.of();
   }
 }

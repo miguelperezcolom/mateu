@@ -101,7 +101,7 @@ public class WebSecurityConfig {
 
 # Fine grained UI
 
-If you want a fine grained access controls you can use the `@Private` and `@ReadOnly` annotations in order to hide menu options, actions and fields, or in order to make a field read only according to the user and its roles.
+If you want a fine grained access controls you can use the `@Private` and `@ReadOnly` annotations in order to hide menu options, actions and fields, or in order to make a formField read only according to the user and its roles.
 
 For that to work you need to implement the interface `MateuSecurityManager` and provide your own implementation, or you can simply add the following dependency:
 
