@@ -11,7 +11,7 @@ import lombok.Builder;
  * @param dataType Field data dataType
  * @param stereotype Field stereotype (how it is painted)
  * @param observed If a change must trigger a rules reevaluation
- * @param wantsFocus Set to true if you want it to be focused when rendered
+ * @param autofocus Set to true if you want it to be focused when rendered
  * @param label The label/label for this field
  * @param placeholder A placeholder for this field
  * @param cssClasses Css cssClasses to be applied to this field
@@ -27,7 +27,7 @@ public record FormFieldDto(
     String dataType,
     String stereotype,
     boolean observed,
-    boolean wantsFocus,
+    boolean autofocus,
     String label,
     String placeholder,
     String cssClasses,
@@ -40,7 +40,8 @@ public record FormFieldDto(
     boolean bold,
     List<OptionDto> options,
     Object initialValue,
-    boolean bindToData)
+    boolean bindToData,
+    boolean required)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

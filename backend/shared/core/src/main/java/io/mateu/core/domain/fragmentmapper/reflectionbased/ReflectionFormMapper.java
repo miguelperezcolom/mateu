@@ -42,6 +42,7 @@ public final class ReflectionFormMapper {
             "",
             "",
             List.of(),
+            List.of(),
             List.of());
     return new UIFragmentDto(initiatorComponentId, component, form);
   }
@@ -75,7 +76,8 @@ public final class ReflectionFormMapper {
                             false,
                             List.of(),
                             getValue(field, form),
-                            true),
+                            true,
+                            false),
                         "field_id",
                         List.of(),
                         "",

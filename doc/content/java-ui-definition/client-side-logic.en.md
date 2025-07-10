@@ -1,9 +1,11 @@
 ---
-title: "Client-side Rules"
+title: "Client side logic"
 weight: 4
 ---
 
-With Mateu you can define business **rules** to drive the behavior at client side. An ordered list of rules is deployed for every 
+With Mateu you can define kind of **business rules** to drive the behavior at client side. 
+
+An ordered list of rules is deployed for every 
 backend-driven component, and they have the following fields:
 
 - Filter
@@ -40,3 +42,8 @@ The list of possible results is:
 
 - Continue
 - Stop
+
+
+This way you can define te typical behaviour that you want to happen on the client side.
+
+If this is not enough, the way to go is to build your own web component and use it in your UIs.

@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.OnLoadTriggerDto;
+import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.fluent.HasActions;
@@ -35,7 +36,12 @@ public class ComponentTreeSupplierToDtoMapper {
         componentTreeSupplier.style(),
         componentTreeSupplier.cssClasses(),
         mapActions(componentTreeSupplier),
-        mapTriggers(componentTreeSupplier));
+        mapTriggers(componentTreeSupplier),
+        mapRules(componentTreeSupplier));
+  }
+
+  private static List<RuleDto> mapRules(Object serverSideObject) {
+    return List.of();
   }
 
   private static List<TriggerDto> mapTriggers(Object serverSideObject) {

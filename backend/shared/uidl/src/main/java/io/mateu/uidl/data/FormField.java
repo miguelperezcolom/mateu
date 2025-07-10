@@ -11,6 +11,7 @@ public record FormField(
     FieldDataType dataType,
     FieldStereotype stereotype,
     boolean required,
+    boolean autofocus,
     String placeholder,
     String description,
     List<Option> options,

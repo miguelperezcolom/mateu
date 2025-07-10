@@ -35,6 +35,8 @@ public class FieldComponentToDtoMapper {
                     .toList())
             .initialValue(formField.initialValue())
             .bindToData(formField.bindToData())
+            .required(formField.required())
+            .autofocus(formField.autofocus())
             .build(),
         formField.id(),
         List.of(),
