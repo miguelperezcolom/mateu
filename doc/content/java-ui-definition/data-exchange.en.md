@@ -3,7 +3,7 @@ title: "Data exchange"
 weight: 5
 ---
 
-Besides UI definition metadata, in Mateu there are three kinds of runtime related data which travel back and forth:
+Besides UI definition metadata, in Mateu there are three kinds of **runtime related data** which travel back and forth:
 
 - AppState
 - ComponentState
