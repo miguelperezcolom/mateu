@@ -5,6 +5,8 @@ weight: 4
 
 With Mateu you can define kind of **business rules** to drive the behavior at client side. 
 
+<p align="center"><img src="../../../images/arch-overall-8.svg" width="500"/></p>
+
 An ordered list of rules is deployed for every 
 backend-driven component, and they have the following fields:
 
