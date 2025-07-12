@@ -727,6 +727,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         if (component.metadata.type == ComponentMetadataType.Button) {
             return renderButton(component)
         }
+        // @ts-ignore
         if (component.metadata.type == ComponentMetadataType.Card) {
             return renderCard(component)
         }

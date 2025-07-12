@@ -23,5 +23,6 @@ export default interface FormField {
     initialValue?: any
     options?: Option[] | undefined
     bindToData?: boolean | undefined
+    charLimit?: string
 
 }

@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement, nothing, PropertyValues } from "lit";
+import { css, html, LitElement, PropertyValues } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
