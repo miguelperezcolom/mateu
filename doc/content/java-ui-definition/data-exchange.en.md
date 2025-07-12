@@ -9,6 +9,10 @@ In Mateu there are three kinds of data which travel back and forth:
 - ComponentState
 - ComponentData
 
+The following diagram explains it:
+
+<p align="center"><img src="../../../images/arch-overall-9.svg" width="700"/></p>
+
 ## App State
 
 The app state data contains the application state. It is stored in the browser, and it travels in the payload of 
