@@ -48,7 +48,7 @@ public class DefaultMateuService implements MateuService {
         new RunActionCommand(
             baseUrl,
             uiId,
-            route.replaceAll("_", "/"),
+            route.replaceAll("_n", "").replaceAll("_", "/"),
             rq.consumedRoute(),
             actionId,
             rq.componentType(),

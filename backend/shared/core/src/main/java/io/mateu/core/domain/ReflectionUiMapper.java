@@ -68,6 +68,6 @@ public class ReflectionUiMapper implements UiMapper {
     if (uiInstance instanceof HasHomeRoute hasHomeRoute) {
       return hasHomeRoute.getHomeRoute();
     }
-    return "/home";
+    return "";
   }
 }

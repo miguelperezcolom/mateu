@@ -73,7 +73,7 @@ export class MateuUx extends ConnectedElement {
             initiator: HTMLElement
         }
         if (e.type == 'server-side-action-requested') {
-            if (this.route) {
+            if (this.route != undefined) {
                 service.runAction(mateuApiClient, this.baseUrl,
                     this.route,
                     this.consumedRoute,

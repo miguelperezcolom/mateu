@@ -221,6 +221,6 @@ public class RunActionUseCase {
             .toList()) {
       return bean.resolveRoute(command.route(), command.httpRequest()).getName();
     }
-    return null;
+    return command.uiId();
   }
 }

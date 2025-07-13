@@ -39,6 +39,8 @@ export default defineConfig({
       '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
       '/remoteapp/mateu': 'http://localhost:8091',
+      '/counter/mateu': 'http://localhost:8091',
+      '/json-schema/mateu': 'http://localhost:8091',
     },
   },
 })

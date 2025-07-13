@@ -11,7 +11,7 @@ public class Humanizer {
 
   public static String capitalize(String s, boolean startWithUppercase) {
     if (s == null || "".equals(s)) return s;
-    s = s.replaceAll("\\.", " ");
+    s = s.replaceAll("\\.", " ").replaceAll("_", " ").replaceAll("-", " ");
     String c =
         s.replaceAll(
                 String.format(

@@ -84,9 +84,9 @@ class ReflectionUiMapperTest {
   @Test
   void homeRouteIsReturned() {
     var homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "");
-    assertThat(homeRoute).isEqualTo("/home");
+    assertThat(homeRoute).isEqualTo("");
     homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "/");
-    assertThat(homeRoute).isEqualTo("/home");
+    assertThat(homeRoute).isEqualTo("");
     homeRoute = reflectionUiMapper.getHomeRoute(new AnnotatedUI(), "/xxx");
     assertThat(homeRoute).isEqualTo("/xxx");
   }

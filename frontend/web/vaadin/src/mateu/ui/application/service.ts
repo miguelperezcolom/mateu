@@ -50,7 +50,7 @@ export class Service {
                     initiator: HTMLElement) {
         const changes = await runActionCommandHandler.handle(mateuApiClient, {
             baseUrl,
-            route,
+            route: route?route:'_n',
             consumedRoute,
             actionId,
             appState,
