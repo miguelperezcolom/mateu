@@ -46,7 +46,8 @@ public class JsonSchemaBased implements ComponentTreeSupplier, HandlesRoute {
 
     @SneakyThrows
     private Component getFormComponent() {
-        var schema = new ObjectMapper().readValue(this.getClass().getResourceAsStream("/schemas/" + route), Map.class);
+        var schema = new ObjectMapper().readValue(this.getClass().getResourceAsStream("/schemas/" + route),
+                Map.class);
         return Form.builder()
                 .title(route)
                 .content(List.of(FormLayout.builder()
@@ -62,7 +63,7 @@ public class JsonSchemaBased implements ComponentTreeSupplier, HandlesRoute {
                                         .build()
                                 ).toList()
                 )
-                        .columns(1).build()))
+                .columns(1).build()))
                 .build();
     }
 
