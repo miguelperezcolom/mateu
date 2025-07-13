@@ -31,10 +31,10 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Build front
-        run: cd frontend/web/vaadin && npm i && npm run build && npm run copy
+        run: cd frontend/web/vaadin && rm -f package-lock.json && npm i && npm run build && npm run copy
 
       - name: fix version
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
