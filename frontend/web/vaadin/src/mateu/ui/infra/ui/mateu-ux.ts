@@ -15,7 +15,7 @@ import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import { appState } from "@domain/state";
-import { renderComponent } from "@infra/ui/renderComponents";
+import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
 
 @customElement('mateu-ux')

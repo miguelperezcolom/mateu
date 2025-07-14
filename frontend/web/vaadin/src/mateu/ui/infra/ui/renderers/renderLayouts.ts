@@ -5,7 +5,7 @@ import { html } from "lit";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { renderComponent } from "@infra/ui/renderComponents";
+import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
     const metadata = component.metadata as FormLayout

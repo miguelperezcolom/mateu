@@ -47,10 +47,10 @@ import './mateu-app'
 import './mateu-api-caller'
 import './mateu-ux'
 import ComponentElement from "@infra/ui/ComponentElement";
-import { renderComponent } from "@infra/ui/renderComponents";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
+import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
