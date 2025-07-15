@@ -143,7 +143,7 @@ export class MateuUx extends ConnectedElement {
 
     render() {
         return html`
-           ${this.fragment?.component?renderComponent(this.fragment?.component, this.baseUrl, this.fragment?.data):nothing}
+           ${this.fragment?.component?renderComponent(this.fragment?.component, this.baseUrl, this.fragment?.state, this.fragment?.data):nothing}
        `
     }
 

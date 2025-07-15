@@ -16,7 +16,7 @@ public record UIIncrementDto(
     List<UICommandDto> commands,
     List<MessageDto> messages,
     List<UIFragmentDto> fragments,
-    Object sharedData,
+    Object appData,
     Object appState) {
 
   public UIIncrementDto {

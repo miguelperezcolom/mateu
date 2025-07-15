@@ -10,4 +10,5 @@ import lombok.Builder;
  * @param data data
  */
 @Builder
-public record UIFragmentDto(String targetComponentId, ComponentDto component, Object data) {}
+public record UIFragmentDto(
+    String targetComponentId, ComponentDto component, Object state, Object data) {}

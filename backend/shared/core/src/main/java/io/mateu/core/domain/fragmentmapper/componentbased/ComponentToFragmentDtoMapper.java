@@ -43,6 +43,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Popover
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ProgressBarComponentToDtoMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ScrollerComponentToDtoMapper.mapScrollerToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.SplitLayoutComponentToDtoMapper.mapSplitLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.StateComponentToDtoMapper.mapStateToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabComponentToDtoMapper.mapTabToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TabLayoutComponentToDtoMapper.mapTabLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.TextComponentToDtoMapper.mapTextToDto;
@@ -91,6 +92,7 @@ import io.mateu.uidl.data.Popover;
 import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.SplitLayout;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
@@ -116,13 +118,17 @@ public final class ComponentToFragmentDtoMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (component instanceof State state) {
+      return mapStateToDto(state, initiatorComponentId);
+    }
     if (component instanceof Data data) {
       return mapDataToDto(data, initiatorComponentId);
     }
     return new UIFragmentDto(
         initiatorComponentId,
         mapComponentToDto(componentSupplier, component, baseUrl, route, httpRequest),
-        componentSupplier);
+        componentSupplier,
+        null);
   }
 
   public static ComponentDto mapComponentToDto(

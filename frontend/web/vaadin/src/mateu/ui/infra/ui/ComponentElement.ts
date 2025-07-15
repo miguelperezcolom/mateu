@@ -7,7 +7,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     // public properties
     @property()
-    values: Record<string, any> = {}
+    state: Record<string, any> = {}
+
+    @property()
+    data: Record<string, any> = {}
+
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
@@ -16,9 +20,13 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 const children = fragment.component?.type == ComponentType.ServerSide?fragment.component?.children:[fragment.component]
                 this.component!.children = children
             }
-            if (fragment.data) {
-                this.values = { ...this.values, ...fragment.data }
+            if (fragment.state) {
+                this.state = { ...this.state, ...fragment.state }
             }
+            if (fragment.data) {
+                this.data = { ...this.data, ...fragment.data }
+            }
+
             this.requestUpdate()
         }
     }

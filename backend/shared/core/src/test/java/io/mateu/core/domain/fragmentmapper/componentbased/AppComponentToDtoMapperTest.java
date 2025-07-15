@@ -170,7 +170,7 @@ class AppComponentToDtoMapperTest {
                     List.of(),
                     "",
                     ""))
-            .data(supplier)
+            .state(supplier)
             .build();
 
     var dto =

@@ -59,7 +59,7 @@ public class ReflectionAppMapper {
             List.of(),
             List.of(),
             List.of());
-    return new UIFragmentDto(initiatorComponentId, component, app);
+    return new UIFragmentDto(initiatorComponentId, component, app, null);
   }
 
   public static String getHomeRoute(List<MenuOptionDto> menu, String route) {

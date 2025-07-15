@@ -5,7 +5,9 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.OnLoadTriggerDto;
+import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
+import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.fluent.HasActions;
@@ -13,6 +15,9 @@ import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.RuleSupplier;
+
+import java.net.URL;
 import java.util.List;
 
 public class ComponentTreeSupplierToDtoMapper {
@@ -41,6 +46,16 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   private static List<RuleDto> mapRules(Object serverSideObject) {
+    if (serverSideObject instanceof RuleSupplier ruleSupplier) {
+      return ruleSupplier.rules().stream()
+              .map(rule -> RuleDto.builder()
+                      .filter(rule.filter())
+                      .action(RuleActionDto.valueOf(rule.action().name()))
+                      .data(rule.data())
+                      .result(RuleResultDto.valueOf(rule.result().name()))
+                      .build())
+              .toList();
+    }
     return List.of();
   }
 

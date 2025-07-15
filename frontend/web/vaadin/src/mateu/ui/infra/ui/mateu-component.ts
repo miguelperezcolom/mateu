@@ -85,7 +85,7 @@ export class MateuComponent extends ComponentElement {
                 fieldId: string
             }
             if (e.type == 'value-changed') {
-                this.values[detail.fieldId] = detail.value
+                this.state[detail.fieldId] = detail.value
             }
         }
     }
@@ -129,7 +129,7 @@ export class MateuComponent extends ComponentElement {
     }, serverSideComponent: ServerSideComponent) => {
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
-                componentState: {...this.values},
+                componentState: {...this.state},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
                 initiatorComponentId: serverSideComponent.id,
@@ -144,7 +144,7 @@ export class MateuComponent extends ComponentElement {
     render() {
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.values))}
+            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data))}
             </mateu-api-caller>
         `
     }

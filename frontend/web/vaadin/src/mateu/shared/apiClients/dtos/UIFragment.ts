@@ -4,4 +4,5 @@ export default interface UIFragment {
     targetComponentId: string | undefined
     component: Component | undefined
     data: any | undefined
+    state: any | undefined
 }

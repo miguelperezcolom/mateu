@@ -85,7 +85,10 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private UIFragmentDto serializeData(UIFragmentDto fragment) {
     return new UIFragmentDto(
-        fragment.targetComponentId(), fragment.component(), toMap(fragment.data()));
+        fragment.targetComponentId(),
+        fragment.component(),
+        toMap(fragment.state()),
+        toMap(fragment.data()));
   }
 
   @SneakyThrows

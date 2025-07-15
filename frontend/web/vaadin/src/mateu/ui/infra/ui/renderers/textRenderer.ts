@@ -3,13 +3,14 @@ import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
 import { html } from "lit";
 
-export const renderText = (component: ClientSideComponent, data: any) => {
+export const renderText = (component: ClientSideComponent, state: any, data: any) => {
     const metadata = component.metadata as Text
     let content = metadata.text;
     try {
         content = eval('`' + metadata.text + '`')
     } catch (e) {
         content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data
+            + ' and state is ' + state
     }
     if (TextContainer.h1 == metadata.container) {
         return html`

@@ -6,7 +6,8 @@ export const mockedSimpleTableCrudMessage1: UIIncrement = {
     fragments:[
         {
             targetComponentId: 'crud1',
-            data: {
+            data: {},
+            state: {
                 page: {
                     pageNumber: 1,
                     pageSize: 10,
@@ -35,5 +36,5 @@ export const mockedSimpleTableCrudMessage1: UIIncrement = {
     ],
     appState: undefined,
     commands: undefined,
-    sharedData: undefined
+    appData: undefined
 }
