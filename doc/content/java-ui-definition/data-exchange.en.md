@@ -3,11 +3,14 @@ title: "Data exchange"
 weight: 5
 ---
 
-Besides UI definition metadata, in Mateu there are three kinds of **runtime related data** which travel back and forth:
+Besides UI definition metadata, in Mateu there are four kinds of **runtime related data** which travel back and forth:
 
-- AppState
-- ComponentState
-- ComponentData
+- App State
+- App Data
+- Component State
+- Component Data
+
+Basically, state goes back and forth between the browser and the server, while data goes only from the server to the browser.
 
 The following diagram explains it:
 
@@ -21,6 +24,13 @@ every request to the server.
 From the server side, we can send it back to the browser in case we want to update it.
 
 This data is used, for instance, to hold the feature flags values or any customer session related info.
+
+## App Data
+
+The app data contains data which can be consumed by any component, but we don't want it to be sent to the server
+in the payload of every request. So, this data only travels from the server to the frontend.
+
+This data can be used, for instance, for storing the options for a dropdown which is used in several components.
 
 ## Component State
 
