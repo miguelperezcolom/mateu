@@ -9,7 +9,9 @@ public record RunActionRqDto(
     Map<String, Object> appState,
     Map<String, Object> parameters,
     String initiatorComponentId,
-    String consumedRoute) {
+    String consumedRoute,
+    String actionId,
+    String route) {
 
   public RunActionRqDto {
     componentState =

@@ -10,5 +10,6 @@ export default interface App extends ComponentMetadata {
     subtitle: string | undefined
     menu: MenuOption[]
     homeRoute: string
+    style: string | undefined
 
 }

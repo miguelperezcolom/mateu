@@ -41,7 +41,12 @@ public final class AppComponentToDtoMapper {
             .style(app.style())
             .cssClasses(app.cssClasses())
             .build();
-    return new ClientSideComponentDto(appDto, "component_id", List.of(), "", "");
+    return new ClientSideComponentDto(
+        appDto,
+        "component_id",
+        List.of(),
+        componentSupplier.style(),
+        componentSupplier.cssClasses());
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

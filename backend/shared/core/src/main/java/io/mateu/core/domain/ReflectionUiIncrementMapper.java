@@ -8,6 +8,7 @@ import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -88,7 +89,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         fragment.targetComponentId(),
         fragment.component(),
         toMap(fragment.state()),
-        toMap(fragment.data()));
+        toMap(fragment.data()),
+        UIFragmentActionDto.Replace);
   }
 
   @SneakyThrows

@@ -35,7 +35,7 @@ public class Counter1 implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     @Override
     public boolean supportsAction(String actionId) {
-        return !"create".equals(actionId);
+        return !"".equals(actionId);
     }
 
     @Override

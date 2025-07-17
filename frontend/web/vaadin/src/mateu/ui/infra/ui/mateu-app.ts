@@ -169,7 +169,7 @@ export class MateuApp extends ComponentElement {
         return html`
 
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
-                <vaadin-app-layout>
+                <vaadin-app-layout style="width: 100%;">
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
@@ -193,7 +193,7 @@ export class MateuApp extends ComponentElement {
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
-                <vaadin-vertical-layout>
+                <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-menu-bar
                             .items="${items}"
                             @item-selected="${this.itemSelected}"
@@ -214,7 +214,7 @@ export class MateuApp extends ComponentElement {
 
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
-                <vaadin-horizontal-layout>
+                <vaadin-horizontal-layout style="width: 100%;">
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout>
                             ${metadata.menu.map(option => this.renderOptionOnLeftMenu(option))}
@@ -236,7 +236,7 @@ export class MateuApp extends ComponentElement {
 
             ${metadata.variant == AppVariant.TABS?html`
                 
-                <vaadin-vertical-layout>
+                <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-tabs selected="${this.getSelectedIndex(metadata.menu)}">
                         ${metadata.menu.map(option => {
                             return html`

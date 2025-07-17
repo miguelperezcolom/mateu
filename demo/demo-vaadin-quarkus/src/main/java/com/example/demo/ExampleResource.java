@@ -10,7 +10,8 @@ public class ExampleResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello from Quarkus REST";
+    @Path("/{name:.*}")
+    public String hello(String name) {
+        return "Hello from Quarkus REST " + name;
     }
 }

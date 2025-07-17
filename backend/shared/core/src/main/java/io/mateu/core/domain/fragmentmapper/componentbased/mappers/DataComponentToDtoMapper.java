@@ -6,6 +6,6 @@ import io.mateu.uidl.data.Data;
 public class DataComponentToDtoMapper {
 
   public static UIFragmentDto mapDataToDto(Data data, String targetComponentId) {
-    return new UIFragmentDto(targetComponentId, null, null, data.data());
+    return new UIFragmentDto(targetComponentId, null, null, data.data(), null);
   }
 }

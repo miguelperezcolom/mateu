@@ -19,6 +19,8 @@ public class SplitLayoutSample implements ComponentTreeSupplier {
                                 .master(new Text("Master"))
                                 .detail(new Text("Detail"))
                                 .build()))
+                .style("width: 100%;")
                 .build();
     }
+
 }

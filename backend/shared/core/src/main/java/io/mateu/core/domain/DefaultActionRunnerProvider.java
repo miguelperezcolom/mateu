@@ -101,7 +101,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         };
       }
     }
-    if ("create".equals(actionId)) {
+    if ("".equals(actionId)) {
       return new ActionRunner() {
         @Override
         public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {

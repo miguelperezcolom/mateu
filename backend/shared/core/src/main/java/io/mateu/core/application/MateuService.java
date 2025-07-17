@@ -12,11 +12,5 @@ public interface MateuService {
   Mono<UIDto> getUI(String uiId, String baseUrl, GetUIRqDto rq, HttpRequest httpRequest);
 
   Mono<UIIncrementDto> runAction(
-      String uiId,
-      String route,
-      String actionId,
-      RunActionRqDto rq,
-      String baseUrl,
-      HttpRequest httpRequest)
-      throws Throwable;
+      String uiId, RunActionRqDto rq, String baseUrl, HttpRequest httpRequest) throws Throwable;
 }

@@ -107,6 +107,7 @@ export class MateuApiCaller extends LitElement {
     static styles = css`
         :host {
             width: 100%;
+            display: inline-block;
         }
   `
 }

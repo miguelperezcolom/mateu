@@ -38,13 +38,12 @@ public class ${simpleClassName}MateuController {
         new SpringHttpRequest(serverHttpRequest));
     }
 
-    @PostMapping("v3/{route}/{actionId}")
+    @PostMapping("v3/{ignored}")
     public Mono<UIIncrementDto> runStep(
-        @PathVariable("route") String route,
-        @PathVariable("actionId") String actionId,
+        @PathVariable("ignored") String ignored,
         @RequestBody RunActionRqDto rq,
         ServerHttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
+      return service.runAction(uiId, rq, baseUrl,
         new SpringHttpRequest(serverHttpRequest));
     }
 

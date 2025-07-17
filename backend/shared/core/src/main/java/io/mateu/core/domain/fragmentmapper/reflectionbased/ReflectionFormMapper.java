@@ -15,6 +15,7 @@ import io.mateu.dtos.FormDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.interfaces.Form;
@@ -44,7 +45,8 @@ public final class ReflectionFormMapper {
             List.of(),
             List.of(),
             List.of());
-    return new UIFragmentDto(initiatorComponentId, component, form, null);
+    return new UIFragmentDto(
+        initiatorComponentId, component, form, null, UIFragmentActionDto.Replace);
   }
 
   private static List<ComponentDto> createFormContent(Form form) {

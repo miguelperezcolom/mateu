@@ -116,7 +116,7 @@ export class MateuUx extends ConnectedElement {
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {
                     userData: undefined,
-                    actionId: 'create',
+                    actionId: '',
                     serverSideType: undefined,
                     initiatorComponentId: this.id,
                     initiator: this

@@ -119,14 +119,15 @@ export class AxiosMateuApiClient implements MateuApiClient {
             route = route.substring(1)
         }
         return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/' +
-            route.split('/').join('_')
-            + '/' + actionId, {
+            route + (actionId?'/' + actionId:''), {
             serverSideType,
             appState,
             componentState,
             parameters,
             initiatorComponentId,
-            consumedRoute
+            consumedRoute,
+            route: '/' + route,
+            actionId
         })
             .then((response) => response.data), initiator)
     }

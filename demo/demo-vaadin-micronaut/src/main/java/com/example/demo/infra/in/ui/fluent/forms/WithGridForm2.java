@@ -95,7 +95,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
 
     @Override
     public boolean supportsAction(String actionId) {
-        return !"create".equals(actionId);
+        return !"".equals(actionId);
     }
 
     @Override

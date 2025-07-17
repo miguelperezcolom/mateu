@@ -152,6 +152,7 @@ export class MateuComponent extends ComponentElement {
     static styles = css`
         :host {
             width: 100%;
+            display: inline-block;
         }
 
         ${unsafeCSS(badge.cssText)}

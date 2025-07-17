@@ -54,6 +54,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Virtual
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
@@ -128,7 +129,8 @@ public final class ComponentToFragmentDtoMapper {
         initiatorComponentId,
         mapComponentToDto(componentSupplier, component, baseUrl, route, httpRequest),
         componentSupplier,
-        null);
+        null,
+        UIFragmentActionDto.Replace);
   }
 
   public static ComponentDto mapComponentToDto(
@@ -282,6 +284,10 @@ public final class ComponentToFragmentDtoMapper {
       return mapVirtualListToDto(virtualList);
     }
     return new ClientSideComponentDto(
-        new ElementDto("div", Map.of(), component.toString()), "fieldId", List.of(), "", "");
+        new ElementDto("div", Map.of(), component.toString()),
+        "fieldId",
+        List.of(),
+        component.style(),
+        component.cssClasses());
   }
 }

@@ -121,7 +121,7 @@ class RunActionUseCaseTest {
                     "ui_id",
                     "/sample-app/route_3",
                     "",
-                    "create",
+                    "",
                     SampleAppProvider.class.getName(),
                     Map.of(),
                     Map.of(),

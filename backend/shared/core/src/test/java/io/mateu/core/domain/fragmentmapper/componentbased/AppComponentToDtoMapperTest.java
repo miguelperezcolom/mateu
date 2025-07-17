@@ -12,6 +12,7 @@ import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
@@ -79,6 +80,7 @@ class AppComponentToDtoMapperTest {
     var expected =
         UIFragmentDto.builder()
             .targetComponentId("initiator")
+            .action(UIFragmentActionDto.Replace)
             .component(
                 new ClientSideComponentDto(
                     AppDto.builder()
@@ -168,8 +170,8 @@ class AppComponentToDtoMapperTest {
                         .build(),
                     "component_id",
                     List.of(),
-                    "",
-                    ""))
+                    null,
+                    null))
             .state(supplier)
             .build();
 

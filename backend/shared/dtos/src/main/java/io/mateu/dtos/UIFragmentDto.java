@@ -11,4 +11,8 @@ import lombok.Builder;
  */
 @Builder
 public record UIFragmentDto(
-    String targetComponentId, ComponentDto component, Object state, Object data) {}
+    String targetComponentId,
+    ComponentDto component,
+    Object state,
+    Object data,
+    UIFragmentActionDto action) {}

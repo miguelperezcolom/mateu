@@ -36,14 +36,13 @@ public class ${simpleClassName}MateuController {
         new QuarkusHttpRequest(serverHttpRequest)).block();
     }
 
-    @Path("v3/{route}/{actionId}")
+    @Path("v3/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(
-        String route,
-        String actionId,
+        String ignored,
         RunActionRqDto rq,
         HttpServerRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
+      return service.runAction(uiId, rq, baseUrl,
         new QuarkusHttpRequest(serverHttpRequest)).block();
     }
 

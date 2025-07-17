@@ -12,6 +12,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.server.cors.CrossOrigin;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -41,13 +42,12 @@ public class ${simpleClassName}MateuController {
         new MicronautHttpRequest(serverHttpRequest));
     }
 
-    @Post("v3/{route}/{actionId}")
+    @Post("v3/{/ignored:.*}")
     public Mono<UIIncrementDto> runStep(
-        @PathVariable("route") String route,
-        @PathVariable("actionId") String actionId,
+        @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, "/" + route, actionId, rq, baseUrl,
+      return service.runAction(uiId, rq, baseUrl,
         new MicronautHttpRequest(serverHttpRequest));
     }
 

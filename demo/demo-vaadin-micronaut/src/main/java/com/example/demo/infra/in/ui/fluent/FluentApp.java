@@ -23,6 +23,7 @@ public class FluentApp implements AppSupplier {
                 .title("Antonia")
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.HAMBURGUER_MENU)
+                .style("width: 100%;")
                 .menu(List.of(
                         new RouteLink("/fluent-app/home", "Home", true),
                         new Menu("Layouts", List.of(
@@ -58,7 +59,6 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/nested-apps/left", "Menu On Left"),
                                 new RouteLink("/fluent-app/nested-apps/top", "Menu On Top"),
                                 new RouteLink("/fluent-app/nested-apps/tabs", "Menu Using Tabs")
-
                         )),
                         new Menu("Components", List.of(
                                 new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
@@ -111,13 +111,63 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/text-field", "Text Field"),
                                 new RouteLink("/fluent-app/components/time-picker", "Time Picker"),
                                 new RouteLink("/fluent-app/components/tooltip", "Tooltip"),
-                                new RouteLink("/fluent-app/components/choice", "Train"),
+                                new RouteLink("/fluent-app/components/train", "Train"),
                                 new RouteLink("/fluent-app/components/tree-grid", "Tree Grid"),
                                 new RouteLink("/fluent-app/components/upload", "Upload"),
                                 new RouteLink("/fluent-app/components/virtual-list", "Virtual List")
+                        )),
+                        new Menu("Actions", List.of(
+                                new RouteLink("/fluent-app/actions/background", "Run in background"),
+                                new RouteLink("/fluent-app/actions/confirmation-required", "Confirmation required"),
+                                new RouteLink("/fluent-app/actions/validation-required", "Validation required"),
+                                new RouteLink("/fluent-app/actions/server-side-events", "Server Side Events (SSE)"),
+                                new RouteLink("/fluent-app/actions/row-selected-required", "Row selected required"),
+                                new RouteLink("/fluent-app/actions/target", "Target"),
+                                new RouteLink("/fluent-app/actions/custom-event", "Client side event"),
+                                new RouteLink("/fluent-app/actions/href", "Href")
+                        )),
+                        new Menu("Triggers", List.of(
+                                new RouteLink("/fluent-app/triggers/on-load", "On Load"),
+                                new RouteLink("/fluent-app/triggers/on-success", "On Success"),
+                                new RouteLink("/fluent-app/triggers/on-error", "On Error"),
+                                new RouteLink("/fluent-app/triggers/on-custom-event", "On Custom Event"),
+                                new RouteLink("/fluent-app/triggers/on-data-change", "On Data Change")
+                        )),
+                        new Menu("Client-Side Logic (Rules)", List.of(
+                                new RouteLink("/fluent-app/rules/visibility", "Visibility"),
+                                new RouteLink("/fluent-app/rules/enabled", "Enabled"),
+                                new RouteLink("/fluent-app/rules/run-action", "Run Action"),
+                                new RouteLink("/fluent-app/rules/run-js", "Run JS"),
+                                new RouteLink("/fluent-app/rules/set-attribute-value", "Set attribute value"),
+                                new RouteLink("/fluent-app/rules/set-metadata-value", "Set metadata value"),
+                                new RouteLink("/fluent-app/rules/set-data-value", "Set data value"),
+                                new RouteLink("/fluent-app/rules/set-css-classes", "Set css classes"),
+                                new RouteLink("/fluent-app/rules/set-style", "Set style")
+                        )),
+                        new Menu("Validations", List.of(
+                                new RouteLink("/fluent-app/validations/required", "Required"),
+                                new RouteLink("/fluent-app/validations/min-and-max", "Min and Max"),
+                                new RouteLink("/fluent-app/validations/pattern", "Pattern"),
+                                new RouteLink("/fluent-app/validations/conditional", "Conditional"),
+                                new RouteLink("/fluent-app/validations/form-wise", "Form wise"),
+                                new RouteLink("/fluent-app/validations/server-side", "Server side")
+                        )),
+                        new Menu("Data", List.of(
+                                new RouteLink("/fluent-app/data/app-state", "App state"),
+                                new RouteLink("/fluent-app/data/app-data", "App data"),
+                                new RouteLink("/fluent-app/data/component-state", "Component state"),
+                                new RouteLink("/fluent-app/data/component-data", "Component data")
+                        )),
+                        new Menu("Routes", List.of(
+                                new RouteLink("/fluent-app/routes/404", "404"),
+                                new RouteLink("/fluent-app/routes/custom-route-resolver", "Custom route resolver")
                         ))
                 ))
-
                 .build();
+    }
+
+    @Override
+    public String style() {
+        return "width: 100%;";
     }
 }

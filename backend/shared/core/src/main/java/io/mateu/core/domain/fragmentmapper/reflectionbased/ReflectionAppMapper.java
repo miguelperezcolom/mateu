@@ -10,6 +10,7 @@ import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
@@ -59,7 +60,8 @@ public class ReflectionAppMapper {
             List.of(),
             List.of(),
             List.of());
-    return new UIFragmentDto(initiatorComponentId, component, app, null);
+    return new UIFragmentDto(
+        initiatorComponentId, component, app, null, UIFragmentActionDto.Replace);
   }
 
   public static String getHomeRoute(List<MenuOptionDto> menu, String route) {

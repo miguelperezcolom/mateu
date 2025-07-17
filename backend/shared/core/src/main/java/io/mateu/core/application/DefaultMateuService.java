@@ -37,20 +37,14 @@ public class DefaultMateuService implements MateuService {
 
   @Override
   public Mono<UIIncrementDto> runAction(
-      String uiId,
-      String route,
-      String actionId,
-      RunActionRqDto rq,
-      String baseUrl,
-      HttpRequest httpRequest)
-      throws Throwable {
+      String uiId, RunActionRqDto rq, String baseUrl, HttpRequest httpRequest) throws Throwable {
     return runActionUseCase.handle(
         new RunActionCommand(
             baseUrl,
             uiId,
-            route.replaceAll("_n", "").replaceAll("_", "/"),
+            rq.route(),
             rq.consumedRoute(),
-            actionId,
+            rq.actionId(),
             rq.componentType(),
             rq.componentState(),
             rq.appState(),

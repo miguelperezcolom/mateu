@@ -16,8 +16,6 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
-
-import java.net.URL;
 import java.util.List;
 
 public class ComponentTreeSupplierToDtoMapper {
@@ -48,13 +46,15 @@ public class ComponentTreeSupplierToDtoMapper {
   private static List<RuleDto> mapRules(Object serverSideObject) {
     if (serverSideObject instanceof RuleSupplier ruleSupplier) {
       return ruleSupplier.rules().stream()
-              .map(rule -> RuleDto.builder()
+          .map(
+              rule ->
+                  RuleDto.builder()
                       .filter(rule.filter())
                       .action(RuleActionDto.valueOf(rule.action().name()))
                       .data(rule.data())
                       .result(RuleResultDto.valueOf(rule.result().name()))
                       .build())
-              .toList();
+          .toList();
     }
     return List.of();
   }

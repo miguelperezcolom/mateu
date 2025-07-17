@@ -143,12 +143,15 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
 
         if (component.metadata.type == ComponentMetadataType.App) {
-            return html`<mateu-api-caller><mateu-app
+            console.log('component', component)
+            return html`<mateu-api-caller>eibccbdvrcreliblhcheluictbfkndfgfievrrvhguiu
+                <mateu-app
                             id="${component.id}"
-            baseUrl="${baseUrl}"
-                .component="${component}"
-                .data="${state}"
-                            style="${component.style}" class="${component.cssClasses}"
+                            baseUrl="${baseUrl}"
+                            .component="${component}"
+                            .data="${state}"
+                            style="${component.style}" 
+                            class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
              </mateu-app></mateu-api-caller>`

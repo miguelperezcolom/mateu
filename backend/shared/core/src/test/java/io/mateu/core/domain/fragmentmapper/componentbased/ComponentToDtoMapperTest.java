@@ -8,6 +8,7 @@ import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.TextContainerDto;
 import io.mateu.dtos.TextDto;
+import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.Text;
 import java.util.List;
@@ -28,6 +29,7 @@ class ComponentToDtoMapperTest {
                     List.of(),
                     "",
                     ""))
+            .action(UIFragmentActionDto.Replace)
             .build();
     var dto =
         mapComponentToFragment(
