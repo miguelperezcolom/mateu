@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.domain.Humanizer.camelcasize;
+import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 
 import io.mateu.core.domain.ActionRunnerProvider;
 import io.mateu.core.domain.BeanProvider;
@@ -22,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -44,7 +46,12 @@ public class RunActionUseCase {
         .flatMap(
             instance ->
                 actionRunnerProvider
-                    .get(instance, command.actionId(), command.httpRequest())
+                    .get(
+                        instance,
+                        command.actionId(),
+                        command.consumedRoute(),
+                        command.route(),
+                        command.httpRequest())
                     .run(instance, command.actionId(), command.data(), command.httpRequest()))
         .flatMap(
             result ->
@@ -58,12 +65,18 @@ public class RunActionUseCase {
                         command.httpRequest()));
   }
 
+  @SneakyThrows
   private Mono<?> resolveMenuIfApp(Object instance, RunActionCommand command) {
     var app = getApp(instance, command);
     if (app != null) {
       Actionable actionable = resolveMenu(app.menu(), command.route());
       if (actionable instanceof ContentLink contentLink) {
         return Mono.just(contentLink.componentSupplier().getComponent(command.httpRequest()));
+      }
+      var appRoute = getRoute(instance, app, command.httpRequest(), command.route());
+      if (appRoute.equals(command.consumedRoute())) {
+        throw new NoSuchMethodException(
+            "No route found for " + command.route() + " in " + app + " for " + command);
       }
     }
     return Mono.just(instance);

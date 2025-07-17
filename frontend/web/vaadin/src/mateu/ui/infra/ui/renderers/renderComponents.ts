@@ -144,7 +144,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
 
         if (component.metadata.type == ComponentMetadataType.App) {
             console.log('component', component)
-            return html`<mateu-api-caller>eibccbdvrcreliblhcheluictbfkndfgfievrrvhguiu
+            return html`<mateu-api-caller>
                 <mateu-app
                             id="${component.id}"
                             baseUrl="${baseUrl}"

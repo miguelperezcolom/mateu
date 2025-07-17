@@ -24,7 +24,12 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
   @SneakyThrows
   @Override
-  public ActionRunner get(Object instance, String actionId, HttpRequest httpRequest) {
+  public ActionRunner get(
+      Object instance,
+      String actionId,
+      String consumedRoute,
+      String route,
+      HttpRequest httpRequest) {
     if (instance == null) {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }

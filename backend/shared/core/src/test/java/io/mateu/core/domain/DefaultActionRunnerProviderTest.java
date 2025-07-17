@@ -12,7 +12,8 @@ class DefaultActionRunnerProviderTest {
   void failsIfNUll() {
     var provider = new DefaultActionRunnerProvider(new FakeBeanProvider());
     assertThrows(
-        NoSuchMethodException.class, () -> provider.get(null, "action_id", new FakeHttpRequest()));
+        NoSuchMethodException.class,
+        () -> provider.get(null, "action_id", "consumed_route", "route", new FakeHttpRequest()));
   }
 
   @Test
@@ -20,6 +21,8 @@ class DefaultActionRunnerProviderTest {
     var provider = new DefaultActionRunnerProvider(new FakeBeanProvider());
     assertThrows(
         NoSuchMethodException.class,
-        () -> provider.get("an_object", "action_id", new FakeHttpRequest()));
+        () ->
+            provider.get(
+                "an_object", "action_id", "consumed_route", "route", new FakeHttpRequest()));
   }
 }
