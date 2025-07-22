@@ -47,8 +47,7 @@ public class ComplexView implements Container {
           new Card("Simple Card 5", "Subtitle 5", "Content 5"),
           new Card("Simple Card 6", "Subtitle 6", "Content 6"));
 
-  @InTabsArranged
-  HorizontalLayoutContainer tabs;
+  @InTabsArranged HorizontalLayoutContainer tabs;
 
   String stringField = "stringField";
 

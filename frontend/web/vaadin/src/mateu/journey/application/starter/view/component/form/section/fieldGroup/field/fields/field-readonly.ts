@@ -5,6 +5,7 @@ import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import '@vaadin/text-area'
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
 import Value from "../../../../../../../../../../shared/apiClients/dtos/Value";
+import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
 
 
 @customElement('field-readonly')
@@ -109,7 +110,7 @@ export class FieldReadonly extends LitElement implements Component {
                            value=${this.value}
                    ?disabled=${!this.enabled}
                 readonly
-            ><div class="content" slot="textarea">${this.rawValue}</div></vaadin-text-area>
+            ><div class="content" slot="textarea">${unsafeHTML(this.rawValue)}</div></vaadin-text-area>
             `
     }
 

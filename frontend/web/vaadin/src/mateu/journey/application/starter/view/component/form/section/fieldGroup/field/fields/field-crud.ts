@@ -1,5 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
-import {html, css, LitElement} from "lit";
+import { html, css, LitElement, TemplateResult } from "lit";
 import Component from "./interfaces/Component";
 import '@vaadin/custom-field'
 import '@vaadin/text-field'
@@ -8,14 +8,18 @@ import '@vaadin/grid/vaadin-grid-selection-column'
 import '@vaadin/grid/vaadin-grid-filter-column'
 import '@vaadin/grid/vaadin-grid-sort-column'
 import '@vaadin/grid/vaadin-grid-column'
+import {badge} from "@vaadin/vaadin-lumo-styles";
 import Field from "../../../../../../../../../../shared/apiClients/dtos/Field";
-import {columnBodyRenderer} from "lit-vaadin-helpers";
+import { columnBodyRenderer, gridRowDetailsRenderer } from "lit-vaadin-helpers";
 import {GridActiveItemChangedEvent} from "@vaadin/grid";
 import {DialogOpenedChangedEvent} from "@vaadin/dialog";
 import {dialogFooterRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {Button} from "@vaadin/button";
 import ValueChangedEvent from "./interfaces/ValueChangedEvent";
 import Column from "../../../../../../../../../../shared/apiClients/dtos/Column";
+import {ifDefined} from "lit/directives/if-defined.js";
+import {unsafeHTML} from "lit-html/directives/unsafe-html.js";
+import { StatusType } from "../../../../../../../../../../shared/apiClients/dtos/StatusType";
 
 
 @customElement('field-crud')
@@ -27,6 +31,9 @@ export class FieldCrud extends LitElement implements Component {
 
     @property()
     required: boolean = false;
+
+    @state()
+    detailsOpenedItem: any[] = [];
 
     setRequired(required: boolean): void {
         this.required = required;
@@ -301,8 +308,237 @@ export class FieldCrud extends LitElement implements Component {
         this.dialogOpened = true
     }
 
+    async itemSelected(e: CustomEvent) {
+        const obj = {
+            // @ts-ignore
+            _clickedRow: e.target.row
+        };
+        // @ts-ignore
+        const extendedData = { ...this.data, ...obj}
+        //this.askForActionRun('__list__' + this.field?.id + '__row__' + e.detail.value.methodNameInCrud, extendedData)
+    }
+
+    private getThemeForBadgetType(type: StatusType): string {
+        switch (type) {
+            case StatusType.SUCCESS: return 'success';
+            case StatusType.WARNING: return 'warning';
+            case StatusType.DANGER: return 'error';
+            case StatusType.NONE: return 'contrast';
+        }
+        return '';
+    }
+
+    private getColumn(c: Column): TemplateResult {
+        if (c.type == 'Status') {
+            if (c.sortable) {
+                return html`
+            <vaadin-grid-sort-column  path="${c.id}" header="${c.caption}" resizable
+                                      id="${this.field?.id}-${c.id}"
+                                      width="${ifDefined(c.width?c.width:undefined)}"
+                                      flex-grow="${ifDefined(c.width?'0':'1')}"
+                                      data-testid="column-${c.id}"
+                                      .column="${c}"
+                ${columnBodyRenderer(
+                    // @ts-ignore
+                    (row, model, column) => {
+                        // @ts-ignore
+                        const status = row[column.path]
+                        return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
+                    },
+                    []
+                )}>
+            </vaadin-grid-sort-column>
+          `;
+            } else {
+                return html`
+            <vaadin-grid-column  path="${c.id}" header="${c.caption}" resizable
+                                      id="${this.field?.id}-${c.id}"
+                                      width="${ifDefined(c.width?c.width:undefined)}"
+                                      flex-grow="${ifDefined(c.width?'0':'1')}"
+                                      data-testid="column-${c.id}"
+                ${columnBodyRenderer(
+                    // @ts-ignore
+                    (row, model, column) => {
+                        // @ts-ignore
+                        const status = row[column.path]
+                        return status?html`<span theme="badge ${this.getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
+                    },
+                    []
+                )}>
+            </vaadin-grid-column>
+          `;
+            }
+        }
+        if (c.type == 'ColumnActionGroup') {
+            return html`
+        <vaadin-grid-column  path="${c.id}" data-testid="column-${c.id}" header="${c.caption}" width="90px" flex-grow="0"
+                             id="${this.field?.id}-${c.id}"  resizable
+                             ${columnBodyRenderer(
+                // @ts-ignore
+                (row, model, column) => {
+                    // @ts-ignore
+                    const actions = row[column.path]?.actions.map(a => {
+                        return {
+                            ...a,text: a.caption
+                        }
+                    })
+                    return html`
+                                     <vaadin-menu-bar
+                                         .items=${[{ text: '···', children: actions }]}
+                                         theme="tertiary"
+                                         .row="${row}"
+                                         data-testid="menubar-${column.path}"
+                                         @item-selected="${this.itemSelected}"
+                                     ></vaadin-menu-bar>
+                                   `;
+                },
+                []
+            )}
+        </vaadin-grid-column>
+      `;
+        }
+        if (c.sortable) {
+            return html`
+            <vaadin-grid-sort-column path="${c.id}" header="${c.caption}" resizable
+                                     width="${ifDefined(c.width?c.width:'50px')}"
+                                     flex-grow="${ifDefined(c.width?'0':'1')}"
+                                     data-testid="column-${c.id}"
+                                     id="${this.field?.id}-${c.id}"
+                                     text-align="${c.type == 'money'?'end':'start'}"
+                                     .column="${c}"
+                                     ${columnBodyRenderer(
+                // @ts-ignore
+                (row, model, column) => {
+                    // @ts-ignore
+                    let value = '' + row[column.path]
+                    if (c.type == 'money') {
+                        const floatValue = parseFloat(value);
+                        if (floatValue) {
+                            value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        } else {
+                            value = ''
+                        }
+                    }
+                    return html`${unsafeHTML(value)}`;
+                },
+                []
+            )}
+            ></vaadin-grid-sort-column>
+        `;
+        } else {
+            return html`
+            <vaadin-grid-column path="${c.id}" header="${c.caption}" resizable
+                                     width="${ifDefined(c.width?c.width:'50px')}"
+                                     flex-grow="${ifDefined(c.width?'0':'1')}"
+                                     data-testid="column-${c.id}"
+                                     id="${this.field?.id}-${c.id}"
+                                     text-align="${c.type == 'money'?'end':'start'}"
+                                     ${columnBodyRenderer(
+                // @ts-ignore
+                (row, model, column) => {
+                    // @ts-ignore
+                    let value = '' + row[column.path]
+                    if (c.type == 'money') {
+                        const floatValue = parseFloat(value);
+                        if (floatValue) {
+                            value = (floatValue).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        } else {
+                            value = ''
+                        }
+                    }
+                    return html`${unsafeHTML(value)}`;
+                },
+                []
+            )}
+            ></vaadin-grid-column>
+        `;
+        }
+
+    }
+
+    toColumn = (attribute: any): Column => {
+        return {
+            id: attribute.id,
+            caption: attribute.caption,
+            type: attribute.stereotype,
+            stereotype: 'column',
+            description: attribute.description,
+            width: attribute.width,
+            detail: attribute.detail,
+            sortable: attribute.sortable,
+            serverSideSortable: attribute.serverSideSortable
+        } as Column
+    }
+
+    /*
+
+    {
+        "id": "status",
+        "type": "Status",
+        "stereotype": "column",
+        "caption": "Status",
+        "description": "",
+        "width": null,
+        "attributes": [],
+        "detail": false,
+        "sortable": false,
+        "serverSideSortable": false
+    },
+    {
+        "id": "percentComplete",
+        "type": "int",
+        "stereotype": "column",
+        "caption": "Percent complete",
+        "description": "",
+        "width": null,
+        "attributes": [],
+        "detail": false,
+        "sortable": false,
+        "serverSideSortable": false
+    }
+
+"attributes": [
+    {
+        "key": "column",
+        "value": {
+            "id": "type",
+            "type": "column",
+            "stereotype": "string",
+            "caption": "Type",
+            "description": "",
+            "width": null,
+            "attributes": [],
+            "detail": false,
+            "sortable": false,
+            "serverSideSortable": false
+        }
+    },
+    {
+        "key": "column",
+        "value": {
+            "id": "status",
+            "type": "column",
+            "stereotype": "Status",
+            "caption": "Status",
+            "description": "",
+            "width": null,
+            "attributes": [],
+            "detail": false,
+            "sortable": false,
+            "serverSideSortable": false
+        }
+    }
+
+     */
+
+    hasDetail() {
+        return this.field?.attributes.filter(a => a.key == 'column')
+            .map(a => a.value)
+            .map(value => this.toColumn(value)).find(c => c.detail);
+    }
+
     render() {
-        const searchable = this.field?.attributes.filter(a => a.key == 'filterable').length;
+        //const searchable = this.field?.attributes.filter(a => a.key == 'filterable').length;
         const editable = this.field?.attributes.filter(a => a.key == 'editable').length;
         return html`
 
@@ -314,22 +550,52 @@ export class FieldCrud extends LitElement implements Component {
             >
                 ${this.value?.length?html`
                 <vaadin-grid .items="${this.value}"
+                             .detailsOpenedItems="${this.detailsOpenedItem}"
                              .selectedItems="${this.selectedItems}"
-                             @active-item-changed="${(e: GridActiveItemChangedEvent<never>) => {
-                    const item = e.detail.value;
-                    this.selectedItems = item ? [item] : [];
-                }}"
+                             @active-item-changed="${ifDefined(this.hasDetail()?(event: GridActiveItemChangedEvent<never>) => {
+                                 const item = event.detail.value;
+                                 this.selectedItems = item ? [item] : [];
+                                 //this.detailsOpenedItem = [event.detail.value]
+                                 if (this.hasDetail() && this.field?.attributes.filter(a => a.key == 'column')
+                                         .map(a => a.value)
+                                         .map(value => this.toColumn(value)).filter(c => c.detail)) {
+                                     const row = event.detail.value
+                                     if (row) {
+                                         this.detailsOpenedItem = [row]
+                                     } else {
+                                         this.detailsOpenedItem = []
+                                     }
+                                 }
+                             }:undefined)}"
+                             
                              all-rows-visible
                              class="${!this.value?.length?'no-rows':''}"
-                >
-                        ${this.field?.attributes.filter(a => a.key == 'column').map(a => a.value as {id: string})
-                        .map(c => html`
-                                                        ${searchable?html`
-                                                            <vaadin-grid-filter-column path="${c.id}" resizable></vaadin-grid-filter-column>
-`:html`
-                                                            <vaadin-grid-sort-column path="${c.id}" resizable></vaadin-grid-sort-column>
-                                                        `}
-                    `)}
+
+                             ${gridRowDetailsRenderer(
+                                     (detail) => html`
+                                <vaadin-vertical-layout>
+                                    ${this.field?.attributes.filter(a => a.key == 'column')
+                                             .map(a => a.value)
+                                             .map(value => this.toColumn(value))
+                                             .filter(c => c.detail).map(c =>
+                                                     // @ts-ignore    
+                                                     html`<div>${detail[c.id]}</div>`)}
+                                </vaadin-vertical-layout>
+                            `,
+                                     []
+                             )}>
+
+
+
+                ${this.field?.attributes
+                            .filter(a => a.key == 'column')
+                            .map(a => a.value)
+                            .map(value => this.toColumn(value))
+                            .filter(c => !c.detail).map(c => {
+                        return this.getColumn(c)
+                    })}
+                    
+                    
                     ${editable?html`
                         <vaadin-grid-column
                                 frozen-to-end
@@ -379,6 +645,19 @@ export class FieldCrud extends LitElement implements Component {
     }
 
     static styles = css`
+
+        ${badge}
+
+        [theme~='badge'][theme~='warning'] {
+            color: #6f6800;
+            background-color: #FFFCC0;
+        }
+    [theme~='badge'][theme~='warning'][theme~='primary'] {
+        color: #ffffff;
+        background-color: #6f6800;
+    }
+
+        
         vaadin-custom-field {
             width: 100%;
         }

@@ -17,5 +17,6 @@ export default interface Crud extends ComponentMetadata {
     columns: Column[]
     actions: Action[]
     child: boolean
+    captionForEdit: string
 
 }

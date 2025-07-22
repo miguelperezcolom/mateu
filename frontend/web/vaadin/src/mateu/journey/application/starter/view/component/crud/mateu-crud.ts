@@ -735,7 +735,7 @@ export class MateuCrud extends LitElement {
               auto-width
               flex-grow="0"
               ${columnBodyRenderer(
-          (row) => html`<vaadin-button theme="tertiary-inline" .row="${row}" @click="${this.edit}" data-testid="edit-${this.getRowId(row)}">Edit</vaadin-button>`,
+          (row) => html`<vaadin-button theme="tertiary-inline" .row="${row}" @click="${this.edit}" data-testid="edit-${this.getRowId(row)}">${this.metadata.captionForEdit}</vaadin-button>`,
           []
       )}></vaadin-grid-column>
         `:''}

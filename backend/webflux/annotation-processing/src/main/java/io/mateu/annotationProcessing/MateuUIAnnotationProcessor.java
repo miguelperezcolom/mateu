@@ -137,9 +137,9 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                   "externalScripts",
                   externalScripts,
                   "frontendPath",
-                      paths.frontendPath(),
+                  paths.frontendPath(),
                   "indexHtmlPath",
-                      paths.indexHtmlPath()));
+                  paths.indexHtmlPath()));
 
       addFavIcon(e, model);
 
@@ -208,8 +208,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     return result;
   }
 
-  private record Paths(String indexHtmlPath, String frontendPath) {
-  }
+  private record Paths(String indexHtmlPath, String frontendPath) {}
 
   private static String[] getExternalScripts(Element e) {
     String[] externalScripts = null;

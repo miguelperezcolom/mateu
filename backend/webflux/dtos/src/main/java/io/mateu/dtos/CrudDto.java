@@ -27,7 +27,8 @@ public record CrudDto(
     ComponentDto searchForm,
     List<ColumnDto> columns,
     List<ActionDto> actions,
-    boolean child)
+    boolean child,
+    String captionForEdit)
     implements ComponentMetadataDto {
 
   public CrudDto {

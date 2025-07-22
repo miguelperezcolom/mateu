@@ -51,7 +51,8 @@ public class CrudMetadataBuilder {
         buildSearchForm(rpcView, listId),
         buildColumns(rpcView),
         actionMetadataBuilder.getActions(listId, rpcView),
-        rpcView.getClass().isAnnotationPresent(Child.class));
+        rpcView.getClass().isAnnotationPresent(Child.class),
+        rpcView.getCaptionForEdit());
   }
 
   private String getSubtitle(Listing rpcView) {
