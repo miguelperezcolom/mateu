@@ -60,6 +60,32 @@ public class RunStepActionCommandHandler {
     Object viewInstance =
         reflectionService.newInstance(Class.forName(command.componentType()), data);
 
+    if (viewInstance instanceof HandlesActions handlesActions) {
+      var method = reflectionService.getMethod(handlesActions.getClass(), "handle");
+      var mono =
+          handlesActions.handle(
+              viewInstance,
+              stepId,
+              actionId,
+              componentId,
+              data,
+              command.contextData(),
+              command.baseUrl(),
+              serverHttpRequest);
+      return mono.flatMap(
+          result ->
+              resultMapper.processResult(
+                  viewInstance,
+                  method,
+                  method,
+                  data,
+                  command.baseUrl(),
+                  serverHttpRequest,
+                  result,
+                  componentId,
+                  false));
+    }
+
     for (ActionRunner actionRunner : actionRunners) {
       if (actionRunner.applies(viewInstance, actionId, command.contextData())) {
         return actionRunner.run(
