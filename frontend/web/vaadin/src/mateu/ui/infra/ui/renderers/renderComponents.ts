@@ -50,40 +50,40 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
     if (component?.metadata) {
 
         if (component.metadata.type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(component, baseUrl, state)
+            return renderFormLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(component, baseUrl, state)
+            return renderHorizontalLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(component, baseUrl, state)
+            return renderVerticalLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.SplitLayout) {
-            return renderSplitLayout(component, baseUrl, state)
+            return renderSplitLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.MasterDetailLayout) {
-            return renderMasterDetailLayout(component, baseUrl, state)
+            return renderMasterDetailLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.TabLayout) {
-            return renderTabLayout(component, baseUrl, state)
+            return renderTabLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
-            return renderAccordionLayout(component, baseUrl, state)
+            return renderAccordionLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayout) {
-            return renderBoardLayout(component, baseUrl, state)
+            return renderBoardLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
-            return renderBoardLayoutRow(component, baseUrl, state)
+            return renderBoardLayoutRow(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Scroller) {
-            return renderScroller(component, baseUrl, state)
+            return renderScroller(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.FullWidth) {
-            return renderFullWidth(component, baseUrl, state)
+            return renderFullWidth(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Container) {
-            return renderContainer(component, baseUrl, state)
+            return renderContainer(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Form) {
             return html`<mateu-form 
@@ -200,19 +200,19 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderIcon(component)
         }
         if (component.metadata.type == ComponentMetadataType.ConfirmDialog) {
-            return renderConfirmDialog(component, baseUrl, state)
+            return renderConfirmDialog(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.ContextMenu) {
-            return renderContextMenu(component, baseUrl, state)
+            return renderContextMenu(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.CookieConsent) {
             return renderCookieConsent(component)
         }
         if (component.metadata.type == ComponentMetadataType.Details) {
-            return renderDetails(component, baseUrl, state)
+            return renderDetails(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Dialog) {
-            return renderDialog(component, baseUrl, state)
+            return renderDialog(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Image) {
             return renderImage(component)
@@ -233,10 +233,10 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderProgressBar(component)
         }
         if (component.metadata.type == ComponentMetadataType.Popover) {
-            return renderPopover(component, baseUrl, state)
+            return renderPopover(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Tooltip) {
-            return renderTooltip(component, baseUrl, state)
+            return renderTooltip(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.MessageInput) {
             return renderMessageInput(component)
@@ -245,7 +245,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderMessageList(component)
         }
         if (component.metadata.type == ComponentMetadataType.CustomField) {
-            return customFieldRenderer(component, baseUrl, state)
+            return customFieldRenderer(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.MenuBar) {
             return renderMenuBar(component)

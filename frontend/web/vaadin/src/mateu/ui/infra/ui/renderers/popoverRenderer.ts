@@ -4,12 +4,12 @@ import { html } from "lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
-export const renderPopover = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
+export const renderPopover = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Popover
-    html`${renderComponent(metadata.content, baseUrl, data)}`
+    html`${renderComponent(metadata.content, baseUrl, state, data)}`
 
     return html`
-        <div id="show-notifications">${renderComponent(metadata.wrapped, baseUrl, data)}</div>
+        <div id="show-notifications">${renderComponent(metadata.wrapped, baseUrl, state, data)}</div>
         <vaadin-popover
                 for="show-notifications"
                 theme="arrow no-padding"
@@ -19,7 +19,7 @@ export const renderPopover = (component: ClientSideComponent, baseUrl: string | 
                 position="bottom"
                 ${popoverRenderer(popover => {
         console.log('popover', popover)
-        return html`${renderComponent(metadata.content, baseUrl, data)}`
+        return html`${renderComponent(metadata.content, baseUrl, state, data)}`
     }, [])}
                 style="${component.style}" class="${component.cssClasses}"
         ></vaadin-popover>

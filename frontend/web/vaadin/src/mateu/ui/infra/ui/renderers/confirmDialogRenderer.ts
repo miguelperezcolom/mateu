@@ -3,7 +3,7 @@ import ConfirmDialog from "@mateu/shared/apiClients/dtos/componentmetadata/Confi
 import { html } from "lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
-export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
+export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as ConfirmDialog
     /*
             <vaadin-confirm-dialog
@@ -37,7 +37,7 @@ export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: str
   style="${component.style}" class="${component.cssClasses}"
 >
   ${metadata.text}
-            ${component.children?.map(child => renderComponent(child, baseUrl, data))}
+            ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
 </vaadin-confirm-dialog>
             `
 }

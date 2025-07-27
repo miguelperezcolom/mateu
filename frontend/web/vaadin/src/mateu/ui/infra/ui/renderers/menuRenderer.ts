@@ -5,12 +5,12 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/ContextMenu";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
-export const renderContextMenu = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
+export const renderContextMenu = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as ContextMenu
 
     return html`
         <vaadin-context-menu .items=${mapItems(metadata.menu)} style="${component.style}" class="${component.cssClasses}">
-            ${renderComponent(metadata.wrapped, baseUrl, data)}
+            ${renderComponent(metadata.wrapped, baseUrl, state, data)}
         </vaadin-context-menu>
             `
 }

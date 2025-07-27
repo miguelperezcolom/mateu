@@ -4,7 +4,7 @@ import { html } from "lit";
 import { dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
-export const renderDialog = (component: ClientSideComponent, baseUrl: string | undefined, data: any) => {
+export const renderDialog = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Dialog
 
     /*
@@ -26,7 +26,7 @@ export const renderDialog = (component: ClientSideComponent, baseUrl: string | u
     )}
                 ${dialogRenderer(dialog => {
         console.log('dialog', dialog)
-        return html`${renderComponent(metadata.content, baseUrl, data)}`
+        return html`${renderComponent(metadata.content, baseUrl, state, data)}`
     }, [])}
                 style="${component.style}" class="${component.cssClasses}"
         ></vaadin-dialog>
