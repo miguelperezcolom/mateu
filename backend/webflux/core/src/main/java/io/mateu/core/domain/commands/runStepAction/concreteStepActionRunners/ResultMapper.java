@@ -26,6 +26,7 @@ import io.mateu.uidl.interfaces.UpdatesHash;
 import io.mateu.uidl.views.SingleComponentView;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -78,6 +79,9 @@ public class ResultMapper {
       Object result,
       String componentId,
       boolean calledByParametersEditor) {
+    if (result instanceof UIIncrementDto uiIncrementDto) {
+      return Mono.just(uiIncrementDto);
+    }
     if (result == null) {
       return Mono.just(
           uIIncrementFactory.createForSingleComponent(
@@ -152,6 +156,10 @@ public class ResultMapper {
       String componentId,
       boolean calledByParametersEditor) {
 
+    if (r instanceof UIIncrementDto uiIncrementDto) {
+      return uiIncrementDto;
+    }
+
     var commands =
         getCommands(m, data, baseUrl, serverHttpRequest, componentId, r, calledByParametersEditor);
     var messages = getMessages(r, m, calledByParametersEditor);
@@ -174,7 +182,7 @@ public class ResultMapper {
     List<UIFragmentDto> fragments = new ArrayList<>();
     if (mustCloseModal(m, r instanceof MethodParametersEditor) || r instanceof CloseModal) {
     } else if (isTargetMessage(m) || r instanceof Message || r instanceof MessageDto) {
-
+    } else if (r instanceof URI uri) {
     } else if (r instanceof URL url) {
       if (!ActionTarget.NewTab.equals(getActionTarget(m, calledByParametersEditor))
           && !ActionTarget.NewWindow.equals(getActionTarget(m, calledByParametersEditor))) {
@@ -331,6 +339,9 @@ public class ResultMapper {
       if (ActionTarget.NewWindow.equals(getActionTarget(m, calledByParametersEditor))) {
         commands.add(new UICommandDto(UICommandTypeDto.OpenNewWindow, url.toString()));
       }
+    }
+    if (r instanceof URI uri) {
+      commands.add(new UICommandDto(UICommandTypeDto.SetLocation, uri.toString()));
     }
     if (r instanceof UpdatesHash updatesHash) {
       commands.add(new UICommandDto(UICommandTypeDto.UpdateHash, updatesHash.getHash()));

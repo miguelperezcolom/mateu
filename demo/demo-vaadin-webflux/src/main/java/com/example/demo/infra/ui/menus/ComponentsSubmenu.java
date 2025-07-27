@@ -34,4 +34,7 @@ public class ComponentsSubmenu {
           "{\"nombre\":\"Mateu\",\"age\":16}"
   );
 
+  @MenuOption
+  RequestTooLong requestTooLong;
+
 }

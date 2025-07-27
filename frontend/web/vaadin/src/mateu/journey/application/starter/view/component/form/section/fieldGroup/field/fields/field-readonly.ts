@@ -110,9 +110,17 @@ export class FieldReadonly extends LitElement implements Component {
                            value=${this.value}
                    ?disabled=${!this.enabled}
                 readonly
-            ><div class="content" slot="textarea">${unsafeHTML(this.rawValue)}</div></vaadin-text-area>
+            ><div class="content" slot="textarea">${this.paint(this.rawValue)}</div></vaadin-text-area>
             `
     }
+
+    paint = (value: any) => {
+        if (typeof value === 'string' || value instanceof String) {
+            return unsafeHTML(value as string)
+        }
+        return value
+    }
+
 
 
     static styles = css`

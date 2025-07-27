@@ -312,11 +312,13 @@ export class MateuForm extends LitElement implements FormElement {
       this.actionsMap.map.set(id, b)
     })
     this.metadata.actions.filter(a => a.timeoutMillis).forEach(a => {
+      console.log('set timeout for action', a.id)
       setTimeout(() => {
         this.askForActionRun(a)
       }, a.timeoutMillis)
     })
     this.metadata.mainActions.filter(a => a.timeoutMillis).forEach(a => {
+      console.log('set timeout for main action', a.id)
       setTimeout(() => {
         this.askForActionRun(a)
       }, a.timeoutMillis)
@@ -333,7 +335,6 @@ export class MateuForm extends LitElement implements FormElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.setUp()
     this.addEventListener('edit-field', this.editFieldListener)
   }
 

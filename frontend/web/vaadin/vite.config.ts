@@ -19,10 +19,10 @@ export default defineConfig({
   server: {
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
-      '/mateu': 'http://localhost:8082',
+      '/mateu': 'http://localhost:8091',
       '/ircs/mateu': 'http://localhost:8082',
-      '/images': 'http://localhost:8082',
-      '/myassets': 'http://localhost:8082',
+      '/images': 'http://localhost:8091',
+      '/myassets': 'http://localhost:8091',
       '/remoteapp/mateu': 'http://localhost:8091',
     },
   },
