@@ -9,6 +9,7 @@
         <version>0.0.1-MATEU</version>
     </parent>
     <artifactId>core</artifactId>
+    <name>Core</name>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
