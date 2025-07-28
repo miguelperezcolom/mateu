@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>annotation-processor-micronaut</artifactId>
+    <name>Annotation processor for micronaut</name>
 
     <dependencies>
         <dependency>

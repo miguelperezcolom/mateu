@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>annotation-processor-webflux</artifactId>
+    <name>Annotation processor for springboot webflux</name>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

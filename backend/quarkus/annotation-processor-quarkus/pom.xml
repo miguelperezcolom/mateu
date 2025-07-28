@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>annotation-processor-quarkus</artifactId>
+    <name>Annotation processor for quarkus</name>
 
     <dependencies>
         <dependency>
