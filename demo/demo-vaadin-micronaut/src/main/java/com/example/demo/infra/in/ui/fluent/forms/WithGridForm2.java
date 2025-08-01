@@ -8,6 +8,7 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
@@ -105,7 +106,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
 
         people.add(new Person(name, age));
 
-        return Mono.just(new Data(this));
+        return Mono.just(new State(this));
     }
 
 }

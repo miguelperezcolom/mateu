@@ -42,7 +42,7 @@ public class Counter5 implements ComponentTreeSupplier, HasActions, HasTriggers 
     @Override
     public Component getComponent(HttpRequest httpRequest) {
         return new VerticalLayout(
-                new Text("${data.count}"),
+                new Text("${state.count}"),
                 new Button("Increment", (Runnable) () -> count++)
         );
     }

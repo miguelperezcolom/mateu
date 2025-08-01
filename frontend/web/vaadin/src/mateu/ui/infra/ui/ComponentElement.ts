@@ -17,12 +17,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     applyFragment(fragment: UIFragment) {
         if (this.id == fragment.targetComponentId) {
             if (fragment.component) {
-                const children = fragment.component?.type == ComponentType.ServerSide?fragment.component?.children:[fragment.component]
+                const children = fragment.component?.type == ComponentType.ServerSide?
+                    fragment.component?.children:
+                    [fragment.component]
                 this.component!.children = children
             }
+
             if (fragment.state) {
                 this.state = { ...this.state, ...fragment.state }
             }
+
             if (fragment.data) {
                 this.data = { ...this.data, ...fragment.data }
             }

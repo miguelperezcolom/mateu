@@ -4,23 +4,32 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.micronaut.serde.annotation.Serdeable;
 
-@MateuUI("/counter2")
-@Route("/fluent-app/forms/counter2")
-public class Counter2 implements ComponentTreeSupplier {
+@MateuUI("/counter6")
+@Route("/fluent-app/forms/counter6")
+@Serdeable
+public class Counter6 implements ComponentTreeSupplier {
 
     int count = 0;
+
+    Counter6 increment() {
+        count++;
+        return this;
+    }
 
     @Override
     public Component getComponent(HttpRequest httpRequest) {
         return new VerticalLayout(
-                new Text("${state.count}"),
-                new Button("Increment", (Runnable) () -> count++)
+                new Text("${data.count}"),
+                new Button("Increment", () -> new Data(increment()))
         );
     }
 

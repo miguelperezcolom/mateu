@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
@@ -25,8 +26,8 @@ public class Counter4 implements ComponentTreeSupplier {
     @Override
     public Component getComponent(HttpRequest httpRequest) {
         return new VerticalLayout(
-                new Text("${data.count}"),
-                new Button("Increment", () -> new Data(increment()))
+                new Text("${state.count}"),
+                new Button("Increment", () -> new State(increment()))
         );
     }
 

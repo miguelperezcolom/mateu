@@ -6,6 +6,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.Page;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
@@ -63,6 +64,6 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions
                 Map.of("name", "Antonia", "age", 49)
         )));
 
-        return Mono.just(new Data(this));
+        return Mono.just(new State(this));
     }
 }
