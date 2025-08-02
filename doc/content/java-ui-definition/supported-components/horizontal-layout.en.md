@@ -62,6 +62,13 @@ An horizontal layout layouts children horizontally.
         ))
         .build()
 
+    // ...
+
+    private Component buildPanel(String style) {
+      // returns any component or object;
+    }
+
+
 ```
 
 {{< /tab >}}
@@ -75,6 +82,12 @@ An horizontal layout layouts children horizontally.
         buildPanel(),
         buildPanel()
       );
+
+    // ...
+
+    private Component buildPanel(String style) {
+      // returns any component or object;
+    }
     
 ```    
 
