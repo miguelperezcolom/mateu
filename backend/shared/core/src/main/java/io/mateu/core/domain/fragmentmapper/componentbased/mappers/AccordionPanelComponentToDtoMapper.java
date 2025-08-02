@@ -12,7 +12,12 @@ public class AccordionPanelComponentToDtoMapper {
 
   public static ClientSideComponentDto mapAccordionPanelToDto(
       AccordionPanel panel, String baseUrl, String route, HttpRequest httpRequest) {
-    var metadataDto = AccordionPanelDto.builder().label(panel.label()).build();
+    var metadataDto =
+        AccordionPanelDto.builder()
+            .label(panel.label())
+            .active(panel.active())
+            .disabled(panel.disabled())
+            .build();
     return new ClientSideComponentDto(
         metadataDto,
         null,

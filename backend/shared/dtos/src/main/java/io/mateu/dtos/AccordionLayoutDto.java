@@ -8,7 +8,8 @@ import lombok.Builder;
  * Metadata for a horizontal layout. Child componentIds are in the HorizontalLayout component itself
  */
 @Builder
-public record AccordionLayoutDto(List<AccordionPanelDto> panels) implements ComponentMetadataDto {
+public record AccordionLayoutDto(List<AccordionPanelDto> panels, AccordionLayoutVariantDto variant)
+    implements ComponentMetadataDto {
 
   public AccordionLayoutDto {
     panels = Collections.unmodifiableList(panels != null ? panels : Collections.emptyList());

@@ -10,5 +10,5 @@ import lombok.Builder;
  * @param label The tab label
  */
 @Builder
-public record AccordionPanelDto(String id, boolean active, String label)
+public record AccordionPanelDto(String id, boolean active, boolean disabled, String label)
     implements ComponentMetadataDto {}

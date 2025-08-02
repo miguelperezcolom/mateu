@@ -6,4 +6,9 @@ import lombok.Builder;
 
 @Builder
 public record AccordionLayout(
-    String id, List<AccordionPanel> panels, String style, String cssClasses) implements Component {}
+    String id,
+    List<AccordionPanel> panels,
+    AccordionLayoutVariant variant,
+    String style,
+    String cssClasses)
+    implements Component {}

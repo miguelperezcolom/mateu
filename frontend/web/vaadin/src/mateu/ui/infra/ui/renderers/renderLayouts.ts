@@ -9,6 +9,9 @@ import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
 import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
+import AccordionLayout, {
+    AccordionLayoutVariant
+} from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -174,17 +177,42 @@ export const renderTab = (tab: ClientSideComponent, baseUrl: string | undefined,
 </vaadin-accordion>
  */
 export const renderAccordionLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = (component as ClientSideComponent).metadata as AccordionLayout
+    let style = component.style;
+    if (metadata.fullWidth) {
+        style = style?'width: 100%;' + style:'width: 100%;'
+    }
+    let opened = 'undefined';
+    if (component.children) {
+        for (let i = 0; i < component.children.length; i++) {
+            // @ts-ignore
+            if (component.children[i].metadata.active) {
+                opened = '' + i;
+                break;
+            }
+        }
+    }
+    console.log('opened', opened)
     return html`
-               <vaadin-accordion style="${component.style}" class="${component.cssClasses}">
-                   ${component.children?.map(child => renderAccordionPanel(child as ClientSideComponent, baseUrl, state, data))}
+               <vaadin-accordion 
+                       style="${component.style}" 
+                       class="${component.cssClasses}"
+                       opened="${opened}"
+               >
+                   ${component.children?.map(child => renderAccordionPanel(child as ClientSideComponent, baseUrl, state, data, metadata.variant))}
                </vaadin-accordion>
             `
 }
 
-export const renderAccordionPanel = (panel: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderAccordionPanel = (panel: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, variant: AccordionLayoutVariant | undefined) => {
+    const metadata = panel.metadata as AccordionPanel
     return html`
-        <vaadin-accordion-panel style="${panel.style}" class="${panel.cssClasses}">
-            <vaadin-accordion-heading slot="summary">${(panel.metadata as AccordionPanel).label}</vaadin-accordion-heading>
+        <vaadin-accordion-panel style="${panel.style}" 
+                                class="${panel.cssClasses}"
+                                theme="${variant??nothing}"
+                                ?opened="${metadata.active}"
+                                ?disabled="${metadata.disabled}">
+            <vaadin-accordion-heading slot="summary">${metadata.label}</vaadin-accordion-heading>
             ${panel.children?.map(child => renderComponent(child, baseUrl, state, data))}
         </vaadin-accordion-panel>
             `
