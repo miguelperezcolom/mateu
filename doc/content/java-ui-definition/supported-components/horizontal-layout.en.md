@@ -64,7 +64,7 @@ An horizontal layout layouts children horizontally.
 
     // ...
 
-    private Component buildPanel() {
+    private Object buildPanel() {
       // returns any component or object;
     }
 
@@ -85,7 +85,7 @@ An horizontal layout layouts children horizontally.
 
     // ...
 
-    private Component buildPanel() {
+    private Object buildPanel() {
       // returns any component or object;
     }
     
