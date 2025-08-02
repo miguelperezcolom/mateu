@@ -5347,7 +5347,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ) {
     min-width: 100%;
   }
-`;i$4`
+`,formRowStyles=i$4`
   :host {
     display: contents;
   }
@@ -7406,7 +7406,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <vaadin-menu-bar-submenu is-root overlay-class="[[overlayClass]]"></vaadin-menu-bar-submenu>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-menu-bar"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}}defineCustomElement(MenuBar);registerStyles("vaadin-split-layout",i$4`
+    `}static get is(){return"vaadin-menu-bar"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}}defineCustomElement(MenuBar);/**
+ * @license
+ * Copyright (c) 2017 - 2025 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */registerStyles("vaadin-form-row",formRowStyles,{moduleId:"vaadin-form-row-styles"});class FormRow extends ThemableMixin(PolymerElement){static get is(){return"vaadin-form-row"}static get template(){return html$3`<slot></slot>`}}defineCustomElement(FormRow);registerStyles("vaadin-split-layout",i$4`
     [part='splitter'] {
       min-width: var(--lumo-space-s);
       min-height: var(--lumo-space-s);
@@ -20382,6 +20386,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 ${notificationRenderer(this.notificationRenderer,[])}
         ></vaadin-notification>`}};MateuApiCaller.styles=i$4`
         :host {
+            /* width: 100%; */
             display: inline-block;
         }
   `;__decorateClass$5([r$1()],MateuApiCaller.prototype,"loading",2);__decorateClass$5([r$1()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$5([r$1()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$5([t("mateu-api-caller")],MateuApiCaller);const urlAlphabet="useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";let nanoid=(W=21)=>{let D="",O=crypto.getRandomValues(new Uint8Array(W|=0));for(;W--;)D+=urlAlphabet[O[W]&63];return D};var __defProp$4=Object.defineProperty,__getOwnPropDesc$4=Object.getOwnPropertyDescriptor,__decorateClass$4=(W,D,O,F)=>{for(var U=F>1?void 0:F?__getOwnPropDesc$4(D,O):D,Y=W.length-1,q;Y>=0;Y--)(q=W[Y])&&(U=(F?q(D,O,U):q(U))||U);return F&&U&&__defProp$4(D,O,U),U};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.selectedRoute=void 0,this.instant=void 0,this.baseUrl=void 0,this.getSelectedOption=W=>{if(W)for(let D=0;D<W.length;D++){const O=W[D];if(O.selected)return O;const F=this.getSelectedOption(O.submenus);if(F)return F}return null},this.getInitialRoute=W=>{const D=this.getSelectedOption(W.menu);return D?D.destination.route:W.homeRoute},this.itemSelected=W=>{this.selectedRoute=W.detail.value.route,this.instant=nanoid()},this.mapItems=W=>W.map(D=>{var O,F;return D.submenus?{text:D.label,route:(O=D.destination)==null?void 0:O.route,selected:D.selected,children:this.mapItems(D.submenus)}:D.separator?{component:"hr"}:{text:D.label,route:(F=D.destination)==null?void 0:F.route,selected:D.selected}}),this.getSelectedIndex=W=>{if(W){const D=this.getSelectedOption(W);if(D)return W.indexOf(D)}},this.renderOptionOnLeftMenu=W=>W.submenus?x`
@@ -20510,9 +20515,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         vaadin-tabs {
             width: 100%;
         }
-  `;__decorateClass$4([r$1()],MateuApp.prototype,"selectedRoute",2);__decorateClass$4([r$1()],MateuApp.prototype,"instant",2);__decorateClass$4([n$1()],MateuApp.prototype,"baseUrl",2);MateuApp=__decorateClass$4([t("mateu-app")],MateuApp);var TriggerType=(W=>(W.OnLoad="OnLoad",W.OnSubmit="OnSubmit",W))(TriggerType||{});const renderFormLayout=(W,D,O,F)=>{var q;const U=W.metadata,Y=[{minWidth:0,columns:1},{minWidth:"500px",columns:(U==null?void 0:U.columns)??2}];return x`
-               <vaadin-form-layout .responsiveSteps="${Y}"  style="${W.style}" class="${W.cssClasses}">
+  `;__decorateClass$4([r$1()],MateuApp.prototype,"selectedRoute",2);__decorateClass$4([r$1()],MateuApp.prototype,"instant",2);__decorateClass$4([n$1()],MateuApp.prototype,"baseUrl",2);MateuApp=__decorateClass$4([t("mateu-app")],MateuApp);var TriggerType=(W=>(W.OnLoad="OnLoad",W.OnSubmit="OnSubmit",W))(TriggerType||{});const renderFormLayout=(W,D,O,F)=>{var q;const U=W.metadata,Y=[{minWidth:0,columns:1},{minWidth:"400px",columns:(U==null?void 0:U.columns)??2}];return x`
+               <vaadin-form-layout 
+                       .responsiveSteps="${Y}"  
+                       style="${W.style}" 
+                       class="w-full ${W.cssClasses}"
+                       max-columns="${U.columns}"
+                       auto-responsive
+                       column-width="8em"
+                       expand-columns
+                       expand-fields
+               >
+                   <vaadin-form-row>
                    ${(q=W.children)==null?void 0:q.map(X=>renderComponent(X,D,O,F))}
+                   </vaadin-form-row>
                </vaadin-form-layout>
             `},renderHorizontalLayout=(W,D,O,F)=>{var X;const U=W.metadata,Y=(U.padding?" padding":"")+(U.spacing?" spacing":"")+(U.spacingVariant?" spacing-"+U.spacingVariant:"")+(U.wrap?" wrap":"");let q=W.style;return U.fullWidth&&(q=q?"width: 100%;"+q:"width: 100%;"),U.justification&&(q=q?"justify-content: "+U.justification+";"+q:"justify-content: "+U.justification+";"),U.verticalAlignment&&(q=q?"align-items: "+U.verticalAlignment+";"+q:"align-items: "+U.verticalAlignment+";"),x`
                <vaadin-horizontal-layout 
@@ -20530,12 +20546,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         >
             ${(X=W.children)==null?void 0:X.map(K=>renderComponent(K,D,O,F))}
         </vaadin-vertical-layout>
-    `},renderSplitLayout=(W,D,O,F)=>x`
-               <vaadin-split-layout style="${W.style}" class="${W.cssClasses}">
+    `},renderSplitLayout=(W,D,O,F)=>{const U=W.metadata;let Y=W.style;return U.fullWidth&&(Y=Y?"width: 100%;"+Y:"width: 100%;"),x`
+               <vaadin-split-layout 
+                       style="${Y}" 
+                       class="${W.cssClasses}"
+                       orientation="${U.orientation??E}"
+                       theme="${U.variant??E}"
+               >
                    <master-content>${renderComponent(W.children[0],D,O,F)}</master-content>
                    <detail-content>${renderComponent(W.children[1],D,O,F)}</detail-content>
                </vaadin-split-layout>
-            `,renderMasterDetailLayout=(W,D,O,F)=>x`
+            `},renderMasterDetailLayout=(W,D,O,F)=>x`
                <vaadin-master-detail-layout has-detail style="${W.style}" class="${W.cssClasses}">
                    <div>${renderComponent(W.children[0],D,O,F)}</div>
                    <div slot="detail">${renderComponent(W.children[1],D,O,F)}</div>
@@ -20554,14 +20575,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div tab="${W.metadata.label}">
                    ${(U=W.children)==null?void 0:U.map(Y=>renderComponent(Y,D,O,F))}
                </div>
-            `},renderAccordionLayout=(W,D,O,F)=>{var U;return x`
-               <vaadin-accordion style="${W.style}" class="${W.cssClasses}">
-                   ${(U=W.children)==null?void 0:U.map(Y=>renderAccordionPanel(Y,D,O,F))}
+            `},renderAccordionLayout=(W,D,O,F)=>{var q;const U=W.metadata;W.style,U.fullWidth;let Y="undefined";if(W.children){for(let X=0;X<W.children.length;X++)if(W.children[X].metadata.active){Y=""+X;break}}return console.log("opened",Y),x`
+               <vaadin-accordion 
+                       style="${W.style}" 
+                       class="${W.cssClasses}"
+                       opened="${Y}"
+               >
+                   ${(q=W.children)==null?void 0:q.map(X=>renderAccordionPanel(X,D,O,F,U.variant))}
                </vaadin-accordion>
-            `},renderAccordionPanel=(W,D,O,F)=>{var U;return x`
-        <vaadin-accordion-panel style="${W.style}" class="${W.cssClasses}">
-            <vaadin-accordion-heading slot="summary">${W.metadata.label}</vaadin-accordion-heading>
-            ${(U=W.children)==null?void 0:U.map(Y=>renderComponent(Y,D,O,F))}
+            `},renderAccordionPanel=(W,D,O,F,U)=>{var q;const Y=W.metadata;return x`
+        <vaadin-accordion-panel style="${W.style}" 
+                                class="${W.cssClasses}"
+                                theme="${U??E}"
+                                ?opened="${Y.active}"
+                                ?disabled="${Y.disabled}">
+            <vaadin-accordion-heading slot="summary">${Y.label}</vaadin-accordion-heading>
+            ${(q=W.children)==null?void 0:q.map(X=>renderComponent(X,D,O,F))}
         </vaadin-accordion-panel>
             `},renderScroller=(W,D,O,F)=>{var U;return x`
                <vaadin-scroller style="${W.style}" class="${W.cssClasses}">
