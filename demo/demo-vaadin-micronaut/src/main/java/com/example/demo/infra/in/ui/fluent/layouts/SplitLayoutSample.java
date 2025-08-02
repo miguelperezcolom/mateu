@@ -1,10 +1,12 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.SplitLayoutOrientation;
 import io.mateu.uidl.data.SplitLayoutVariant;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -25,6 +27,22 @@ public class SplitLayoutSample implements ComponentTreeSupplier {
                                 .master(new Text("Master"))
                                 .detail(new Text("Detail"))
                                 .build(),
+
+
+                        new Text("full width"),
+
+                        VerticalLayout.builder()
+                                .content(List.of(
+                                        SplitLayout.builder()
+                                                .master(new Text("Master"))
+                                                .detail(new Text("Detail"))
+                                                .fullWidth(true)
+                                                .build()
+                                        )
+                                )
+                                .style("width: 40rem;")
+                                .build(),
+
 
 
                         new Text("vertical"),

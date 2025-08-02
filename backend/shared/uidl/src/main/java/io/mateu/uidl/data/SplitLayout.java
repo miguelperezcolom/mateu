@@ -10,11 +10,12 @@ public record SplitLayout(
     Component detail,
     SplitLayoutOrientation orientation,
     SplitLayoutVariant variant,
+    boolean fullWidth,
     String style,
     String cssClasses)
     implements Component {
 
   public SplitLayout(Component master, Component detail) {
-    this(null, master, detail, null, null, "", "");
+    this(null, master, detail, null, null, false, "", "");
   }
 }

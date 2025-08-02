@@ -104,9 +104,13 @@ export const renderVerticalLayout = (component: Component, baseUrl: string | und
  */
 export const renderSplitLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = (component as ClientSideComponent).metadata as SplitLayout
+    let style = component.style;
+    if (metadata.fullWidth) {
+        style = style?'width: 100%;' + style:'width: 100%;'
+    }
     return html`
                <vaadin-split-layout 
-                       style="${component.style}" 
+                       style="${style}" 
                        class="${component.cssClasses}"
                        orientation="${metadata.orientation??nothing}"
                        theme="${metadata.variant??nothing}"

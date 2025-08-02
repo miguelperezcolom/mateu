@@ -14,5 +14,6 @@ export default interface SplitLayout extends ComponentMetadata {
 
     orientation: SplitLayoutOrientation | undefined
     variant: SplitLayoutVariant | undefined
+    fullWidth: boolean
 
 }

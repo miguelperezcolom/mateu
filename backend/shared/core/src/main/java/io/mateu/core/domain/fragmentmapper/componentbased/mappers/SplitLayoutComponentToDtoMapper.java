@@ -24,6 +24,7 @@ public class SplitLayoutComponentToDtoMapper {
                 splitLayout.variant() != null
                     ? SplitLayoutVariantDto.valueOf(splitLayout.variant().name())
                     : null)
+            .fullWidth(splitLayout.fullWidth())
             .build();
     return new ClientSideComponentDto(
         metadataDto,
