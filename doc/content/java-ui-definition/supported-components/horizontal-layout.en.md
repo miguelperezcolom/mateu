@@ -68,7 +68,15 @@ An horizontal layout layouts children horizontally.
 
 {{< tab "Declarative" >}}
 
-TBD
+```java
+
+    @HorizontalLayout
+    var panles = List.of(
+        buildPanel(),
+        buildPanel()
+      );
+    
+```    
 
 {{< /tab >}}
 
