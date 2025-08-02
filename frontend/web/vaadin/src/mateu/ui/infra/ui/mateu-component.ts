@@ -51,6 +51,9 @@ import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCompone
 import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
+import { renderClientSideComponent } from "@infra/ui/renderers/renderComponents";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -142,6 +145,9 @@ export class MateuComponent extends ComponentElement {
     }
 
     render() {
+        if (this.component?.type == ComponentType.ClientSide) {
+            return renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+        }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
             ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data))}

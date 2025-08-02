@@ -7,6 +7,76 @@ weight: 100
 
 An `App` is a high level convenience component which allows the user to navigate among other components by using a navigation menuBar.
 
+<div style="display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 30px;">
+  <mateu-component id="componente" style="width: unset;"></mateu-component>
+</div>
+
+<script>
+
+  var component =                     {
+                        "type": "ClientSide",
+                        "metadata": {
+                            "type": "App",
+                            "variant": "MENU_ON_LEFT",
+                            "menu": [
+                                {
+                                    "label": "Home",
+                                    "destination": {
+                                        "route": "/fluent-app/nested-apps/left/home"
+                                    },
+                                    "visible": true,
+                                    "selected": false,
+                                    "separator": false
+                                },
+                                {
+                                    "label": "Page 1",
+                                    "destination": {
+                                        "route": "/fluent-app/nested-apps/left/page1"
+                                    },
+                                    "visible": true,
+                                    "selected": false,
+                                    "separator": false
+                                },
+                                {
+                                    "submenus": [
+                                        {
+                                            "label": "Home",
+                                            "destination": {
+                                                "route": "/fluent-app/nested-apps/left/home"
+                                            },
+                                            "visible": true,
+                                            "selected": false,
+                                            "separator": false
+                                        },
+                                        {
+                                            "label": "Page 1",
+                                            "destination": {
+                                                "route": "/fluent-app/nested-apps/left/page1"
+                                            },
+                                            "visible": true,
+                                            "selected": false,
+                                            "separator": false
+                                        }
+                                    ],
+                                    "label": "Submenu",
+                                    "visible": true,
+                                    "selected": false,
+                                    "separator": false
+                                }
+                            ],
+                            "route": "/fluent-app/nested-apps/left",
+                            "title": "Nested",
+                            "subtitle": "This is the subtitle bla, bla, bla",
+                            "homeRoute": "/fluent-app/nested-apps/left/home"
+                        },
+                        "id": "component_id"
+                    };
+  
+  document.getElementById('componente').component = component;
+
+</script>
+
+
 {{< tabs "tab-group-name" >}}
 
 {{< tab "Fluent" >}}

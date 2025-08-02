@@ -1,6 +1,6 @@
 {{ $context := .Context | default . }}
 <nav aria-label="breadcrumb">
-  <ul class="breadcrumb not-prose mt-0">
+  <ul class="breadcrumb not-prose mt-0" style="padding-left: 3rem;">
 
     {{ $chapter := "Unknown" }}
     {{ $prefix := index (strings.Split .Context.Path "-") 0}}

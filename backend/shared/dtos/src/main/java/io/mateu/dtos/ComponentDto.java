@@ -20,4 +20,6 @@ public interface ComponentDto {
   String style();
 
   String cssClasses();
+
+  ComponentDto setStyle(String s);
 }

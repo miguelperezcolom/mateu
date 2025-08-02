@@ -6,6 +6,7 @@ import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -25,8 +26,29 @@ export const renderFormLayout = (component: ClientSideComponent, baseUrl: string
 }
 
 export const renderHorizontalLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = (component as ClientSideComponent).metadata as HorizontalLayout
+    const theme = ''
+        + (metadata.padding?' padding':'')
+        + (metadata.spacing?' spacing':'')
+        + (metadata.spacingVariant?' spacing-' + metadata.spacingVariant:'')
+        + (metadata.wrap?' wrap':'')
+    console.log('theme', theme)
+    let style = component.style;
+    if (metadata.fullWidth) {
+        style = style?'width: 100%;' + style:'width: 100%;'
+    }
+    if (metadata.justification) {
+        style = style?'justify-content: ' + metadata.justification + ';' + style:'justify-content: ' + metadata.justification + ';'
+    }
+    if (metadata.verticalAlignment) {
+        style = style?'align-items: ' + metadata.verticalAlignment + ';' + style:'align-items: ' + metadata.verticalAlignment + ';'
+    }
     return html`
-               <vaadin-horizontal-layout style="${component.style}" class="${component.cssClasses}">
+               <vaadin-horizontal-layout 
+                       style="${style}" 
+                       class="${component.cssClasses}"
+                       theme="${theme}"
+               >
                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
                </vaadin-horizontal-layout>
             `

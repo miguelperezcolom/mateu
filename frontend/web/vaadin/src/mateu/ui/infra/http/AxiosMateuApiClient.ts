@@ -1,7 +1,7 @@
 import UI from "../../../shared/apiClients/dtos/UI"
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import {nanoid} from "nanoid"
-import {MateuApiClient} from "../../domain/MateuApiClient";
+import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 let abortControllers: AbortController[] = []

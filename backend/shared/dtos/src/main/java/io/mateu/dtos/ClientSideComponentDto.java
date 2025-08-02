@@ -19,4 +19,15 @@ public record ClientSideComponentDto(
   public List<ComponentDto> children() {
     return Collections.unmodifiableList(children);
   }
+
+  @Override
+  public ComponentDto setStyle(String style) {
+    return new ClientSideComponentDto(
+      metadata,
+      id,
+      children,
+      style,
+      cssClasses
+    );
+  }
 }

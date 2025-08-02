@@ -441,7 +441,7 @@
     }
 
     thead tr th {
-      @apply border border-b-0 border-stone-300;
+      @apply border-b-0 border-stone-300 bg-stone-100;
     }
 
     th:first-child,
@@ -531,10 +531,15 @@
 
   // Tab
   .tab {
-    @apply mb-6;
+    @apply mb-6 rounded-xl border-stone-300;
+
+    border-width: 1px;
 
     .tab-nav {
-      @apply bg-theme-light m-0 flex flex-wrap gap-4 rounded-xl rounded-b-none p-4;
+      @apply m-0 flex flex-wrap gap-4 rounded-xl rounded-b-none p-4 border-stone-300;
+
+      border-bottom-width: 1px;
+
     }
 
     .tab-nav-item {
@@ -577,7 +582,7 @@
     }
 
     .tab-content .tab-content-panel.active {
-      @apply border-theme-light m-0 block list-none rounded-xl rounded-t-none border border-t-0 bg-transparent p-4 sm:rounded-2xl sm:rounded-t-none;
+      @apply m-0 block list-none rounded-xl rounded-t-none bg-transparent p-4 sm:rounded-2xl sm:rounded-t-none;
 
       ul,
       ol {
