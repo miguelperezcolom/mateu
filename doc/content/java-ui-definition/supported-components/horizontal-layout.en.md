@@ -89,7 +89,19 @@ An horizontal layout layouts children horizontally.
       // returns any component or object;
     }
     
-```    
+```
+
+or
+
+```java
+
+    @HorizontalLayout
+    class Container {
+      Object left = buildPanel();
+      Object right = buildPanel();
+    }
+
+```
 
 {{< /tab >}}
 
