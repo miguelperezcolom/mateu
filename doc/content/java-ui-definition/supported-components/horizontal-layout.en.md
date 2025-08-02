@@ -71,7 +71,7 @@ An horizontal layout layouts children horizontally.
 ```java
 
     @HorizontalLayout
-    var panles = List.of(
+    var panels = List.of(
         buildPanel(),
         buildPanel()
       );
