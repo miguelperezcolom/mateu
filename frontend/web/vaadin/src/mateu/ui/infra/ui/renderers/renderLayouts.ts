@@ -1,13 +1,14 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
 import { FormLayoutResponsiveStep } from "@vaadin/form-layout";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
+import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -16,12 +17,23 @@ export const renderFormLayout = (component: ClientSideComponent, baseUrl: string
         // Use one column by default
         { minWidth: 0, columns: 1 },
         // Use two columns, if layout's width exceeds 500px
-        { minWidth: '500px', columns: metadata?.columns??2 },
+        { minWidth: '400px', columns: metadata?.columns??2 },
     ];
 
     return html`
-               <vaadin-form-layout .responsiveSteps="${responsiveSteps}"  style="${component.style}" class="${component.cssClasses}">
+               <vaadin-form-layout 
+                       .responsiveSteps="${responsiveSteps}"  
+                       style="${component.style}" 
+                       class="w-full ${component.cssClasses}"
+                       max-columns="${metadata.columns}"
+                       auto-responsive
+                       column-width="8em"
+                       expand-columns
+                       expand-fields
+               >
+                   <vaadin-form-row>
                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                   </vaadin-form-row>
                </vaadin-form-layout>
             `
 }
@@ -91,8 +103,14 @@ export const renderVerticalLayout = (component: Component, baseUrl: string | und
 </vaadin-split-layout>
  */
 export const renderSplitLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = (component as ClientSideComponent).metadata as SplitLayout
     return html`
-               <vaadin-split-layout style="${component.style}" class="${component.cssClasses}">
+               <vaadin-split-layout 
+                       style="${component.style}" 
+                       class="${component.cssClasses}"
+                       orientation="${metadata.orientation??nothing}"
+                       theme="${metadata.variant??nothing}"
+               >
                    <master-content>${renderComponent(component.children![0], baseUrl, state, data)}</master-content>
                    <detail-content>${renderComponent(component.children![1], baseUrl, state, data)}</detail-content>
                </vaadin-split-layout>

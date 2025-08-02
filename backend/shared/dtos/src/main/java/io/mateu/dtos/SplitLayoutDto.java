@@ -4,4 +4,5 @@ import lombok.Builder;
 
 /** Metadata for a split layout. Child componentIds are in the SplitLayout component itself */
 @Builder
-public record SplitLayoutDto() implements ComponentMetadataDto {}
+public record SplitLayoutDto(SplitLayoutOrientationDto orientation, SplitLayoutVariantDto variant)
+    implements ComponentMetadataDto {}

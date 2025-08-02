@@ -4,6 +4,8 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.SplitLayoutDto;
+import io.mateu.dtos.SplitLayoutOrientationDto;
+import io.mateu.dtos.SplitLayoutVariantDto;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -12,7 +14,17 @@ public class SplitLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapSplitLayoutToDto(
       SplitLayout splitLayout, String baseUrl, String route, HttpRequest httpRequest) {
-    var metadataDto = SplitLayoutDto.builder().build();
+    var metadataDto =
+        SplitLayoutDto.builder()
+            .orientation(
+                splitLayout.orientation() != null
+                    ? SplitLayoutOrientationDto.valueOf(splitLayout.orientation().name())
+                    : null)
+            .variant(
+                splitLayout.variant() != null
+                    ? SplitLayoutVariantDto.valueOf(splitLayout.variant().name())
+                    : null)
+            .build();
     return new ClientSideComponentDto(
         metadataDto,
         splitLayout.id(),

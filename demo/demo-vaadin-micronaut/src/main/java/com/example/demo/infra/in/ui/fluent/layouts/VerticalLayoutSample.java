@@ -14,6 +14,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
+import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
+
 @Route("/fluent-app/layouts/vertical")
 public class VerticalLayoutSample implements ComponentTreeSupplier {
 
@@ -137,24 +139,4 @@ public class VerticalLayoutSample implements ComponentTreeSupplier {
                 .build();
     }
 
-    private Component buildPanel() {
-        return buildPanel("");
-    }
-
-    private Component buildPanel(String style) {
-        return Text.builder()
-                .text("Panel")
-                .style("background-color: #d7f0b2;" +
-                        "color: darkgreen;" +
-                        "border: 1px solid darkgreen;" +
-                        "min-width: 7rem;" +
-                        "display: flex;" +
-                        "align-items: center;" +
-                        "justify-content: center;" +
-                        "height: 3rem;" +
-                        "margin-block-start: 0;" +
-                        "margin-block-end: 0;" +
-                        style)
-                .build();
-    }
 }

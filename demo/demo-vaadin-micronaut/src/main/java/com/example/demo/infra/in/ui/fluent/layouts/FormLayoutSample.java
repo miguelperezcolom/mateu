@@ -9,19 +9,26 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
+import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
+
 @Route("/fluent-app/layouts/form")
 public class FormLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Form Layout")
-                .content(List.of(FormLayout.builder()
+                .content(List.of(
+
+                        FormLayout.builder()
                                 .content(List.of(
-                                        new Text("Text 1"),
-                                        new Text("Text 2"),
-                                        new Text("Text 3")
+                                        buildPanel(),
+                                        buildPanel(),
+                                        buildPanel()
                                 ))
-                        .build()))
+                                .columns(2)
+                        .build()
+
+                ))
                 .style("width: 100%;")
                 .cssClasses("test")
                 .build();

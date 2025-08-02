@@ -13,6 +13,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
+import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
+
 @Route("/fluent-app/layouts/horizontal")
 public class HorizontalLayoutSample implements ComponentTreeSupplier {
     @Override
@@ -134,21 +136,4 @@ public class HorizontalLayoutSample implements ComponentTreeSupplier {
                 .build();
     }
 
-    private Component buildPanel() {
-        return buildPanel("");
-    }
-
-    private Component buildPanel(String style) {
-        return Text.builder()
-                .text("Panel")
-                .style("background-color: #d7f0b2;" +
-                        "color: darkgreen;" +
-                        "border: 1px solid darkgreen;" +
-                        "min-width: 7rem;" +
-                        "display: flex;" +
-                        "align-items: center;" +
-                        "justify-content: center;" +
-                        "height: 3rem;" + style)
-                .build();
-    }
 }

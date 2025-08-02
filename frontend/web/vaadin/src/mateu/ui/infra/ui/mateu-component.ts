@@ -3,6 +3,8 @@ import { css, html, PropertyValues, unsafeCSS } from "lit";
 import { badge } from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
+import '@vaadin/form-layout'
+import '@vaadin/form-layout/vaadin-form-row.js';
 import '@vaadin/split-layout'
 import '@vaadin/master-detail-layout'
 import '@vaadin/app-layout'
