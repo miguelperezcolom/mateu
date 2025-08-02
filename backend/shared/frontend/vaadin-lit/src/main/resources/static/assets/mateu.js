@@ -20382,7 +20382,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 ${notificationRenderer(this.notificationRenderer,[])}
         ></vaadin-notification>`}};MateuApiCaller.styles=i$4`
         :host {
-            width: 100%;
             display: inline-block;
         }
   `;__decorateClass$5([r$1()],MateuApiCaller.prototype,"loading",2);__decorateClass$5([r$1()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$5([r$1()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$5([t("mateu-api-caller")],MateuApiCaller);const urlAlphabet="useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";let nanoid=(W=21)=>{let D="",O=crypto.getRandomValues(new Uint8Array(W|=0));for(;W--;)D+=urlAlphabet[O[W]&63];return D};var __defProp$4=Object.defineProperty,__getOwnPropDesc$4=Object.getOwnPropertyDescriptor,__decorateClass$4=(W,D,O,F)=>{for(var U=F>1?void 0:F?__getOwnPropDesc$4(D,O):D,Y=W.length-1,q;Y>=0;Y--)(q=W[Y])&&(U=(F?q(D,O,U):q(U))||U);return F&&U&&__defProp$4(D,O,U),U};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.selectedRoute=void 0,this.instant=void 0,this.baseUrl=void 0,this.getSelectedOption=W=>{if(W)for(let D=0;D<W.length;D++){const O=W[D];if(O.selected)return O;const F=this.getSelectedOption(O.submenus);if(F)return F}return null},this.getInitialRoute=W=>{const D=this.getSelectedOption(W.menu);return D?D.destination.route:W.homeRoute},this.itemSelected=W=>{this.selectedRoute=W.detail.value.route,this.instant=nanoid()},this.mapItems=W=>W.map(D=>{var O,F;return D.submenus?{text:D.label,route:(O=D.destination)==null?void 0:O.route,selected:D.selected,children:this.mapItems(D.submenus)}:D.separator?{component:"hr"}:{text:D.label,route:(F=D.destination)==null?void 0:F.route,selected:D.selected}}),this.getSelectedIndex=W=>{if(W){const D=this.getSelectedOption(W);if(D)return W.indexOf(D)}},this.renderOptionOnLeftMenu=W=>W.submenus?x`
@@ -20515,7 +20514,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                <vaadin-form-layout .responsiveSteps="${Y}"  style="${W.style}" class="${W.cssClasses}">
                    ${(q=W.children)==null?void 0:q.map(X=>renderComponent(X,D,O,F))}
                </vaadin-form-layout>
-            `},renderHorizontalLayout=(W,D,O,F)=>{var X;const U=W.metadata,Y=(U.padding?" padding":"")+(U.spacing?" spacing":"")+(U.spacingVariant?" spacing-"+U.spacingVariant:"")+(U.wrap?" wrap":"");console.log("theme",Y);let q=W.style;return U.fullWidth&&(q=q?"width: 100%;"+q:"width: 100%;"),U.justification&&(q=q?"justify-content: "+U.justification+";"+q:"justify-content: "+U.justification+";"),U.verticalAlignment&&(q=q?"align-items: "+U.verticalAlignment+";"+q:"align-items: "+U.verticalAlignment+";"),x`
+            `},renderHorizontalLayout=(W,D,O,F)=>{var X;const U=W.metadata,Y=(U.padding?" padding":"")+(U.spacing?" spacing":"")+(U.spacingVariant?" spacing-"+U.spacingVariant:"")+(U.wrap?" wrap":"");let q=W.style;return U.fullWidth&&(q=q?"width: 100%;"+q:"width: 100%;"),U.justification&&(q=q?"justify-content: "+U.justification+";"+q:"justify-content: "+U.justification+";"),U.verticalAlignment&&(q=q?"align-items: "+U.verticalAlignment+";"+q:"align-items: "+U.verticalAlignment+";"),x`
                <vaadin-horizontal-layout 
                        style="${q}" 
                        class="${W.cssClasses}"
@@ -20523,11 +20522,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                >
                    ${(X=W.children)==null?void 0:X.map(K=>renderComponent(K,D,O,F))}
                </vaadin-horizontal-layout>
-            `},renderVerticalLayout=(W,D,O,F)=>{var U;return x`
-               <vaadin-vertical-layout style="${W.style}" class="${W.cssClasses}">
-                   ${(U=W.children)==null?void 0:U.map(Y=>renderComponent(Y,D,O,F))}
-               </vaadin-vertical-layout>
-            `},renderSplitLayout=(W,D,O,F)=>x`
+            `},renderVerticalLayout=(W,D,O,F)=>{var X;const U=W.metadata,Y=(U.padding?" padding":"")+(U.spacing?" spacing":"")+(U.spacingVariant?" spacing-"+U.spacingVariant:"")+(U.wrap?" wrap":"");let q=W.style;return U.fullWidth&&(q=q?"width: 100%;"+q:"width: 100%;"),U.justification&&(q=q?"justify-content: "+U.justification+";"+q:"justify-content: "+U.justification+";"),U.horizontalAlignment&&(q=q?"align-items: "+U.horizontalAlignment+";"+q:"align-items: "+U.horizontalAlignment+";"),console.log("style and theme",q,Y),x`
+        <vaadin-vertical-layout
+                style="${q}"
+                class="${W.cssClasses}"
+                theme="${Y}"
+        >
+            ${(X=W.children)==null?void 0:X.map(K=>renderComponent(K,D,O,F))}
+        </vaadin-vertical-layout>
+    `},renderSplitLayout=(W,D,O,F)=>x`
                <vaadin-split-layout style="${W.style}" class="${W.cssClasses}">
                    <master-content>${renderComponent(W.children[0],D,O,F)}</master-content>
                    <detail-content>${renderComponent(W.children[1],D,O,F)}</detail-content>
