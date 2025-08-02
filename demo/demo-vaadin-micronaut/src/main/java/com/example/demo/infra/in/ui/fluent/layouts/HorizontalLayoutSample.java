@@ -3,9 +3,9 @@ package com.example.demo.infra.in.ui.fluent.layouts;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.HorizontalLayoutJustification;
-import io.mateu.uidl.data.HorizontalLayoutVerticalAlignment;
 import io.mateu.uidl.data.SpacingVariant;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.VerticalAlignment;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -125,7 +125,7 @@ public class HorizontalLayoutSample implements ComponentTreeSupplier {
                                         buildPanel(),
                                         buildPanel("min-height: 10rem;")
                                 ))
-                                .verticalAlignment(HorizontalLayoutVerticalAlignment.END)
+                                .verticalAlignment(VerticalAlignment.END)
                                 .build(),
 
                         new Text("")

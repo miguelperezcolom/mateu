@@ -6,5 +6,6 @@ public enum VerticalAlignment {
   END,
   BETWEEN,
   AROUND,
-  EVENLY
+  EVENLY,
+  BASELINE
 }

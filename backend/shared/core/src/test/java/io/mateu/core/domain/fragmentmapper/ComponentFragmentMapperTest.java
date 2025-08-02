@@ -18,7 +18,6 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.HorizontalLayoutJustification;
-import io.mateu.uidl.data.HorizontalLayoutVerticalAlignment;
 import io.mateu.uidl.data.LabelPosition;
 import io.mateu.uidl.data.SpacingVariant;
 import io.mateu.uidl.data.SplitLayout;
@@ -100,7 +99,7 @@ class ComponentFragmentMapperTest {
                 .fullWidth(true)
                 .justification(HorizontalLayoutJustification.AROUND)
                 .spacingVariant(SpacingVariant.l)
-                .verticalAlignment(HorizontalLayoutVerticalAlignment.BASELINE)
+                .verticalAlignment(VerticalAlignment.BASELINE)
                 .build(),
             "base_url",
             "route",
@@ -125,7 +124,6 @@ class ComponentFragmentMapperTest {
                 .fullWidth(true)
                 .justification(HorizontalLayoutJustification.AROUND)
                 .spacingVariant(SpacingVariant.l)
-                .verticalAlignment(VerticalAlignment.CENTER)
                 .build(),
             "base_url",
             "route",

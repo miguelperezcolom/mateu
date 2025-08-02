@@ -22,12 +22,6 @@ public record ClientSideComponentDto(
 
   @Override
   public ComponentDto setStyle(String style) {
-    return new ClientSideComponentDto(
-      metadata,
-      id,
-      children,
-      style,
-      cssClasses
-    );
+    return new ClientSideComponentDto(metadata, id, children, style, cssClasses);
   }
 }

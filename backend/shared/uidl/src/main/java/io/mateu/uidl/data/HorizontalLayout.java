@@ -13,7 +13,7 @@ public record HorizontalLayout(
     boolean padding,
     boolean margin,
     SpacingVariant spacingVariant,
-    HorizontalLayoutVerticalAlignment verticalAlignment,
+    VerticalAlignment verticalAlignment,
     HorizontalLayoutJustification justification,
     boolean wrap,
     List<Integer> flexGrows,

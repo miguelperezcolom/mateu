@@ -1,6 +1,6 @@
 package io.mateu.dtos;
 
-public enum HorizontalLayoutJustificationDto {
+public enum JustificationDto {
   START,
   CENTER,
   END,

@@ -1,6 +1,6 @@
 package io.mateu.dtos;
 
-public enum HorizontalLayoutVerticalAlignmentDto {
+public enum VerticalAlignmentDto {
   STRETCH,
   START,
   CENTER,

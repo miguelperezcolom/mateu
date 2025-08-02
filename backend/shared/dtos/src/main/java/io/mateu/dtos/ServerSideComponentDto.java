@@ -13,18 +13,9 @@ public record ServerSideComponentDto(
     List<TriggerDto> triggers,
     List<RuleDto> rules)
     implements ComponentDto {
-    @Override
-    public ComponentDto setStyle(String style) {
-        return new ServerSideComponentDto(
-                id,
-                serverSideType,
-                children,
-                initialData,
-                style,
-                cssClasses,
-                actions,
-                triggers,
-                rules
-        );
-    }
+  @Override
+  public ComponentDto setStyle(String style) {
+    return new ServerSideComponentDto(
+        id, serverSideType, children, initialData, style, cssClasses, actions, triggers, rules);
+  }
 }

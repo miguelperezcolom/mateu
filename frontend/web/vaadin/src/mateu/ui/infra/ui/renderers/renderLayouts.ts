@@ -7,6 +7,7 @@ import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/Acco
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
+import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -32,7 +33,6 @@ export const renderHorizontalLayout = (component: Component, baseUrl: string | u
         + (metadata.spacing?' spacing':'')
         + (metadata.spacingVariant?' spacing-' + metadata.spacingVariant:'')
         + (metadata.wrap?' wrap':'')
-    console.log('theme', theme)
     let style = component.style;
     if (metadata.fullWidth) {
         style = style?'width: 100%;' + style:'width: 100%;'
@@ -55,11 +55,33 @@ export const renderHorizontalLayout = (component: Component, baseUrl: string | u
 }
 
 export const renderVerticalLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = (component as ClientSideComponent).metadata as VerticalLayout
+    const theme = ''
+        + (metadata.padding?' padding':'')
+        + (metadata.spacing?' spacing':'')
+        + (metadata.spacingVariant?' spacing-' + metadata.spacingVariant:'')
+        + (metadata.wrap?' wrap':'')
+    let style = component.style;
+    if (metadata.fullWidth) {
+        style = style?'width: 100%;' + style:'width: 100%;'
+    }
+    if (metadata.justification) {
+        style = style?'justify-content: ' + metadata.justification + ';' + style:'justify-content: ' + metadata.justification + ';'
+    }
+    if (metadata.horizontalAlignment) {
+        style = style?'align-items: ' + metadata.horizontalAlignment + ';' + style:'align-items: ' + metadata.horizontalAlignment + ';'
+    }
+
+    console.log('style and theme', style, theme)
     return html`
-               <vaadin-vertical-layout style="${component.style}" class="${component.cssClasses}">
-                   ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
-               </vaadin-vertical-layout>
-            `
+        <vaadin-vertical-layout
+                style="${style}"
+                class="${component.cssClasses}"
+                theme="${theme}"
+        >
+            ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+        </vaadin-vertical-layout>
+    `
 }
 
 /*

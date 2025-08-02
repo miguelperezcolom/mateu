@@ -14,7 +14,6 @@ public record VerticalLayout(
     boolean margin,
     SpacingVariant spacingVariant,
     HorizontalAlignment horizontalAlignment,
-    VerticalAlignment verticalAlignment,
     HorizontalLayoutJustification justification,
     boolean wrap,
     List<Integer> flexGrows,
@@ -26,8 +25,8 @@ public record VerticalLayout(
 
   public VerticalLayout(List<Component> content) {
     this(
-        null, content, false, false, false, null, null, null, null, false, List.of(), false, false,
-        "", "");
+        null, content, false, false, false, null, null, null, false, List.of(), false, false, "",
+        "");
   }
 
   public VerticalLayout(Component... components) {
@@ -37,7 +36,6 @@ public record VerticalLayout(
         false,
         false,
         false,
-        null,
         null,
         null,
         null,
