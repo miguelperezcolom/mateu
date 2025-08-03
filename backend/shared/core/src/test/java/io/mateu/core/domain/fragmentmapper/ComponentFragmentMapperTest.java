@@ -20,9 +20,9 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.HorizontalLayoutJustification;
+import io.mateu.uidl.data.Orientation;
 import io.mateu.uidl.data.SpacingVariant;
 import io.mateu.uidl.data.SplitLayout;
-import io.mateu.uidl.data.SplitLayoutOrientation;
 import io.mateu.uidl.data.SplitLayoutVariant;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
@@ -182,7 +182,7 @@ class ComponentFragmentMapperTest {
                 .style("style")
                 .detail(new Text("Hola 1!"))
                 .master(new Text("Hola 2!"))
-                .orientation(SplitLayoutOrientation.horizontal)
+                .orientation(Orientation.horizontal)
                 .variant(SplitLayoutVariant.minimal)
                 .build(),
             "base_url",

@@ -1,9 +1,8 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.SplitLayout;
-import io.mateu.uidl.data.SplitLayoutOrientation;
+import io.mateu.uidl.data.Orientation;
 import io.mateu.uidl.data.SplitLayoutVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
@@ -50,7 +49,7 @@ public class SplitLayoutSample implements ComponentTreeSupplier {
                         SplitLayout.builder()
                                 .master(new Text("Master"))
                                 .detail(new Text("Detail"))
-                                .orientation(SplitLayoutOrientation.vertical)
+                                .orientation(Orientation.vertical)
                                 .build(),
 
                         new Text("small"),

@@ -20515,12 +20515,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         vaadin-tabs {
             width: 100%;
         }
-  `;__decorateClass$4([r$1()],MateuApp.prototype,"selectedRoute",2);__decorateClass$4([r$1()],MateuApp.prototype,"instant",2);__decorateClass$4([n$1()],MateuApp.prototype,"baseUrl",2);MateuApp=__decorateClass$4([t("mateu-app")],MateuApp);var TriggerType=(W=>(W.OnLoad="OnLoad",W.OnSubmit="OnSubmit",W))(TriggerType||{});const renderFormLayout=(W,D,O,F)=>{var q;const U=W.metadata;let Y=W.style;return Y==null&&(Y=""),U.columnSpacing&&(Y+="--vaadin-form-layout-column-spacing: "+U.columnSpacing+";"),U.itemRowSpacing&&(Y+="--vaadin-form-layout-row-spacing: "+U.itemRowSpacing+";"),U.itemLabelSpacing&&(Y+="--vaadin-form-layout-label-spacing: "+U.itemLabelSpacing+";"),x`
+  `;__decorateClass$4([r$1()],MateuApp.prototype,"selectedRoute",2);__decorateClass$4([r$1()],MateuApp.prototype,"instant",2);__decorateClass$4([n$1()],MateuApp.prototype,"baseUrl",2);MateuApp=__decorateClass$4([t("mateu-app")],MateuApp);var TriggerType=(W=>(W.OnLoad="OnLoad",W.OnSubmit="OnSubmit",W))(TriggerType||{});const renderFormLayout=(W,D,O,F)=>{var q;const U=W.metadata;let Y=W.style;return Y==null&&(Y=""),U.columnSpacing&&(Y+="--vaadin-form-layout-column-spacing: "+U.columnSpacing+";"),U.itemRowSpacing&&(Y+="--vaadin-form-layout-row-spacing: "+U.itemRowSpacing+";"),U.itemLabelSpacing&&(Y+="--vaadin-form-layout-label-spacing: "+U.itemLabelSpacing+";"),U.fullWidth&&(Y+="width: 100%;"),x`
                <vaadin-form-layout 
                        .responsiveSteps="${U.responsiveSteps??E}"  
                        style="${Y}" 
                        class="w-full ${W.cssClasses}"
-                       max-columns="${U.maxColumns}"
+                       max-columns="${U.maxColumns??E}"
                        auto-responsive="${U.autoResponsive??E}"
                        column-width="${U.columnWidth??E}"
                        ?expandColumns="${U.expandColumns}"
@@ -20568,15 +20568,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                    <div>${renderComponent(W.children[0],D,O,F)}</div>
                    <div slot="detail">${renderComponent(W.children[1],D,O,F)}</div>
                </vaadin-master-detail-layout>
-            `,renderTabLayout=(W,D,O,F)=>{var U,Y;return x`
-        <vaadin-tabsheet>
-            <vaadin-tabs slot="tabs" style="${W.style}" class="${W.cssClasses}">
-                ${(U=W.children)==null?void 0:U.map(q=>q).map(q=>x`
-                    <vaadin-tab id="${q.metadata.label}" style="${q.style}" class="${q.cssClasses}">${q.metadata.label}</vaadin-tab>
+            `,renderTabLayout=(W,D,O,F)=>{var X,K;const U=W.metadata;let Y=W.style;Y==null&&(Y=""),U.fullWidth&&(Y+="width: 100%;");let q=U.variant;return q=="equalWidth"&&(q="equal-width-tabs"),console.log("variant",q),x`
+        <vaadin-tabsheet
+                theme="${q??E}"
+        >
+            <vaadin-tabs slot="tabs" 
+                         style="${Y}" 
+                         class="${W.cssClasses}"
+                         orientation="${U.orientation??E}"
+            >
+                ${(X=W.children)==null?void 0:X.map(Z=>Z).map(Z=>x`
+                    <vaadin-tab id="${Z.metadata.label}" 
+                                style="${Z.style}" 
+                                class="${Z.cssClasses}"
+                    >${Z.metadata.label}</vaadin-tab>
                 `)}
             </vaadin-tabs>
 
-            ${(Y=W.children)==null?void 0:Y.map(q=>renderTab(q,D,O,F))}
+            ${(K=W.children)==null?void 0:K.map(Z=>renderTab(Z,D,O,F))}
         </vaadin-tabsheet>
             `},renderTab=(W,D,O,F)=>{var U;return x`
         <div tab="${W.metadata.label}">

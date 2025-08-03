@@ -11,6 +11,8 @@ export interface FormLayoutRow extends ComponentMetadata {
 
 export default interface FormLayout extends ComponentMetadata {
 
+    fullWidth: boolean
+
     autoResponsive: boolean
     maxColumns: number | undefined
     labelsAside: boolean

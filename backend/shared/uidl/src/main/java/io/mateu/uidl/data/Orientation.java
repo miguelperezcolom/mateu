@@ -1,6 +1,6 @@
 package io.mateu.uidl.data;
 
-public enum SplitLayoutOrientation {
+public enum Orientation {
   horizontal,
   vertical
 }

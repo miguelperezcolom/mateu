@@ -3,8 +3,8 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.OrientationDto;
 import io.mateu.dtos.SplitLayoutDto;
-import io.mateu.dtos.SplitLayoutOrientationDto;
 import io.mateu.dtos.SplitLayoutVariantDto;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,7 +18,7 @@ public class SplitLayoutComponentToDtoMapper {
         SplitLayoutDto.builder()
             .orientation(
                 splitLayout.orientation() != null
-                    ? SplitLayoutOrientationDto.valueOf(splitLayout.orientation().name())
+                    ? OrientationDto.valueOf(splitLayout.orientation().name())
                     : null)
             .variant(
                 splitLayout.variant() != null

@@ -1,6 +1,6 @@
 package io.mateu.dtos;
 
-public enum SplitLayoutOrientationDto {
+public enum OrientationDto {
   horizontal,
   vertical
 }

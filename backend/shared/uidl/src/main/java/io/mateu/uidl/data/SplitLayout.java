@@ -8,7 +8,7 @@ public record SplitLayout(
     String id,
     Component master,
     Component detail,
-    SplitLayoutOrientation orientation,
+    Orientation orientation,
     SplitLayoutVariant variant,
     boolean fullWidth,
     String style,

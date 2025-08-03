@@ -8,20 +8,13 @@ public record MasterDetailLayout(
     String id,
     Component master,
     Component detail,
-    SplitLayoutOrientation orientation,
+    Orientation orientation,
     SplitLayoutVariant variant,
     String style,
     String cssClasses)
     implements Component {
 
   public MasterDetailLayout(Component master, Component detail) {
-    this(
-        null,
-        master,
-        detail,
-        SplitLayoutOrientation.horizontal,
-        SplitLayoutVariant.minimal,
-        "",
-        "");
+    this(null, master, detail, Orientation.horizontal, SplitLayoutVariant.minimal, "", "");
   }
 }

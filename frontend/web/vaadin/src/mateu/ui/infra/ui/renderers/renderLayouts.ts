@@ -11,6 +11,7 @@ import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLa
 import AccordionLayout, {
     AccordionLayoutVariant
 } from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
+import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -27,6 +28,9 @@ export const renderFormLayout = (component: ClientSideComponent, baseUrl: string
     }
     if (metadata.itemLabelSpacing) {
         style += '--vaadin-form-layout-label-spacing: ' + metadata.itemLabelSpacing + ';'
+    }
+    if (metadata.fullWidth) {
+        style += 'width: 100%;';
     }
 
     return html`
@@ -163,11 +167,37 @@ export const renderMasterDetailLayout = (component: Component, baseUrl: string |
   </vaadin-tabs>
  */
 export const renderTabLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = component.metadata as TabLayout
+
+    let style = component.style;
+    if (style == undefined) {
+        style = '';
+    }
+    if (metadata.fullWidth) {
+        style += 'width: 100%;';
+    }
+
+    let variant = metadata.variant
+    if ('equalWidth' == variant) {
+        variant = 'equal-width-tabs'
+    }
+
+    console.log('variant', variant)
+
     return html`
-        <vaadin-tabsheet>
-            <vaadin-tabs slot="tabs" style="${component.style}" class="${component.cssClasses}">
+        <vaadin-tabsheet
+                theme="${variant??nothing}"
+        >
+            <vaadin-tabs slot="tabs" 
+                         style="${style}" 
+                         class="${component.cssClasses}"
+                         orientation="${metadata.orientation??nothing}"
+            >
                 ${component.children?.map(child => child as ClientSideComponent).map(child => html`
-                    <vaadin-tab id="${(child.metadata as Tab).label}" style="${child.style}" class="${child.cssClasses}">${(child.metadata as Tab).label}</vaadin-tab>
+                    <vaadin-tab id="${(child.metadata as Tab).label}" 
+                                style="${child.style}" 
+                                class="${child.cssClasses}"
+                    >${(child.metadata as Tab).label}</vaadin-tab>
                 `)}
             </vaadin-tabs>
 
