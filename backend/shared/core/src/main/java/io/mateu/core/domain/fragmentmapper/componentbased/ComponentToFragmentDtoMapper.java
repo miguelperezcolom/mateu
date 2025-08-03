@@ -25,7 +25,9 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogC
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormItemComponentToDtoMapper.mapFormItemToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormRowComponentToDtoMapper.mapFormRowToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
@@ -77,7 +79,9 @@ import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.FormItem;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -159,6 +163,12 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof FormLayout formLayout) {
       return mapFormLayoutToDto(formLayout, baseUrl, route, httpRequest);
+    }
+    if (component instanceof FormRow formRow) {
+      return mapFormRowToDto(formRow, baseUrl, route, httpRequest);
+    }
+    if (component instanceof FormItem formItem) {
+      return mapFormItemToDto(formItem, baseUrl, route, httpRequest);
     }
     if (component instanceof SplitLayout splitLayout) {
       return mapSplitLayoutToDto(splitLayout, baseUrl, route, httpRequest);

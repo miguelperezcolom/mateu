@@ -1,6 +1,5 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
-import { FormLayoutResponsiveStep } from "@vaadin/form-layout";
 import { html, nothing } from "lit";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
@@ -16,28 +15,50 @@ import AccordionLayout, {
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
 
-    const responsiveSteps: FormLayoutResponsiveStep[] = [
-        // Use one column by default
-        { minWidth: 0, columns: 1 },
-        // Use two columns, if layout's width exceeds 500px
-        { minWidth: '400px', columns: metadata?.columns??2 },
-    ];
+    let style = component.style;
+    if (style == undefined) {
+        style = '';
+    }
+    if (metadata.columnSpacing) {
+        style += '--vaadin-form-layout-column-spacing: ' + metadata.columnSpacing + ';'
+    }
+    if (metadata.itemRowSpacing) {
+        style += '--vaadin-form-layout-row-spacing: ' + metadata.itemRowSpacing + ';'
+    }
+    if (metadata.itemLabelSpacing) {
+        style += '--vaadin-form-layout-label-spacing: ' + metadata.itemLabelSpacing + ';'
+    }
 
     return html`
                <vaadin-form-layout 
-                       .responsiveSteps="${responsiveSteps}"  
-                       style="${component.style}" 
+                       .responsiveSteps="${metadata.responsiveSteps??nothing}"  
+                       style="${style}" 
                        class="w-full ${component.cssClasses}"
-                       max-columns="${metadata.columns}"
-                       auto-responsive
-                       column-width="8em"
-                       expand-columns
-                       expand-fields
+                       max-columns="${metadata.maxColumns??nothing}"
+                       auto-responsive="${metadata.autoResponsive??nothing}"
+                       column-width="${metadata.columnWidth??nothing}"
+                       ?expandColumns="${metadata.expandColumns}"
+                       ?expandFields="${metadata.expandFields}"
+                       ?labelsAside="${metadata.labelsAside}"
                >
-                   <vaadin-form-row>
                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
-                   </vaadin-form-row>
                </vaadin-form-layout>
+            `
+}
+
+export const renderFormRow = (tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+    return html`
+        <vaadin-form-row>
+            ${tab.children?.map(child => renderComponent(child, baseUrl, state, data))}
+        </vaadin-form-row>
+            `
+}
+
+export const renderFormItem = (tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+    return html`
+        <vaadin-form-item>
+            ${tab.children?.map(child => renderComponent(child, baseUrl, state, data))}
+        </vaadin-form-item>
             `
 }
 

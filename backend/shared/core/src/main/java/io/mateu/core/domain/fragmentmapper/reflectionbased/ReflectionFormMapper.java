@@ -50,7 +50,7 @@ public final class ReflectionFormMapper {
   }
 
   private static List<ComponentDto> createFormContent(Form form) {
-    var formLayout = new FormLayoutDto(1);
+    var formLayout = FormLayoutDto.builder().build();
     return List.of(new ClientSideComponentDto(formLayout, "", createFields(form), "", ""));
   }
 

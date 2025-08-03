@@ -6,8 +6,8 @@ import {
     renderAccordionLayout,
     renderBoardLayout,
     renderBoardLayoutRow,
-    renderContainer,
-    renderFormLayout,
+    renderContainer, renderFormItem,
+    renderFormLayout, renderFormRow,
     renderFullWidth,
     renderHorizontalLayout,
     renderMasterDetailLayout,
@@ -51,6 +51,12 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
 
         if (component.metadata.type == ComponentMetadataType.FormLayout) {
             return renderFormLayout(component, baseUrl, state, data)
+        }
+        if (component.metadata.type == ComponentMetadataType.FormRow) {
+            return renderFormRow(component, baseUrl, state, data)
+        }
+        if (component.metadata.type == ComponentMetadataType.FormItem) {
+            return renderFormItem(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
             return renderHorizontalLayout(component, baseUrl, state, data)

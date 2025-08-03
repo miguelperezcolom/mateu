@@ -17,50 +17,71 @@ A form layout layouts children in columns.
                                 "children": [
                                     {
                                         "type": "ClientSide",
+                                        "children": [
+                                            {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                    "type": "FormField",
+                                                    "dataType": "string",
+                                                    "stereotype": "regular",
+                                                    "observed": false,
+                                                    "autofocus": false,
+                                                    "label": "Name",
+                                                    "colspan": 0,
+                                                    "rightAligned": false,
+                                                    "bold": false,
+                                                    "bindToData": false,
+                                                    "required": false
+                                                }
+                                            },
+                                            {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                    "type": "FormField",
+                                                    "dataType": "integer",
+                                                    "stereotype": "regular",
+                                                    "observed": false,
+                                                    "autofocus": false,
+                                                    "label": "Age",
+                                                    "colspan": 0,
+                                                    "rightAligned": false,
+                                                    "bold": false,
+                                                    "bindToData": false,
+                                                    "required": false
+                                                }
+                                            },
+                                            {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                    "type": "FormField",
+                                                    "dataType": "bool",
+                                                    "stereotype": "regular",
+                                                    "observed": false,
+                                                    "autofocus": false,
+                                                    "label": "Registered",
+                                                    "colspan": 0,
+                                                    "rightAligned": false,
+                                                    "bold": false,
+                                                    "bindToData": false,
+                                                    "required": false
+                                                }
+                                            }
+                                        ],
                                         "metadata": {
-                                            "type": "Text",
-                                            "container": "p",
-                                            "text": "Panel"
-                                        },
-                                        "id": "fieldId",
-                                        "style": "background-color: #d7f0b2;color: darkgreen;border: 1px solid darkgreen;min-width: 7rem;display: flex;align-items: center;justify-content: center;height: 3rem;margin-block-start: 0;margin-block-end: 0;"
-                                    },
-                                    {
-                                        "type": "ClientSide",
-                                        "metadata": {
-                                            "type": "Text",
-                                            "container": "p",
-                                            "text": "Panel"
-                                        },
-                                        "id": "fieldId",
-                                        "style": "background-color: #d7f0b2;color: darkgreen;border: 1px solid darkgreen;min-width: 7rem;display: flex;align-items: center;justify-content: center;height: 3rem;margin-block-start: 0;margin-block-end: 0;"
-                                    },
-                                    {
-                                        "type": "ClientSide",
-                                        "metadata": {
-                                            "type": "Text",
-                                            "container": "p",
-                                            "text": "Panel"
-                                        },
-                                        "id": "fieldId",
-                                        "style": "background-color: #d7f0b2;color: darkgreen;border: 1px solid darkgreen;min-width: 7rem;display: flex;align-items: center;justify-content: center;height: 3rem;margin-block-start: 0;margin-block-end: 0;"
-                                    },
-                                    {
-                                        "type": "ClientSide",
-                                        "metadata": {
-                                            "type": "Text",
-                                            "container": "p",
-                                            "text": "Panel"
-                                        },
-                                        "id": "fieldId",
-                                        "style": "background-color: #d7f0b2;color: darkgreen;border: 1px solid darkgreen;min-width: 7rem;display: flex;align-items: center;justify-content: center;height: 3rem;margin-block-start: 0;margin-block-end: 0;"
+                                            "type": "FormRow"
+                                        }
                                     }
                                 ],
                                 "metadata": {
                                     "type": "FormLayout",
-                                    "columns": 2
-                                }
-                            };
+                                    "maxColumns": 2,
+                                    "autoResponsive": true,
+                                    "labelsAside": false,
+                                    "expandColumns": false,
+                                    "expandFields": false
+                                },
+                                "style": "width: 30rem;"
+                            } ;
 
     document.getElementById('componente').component = component;
 
@@ -72,19 +93,28 @@ A form layout layouts children in columns.
 
 ```java
 
-    VerticalLayout.builder()
-        .content(List.of(
-            buildPanel(),
-            buildPanel()
-        ))
-        .build()
-
-    // ...
-
-    private Object buildPanel() {
-      // returns any component or object;
-    }
-
+    FormLayout.builder()
+            .content(List.of(
+                    FormRow.builder()
+                            .content(List.of(
+                                    FormField.builder()
+                                            .dataType(FieldDataType.string)
+                                            .label("Name")
+                                            .build(),
+                                    FormField.builder()
+                                            .dataType(FieldDataType.integer)
+                                            .label("Age")
+                                            .build(),
+                                    FormField.builder()
+                                            .dataType(FieldDataType.bool)
+                                            .label("Registered")
+                                            .build()
+                            ))
+                            .build()
+            ))
+            .autoResponsive(true)
+            .maxColumns(2)
+            .build()
 
 ```
 
@@ -94,30 +124,17 @@ A form layout layouts children in columns.
 
 ```java
 
-    @VerticalLayout
-    List panels = List.of(
-        buildPanel(),
-        buildPanel()
-      );
-
-    // ...
-
-    private Object buildPanel() {
-      // returns any component or object;
+    @FormColumns(2)
+    class MyForm {
+        
+        String name;
+        
+        int age;
+        
+        boolean registered;
+  
     }
     
-```
-
-or
-
-```java
-
-    @VerticalLayout
-    class Container {
-      Object left = buildPanel();
-      Object right = buildPanel();
-    }
-
 ```
 
 {{< /tab >}}
@@ -129,19 +146,22 @@ or
 
 This is the list of available properties for a form layout:
 
-| Property                | Description                            | Notes                                              |
-|-------------------------|----------------------------------------|----------------------------------------------------|
-| **id**                  | id for this component                  |                                                    |
-| **cssClasses**          | list of css classes                    | content of the css attribute                       |
-| **style**               | inline style attributes                | content of the style attribute                     |
-| **padding**             | to add some padding to the elements    | true/false                                         |
-| **spacing**             | to add some spacing between elements   | true/false                                         |
-| **fullWidth**           | shortcut to set width:100%             | true/false                                         |
-| **justification**       | justification of elements              | one of START, CENTER, END, BETWEEN, AROUND, EVENLY |
-| **flexGrows**           | list of flex grows values for elements | e.g. List.of(0,0,1,0)                              |
-| **spacingVariant**      | amount of space between elements       | one of xs, x, m, l, xl                             |
-| **wrap**                | wrap if content does not fit           | true/false                                         |
-| **horizontalAlignment** | horizontal alignment for elements      | one of STRETCH, START, CENTER, END                 |
+| Property            | Description                                            | Notes                                              |
+|---------------------|--------------------------------------------------------|----------------------------------------------------|
+| **id**              | id for this component                                  |                                                    |
+| **cssClasses**      | list of css classes                                    | content of the css attribute                       |
+| **style**           | inline style attributes                                | content of the style attribute                     |
+| **autoResponsive**  | to make the form responsive according to columns width | true/false                                         |
+| **labelsAside**     | to place the labels at left, inside top of field       | true/false                                         |
+| **fullWidth**       | shortcut to set width:100%                             | true/false                                         |
+| **columnWidth**     | column width                                           | px, em, rem, ... |
+| **expandColumns**   | expand columns                                         | true/false                                         |
+| **expandFields**    | expand fields                                          | true/false                                         |
+| **maxColumns**      | max columns in a row                                   | number                                             |
+| **responsiveSteps** | fine grained responsive steps                          | look at Vaadin doc                                 |
+| **columnSpacing**   | space between columns                                  | px, em, rem, ...                                   |
+| **rowSpacing**      | space between rows                                     | px, em, rem, ...                                   |
+| **labelSpacing**    | space between label and row                            | px, em, rem, ...                                   |
 
 
 You can see a full explanation of those properties at https://vaadin.com/docs/latest/components/form-layout

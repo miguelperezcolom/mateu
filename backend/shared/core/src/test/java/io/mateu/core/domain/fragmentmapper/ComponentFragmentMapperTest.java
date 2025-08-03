@@ -1,6 +1,8 @@
 package io.mateu.core.domain.fragmentmapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.example.fluent.SampleAppProvider;
 import com.example.fluent.SampleFormProvider;
@@ -18,7 +20,6 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.HorizontalLayoutJustification;
-import io.mateu.uidl.data.LabelPosition;
 import io.mateu.uidl.data.SpacingVariant;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.SplitLayoutOrientation;
@@ -140,11 +141,11 @@ class ComponentFragmentMapperTest {
             FormLayout.builder()
                 .style("style")
                 .content(List.of(new Text("Hola 1!"), new Text("Hola 2!")))
-                .columns(2)
-                .columnSpacing(SpacingVariant.l)
-                .itemLabelSpacing(SpacingVariant.m)
-                .itemRowSpacing(SpacingVariant.s)
-                .labelPosition(LabelPosition.side)
+                .maxColumns(2)
+                .columnSpacing("a")
+                .itemLabelSpacing("b")
+                .itemRowSpacing("c")
+                .labelsAside(true)
                 .build(),
             "base_url",
             "route",

@@ -11,7 +11,20 @@ public class FormLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapFormLayoutToDto(
       FormLayout formLayout, String baseUrl, String route, HttpRequest httpRequest) {
-    var metadataDto = FormLayoutDto.builder().columns(formLayout.columns()).build();
+    var metadataDto =
+        FormLayoutDto.builder()
+            .maxColumns(formLayout.maxColumns())
+            .autoResponsive(formLayout.autoResponsive())
+            .columnSpacing(formLayout.columnSpacing())
+            .itemLabelSpacing(formLayout.itemLabelSpacing())
+            .itemRowSpacing(formLayout.itemRowSpacing())
+            .columnWidth(formLayout.columnWidth())
+            .expandColumns(formLayout.expandColumns())
+            .expandFields(formLayout.expandFields())
+            .itemLabelWidth(formLayout.itemLabelWidth())
+            .labelsAside(formLayout.labelsAside())
+            .responsiveSteps(formLayout.responsiveSteps())
+            .build();
     return new ClientSideComponentDto(
         metadataDto,
         formLayout.id(),

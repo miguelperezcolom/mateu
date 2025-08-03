@@ -24,6 +24,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = AccordionLayoutDto.class, name = "AccordionLayout"),
   @JsonSubTypes.Type(value = AccordionPanelDto.class, name = "AccordionPanel"),
   @JsonSubTypes.Type(value = FormLayoutDto.class, name = "FormLayout"),
+  @JsonSubTypes.Type(value = FormRowDto.class, name = "FormRow"),
+  @JsonSubTypes.Type(value = FormItemDto.class, name = "FormItem"),
   @JsonSubTypes.Type(value = ScrollerDto.class, name = "Scroller"),
   @JsonSubTypes.Type(value = FullWidthDto.class, name = "FullWidth"),
   @JsonSubTypes.Type(value = ContainerDto.class, name = "Container"),
