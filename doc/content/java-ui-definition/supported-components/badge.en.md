@@ -48,7 +48,7 @@ A badge to highlight some short info.
 
 {{< tab "Declarative" >}}
 
-TBD
+There is no declarative thing for badges. Just use a Badge record as in imperative. 
 
 {{< /tab >}}
 
