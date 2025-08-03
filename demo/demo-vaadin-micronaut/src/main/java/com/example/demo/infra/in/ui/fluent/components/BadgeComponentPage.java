@@ -24,7 +24,7 @@ public class BadgeComponentPage implements ComponentTreeSupplier {
                                 .build(),
                         Badge.builder()
                                 .text("Hola")
-                                .color(BadgeColor.contrast)
+                                .color(BadgeColor.error)
                                 .small(true)
                                 .build()
                 ))
