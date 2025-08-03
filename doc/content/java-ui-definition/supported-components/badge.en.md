@@ -66,7 +66,7 @@ This is the list of available properties for a badge:
 | **style**      | inline style attributes                          | content of the style attribute |
 | **pill**       | rounded borders                                  | true/false                     |
 | **color**      | one of normal, success, error, contrast, primary |                                |
-| **variant**    | one of small, or empty                           |                                |
+| **small**      | true/false                                       |                                |
 
 
 
