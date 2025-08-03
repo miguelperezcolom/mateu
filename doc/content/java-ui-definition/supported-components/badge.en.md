@@ -4,7 +4,7 @@ weight: 100
 ---
 
 
-An avatar shows one or more users avatars.
+A badge to highlight some short info.
 
 <div style="display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 30px;">
   <mateu-component id="componente" style="width: unset;"></mateu-component>
@@ -57,7 +57,7 @@ TBD
 
 ## Available properties
 
-This is the list of available properties for an avatar:
+This is the list of available properties for a badge:
 
 | Property       | Description                                      | Notes                          |
 |----------------|--------------------------------------------------|--------------------------------|
