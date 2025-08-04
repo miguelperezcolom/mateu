@@ -135,7 +135,7 @@ A split layout layouts children horizontally or vertically, and shows a splitter
                                                 ))
                                                 .build()
                                     ))
-                                .build("width: 40rem;")
+                                .build("width: 50rem;")
 
 ```
 

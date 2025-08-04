@@ -10,6 +10,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BadgeCo
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutComponentToDtoMapper.mapBoardLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutItemComponentToDtoMapper.mapBoardLayoutItemToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutRowComponentToDtoMapper.mapBoardLayoutRowToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BreadcrumbsComponentToDtoMapper.mapBreadcrumbsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
@@ -68,6 +69,7 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BoardLayout;
 import io.mateu.uidl.data.BoardLayoutItem;
 import io.mateu.uidl.data.BoardLayoutRow;
+import io.mateu.uidl.data.Breadcrumbs;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Chart;
@@ -189,6 +191,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Tab tab) {
       return mapTabToDto(tab, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Breadcrumbs breadcrumbs) {
+      return mapBreadcrumbsToDto(breadcrumbs);
     }
     if (component instanceof BoardLayout boardLayout) {
       return mapBoardLayoutToDto(boardLayout, baseUrl, route, httpRequest);

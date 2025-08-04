@@ -44,6 +44,7 @@ import { renderProgressBar } from "@infra/ui/renderers/progressBarRenderer";
 import { renderPopover } from "@infra/ui/renderers/popoverRenderer";
 import { renderMap } from "@infra/ui/renderers/mapRenderer";
 import { renderImage } from "@infra/ui/renderers/imageRenderer";
+import { renderBreadcrumbs } from "@infra/ui/renderers/breadcrumbsRenderer";
 
 
 export const renderClientSideComponent = (component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
@@ -191,6 +192,9 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
         if (component.metadata.type == ComponentMetadataType.Badge) {
             return renderBadge(component)
+        }
+        if (component.metadata.type == ComponentMetadataType.Breadcrumbs) {
+            return renderBreadcrumbs(component)
         }
         if (component.metadata.type == ComponentMetadataType.Anchor) {
             return renderAnchor(component)

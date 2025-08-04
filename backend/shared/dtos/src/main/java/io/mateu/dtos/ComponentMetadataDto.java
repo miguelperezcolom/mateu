@@ -60,7 +60,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = VirtualListDto.class, name = "VirtualList"),
   @JsonSubTypes.Type(value = BoardLayoutDto.class, name = "BoardLayout"),
   @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow"),
-  @JsonSubTypes.Type(value = BoardLayoutItemDto.class, name = "BoardLayoutItem")
+  @JsonSubTypes.Type(value = BoardLayoutItemDto.class, name = "BoardLayoutItem"),
+  @JsonSubTypes.Type(value = BreadcrumbsDto.class, name = "Breadcrumbs"),
+  @JsonSubTypes.Type(value = BreadcrumbDto.class, name = "Breadcrumb")
 })
 @Schema(
     oneOf = {
@@ -90,6 +92,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
       AvatarDto.class,
       AvatarGroupDto.class,
       BadgeDto.class,
+      BreadcrumbsDto.class,
+      BreadcrumbDto.class,
       AnchorDto.class,
       ButtonDto.class,
       ChartDto.class,
