@@ -53,9 +53,26 @@ TBD
 
 {{< /tabs >}}
 
-## Variants
+## Available properties
 
+This is the list of available properties for a button:
 
+| Property        | Description                                  | Notes                          |
+|-----------------|----------------------------------------------|--------------------------------|
+| **id**          | id for this component                        |                                |
+| **cssClasses**  | list of css classes                          | content of the css attribute   |
+| **style**       | inline style attributes                      | content of the style attribute |
+| **label**       | button label                                 |                                |
+| **iconOnLeft**  | icon key                                     |                                |
+| **iconOnRight** | icon key                                     |                                |
+| **image**       | image url                                    |                                |
+| **color**       | one of success, error, contrast, normal      |                                |
+| **primary**     | true/false                                   |                                |
+| **autofocus**   | true/false                                   |                                |
+| **disabled**    | true/false                                   |                                |
+| **actionId**    | action id                                    |                                |
+| **actionable**  | combination of id, label, action id and path |                                |
+| **runnable**    | a java runnable                              |                                |
+| **callable**    | a java callable                              |                                |
 
-
-
+You can see a full explanation of those properties at https://vaadin.com/docs/latest/components/button

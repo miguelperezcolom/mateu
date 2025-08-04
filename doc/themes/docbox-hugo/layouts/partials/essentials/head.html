@@ -19,7 +19,6 @@
 
 
 <!-- manifest -->
-{{ partialCached "manifest" . }}
 
 
 <!-- site verifications -->
@@ -64,8 +63,8 @@
 
 <script>
   if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('/assets/sw.js').then(function(reg){
-      if (reg.active) console.log('serviceworker installed')
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      if (reg.active) console.log('serviceworker installed', reg)
     })
       .catch(function(err){
         console.log('registration failed: ' + err)

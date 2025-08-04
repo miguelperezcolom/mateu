@@ -18,5 +18,7 @@ export const renderButton = (component: ClientSideComponent) => {
     return html`<vaadin-button
             data-action-id="${metadata.actionId}"
             @click="${handleButtonClick}"
-            style="${component.style}" class="${component.cssClasses}">${metadata.label}</vaadin-button>`
+            style="${component.style}" 
+            class="${component.cssClasses}"
+    >${metadata.label}</vaadin-button>`
 }
