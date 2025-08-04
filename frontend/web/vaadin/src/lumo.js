@@ -13,10 +13,10 @@ import {userColors} from '@vaadin/vaadin-lumo-styles/user-colors.js';
 import {utility} from '@vaadin/vaadin-lumo-styles/utility.js';
 import '@vaadin/icons/vaadin-iconset.js';
 
-console.log('hola!')
+console.log('hola!');
 
-const sheet = document.createElement('style')
-sheet.setAttribute('data-hola', 'hola')
+const sheet = document.createElement('style');
+sheet.setAttribute('data-hola', 'hola');
 sheet.innerHTML = `
 ${fieldButton.cssText}
 ${menuOverlay.cssText}
@@ -33,4 +33,4 @@ ${utility.cssText}
 `;
 document.body.appendChild(sheet);
 
-console.log('adios!')
+console.log('adios!');

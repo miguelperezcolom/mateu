@@ -12,6 +12,7 @@ import AccordionLayout, {
     AccordionLayoutVariant
 } from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
+import BoardLayoutItem from "@mateu/shared/apiClients/dtos/componentmetadata/BoardLayout";
 
 export const renderFormLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -293,18 +294,30 @@ export const renderContainer = (component: Component, baseUrl: string | undefine
             `
 }
 
-export const renderBoardLayout = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderBoardLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     return html`
         <vaadin-board style="${component.style}" class="${component.cssClasses}">
-            ${component.children?.map(child => renderBoardLayoutRow(child, baseUrl, state, data))}
+            ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
         </vaadin-board>
             `
 }
 
-export const renderBoardLayoutRow = (tab: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderBoardLayoutRow = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     return html`
-        <vaadin-board-row style="${tab.style}" class="${tab.cssClasses}">
-                   ${tab.children?.map(child => renderComponent(child, baseUrl, state, data))}
+        <vaadin-board-row style="${component.style}" class="${component.cssClasses}">
+                   ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
                </vaadin-board-row>
+            `
+}
+
+export const renderBoardLayoutItem = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+    const metadata = component.metadata as BoardLayoutItem
+    return html`
+        <div style="${component.style}" 
+             class="${component.cssClasses}"
+             board-cols="${metadata.boardCols??nothing}"
+        >
+                   ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+               </div>
             `
 }

@@ -20,6 +20,7 @@ export enum ComponentMetadataType {
     FormItem = "FormItem",
     BoardLayout = "BoardLayout",
     BoardLayoutRow = "BoardLayoutRow",
+    BoardLayoutItem = "BoardLayoutItem",
     Scroller = "Scroller",
     FullWidth = "FullWidth",
     Container = "Container",

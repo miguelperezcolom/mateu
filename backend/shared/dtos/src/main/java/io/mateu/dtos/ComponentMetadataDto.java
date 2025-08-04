@@ -59,7 +59,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = GridColumnDto.class, name = "GridColumn"),
   @JsonSubTypes.Type(value = VirtualListDto.class, name = "VirtualList"),
   @JsonSubTypes.Type(value = BoardLayoutDto.class, name = "BoardLayout"),
-  @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow")
+  @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow"),
+  @JsonSubTypes.Type(value = BoardLayoutItemDto.class, name = "BoardLayoutItem")
 })
 @Schema(
     oneOf = {
@@ -113,6 +114,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       GridColumnDto.class,
       VirtualListDto.class,
       BoardLayoutDto.class,
-      BoardLayoutRowDto.class
+      BoardLayoutRowDto.class,
+      BoardLayoutItemDto.class
     })
 public interface ComponentMetadataDto {}

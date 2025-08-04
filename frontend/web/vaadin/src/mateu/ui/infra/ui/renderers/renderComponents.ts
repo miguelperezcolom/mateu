@@ -4,7 +4,7 @@ import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import {
     renderAccordionLayout,
-    renderBoardLayout,
+    renderBoardLayout, renderBoardLayoutItem,
     renderBoardLayoutRow,
     renderContainer, renderFormItem,
     renderFormLayout, renderFormRow,
@@ -81,6 +81,9 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
             return renderBoardLayoutRow(component, baseUrl, state, data)
+        }
+        if (component.metadata.type == ComponentMetadataType.BoardLayoutItem) {
+            return renderBoardLayoutItem(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Scroller) {
             return renderScroller(component, baseUrl, state, data)

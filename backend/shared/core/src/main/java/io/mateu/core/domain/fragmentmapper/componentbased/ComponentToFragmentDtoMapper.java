@@ -8,6 +8,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarC
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.AvatarGroupComponentToDtoMapper.mapAvatarGroupToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BadgeComponentToDtoMapper.mapBadgeToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutComponentToDtoMapper.mapBoardLayoutToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutItemComponentToDtoMapper.mapBoardLayoutItemToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLayoutRowComponentToDtoMapper.mapBoardLayoutRowToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
@@ -65,6 +66,7 @@ import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.AvatarGroup;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BoardLayout;
+import io.mateu.uidl.data.BoardLayoutItem;
 import io.mateu.uidl.data.BoardLayoutRow;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
@@ -193,6 +195,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof BoardLayoutRow boardLayoutRow) {
       return mapBoardLayoutRowToDto(boardLayoutRow, baseUrl, route, httpRequest);
+    }
+    if (component instanceof BoardLayoutItem boardLayoutItem) {
+      return mapBoardLayoutItemToDto(boardLayoutItem, baseUrl, route, httpRequest);
     }
     if (component instanceof Scroller scroller) {
       return mapScrollerToDto(scroller, baseUrl, route, httpRequest);

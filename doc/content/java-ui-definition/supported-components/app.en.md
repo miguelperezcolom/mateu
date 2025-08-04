@@ -11,7 +11,7 @@ An `App` is a high level convenience component which allows the user to navigate
   <mateu-component id="componente" style="width: unset;"></mateu-component>
 </div>
 
-<script>
+<script type="module">
 
   var component =                     {
                         "type": "ClientSide",
@@ -20,54 +20,28 @@ An `App` is a high level convenience component which allows the user to navigate
                             "variant": "MENU_ON_LEFT",
                             "menu": [
                                 {
-                                    "label": "Home",
-                                    "destination": {
-                                        "route": "/fluent-app/nested-apps/left/home"
-                                    },
-                                    "visible": true,
-                                    "selected": false,
-                                    "separator": false
-                                },
-                                {
                                     "label": "Page 1",
                                     "destination": {
-                                        "route": "/fluent-app/nested-apps/left/page1"
+                                        "route": "/page1"
                                     },
                                     "visible": true,
                                     "selected": false,
                                     "separator": false
                                 },
                                 {
-                                    "submenus": [
-                                        {
-                                            "label": "Home",
-                                            "destination": {
-                                                "route": "/fluent-app/nested-apps/left/home"
-                                            },
-                                            "visible": true,
-                                            "selected": false,
-                                            "separator": false
-                                        },
-                                        {
-                                            "label": "Page 1",
-                                            "destination": {
-                                                "route": "/fluent-app/nested-apps/left/page1"
-                                            },
-                                            "visible": true,
-                                            "selected": false,
-                                            "separator": false
-                                        }
-                                    ],
-                                    "label": "Submenu",
+                                    "label": "Page 2",
+                                    "destination": {
+                                        "route": "/page2"
+                                    },
                                     "visible": true,
                                     "selected": false,
                                     "separator": false
-                                }
+                                },
                             ],
-                            "route": "/fluent-app/nested-apps/left",
+                            "route": "/xxx",
                             "title": "Nested",
                             "subtitle": "This is the subtitle bla, bla, bla",
-                            "homeRoute": "/fluent-app/nested-apps/left/home"
+                            "homeRoute": "/page1"
                         },
                         "id": "component_id"
                     };
