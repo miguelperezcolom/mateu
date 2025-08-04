@@ -104,7 +104,7 @@ A split layout layouts children horizontally or vertically, and shows a splitter
   "metadata": {
     "type": "BoardLayout"
   },
-  "style": "width: 40rem;"
+  "style": "width: 50rem;"
 };
 
     document.getElementById('componente').component = component;
