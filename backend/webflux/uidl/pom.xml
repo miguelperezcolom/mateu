@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.mateu</groupId>
         <artifactId>backend-webflux</artifactId>
-        <version>0.0.1-MATEU</version>
+        <version>3.0-alpha.3.004</version>
     </parent>
 
     <artifactId>uidl</artifactId>

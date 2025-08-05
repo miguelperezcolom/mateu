@@ -1,6 +1,7 @@
 package io.mateu.core.domain.commands.startJourney;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.mateu.core.domain.commands.runStepAction.concreteStepActionRunners.ResultMapper;
 import io.mateu.core.domain.model.outbound.modelToDtoMappers.*;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.SerializerService;
@@ -31,6 +32,7 @@ public class StartJourneyCommandHandler {
   private final UiInstantiator uiInstantiator;
   private final ViewMapper viewMapper;
   private final SerializerService serializerService;
+  private final ResultMapper resultMapper;
 
   public StartJourneyCommandHandler(
       ReflectionService reflectionService,
@@ -38,13 +40,15 @@ public class StartJourneyCommandHandler {
       MenuResolver menuResolver,
       UiInstantiator uiInstantiator,
       ViewMapper viewMapper,
-      SerializerService serializerService) {
+      SerializerService serializerService,
+      ResultMapper resultMapper) {
     this.reflectionService = reflectionService;
     this.mddOpenCRUDActionViewBuilder = mddOpenCRUDActionViewBuilder;
     this.menuResolver = menuResolver;
     this.uiInstantiator = uiInstantiator;
     this.viewMapper = viewMapper;
     this.serializerService = serializerService;
+    this.resultMapper = resultMapper;
   }
 
   public Mono<UIIncrementDto> handle(StartJourneyCommand command) throws Throwable {
@@ -87,42 +91,44 @@ public class StartJourneyCommandHandler {
         mono = Mono.just(formInstance);
       }
 
-      return mono.map(
-          instance -> {
-            if (instance instanceof MicroFrontend microFrontend) {
-              return new UIIncrementDto(
-                  List.of(
-                      new UICommandDto(
-                          UICommandTypeDto.ReplaceJourney,
-                          new MicroFrontendDto(
-                              microFrontend.baseUrl(),
-                              microFrontend.journeyTypeId(),
-                              serializerService.toJson(microFrontend.contextData())))),
-                  List.of(),
-                  List.of());
-            } else {
-              Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
-              io.mateu.uidl.interfaces.View view =
-                  (instance instanceof io.mateu.uidl.interfaces.View v)
-                      ? v
-                      : new SingleComponentView(instance);
-              ViewDto viewDto =
-                  viewMapper.map(
-                      view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
-
-              return new UIIncrementDto(
-                  List.of(),
-                  List.of(),
-                  List.of(
-                      new UIFragmentDto(
-                          ActionTargetDto.View, "", "", "", "", viewDto, allComponents)));
-            }
-          });
+      return mono.map(instance -> mapInstance(instance, command, serverHttpRequest));
 
     } catch (Throwable e) {
       log.error("error on getUi", e);
       // throw new NotFoundException("No class with name " + journeyTypeId + " found");
       throw e;
+    }
+  }
+
+  private Object mapInstance(
+      Object instance, StartJourneyCommand command, ServerHttpRequest serverHttpRequest) {
+    if (instance instanceof Mono mono) {
+      return mono.map(nestedInstance -> mapInstance(nestedInstance, command, serverHttpRequest));
+    }
+    if (instance instanceof MicroFrontend microFrontend) {
+      return new UIIncrementDto(
+          List.of(
+              new UICommandDto(
+                  UICommandTypeDto.ReplaceJourney,
+                  new MicroFrontendDto(
+                      microFrontend.baseUrl(),
+                      microFrontend.journeyTypeId(),
+                      serializerService.toJson(microFrontend.contextData())))),
+          List.of(),
+          List.of());
+    } else {
+      Map<String, ComponentDto> allComponents = new LinkedHashMap<>();
+      io.mateu.uidl.interfaces.View view =
+          (instance instanceof io.mateu.uidl.interfaces.View v)
+              ? v
+              : new SingleComponentView(instance);
+      ViewDto viewDto =
+          viewMapper.map(view, command.getBaseUrl(), serverHttpRequest, allComponents, Map.of());
+
+      return new UIIncrementDto(
+          List.of(),
+          List.of(),
+          List.of(new UIFragmentDto(ActionTargetDto.View, "", "", "", "", viewDto, allComponents)));
     }
   }
 

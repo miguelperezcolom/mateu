@@ -17017,7 +17017,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(O.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(O)}
-            style="${this.getStyle(O)};align-self: start;">
+            style="${this.getStyle(O)};align-self: end;">
             </mateu-field>
         `)}
 
@@ -17210,7 +17210,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
                                                     .value=${this.formElement.getValue(F.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(F)}
                                sidePositionedLabel="${this.section.sidePositionedLabel}"
-            style="display: inline-flex; align-self: start; ${this.getStyle(F)}">                    
+            style="display: inline-flex; align-self: end; ${this.getStyle(F)}">                    
             </mateu-field>
           </vaadin-form-item>
         `:x`
@@ -17224,7 +17224,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
                                                     .value=${this.formElement.getValue(F.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(F)}
                                sidePositionedLabel="${this.section.sidePositionedLabel}"
-            style="align-self: start; ${this.getStyle(F)}">
+            style="align-self: end; ${this.getStyle(F)}">
             </mateu-field>
         `}
                   

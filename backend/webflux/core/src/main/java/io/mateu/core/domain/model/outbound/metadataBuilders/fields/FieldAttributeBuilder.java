@@ -20,6 +20,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -158,6 +159,7 @@ public class FieldAttributeBuilder {
         Method m =
             reflectionService.getMethod(
                 field.getDeclaringClass(), field.getAnnotation(ValuesProviderMethod.class).value());
+        if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
         List<ValueDto> choices = (List<ValueDto>) m.invoke(view);
         choices.forEach(
             v -> {

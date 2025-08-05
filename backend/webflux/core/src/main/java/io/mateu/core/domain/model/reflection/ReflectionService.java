@@ -300,7 +300,9 @@ public class ReflectionService implements ReflectionHelper {
           InvocationTargetException,
           NoSuchMethodException {
     var instance = instanceProvider.newInstance(c, data);
-    if (instance instanceof ObjectEditor) {
+    if (instance.getClass().isRecord()) {
+      // no need to refill a record
+    } else if (instance instanceof ObjectEditor) {
       // no need to fill the entityEditor
     } else {
       if (data != null) {

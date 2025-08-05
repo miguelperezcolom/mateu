@@ -64,7 +64,7 @@ export class MateuFieldGroup extends LitElement {
                                                     .formElement=${this.formElement} 
                                                     .value=${this.formElement.getValue(s.id)} 
                                                     .fieldWrapper=${this.formElement.getFieldWrapper(s)}
-            style="${this.getStyle(s)};align-self: start;">
+            style="${this.getStyle(s)};align-self: end;">
             </mateu-field>
         `)}
 
