@@ -12,6 +12,7 @@ import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import '@vaadin/tabsheet'
+import '@vaadin/card'
 import "@vaadin/menu-bar"
 import "@vaadin/progress-bar"
 import "@vaadin/scroller"
@@ -44,7 +45,6 @@ import './mateu-form'
 import './mateu-field'
 import './mateu-table'
 import './mateu-table-crud'
-import './mateu-card'
 import './mateu-app'
 import './mateu-api-caller'
 import './mateu-ux'

@@ -140,18 +140,6 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
              </mateu-table-crud>`
         }
 
-        if (component.metadata.type == ComponentMetadataType.Card) {
-            return html`<mateu-card
-                            id="${component.id}"
-            baseUrl="${baseUrl}"
-                .metadata="${component.metadata}"
-                .data="${state}"
-                            style="${component.style}" class="${component.cssClasses}"
-                >
-                 ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
-             </mateu-card>`
-        }
-
         if (component.metadata.type == ComponentMetadataType.App) {
             console.log('component', component)
             return html`<mateu-api-caller>

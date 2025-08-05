@@ -1,6 +1,6 @@
 package io.mateu.uidl.data;
 
-public enum ButtonVariants {
+public enum ButtonVariant {
   danger,
   warning,
   error

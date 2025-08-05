@@ -51,11 +51,7 @@ public class FormComponentToDtoMapper {
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
     if (userTrigger == null) return null;
     if (userTrigger instanceof Button button) {
-      return ButtonDto.builder()
-          .id(button.id())
-          .actionId(button.actionId())
-          .label(button.label())
-          .build();
+      return ButtonDto.builder().actionId(button.actionId()).label(button.label()).build();
     }
     return null;
   }
