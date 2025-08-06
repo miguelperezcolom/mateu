@@ -62,7 +62,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = BoardLayoutRowDto.class, name = "BoardLayoutRow"),
   @JsonSubTypes.Type(value = BoardLayoutItemDto.class, name = "BoardLayoutItem"),
   @JsonSubTypes.Type(value = BreadcrumbsDto.class, name = "Breadcrumbs"),
-  @JsonSubTypes.Type(value = BreadcrumbDto.class, name = "Breadcrumb")
+  @JsonSubTypes.Type(value = BreadcrumbDto.class, name = "Breadcrumb"),
+  @JsonSubTypes.Type(value = CarouselLayoutDto.class, name = "CarouselLayout")
 })
 @Schema(
     oneOf = {
@@ -119,6 +120,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       VirtualListDto.class,
       BoardLayoutDto.class,
       BoardLayoutRowDto.class,
-      BoardLayoutItemDto.class
+      BoardLayoutItemDto.class,
+      CarouselLayoutDto.class
     })
 public interface ComponentMetadataDto {}

@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.1",
+    "@fabricelements/skeleton-carousel": "3.0.0",
+    "@ngyewch/chartjs-v4-webcomponent": "^0.4.0",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@vaadin/accordion": "^24.8.0",
     "@vaadin/app-layout": "^24.8.0",
@@ -82,8 +84,12 @@
     "js-base64": "^3.7.7",
     "lit": "^3.3.0",
     "lit-vaadin-helpers": "^0.3.1",
+    "minimatch": "10.0.3",
     "nanoid": "^5.0.7",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "chart.js": "^4.5.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "@vitest/browser": "latest",

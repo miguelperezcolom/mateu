@@ -4,4 +4,5 @@ import lombok.Builder;
 
 /** Card metadata */
 @Builder
-public record ChartDto() implements ComponentMetadataDto {}
+public record ChartDto(ChartTypeDto chartType, ChartDataDto chartData, ChartOptionsDto chartOptions)
+    implements ComponentMetadataDto {}

@@ -13,6 +13,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BoardLa
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.BreadcrumbsComponentToDtoMapper.mapBreadcrumbsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CarouselLayoutComponentToDtoMapper.mapCarouselLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapComponentTreeSupplierToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ConfirmDialogComponentToDtoMapper.mapConfirmDialogToDto;
@@ -72,6 +73,7 @@ import io.mateu.uidl.data.BoardLayoutRow;
 import io.mateu.uidl.data.Breadcrumbs;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.CarouselLayout;
 import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.ConfirmDialog;
 import io.mateu.uidl.data.Container;
@@ -182,6 +184,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof MasterDetailLayout masterDetailLayout) {
       return mapMasterDetailLayoutToDto(masterDetailLayout, baseUrl, route, httpRequest);
+    }
+    if (component instanceof CarouselLayout carouselLayout) {
+      return mapCarouselLayoutToDto(carouselLayout, baseUrl, route, httpRequest);
     }
     if (component instanceof AccordionLayout accordionLayout) {
       return mapAccordionLayoutToDto(accordionLayout, baseUrl, route, httpRequest);

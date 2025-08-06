@@ -34,6 +34,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/layouts/tab", "Tab Layout"),
                                 new RouteLink("/fluent-app/layouts/form", "Form Layout"),
                                 new RouteLink("/fluent-app/layouts/accordion", "Accordion Layout"),
+                                new RouteLink("/fluent-app/layouts/carousel", "Carousel Layout"),
                                 new MenuSeparator(),
                                 new RouteLink("/fluent-app/layouts/board", "Board Layout"),
                                 new RouteLink("/fluent-app/layouts/master-detail", "Master Detail Layout")
@@ -69,7 +70,6 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/breadcrumbs", "Breadcrumbs"),
                                 new RouteLink("/fluent-app/components/button", "Button"),
                                 new RouteLink("/fluent-app/components/card", "Card"),
-                                new RouteLink("/fluent-app/components/carousel", "Carousel"),
                                 new RouteLink("/fluent-app/components/charts", "Charts"),
                                 new RouteLink("/fluent-app/components/checkbox", "Checkbox"),
                                 new RouteLink("/fluent-app/components/choice", "Choice"),

@@ -45,6 +45,7 @@ import { renderPopover } from "@infra/ui/renderers/popoverRenderer";
 import { renderMap } from "@infra/ui/renderers/mapRenderer";
 import { renderImage } from "@infra/ui/renderers/imageRenderer";
 import { renderBreadcrumbs } from "@infra/ui/renderers/breadcrumbsRenderer";
+import { renderCarouselLayout } from "@infra/ui/renderers/carouselRenderer";
 
 
 export const renderClientSideComponent = (component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
@@ -242,6 +243,9 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
         if (component.metadata.type == ComponentMetadataType.Popover) {
             return renderPopover(component, baseUrl, state, data)
+        }
+        if (component.metadata.type == ComponentMetadataType.CarouselLayout) {
+            return renderCarouselLayout(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Tooltip) {
             return renderTooltip(component, baseUrl, state, data)

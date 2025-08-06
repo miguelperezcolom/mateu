@@ -41,6 +41,7 @@ import "@vaadin/grid"
 import '@vaadin/grid/vaadin-grid-tree-column.js';
 import "@vaadin/virtual-list"
 import "@vaadin/board"
+import "@fabricelements/skeleton-carousel"
 import './mateu-form'
 import './mateu-field'
 import './mateu-table'
@@ -56,6 +57,7 @@ import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderComponents";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import './mateu-chart'
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
