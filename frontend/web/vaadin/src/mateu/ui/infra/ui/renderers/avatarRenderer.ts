@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
 
 export const renderAvatar = (component: ClientSideComponent) => {
@@ -10,6 +10,7 @@ export const renderAvatar = (component: ClientSideComponent) => {
             name="${metadata.name}"
             abbr="${metadata.abbreviation}"
             style="${component.style}" class="${component.cssClasses}"
+            slot="${component.slot??nothing}"
     ></vaadin-avatar>`
 }
 
@@ -17,6 +18,7 @@ export const renderAvatarGroup = (component: ClientSideComponent) => {
     const metadata = component.metadata as AvatarGroup
     return html`<vaadin-avatar-group max-items-visible="${metadata.maxItemsVisible}"
                                      .items="${metadata.avatars}"
-                                     style="${component.style}" class="${component.cssClasses}">
+                                     style="${component.style}" class="${component.cssClasses}"
+                                     slot="${component.slot??nothing}">
     </vaadin-avatar-group>`
 }

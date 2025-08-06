@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
 import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
-import { html } from "lit";
+import { html, nothing } from "lit";
 
 export const renderGrid = (component: ClientSideComponent, data: any) => {
     const metadata = component.metadata as Grid
@@ -27,6 +27,7 @@ export const renderGrid = (component: ClientSideComponent, data: any) => {
         return html`
         <vaadin-grid style="${component.style}" class="${component.cssClasses}"
                      .itemHasChildrenPath="${'children'}" .dataProvider="${dataProvider}"
+                     slot="${component.slot??nothing}"
         >
             ${metadata.columns.map((column, index) => index > 0?html`
             <vaadin-grid-column path="${column.id}">${index} - ${column.label}</vaadin-grid-column>

@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import ConfirmDialog from "@mateu/shared/apiClients/dtos/componentmetadata/ConfirmDialog";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
 export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
@@ -35,6 +35,7 @@ export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: str
   confirm-text="Save"
   .opened="${true}"
   style="${component.style}" class="${component.cssClasses}"
+  slot="${component.slot??nothing}"
 >
   ${metadata.text}
             ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}

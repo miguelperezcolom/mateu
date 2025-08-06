@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Notification from "@mateu/shared/apiClients/dtos/componentmetadata/Notification";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { notificationRenderer } from "@vaadin/notification/lit";
 
 export const renderNotification = (component: ClientSideComponent) => {
@@ -12,6 +12,7 @@ export const renderNotification = (component: ClientSideComponent) => {
                 duration="0"
                 position="middle"
                 .opened="${true}"
+                slot="${component.slot??nothing}"
                 ${notificationRenderer(notification => {
         console.log(notification)
         return html`

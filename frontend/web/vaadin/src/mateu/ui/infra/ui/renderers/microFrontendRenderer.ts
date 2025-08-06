@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MicroFrontend from "@mateu/shared/apiClients/dtos/componentmetadata/MicroFrontend";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { nanoid } from "nanoid";
 
 export const renderMicroFrontend = (component: ClientSideComponent) => {
@@ -13,6 +13,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   consumedRoute="${metadata.consumedRoute}" 
                   id="${nanoid()}"
                   style="${component.style}" class="${component.cssClasses}"
+                  slot="${component.slot??nothing}"
         ></mateu-ux>
         </mateu-api-caller>
             `

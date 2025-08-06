@@ -14,11 +14,11 @@ public record Text(
     implements Component {
 
   public Text(String text) {
-    this(text, TextContainer.p, List.of(), "", "");
+    this(text, TextContainer.div, List.of(), "", "");
   }
 
   public Text(String text, List<TextVariant> variants) {
-    this(text, TextContainer.p, variants, "", "");
+    this(text, TextContainer.div, variants, "", "");
   }
 
   public Text(String text, TextContainer container) {
@@ -27,6 +27,6 @@ public record Text(
 
   @Override
   public TextContainer container() {
-    return container != null ? container : TextContainer.p;
+    return container != null ? container : TextContainer.div;
   }
 }

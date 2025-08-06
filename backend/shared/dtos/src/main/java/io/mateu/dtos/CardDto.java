@@ -6,13 +6,13 @@ import lombok.Builder;
 /** Card metadata */
 @Builder
 public record CardDto(
-    CardImageDto image,
-    String headerPrefix,
-    String header,
-    String title,
-    String subtitle,
-    String headerSuffix,
-    CardContentDto content,
-    List<CardVariantDto> variants,
-    String footer)
+    ComponentDto media,
+    ComponentDto headerPrefix,
+    ComponentDto header,
+    ComponentDto title,
+    ComponentDto subtitle,
+    ComponentDto headerSuffix,
+    ComponentDto content,
+    ComponentDto footer,
+    List<CardVariantDto> variants)
     implements ComponentMetadataDto {}

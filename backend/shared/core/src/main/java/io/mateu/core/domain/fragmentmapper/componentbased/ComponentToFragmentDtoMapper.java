@@ -150,6 +150,9 @@ public final class ComponentToFragmentDtoMapper {
     if (component == null && componentSupplier != null) {
       return mapComponentTreeSupplierToDto(componentSupplier, baseUrl, route, httpRequest);
     }
+    if (component == null) {
+      return null;
+    }
     if (component instanceof App app) {
       return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
     }
@@ -238,7 +241,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapButtonToDto(button);
     }
     if (component instanceof Card card) {
-      return mapCardToDto(card);
+      return mapCardToDto(card, baseUrl, route, httpRequest);
     }
     if (component instanceof Chart chart) {
       return mapChartToDto(chart);

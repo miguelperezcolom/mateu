@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 public enum TextContainer {
+  div,
   p,
   h1,
   h2,

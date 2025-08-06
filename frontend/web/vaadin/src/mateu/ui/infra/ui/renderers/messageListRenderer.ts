@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MessageList from "@mateu/shared/apiClients/dtos/componentmetadata/MessageList";
-import { html } from "lit";
+import { html, nothing } from "lit";
 
 export const renderMessageList = (component: ClientSideComponent) => {
     // @ts-ignore
@@ -8,6 +8,7 @@ export const renderMessageList = (component: ClientSideComponent) => {
     return html`
         <vaadin-message-list
                 style="${component.style}" class="${component.cssClasses}"
+                slot="${component.slot??nothing}"
                 .items="${[
         {
             text: '**Hello team!** Did everyone review the *design document* for the new project?',

@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
@@ -16,6 +16,7 @@ export const renderDialog = (component: ClientSideComponent, baseUrl: string | u
         <vaadin-dialog
                 header-title="User details"
                 .opened="${true}"
+                slot="${component.slot??nothing}"
                 ${dialogHeaderRenderer(
         () => html`
       <vaadin-button theme="tertiary" @click="${(e: Event) => console.log(e)}">

@@ -7,15 +7,15 @@ import lombok.Builder;
 @Builder
 public record Card(
     String id,
-    CardImage image,
-    String headerPrefix,
-    String header,
-    String title,
-    String subtitle,
-    String headerSuffix,
-    CardContent content,
+    Component media,
+    Component headerPrefix,
+    Component header,
+    Component title,
+    Component subtitle,
+    Component headerSuffix,
+    Component content,
+    Component footer,
     List<CardVariant> variants,
-    String footer,
     String style,
     String cssClasses)
     implements Component {}

@@ -29,5 +29,6 @@ export const renderButton = (component: ClientSideComponent) => {
             class="${component.cssClasses}"
             theme="${theme}"
             ?disabled="${metadata.disabled}"
+            slot="${component.slot??nothing}"
     >${metadata.iconOnLeft?html`<vaadin-icon icon="${metadata.iconOnLeft}"></vaadin-icon>`:nothing}${metadata.label}${metadata.iconOnRight?html`<vaadin-icon icon="${metadata.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>`
 }

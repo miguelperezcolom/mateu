@@ -1,4 +1,4 @@
-import { html, TemplateResult } from "lit";
+import { html, nothing, TemplateResult } from "lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
@@ -101,7 +101,9 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .values="${state}"
-                style="${component.style}" class="${component.cssClasses}"
+                style="${component.style}" 
+                class="${component.cssClasses}"
+                slot="${component.slot??nothing}"
                 >
                     ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}        
                 </mateu-form>`
@@ -113,6 +115,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                 .metadata="${component.metadata}"
                 .data="${state}"
                             style="${component.style}" class="${component.cssClasses}"
+                            slot="${component.slot??nothing}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
                 </mateu-table>`
@@ -120,10 +123,11 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         if (component.metadata.type == ComponentMetadataType.TableCrud) {
             return html`<mateu-table-crud
                             id="${component.id}"
-            baseUrl="${baseUrl}"
-                .component="${component}"
-                .values="${state}"
+                            baseUrl="${baseUrl}"
+                            .component="${component}"
+                            .values="${state}"
                             style="${component.style}" class="${component.cssClasses}"
+                            slot="${component.slot??nothing}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
              </mateu-table-crud>`
@@ -131,10 +135,11 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         if (component.metadata.type == ComponentMetadataType.CardCrud) {
             return html`<mateu-table-crud
                             id="${component.id}"
-            baseUrl="${baseUrl}"
-                .metadata="${component.metadata}"
-                .data="${state}"
+                            baseUrl="${baseUrl}"
+                            .metadata="${component.metadata}"
+                            .data="${state}"
                             style="${component.style}" class="${component.cssClasses}"
+                            slot="${component.slot??nothing}"
                 >
                  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
              </mateu-table-crud>`
@@ -142,7 +147,8 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
 
         if (component.metadata.type == ComponentMetadataType.App) {
             console.log('component', component)
-            return html`<mateu-api-caller>
+            return html`<mateu-api-caller
+                    slot="${component.slot??nothing}">
                 <mateu-app
                             id="${component.id}"
                             baseUrl="${baseUrl}"
@@ -156,7 +162,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
 
         if (component.metadata.type == ComponentMetadataType.Element) {
-            return renderElement(component.metadata as Element)
+            return renderElement(component.metadata as Element, component.slot)
         }
 
         if (component.metadata.type == ComponentMetadataType.FormField) {
@@ -165,6 +171,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                 .field="${component.metadata}"
                        .data="${state}"
                        style="${component.style}" class="${component.cssClasses}"
+                       slot="${component.slot??nothing}"
                 >
                         ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
                     </mateu-field>`
@@ -192,7 +199,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         }
         // @ts-ignore
         if (component.metadata.type == ComponentMetadataType.Card) {
-            return renderCard(component)
+            return renderCard(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Chart) {
             return renderChart(component)
@@ -257,7 +264,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
         if (component.metadata.type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component)
         }
-        return html`<p>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
+        return html`<p ${component?.slot??nothing}>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
     }
-    return html`<p>No metadata for component ${component?.id}</p>`
+    return html`<p ${component?.slot??nothing}>No metadata for component ${component?.id}</p>`
 }

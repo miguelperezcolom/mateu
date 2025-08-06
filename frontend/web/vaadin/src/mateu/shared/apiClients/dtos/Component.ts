@@ -7,5 +7,6 @@ export default interface Component {
     children: Component[] | undefined
     style: string
     cssClasses: string
+    slot: string
 
 }

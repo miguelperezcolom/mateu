@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
@@ -17,6 +17,7 @@ export const renderPopover = (component: ClientSideComponent, baseUrl: string | 
                 accessible-name-ref="notifications-heading"
                 content-width="300px"
                 position="bottom"
+                slot="${component.slot??nothing}"
                 ${popoverRenderer(popover => {
         console.log('popover', popover)
         return html`${renderComponent(metadata.content, baseUrl, state, data)}`

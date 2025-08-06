@@ -1,6 +1,7 @@
 package io.mateu.dtos;
 
 public enum TextContainerDto {
+  div,
   p,
   h1,
   h2,

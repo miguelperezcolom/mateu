@@ -1,28 +1,28 @@
 package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
-import io.mateu.dtos.CardContentDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+
 import io.mateu.dtos.CardDto;
-import io.mateu.dtos.CardImageDto;
 import io.mateu.dtos.CardVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.uidl.data.Card;
-import io.mateu.uidl.data.CardContent;
-import io.mateu.uidl.data.CardImage;
+import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 public class CardComponentToDtoMapper {
 
-  public static ClientSideComponentDto mapCardToDto(Card card) {
+  public static ClientSideComponentDto mapCardToDto(
+      Card card, String baseUrl, String route, HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         CardDto.builder()
-            .title(card.title())
-            .subtitle(card.subtitle())
-            .footer(card.footer())
-            .content(mapContent(card.content()))
-            .header(card.header())
-            .image(mapImage(card.image()))
-            .headerPrefix(card.headerPrefix())
-            .headerSuffix(card.headerSuffix())
+            .title(mapComponentToDto(null, card.title(), baseUrl, route, httpRequest))
+            .subtitle(mapComponentToDto(null, card.subtitle(), baseUrl, route, httpRequest))
+            .footer(mapComponentToDto(null, card.footer(), baseUrl, route, httpRequest))
+            .content(mapComponentToDto(null, card.content(), baseUrl, route, httpRequest))
+            .header(mapComponentToDto(null, card.header(), baseUrl, route, httpRequest))
+            .media(mapComponentToDto(null, card.media(), baseUrl, route, httpRequest))
+            .headerPrefix(mapComponentToDto(null, card.headerPrefix(), baseUrl, route, httpRequest))
+            .headerSuffix(mapComponentToDto(null, card.headerSuffix(), baseUrl, route, httpRequest))
             .variants(
                 card.variants() != null
                     ? card.variants().stream()
@@ -34,13 +34,5 @@ public class CardComponentToDtoMapper {
         List.of(),
         card.style(),
         card.cssClasses());
-  }
-
-  private static CardImageDto mapImage(CardImage image) {
-    return null;
-  }
-
-  private static CardContentDto mapContent(CardContent content) {
-    return null;
   }
 }

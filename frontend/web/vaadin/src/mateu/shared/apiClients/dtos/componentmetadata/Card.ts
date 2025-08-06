@@ -1,20 +1,16 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
-
-interface CardImage {
-}
-
-interface CardContent {
-}
+import Component from "@mateu/shared/apiClients/dtos/Component";
 
 export default interface Card extends ComponentMetadata {
 
-    title: string
-    subtitle: string
-    image: CardImage
-    headerPrefix: string
-    header: string
-    headerSuffix: string
-    content: CardContent
-    footer: string
+    title: Component
+    subtitle: Component
+    media: Component
+    headerPrefix: Component
+    header: Component
+    headerSuffix: Component
+    content: Component
+    footer: Component
+    variants: string[]
 
 }

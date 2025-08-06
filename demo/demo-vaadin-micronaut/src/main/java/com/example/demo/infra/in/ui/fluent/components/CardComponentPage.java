@@ -2,7 +2,10 @@ package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.CardVariant;
+import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -15,28 +18,94 @@ public class CardComponentPage implements ComponentTreeSupplier {
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Card")
-                .content(List.of(
+                .content(List.of(VerticalLayout.builder()
+                                .spacing(true)
+                                .content(List.of(
 
-                        new Text("empty"),
+                                        Card.builder()
+                                                .build(),
 
-                        Card.builder()
-                                .build(),
+                                        Card.builder()
+                                                .title(new Text("Title"))
+                                                .build(),
 
-                        new Text("title"),
+                                        Card.builder()
+                                                .title(new Text("Title"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .build(),
 
-                        Card.builder()
-                                .title("Title")
-                                .build(),
+                                        Card.builder()
+                                                .title(new Text("Title"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .build(),
 
-                        new Text("title and subtitle"),
+                                        Card.builder()
+                                                .title(new Text("Title"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("data:image/png;base64,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"))
+                                                .build(),
 
-                        Card.builder()
-                                .title("Title")
-                                .subtitle("Subtitle")
-                                .build(),
+                                        Card.builder()
+                                                .title(new Text("Elevated"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.elevated))
+                                                .build(),
 
-                        new Text("")
-                ))
+                                        Card.builder()
+                                                .title(new Text("Outlined"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.outlined))
+                                                .build(),
+
+                                        Card.builder()
+                                                .title(new Text("Stretch media"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.stretchMedia))
+                                                .build(),
+
+                                        Card.builder()
+                                                .title(new Text("Cover media"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.coverMedia))
+                                                .build(),
+
+                                        Card.builder()
+                                                .title(new Text("Horizontal"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.horizontal))
+                                                .build(),
+
+                                        Card.builder()
+                                                .title(new Text("Outlined"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.outlined))
+                                                .build(),
+
+                                        Card.builder()
+                                                .title(new Text("Outlined and stretch media"))
+                                                .subtitle(new Text("Subtitle"))
+                                                .content(new Text("Some content, bla, bla, bla"))
+                                                .media(new Image("https://picsum.photos/seed/picsum/200/300"))
+                                                .variants(List.of(CardVariant.stretchMedia, CardVariant.outlined))
+                                                .build(),
+
+                                        new Text("")
+                                ))
+                        .build()))
                 .build();
     }
 }

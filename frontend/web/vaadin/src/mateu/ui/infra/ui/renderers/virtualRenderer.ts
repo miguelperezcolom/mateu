@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import VirtualList from "@mateu/shared/apiClients/dtos/componentmetadata/VirtualList";
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { virtualListRenderer } from "@vaadin/virtual-list/lit";
 
 export const renderVirtualList = (component: ClientSideComponent) => {
@@ -15,6 +15,7 @@ export const renderVirtualList = (component: ClientSideComponent) => {
                 .items="${metadata.page.items}"
                 ${virtualListRenderer(renderer, [])}
                 style="${component.style}" class="${component.cssClasses}"
+                slot="${component.slot??nothing}"
         ></vaadin-virtual-list>
     `
 }
