@@ -105,6 +105,31 @@ The way to declare it is as follows:
 
 ```
 
+or
+
+```java
+
+  @Variants({
+    CardVariant.coverMedia
+  })
+  class MyCard implements Card {
+  
+    @Title
+    Text title = new Text("Title");
+
+    @Subtitle
+    Text subtitle = new Text("Subtitle");
+
+    @Media
+    String image = "https://picsum.photos/seed/picsum/200/300";
+  
+    @RawContent
+    String content = "Some content, bla, bla, bla";
+  
+  }
+
+```
+
 {{< /tab >}}
 
 {{< /tabs >}}
