@@ -5,40 +5,28 @@ import { renderComponent } from "@infra/ui/renderers/componentRenderer";
 
 export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as ConfirmDialog
-    /*
-            <vaadin-confirm-dialog
-  header="${metadata.title}"
-  cancel-button-visible
-  reject-button-visible
-  reject-text="Discard"
-  confirm-text="Save"
-  .opened="${this.dialogOpened}"
-  @opened-changed="${this.openedChanged}"
-  @confirm="${() => {
-        this.status = 'Saved';
-    }}"
-  @cancel="${() => {
-        this.status = 'Canceled';
-    }}"
-  @reject="${() => {
-        this.status = 'Discarded';
-    }}"
->
-
-     */
+    let opened = false;
+    if (metadata.openedCondition) {
+        try {
+            opened = eval(eval('`' + metadata.openedCondition + '`'))
+            //console.log(metadata.openedCondition + ' evaluates to', opened, typeof opened)
+        } catch (e) {
+            console.error('when evaluating ' + metadata.openedCondition + ' :' +  e + ', where data is ' + data
+                + ' and state is ' + state)
+        }
+    }
     return html`
         <vaadin-confirm-dialog
-  header="${metadata.title}"
-  cancel-button-visible
-  reject-button-visible
-  reject-text="Discard"
-  confirm-text="Save"
-  .opened="${true}"
+  header="${metadata.header}"
+  ?cancel-button-visible="${metadata.canCancel}"
+  ?reject-button-visible="${metadata.canReject}"
+  reject-text="${metadata.rejectText}"
+  confirm-text="${metadata.confirmText}"
+  .opened="${opened}"
   style="${component.style}" class="${component.cssClasses}"
   slot="${component.slot??nothing}"
 >
-  ${metadata.text}
-            ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
 </vaadin-confirm-dialog>
             `
 }

@@ -255,7 +255,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapIconToDto(icon);
     }
     if (component instanceof ConfirmDialog confirmDialog) {
-      return mapConfirmDialogToDto(confirmDialog);
+      return mapConfirmDialogToDto(confirmDialog, baseUrl, route, httpRequest);
     }
     if (component instanceof ContextMenu contextMenu) {
       return mapContextMenuToDto(contextMenu, baseUrl, route, httpRequest);

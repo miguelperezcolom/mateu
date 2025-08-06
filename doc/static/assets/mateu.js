@@ -22664,19 +22664,18 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
     `},renderIcon=U=>{const D=U.metadata;return x`
         <vaadin-icon icon="${D.icon}" style="${U.style}" class="${U.cssClasses}"
                      slot="${U.slot??E}"></vaadin-icon>
-    `},renderConfirmDialog=(U,D,O,F)=>{var Y;const W=U.metadata;return x`
+    `},renderConfirmDialog=(component,baseUrl,state,data)=>{var U;const metadata=component.metadata;let opened=!1;if(metadata.openedCondition)try{opened=eval(eval("`"+metadata.openedCondition+"`"))}catch(D){console.error("when evaluating "+metadata.openedCondition+" :"+D+", where data is "+data+" and state is "+state)}return x`
         <vaadin-confirm-dialog
-  header="${W.title}"
-  cancel-button-visible
-  reject-button-visible
-  reject-text="Discard"
-  confirm-text="Save"
-  .opened="${!0}"
-  style="${U.style}" class="${U.cssClasses}"
-  slot="${U.slot??E}"
+  header="${metadata.header}"
+  ?cancel-button-visible="${metadata.canCancel}"
+  ?reject-button-visible="${metadata.canReject}"
+  reject-text="${metadata.rejectText}"
+  confirm-text="${metadata.confirmText}"
+  .opened="${opened}"
+  style="${component.style}" class="${component.cssClasses}"
+  slot="${component.slot??E}"
 >
-  ${W.text}
-            ${(Y=U.children)==null?void 0:Y.map(q=>renderComponent(q,D,O,F))}
+  ${(U=component.children)==null?void 0:U.map(D=>renderComponent(D,baseUrl,state,data))}
 </vaadin-confirm-dialog>
             `},renderCookieConsent=U=>(U.metadata,x`
         <vaadin-cookie-consent style="${U.style}" class="${U.cssClasses}"
