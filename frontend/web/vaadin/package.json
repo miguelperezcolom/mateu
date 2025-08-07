@@ -38,7 +38,6 @@
     "@vaadin/checkbox-group": "^24.8.0",
     "@vaadin/combo-box": "^24.8.0",
     "@vaadin/context-menu": "^24.8.0",
-    "@vaadin/cookie-consent": "^24.8.0",
     "@vaadin/custom-field": "^24.8.0",
     "@vaadin/date-picker": "^24.8.0",
     "@vaadin/date-time-picker": "^24.8.0",
@@ -81,15 +80,16 @@
     "@web-comp/core": "^1.0.2",
     "@web-comp/json-viewer": "^1.0.2",
     "axios": "^1.7.7",
+    "chart.js": "^4.5.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "cookieconsent": "^3.1.1",
+    "date-fns": "^4.1.0",
     "js-base64": "^3.7.7",
     "lit": "^3.3.0",
     "lit-vaadin-helpers": "^0.3.1",
     "minimatch": "10.0.3",
     "nanoid": "^5.0.7",
-    "rxjs": "^7.8.1",
-    "chart.js": "^4.5.0",
-    "chartjs-adapter-date-fns": "^3.0.0",
-    "date-fns": "^4.1.0"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@vitest/browser": "latest",

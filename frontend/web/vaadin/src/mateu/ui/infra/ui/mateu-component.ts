@@ -27,7 +27,6 @@ import "@vaadin/select"
 import "@vaadin/multi-select-combo-box"
 import "@vaadin/confirm-dialog"
 import "@vaadin/context-menu"
-import "@vaadin/cookie-consent"
 import "@vaadin/dialog"
 import "@vaadin/map"
 import "@vaadin/markdown"
@@ -48,6 +47,7 @@ import './mateu-table'
 import './mateu-table-crud'
 import './mateu-app'
 import './mateu-api-caller'
+import './mateu-cookie-consent'
 import './mateu-ux'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
