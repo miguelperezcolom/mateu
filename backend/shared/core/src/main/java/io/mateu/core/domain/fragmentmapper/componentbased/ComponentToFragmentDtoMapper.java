@@ -303,7 +303,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapCustomFieldToDto(customField, baseUrl, route, httpRequest);
     }
     if (component instanceof MenuBar menuBar) {
-      return mapMenuBarToDto(menuBar);
+      return mapMenuBarToDto(menuBar, baseUrl, route, httpRequest);
     }
     if (component instanceof Grid grid) {
       return mapGridToDto(grid);

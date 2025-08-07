@@ -1,5 +1,6 @@
 package io.mateu.core.domain.fragmentmapper.reflectionbased;
 
+import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionCommonMapper.getSubtitle;
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
 
@@ -32,7 +33,7 @@ public class ReflectionAppMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     var appRoute = getRoute(componentSupplier, app, httpRequest, route);
-    var menu = getMenu(app, route, appRoute, httpRequest);
+    var menu = getMenu(app, baseUrl, route, appRoute, httpRequest);
     var appDto =
         new AppDto(
             appRoute,
@@ -153,7 +154,7 @@ public class ReflectionAppMapper {
   }
 
   public static List<MenuOptionDto> getMenu(
-      Object instance, String route, String appRoute, HttpRequest httpRequest) {
+      Object instance, String baseUrl, String route, String appRoute, HttpRequest httpRequest) {
     if (instance instanceof HasMenu hasMenu) {
       var menuFromApp = hasMenu.createMenu(httpRequest);
       var selectedRoute =
@@ -172,11 +173,19 @@ public class ReflectionAppMapper {
                           MenuTypeDto.MenuOption,
                           "icon",
                           option.label(),
+                          option.component() != null
+                              ? mapComponentToDto(
+                                  null, option.component(), baseUrl, route, httpRequest)
+                              : null,
                           new GoToRouteDto("", option.path(), ""),
                           List.of(),
                           0,
                           true,
                           isSelected(option, appRoute, selectedRoute),
+                          false,
+                          false,
+                          null,
+                          null,
                           false))
               .toList();
       return menu;

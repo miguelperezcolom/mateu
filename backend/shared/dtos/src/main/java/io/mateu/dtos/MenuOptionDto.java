@@ -10,11 +10,16 @@ public record MenuOptionDto(
     MenuTypeDto type,
     String icon,
     String label,
+    ComponentDto component,
     GoToRouteDto destination,
     List<MenuOptionDto> submenus,
     @JsonIgnore int order,
     boolean visible,
     boolean selected,
+    boolean disabled,
+    boolean disabledOnClick,
+    String className,
+    Object itemData,
     boolean separator) {
 
   public MenuOptionDto {

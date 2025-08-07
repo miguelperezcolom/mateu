@@ -6,5 +6,6 @@ export default interface ContextMenu extends ComponentMetadata {
 
     menu: MenuOption[]
     wrapped: Component
+    activateOnLeftClick: boolean
 
 }

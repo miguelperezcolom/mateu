@@ -22,27 +22,41 @@ public class ContextMenuComponentToDtoMapper {
       ContextMenu contextMenu, String baseUrl, String route, HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new ContextMenuDto(
-            buildMenu(contextMenu.menu()),
-            mapComponentToDto(null, contextMenu.wrapped(), baseUrl, route, httpRequest)),
+            buildMenu(contextMenu.menu(), baseUrl, route, httpRequest),
+            mapComponentToDto(null, contextMenu.wrapped(), baseUrl, route, httpRequest),
+            contextMenu.activateOnLeftClick()),
         "fieldId",
         List.of(),
         contextMenu.style(),
         contextMenu.cssClasses());
   }
 
-  protected static List<MenuOptionDto> buildMenu(List<Actionable> menu) {
+  protected static List<MenuOptionDto> buildMenu(
+      List<Actionable> menu, String baseUrl, String route, HttpRequest httpRequest) {
     return menu.stream()
         .map(
             option ->
                 MenuOptionDto.builder()
                     .label(option.label())
+                    .component(
+                        option.component() != null
+                            ? mapComponentToDto(
+                                null, option.component(), baseUrl, route, httpRequest)
+                            : null)
                     .destination(
                         option instanceof RouteLink || option instanceof ContentLink
                             ? new GoToRouteDto("", getPath(option), null)
                             : null)
                     .visible(true)
+                    .selected(option.selected())
+                    .disabled(option.disabled())
+                    .disabledOnClick(option.disabledOnClick())
+                    .className(option.className())
+                    .itemData(option.itemData())
                     .submenus(
-                        option instanceof Menu asMenu ? buildMenu(asMenu.submenu()) : List.of())
+                        option instanceof Menu asMenu
+                            ? buildMenu(asMenu.submenu(), baseUrl, route, httpRequest)
+                            : List.of())
                     .separator(option instanceof MenuSeparator)
                     .build())
         .toList();

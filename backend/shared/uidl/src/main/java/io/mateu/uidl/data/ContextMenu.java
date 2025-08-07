@@ -6,5 +6,10 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record ContextMenu(List<Actionable> menu, Component wrapped, String style, String cssClasses)
+public record ContextMenu(
+    List<Actionable> menu,
+    Component wrapped,
+    boolean activateOnLeftClick,
+    String style,
+    String cssClasses)
     implements Component {}

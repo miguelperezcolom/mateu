@@ -260,7 +260,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return customFieldRenderer(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.MenuBar) {
-            return renderMenuBar(component)
+            return renderMenuBar(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Grid) {
             return renderGrid(component, state)
