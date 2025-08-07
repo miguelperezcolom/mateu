@@ -22680,10 +22680,18 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
 >
   ${(U=component.children)==null?void 0:U.map(D=>renderComponent(D,baseUrl,state,data))}
 </vaadin-confirm-dialog>
-            `},renderCookieConsent=U=>(U.metadata,x`
+            `},renderCookieConsent=U=>{const D=U.metadata;return x`
         <vaadin-cookie-consent style="${U.style}" class="${U.cssClasses}"
-                               slot="${U.slot??E}"></vaadin-cookie-consent>
-    `),renderDetails=(U,D,O,F)=>{const W=U.metadata;return x`
+                               slot="${U.slot??E}"
+                               position="${D.position??E}"
+                               cookie-name="${D.cookieName??E}"
+                               .message="${D.message??E}"
+                               theme="${D.theme??E}"
+                               .learnMore="${D.learnMore??E}"
+                               .learnMoreLink="${D.learnMoreLink??E}"
+                               .dismiss="${D.dismiss??E}"
+        ></vaadin-cookie-consent>
+    `},renderDetails=(U,D,O,F)=>{const W=U.metadata;return x`
         <vaadin-details summary="${W.title}" opened style="${U.style}" class="${U.cssClasses}"
                         slot="${U.slot??E}">
             ${renderComponent(W.content,D,O,F)}
