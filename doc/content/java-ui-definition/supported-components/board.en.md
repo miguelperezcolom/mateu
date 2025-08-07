@@ -5,7 +5,7 @@ weight: 100
 
 
 
-A split layout layouts children horizontally or vertically, and shows a splitter the user can drag.
+A board layout supports colspan.
 
 <div style="display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 30px;">
   <mateu-component id="componente" style="width: unset;"></mateu-component>
@@ -119,23 +119,23 @@ A split layout layouts children horizontally or vertically, and shows a splitter
 
 
 
-                    BoardLayout.builder()
-                                .rows(List.of(
-                                        BoardLayoutRow.builder()
-                                                .content(List.of(
-                                                        buildPanel(),
-                                                        buildPanel(),
-                                                        buildPanel()
-                                                ))
-                                                .build(),
-                                        BoardLayoutRow.builder()
-                                                .content(List.of(
-                                                                new BoardLayoutItem(buildPanel(), 1),
-                                                        new BoardLayoutItem(buildPanel(), 2)
-                                                ))
-                                                .build()
-                                    ))
-                                .build("width: 50rem;")
+    BoardLayout.builder()
+                .rows(List.of(
+                        BoardLayoutRow.builder()
+                                .content(List.of(
+                                        buildPanel(),
+                                        buildPanel(),
+                                        buildPanel()
+                                ))
+                                .build(),
+                        BoardLayoutRow.builder()
+                                .content(List.of(
+                                        new BoardLayoutItem(buildPanel(), 1),
+                                        new BoardLayoutItem(buildPanel(), 2)
+                                ))
+                                .build()
+                    ))
+                .build("width: 50rem;")
 
 ```
 
