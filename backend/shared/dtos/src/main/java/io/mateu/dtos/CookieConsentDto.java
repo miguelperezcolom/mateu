@@ -1,4 +1,15 @@
 package io.mateu.dtos;
 
+import lombok.Builder;
+
 /** Metadata for a html element */
-public record CookieConsentDto() implements ComponentMetadataDto {}
+@Builder
+public record CookieConsentDto(
+    CookieConsentPositionDto position,
+    String cookieName,
+    String message,
+    String theme,
+    String learnMore,
+    String learnMoreLink,
+    String dismiss)
+    implements ComponentMetadataDto {}
