@@ -11,6 +11,7 @@ import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Map;
 record CrudData(Page<?> page) {}
 
 @Route("/fluent-app/crudls/basic")
+@Slf4j
 public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions {
 
     CrudData crud = new CrudData(new Page<Object>(0, 0, List.of()));
@@ -57,12 +59,15 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions
 
     @Override
     public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-        System.out.println("received action: " + actionId);
+        log.info("received action: " + actionId);
 
-        this.crud = new CrudData(new Page<Object>(1, 2, List.of(
-                Map.of("name", "Mateu", "age", 17),
-                Map.of("name", "Antonia", "age", 49)
-        )));
+        this.crud = new CrudData(new Page<Object>(
+                1,
+                2,
+                List.of(
+                        Map.of("name", "Mateu", "age", 17),
+                        Map.of("name", "Antonia", "age", 49)
+                )));
 
         return Mono.just(new State(this));
     }
