@@ -5,6 +5,6 @@ export default interface Table extends ComponentMetadata {
 
     columns: Column[]
     rows: number | undefined
-
-
+    emptyStateMessage: string
+    
 }

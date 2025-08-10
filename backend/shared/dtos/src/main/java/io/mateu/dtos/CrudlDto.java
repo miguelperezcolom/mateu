@@ -30,7 +30,10 @@ public record CrudlDto(
     List<ActionDto> actions,
     List<TriggerDto> triggers,
     List<ButtonDto> toolbar,
-    boolean child)
+    boolean child,
+    String emptyStateMessage,
+    boolean searchOnEnter,
+    boolean autoFocusOnSearchText)
     implements ComponentMetadataDto {
 
   public CrudlDto {

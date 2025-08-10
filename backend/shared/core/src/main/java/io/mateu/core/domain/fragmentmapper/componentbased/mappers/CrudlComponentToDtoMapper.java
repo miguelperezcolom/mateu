@@ -56,6 +56,9 @@ public class CrudlComponentToDtoMapper {
                                 .placeholder(filter.placeholder())
                                 .build())
                     .toList())
+            .emptyStateMessage(crudl.emptyStateMessage())
+            .autoFocusOnSearchText(crudl.autoFocusOnSearchText())
+            .searchOnEnter(crudl.searchOnEnter())
             .build();
     return new ClientSideComponentDto(
         crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses());

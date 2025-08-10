@@ -92,7 +92,7 @@ public class WithGridForm1 implements ComponentTreeSupplier, ReactiveHandlesActi
                                                                         new GridColumn("name", "Name"),
                                                                         new GridColumn("age", "Age")
                                                                 ))
-                                                                .page(new Page<Object>(1, people.size(), Arrays.asList(people.toArray())))
+                                                                .page(new Page<Object>(10, 1, people.size(), Arrays.asList(people.toArray())))
                                                                 .build()))
                                         .build()))
                 .footer(List.of()) // will be placed in footer, between left and right side buttons

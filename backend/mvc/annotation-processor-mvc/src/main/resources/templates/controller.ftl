@@ -36,7 +36,7 @@ public class ${simpleClassName}MateuController {
             @RequestBody GetUIRqDto rq,
             HttpServletRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
-        new SpringHttpRequest(serverHttpRequest));
+        new SpringHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
     }
 
     @PostMapping("v3/{ignored}")
@@ -45,7 +45,7 @@ public class ${simpleClassName}MateuController {
         @RequestBody RunActionRqDto rq,
         HttpServletRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,
-        new SpringHttpRequest(serverHttpRequest));
+        new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
     }
 
 }

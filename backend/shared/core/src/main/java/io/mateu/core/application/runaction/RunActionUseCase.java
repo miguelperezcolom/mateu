@@ -52,7 +52,11 @@ public class RunActionUseCase {
                         command.consumedRoute(),
                         command.route(),
                         command.httpRequest())
-                    .run(instance, command.actionId(), command.data(), command.httpRequest()))
+                    .run(
+                        instance,
+                        command.actionId(),
+                        command.componentState(),
+                        command.httpRequest()))
         .flatMap(
             result ->
                 uiIncrementMapperProvider
@@ -119,10 +123,10 @@ public class RunActionUseCase {
           instanceFactory,
           command.route(),
           command.consumedRoute(),
-          command.data(),
+          command.componentState(),
           command.httpRequest());
     }
-    return tryWithApp(command.route(), command.data(), command.httpRequest());
+    return tryWithApp(command.route(), command.componentState(), command.httpRequest());
   }
 
   private Mono<?> resolveRoute(

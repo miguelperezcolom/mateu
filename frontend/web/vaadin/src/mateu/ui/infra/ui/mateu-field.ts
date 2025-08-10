@@ -96,6 +96,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-select>
                 `
             }
@@ -109,6 +110,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-combo-box>
                     `
             }
@@ -116,6 +118,7 @@ export class MateuField extends LitElement {
                 return html`aaa
                     <vaadin-list-box ?selected="${this.selectedIndex()}"
                                      @value-changed="${this.listItemSelected}"
+                                     ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(option => html`
                             <vaadin-item>${option.label}</vaadin-item>
@@ -129,7 +132,9 @@ export class MateuField extends LitElement {
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
-                            theme="vertical">
+                            theme="vertical"
+                            ?autofocus="${this.field.wantsFocus}"
+                    >
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
                         `)}
@@ -144,6 +149,7 @@ export class MateuField extends LitElement {
                             .value="${value}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-rich-text-editor>`
             }
             if (this.field?.stereotype == 'textarea') {
@@ -154,6 +160,7 @@ export class MateuField extends LitElement {
                             .value="${value}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-text-area>`
             }
             if (this.field?.stereotype == 'email') {
@@ -163,6 +170,7 @@ export class MateuField extends LitElement {
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-email-field>
                 `
             }
@@ -173,6 +181,7 @@ export class MateuField extends LitElement {
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-password-field>
                 `
             }
@@ -182,6 +191,7 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
+                        ?autofocus="${this.field.wantsFocus}"
                 ></vaadin-text-field>
 `
         }
@@ -191,7 +201,8 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                ></vaadin-number-field>`
+                        ?autofocus="${this.field.wantsFocus}"
+            ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
             return html`
@@ -200,6 +211,7 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
+                        ?autofocus="${this.field.wantsFocus}"
                 ></vaadin-integer-field>
             `
         }
@@ -210,6 +222,7 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
+                        ?autofocus="${this.field.wantsFocus}"
                 ></vaadin-checkbox>
             `
         }
@@ -219,7 +232,8 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                ></vaadin-date-picker>`
+                        ?autofocus="${this.field.wantsFocus}"
+            ></vaadin-date-picker>`
         }
         if (this.field?.dataType == 'dateTime') {
             return html`<vaadin-date-time-picker
@@ -227,7 +241,8 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                ></vaadin-date-time-picker>`
+                        ?autofocus="${this.field.wantsFocus}"
+            ></vaadin-date-time-picker>`
         }
         if (this.field?.dataType == 'time') {
             return html`<vaadin-time-picker
@@ -235,13 +250,15 @@ export class MateuField extends LitElement {
                         label="${this.field.label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                ></vaadin-time-picker>`
+                        ?autofocus="${this.field.wantsFocus}"
+            ></vaadin-time-picker>`
         }
         if (this.field?.dataType == 'array') {
             if (this.field?.stereotype == 'listBox') {
                 return html`aaa
                     <vaadin-list-box multiple ?selected="${this.selectedIndex()}"
                                      @value-changed="${this.listItemSelected}"
+                                     ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(option => html`
                             <vaadin-item>${option.label}</vaadin-item>
@@ -259,6 +276,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-multi-select-combo-box>
                     `
             }
@@ -269,6 +287,7 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         theme="vertical"
+                        ?autofocus="${this.field.wantsFocus}"
                 >
                     ${this.field.options?.map(option => html`
                         <vaadin-checkbox value="${option.value}" label="${option.label}"></vaadin-checkbox>
@@ -287,6 +306,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-combo-box>
                     `
             }
@@ -294,6 +314,7 @@ export class MateuField extends LitElement {
                 return html`aaa
                     <vaadin-list-box ?selected="${this.selectedIndex()}"
                                      @value-changed="${this.listItemSelected}"
+                                     ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(option => html`
                             <vaadin-item>${option.label}</vaadin-item>
@@ -307,6 +328,7 @@ export class MateuField extends LitElement {
                             label="${this.field.label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
+                            ?autofocus="${this.field.wantsFocus}"
                             theme="vertical">
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>

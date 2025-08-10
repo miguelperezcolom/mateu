@@ -24,7 +24,7 @@ public class TreeGridComponentPage implements ComponentTreeSupplier {
                                         new GridColumn("name", "Name"),
                                         new GridColumn("age", "Age")
                                 ))
-                                .page(new Page<>(1, 2, List.of(
+                                .page(new Page<>(10, 1, 2, List.of(
                                                 Map.of("id", "1000", "name", "VIP", "children", List.of(
                                                         Map.of("id", "1", "name", "Mateu", "age", "17"),
                                                         Map.of("id", "2", "name", "Antònia", "age", "49")

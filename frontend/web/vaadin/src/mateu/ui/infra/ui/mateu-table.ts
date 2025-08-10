@@ -24,6 +24,9 @@ export class MateuTable extends LitElement {
     @property()
     data: Record<string, any> = {}
 
+    @property()
+    emptyStateMessage?: string
+
     render() {
         return html`
             <vaadin-grid
@@ -32,9 +35,12 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.columns?.map(column => html`
                     <vaadin-grid-column
                             path="${column.id}" 
-                            header="${column.header}"></vaadin-grid-column>
+                            header="${column.header}"
+                            align="${column.align}"
+                            
+                    ></vaadin-grid-column>
                 `)}
-                <span slot="empty-state">No items found.</span>
+                <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No data.'}</span>
             </vaadin-grid>
             <slot></slot>
        `

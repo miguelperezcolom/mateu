@@ -1,7 +1,9 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Column;
+import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
@@ -17,13 +19,27 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
-record CrudData(Page<?> page) {}
-
 @Route("/fluent-app/crudls/basic")
 @Slf4j
 public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions {
 
-    CrudData crud = new CrudData(new Page<Object>(0, 0, List.of()));
+    @JsonIgnore
+    CrudlData crud = new CrudlData(new Page<Object>(10, 0, 0, List.of()));
+
+    @JsonIgnore
+    List<Map<String, Object>> allItems = List.of(
+            Map.of("name", "Mateu", "age", 17),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49),
+            Map.of("name", "Antonia", "age", 49)
+    );
 
     @Override
     public Crudl getComponent(HttpRequest httpRequest) {
@@ -49,6 +65,7 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions
                                 .label("Age")
                                 .build()
                 ))
+                .emptyStateMessage("Please search.")
                 .build();
     }
 
@@ -61,14 +78,24 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions
     public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
         log.info("received action: " + actionId);
 
-        this.crud = new CrudData(new Page<Object>(
-                1,
-                2,
-                List.of(
-                        Map.of("name", "Mateu", "age", 17),
-                        Map.of("name", "Antonia", "age", 49)
-                )));
+        var searchText = httpRequest.getString("searchText");
+        var age = httpRequest.getInt("age");
 
-        return Mono.just(new State(this));
+        var cruddata = new CrudlData(new Page<>(
+                5,
+                0,
+                allItems.size(),
+                allItems.stream()
+                        .filter(item -> (searchText.isEmpty()
+                                || ((String) item.getOrDefault("name", ""))
+                                .toLowerCase()
+                                .contains(searchText))
+                                &&
+                                (age == 0 || ((int)item.getOrDefault("age", -1)) == age))
+                        .skip(0).limit(5).toList()
+                ),
+                "No items found. Please try again.");
+
+        return Mono.just(new Data(Map.of("crud", cruddata)));
     }
 }

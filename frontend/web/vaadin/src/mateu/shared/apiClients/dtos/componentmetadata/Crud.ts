@@ -14,5 +14,7 @@ export default interface Crud extends ComponentMetadata {
     actions: Action[]
     pageSize: number,
     clientSidePagination: boolean
+    searchOnEnter: boolean
+    autoFocusOnSearchText: boolean
 
 }

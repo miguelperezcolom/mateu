@@ -19,8 +19,20 @@ public record Crudl(
     boolean searchable,
     List<FormField> filters,
     String style,
-    String cssClasses)
+    String cssClasses,
+    String emptyStateMessage,
+    Boolean searchOnEnter,
+    Boolean autoFocusOnSearchText)
     implements Component {
+
+  public Boolean autoFocusOnSearchText() {
+    return autoFocusOnSearchText != null ? autoFocusOnSearchText : true;
+  }
+
+  @Override
+  public Boolean searchOnEnter() {
+    return searchOnEnter != null ? searchOnEnter : true;
+  }
 
   @Override
   public List<Action> actions() {

@@ -10,4 +10,14 @@ public class SpringHttpRequest implements HttpRequest {
   public SpringHttpRequest(HttpServletRequest delegate) {
     this.delegate = delegate;
   }
+
+  @Override
+  public Object getAttribute(String key) {
+    return delegate.getAttribute(key);
+  }
+
+  @Override
+  public void setAttribute(String key, Object value) {
+    delegate.setAttribute(key, value);
+  }
 }

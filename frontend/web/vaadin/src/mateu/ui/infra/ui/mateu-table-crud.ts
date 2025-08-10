@@ -27,7 +27,10 @@ export class MateuTableCrud extends LitElement {
     component: ClientSideComponent | undefined = undefined
 
     @property()
-    values: Record<string, any> = {}
+    state: Record<string, any> = {}
+
+    @property()
+    data: Record<string, any> = {}
 
     search = () => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -50,7 +53,7 @@ export class MateuTableCrud extends LitElement {
     }
 
     pageChanged(e: CustomEvent) {
-        this.values.page.page = e.detail.page;
+        this.state.page.page = e.detail.page;
         this.handleSearchRequested()
     }
 
@@ -80,17 +83,25 @@ export class MateuTableCrud extends LitElement {
             >
             </mateu-filter-bar>
             ${metadata?.type == ComponentMetadataType.TableCrud?html`
-                <mateu-table id="${this.component?.id}.page" .metadata="${metadata}" .data="${this.values[this.component?.id!]}"></mateu-table>
+                <mateu-table id="${this.component?.id}.page" 
+                             .metadata="${metadata}" 
+                             .data="${this.data[this.component?.id!]}"
+                             .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
+                ></mateu-table>
             `:html`
-                <mateu-card id="${this.component?.id}.page" .metadata="${metadata}" .data="${this.values[this.component?.id!]}"></mateu-card>
+                <mateu-card id="${this.component?.id}.page" 
+                            .metadata="${metadata}" 
+                            .data="${this.data[this.component?.id!]}"
+                            .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
+                ></mateu-card>
             `}
             <slot></slot>
             <mateu-pagination
                     @page-changed="${this.pageChanged}"
-                    totalElements="${this.values[this.component?.id!]?.page?.totalElements}"
-                    pageSize="${this.values[this.component?.id!]?.page?.pageSize}"
+                    totalElements="${this.data[this.component?.id!]?.page?.totalElements}"
+                    pageSize="${this.data[this.component?.id!]?.page?.pageSize}"
                     data-testid="pagination"
-                    pageNumber=${this.values[this.component?.id!]?.page?.pageNumber}
+                    pageNumber=${this.data[this.component?.id!]?.page?.pageNumber}
             ></mateu-pagination>
        `
     }

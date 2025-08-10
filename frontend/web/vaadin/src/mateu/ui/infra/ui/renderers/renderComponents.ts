@@ -126,7 +126,8 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             id="${component.id}"
                             baseUrl="${baseUrl}"
                             .component="${component}"
-                            .values="${state}"
+                            .state="${state}"
+                            .data="${data}"
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
@@ -138,7 +139,8 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             id="${component.id}"
                             baseUrl="${baseUrl}"
                             .metadata="${component.metadata}"
-                            .data="${state}"
+                            .state="${state}"
+                            .data="${data}"
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >

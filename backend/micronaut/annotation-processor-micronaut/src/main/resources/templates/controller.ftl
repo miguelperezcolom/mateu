@@ -39,7 +39,7 @@ public class ${simpleClassName}MateuController {
         @Body GetUIRqDto rq,
         HttpRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
-        new MicronautHttpRequest(serverHttpRequest));
+        new MicronautHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
     }
 
     @Post("v3/{/ignored:.*}")
@@ -48,7 +48,7 @@ public class ${simpleClassName}MateuController {
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,
-        new MicronautHttpRequest(serverHttpRequest));
+        new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
     }
 
 }

@@ -11,23 +11,22 @@ public record RunActionCommand(
     String consumedRoute,
     String actionId,
     String componentType,
-    Map<String, Object> data,
-    Map<String, Object> appData,
+    Map<String, Object> componentState,
+    Map<String, Object> appState,
     String initiatorComponentId,
     HttpRequest httpRequest) {
 
   public RunActionCommand {
-    data = data != null ? Collections.unmodifiableMap(data) : Map.of();
-    appData = appData != null ? Collections.unmodifiableMap(appData) : Map.of();
+    componentState =
+        componentState != null ? Collections.unmodifiableMap(componentState) : Map.of();
+    appState = appState != null ? Collections.unmodifiableMap(appState) : Map.of();
   }
 
-  @Override
-  public Map<String, Object> data() {
-    return Collections.unmodifiableMap(data);
+  public Map<String, Object> componentState() {
+    return Collections.unmodifiableMap(componentState);
   }
 
-  @Override
-  public Map<String, Object> appData() {
-    return Collections.unmodifiableMap(appData);
+  public Map<String, Object> appState() {
+    return Collections.unmodifiableMap(appState);
   }
 }

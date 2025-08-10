@@ -33,7 +33,7 @@ public class ${simpleClassName}MateuController {
         GetUIRqDto rq,
     HttpServerRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
-        new QuarkusHttpRequest(serverHttpRequest)).block();
+        new QuarkusHttpRequest(serverHttpRequest).storeGetUIRqDto(rq)).block();
     }
 
     @Path("v3/{ignored:.*}")
@@ -43,7 +43,7 @@ public class ${simpleClassName}MateuController {
         RunActionRqDto rq,
         HttpServerRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,
-        new QuarkusHttpRequest(serverHttpRequest)).block();
+        new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).block();
     }
 
 }

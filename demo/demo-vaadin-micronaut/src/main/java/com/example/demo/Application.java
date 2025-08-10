@@ -24,6 +24,7 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.declarative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.imperative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui")
+@SerdeImport(packageName = "io.mateu.uidl.data")
 @Import(packages = {
         "io.mateu",
         "io.mateu.core.application",
