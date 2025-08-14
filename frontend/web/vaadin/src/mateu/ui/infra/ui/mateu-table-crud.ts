@@ -107,6 +107,8 @@ export class MateuTableCrud extends LitElement {
             <mateu-filter-bar 
                     .metadata="${metadata}"
                     @search-requested="${this.search}"
+                    .state="${this.state}"
+                    .data="${this.data}"
             >
             </mateu-filter-bar>
             ${metadata?.type == ComponentMetadataType.TableCrud?html`

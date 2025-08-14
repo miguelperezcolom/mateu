@@ -32,6 +32,9 @@ export class MateuField extends LitElement {
     field: FormField | undefined = undefined
 
     @property()
+    state: any | undefined = undefined
+
+    @property()
     data: any | undefined = undefined
 
 
@@ -78,7 +81,8 @@ export class MateuField extends LitElement {
     }
 
     render() {
-        const value = this.data && this.data[this.id]?this.data[this.id]:this.field?.initialValue
+        const fieldId = this.field?.fieldId??''
+        const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
         if (this.field?.dataType == 'file') {
             return html`
                 <vaadin-upload

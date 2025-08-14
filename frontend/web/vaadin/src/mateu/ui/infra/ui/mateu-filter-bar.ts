@@ -37,6 +37,20 @@ export class MateuFilterBar extends LitElement {
     @state()
     filtersOpened = false
 
+    clickedOnClearFilters = () => {
+        this.metadata?.filters.forEach(filter => {
+            this.dispatchEvent(new CustomEvent('value-changed', {
+                detail: {
+                    value: undefined,
+                    //@ts-ignore
+                    fieldId: filter.fieldId
+                },
+                bubbles: true,
+                composed: true
+            }))
+        })
+        this.handleButtonClick()
+    }
     clickedOnFilters = () => {
         this.filtersOpened = true
     }
@@ -104,6 +118,7 @@ export class MateuFilterBar extends LitElement {
                     ></vaadin-text-field>
                     ${this.metadata.filters?html`
                         <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
+                        <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
                     `:nothing}
                     <vaadin-button 
                             @click="${this.handleButtonClick}"

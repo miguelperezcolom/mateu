@@ -39,8 +39,8 @@ const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
 }
 
 const renderColumn = (column: GridColumn) => {
-    return html`
-                    ${column.sortable?html`
+    if (column.sortable) {
+        return html`
                         <vaadin-grid-sort-column
                                 path="${column.id}"
                                 header="${column.label}"
@@ -54,8 +54,9 @@ const renderColumn = (column: GridColumn) => {
                                 @direction-changed="${directionChanged}"
                                 
                         ></vaadin-grid-sort-column>
-                    `:nothing}
-                    ${column.filterable?html`
+                    `
+    } else if (column.filterable) {
+        return html`
                         <vaadin-grid-filter-column
                                 path="${column.id}"
                                 header="${column.label}"
@@ -67,8 +68,9 @@ const renderColumn = (column: GridColumn) => {
                                 ?resizable="${column.resizable}"
                                 width="${column.width??nothing}"
                         ></vaadin-grid-filter-column>
-                    `:nothing}
-                    ${column.sortable || column.filterable?nothing:html`
+                    `
+    } else {
+        return html`
                         <vaadin-grid-column
                                 path="${column.id}"
                                 header="${column.label}"
@@ -80,8 +82,8 @@ const renderColumn = (column: GridColumn) => {
                                 ?resizable="${column.resizable}"
                                 width="${column.width??nothing}"
                         ></vaadin-grid-column>
-                    `}
-                `
+                    `
+    }
 }
 
 const renderGroup = (group: GridGroupColumn) => {
@@ -112,8 +114,8 @@ export class MateuTable extends LitElement {
     @property()
     emptyStateMessage?: string
 
+    // @ts-ignore
     dataProvider:GridDataProvider<unknown> = (params, callback) => {
-        console.log('data provider', params)
         callback(this.data?.page?.content??[], this.data?.page?.content?.length??0);
     }
 

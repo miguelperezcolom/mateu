@@ -172,7 +172,8 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return html`<mateu-field
                        id="${component.id}"
                 .field="${component.metadata}"
-                       .data="${state}"
+                       .state="${state}"
+                       .data="${data}"
                        style="${component.style}" class="${component.cssClasses}"
                        slot="${component.slot??nothing}"
                 >

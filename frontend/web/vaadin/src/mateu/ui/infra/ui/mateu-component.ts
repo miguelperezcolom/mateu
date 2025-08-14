@@ -93,7 +93,9 @@ export class MateuComponent extends ComponentElement {
                 fieldId: string
             }
             if (e.type == 'value-changed') {
-                this.state[detail.fieldId] = detail.value
+                const newState = {...this.state}
+                newState[detail.fieldId] = detail.value
+                this.state = newState
             }
         }
     }

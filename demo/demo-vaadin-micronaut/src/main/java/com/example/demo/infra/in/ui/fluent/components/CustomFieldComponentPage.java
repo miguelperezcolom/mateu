@@ -21,17 +21,17 @@ public class CustomFieldComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         CustomField.builder()
                                 .label("Custom field")
-                                .content(new HorizontalLayout(List.of(
+                                .content(HorizontalLayout.builder().content(List.of(
                                         FormField.builder()
                                                 .id("name")
                                                 .dataType(FieldDataType.string)
                                                 .build(),
                                         FormField.builder()
-                                                .id("password")
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.password)
+                                                .id("birthDate")
+                                                .dataType(FieldDataType.date)
                                                 .build()
-                                )))
+                                )).spacing(true)
+                                        .build())
                                 .build()
                 ))
                 .build();

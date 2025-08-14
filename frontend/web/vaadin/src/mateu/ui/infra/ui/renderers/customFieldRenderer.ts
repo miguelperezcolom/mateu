@@ -8,7 +8,8 @@ export const customFieldRenderer = (component: ClientSideComponent, baseUrl: str
 
     return html`
         <vaadin-custom-field label="${metadata.label}"
-                             style="${component.style}" class="${component.cssClasses}"
+                             style="${component.style}" 
+                             class="${component.cssClasses}"
                              slot="${component.slot??nothing}">
             ${renderComponent(metadata.content, baseUrl, state, data)}
         </vaadin-custom-field>
