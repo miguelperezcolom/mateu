@@ -22,11 +22,11 @@ public class DetailsComponentPage implements ComponentTreeSupplier {
                                 .summary(new Text("Invoices"))
                                 .content(VerticalLayout.builder()
                                         .content(List.of(
-                                                new Anchor("Pending", ""),
-                                                new Anchor("Sent", ""),
-                                                new Anchor("Received", "")
+                                                new Text("There are 1000 pending invoices."),
+                                                new Text("For a total of 34.213,01 Euros"),
+                                                new Anchor("Go wherever", "")
                                         ))
-                                        .padding(true)
+                                        .spacing(true)
                                         .build())
                                 .opened(false)
                                 .build()

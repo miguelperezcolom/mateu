@@ -31,8 +31,18 @@ Collapsible content with a summary.
         {
           "type": "ClientSide",
           "metadata": {
-            "type": "Anchor",
-            "text": "Pending"
+            "type": "Text",
+            "container": "div",
+            "text": "There are 1000 pending invoices."
+          },
+          "id": "fieldId"
+        },
+        {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "text": "For a total of 34.213,01 Euros"
           },
           "id": "fieldId"
         },
@@ -40,23 +50,15 @@ Collapsible content with a summary.
           "type": "ClientSide",
           "metadata": {
             "type": "Anchor",
-            "text": "Sent"
-          },
-          "id": "fieldId"
-        },
-        {
-          "type": "ClientSide",
-          "metadata": {
-            "type": "Anchor",
-            "text": "Received"
+            "text": "Go wherever"
           },
           "id": "fieldId"
         }
       ],
       "metadata": {
         "type": "VerticalLayout",
-        "spacing": false,
-        "padding": true,
+        "spacing": true,
+        "padding": false,
         "margin": false,
         "wrap": false,
         "fullWidth": false
@@ -81,11 +83,11 @@ Collapsible content with a summary.
         .summary(new Text("Invoices"))
         .content(VerticalLayout.builder()
                 .content(List.of(
-                        new Anchor("Pending", ""),
-                        new Anchor("Sent", ""),
-                        new Anchor("Received", "")
+                        new Text("There are 1000 pending invoices."),
+                        new Text("For a total of 34.213,01 Euros"),
+                        new Anchor("Go wherever", "")
                 ))
-                .padding(true)
+                .spacing(true)
                 .build())
         .opened(false)
         .build()
@@ -118,7 +120,7 @@ This is the list of available properties for a details component:
 
 
 
-You can see a full explanation of those properties at https://vaadin.com/docs/latest/components/custom-field
+You can see a full explanation of those properties at https://vaadin.com/docs/latest/components/details
 
 
 
