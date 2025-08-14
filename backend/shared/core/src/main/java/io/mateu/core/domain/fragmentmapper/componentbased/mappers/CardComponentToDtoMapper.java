@@ -33,6 +33,7 @@ public class CardComponentToDtoMapper {
         "fieldId",
         List.of(),
         card.style(),
-        card.cssClasses());
+        card.cssClasses(),
+        null);
   }
 }

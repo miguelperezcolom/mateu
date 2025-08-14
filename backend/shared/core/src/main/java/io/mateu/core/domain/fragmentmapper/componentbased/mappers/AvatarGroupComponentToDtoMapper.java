@@ -18,6 +18,7 @@ public class AvatarGroupComponentToDtoMapper {
         "fieldId",
         List.of(),
         avatarGroup.style(),
-        avatarGroup.cssClasses());
+        avatarGroup.cssClasses(),
+        null);
   }
 }

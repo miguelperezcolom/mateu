@@ -25,6 +25,7 @@ public class CookieConsentComponentToDtoMapper {
         "fieldId",
         List.of(),
         cookieConsent.style(),
-        cookieConsent.cssClasses());
+        cookieConsent.cssClasses(),
+        null);
   }
 }

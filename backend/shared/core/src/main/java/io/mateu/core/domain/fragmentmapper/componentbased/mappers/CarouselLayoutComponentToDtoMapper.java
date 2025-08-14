@@ -39,6 +39,7 @@ public class CarouselLayoutComponentToDtoMapper {
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
             .toList(),
         carouselLayout.style(),
-        carouselLayout.cssClasses());
+        carouselLayout.cssClasses(),
+        null);
   }
 }

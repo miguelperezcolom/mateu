@@ -18,6 +18,7 @@ public class FullWidthComponentToDtoMapper {
         null,
         List.of(mapComponentToDto(null, fullWidth.content(), baseUrl, route, httpRequest)),
         fullWidth.style(),
-        fullWidth.cssClasses());
+        fullWidth.cssClasses(),
+        null);
   }
 }

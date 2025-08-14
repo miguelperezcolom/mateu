@@ -14,6 +14,7 @@ public class MicroFrontendComponentToDtoMapper {
         "fieldId",
         List.of(),
         microFrontend.style(),
-        microFrontend.cssClasses());
+        microFrontend.cssClasses(),
+        null);
   }
 }

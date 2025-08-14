@@ -326,6 +326,7 @@ public final class ComponentToFragmentDtoMapper {
         "fieldId",
         List.of(),
         component.style(),
-        component.cssClasses());
+        component.cssClasses(),
+        null);
   }
 }

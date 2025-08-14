@@ -25,6 +25,7 @@ public class BoardLayoutItemComponentToDtoMapper {
                             null, boardLayoutItem.content(), baseUrl, route, httpRequest)))
             .orElse(List.of()),
         boardLayoutItem.style(),
-        boardLayoutItem.cssClasses());
+        boardLayoutItem.cssClasses(),
+        null);
   }
 }

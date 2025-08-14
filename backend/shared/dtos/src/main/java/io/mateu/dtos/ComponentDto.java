@@ -22,4 +22,6 @@ public interface ComponentDto {
   String cssClasses();
 
   ComponentDto setStyle(String s);
+
+  ComponentDto setSlot(String s);
 }

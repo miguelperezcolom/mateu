@@ -13,6 +13,7 @@ public class MapComponentToDtoMapper {
         "fieldId",
         List.of(),
         map.style(),
-        map.cssClasses());
+        map.cssClasses(),
+        null);
   }
 }

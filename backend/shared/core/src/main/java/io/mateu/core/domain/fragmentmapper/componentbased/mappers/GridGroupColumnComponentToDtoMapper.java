@@ -21,7 +21,8 @@ public class GridGroupColumnComponentToDtoMapper {
         gridGroupColumn.id(),
         List.of(),
         gridGroupColumn.style(),
-        gridGroupColumn.cssClasses());
+        gridGroupColumn.cssClasses(),
+        null);
   }
 
   private static DataPageDto gatePage(Grid grid) {

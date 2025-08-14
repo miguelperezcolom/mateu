@@ -23,6 +23,7 @@ public class MasterDetailLayoutComponentToDtoMapper {
             mapComponentToDto(null, masterDetailLayout.master(), baseUrl, route, httpRequest),
             mapComponentToDto(null, masterDetailLayout.detail(), baseUrl, route, httpRequest)),
         masterDetailLayout.style(),
-        masterDetailLayout.cssClasses());
+        masterDetailLayout.cssClasses(),
+        null);
   }
 }

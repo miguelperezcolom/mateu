@@ -7,8 +7,15 @@ export const renderDetails = (component: ClientSideComponent, baseUrl: string | 
     const metadata = component.metadata as Details
 
     return html`
-        <vaadin-details summary="${metadata.title}" opened style="${component.style}" class="${component.cssClasses}"
-                        slot="${component.slot??nothing}">
+        <vaadin-details 
+                ?opened="${metadata.opened}" 
+                style="${component.style}" 
+                class="${component.cssClasses}"
+                slot="${component.slot??nothing}"
+        >
+            <vaadin-details-summary slot="summary">
+            ${renderComponent(metadata.summary, baseUrl, state, data)}
+            </vaadin-details-summary>
             ${renderComponent(metadata.content, baseUrl, state, data)}
         </vaadin-details>
             `

@@ -11,11 +11,37 @@ public record ServerSideComponentDto(
     String cssClasses,
     List<ActionDto> actions,
     List<TriggerDto> triggers,
-    List<RuleDto> rules)
+    List<RuleDto> rules,
+    String slot)
     implements ComponentDto {
+
   @Override
   public ComponentDto setStyle(String style) {
     return new ServerSideComponentDto(
-        id, serverSideType, children, initialData, style, cssClasses, actions, triggers, rules);
+        id,
+        serverSideType,
+        children,
+        initialData,
+        style,
+        cssClasses,
+        actions,
+        triggers,
+        rules,
+        slot);
+  }
+
+  @Override
+  public ComponentDto setSlot(String slot) {
+    return new ServerSideComponentDto(
+        id,
+        serverSideType,
+        children,
+        initialData,
+        style,
+        cssClasses,
+        actions,
+        triggers,
+        rules,
+        slot);
   }
 }

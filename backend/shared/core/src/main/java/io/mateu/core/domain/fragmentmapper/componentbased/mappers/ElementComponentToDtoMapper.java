@@ -13,6 +13,7 @@ public class ElementComponentToDtoMapper {
         "fieldId",
         List.of(),
         element.style(),
-        element.cssClasses());
+        element.cssClasses(),
+        null);
   }
 }

@@ -13,6 +13,7 @@ public class MarkdownComponentToDtoMapper {
         "fieldId",
         List.of(),
         markdown.style(),
-        markdown.cssClasses());
+        markdown.cssClasses(),
+        null);
   }
 }

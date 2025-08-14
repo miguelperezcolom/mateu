@@ -13,6 +13,7 @@ public class AnchorComponentToDtoMapper {
         "fieldId",
         List.of(),
         anchor.style(),
-        anchor.cssClasses());
+        anchor.cssClasses(),
+        null);
   }
 }

@@ -40,7 +40,8 @@ public class FieldComponentToDtoMapper {
         formField.id(),
         List.of(),
         formField.style(),
-        formField.cssClasses());
+        formField.cssClasses(),
+        null);
   }
 
   private static List<ValidationDto> mapValidations(List<FieldValidation> validations) {

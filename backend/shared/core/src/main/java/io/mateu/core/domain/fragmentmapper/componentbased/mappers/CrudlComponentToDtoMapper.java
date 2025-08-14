@@ -64,6 +64,6 @@ public class CrudlComponentToDtoMapper {
             .pageSize(crudl.pageSize())
             .build();
     return new ClientSideComponentDto(
-        crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses());
+        crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses(), null);
   }
 }

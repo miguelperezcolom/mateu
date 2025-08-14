@@ -19,6 +19,7 @@ public class CustomFieldComponentToDtoMapper {
         "fieldId",
         List.of(),
         customField.style(),
-        customField.cssClasses());
+        customField.cssClasses(),
+        null);
   }
 }

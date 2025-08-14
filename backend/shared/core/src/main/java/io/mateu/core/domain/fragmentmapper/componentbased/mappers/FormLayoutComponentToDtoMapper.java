@@ -32,6 +32,7 @@ public class FormLayoutComponentToDtoMapper {
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
             .toList(),
         formLayout.style(),
-        formLayout.cssClasses());
+        formLayout.cssClasses(),
+        null);
   }
 }

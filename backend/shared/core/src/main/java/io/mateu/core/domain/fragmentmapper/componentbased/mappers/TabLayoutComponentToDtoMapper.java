@@ -31,6 +31,7 @@ public class TabLayoutComponentToDtoMapper {
             .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
             .toList(),
         tabLayout.style(),
-        tabLayout.cssClasses());
+        tabLayout.cssClasses(),
+        null);
   }
 }

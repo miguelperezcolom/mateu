@@ -28,7 +28,8 @@ public class ContextMenuComponentToDtoMapper {
         "fieldId",
         List.of(),
         contextMenu.style(),
-        contextMenu.cssClasses());
+        contextMenu.cssClasses(),
+        null);
   }
 
   protected static List<MenuOptionDto> buildMenu(

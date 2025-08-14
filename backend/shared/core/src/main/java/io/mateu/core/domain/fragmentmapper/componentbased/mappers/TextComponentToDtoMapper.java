@@ -15,6 +15,7 @@ public class TextComponentToDtoMapper {
         "fieldId",
         List.of(),
         text.style(),
-        text.cssClasses());
+        text.cssClasses(),
+        null);
   }
 }

@@ -9,6 +9,11 @@ public class MessageListComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMessageListToDto(MessageList messageList) {
     return new ClientSideComponentDto(
-        new MessageListDto(), "fieldId", List.of(), messageList.style(), messageList.cssClasses());
+        new MessageListDto(),
+        "fieldId",
+        List.of(),
+        messageList.style(),
+        messageList.cssClasses(),
+        null);
   }
 }

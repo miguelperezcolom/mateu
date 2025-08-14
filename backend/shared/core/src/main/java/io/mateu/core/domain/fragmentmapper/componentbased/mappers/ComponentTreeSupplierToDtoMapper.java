@@ -40,7 +40,8 @@ public class ComponentTreeSupplierToDtoMapper {
         componentTreeSupplier.cssClasses(),
         mapActions(componentTreeSupplier),
         mapTriggers(componentTreeSupplier),
-        mapRules(componentTreeSupplier));
+        mapRules(componentTreeSupplier),
+        null);
   }
 
   private static List<RuleDto> mapRules(Object serverSideObject) {

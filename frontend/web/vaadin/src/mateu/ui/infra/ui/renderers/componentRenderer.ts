@@ -10,6 +10,9 @@ export const renderComponentInSlot = (component: Component, baseUrl: string | un
 }
 
 export const renderComponent = (component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+    if (!component) {
+        return html``;
+    }
     if (component.type == ComponentType.ClientSide ) {
         return renderClientSideComponent(component as ClientSideComponent, baseUrl, state, data)
     }

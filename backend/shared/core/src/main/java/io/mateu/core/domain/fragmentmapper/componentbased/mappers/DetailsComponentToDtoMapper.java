@@ -14,11 +14,13 @@ public class DetailsComponentToDtoMapper {
       Details details, String baseUrl, String route, HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new DetailsDto(
-            details.title(),
-            mapComponentToDto(null, details.content(), baseUrl, route, httpRequest)),
+            mapComponentToDto(null, details.summary(), baseUrl, route, httpRequest),
+            mapComponentToDto(null, details.content(), baseUrl, route, httpRequest),
+            details.opened()),
         "fieldId",
         List.of(),
         details.style(),
-        details.cssClasses());
+        details.cssClasses(),
+        null);
   }
 }

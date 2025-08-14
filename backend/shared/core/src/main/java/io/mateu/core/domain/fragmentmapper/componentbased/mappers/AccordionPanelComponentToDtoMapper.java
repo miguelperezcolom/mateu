@@ -23,6 +23,7 @@ public class AccordionPanelComponentToDtoMapper {
         null,
         List.of(mapComponentToDto(null, panel.content(), baseUrl, route, httpRequest)),
         panel.style(),
-        panel.cssClasses());
+        panel.cssClasses(),
+        null);
   }
 }

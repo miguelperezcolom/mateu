@@ -13,6 +13,7 @@ public class MessageInputComponentToDtoMapper {
         "fieldId",
         List.of(),
         messageInput.style(),
-        messageInput.cssClasses());
+        messageInput.cssClasses(),
+        null);
   }
 }

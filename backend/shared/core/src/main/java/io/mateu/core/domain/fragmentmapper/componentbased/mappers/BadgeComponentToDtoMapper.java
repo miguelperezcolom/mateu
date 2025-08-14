@@ -21,6 +21,7 @@ public class BadgeComponentToDtoMapper {
         "fieldId",
         List.of(),
         badge.style(),
-        badge.cssClasses());
+        badge.cssClasses(),
+        null);
   }
 }

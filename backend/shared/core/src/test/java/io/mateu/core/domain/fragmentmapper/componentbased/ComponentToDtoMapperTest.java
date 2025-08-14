@@ -28,7 +28,8 @@ class ComponentToDtoMapperTest {
                     "fieldId",
                     List.of(),
                     "",
-                    ""))
+                    "",
+                    null))
             .action(UIFragmentActionDto.Replace)
             .build();
     var dto =

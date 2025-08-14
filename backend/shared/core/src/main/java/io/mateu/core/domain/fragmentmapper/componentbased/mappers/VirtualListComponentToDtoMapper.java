@@ -15,6 +15,7 @@ public class VirtualListComponentToDtoMapper {
         "fieldId",
         List.of(),
         virtualList.style(),
-        virtualList.cssClasses());
+        virtualList.cssClasses(),
+        null);
   }
 }

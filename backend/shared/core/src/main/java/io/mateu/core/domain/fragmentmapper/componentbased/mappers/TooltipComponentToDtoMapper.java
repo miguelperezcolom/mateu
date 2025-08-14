@@ -19,6 +19,7 @@ public class TooltipComponentToDtoMapper {
         "fieldId",
         List.of(),
         tooltip.style(),
-        tooltip.cssClasses());
+        tooltip.cssClasses(),
+        null);
   }
 }

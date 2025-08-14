@@ -3,7 +3,8 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 
 export default interface Details extends ComponentMetadata {
 
-    title: string
+    summary: Component
     content: Component
+    opened: boolean
 
 }

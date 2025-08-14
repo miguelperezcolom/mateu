@@ -18,6 +18,7 @@ public class DialogComponentToDtoMapper {
         "fieldId",
         List.of(),
         dialog.style(),
-        dialog.cssClasses());
+        dialog.cssClasses(),
+        null);
   }
 }

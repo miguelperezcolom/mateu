@@ -33,6 +33,7 @@ public class SplitLayoutComponentToDtoMapper {
             mapComponentToDto(null, splitLayout.master(), baseUrl, route, httpRequest),
             mapComponentToDto(null, splitLayout.detail(), baseUrl, route, httpRequest)),
         splitLayout.style(),
-        splitLayout.cssClasses());
+        splitLayout.cssClasses(),
+        null);
   }
 }

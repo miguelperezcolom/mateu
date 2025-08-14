@@ -18,6 +18,7 @@ public class BreadcrumbsComponentToDtoMapper {
         "fieldId",
         List.of(),
         breadcrumbs.style(),
-        breadcrumbs.cssClasses());
+        breadcrumbs.cssClasses(),
+        null);
   }
 }

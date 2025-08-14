@@ -171,6 +171,7 @@ class AppComponentToDtoMapperTest {
                     "component_id",
                     List.of(),
                     null,
+                    null,
                     null))
             .state(supplier)
             .build();

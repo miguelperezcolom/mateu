@@ -9,6 +9,11 @@ public class IconComponentToDtoMapper {
 
   public static ClientSideComponentDto mapIconToDto(Icon icon) {
     return new ClientSideComponentDto(
-        new IconDto(icon.icon().iconName), "fieldId", List.of(), icon.style(), icon.cssClasses());
+        new IconDto(icon.icon().iconName),
+        "fieldId",
+        List.of(),
+        icon.style(),
+        icon.cssClasses(),
+        null);
   }
 }

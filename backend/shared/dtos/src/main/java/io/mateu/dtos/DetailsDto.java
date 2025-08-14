@@ -1,4 +1,5 @@
 package io.mateu.dtos;
 
 /** Metadata for a html element */
-public record DetailsDto(String title, ComponentDto content) implements ComponentMetadataDto {}
+public record DetailsDto(ComponentDto summary, ComponentDto content, boolean opened)
+    implements ComponentMetadataDto {}

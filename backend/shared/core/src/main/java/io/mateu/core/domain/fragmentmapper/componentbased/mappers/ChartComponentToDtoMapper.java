@@ -64,6 +64,7 @@ public class ChartComponentToDtoMapper {
         "fieldId",
         List.of(),
         chart.style(),
-        chart.cssClasses());
+        chart.cssClasses(),
+        null);
   }
 }

@@ -28,6 +28,7 @@ public class ConfirmDialogComponentToDtoMapper {
         "fieldId",
         List.of(mapComponentToDto(null, confirmDialog.content(), baseUrl, route, httpRequest)),
         confirmDialog.style(),
-        confirmDialog.cssClasses());
+        confirmDialog.cssClasses(),
+        null);
   }
 }

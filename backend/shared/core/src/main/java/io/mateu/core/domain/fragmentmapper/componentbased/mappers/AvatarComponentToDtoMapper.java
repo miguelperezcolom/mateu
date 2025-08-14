@@ -13,6 +13,7 @@ public class AvatarComponentToDtoMapper {
         "fieldId",
         List.of(),
         avatar.style(),
-        avatar.cssClasses());
+        avatar.cssClasses(),
+        null);
   }
 }

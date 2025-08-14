@@ -19,6 +19,7 @@ public class FormItemComponentToDtoMapper {
             .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
             .toList(),
         formItem.style(),
-        formItem.cssClasses());
+        formItem.cssClasses(),
+        null);
   }
 }

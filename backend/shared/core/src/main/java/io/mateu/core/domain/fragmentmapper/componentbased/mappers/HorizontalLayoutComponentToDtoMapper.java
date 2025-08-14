@@ -47,7 +47,8 @@ public class HorizontalLayoutComponentToDtoMapper {
                 .toList(),
             horizontalLayout.flexGrows()),
         horizontalLayout.style(),
-        horizontalLayout.cssClasses());
+        horizontalLayout.cssClasses(),
+        null);
   }
 
   private static List<ComponentDto> applyFlowGrows(

@@ -8,7 +8,8 @@ public record ClientSideComponentDto(
     String id,
     List<ComponentDto> children,
     String style,
-    String cssClasses)
+    String cssClasses,
+    String slot)
     implements ComponentDto {
 
   public ClientSideComponentDto {
@@ -22,6 +23,11 @@ public record ClientSideComponentDto(
 
   @Override
   public ComponentDto setStyle(String style) {
-    return new ClientSideComponentDto(metadata, id, children, style, cssClasses);
+    return new ClientSideComponentDto(metadata, id, children, style, cssClasses, slot);
+  }
+
+  @Override
+  public ComponentDto setSlot(String slot) {
+    return new ClientSideComponentDto(metadata, id, children, style, cssClasses, slot);
   }
 }

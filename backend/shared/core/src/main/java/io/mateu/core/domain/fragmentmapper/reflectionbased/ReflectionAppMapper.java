@@ -54,13 +54,14 @@ public class ReflectionAppMapper {
         new ServerSideComponentDto(
             "component_id",
             app.getClass().getName(),
-            List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "")),
+            List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "", null)),
             app,
             "",
             "",
             List.of(),
             List.of(),
-            List.of());
+            List.of(),
+            null);
     return new UIFragmentDto(
         initiatorComponentId, component, app, null, UIFragmentActionDto.Replace);
   }

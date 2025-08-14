@@ -33,6 +33,7 @@ public class ButtonComponentToDtoMapper {
         "fieldId",
         List.of(),
         button.style(),
-        button.cssClasses());
+        button.cssClasses(),
+        null);
   }
 }

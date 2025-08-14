@@ -19,6 +19,7 @@ public class PopoverComponentToDtoMapper {
         "fieldId",
         List.of(),
         popover.style(),
-        popover.cssClasses());
+        popover.cssClasses(),
+        null);
   }
 }

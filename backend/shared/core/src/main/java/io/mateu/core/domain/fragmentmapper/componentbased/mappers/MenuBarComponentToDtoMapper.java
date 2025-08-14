@@ -17,6 +17,6 @@ public final class MenuBarComponentToDtoMapper {
             .options(buildMenu(menuBar.options(), baseUrl, route, httpRequest))
             .build();
     return new ClientSideComponentDto(
-        menuDto, "component_id", List.of(), menuBar.style(), menuBar.cssClasses());
+        menuDto, "component_id", List.of(), menuBar.style(), menuBar.cssClasses(), null);
   }
 }
