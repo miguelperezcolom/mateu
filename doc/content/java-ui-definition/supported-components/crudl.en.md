@@ -80,6 +80,7 @@ record Row(String name, int age) {}
 
 @Route("/fluent-app/crudls/basic")
 @Slf4j
+@RequiredArgsConstructor
 public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row> {
 
   private final Service service;
