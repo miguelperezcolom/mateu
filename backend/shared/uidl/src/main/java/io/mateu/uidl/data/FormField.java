@@ -16,7 +16,6 @@ public record FormField(
     String description,
     List<Option> options,
     Object initialValue,
-    boolean bindToData,
     String style,
     String cssClasses,
     List<FieldValidation> validations)

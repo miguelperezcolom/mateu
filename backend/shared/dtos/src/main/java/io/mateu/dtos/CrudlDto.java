@@ -26,14 +26,22 @@ public record CrudlDto(
     boolean searchable,
     boolean showCards,
     List<FormFieldDto> filters,
-    List<ColumnDto> columns,
+    List<ComponentDto> columns,
     List<ActionDto> actions,
     List<TriggerDto> triggers,
     List<ButtonDto> toolbar,
     boolean child,
     String emptyStateMessage,
     boolean searchOnEnter,
-    boolean autoFocusOnSearchText)
+    boolean autoFocusOnSearchText,
+    boolean allRowsVisible,
+    boolean lazyLoading,
+    boolean lazyColumnRendering,
+    boolean infiniteScrolling,
+    boolean useButtonForDetail,
+    String actionIdOnSelectionChanged,
+    boolean columnReorderingAllowed,
+    int pageSize)
     implements ComponentMetadataDto {
 
   public CrudlDto {
@@ -41,8 +49,7 @@ public record CrudlDto(
     actions = Collections.unmodifiableList(actions != null ? actions : Collections.emptyList());
   }
 
-  @Override
-  public List<ColumnDto> columns() {
+  public List<ComponentDto> columns() {
     return Collections.unmodifiableList(columns);
   }
 

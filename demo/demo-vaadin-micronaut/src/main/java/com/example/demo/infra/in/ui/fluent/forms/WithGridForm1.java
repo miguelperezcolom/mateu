@@ -88,9 +88,9 @@ public class WithGridForm1 implements ComponentTreeSupplier, ReactiveHandlesActi
                                                                 .initialValue(age)
                                                                 .build(),
                                                         Grid.builder()
-                                                                .columns(List.of(
-                                                                        new GridColumn("name", "Name"),
-                                                                        new GridColumn("age", "Age")
+                                                                .content(List.of(
+                                                                        GridColumn.builder().id("name").label("Name").build(),
+                                                                        GridColumn.builder().id("age").label("Age").build()
                                                                 ))
                                                                 .page(new Page<Object>(10, 1, people.size(), Arrays.asList(people.toArray())))
                                                                 .build()))

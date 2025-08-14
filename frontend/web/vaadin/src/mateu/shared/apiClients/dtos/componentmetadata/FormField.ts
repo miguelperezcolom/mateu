@@ -23,7 +23,6 @@ export default interface FormField extends ComponentMetadata {
     bold?: boolean | undefined
     initialValue?: any
     options?: Option[] | undefined
-    bindToData?: boolean | undefined
     charLimit?: string
 
 }

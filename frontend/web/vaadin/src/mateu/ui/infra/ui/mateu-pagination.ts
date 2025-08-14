@@ -75,7 +75,7 @@ export class MateuPagination extends LitElement {
     render() {
         return this.totalElements?html`
             <div class="paginator">
-                ${this.pages.length < 1?html``:html`
+                ${this.pages.length < 1 || this.totalElements <= this.pageSize?html``:html`
           Page:
           ${this.pages.map(p => p.clickable?html`
           <vaadin-button theme="tertiary" @click=${this.clickOnPage} page=${p.pageNumber} data-testid="page-${p.pageNumber}">${p.text}</vaadin-button>

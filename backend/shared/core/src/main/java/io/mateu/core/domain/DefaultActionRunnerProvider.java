@@ -1,11 +1,7 @@
 package io.mateu.core.domain;
 
-import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.data.Sort;
-import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import jakarta.inject.Named;
 import java.util.Comparator;
@@ -61,47 +57,6 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           public Mono<?> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
             return Mono.just(handlesActions.handleAction(actionId, httpRequest));
-          }
-        };
-      }
-    }
-    if ("search".equals(actionId)) {
-      if (instance instanceof ReactiveCrudlBackend<?, ?> crudlBackend) {
-        return new ActionRunner() {
-          @Override
-          public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-            return false;
-          }
-
-          @Override
-          public Mono<?> run(
-              Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            String searchText = (String) data.getOrDefault("searchText", null);
-            int page = (int) data.getOrDefault("page", 0);
-            int size = (int) data.getOrDefault("size", 100);
-            Sort sort = (Sort) data.getOrDefault("sort", null);
-            return ((ReactiveCrudlBackend) crudlBackend)
-                .search(searchText, instance, new Pageable(page, size, sort));
-          }
-        };
-      }
-      if (instance instanceof CrudlBackend<?, ?> crudlBackend) {
-        return new ActionRunner() {
-          @Override
-          public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-            return false;
-          }
-
-          @Override
-          public Mono<?> run(
-              Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            String searchText = (String) data.getOrDefault("searchText", null);
-            int page = (int) data.getOrDefault("page", 0);
-            int size = (int) data.getOrDefault("size", 100);
-            Sort sort = (Sort) data.getOrDefault("sort", null);
-            return Mono.just(
-                ((CrudlBackend) crudlBackend)
-                    .search(searchText, instance, new Pageable(page, size, sort)));
           }
         };
       }

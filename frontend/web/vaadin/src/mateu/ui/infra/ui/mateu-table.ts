@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -12,8 +12,93 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
+import '@vaadin/grid/vaadin-grid-sort-column.js';
+import '@vaadin/grid/vaadin-grid-filter-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
+import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
+import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import {
+    GridSortColumnDirectionChangedEvent
+} from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
+import { GridDataProvider, GridSortColumn } from "@vaadin/grid/all-imports";
 
+
+
+const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget?.dispatchEvent(new CustomEvent('sort-direction-changed', {
+        detail: {
+            grid: (event.currentTarget as GridSortColumn).parentElement
+        },
+        bubbles: true,
+        composed: true
+    }))
+}
+
+const renderColumn = (column: GridColumn) => {
+    return html`
+                    ${column.sortable?html`
+                        <vaadin-grid-sort-column
+                                path="${column.id}"
+                                header="${column.label}"
+                                text-align="${column.align??nothing}"
+                                ?frozen="${column.frozen}"
+                                ?frozen-to-end="${column.frozenToEnd}"
+                                ?auto-width="${column.autoWidth}"
+                                flex-grow="${column.flexGrow??nothing}"
+                                ?resizable="${column.resizable}"
+                                width="${column.width??nothing}"
+                                @direction-changed="${directionChanged}"
+                                
+                        ></vaadin-grid-sort-column>
+                    `:nothing}
+                    ${column.filterable?html`
+                        <vaadin-grid-filter-column
+                                path="${column.id}"
+                                header="${column.label}"
+                                text-align="${column.align??nothing}"
+                                ?frozen="${column.frozen}"
+                                ?frozen-to-end="${column.frozenToEnd}"
+                                ?auto-width="${column.autoWidth}"
+                                flex-grow="${column.flexGrow??nothing}"
+                                ?resizable="${column.resizable}"
+                                width="${column.width??nothing}"
+                        ></vaadin-grid-filter-column>
+                    `:nothing}
+                    ${column.sortable || column.filterable?nothing:html`
+                        <vaadin-grid-column
+                                path="${column.id}"
+                                header="${column.label}"
+                                text-align="${column.align??nothing}"
+                                ?frozen="${column.frozen}"
+                                ?frozen-to-end="${column.frozenToEnd}"
+                                ?auto-width="${column.autoWidth}"
+                                flex-grow="${column.flexGrow??nothing}"
+                                ?resizable="${column.resizable}"
+                                width="${column.width??nothing}"
+                        ></vaadin-grid-column>
+                    `}
+                `
+}
+
+const renderGroup = (group: GridGroupColumn) => {
+    return html`
+<vaadin-grid-column-group header="${group.label}">
+    ${group.columns.map(column => renderColumn(column.metadata as GridColumn))}
+</vaadin-grid-column-group>
+`
+}
+
+const renderColumnOrGroup = (columnOrGroup: ClientSideComponent) => {
+    if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
+        return renderGroup(columnOrGroup.metadata as GridGroupColumn)
+    } else {
+        return renderColumn(columnOrGroup.metadata as GridColumn)
+    }
+}
 
 @customElement('mateu-table')
 export class MateuTable extends LitElement {
@@ -27,19 +112,23 @@ export class MateuTable extends LitElement {
     @property()
     emptyStateMessage?: string
 
+    dataProvider:GridDataProvider<unknown> = (params, callback) => {
+        console.log('data provider', params)
+        callback(this.data?.page?.content??[], this.data?.page?.content?.length??0);
+    }
+
     render() {
         return html`
             <vaadin-grid
                     .items="${this.data?.page?.content}"
-                    all-rows-visible>
-                ${this.metadata?.columns?.map(column => html`
-                    <vaadin-grid-column
-                            path="${column.id}" 
-                            header="${column.header}"
-                            align="${column.align}"
-                            
-                    ></vaadin-grid-column>
-                `)}
+                    ?all-rows-visible="${this.metadata?.allRowsVisible}"
+                    size="${this.metadata?.rows??nothing}"
+                    column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
+                    ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
+                    .dataProvider="${this.dataProvider}"      
+                    multi-sort-on-shift-click
+            >
+                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column))}
                 <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No data.'}</span>
             </vaadin-grid>
             <slot></slot>

@@ -1,10 +1,18 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
-import Column from "@mateu/shared/apiClients/dtos/componentmetadata/Column";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
 export default interface Table extends ComponentMetadata {
 
-    columns: Column[]
+    columns: ClientSideComponent[]
     rows: number | undefined
     emptyStateMessage: string
-    
+    allRowsVisible: boolean
+    lazyLoading: boolean
+    lazyColumnRendering: boolean
+    infiniteScrolling: boolean
+    useButtonForDetail: boolean
+    actionIdOnSelectionChanged: string
+    columnReorderingAllowed: boolean
+    serverSideOrdering: boolean
+
 }

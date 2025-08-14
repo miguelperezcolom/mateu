@@ -78,7 +78,7 @@ export class MateuField extends LitElement {
     }
 
     render() {
-        const value = this.data && this.field?.bindToData?this.data[this.id]:this.field?.initialValue
+        const value = this.data && this.data[this.id]?this.data[this.id]:this.field?.initialValue
         if (this.field?.dataType == 'file') {
             return html`
                 <vaadin-upload

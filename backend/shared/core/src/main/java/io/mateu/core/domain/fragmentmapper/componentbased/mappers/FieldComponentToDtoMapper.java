@@ -34,7 +34,6 @@ public class FieldComponentToDtoMapper {
                             new OptionDto(option.value(), option.label(), option.description()))
                     .toList())
             .initialValue(formField.initialValue())
-            .bindToData(formField.bindToData())
             .required(formField.required())
             .autofocus(formField.autofocus())
             .build(),

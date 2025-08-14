@@ -38,8 +38,11 @@ export const renderGrid = (component: ClientSideComponent, data: any) => {
     `
     }
     let items = metadata.page?.items
-    if (metadata.bindToData && component.id && data) {
+    if (component.id && data && data[component.id]) {
         items = data[component.id]
+    }
+    if (!items) {
+        items = []
     }
     return html`
         <vaadin-grid style="${component.style}" class="${component.cssClasses}" .items="${items}">

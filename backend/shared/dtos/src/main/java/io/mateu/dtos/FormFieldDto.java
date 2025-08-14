@@ -40,7 +40,6 @@ public record FormFieldDto(
     boolean bold,
     List<OptionDto> options,
     Object initialValue,
-    boolean bindToData,
     boolean required)
     implements ComponentMetadataDto {
 

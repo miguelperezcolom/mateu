@@ -72,22 +72,19 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
                                                                 .description("description")
                                                                 .placeholder("placeholder")
                                                                 .cssClasses("css_classes")
-                                                                .bindToData(true)
                                                                 .build(),
                                                         FormField.builder()
                                                                 .id("age")
                                                                 .label("Age")
                                                                 .dataType(FieldDataType.integer)
                                                                 .required(false)
-                                                                .bindToData(true)
                                                                 .build(),
                                                         Grid.builder()
                                                                 .id("people")
-                                                                .columns(List.of(
-                                                                        new GridColumn("name", "Name"),
-                                                                        new GridColumn("age", "Age")
+                                                                .content(List.of(
+                                                                        GridColumn.builder().id("name").label("Name").build(),
+                                                                        GridColumn.builder().id("age").label("Age").build()
                                                                 ))
-                                                                .bindToData(true)
                                                                 .build()))
                                         .build()))
                 .footer(List.of()) // will be placed in footer, between left and right side buttons

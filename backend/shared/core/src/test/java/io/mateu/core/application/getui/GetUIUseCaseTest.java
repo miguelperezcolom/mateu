@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.uis.HelloWorld;
 import com.example.uis.HolaMundo;
 import com.example.uis.dynamic.DynamicHelloWorld;
-import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.DefaultUiMapperProvider;
@@ -31,9 +30,7 @@ class GetUIUseCaseTest {
                 @Override
                 public <T> Collection<T> getBeans(Class<T> clazz) {
                   return (Collection<T>)
-                      List.of(
-                          new ReflectionInstanceFactory(
-                              new BasicTypeChecker(), new FakeBeanProvider()));
+                      List.of(new ReflectionInstanceFactory(new FakeBeanProvider()));
                 }
               }),
           new DefaultUiMapperProvider(new FakeBeanProvider()));

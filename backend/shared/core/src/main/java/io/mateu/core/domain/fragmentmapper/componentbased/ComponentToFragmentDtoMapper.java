@@ -32,7 +32,9 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormIte
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormRowComponentToDtoMapper.mapFormRowToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridColumnComponentToDtoMapper.mapGridColumnToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridGroupColumnComponentToDtoMapper.mapGridGroupColumnToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.IconComponentToDtoMapper.mapIconToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ImageComponentToDtoMapper.mapImageToDto;
@@ -90,6 +92,8 @@ import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.Grid;
+import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.GridGroupColumn;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Image;
@@ -306,7 +310,13 @@ public final class ComponentToFragmentDtoMapper {
       return mapMenuBarToDto(menuBar, baseUrl, route, httpRequest);
     }
     if (component instanceof Grid grid) {
-      return mapGridToDto(grid);
+      return mapGridToDto(grid, baseUrl, route, httpRequest);
+    }
+    if (component instanceof GridColumn gridColumn) {
+      return mapGridColumnToDto(gridColumn, baseUrl, route, httpRequest);
+    }
+    if (component instanceof GridGroupColumn gridGroupColumn) {
+      return mapGridGroupColumnToDto(gridGroupColumn, baseUrl, route, httpRequest);
     }
     if (component instanceof VirtualList virtualList) {
       return mapVirtualListToDto(virtualList);

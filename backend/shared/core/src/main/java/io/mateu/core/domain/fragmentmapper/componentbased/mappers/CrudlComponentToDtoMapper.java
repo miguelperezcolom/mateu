@@ -1,8 +1,9 @@
 package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
+import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.ColumnDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.FormFieldDto;
@@ -34,13 +35,7 @@ public class CrudlComponentToDtoMapper {
                 crudl.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .columns(
                 crudl.columns().stream()
-                    .map(
-                        column ->
-                            ColumnDto.builder()
-                                .id(column.id())
-                                .header(column.label())
-                                .dataType(column.dataType().toString())
-                                .build())
+                    .map(column -> mapComponentToDto(null, column, baseUrl, route, httpRequest))
                     .toList())
             .filters(
                 crudl.filters().stream()
@@ -59,6 +54,14 @@ public class CrudlComponentToDtoMapper {
             .emptyStateMessage(crudl.emptyStateMessage())
             .autoFocusOnSearchText(crudl.autoFocusOnSearchText())
             .searchOnEnter(crudl.searchOnEnter())
+            .allRowsVisible(crudl.allRowsVisible())
+            .lazyLoading(crudl.lazyLoading())
+            .lazyColumnRendering(crudl.lazyColumnRendering())
+            .infiniteScrolling(crudl.infiniteScrolling())
+            .useButtonForDetail(crudl.useButtonForDetail())
+            .actionIdOnSelectionChanged(crudl.actionIdOnSelectionChanged())
+            .columnReorderingAllowed(crudl.columnReorderingAllowed())
+            .pageSize(crudl.pageSize())
             .build();
     return new ClientSideComponentDto(
         crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses());

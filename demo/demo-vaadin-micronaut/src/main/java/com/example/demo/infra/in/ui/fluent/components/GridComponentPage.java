@@ -19,10 +19,10 @@ public class GridComponentPage implements ComponentTreeSupplier {
                 .title("Grid")
                 .content(List.of(
                         Grid.builder()
-                                .columns(List.of(
-                                        new GridColumn("id", "Id"),
-                                        new GridColumn("name", "Name"),
-                                        new GridColumn("age", "Age")
+                                .content(List.of(
+                                        GridColumn.builder().id("id").label("Id").build(),
+                                        GridColumn.builder().id("name").label("Name").build(),
+                                        GridColumn.builder().id("age").label("Age").build()
                                 ))
                                 .page(new Page<>(10, 1, 3, List.of(
                                         Map.of("id", "1", "name", "Mateu", "age", "17"),

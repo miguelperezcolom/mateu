@@ -1,8 +1,8 @@
 package io.mateu.core.domain.reflection;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.reflection.samples.WithBuilder;
 import io.mateu.core.domain.reflection.samples.WithConstructorParameters;
 import io.mateu.core.domain.reflection.samples.WithInitMethod;
@@ -20,8 +20,7 @@ class ReflectionInstanceFactoryTest {
 
   class Subclass {}
 
-  final ReflectionInstanceFactory factory =
-      new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider());
+  final ReflectionInstanceFactory factory = new ReflectionInstanceFactory(new FakeBeanProvider());
 
   @Test
   void initIsCalled() {

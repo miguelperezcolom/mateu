@@ -19,10 +19,10 @@ public class TreeGridComponentPage implements ComponentTreeSupplier {
                 .title("Tree grid")
                 .content(List.of(
                         Grid.builder()
-                                .columns(List.of(
-                                        new GridColumn("id", "Id"),
-                                        new GridColumn("name", "Name"),
-                                        new GridColumn("age", "Age")
+                                .content(List.of(
+                                        GridColumn.builder().id("id").label("Id").build(),
+                                        GridColumn.builder().id("name").label("Name").build(),
+                                        GridColumn.builder().id("age").label("Age").build()
                                 ))
                                 .page(new Page<>(10, 1, 2, List.of(
                                                 Map.of("id", "1000", "name", "VIP", "children", List.of(

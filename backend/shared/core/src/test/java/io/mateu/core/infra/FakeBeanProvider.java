@@ -1,7 +1,6 @@
 package io.mateu.core.infra;
 
 import io.mateu.core.domain.ActionRunner;
-import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.FragmentMapper;
 import io.mateu.core.domain.InstanceFactory;
@@ -28,8 +27,7 @@ public class FakeBeanProvider implements BeanProvider {
   @Override
   public <T> Collection<T> getBeans(Class<T> clazz) {
     if (InstanceFactory.class.equals(clazz)) {
-      return (Collection<T>)
-          List.of(new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()));
+      return (Collection<T>) List.of(new ReflectionInstanceFactory(new FakeBeanProvider()));
     }
     if (UiIncrementMapper.class.equals(clazz)) {
       return (Collection<T>)

@@ -56,7 +56,6 @@ The crud is composed of a search bar, filters, data and pagination.
         "colspan": 0,
         "rightAligned": false,
         "bold": false,
-        "bindToData": false,
         "required": false
       }
     ],
@@ -75,60 +74,54 @@ The crud is composed of a search bar, filters, data and pagination.
 
 ```java
 
+record Filters(int age) {}
+@Serdeable
+record Row(String name, int age) {}
+
 @Route("/fluent-app/crudls/basic")
 @Slf4j
-public class BasicCrudl implements ComponentTreeSupplier, ReactiveHandlesActions {
+public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row> {
 
-    CrudData crud = new CrudData(new Page<Object>(0, 0, List.of()));
+  private final Service service;
 
-    @Override
-    public Crudl getComponent(HttpRequest httpRequest) {
-        return Crudl.builder() // vertical layout as default container for children
-                .title("Basic crudl")
-                .id("crud")
-                .filters(List.of(
-                        FormField.builder()
-                                .id("age")
-                                .label("Age")
-                                .dataType(FieldDataType.integer)
-                                .bindToData(true)
-                                .build()
-                ))
-                .searchable(true)
-                .columns(List.of(
-                        Column.builder()
-                                .id("name")
-                                .label("Name")
-                                .build(),
-                        Column.builder()
-                                .id("age")
-                                .label("Age")
-                                .build()
-                ))
-                .build();
-    }
+  @Override
+  public Crudl getComponent(HttpRequest httpRequest) {
+    return Crudl.builder() // vertical layout as default container for children
+      .title("Basic crudl")
+      .id("crud")
+      .filters(List.of(
+        FormField.builder()
+          .id("age")
+          .label("Age")
+          .dataType(FieldDataType.integer)
+          .build()
+      ))
+      .searchable(true)
+      .columns(List.of(
+        GridColumn.builder()
+          .id("name")
+          .label("Name")
+          .build(),
+        GridColumn.builder()
+          .id("age")
+          .label("Age")
+          .build()
+      ))
+      .emptyStateMessage("Please search.")
+      .build();
+  }
 
-    @Override
-    public boolean supportsAction(String actionId) {
-        return !"".equals(actionId);
-    }
+  @Override
+  public Class<Filters> filtersClass() {
+    return Filters.class;
+  }
 
-    @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-        log.info("received action: " + actionId);
-
-        this.crud = new CrudData(new Page<Object>(
-                1,
-                2,
-                List.of(
-                        Map.of("name", "Mateu", "age", 17),
-                        Map.of("name", "Antonia", "age", 49)
-                )));
-
-        return Mono.just(new State(this));
-    }
-}
-
+  @Override
+  public Mono<CrudlData<Row>> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    return service.search(searchText, filters, pageable).map(page -> new CrudlData<>(page,
+      "No items found. Please try again."));
+  }
+  
 ```
 
 {{< /tab >}}

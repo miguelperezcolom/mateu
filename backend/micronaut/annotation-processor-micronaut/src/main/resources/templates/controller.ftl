@@ -6,6 +6,7 @@ import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.core.domain.reflection.DefaultInstanceFactory;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -24,10 +25,12 @@ import reactor.core.publisher.Mono;
 public class ${simpleClassName}MateuController {
 
     private final MateuService service;
+    private final DefaultInstanceFactory defaultInstanceFactory;
 
     @Inject
-    public ${simpleClassName}MateuController(MateuService service) {
+    public ${simpleClassName}MateuController(MateuService service, DefaultInstanceFactory defaultInstanceFactory) {
         this.service = service;
+        this.defaultInstanceFactory = defaultInstanceFactory;
     }
 
     private String uiId = "${className}";

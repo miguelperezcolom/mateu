@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.reflection.DefaultInstanceFactory;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -16,9 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 public class MateuInfoController {
 
   private final BeanProvider beanProvider;
+  private final DefaultInstanceFactory instanceFactory;
 
-    public MateuInfoController(BeanProvider beanProvider) {
+    public MateuInfoController(BeanProvider beanProvider, DefaultInstanceFactory instanceFactory) {
         this.beanProvider = beanProvider;
+        this.instanceFactory = instanceFactory;
     }
 
     @Get

@@ -33,7 +33,7 @@ import io.micronaut.serde.annotation.SerdeImport;
         "io.mateu.core.application.runaction",
         "io.mateu.core.domain",
         "io.mateu.core.domain.fragmentmapper",
-        "io.mateu.core.domain.reflection"
+        "io.mateu.core.domain.reflection",
 },
         annotated = "*")
 public class Application {

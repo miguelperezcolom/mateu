@@ -30,7 +30,6 @@ A form layout layouts children in columns.
                                                     "colspan": 0,
                                                     "rightAligned": false,
                                                     "bold": false,
-                                                    "bindToData": false,
                                                     "required": false
                                                 }
                                             },
@@ -46,7 +45,6 @@ A form layout layouts children in columns.
                                                     "colspan": 0,
                                                     "rightAligned": false,
                                                     "bold": false,
-                                                    "bindToData": false,
                                                     "required": false
                                                 }
                                             },
@@ -62,7 +60,6 @@ A form layout layouts children in columns.
                                                     "colspan": 0,
                                                     "rightAligned": false,
                                                     "bold": false,
-                                                    "bindToData": false,
                                                     "required": false
                                                 }
                                             }

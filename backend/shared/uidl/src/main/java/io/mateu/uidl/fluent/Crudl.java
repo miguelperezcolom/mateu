@@ -1,7 +1,7 @@
 package io.mateu.uidl.fluent;
 
-import io.mateu.uidl.data.Column;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.GridContent;
 import java.util.List;
 import lombok.Builder;
 
@@ -15,14 +15,22 @@ public record Crudl(
     List<Action> actions,
     List<Trigger> triggers,
     List<UserTrigger> toolbar,
-    List<Column> columns,
+    List<GridContent> columns,
     boolean searchable,
     List<FormField> filters,
     String style,
     String cssClasses,
     String emptyStateMessage,
     Boolean searchOnEnter,
-    Boolean autoFocusOnSearchText)
+    Boolean autoFocusOnSearchText,
+    boolean allRowsVisible,
+    boolean lazyLoading,
+    boolean lazyColumnRendering,
+    boolean infiniteScrolling,
+    boolean useButtonForDetail,
+    String actionIdOnSelectionChanged,
+    boolean columnReorderingAllowed,
+    int pageSize)
     implements Component {
 
   public Boolean autoFocusOnSearchText() {
@@ -49,8 +57,12 @@ public record Crudl(
     return toolbar != null ? toolbar : List.of();
   }
 
-  @Override
-  public List<Column> columns() {
+  public List<GridContent> columns() {
     return columns != null ? columns : List.of();
+  }
+
+  @Override
+  public int pageSize() {
+    return pageSize > 0 ? pageSize : 10;
   }
 }

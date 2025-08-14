@@ -1,10 +1,10 @@
 package io.mateu.core.domain.reflection;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.reflection.Hydrater.hydrate;
 import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
-import io.mateu.core.domain.BasicTypeChecker;
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactory;
 import io.mateu.uidl.interfaces.HasInitMethod;
@@ -31,7 +31,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ReflectionInstanceFactory implements InstanceFactory {
 
-  private final BasicTypeChecker basicTypeChecker;
   private final BeanProvider beanProvider;
 
   @Override
@@ -118,7 +117,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
-      if (basicTypeChecker.isBasic(parameter.getType())) {
+      if (isBasic(parameter.getType())) {
         if (LocalDate.class.equals(parameter.getType())) {
           params.add(LocalDate.parse(convert(data.get(parameter.getName()))));
         } else if (LocalDateTime.class.equals(parameter.getType())) {

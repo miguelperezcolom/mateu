@@ -10,14 +10,14 @@
     <parent>
         <groupId>io.micronaut.platform</groupId>
         <artifactId>micronaut-parent</artifactId>
-        <version>4.7.4</version>
+        <version>4.9.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <properties>
         <packaging>jar</packaging>
         <jdk.version>17</jdk.version>
         <release.version>17</release.version>
-        <micronaut.version>4.7.4</micronaut.version>
+        <micronaut.version>4.9.2</micronaut.version>
         <micronaut.runtime>netty</micronaut.runtime>
         <micronaut.aot.enabled>false</micronaut.aot.enabled>
         <micronaut.aot.packageName>io.mateu.demo.aot.generated</micronaut.aot.packageName>

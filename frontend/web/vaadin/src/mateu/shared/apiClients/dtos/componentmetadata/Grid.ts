@@ -7,6 +7,5 @@ export default interface Grid extends ComponentMetadata {
     columns: GridColumn[]
     page: Page
     tree: boolean
-    bindToData: boolean
 
 }

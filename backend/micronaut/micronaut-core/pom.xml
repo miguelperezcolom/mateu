@@ -22,14 +22,14 @@
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-context</artifactId>
-      <version>4.7.14</version>
+      <version>4.9.2</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http</artifactId>
-      <version>4.7.14</version>
+      <version>4.9.2</version>
       <scope>provided</scope>
     </dependency>
 

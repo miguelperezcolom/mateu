@@ -2,6 +2,8 @@ package io.mateu.uidl.interfaces;
 
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface HttpRequest {
@@ -41,7 +43,14 @@ public interface HttpRequest {
   }
 
   default int getInt(String key) {
-    var stringValue = (String) runActionRq().componentState().getOrDefault(key, "0");
+    var value = runActionRq().componentState().getOrDefault(key, "0");
+    if (value instanceof Integer) {
+      return (Integer) value;
+    }
+    if (value instanceof Long) {
+      return ((Long) value).intValue();
+    }
+    var stringValue = "" + value;
     if ("".equals(stringValue)) {
       return 0;
     }
@@ -49,10 +58,24 @@ public interface HttpRequest {
   }
 
   default double getDouble(String key) {
-    var stringValue = (String) runActionRq().componentState().getOrDefault(key, "0");
+    var value = runActionRq().componentState().getOrDefault(key, "0");
+    if (value instanceof Double) {
+      return (Double) value;
+    }
+    if (value instanceof Integer) {
+      return (Integer) value;
+    }
+    if (value instanceof Long) {
+      return (Long) value;
+    }
+    var stringValue = "" + value;
     if ("".equals(stringValue)) {
       return 0;
     }
     return Double.parseDouble(stringValue);
+  }
+
+  default List<Map<String, Object>> getListOfMaps(String key) {
+    return (List<Map<String, Object>>) runActionRq().componentState().getOrDefault(key, List.of());
   }
 }

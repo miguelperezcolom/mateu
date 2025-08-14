@@ -27,7 +27,13 @@ public record ColumnDto(
     List<PairDto> attributes,
     boolean detail,
     boolean sortable,
-    boolean serverSideSortable) {
+    boolean serverSideSortable,
+    boolean filterable,
+    boolean frozen,
+    boolean frozenToEnd,
+    boolean autoWidth,
+    String flexGrow,
+    boolean resizable) {
 
   public ColumnDto {
     attributes =

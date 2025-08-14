@@ -78,7 +78,6 @@ public final class ReflectionFormMapper {
                             false,
                             List.of(),
                             getValue(field, form),
-                            true,
                             false),
                         "field_id",
                         List.of(),

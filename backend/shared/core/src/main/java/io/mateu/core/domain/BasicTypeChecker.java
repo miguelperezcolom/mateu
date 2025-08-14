@@ -1,13 +1,11 @@
 package io.mateu.core.domain;
 
-import jakarta.inject.Named;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-@Named
 public class BasicTypeChecker {
 
   private static final List<Class> basicTypes =

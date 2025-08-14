@@ -56,9 +56,7 @@ class RunActionUseCaseTest {
                     new ReflectionUiIncrementMapper(
                         new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
           }
-          return (Collection<T>)
-              List.of(
-                  new ReflectionInstanceFactory(new BasicTypeChecker(), new FakeBeanProvider()));
+          return (Collection<T>) List.of(new ReflectionInstanceFactory(new FakeBeanProvider()));
         }
       };
 
