@@ -19,3 +19,7 @@ Here you have some figma libraries that designers can use, for designing Mateu U
 ## Redwood
 
 - https://www.figma.com/@oracle
+
+## Material design
+
+- https://www.figma.com/community/file/1035203688168086460/material-3-design-kit
