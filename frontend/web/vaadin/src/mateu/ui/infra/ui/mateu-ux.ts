@@ -103,6 +103,8 @@ export class MateuUx extends ConnectedElement {
         super.connectedCallback()
         this.overridesParsed = parseOverrides(this.overrides);
         this.addEventListener('server-side-action-requested', this.actionRequestedListener)
+        // @ts-ignore
+        window.Vaadin.featureFlags.masterDetailLayoutComponent = true
     }
 
     disconnectedCallback() {
