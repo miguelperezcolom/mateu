@@ -8,11 +8,10 @@ export const renderNotification = (component: ClientSideComponent) => {
 
     return html`
         <vaadin-notification
-                theme="warning"
-                duration="0"
-                position="middle"
                 .opened="${true}"
                 slot="${component.slot??nothing}"
+                style="${component.style}"
+                class="${component.cssClasses}"
                 ${notificationRenderer(notification => {
         console.log(notification)
         return html`
@@ -21,13 +20,9 @@ export const renderNotification = (component: ClientSideComponent) => {
                         <div>
                             ${metadata.text}
                         </div>
-                        <vaadin-button theme="tertiary-inline" aria-label="Close">
-                            <vaadin-icon icon="lumo:cross"></vaadin-icon>
-                        </vaadin-button>
                     </vaadin-horizontal-layout>
                 `
     }, [])}
-                style="${component.style}" class="${component.cssClasses}"
         ></vaadin-notification>
             `
 }

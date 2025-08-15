@@ -3,8 +3,6 @@ title: "Micro frontend"
 weight: 100
 ---
 
-
-
 A Mateu micro frontend. Due to the design of Mateu, everything is consumable as a micro frontend in any Mateu UI.
 
 <div style="display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 30px;">
