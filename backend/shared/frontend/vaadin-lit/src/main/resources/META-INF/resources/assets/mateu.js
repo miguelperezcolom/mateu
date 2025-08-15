@@ -22202,7 +22202,21 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         >
             ${(Y=U.children)==null?void 0:Y.map(q=>x`<div>${renderComponent(q,D,O,F)}</div>`)}
         </skeleton-carousel>
-    `},renderClientSideComponent=(U,D,O,F)=>{var W,Y,q,X,K,Z;return U!=null&&U.metadata?U.metadata.type==ComponentMetadataType.FormLayout?renderFormLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.FormRow?renderFormRow(U,D,O,F):U.metadata.type==ComponentMetadataType.FormItem?renderFormItem(U,D,O,F):U.metadata.type==ComponentMetadataType.HorizontalLayout?renderHorizontalLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.VerticalLayout?renderVerticalLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.SplitLayout?renderSplitLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.MasterDetailLayout?renderMasterDetailLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.TabLayout?renderTabLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.AccordionLayout?renderAccordionLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayout?renderBoardLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayoutRow?renderBoardLayoutRow(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayoutItem?renderBoardLayoutItem(U,D,O,F):U.metadata.type==ComponentMetadataType.Scroller?renderScroller(U,D,O,F):U.metadata.type==ComponentMetadataType.FullWidth?renderFullWidth(U,D,O,F):U.metadata.type==ComponentMetadataType.Container?renderContainer(U,D,O,F):U.metadata.type==ComponentMetadataType.Form?x`<mateu-form 
+    `},renderDirectory=(U,D,O,F)=>{const W=U.metadata;return console.log(D,O,F),x`
+        <div style="display: flex; gap: 3rem; ${U.style}" class="${U.cssClasses}" slot="${U.slot??E}">
+            ${W.menu.map(Y=>renderItem(Y))}
+        </div>
+            `},renderItem=U=>x`
+        ${U.submenus?x`
+                <vaadin-details summary="${U.label}" opened>
+                    <vaadin-vertical-layout theme="spacing">
+                        ${U.submenus.map(D=>renderItem(D))}
+                    </vaadin-vertical-layout>
+                </vaadin-details>
+            `:x`
+                <a href="${U.destination.route}">${U.label}</a>
+        `}
+        `,renderClientSideComponent=(U,D,O,F)=>{var W,Y,q,X,K,Z;return U!=null&&U.metadata?U.metadata.type==ComponentMetadataType.Directory?renderDirectory(U,D,O,F):U.metadata.type==ComponentMetadataType.FormLayout?renderFormLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.FormRow?renderFormRow(U,D,O,F):U.metadata.type==ComponentMetadataType.FormItem?renderFormItem(U,D,O,F):U.metadata.type==ComponentMetadataType.HorizontalLayout?renderHorizontalLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.VerticalLayout?renderVerticalLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.SplitLayout?renderSplitLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.MasterDetailLayout?renderMasterDetailLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.TabLayout?renderTabLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.AccordionLayout?renderAccordionLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayout?renderBoardLayout(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayoutRow?renderBoardLayoutRow(U,D,O,F):U.metadata.type==ComponentMetadataType.BoardLayoutItem?renderBoardLayoutItem(U,D,O,F):U.metadata.type==ComponentMetadataType.Scroller?renderScroller(U,D,O,F):U.metadata.type==ComponentMetadataType.FullWidth?renderFullWidth(U,D,O,F):U.metadata.type==ComponentMetadataType.Container?renderContainer(U,D,O,F):U.metadata.type==ComponentMetadataType.Form?x`<mateu-form 
                 id="${U.id}" 
             baseUrl="${D}"
                 .component="${U}"

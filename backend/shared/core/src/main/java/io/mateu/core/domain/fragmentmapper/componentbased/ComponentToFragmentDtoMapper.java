@@ -25,6 +25,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.CustomF
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapDataToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DetailsComponentToDtoMapper.mapDetailsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogComponentToDtoMapper.mapDialogToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DirectoryComponentToDtoMapper.mapDirectoryToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
@@ -85,6 +86,7 @@ import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Dialog;
+import io.mateu.uidl.data.Directory;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormItem;
@@ -317,6 +319,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof GridGroupColumn gridGroupColumn) {
       return mapGridGroupColumnToDto(gridGroupColumn, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Directory directory) {
+      return mapDirectoryToDto(directory, baseUrl, route, httpRequest);
     }
     if (component instanceof VirtualList virtualList) {
       return mapVirtualListToDto(virtualList);

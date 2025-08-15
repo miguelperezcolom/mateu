@@ -6,12 +6,9 @@ import java.util.List;
 /**
  * directory metadata
  *
- * @param title The directory title
- * @param subtitle The directory subtitle
  * @param menu The menus
  */
-public record DirectoryDto(String title, String subtitle, List<MenuOptionDto> menu)
-    implements ComponentMetadataDto {
+public record DirectoryDto(List<MenuOptionDto> menu) implements ComponentMetadataDto {
 
   public DirectoryDto {
     menu = Collections.unmodifiableList(menu);

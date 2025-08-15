@@ -46,11 +46,15 @@ import { renderMap } from "@infra/ui/renderers/mapRenderer";
 import { renderImage } from "@infra/ui/renderers/imageRenderer";
 import { renderBreadcrumbs } from "@infra/ui/renderers/breadcrumbsRenderer";
 import { renderCarouselLayout } from "@infra/ui/renderers/carouselRenderer";
+import { renderDirectory } from "@infra/ui/renderers/directoryRenderer";
 
 
 export const renderClientSideComponent = (component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     if (component?.metadata) {
 
+        if (component.metadata.type == ComponentMetadataType.Directory) {
+            return renderDirectory(component, baseUrl, state, data)
+        }
         if (component.metadata.type == ComponentMetadataType.FormLayout) {
             return renderFormLayout(component, baseUrl, state, data)
         }
