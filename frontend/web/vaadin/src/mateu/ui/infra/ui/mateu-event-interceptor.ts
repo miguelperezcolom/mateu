@@ -23,11 +23,13 @@ export class MateuEventInterceptor extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this.addEventListener('value-changed', this.redispatchEvent)
+        this.addEventListener('action-requested', this.redispatchEvent)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('value-changed', this.redispatchEvent)
+        this.removeEventListener('action-requested', this.redispatchEvent)
     }
 
     render() {

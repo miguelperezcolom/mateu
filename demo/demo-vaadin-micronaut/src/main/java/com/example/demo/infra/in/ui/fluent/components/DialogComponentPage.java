@@ -16,10 +16,13 @@ public class DialogComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Dialog")
                 .content(List.of(
+
                         Dialog.builder()
-                                .title("Title")
+                                .headerTitle("Title")
                                 .content(new Text("Hola!"))
+                                .closeButtonOnHeader(true)
                                 .build()
+
                 ))
                 .build();
     }

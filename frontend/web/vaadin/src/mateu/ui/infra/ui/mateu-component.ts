@@ -50,6 +50,7 @@ import './mateu-api-caller'
 import './mateu-cookie-consent'
 import './mateu-ux'
 import './mateu-event-interceptor'
+import './mateu-dialog'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
