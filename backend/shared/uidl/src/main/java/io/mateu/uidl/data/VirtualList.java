@@ -4,4 +4,5 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record VirtualList(Page<?> page, String style, String cssClasses) implements Component {}
+public record VirtualList(Page<Component> page, String style, String cssClasses)
+    implements Component {}

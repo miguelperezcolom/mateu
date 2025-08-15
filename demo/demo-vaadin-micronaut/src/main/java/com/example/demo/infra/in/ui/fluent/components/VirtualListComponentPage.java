@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Page;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VirtualList;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -19,9 +20,9 @@ public class VirtualListComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         VirtualList.builder()
                                 .page(new Page<>(10, 1, 3, List.of(
-                                        Map.of("id", "1", "name", "Mateu", "age", "17"),
-                                        Map.of("id", "2", "name", "Antònia", "age", "49"),
-                                        Map.of("id", "3", "name", "Miguel", "age", "56")
+                                        new Text("Item 1"),
+                                        new Text("Item 2"),
+                                        new Text("Item 3")
                                 )))
                                 .build()
                 ))

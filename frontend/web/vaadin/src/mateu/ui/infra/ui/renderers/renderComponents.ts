@@ -273,7 +273,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderGrid(component, state)
         }
         if (component.metadata.type == ComponentMetadataType.VirtualList) {
-            return renderVirtualList(component)
+            return renderVirtualList(component, baseUrl, state, data)
         }
         return html`<p ${component?.slot??nothing}>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
     }

@@ -324,7 +324,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapDirectoryToDto(directory, baseUrl, route, httpRequest);
     }
     if (component instanceof VirtualList virtualList) {
-      return mapVirtualListToDto(virtualList);
+      return mapVirtualListToDto(virtualList, baseUrl, route, httpRequest);
     }
     return new ClientSideComponentDto(
         new ElementDto("div", Map.of(), component.toString()),
