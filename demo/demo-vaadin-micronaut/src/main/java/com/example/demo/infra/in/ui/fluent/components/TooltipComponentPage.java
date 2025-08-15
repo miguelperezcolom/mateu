@@ -17,8 +17,8 @@ public class TooltipComponentPage implements ComponentTreeSupplier {
                 .title("Tooltip")
                 .content(List.of(
                         Tooltip.builder()
-                                .text("Hola tooltip")
-                                .wrapped(new Text("Hola!"))
+                                .text("Hello tooltip")
+                                .wrapped(new Text("Hover me!"))
                                 .build()
                 ))
                 .build();
