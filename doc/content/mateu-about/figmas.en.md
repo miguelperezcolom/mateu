@@ -3,7 +3,7 @@ title: "Figma libraries"
 weight: 90
 ---
 
-Here you have some figma libraries designers can use, for designing Mateu UIs:
+Here you have some figma libraries that designers can use, for designing Mateu UIs:
 
 ## Vaadin
 
