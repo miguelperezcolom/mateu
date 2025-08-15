@@ -1,6 +1,6 @@
 ---
 title: "License"
-weight: 56
+weight: 200
 ---
 
 Always free, always open source.
