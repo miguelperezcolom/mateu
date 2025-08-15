@@ -34,6 +34,11 @@ public interface HttpRequest {
     return this;
   }
 
+  String getParameterValue(String name);
+
+  List<String> getParameterValues(String name);
+
+
   Object getAttribute(String key);
 
   void setAttribute(String key, Object value);
@@ -78,4 +83,8 @@ public interface HttpRequest {
   default List<Map<String, Object>> getListOfMaps(String key) {
     return (List<Map<String, Object>>) runActionRq().componentState().getOrDefault(key, List.of());
   }
+
+  String getHeaderValue(String key);
+
+  List<String> getHeaderValues(String key);
 }
