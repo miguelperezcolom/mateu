@@ -27,6 +27,7 @@ public class ScrollerComponentPage implements ComponentTreeSupplier {
                                 .content(HorizontalLayout.builder()
                                         .content(content)
                                         .build())
+                                .style("width: 20rem;")
                                 .build()
                 ))
                 .build();

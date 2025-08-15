@@ -3,8 +3,6 @@ title: "Progress Bar"
 weight: 100
 ---
 
-
-
 A progress bar.
 
 <div style="display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 30px;">
