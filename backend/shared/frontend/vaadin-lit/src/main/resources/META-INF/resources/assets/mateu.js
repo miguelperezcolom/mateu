@@ -21938,18 +21938,25 @@ found at http://polymer.github.io/PATENTS.txt
         <vaadin-grid style="${U.style}" class="${U.cssClasses}"
                      .itemHasChildrenPath="${"children"}" .dataProvider="${Y}"
                      slot="${U.slot??E}"
+                     all-rows-visible
         >
-            ${O.columns.map((q,X)=>X>0?x`
-            <vaadin-grid-column path="${q.id}">${X} - ${q.label}</vaadin-grid-column>
+            ${O.content.map((q,X)=>{var K,Z;return X>0?x`
+            <vaadin-grid-column path="${q.id}">${X} - ${(K=q.metadata)==null?void 0:K.label}</vaadin-grid-column>
 `:x`
-            <vaadin-grid-tree-column path="${q.id}">${X} - ${q.label}</vaadin-grid-tree-column>
-`)}
+            <vaadin-grid-tree-column path="${q.id}">${X} - ${(Z=q.metadata)==null?void 0:Z.label}</vaadin-grid-tree-column>
+`})}
+            <span slot="empty-state">No data.</span>
         </vaadin-grid>
     `}let F=(W=O.page)==null?void 0:W.items;return U.id&&D&&D[U.id]&&(F=D[U.id]),F||(F=[]),x`
-        <vaadin-grid style="${U.style}" class="${U.cssClasses}" .items="${F}">
-            ${O.columns.map(Y=>x`
-            <vaadin-grid-column path="${Y.id}">${Y.label}</vaadin-grid-column>
-`)}
+        <vaadin-grid 
+                style="${U.style}" 
+                class="${U.cssClasses}" 
+                .items="${F}"
+                all-rows-visible
+        >
+            ${O.content.map(Y=>{var q;return x`
+            <vaadin-grid-column path="${Y.id}">${(q=Y.metadata)==null?void 0:q.label}</vaadin-grid-column>
+`})}
         </vaadin-grid>
     `},renderMessageList=U=>(U.metadata,x`
         <vaadin-message-list
