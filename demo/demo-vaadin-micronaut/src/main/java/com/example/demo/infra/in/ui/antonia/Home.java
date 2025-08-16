@@ -21,7 +21,7 @@ public class Home implements ReactiveHandlesActions, HasTitle, HasSubtitle, Form
     }
 
     @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
         return Mono.just(this);
     }
 

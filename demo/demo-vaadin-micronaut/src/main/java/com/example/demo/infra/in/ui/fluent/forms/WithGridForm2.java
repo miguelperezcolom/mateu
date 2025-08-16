@@ -97,7 +97,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
     }
 
     @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId + " " + toJson(this));
 

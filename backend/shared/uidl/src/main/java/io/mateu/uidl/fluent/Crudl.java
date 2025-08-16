@@ -30,7 +30,10 @@ public record Crudl(
     boolean useButtonForDetail,
     String actionIdOnSelectionChanged,
     boolean columnReorderingAllowed,
-    int pageSize)
+    int pageSize,
+    boolean rowsSelectionEnabled,
+    List<Component> header,
+    List<Component> footer)
     implements Component {
 
   public Boolean autoFocusOnSearchText() {
@@ -45,6 +48,16 @@ public record Crudl(
   @Override
   public List<Action> actions() {
     return actions != null ? actions : List.of();
+  }
+
+  @Override
+  public List<Component> header() {
+    return header != null ? header : List.of();
+  }
+
+  @Override
+  public List<Component> footer() {
+    return footer != null ? footer : List.of();
   }
 
   @Override

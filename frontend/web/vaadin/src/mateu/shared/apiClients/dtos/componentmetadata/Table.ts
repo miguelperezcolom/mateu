@@ -4,6 +4,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 export default interface Table extends ComponentMetadata {
 
     columns: ClientSideComponent[]
+    header: ClientSideComponent[]
+    footer: ClientSideComponent[]
     rows: number | undefined
     emptyStateMessage: string
     allRowsVisible: boolean
@@ -14,5 +16,6 @@ export default interface Table extends ComponentMetadata {
     actionIdOnSelectionChanged: string
     columnReorderingAllowed: boolean
     serverSideOrdering: boolean
+    rowsSelectionEnabled: boolean
 
 }

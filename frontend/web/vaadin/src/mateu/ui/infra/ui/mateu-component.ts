@@ -60,13 +60,13 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderComponents";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
+import {Notification} from "@vaadin/notification"
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
     @property()
     baseUrl: string | undefined
-
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
@@ -116,12 +116,26 @@ export class MateuComponent extends ComponentElement {
         if (e.type == 'action-requested') {
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
+            if (action && action.validationRequired) {
+                if (!this.validate()) {
+                    this.notify('There are validation errors')
+                    return
+                }
+            }
             if (action && action.confirmationRequired) {
                 this.callAfterConfirmation(action, () => this.requestActionCallToServer(detail, serverSideComponent, action))
             } else {
                 this.requestActionCallToServer(detail, serverSideComponent, action)
             }
         }
+    }
+
+    notify = (message: string) => {
+        Notification.show(message, {
+            position: 'bottom-end',
+            theme: 'error',
+            duration: 3000
+        });
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
@@ -135,28 +149,7 @@ export class MateuComponent extends ComponentElement {
             confirmationText = action.confirmationTexts.confirmationText
             denialText = action.confirmationTexts.denialText
         }
-        /*
-        <vaadin-confirm-dialog
-  header="Unsaved changes"
-  cancel-button-visible
-  reject-button-visible
-  reject-text="Discard"
-  confirm-text="Save"
-  .opened="${this.dialogOpened}"
-  @closed="${this.onClosed}"
-  @confirm="${() => {
-    this.status = 'Saved';
-  }}"
-  @cancel="${() => {
-    this.status = 'Canceled';
-  }}"
-  @reject="${() => {
-    this.status = 'Discarded';
-  }}"
->
-  There are unsaved changes. Do you want to discard or save them?
-</vaadin-confirm-dialog>
-         */
+
         const dialog = document.createElement("vaadin-confirm-dialog")
         dialog.setAttribute("header", header)
         dialog.setAttribute("cancel-button-visible", "cancel-button-visible")
@@ -166,14 +159,11 @@ export class MateuComponent extends ComponentElement {
         dialog.append(message)
         dialog.opened = true
         dialog.addEventListener('confirm', () => callback())
+        dialog.addEventListener('close', () => document.body.removeChild(dialog))
+        dialog.addEventListener('confirm', () => document.body.removeChild(dialog))
+        dialog.addEventListener('cancel', () => document.body.removeChild(dialog))
+        dialog.addEventListener('reject', () => document.body.removeChild(dialog))
         document.body.append(dialog)
-
-        /*
-        if (window.confirm(message)) {
-            callback()
-        }
-        */
-
     }
 
     requestActionCallToServer = (detail: {

@@ -55,7 +55,6 @@ public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, Ha
     @SneakyThrows
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
-        Thread.sleep(1000);
         return new State(Map.of("count", httpRequest.getInt("count") + 1));
     }
 }

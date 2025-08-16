@@ -1,5 +1,6 @@
 package io.mateu.core.domain;
 
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
@@ -38,9 +39,11 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           }
 
           @Override
-          public Mono<?> run(
+          public Mono<Object> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            return handlesActions.handleAction(actionId, httpRequest);
+            return handlesActions
+                .handleAction(actionId, httpRequest)
+                .defaultIfEmpty(UIIncrementDto.builder().build());
           }
         };
       }

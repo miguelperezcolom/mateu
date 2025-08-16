@@ -86,4 +86,10 @@ public interface HttpRequest {
   String getHeaderValue(String key);
 
   List<String> getHeaderValues(String key);
+
+  default <T> List<T> getSelectedRows(Class<T> rowType) {
+    return ((List<Map<String, Object>>)
+            runActionRq().componentState().getOrDefault("crud_selected_items", List.of()))
+        .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data)).toList();
+  }
 }

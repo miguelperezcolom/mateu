@@ -14,16 +14,14 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import '@vaadin/grid/vaadin-grid-sort-column.js';
 import '@vaadin/grid/vaadin-grid-filter-column.js';
+import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
-import {
-    GridSortColumnDirectionChangedEvent
-} from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
-import { GridDataProvider, GridSortColumn } from "@vaadin/grid/all-imports";
-
+import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
+import { GridDataProvider, GridSelectedItemsChangedEvent, GridSortColumn } from "@vaadin/grid/all-imports";
 
 
 const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
@@ -106,7 +104,13 @@ const renderColumnOrGroup = (columnOrGroup: ClientSideComponent) => {
 export class MateuTable extends LitElement {
 
     @property()
+    id: string = ''
+
+    @property()
     metadata: Table | undefined
+
+    @property()
+    state: Record<string, any> = {}
 
     @property()
     data: Record<string, any> = {}
@@ -116,20 +120,28 @@ export class MateuTable extends LitElement {
 
     // @ts-ignore
     dataProvider:GridDataProvider<unknown> = (params, callback) => {
-        callback(this.data?.page?.content??[], this.data?.page?.content?.length??0);
+        const page = this.data[this.id]?.page
+        callback(page?.content??[], page?.content?.length??0);
     }
 
     render() {
+        const page = this.data[this.id]?.page
         return html`
             <vaadin-grid
-                    .items="${this.data?.page?.content}"
+                    .items="${page?.content}"
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     size="${this.metadata?.rows??nothing}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
                     .dataProvider="${this.dataProvider}"      
                     multi-sort-on-shift-click
+                    @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
+                        this.state[this.id + '_selected_items'] = e.detail.value;
+                    }}"
             >
+                ${this.metadata?.rowsSelectionEnabled?html`
+                    <vaadin-grid-selection-column></vaadin-grid-selection-column>
+                `:nothing}
                 ${this.metadata?.columns?.map(column => renderColumnOrGroup(column))}
                 <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No data.'}</span>
             </vaadin-grid>

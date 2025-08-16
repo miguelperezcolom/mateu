@@ -18,6 +18,8 @@ import './mateu-table'
 import TableCrud from "@mateu/shared/apiClients/dtos/componentmetadata/TableCrud";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { Notification } from "@vaadin/notification";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -32,6 +34,9 @@ export class MateuTableCrud extends LitElement {
     component: ClientSideComponent | undefined = undefined
 
     @property()
+    baseUrl: string | undefined
+
+    @property()
     state: Record<string, any> = {}
 
     @property()
@@ -41,6 +46,7 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as TableCrud
         this.state.size = metadata.pageSize
         this.state.page = 0
+        this.state['crud_selected_items'] = []
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search'
@@ -49,15 +55,36 @@ export class MateuTableCrud extends LitElement {
             composed: true
         }))
     }
+    redispatchEvent: EventListenerOrEventListenerObject = (e: Event) => {
+        if (e instanceof CustomEvent) {
+            e.stopPropagation()
+            e.preventDefault()
 
-    handleActionClick = (actionId: string) => {
-        this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: {
-                actionId,
-            },
-            bubbles: true,
-            composed: true
-        }))
+            const metadata = (this.component as ClientSideComponent).metadata as TableCrud
+            const action = metadata.actions?.find(action => action.id == e.detail.actionId)
+            console.log('hola', action, metadata, this.state)
+            if (action && action.rowsSelectedRequired) {
+                if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
+                    this.notify('You first need to select some rows')
+                    return
+                }
+            }
+
+
+            this.dispatchEvent(new CustomEvent(e.type, {
+                detail: e.detail,
+                bubbles: true,
+                composed: true
+            }))
+        }
+    }
+
+    notify = (message: string) => {
+        Notification.show(message, {
+            position: 'bottom-end',
+            theme: 'error',
+            duration: 3000
+        });
     }
 
     pageChanged(e: CustomEvent) {
@@ -66,6 +93,7 @@ export class MateuTableCrud extends LitElement {
     }
 
     handleSearchRequested = () => {
+        this.state['crud_selected_items'] = []
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
@@ -103,20 +131,24 @@ export class MateuTableCrud extends LitElement {
     render() {
         const metadata = (this.component as ClientSideComponent).metadata as TableCrud
         metadata.serverSideOrdering = true
+        console.log('header', metadata.header)
         return html`
             <mateu-filter-bar 
                     .metadata="${metadata}"
                     @search-requested="${this.search}"
                     .state="${this.state}"
                     .data="${this.data}"
+                    @action-requested="${this.redispatchEvent}"
             >
+                ${metadata.header?.map(component => renderComponent(component, this.baseUrl, this.state, this.data))}
             </mateu-filter-bar>
             ${metadata?.type == ComponentMetadataType.TableCrud?html`
-                <mateu-table id="${this.component?.id}.page" 
+                <mateu-table id="${this.component?.id}" 
                              .metadata="${metadata}" 
-                             .data="${this.data[this.component?.id!]}"
+                             .data="${this.data}"
                              .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
                              @sort-direction-changed="${this.directionChanged}"
+                             .state="${this.state}"
                 ></mateu-table>
             `:html`
                 <mateu-card id="${this.component?.id}.page" 
@@ -133,7 +165,9 @@ export class MateuTableCrud extends LitElement {
                         pageSize="${this.data[this.component?.id!]?.page?.pageSize}"
                         data-testid="pagination"
                         pageNumber=${this.data[this.component?.id!]?.page?.pageNumber}
-                ></mateu-pagination>
+                >
+                    ${metadata.footer?.map(component => renderComponent(component, this.baseUrl, this.state, this.data))}
+                </mateu-pagination>
 `}
        `
     }

@@ -23,6 +23,7 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import '@vaadin/item'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
+import { ValidationType } from "@mateu/shared/apiClients/dtos/componentmetadata/ValidationType";
 
 
 @customElement('mateu-field')
@@ -86,7 +87,8 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'file') {
             return html`
                 <vaadin-upload
-                        target="/api/fileupload"></vaadin-upload>
+                        target="/api/fileupload"
+                ></vaadin-upload>
             `
         }
         if (this.field?.dataType == 'string') {
@@ -101,6 +103,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-select>
                 `
             }
@@ -115,6 +118,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-combo-box>
                     `
             }
@@ -138,6 +142,7 @@ export class MateuField extends LitElement {
                             .value="${value}"
                             theme="vertical"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     >
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
@@ -165,6 +170,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-text-area>`
             }
             if (this.field?.stereotype == 'email') {
@@ -175,6 +181,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-email-field>
                 `
             }
@@ -186,6 +193,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-password-field>
                 `
             }
@@ -196,6 +204,8 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
+                        pattern="${this.field.validations?.find(validation => validation.type == ValidationType.Pattern)?.data}"
                 ></vaadin-text-field>
 `
         }
@@ -206,6 +216,9 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
+                        min="${this.field.validations?.find(validation => validation.type == ValidationType.Min)?.data}"
+                        max="${this.field.validations?.find(validation => validation.type == ValidationType.Max)?.data}"
             ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
@@ -216,6 +229,9 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
+                        min="${this.field.validations?.find(validation => validation.type == ValidationType.Min)?.data}"
+                        max="${this.field.validations?.find(validation => validation.type == ValidationType.Max)?.data}"
                 ></vaadin-integer-field>
             `
         }
@@ -227,6 +243,7 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
                 ></vaadin-checkbox>
             `
         }
@@ -237,6 +254,7 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
             ></vaadin-date-picker>`
         }
         if (this.field?.dataType == 'dateTime') {
@@ -246,6 +264,7 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
             ></vaadin-date-time-picker>`
         }
         if (this.field?.dataType == 'time') {
@@ -255,6 +274,7 @@ export class MateuField extends LitElement {
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
             ></vaadin-time-picker>`
         }
         if (this.field?.dataType == 'array') {
@@ -281,6 +301,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-multi-select-combo-box>
                     `
             }
@@ -292,6 +313,7 @@ export class MateuField extends LitElement {
                         value="${value}"
                         theme="vertical"
                         ?autofocus="${this.field.wantsFocus}"
+                        required="${this.field.required}"
                 >
                     ${this.field.options?.map(option => html`
                         <vaadin-checkbox value="${option.value}" label="${option.label}"></vaadin-checkbox>
@@ -311,6 +333,7 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
                     ></vaadin-combo-box>
                     `
             }
@@ -333,7 +356,9 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
-                            theme="vertical">
+                            theme="vertical"
+                            required="${this.field.required}"
+                    >
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
                         `)}

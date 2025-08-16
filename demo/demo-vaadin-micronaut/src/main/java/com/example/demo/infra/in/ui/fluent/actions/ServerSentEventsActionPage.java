@@ -8,11 +8,11 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 @Route("/fluent-app/actions/server-side-events")
-public class ServerSideEventsActionPage implements ComponentTreeSupplier {
+public class ServerSentEventsActionPage implements ComponentTreeSupplier {
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
-                .title("Validation required")
+                .title("SSE")
                 .content(List.of(
                 ))
                 .build();

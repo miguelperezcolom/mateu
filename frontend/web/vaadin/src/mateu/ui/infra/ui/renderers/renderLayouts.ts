@@ -115,7 +115,6 @@ export const renderVerticalLayout = (component: Component, baseUrl: string | und
         style = style?'align-items: ' + metadata.horizontalAlignment + ';' + style:'align-items: ' + metadata.horizontalAlignment + ';'
     }
 
-    console.log('style and theme', style, theme)
     return html`
         <vaadin-vertical-layout
                 style="${style}"

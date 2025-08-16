@@ -41,7 +41,10 @@ public record CrudlDto(
     boolean useButtonForDetail,
     String actionIdOnSelectionChanged,
     boolean columnReorderingAllowed,
-    int pageSize)
+    int pageSize,
+    boolean rowsSelectionEnabled,
+    List<ComponentDto> header,
+    List<ComponentDto> footer)
     implements ComponentMetadataDto {
 
   public CrudlDto {

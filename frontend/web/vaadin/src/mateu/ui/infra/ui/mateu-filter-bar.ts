@@ -127,6 +127,7 @@ export class MateuFilterBar extends LitElement {
                 `:nothing}
                 ${this.metadata?.filters?html`
                 `:nothing}
+                <slot></slot>
             </vaadin-horizontal-layout>
 
             <vaadin-dialog

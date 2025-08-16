@@ -2,6 +2,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import { property } from "lit/decorators.js";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
+import { ValidateMixinClass } from "@vaadin/field-base/src/validate-mixin";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -33,6 +34,24 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
             this.requestUpdate()
         }
+    }
+
+    validate(): boolean {
+        // mirar validaciones
+        const allFields: NodeListOf<any>[] = []
+        const allMateuFields = this.renderRoot?.querySelectorAll('mateu-field')
+        allMateuFields.forEach(field => allFields.push(field.renderRoot.querySelectorAll('vaadin-text-field,vaadin-integer-field')))
+        let allValid = true
+        allFields.forEach(nodelist => {
+            nodelist.forEach(item => {
+                const valid = (item as ValidateMixinClass).validate()
+                allValid &&= valid
+            })
+        })
+        // limpiar errores
+        // comprobar y generar errores
+        // devolver false si hay errores
+        return allValid
     }
 
 }

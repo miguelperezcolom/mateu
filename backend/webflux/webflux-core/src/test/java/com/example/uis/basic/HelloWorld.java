@@ -14,7 +14,7 @@ public class HelloWorld implements ReactiveHandlesActions, HandlesRoute {
   }
 
   @Override
-  public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+  public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
     return Mono.just(this);
   }
 

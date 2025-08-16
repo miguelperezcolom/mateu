@@ -39,7 +39,7 @@ public class Counter1 implements ComponentTreeSupplier, ReactiveHandlesActions {
     }
 
     @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
         count++;
         return Mono.just(this);
     }

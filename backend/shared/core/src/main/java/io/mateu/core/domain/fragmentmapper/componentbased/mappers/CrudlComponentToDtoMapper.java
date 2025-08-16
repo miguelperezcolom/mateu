@@ -2,7 +2,6 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
@@ -26,9 +25,7 @@ public class CrudlComponentToDtoMapper {
             .subtitle(crudl.subtitle())
             .searchable(crudl.searchable())
             .actions(
-                crudl.actions().stream()
-                    .map(action -> ActionDto.builder().id(action.id()).href(action.href()).build())
-                    .toList())
+                crudl.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList())
             .triggers(
                 crudl.triggers().stream().map(FormComponentToDtoMapper::mapToTriggerDto).toList())
             .toolbar(
@@ -62,6 +59,19 @@ public class CrudlComponentToDtoMapper {
             .actionIdOnSelectionChanged(crudl.actionIdOnSelectionChanged())
             .columnReorderingAllowed(crudl.columnReorderingAllowed())
             .pageSize(crudl.pageSize())
+            .rowsSelectionEnabled(crudl.rowsSelectionEnabled())
+            .header(
+                crudl.header().stream()
+                    .map(
+                        component ->
+                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                    .toList())
+            .footer(
+                crudl.footer().stream()
+                    .map(
+                        component ->
+                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                    .toList())
             .build();
     return new ClientSideComponentDto(
         crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses(), null);

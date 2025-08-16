@@ -6,5 +6,5 @@ public interface ReactiveHandlesActions {
 
   boolean supportsAction(String actionId);
 
-  Mono<?> handleAction(String actionId, HttpRequest httpRequest);
+  Mono<Object> handleAction(String actionId, HttpRequest httpRequest);
 }

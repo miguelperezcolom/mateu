@@ -11,6 +11,7 @@ import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
+import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
@@ -80,19 +81,20 @@ public class ComponentTreeSupplierToDtoMapper {
 
   private static List<ActionDto> mapActions(Object serverSideObject) {
     if (serverSideObject instanceof HasActions hasActions) {
-      return hasActions.actions().stream()
-          .map(
-              action ->
-                  ActionDto.builder()
-                      .id(action.id())
-                      .confirmationRequired(action.confirmationRequired())
-                      .validationRequired(action.validationRequired())
-                      .background(action.background())
-                      .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
-                      .build())
-          .toList();
+      return hasActions.actions().stream().map(action -> mapAction(action)).toList();
     }
     return List.of();
+  }
+
+  public static ActionDto mapAction(Action action) {
+    return ActionDto.builder()
+        .id(action.id())
+        .confirmationRequired(action.confirmationRequired())
+        .validationRequired(action.validationRequired())
+        .background(action.background())
+        .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
+        .rowsSelectedRequired(action.rowsSelectedRequired())
+        .build();
   }
 
   private static ConfirmationTextsDto mapConfirmationTexts(ConfirmationTexts confirmationTexts) {

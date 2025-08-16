@@ -83,7 +83,7 @@ public class BasicForm implements ComponentTreeSupplier, ReactiveHandlesActions 
     }
 
     @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId);
 

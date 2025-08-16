@@ -122,7 +122,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/actions/background", "Run in background"),
                                 new RouteLink("/fluent-app/actions/confirmation-required", "Confirmation required"),
                                 new RouteLink("/fluent-app/actions/validation-required", "Validation required"),
-                                new RouteLink("/fluent-app/actions/server-side-events", "Server Side Events (SSE)"),
+                                new RouteLink("/fluent-app/actions/server-side-events", "Server Sent Events (SSE)"),
                                 new RouteLink("/fluent-app/actions/row-selected-required", "Row selected required"),
                                 new RouteLink("/fluent-app/actions/target", "Target"),
                                 new RouteLink("/fluent-app/actions/custom-event", "Client side event"),

@@ -16,7 +16,7 @@ public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActio
   }
 
   @Override
-  default Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
+  default Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(

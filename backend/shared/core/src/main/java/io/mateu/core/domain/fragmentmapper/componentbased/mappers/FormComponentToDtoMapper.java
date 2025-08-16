@@ -2,7 +2,6 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -30,9 +29,7 @@ public class FormComponentToDtoMapper {
             .title(form.title())
             .subtitle(form.subtitle())
             .actions(
-                form.actions().stream()
-                    .map(action -> ActionDto.builder().id(action.id()).href(action.href()).build())
-                    .toList())
+                form.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList())
             .triggers(
                 form.triggers().stream().map(FormComponentToDtoMapper::mapToTriggerDto).toList())
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
