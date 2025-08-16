@@ -15,6 +15,7 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -32,7 +33,7 @@ record Row(String name, int age) {}
 
 @Route("/fluent-app/actions/row-selected-required")
 @Slf4j
-public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row> {
+public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row>, HasActions {
 
     @JsonIgnore
     List<Row> allItems = List.of(
@@ -68,12 +69,6 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
                                                 .build()
                                 ))
                                 .actionIdOnSelectionChanged("selection-changed")
-                                .actions(List.of(
-                                        Action.builder()
-                                                .id("xx")
-                                                .rowsSelectedRequired(true)
-                                                .build()
-                                ))
                                 .header(List.of(
                                         Button.builder()
                                                 .label("Do something")
@@ -141,5 +136,14 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
             return Mono.empty();
         }
         return ReactiveCrudlBackend.super.handleAction(actionId, httpRequest);
+    }
+
+    @Override
+    public List<Action> actions() {
+        return List.of(                                        Action.builder()
+                .id("xx")
+                .rowsSelectedRequired(true)
+                .build()
+        );
     }
 }

@@ -1,20 +1,37 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
 @Route("/fluent-app/actions/href")
-public class HrefActionPage implements ComponentTreeSupplier {
+public class HrefActionPage implements ComponentTreeSupplier, HasActions {
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Href (go to external url) action")
                 .content(List.of(
+                        Button.builder()
+                                .actionId("xx")
+                                .label("Go to Google")
+                                .build()
                 ))
                 .build();
+    }
+
+    @Override
+    public List<Action> actions() {
+        return List.of(
+                Action.builder()
+                        .id("xx")
+                        .href("https://www.google.es")
+                        .build()
+        );
     }
 }

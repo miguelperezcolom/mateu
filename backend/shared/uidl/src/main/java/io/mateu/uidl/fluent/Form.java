@@ -11,7 +11,6 @@ public record Form(
     String pageTitle,
     String title,
     String subtitle,
-    List<Action> actions,
     List<Trigger> triggers,
     List<Component> content,
     List<Component> header,
@@ -23,7 +22,6 @@ public record Form(
     implements Component, HasContent {
 
   public Form {
-    actions = actions != null ? actions : Collections.emptyList();
     triggers = triggers != null ? triggers : Collections.emptyList();
     content = content != null ? content : Collections.emptyList();
     header = header != null ? header : Collections.emptyList();

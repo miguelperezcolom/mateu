@@ -24,8 +24,6 @@ public class CrudlComponentToDtoMapper {
             .title(crudl.title())
             .subtitle(crudl.subtitle())
             .searchable(crudl.searchable())
-            .actions(
-                crudl.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList())
             .triggers(
                 crudl.triggers().stream().map(FormComponentToDtoMapper::mapToTriggerDto).toList())
             .toolbar(

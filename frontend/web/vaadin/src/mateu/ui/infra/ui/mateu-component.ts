@@ -169,6 +169,14 @@ export class MateuComponent extends ComponentElement {
     requestActionCallToServer = (detail: {
         actionId: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
+
+        console.log('action', action, serverSideComponent)
+
+        if (action && action.href) {
+            window.location.href = action.href
+            return
+        }
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 componentState: {...this.state},

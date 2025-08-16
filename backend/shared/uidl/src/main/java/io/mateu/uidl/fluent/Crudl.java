@@ -12,7 +12,6 @@ public record Crudl(
     String pageTitle,
     String title,
     String subtitle,
-    List<Action> actions,
     List<Trigger> triggers,
     List<UserTrigger> toolbar,
     List<GridContent> columns,
@@ -43,11 +42,6 @@ public record Crudl(
   @Override
   public Boolean searchOnEnter() {
     return searchOnEnter != null ? searchOnEnter : true;
-  }
-
-  @Override
-  public List<Action> actions() {
-    return actions != null ? actions : List.of();
   }
 
   @Override

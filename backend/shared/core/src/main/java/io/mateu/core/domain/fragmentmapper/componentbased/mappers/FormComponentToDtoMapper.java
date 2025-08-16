@@ -28,8 +28,6 @@ public class FormComponentToDtoMapper {
         FormDto.builder()
             .title(form.title())
             .subtitle(form.subtitle())
-            .actions(
-                form.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList())
             .triggers(
                 form.triggers().stream().map(FormComponentToDtoMapper::mapToTriggerDto).toList())
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
