@@ -10,7 +10,6 @@ public record Action(
     boolean confirmationRequired,
     boolean rowsSelectedRequired,
     ConfirmationTexts confirmationTexts,
-    ActionTarget target,
     String modalStyle,
     String modalTitle,
     String customEvent,

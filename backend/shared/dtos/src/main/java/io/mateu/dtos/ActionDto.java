@@ -10,7 +10,6 @@ import lombok.Builder;
  * @param confirmationRequired If confirmation of the form is required for firing this action
  * @param rowsSelectedRequired If rows selected from the crud is required for firing this action
  * @param confirmationTexts Confirmation dialog text
- * @param target Target for this action: modal, new tab, ...
  * @param modalStyle The initialValue for the dialog style attribute
  * @param modalTitle The initialValue for the dialog header
  * @param customEvent In case a browser custom event is to be thrown
@@ -23,7 +22,6 @@ public record ActionDto(
     boolean confirmationRequired,
     boolean rowsSelectedRequired,
     ConfirmationTextsDto confirmationTexts,
-    ActionTargetDto target,
     String modalStyle,
     String modalTitle,
     String customEvent,

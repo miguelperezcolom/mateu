@@ -124,7 +124,6 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/actions/validation-required", "Validation required"),
                                 new RouteLink("/fluent-app/actions/server-side-events", "Server Sent Events (SSE)"),
                                 new RouteLink("/fluent-app/actions/row-selected-required", "Row selected required"),
-                                new RouteLink("/fluent-app/actions/target", "Target"),
                                 new RouteLink("/fluent-app/actions/custom-event", "Client side event"),
                                 new RouteLink("/fluent-app/actions/href", "Href")
                         )),

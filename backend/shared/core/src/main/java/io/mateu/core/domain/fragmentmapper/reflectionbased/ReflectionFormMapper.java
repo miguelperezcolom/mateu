@@ -8,7 +8,6 @@ import static io.mateu.core.domain.reflection.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.domain.reflection.ValueProvider.getValue;
 
 import io.mateu.dtos.ActionDto;
-import io.mateu.dtos.ActionTargetDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
@@ -96,17 +95,7 @@ public final class ReflectionFormMapper {
             .map(
                 method ->
                     new ActionDto(
-                        method.getName(),
-                        false,
-                        false,
-                        false,
-                        null,
-                        ActionTargetDto.Component,
-                        null,
-                        null,
-                        null,
-                        null,
-                        false))
+                        method.getName(), false, false, false, null, null, null, null, null, false))
             .toList());
     return actions;
   }
