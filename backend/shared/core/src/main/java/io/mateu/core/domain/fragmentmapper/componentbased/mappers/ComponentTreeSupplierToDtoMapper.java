@@ -4,12 +4,14 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ConfirmationTextsDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
+import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -86,9 +88,21 @@ public class ComponentTreeSupplierToDtoMapper {
                       .confirmationRequired(action.confirmationRequired())
                       .validationRequired(action.validationRequired())
                       .background(action.background())
+                      .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
                       .build())
           .toList();
     }
     return List.of();
+  }
+
+  private static ConfirmationTextsDto mapConfirmationTexts(ConfirmationTexts confirmationTexts) {
+    if (confirmationTexts == null) {
+      return null;
+    }
+    return new ConfirmationTextsDto(
+        confirmationTexts.title(),
+        confirmationTexts.message(),
+        confirmationTexts.confirmationText(),
+        confirmationTexts.denialText());
   }
 }

@@ -34,13 +34,15 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
     }
 
-    async wrap<T>(call: Promise<T>, initiator: HTMLElement): Promise<T> {
-        initiator.dispatchEvent(new CustomEvent('backend-called-event', {
-            bubbles: true,
-            composed: true,
-            detail: {
-            }
-        }))
+    async wrap<T>(call: Promise<T>, initiator: HTMLElement, background: boolean): Promise<T> {
+        if (!background) {
+            initiator.dispatchEvent(new CustomEvent('backend-called-event', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                }
+            }))
+        }
         return call.then(response => {
             initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
                 bubbles: true,
@@ -104,7 +106,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             config,
             path
         })
-            .then((response) => response.data), initiator)
+            .then((response) => response.data), initiator, false)
     }
 
     async runAction(baseUrl: string, route: string, consumedRoute: string,
@@ -114,7 +116,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     serverSideType: string,
                     componentState: any,
                     parameters: any,
-                    initiator: HTMLElement): Promise<UIIncrement> {
+                    initiator: HTMLElement,
+                    background: boolean): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
         }
@@ -129,7 +132,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             route: '/' + route,
             actionId
         })
-            .then((response) => response.data), initiator)
+            .then((response) => response.data), initiator, background)
     }
 
 }

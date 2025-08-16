@@ -1,7 +1,6 @@
 package io.mateu;
 
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.List;
 
 public class MicronautHttpRequest implements HttpRequest {

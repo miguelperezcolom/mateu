@@ -38,7 +38,6 @@ public interface HttpRequest {
 
   List<String> getParameterValues(String name);
 
-
   Object getAttribute(String key);
 
   void setAttribute(String key, Object value);

@@ -9,4 +9,5 @@ export interface RunActionCommand {
     serverSideType: string
     initiatorComponentId: string
     initiator: HTMLElement
+    background: boolean
 }

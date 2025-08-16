@@ -70,7 +70,8 @@ export class MateuUx extends ConnectedElement {
             actionId: string
             serverSideType: string
             initiatorComponentId: string,
-            initiator: HTMLElement
+            initiator: HTMLElement,
+            background: boolean
         }
         if (e.type == 'server-side-action-requested') {
             if (this.route != undefined) {
@@ -83,7 +84,8 @@ export class MateuUx extends ConnectedElement {
                     detail.serverSideType,
                     detail.componentState,
                     detail.parameters,
-                    detail.initiator).then();
+                    detail.initiator,
+                detail.background).then();
             } else {
                 console.log('no route', e)
             }

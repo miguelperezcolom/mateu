@@ -118,6 +118,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/virtual-list", "Virtual List")
                         )),
                         new Menu("Actions", List.of(
+                                new RouteLink("/fluent-app/actions/foreground", "Run in foreground"),
                                 new RouteLink("/fluent-app/actions/background", "Run in background"),
                                 new RouteLink("/fluent-app/actions/confirmation-required", "Confirmation required"),
                                 new RouteLink("/fluent-app/actions/validation-required", "Validation required"),

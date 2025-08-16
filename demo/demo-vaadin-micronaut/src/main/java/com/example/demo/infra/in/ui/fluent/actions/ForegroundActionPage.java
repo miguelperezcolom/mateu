@@ -6,7 +6,6 @@ import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -17,8 +16,8 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/actions/confirmation-required")
-public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, HasActions, HandlesActions {
+@Route("/fluent-app/actions/foreground")
+public class ForegroundActionPage implements ComponentTreeSupplier, HasActions, HandlesActions {
 
     @Override
     public Form getComponent(HttpRequest httpRequest) {
@@ -46,9 +45,7 @@ public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, Ha
     @Override
     public List<Action> actions() {
         return List.of(Action.builder()
-                .id("action")
-                        .confirmationRequired(true)
-                        .confirmationTexts(new ConfirmationTexts("title", "message", "confirmation-text", "denial-text"))
+                        .id("action")
                 .build());
     }
 

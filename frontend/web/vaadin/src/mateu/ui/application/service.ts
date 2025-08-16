@@ -47,7 +47,8 @@ export class Service {
                     serverSideType: string,
                     componentState: any,
                     parameters: any,
-                    initiator: HTMLElement) {
+                    initiator: HTMLElement,
+                    background: boolean) {
         const changes = await runActionCommandHandler.handle(mateuApiClient, {
             baseUrl,
             route: route?route:'_no_route',
@@ -58,7 +59,8 @@ export class Service {
             componentState,
             parameters,
             serverSideType,
-            initiator
+            initiator,
+            background
         } as RunActionCommand)
         this.handleUIIncrement(changes.uiIncrement)
     }

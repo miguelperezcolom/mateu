@@ -2,8 +2,6 @@ package io.mateu;
 
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

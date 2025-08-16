@@ -117,34 +117,76 @@ export class MateuComponent extends ComponentElement {
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
             if (action && action.confirmationRequired) {
-                this.callAfterConfirmation(action, () => this.requestActionCallToServer(detail, serverSideComponent))
+                this.callAfterConfirmation(action, () => this.requestActionCallToServer(detail, serverSideComponent, action))
             } else {
-                this.requestActionCallToServer(detail, serverSideComponent)
+                this.requestActionCallToServer(detail, serverSideComponent, action)
             }
         }
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
+        let header = "One moment, please"
         let message = 'Are you sure?'
+        let confirmationText = 'Yes'
+        let denialText = 'No'
         if (action.confirmationTexts) {
+            header = action.confirmationTexts.title
             message = action.confirmationTexts.message
+            confirmationText = action.confirmationTexts.confirmationText
+            denialText = action.confirmationTexts.denialText
         }
+        /*
+        <vaadin-confirm-dialog
+  header="Unsaved changes"
+  cancel-button-visible
+  reject-button-visible
+  reject-text="Discard"
+  confirm-text="Save"
+  .opened="${this.dialogOpened}"
+  @closed="${this.onClosed}"
+  @confirm="${() => {
+    this.status = 'Saved';
+  }}"
+  @cancel="${() => {
+    this.status = 'Canceled';
+  }}"
+  @reject="${() => {
+    this.status = 'Discarded';
+  }}"
+>
+  There are unsaved changes. Do you want to discard or save them?
+</vaadin-confirm-dialog>
+         */
+        const dialog = document.createElement("vaadin-confirm-dialog")
+        dialog.setAttribute("header", header)
+        dialog.setAttribute("cancel-button-visible", "cancel-button-visible")
+        //dialog.setAttribute("reject-button-visible", "reject-button-visible")
+        dialog.setAttribute("confirm-text", confirmationText)
+        dialog.setAttribute("cancel-text", denialText)
+        dialog.append(message)
+        dialog.opened = true
+        dialog.addEventListener('confirm', () => callback())
+        document.body.append(dialog)
+
+        /*
         if (window.confirm(message)) {
             callback()
         }
+        */
 
     }
 
     requestActionCallToServer = (detail: {
         actionId: string
-    }, serverSideComponent: ServerSideComponent) => {
+    }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 componentState: {...this.state},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
                 initiatorComponentId: serverSideComponent.id,
-                initiator: this
+                initiator: this,
+                background: action?.background
             },
             bubbles: true,
             composed: true

@@ -12,6 +12,7 @@ export interface MateuApiClient {
               serverSideType: string,
               componentState: any,
               parameters: any,
-              initiator: HTMLElement): Promise<UIIncrement>
+              initiator: HTMLElement,
+              background: boolean): Promise<UIIncrement>
 
 }
