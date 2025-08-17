@@ -26,7 +26,6 @@ public record CrudlDto(
     boolean showCards,
     List<FormFieldDto> filters,
     List<ComponentDto> columns,
-    List<TriggerDto> triggers,
     List<ButtonDto> toolbar,
     boolean child,
     String emptyStateMessage,

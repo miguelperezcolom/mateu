@@ -70,7 +70,10 @@ public class ComponentTreeSupplierToDtoMapper {
               trigger ->
                   switch (trigger) {
                     case OnLoadTrigger onLoadTrigger ->
-                        new OnLoadTriggerDto(onLoadTrigger.actionId(), 0, 0);
+                        new OnLoadTriggerDto(
+                            onLoadTrigger.actionId(),
+                            onLoadTrigger.timeoutMillis(),
+                            onLoadTrigger.times());
                     default -> new OnLoadTriggerDto("", 0, 0);
                   })
           .map(trigger -> (TriggerDto) trigger)

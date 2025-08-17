@@ -4,5 +4,7 @@ export default interface Trigger {
 
     type: TriggerType
     actionId: string
+    condition: string
+    data: string
 
 }

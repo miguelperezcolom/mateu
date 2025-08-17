@@ -11,6 +11,8 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.HasActions;
+import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -24,7 +26,7 @@ import java.util.List;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
-public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActions, HasActions {
+public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActions, HasActions, HasTriggers {
 
     String name = "Mateu";
     int age = 17;
@@ -39,7 +41,6 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
                 .subtitle("subtitle")
                 .pageTitle("page_title")
                 .favicon("favicon")
-                .triggers(List.of(new OnLoadTrigger("onload_action")))
                 .toolbar(
                         List.of(
                                 Button.builder()
@@ -106,5 +107,10 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
     @Override
     public List<Action> actions() {
         return List.of(Action.builder().id("action_id").build());
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        return List.of(new OnLoadTrigger("onload_action"));
     }
 }

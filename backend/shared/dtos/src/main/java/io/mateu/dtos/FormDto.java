@@ -29,11 +29,8 @@ public record FormDto(
     List<BadgeDto> badges,
     List<BannerDto> banners,
     List<ActionDto> actions,
-    List<TriggerDto> triggers,
     List<ButtonDto> toolbar,
     List<ButtonDto> buttons,
-    List<ValidationDto> validations,
-    List<RuleDto> rules,
     List<ClientSideComponentDto> header,
     List<ClientSideComponentDto> footer)
     implements ComponentMetadataDto {
@@ -42,12 +39,8 @@ public record FormDto(
     badges = Collections.unmodifiableList(badges != null ? badges : Collections.emptyList());
     banners = Collections.unmodifiableList(banners != null ? banners : Collections.emptyList());
     actions = Collections.unmodifiableList(actions != null ? actions : Collections.emptyList());
-    triggers = Collections.unmodifiableList(triggers != null ? triggers : Collections.emptyList());
     buttons = Collections.unmodifiableList(buttons != null ? buttons : Collections.emptyList());
     toolbar = Collections.unmodifiableList(toolbar != null ? toolbar : Collections.emptyList());
-    validations =
-        Collections.unmodifiableList(validations != null ? validations : Collections.emptyList());
-    rules = Collections.unmodifiableList(rules != null ? rules : Collections.emptyList());
   }
 
   @Override
@@ -73,15 +66,5 @@ public record FormDto(
   @Override
   public List<ButtonDto> toolbar() {
     return Collections.unmodifiableList(toolbar);
-  }
-
-  @Override
-  public List<ValidationDto> validations() {
-    return Collections.unmodifiableList(validations);
-  }
-
-  @Override
-  public List<RuleDto> rules() {
-    return Collections.unmodifiableList(rules);
   }
 }
