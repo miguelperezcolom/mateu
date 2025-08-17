@@ -18,6 +18,7 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
+@Slf4j
 public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActions, HasActions, HasTriggers {
 
     String name = "Mateu";

@@ -11,7 +11,7 @@ some interfaces or in an imperative way using fluent code. You can obviously com
 
 ## An example
 
-So, this is a simple example which illustrates a component tree creation:
+So, this is a simple example which illustrates a component tree creation the imperative way:
 
 ```java
 @MateuUI("")
@@ -37,6 +37,12 @@ The example above will create the following component tree, in the browser:
 Which, in the end, becomes this:
 
 <p align="center"><img src="../../../images/counter.png" width="500"/></p>
+
+## The state
+
+Please notice that, in the example above, the Counter object is serialized and sent to the frontend as the state for 
+that component. Later, on each request, the state is sent back to the backend in the request payload so the Counter object can be 
+initialized and hydrated in order to restore its state. 
 
 ## Inheritance, dependency injection and packaging
 

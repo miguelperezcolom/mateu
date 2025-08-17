@@ -57,7 +57,9 @@ public class Home {
 {{< tab "Fluent" >}}
 
 ```java
-public class Home implements HasActions {
+
+@Slf4j
+public class Home implements HasActions, HandlesActions {
 
     @Override
     public List<Action> getActions(HttpRequest httpRequest) {
@@ -71,10 +73,15 @@ public class Home implements HasActions {
           Action.builder()
             .id("action2")
             .background(true)
-            .runnable(() -> "Hola!")
             .build()
 
         );
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+      log.info("You have called {}", actionId);
+      return new State(this);
     }
 
 }
@@ -116,7 +123,9 @@ Depending on the object returned, Mateu will infer what you want to happen in th
 - You can return a **UIIncrement** object if you want, including:
   - UI components
   - Data
+  - State
   - Commands
+- You can also return State and Data records if you only want to update the state or data stores in the frontend.
 
 # Triggers
 
