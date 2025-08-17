@@ -1,6 +1,6 @@
 ---
 title: "Server-side object life-cycle"
-weight: 45
+weight: 65
 ---
 
 TBD
