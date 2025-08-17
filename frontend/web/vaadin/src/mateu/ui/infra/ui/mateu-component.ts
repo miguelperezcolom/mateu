@@ -177,6 +177,18 @@ export class MateuComponent extends ComponentElement {
             return
         }
 
+        if (action && action.js) {
+            const data = this.data
+            const state = this.state
+            const component = this.component
+            try {
+                eval(action.js)
+            } catch (e) {
+                console.error('when evaluating ' +action.js, component, state, data )
+            }
+            return
+        }
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 componentState: {...this.state},

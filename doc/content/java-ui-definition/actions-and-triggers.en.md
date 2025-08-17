@@ -114,6 +114,11 @@ public class Home implements HandlesActions {
 
 The **HandlesActions** interface has a reactive counterpart, which is the **HandlesActionsReactive** interface.
 
+## Client side actions
+
+You have a **href** and **js** properties for any action in case you want to just redirect the user to wherever 
+or run some javascript on the browser (e.g. to update the state or the data stores) without a server round-trip.
+
 ## Response 
 
 Depending on the object returned, Mateu will infer what you want to happen in the client side:

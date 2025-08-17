@@ -95,7 +95,17 @@ public final class ReflectionFormMapper {
             .map(
                 method ->
                     new ActionDto(
-                        method.getName(), false, false, false, null, null, null, null, null, false))
+                        method.getName(),
+                        false,
+                        false,
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        false))
             .toList());
     return actions;
   }

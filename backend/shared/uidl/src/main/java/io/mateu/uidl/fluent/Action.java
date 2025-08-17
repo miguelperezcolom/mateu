@@ -13,4 +13,5 @@ public record Action(
     String modalStyle,
     String modalTitle,
     String customEvent,
-    String href) {}
+    String href,
+    String js) {}

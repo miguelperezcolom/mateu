@@ -15,5 +15,6 @@ export default interface Action {
     onSuccess: string[]
     onError: string[]
     background: boolean
+    js: string
 
 }

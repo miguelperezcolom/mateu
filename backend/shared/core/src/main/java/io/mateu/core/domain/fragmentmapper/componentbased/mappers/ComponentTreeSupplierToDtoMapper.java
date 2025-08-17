@@ -98,6 +98,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
         .rowsSelectedRequired(action.rowsSelectedRequired())
         .href(action.href())
+        .js(action.js())
         .build();
   }
 

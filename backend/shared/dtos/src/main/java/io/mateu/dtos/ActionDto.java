@@ -26,4 +26,5 @@ public record ActionDto(
     String modalTitle,
     String customEvent,
     String href,
+    String js,
     boolean background) {}
