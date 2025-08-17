@@ -22,4 +22,13 @@ public class Home implements HasInitMethod {
 
 ```
 
-The **init** method is called after instantiating and hydrating the java object, for every request. 
+So you can pass an **id** parameter in the url, like this:
+
+```
+
+http://localhgost:8080/myui/home?id=23
+
+```
+
+
+When implementing the **HasInitMethod** interface, the **init** method is called after instantiating and hydrating the java object, for every request. 
