@@ -1,5 +1,5 @@
 ---
-title: "Client side logic"
+title: "Validations"
 weight: 5
 ---
 
