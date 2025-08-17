@@ -20,7 +20,8 @@ E.g. this is the payload for a sample http request to the server, from Mateu:
     }
   },
   "initiatorComponentId":"tZWK0sW3HMUEAuXBBvy-D",
-  "consumedRoute":"/fluent-app"}
+  "consumedRoute":"/fluent-app"
+}
 ```
 
 From the server side, you can update the app shared state by returning a **UIIncrement** object which includes the new 
@@ -45,10 +46,14 @@ side object managing an action. E.g. like in the example below:
 
   @Override
   public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+  
     MyAppState appState = httpRequest.getAppState(MyAppState.class);
+
     var newAppState = appState.withSomeField("xxxx");
+
     return Mono.just(new AppState(newAppState));
-  }
+  
+}
 
 ```
 
