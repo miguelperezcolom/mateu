@@ -60,9 +60,9 @@ In **Mateu** any class can be a server side component. You link that class to th
 
 That java class can interact with the frontend by:
 
+- Handling requests from the frontend.
 - Supplying frontend content.
 - Supplying data to the frontend.
-- Handling requests from the frontend.
 
 ## Singletons
 
