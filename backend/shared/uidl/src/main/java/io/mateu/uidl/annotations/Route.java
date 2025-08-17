@@ -9,4 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Route {
 
   String value();
+
+  String[] uis() default {};
 }

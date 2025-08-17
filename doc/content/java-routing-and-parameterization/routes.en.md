@@ -20,3 +20,12 @@ Please notice that the route is always relative to the UI context path. It would
 public class MyUI {
 }
 ```
+
+In case you have several UIs defined in your micro service and you want one route to be enabled at some specific UIs, 
+you can define the route like this:
+
+```java
+@Route(value = "/home", uis = {"/ui1", "/ui2"})
+public class Home {
+}
+```
