@@ -92,4 +92,13 @@ public interface HttpRequest {
             runActionRq().componentState().getOrDefault("crud_selected_items", List.of()))
         .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data)).toList();
   }
+
+  default <T> T getAppState(Class<T> appStateType) {
+    return MateuInstanceFactory.newInstance(appStateType, runActionRq().appState());
+  }
+
+  default <T> T getComponentState(Class<T> componentStateType) {
+    return MateuInstanceFactory.newInstance(componentStateType, runActionRq().componentState());
+  }
+
 }

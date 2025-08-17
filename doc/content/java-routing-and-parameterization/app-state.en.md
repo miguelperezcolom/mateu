@@ -6,7 +6,7 @@ weight: 6
 As said in the Mateu home page, Mateu backend is stateless. However, a general app state is maintained in the browser, 
 for each UI.
 
-That app state travel to the backend for each request, so components can use it to share data and to keep a kid of 
+That app state travels to the backend for each request, so components can use it to share data and to keep a kind of 
 session store.
 
 E.g. this is the payload for a sample http request to the server, from Mateu:
@@ -24,17 +24,32 @@ E.g. this is the payload for a sample http request to the server, from Mateu:
 ```
 
 From the server side, you can update the app shared state by returning a **UIIncrement** object which includes the new 
-app state, as in the example below:
+app state, or by returning an AppState object as in the example below:
 
 ```java
-tbd
+
+public class Home {
+
+  @Action(background = true)
+  Callable action2 = () -> new AppState(newAppState);
+
+}
+
+
 ```
 
 From that moment, the new app state will travel in each http request to the server, and will be readable by any server
 side object managing an action. E.g. like in the example below:
 
 ```java
-tbd
+
+  @Override
+  public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    MyAppState appState = httpRequest.getAppState(MyAppState.class);
+    var newAppState = appState.withSomeField("xxxx");
+    return Mono.just(new AppState(newAppState));
+  }
+
 ```
 
 ## Initial values
