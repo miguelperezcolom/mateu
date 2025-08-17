@@ -1,6 +1,6 @@
 ---
-title: "Actions and Triggers"
-weight: 3
+title: "Actions"
+weight: 30
 ---
 
 With Mateu the UI you define is rendered in the browser, and you can link the user interactions (e.g. clicking a button, 
@@ -139,5 +139,7 @@ Triggers can also be defined for actions. E.g.:
 - OnLoad
 - OnSuccess
 - On data change
+
+# Caching
 
 Caching can also be defined for actions.

@@ -1,6 +1,6 @@
 ---
 title: "Backend-driven frontend"
-weight: 1
+weight: 10
 ---
 
 In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:

@@ -1,6 +1,6 @@
 ---
 title: "The component tree"
-weight: 2
+weight: 20
 ---
 
 You create the UIs by composing any of the 44 available components together. With **Mateu**, you use plain java classes for 
