@@ -1,0 +1,21 @@
+{
+  "name": "sapui5",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ui5/webcomponents": "^2.13.2",
+    "@ui5/webcomponents-ai": "^2.13.2",
+    "@ui5/webcomponents-fiori": "^2.13.2",
+    "lit": "^3.3.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2"
+  }
+}
