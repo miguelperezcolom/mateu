@@ -47,8 +47,8 @@ export class MyElement extends LitElement {
         </oj-c-button>
 
         <oj-c-input-text value="value text" label-hint="enabled"
-                         @rawValueChanged="${(e) => console.log('raw', e.detail.value)}"
-                         @change="${(e) => console.log('changed', e, e.srcElement.value)}"></oj-c-input-text>
+                         @rawValueChanged="${(e:any) => console.log('raw', e.detail.value)}"
+                         @change="${(e:any) => console.log('changed', e, e.srcElement.value)}"></oj-c-input-text>
         <div>${this.texto}</div>
     `
   }
