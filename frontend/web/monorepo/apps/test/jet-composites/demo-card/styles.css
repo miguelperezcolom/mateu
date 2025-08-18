@@ -1,0 +1,85 @@
+/* This is to prevent the flash of unstyled content before the composite properties have been setup. */
+demo-card:not(.oj-complete) {
+    visibility: hidden;
+}
+
+demo-card {
+    display: block;
+    width: 16rem;
+    height: 16rem;
+    perspective: 800px;
+    margin: 10px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+demo-card:hover {
+    transform: scale(1.02);
+}
+
+demo-card .demo-card-flip-container:hover {
+    box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, .4);
+}
+
+demo-card .demo-card-text,
+demo-card .demo-card-avatar {
+    color: #fff;
+}
+
+/* To ensure your classes are scoped correctly, we recommend scoping classes and prefixing class names with the composite name. */
+demo-card .demo-card-front-side,
+demo-card .demo-card-back-side {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-size: cover;
+    border-radius: 5px;
+    background-color: rgb(38, 125, 179);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+}
+
+demo-card .demo-card-front-side {
+    /* Specify a background-image url to provide an image for the front of the card. */
+    text-align: center;
+    transform: rotateY(0deg);
+    z-index: 0;
+}
+
+demo-card .demo-card-back-side {
+    padding-left: 15px;
+    padding-right: 15px;
+    transform: rotateY(180deg);
+    z-index: -1;
+}
+
+demo-card .demo-card-inner-back-side {
+    /* IE11 workaround to show back side */
+    -ms-transform: rotateY(180deg);
+}
+
+demo-card .demo-card-flip-container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 1px 1px 10px 0 rgba(0, 0, 0, .25);
+    border-radius: 5px;
+}
+
+demo-card .demo-card-flip-container.demo-card-flipped {
+    transform: rotateY(180deg);
+}
+
+demo-card .demo-card-flip-container.demo-card-flipped .demo-card-back-side {
+    /* IE11 workaround to show back side */
+    -ms-transform: rotateY(360deg);
+    z-index: 0;
+}
+
+demo-card .demo-card-avatar {
+    margin: auto;
+}

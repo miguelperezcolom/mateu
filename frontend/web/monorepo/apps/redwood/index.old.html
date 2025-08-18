@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Lit + TS</title>
+
+    <link rel="stylesheet" href="styles/redwood/19.0.0/web/redwood.min.css" id="basestyles" />
+    <link rel="stylesheet" href="styles/theme-redwood/19.0.0/web/theme.css" id="themestyle" />
+    <!-- endinjector -->
+    <!-- This contains icon fonts used by the starter template -->
+    <!-- injector:font -->
+    <link rel="stylesheet" id="uxiconFont" href="https://static.oracle.com/cdn/fnd/gallery/2404.0.0/images/iconfont/ojuxIconFont.min.css" />
+    <!-- endinjector:font -->
+    <!-- This is where you would add any app specific styling -->
+    <link rel="stylesheet" href="styles/app.css" type="text/css" />
+
+
+
+    <link rel="stylesheet" href="./src/index.css" />
+
+    <link rel="stylesheet" id="altacss" href="styles/alta.css">
+    <script>
+      // The "oj_whenReady" global variable enables a strategy that the busy context whenReady,
+      // will implicitly add a busy state, until the application calls applicationBootstrapComplete
+      // on the busy state context.
+      window["oj_whenReady"] = true;
+    </script>
+
+    <script src="scripts/require.js"></script>
+    <script src="oj/main.js"></script>
+    <script src="oj/demo.js"></script>
+
+    <script type="module" src="/src/my-element.ts"></script>
+  </head>
+  <body class="oj-web-applayout-body" data-oj-binding-provider="none">
+  <div id="component-container">
+
+    <my-element>
+      <h1>Vite + Lit</h1>
+    </my-element>
+  </div>
+
+  </body>
+</html>
