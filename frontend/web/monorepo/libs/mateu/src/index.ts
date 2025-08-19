@@ -1,1 +1,1 @@
-export const valor = 'holadddd!'
+export * from './mateu/ui/infra/ui/mateu-ui'

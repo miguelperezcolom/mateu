@@ -1,0 +1,1 @@
+import 'mateu/dist/assets/mateu.js'

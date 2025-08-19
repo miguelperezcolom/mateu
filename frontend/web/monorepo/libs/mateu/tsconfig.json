@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
@@ -9,7 +10,7 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "moduleDetection": "force",
     "noEmit": true,
 
@@ -17,9 +18,35 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
-  },
+    "noUncheckedSideEffectImports": true,
+
+
+    "paths": {
+      "@*": [
+        "./src*"
+      ],
+      "@assets*": [
+        "./src/assets*"
+      ],
+      "@components*": [
+        "./src/mateu/ui/infra/ui*"
+      ],
+      "@mateu*": [
+        "./src/mateu*"
+      ],
+      "@application*": [
+        "./src/mateu/ui/application*"
+      ],
+      "@domain*": [
+        "./src/mateu/ui/domain*"
+      ],
+      "@infra*": [
+        "./src/mateu/ui/infra*"
+      ]
+    },
+
+    },
   "include": ["src"]
 }

@@ -100,5 +100,4 @@ public interface HttpRequest {
   default <T> T getComponentState(Class<T> componentStateType) {
     return MateuInstanceFactory.newInstance(componentStateType, runActionRq().componentState());
   }
-
 }
