@@ -53,7 +53,7 @@ require.config({
 
 requirejs.config({
     //baseUrl: '../js',
-    baseUrl: '../',
+    baseUrl: '/',
     // Path mappings for the logical module names
     paths: {
     },
