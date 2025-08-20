@@ -18,7 +18,7 @@ import './mateu-table'
 import TableCrud from "@mateu/shared/apiClients/dtos/componentmetadata/TableCrud";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { Notification } from "@vaadin/notification";
 
 const directions: Record<string, string> = {

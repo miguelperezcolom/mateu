@@ -20,7 +20,13 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "mateu": [
+        "../../node_modules/mateu/dist/types/mateu.d.ts"
+      ]
+    }
   },
   "include": ["src"]
 }

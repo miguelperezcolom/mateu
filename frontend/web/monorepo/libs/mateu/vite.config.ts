@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import dts from 'vite-plugin-dts';
 
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  plugins: [dts({
+    include: ['types/**/*.d.ts', 'src/**/*.ts'],
+    copyDtsFiles: true,
+    outDir: 'dist/types',
+  })],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -16,13 +22,15 @@ export default defineConfig({
     }
   },
   build: {
-    // lib: {
-    //   entry: 'src/mateu/spikes/starter/mateu-ui.ts',
-    //   formats: ['es'],
-    // },
+    lib: {
+       entry: 'src/index.ts',
+       formats: ['es'],
+    },
+    minify: false,
     rollupOptions: {
       //external: /^lit/,
       output: {
+        format: "esm",
         entryFileNames: `assets/mateu.js`,
         chunkFileNames: `assets/[name].js`,
         assetFileNames: `assets/[name].[ext]`

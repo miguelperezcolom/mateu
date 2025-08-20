@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
 import { html, nothing } from "lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 export const renderTooltip = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Tooltip

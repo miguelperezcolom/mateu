@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import CustomField from "@mateu/shared/apiClients/dtos/componentmetadata/CustomField";
 import { html, nothing } from "lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 export const customFieldRenderer = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as CustomField

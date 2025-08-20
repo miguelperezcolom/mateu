@@ -24,7 +24,7 @@ import { renderContextMenu, renderMenuBar } from "@infra/ui/renderers/menuRender
 import { customFieldRenderer } from "@infra/ui/renderers/customFieldRenderer";
 import { renderMessageInput } from "@infra/ui/renderers/messageInputRenderer";
 import { renderTooltip } from "@infra/ui/renderers/tooltipRenderer";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { renderElement } from "@infra/ui/renderers/elementRenderer";
 import { renderText } from "@infra/ui/renderers/textRenderer";
 import { renderBadge } from "@infra/ui/renderers/badgeRenderer";

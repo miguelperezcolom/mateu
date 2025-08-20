@@ -2,7 +2,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import VirtualList from "@mateu/shared/apiClients/dtos/componentmetadata/VirtualList";
 import { html, nothing } from "lit";
 import { virtualListRenderer } from "@vaadin/virtual-list/lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 export const renderVirtualList = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as VirtualList

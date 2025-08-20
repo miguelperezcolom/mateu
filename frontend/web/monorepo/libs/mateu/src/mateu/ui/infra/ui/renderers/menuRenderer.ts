@@ -3,7 +3,7 @@ import MenuBar from "@mateu/shared/apiClients/dtos/componentmetadata/MenuBar";
 import { html, nothing, render } from "lit";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/ContextMenu";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 
 export const renderContextMenu = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {

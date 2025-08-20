@@ -2,7 +2,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { html, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { renderClientSideComponent } from "@infra/ui/renderers/renderComponents";
+import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 
 export const renderComponentInSlot = (component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
     component.slot = slot

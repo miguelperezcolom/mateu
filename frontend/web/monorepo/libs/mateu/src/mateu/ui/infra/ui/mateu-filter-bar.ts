@@ -14,7 +14,7 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 

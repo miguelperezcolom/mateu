@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
 import { html, nothing } from "lit";
-import { renderComponent, renderComponentInSlot } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent, renderComponentInSlot } from "@infra/ui/renderers/renderComponent.ts";
 
 export const renderCard = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Card

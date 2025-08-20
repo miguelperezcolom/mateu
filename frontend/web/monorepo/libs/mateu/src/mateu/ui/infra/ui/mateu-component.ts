@@ -55,12 +55,12 @@ import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
-import { renderClientSideComponent } from "@infra/ui/renderers/renderComponents";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
 import {Notification} from "@vaadin/notification"
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -206,7 +206,7 @@ export class MateuComponent extends ComponentElement {
 
     render() {
         if (this.component?.type == ComponentType.ClientSide) {
-            return renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">

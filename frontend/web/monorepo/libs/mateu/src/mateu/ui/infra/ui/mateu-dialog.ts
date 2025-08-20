@@ -17,7 +17,7 @@ import 'chartjs-adapter-date-fns';
 import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 
 @customElement('mateu-dialog')

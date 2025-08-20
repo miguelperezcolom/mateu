@@ -2,7 +2,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
 import { html, nothing } from "lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
-import { renderComponent } from "@infra/ui/renderers/componentRenderer";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 export const renderPopover = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Popover

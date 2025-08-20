@@ -5,9 +5,11 @@ import { resolve } from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
+//    preserveSymlinks: true,
     alias: {
       '@': resolve(__dirname, './src'),
       '@assets': resolve(__dirname, './src/assets'),
+      'mateu': resolve(__dirname, '../../node_modules/mateu/dist/assets/mateu.js'),
     }
   },
   build: {
