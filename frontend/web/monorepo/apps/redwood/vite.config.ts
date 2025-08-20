@@ -8,6 +8,11 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
       '@assets': resolve(__dirname, './src/assets'),
+      '@components': resolve(__dirname, '../../libs/mateu/src/mateu/ui/infra/ui'),
+      '@mateu': resolve(__dirname, '../../libs/mateu/src/mateu'),
+      '@application': resolve(__dirname, '../../libs/mateu/src/mateu/ui/application'),
+      '@domain': resolve(__dirname, '../../libs/mateu/src/mateu/ui/domain'),
+      '@infra': resolve(__dirname, '../../libs/mateu/src/mateu/ui/infra'),
     }
   },
   build: {

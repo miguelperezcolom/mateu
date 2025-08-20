@@ -27,6 +27,10 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @state()
     selectedRoute: string | undefined = undefined
 

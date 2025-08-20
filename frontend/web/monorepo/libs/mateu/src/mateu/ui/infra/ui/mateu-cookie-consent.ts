@@ -20,6 +20,10 @@ import 'cookieconsent/build/cookieconsent.min.js';
 @customElement('mateu-cookie-consent')
 export class MateuCookieConsent extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     message = 'This website uses cookies.'
 

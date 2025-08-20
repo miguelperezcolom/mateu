@@ -5,6 +5,10 @@ import { css, html, LitElement } from "lit";
 @customElement('mateu-event-interceptor')
 export class MateuEventInterceptor extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     target: LitElement | undefined
 

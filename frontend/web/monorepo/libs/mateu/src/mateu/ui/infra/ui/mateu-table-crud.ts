@@ -30,6 +30,10 @@ const directions: Record<string, string> = {
 @customElement('mateu-table-crud')
 export class MateuTableCrud extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     component: ClientSideComponent | undefined = undefined
 

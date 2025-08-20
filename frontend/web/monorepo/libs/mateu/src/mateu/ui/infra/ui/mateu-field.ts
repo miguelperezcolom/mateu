@@ -29,6 +29,10 @@ import { ValidationType } from "@mateu/shared/apiClients/dtos/componentmetadata/
 @customElement('mateu-field')
 export class MateuField extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     field: FormField | undefined = undefined
 

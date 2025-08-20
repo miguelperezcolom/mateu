@@ -15,6 +15,10 @@ import { Subscription } from "rxjs";
 @customElement('mateu-ui')
 export class MateuUi extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     // public properties
     @property()
     baseUrl = ''

@@ -22,6 +22,10 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 @customElement('mateu-filter-bar')
 export class MateuFilterBar extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     metadata: Crud | undefined
 

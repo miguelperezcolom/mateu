@@ -23,6 +23,10 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 @customElement('mateu-dialog')
 export class MateuDialog extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     component?: ClientSideComponent
 

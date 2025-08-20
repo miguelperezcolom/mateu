@@ -103,6 +103,10 @@ const renderColumnOrGroup = (columnOrGroup: ClientSideComponent) => {
 @customElement('mateu-table')
 export class MateuTable extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     id: string = ''
 

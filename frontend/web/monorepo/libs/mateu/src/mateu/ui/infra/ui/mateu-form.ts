@@ -18,6 +18,10 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 @customElement('mateu-form')
 export class MateuForm extends MetadataDrivenElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {

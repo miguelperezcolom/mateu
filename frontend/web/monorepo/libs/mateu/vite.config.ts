@@ -6,7 +6,7 @@ import dts from 'vite-plugin-dts';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [dts({
-    include: ['types/**/*.d.ts', 'src/**/*.ts'],
+    include: ['types/**/*.d.ts'],
     copyDtsFiles: true,
     outDir: 'dist/types',
   })],
@@ -29,6 +29,9 @@ export default defineConfig({
     minify: false,
     rollupOptions: {
       //external: /^lit/,
+      external: [
+        'lit',
+      ],
       output: {
         format: "esm",
         entryFileNames: `assets/mateu.js`,

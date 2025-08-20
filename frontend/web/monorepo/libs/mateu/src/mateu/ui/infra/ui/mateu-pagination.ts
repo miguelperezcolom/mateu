@@ -23,6 +23,10 @@ interface Page {
 @customElement('mateu-pagination')
 export class MateuPagination extends LitElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     totalElements = 0
 

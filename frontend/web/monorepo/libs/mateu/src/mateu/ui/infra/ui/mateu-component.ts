@@ -65,6 +65,10 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     @property()
     baseUrl: string | undefined
 

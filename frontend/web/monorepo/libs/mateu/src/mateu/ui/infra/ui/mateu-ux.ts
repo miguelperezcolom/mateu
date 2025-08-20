@@ -21,6 +21,10 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
+
     // public properties
     @property()
     id = ''

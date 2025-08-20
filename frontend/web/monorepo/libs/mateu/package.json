@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "module": "dist/assets/mateu.js",
-  "types": "dist/types/mateu.d.ts",
+  "module": "src/index.ts",
+  "types": "types/mateu.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -74,7 +74,6 @@
     "cookieconsent": "^3.1.1",
     "date-fns": "^4.1.0",
     "js-base64": "^3.7.7",
-    "lit": "^3.3.1",
     "lit-vaadin-helpers": "^0.3.1",
     "minimatch": "10.0.3",
     "nanoid": "^5.0.7",
@@ -82,6 +81,7 @@
     "vite-plugin-dts": "^4.5.4"
   },
   "devDependencies": {
+    "lit": "^3.3.1",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
     "vite-plugin-dts": "^4.5.4"

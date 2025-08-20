@@ -5,6 +5,7 @@ import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideC
 
 export abstract class BasicComponentRenderer implements ComponentRenderer {
     renderClientSideComponent(component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
+        console.log('render from basic', component)
         return renderClientSideComponent(component, baseUrl, state, data)
     }
 
