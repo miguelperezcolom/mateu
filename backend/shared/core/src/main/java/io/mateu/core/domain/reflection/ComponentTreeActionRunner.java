@@ -10,6 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.Map;
 import lombok.SneakyThrows;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -37,7 +38,7 @@ public class ComponentTreeActionRunner implements ActionRunner {
 
   @SneakyThrows
   @Override
-  public Mono<?> run(
+  public Flux<?> run(
       Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
     Button button = findButton((ComponentTreeSupplier) instance, actionId, httpRequest);
     Object result = null;
@@ -49,13 +50,16 @@ public class ComponentTreeActionRunner implements ActionRunner {
         result = button.callable().call();
       }
     }
+    if (result instanceof Flux<?> flux) {
+      return flux;
+    }
     if (result instanceof Mono<?> mono) {
-      return mono;
+      return mono.flux();
     }
     if (result == null) {
-      return Mono.just(instance);
+      return Flux.just(instance);
     }
-    return Mono.just(result);
+    return Flux.just(result);
   }
 
   private Button findButton(

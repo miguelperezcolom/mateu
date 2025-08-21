@@ -12,6 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -36,7 +37,7 @@ public class DefaultMateuService implements MateuService {
   }
 
   @Override
-  public Mono<UIIncrementDto> runAction(
+  public Flux<UIIncrementDto> runAction(
       String uiId, RunActionRqDto rq, String baseUrl, HttpRequest httpRequest) throws Throwable {
     return runActionUseCase.handle(
         new RunActionCommand(

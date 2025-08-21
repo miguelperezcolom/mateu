@@ -9,7 +9,10 @@ export default interface Action {
     confirmationTexts: ConfirmationTexts
     modalStyle: string
     modalTitle: string
-    customEvent: string
+    customEvent: {
+        name: string,
+        detail: any
+    }
     href: string
     runOnEnter: boolean
     onSuccess: string[]

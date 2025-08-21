@@ -10,6 +10,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -39,9 +40,9 @@ public class Counter1 implements ComponentTreeSupplier, ReactiveHandlesActions {
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
         count++;
-        return Mono.just(this);
+        return Flux.just(this);
     }
 
 

@@ -6,6 +6,7 @@ import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Route("/app/home")
@@ -21,8 +22,8 @@ public class Home implements ReactiveHandlesActions, HasTitle, HasSubtitle, Form
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
+        return Flux.just(this);
     }
 
     @Override

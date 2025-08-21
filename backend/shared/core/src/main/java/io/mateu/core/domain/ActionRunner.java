@@ -2,7 +2,7 @@ package io.mateu.core.domain;
 
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 public interface ActionRunner {
 
@@ -12,5 +12,5 @@ public interface ActionRunner {
     return Integer.MAX_VALUE;
   }
 
-  Mono<?> run(Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest);
+  Flux<?> run(Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest);
 }

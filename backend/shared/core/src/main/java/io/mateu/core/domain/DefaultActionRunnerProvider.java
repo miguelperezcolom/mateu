@@ -7,7 +7,9 @@ import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import lombok.SneakyThrows;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -39,7 +41,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           }
 
           @Override
-          public Mono<Object> run(
+          public Flux<Object> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
             return handlesActions
                 .handleAction(actionId, httpRequest)
@@ -57,9 +59,19 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           }
 
           @Override
-          public Mono<?> run(
+          public Flux<?> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            return Mono.just(handlesActions.handleAction(actionId, httpRequest));
+            var result = handlesActions.handleAction(actionId, httpRequest);
+            if (result instanceof Flux<?> flux) {
+              return flux;
+            }
+            if (result instanceof Mono<?> mono) {
+              return mono.flux();
+            }
+            if (result == null) {
+              return Flux.just(instance);
+            }
+            return Flux.just(result);
           }
         };
       }
@@ -72,9 +84,9 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         }
 
         @Override
-        public Mono<?> run(
+        public Flux<?> run(
             Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-          return Mono.just(instance);
+          return Flux.just(instance);
         }
       };
     }

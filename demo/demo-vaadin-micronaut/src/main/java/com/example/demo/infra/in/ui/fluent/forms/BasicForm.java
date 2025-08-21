@@ -14,6 +14,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -81,11 +82,11 @@ public class BasicForm implements ComponentTreeSupplier, ReactiveHandlesActions,
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId);
 
-        return Mono.just(this);
+        return Flux.just(this);
     }
 
     @Override

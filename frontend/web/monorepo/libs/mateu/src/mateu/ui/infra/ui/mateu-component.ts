@@ -65,6 +65,27 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
+    customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
+        if (event instanceof CustomEvent) {
+            const customEvent = event as CustomEvent
+            const serverSideComponent = this.component as ServerSideComponent
+            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
+                .filter(trigger => trigger.eventName == customEvent.type)
+                .forEach(trigger => {
+                    if (!trigger.condition || eval(trigger.condition)) {
+                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: trigger.actionId,
+                                parameters: customEvent.detail
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                })
+        }
+    }
+
     protected createRenderRoot(): HTMLElement | DocumentFragment {
         if (componentRenderer.mustUseShadowRoot()) {
             return super.createRenderRoot()
@@ -79,15 +100,25 @@ export class MateuComponent extends ComponentElement {
         super.updated(_changedProperties);
         if (_changedProperties.has('component')) {
             const serverSideComponent = this.component as ServerSideComponent
+            // @ts-ignore
+            const state = this.state
+            // @ts-ignore
+            const data = this.data
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
                 .forEach(trigger => {
-                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: trigger.actionId
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
+                    if (!trigger.condition || eval(trigger.condition)) {
+                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: trigger.actionId
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                })
+            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
+                .forEach(trigger => {
+                    this.addEventListener(trigger.eventName, this.customEventManager)
                 })
         }
         this.updateComplete.then(() => {
@@ -123,7 +154,8 @@ export class MateuComponent extends ComponentElement {
 
     manageActionRequestedEvent = (e: CustomEvent) => {
         const detail = e.detail as {
-            actionId: string
+            actionId: string,
+            parameters: any
         }
         if (e.type == 'action-requested') {
             const serverSideComponent = this.component as ServerSideComponent
@@ -187,7 +219,8 @@ export class MateuComponent extends ComponentElement {
     }
 
     requestActionCallToServer = (detail: {
-        actionId: string
+        actionId: string,
+        parameters: any
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
         if (action && action.href) {
@@ -204,14 +237,24 @@ export class MateuComponent extends ComponentElement {
                 this.state = { ...this.state}
                 this.data = { ...this.data}
             } catch (e) {
-                console.error('when evaluating ' +action.js, component, state, data )
+                console.error('when evaluating ' + action.js, e, component, state, data )
             }
+            return
+        }
+
+        if (action && action.customEvent) {
+            this.dispatchEvent(new CustomEvent(action.customEvent.name, {
+                detail: action.customEvent.detail,
+                bubbles: true,
+                composed: true
+            }))
             return
         }
 
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 componentState: {...this.state},
+                parameters: detail.parameters,
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
                 initiatorComponentId: serverSideComponent.id,

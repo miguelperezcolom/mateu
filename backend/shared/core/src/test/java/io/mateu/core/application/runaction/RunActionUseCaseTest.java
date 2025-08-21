@@ -84,7 +84,7 @@ class RunActionUseCaseTest {
                       Map.of(),
                       "initiator_component_id",
                       new FakeHttpRequest()))
-              .block();
+              .blockLast();
       assertThat(increment).isNotNull();
     }
   }
@@ -105,7 +105,7 @@ class RunActionUseCaseTest {
                     Map.of(),
                     "initiator_component_id",
                     new FakeHttpRequest()))
-            .block();
+            .blockLast();
     assertThat(increment).isNotNull();
   }
 
@@ -125,7 +125,7 @@ class RunActionUseCaseTest {
                     Map.of(),
                     "initiator_component_id",
                     new FakeHttpRequest()))
-            .block();
+            .blockLast();
     assertThat(increment).isNotNull();
   }
 }

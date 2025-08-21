@@ -22,6 +22,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -130,10 +131,10 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
         if ("xx".equals(actionId)) {
             log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
-            return Mono.empty();
+            return Flux.empty();
         }
         return ReactiveCrudlBackend.super.handleAction(actionId, httpRequest);
     }

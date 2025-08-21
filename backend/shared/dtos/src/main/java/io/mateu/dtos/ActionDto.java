@@ -24,7 +24,7 @@ public record ActionDto(
     ConfirmationTextsDto confirmationTexts,
     String modalStyle,
     String modalTitle,
-    String customEvent,
+    CustomEventDto customEvent,
     String href,
     String js,
     boolean background) {}

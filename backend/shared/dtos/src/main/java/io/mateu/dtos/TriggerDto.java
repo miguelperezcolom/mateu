@@ -8,5 +8,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = OnEnterTriggerDto.class, name = "OnEnter"),
   @JsonSubTypes.Type(value = OnLoadTriggerDto.class, name = "OnLoad"),
+  @JsonSubTypes.Type(value = OnCustomEventTriggerDto.class, name = "OnCustomEvent"),
 })
 public interface TriggerDto {}

@@ -1,4 +1,4 @@
 package io.mateu.dtos;
 
 /** A button */
-public record OnEnterTriggerDto() implements TriggerDto {}
+public record OnEnterTriggerDto(String actionId, String condition) implements TriggerDto {}

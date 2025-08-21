@@ -5,6 +5,9 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ConfirmationTextsDto;
+import io.mateu.dtos.CustomEventDto;
+import io.mateu.dtos.OnCustomEventTriggerDto;
+import io.mateu.dtos.OnEnterTriggerDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
@@ -15,6 +18,8 @@ import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnCustomEventTrigger;
+import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -73,8 +78,17 @@ public class ComponentTreeSupplierToDtoMapper {
                         new OnLoadTriggerDto(
                             onLoadTrigger.actionId(),
                             onLoadTrigger.timeoutMillis(),
-                            onLoadTrigger.times());
-                    default -> new OnLoadTriggerDto("", 0, 0);
+                            onLoadTrigger.times(),
+                            onLoadTrigger.condition());
+                    case OnCustomEventTrigger onCustomEventTrigger ->
+                        new OnCustomEventTriggerDto(
+                            onCustomEventTrigger.actionId(),
+                            onCustomEventTrigger.eventName(),
+                            onCustomEventTrigger.condition());
+                    case OnEnterTrigger onEnterTrigger ->
+                        new OnEnterTriggerDto(
+                            onEnterTrigger.actionId(), onEnterTrigger.condition());
+                    default -> new OnLoadTriggerDto("", 0, 0, null);
                   })
           .map(trigger -> (TriggerDto) trigger)
           .toList();
@@ -99,6 +113,10 @@ public class ComponentTreeSupplierToDtoMapper {
         .rowsSelectedRequired(action.rowsSelectedRequired())
         .href(action.href())
         .js(action.js())
+        .customEvent(
+            action.customEvent() != null
+                ? new CustomEventDto(action.customEvent().name(), action.customEvent().detail())
+                : null)
         .build();
   }
 

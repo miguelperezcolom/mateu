@@ -5,5 +5,6 @@ export enum TriggerType {
     OnSuccess = "OnSuccess",
     OnDataChange = "OnDataChange",
     OnStateChange = "OnStateChange",
+    OnCustomEvent = "OnCustomEvent",
 
 }

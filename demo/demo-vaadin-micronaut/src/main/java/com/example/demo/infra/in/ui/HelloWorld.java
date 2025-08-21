@@ -7,6 +7,7 @@ import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HttpRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @MateuUI("")
@@ -22,8 +23,8 @@ public class HelloWorld implements HandlesRoute, ReactiveHandlesActions, HasTitl
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
+        return Flux.just(this);
     }
 
     @Override

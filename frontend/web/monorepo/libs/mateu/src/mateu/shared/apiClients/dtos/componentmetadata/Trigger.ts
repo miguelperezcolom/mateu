@@ -6,5 +6,6 @@ export default interface Trigger {
     actionId: string
     condition: string
     data: string
+    eventName: string
 
 }

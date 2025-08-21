@@ -7,5 +7,5 @@ package io.mateu.dtos;
  * @param timeoutMillis Run this action automatically after a timeout
  * @param times Run this action for indicated times
  */
-public record OnLoadTriggerDto(String actionId, int timeoutMillis, int times)
+public record OnLoadTriggerDto(String actionId, int timeoutMillis, int times, String condition)
     implements TriggerDto {}

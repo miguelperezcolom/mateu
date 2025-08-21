@@ -1,8 +1,9 @@
 package io.mateu.uidl.fluent;
 
-public record OnLoadTrigger(String actionId, int timeoutMillis, int times) implements Trigger {
+public record OnLoadTrigger(String actionId, int timeoutMillis, int times, String condition)
+    implements Trigger {
 
   public OnLoadTrigger(String actionId) {
-    this(actionId, 0, 1);
+    this(actionId, 0, 1, null);
   }
 }

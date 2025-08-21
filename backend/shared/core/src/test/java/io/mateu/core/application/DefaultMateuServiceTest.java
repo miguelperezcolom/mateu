@@ -66,6 +66,6 @@ class DefaultMateuServiceTest {
                     "route"),
                 "base_url",
                 new FakeHttpRequest())
-            .block());
+            .blockLast());
   }
 }

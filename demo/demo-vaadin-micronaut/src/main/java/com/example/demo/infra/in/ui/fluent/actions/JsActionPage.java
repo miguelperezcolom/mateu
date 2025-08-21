@@ -47,7 +47,7 @@ public class JsActionPage implements ComponentTreeSupplier, HasActions {
     public List<Action> actions() {
         return List.of(Action.builder()
                 .id("action")
-                        .js("state.count = state.count?state.count + 1: 1; console.log(state)")
+                        .js("state.count = state.count?state.count + 1:1; console.log(state);")
                 .build());
     }
 

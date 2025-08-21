@@ -2,7 +2,7 @@ package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.fluent.Component;
 
-public interface ComponentTreeSupplier {
+public interface ComponentTreeSupplier extends Component {
 
   default String id() {
     return this.getClass().getName();

@@ -12,6 +12,6 @@ public record Action(
     ConfirmationTexts confirmationTexts,
     String modalStyle,
     String modalTitle,
-    String customEvent,
+    CustomEvent customEvent,
     String href,
     String js) {}

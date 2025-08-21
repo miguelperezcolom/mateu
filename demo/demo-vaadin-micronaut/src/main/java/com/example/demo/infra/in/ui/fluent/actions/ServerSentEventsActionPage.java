@@ -1,20 +1,64 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
+import io.mateu.dtos.UIFragmentDto;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
+import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Route("/fluent-app/actions/server-side-events")
-public class ServerSentEventsActionPage implements ComponentTreeSupplier {
+public class ServerSentEventsActionPage implements ComponentTreeSupplier, HandlesActions {
+
+    int count = 0;
+
     @Override
     public Form getComponent(HttpRequest httpRequest) {
         return Form.builder()
                 .title("SSE")
                 .content(List.of(
+                        VerticalLayout.builder()
+                                .content(List.of(
+
+                                        Text.builder()
+                                                .text("${state.count}")
+                                                .build(),
+
+                                        Button.builder()
+                                                .actionId("to-server")
+                                                .label("Start incrementing")
+                                                .build()
+                                ))
+                                .spacing(true)
+                                .build()
                 ))
                 .build();
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        List counts = new ArrayList();
+        boolean first = true;
+        while (first || count % 10 != 0) {
+            first = false;
+            counts.add(++count);
+        }
+        return Flux.fromStream(counts.stream()).map(count -> UIIncrementDto.builder()
+                .fragments(List.of(UIFragmentDto.builder()
+                        .state(Map.of("count", count))
+                                .targetComponentId(httpRequest.runActionRq().initiatorComponentId())
+                        .build()))
+                .build()).delayElements(Duration.ofMillis(100));
     }
 }

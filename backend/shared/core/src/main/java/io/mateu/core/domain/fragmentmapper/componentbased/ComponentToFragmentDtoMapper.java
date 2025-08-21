@@ -161,6 +161,9 @@ public final class ComponentToFragmentDtoMapper {
     if (component == null) {
       return null;
     }
+    if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
+      return mapComponentTreeSupplierToDto(componentTreeSupplier, baseUrl, route, httpRequest);
+    }
     if (component instanceof App app) {
       return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
     }

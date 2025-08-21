@@ -19,6 +19,7 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -97,13 +98,13 @@ public class WithGridForm2 implements ComponentTreeSupplier, ReactiveHandlesActi
     }
 
     @Override
-    public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId + " " + toJson(this));
 
         people.add(new Person(name, age));
 
-        return Mono.just(new State(this));
+        return Flux.just(new State(this));
     }
 
     @Override

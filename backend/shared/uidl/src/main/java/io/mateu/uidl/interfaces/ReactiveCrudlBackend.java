@@ -6,6 +6,8 @@ import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActions {
@@ -16,7 +18,7 @@ public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActio
   }
 
   @Override
-  default Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
+  default Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(
@@ -37,7 +39,7 @@ public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActio
                                 Direction.valueOf((String) map.get("direction"))))
                     .toList()),
             httpRequest)
-        .map(crudlData -> new Data(Map.of("crud", crudlData)));
+        .map(crudlData -> (Object) new Data(Map.of("crud", crudlData))).flux();
   }
 
   Class<Filters> filtersClass();

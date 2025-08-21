@@ -17,6 +17,9 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.Produces;
 
 
 @CrossOrigin
@@ -45,8 +48,9 @@ public class ${simpleClassName}MateuController {
         new MicronautHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
     }
 
+    @Produces(MediaType.TEXT_EVENT_STREAM)
     @Post("v3/{/ignored:.*}")
-    public Mono<UIIncrementDto> runStep(
+    public Flux<UIIncrementDto> runStep(
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {

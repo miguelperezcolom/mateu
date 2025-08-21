@@ -25,6 +25,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -37,13 +38,13 @@ public class RunActionUseCase {
   private final ActionRunnerProvider actionRunnerProvider;
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
 
-  public Mono<UIIncrementDto> handle(RunActionCommand command) {
+  public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action for {}", command);
     // todo: use path somehow
     return Mono.just(command)
         .flatMap(ignored -> createInstance(command))
         .flatMap(instance -> resolveMenuIfApp(instance, command))
-        .flatMap(
+        .flatMapMany(
             instance ->
                 actionRunnerProvider
                     .get(
