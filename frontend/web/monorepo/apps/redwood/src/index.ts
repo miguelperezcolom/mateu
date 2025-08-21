@@ -1,6 +1,3 @@
-import 'mateu'
-import { componentRenderer } from 'mateu'
-import { RedwoodComponentRenderer } from "./RedwoodComponentRenderer.ts";
+import './set-env.ts'
+import '@infra/ui/mateu-ui'
 
-console.log('hola')
-componentRenderer.set(new RedwoodComponentRenderer())

@@ -5,14 +5,11 @@ import { css, html, LitElement } from "lit";
 @customElement('mateu-event-interceptor')
 export class MateuEventInterceptor extends LitElement {
 
-    protected createRenderRoot(): HTMLElement | DocumentFragment {
-        return this;
-    }
-
     @property()
     target: LitElement | undefined
 
     redispatchEvent: EventListenerOrEventListenerObject = (e: Event) => {
+        console.log('xxxx', e, this.target)
         if (e instanceof CustomEvent) {
             e.stopPropagation()
             e.preventDefault()

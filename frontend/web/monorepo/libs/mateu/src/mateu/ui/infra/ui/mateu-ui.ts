@@ -10,12 +10,16 @@ import './mateu-api-caller'
 import { parseOverrides } from "@infra/ui/common";
 import Message from "@domain/Message";
 import { Subscription } from "rxjs";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 
 @customElement('mateu-ui')
 export class MateuUi extends LitElement {
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
+        if (componentRenderer.mustUseShadowRoot()) {
+            return super.createRenderRoot()
+        }
         return this;
     }
 

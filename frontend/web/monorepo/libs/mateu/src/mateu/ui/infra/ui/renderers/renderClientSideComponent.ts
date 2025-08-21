@@ -47,6 +47,8 @@ import { renderImage } from "@infra/ui/renderers/imageRenderer";
 import { renderBreadcrumbs } from "@infra/ui/renderers/breadcrumbsRenderer";
 import { renderCarouselLayout } from "@infra/ui/renderers/carouselRenderer";
 import { renderDirectory } from "@infra/ui/renderers/directoryRenderer";
+import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
+import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 
 
 export const renderClientSideComponent = (component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
@@ -101,6 +103,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
             return renderContainer(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Form) {
+            const metadata = component.metadata as Form
             return html`<mateu-form 
                 id="${component.id}" 
             baseUrl="${baseUrl}"
@@ -110,7 +113,15 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
                 >
-                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}        
+                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                ${metadata?.buttons?.map(button => html`
+                   ${renderComponent({
+                    metadata: button,
+                    type: ComponentType.ClientSide,
+                       slot: 'buttons'
+                } as unknown as ClientSideComponent, undefined, undefined, undefined)}
+`)}
+
                 </mateu-form>`
         }
         if (component.metadata.type == ComponentMetadataType.Table) {

@@ -21,10 +21,6 @@ import { ChartData, ChartOptions } from "chart.js";
 @customElement('mateu-chart')
 export class MateuChart extends LitElement {
 
-    protected createRenderRoot(): HTMLElement | DocumentFragment {
-        return this;
-    }
-
     @property()
     type: string | undefined
 

@@ -16,12 +16,16 @@ import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import { appState } from "@domain/state";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
+        if (componentRenderer.mustUseShadowRoot()) {
+            return super.createRenderRoot()
+        }
         return this;
     }
 

@@ -1,4 +1,3 @@
-
 import { customElement, state } from "lit/decorators.js";
 import { css, html, LitElement } from "lit";
 import '@vaadin/horizontal-layout'
@@ -24,9 +23,6 @@ import { NotificationLitRenderer, notificationRenderer } from "@vaadin/notificat
 @customElement('mateu-api-caller')
 export class MateuApiCaller extends LitElement {
 
-    protected createRenderRoot(): HTMLElement | DocumentFragment {
-        return this;
-    }
 
     @state()
     loading: boolean | undefined

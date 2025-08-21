@@ -66,6 +66,9 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 export class MateuComponent extends ComponentElement {
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
+        if (componentRenderer.mustUseShadowRoot()) {
+            return super.createRenderRoot()
+        }
         return this;
     }
 
@@ -87,6 +90,11 @@ export class MateuComponent extends ComponentElement {
                     }))
                 })
         }
+        this.updateComplete.then(() => {
+            if (componentRenderer.getAfterRenderHook()) {
+                componentRenderer.getAfterRenderHook()()
+            }
+        })
     }
 
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
@@ -174,8 +182,6 @@ export class MateuComponent extends ComponentElement {
         actionId: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
-        console.log('action', action, serverSideComponent)
-
         if (action && action.href) {
             window.location.href = action.href
             return
@@ -210,11 +216,11 @@ export class MateuComponent extends ComponentElement {
 
     render() {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this)
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data))}
+            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data, this))}
             </mateu-api-caller>
         `
     }

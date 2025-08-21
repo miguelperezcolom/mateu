@@ -48,6 +48,8 @@ require.config({
         chai: 'chai/chai-4.5.0.min',
         'x/button': 'packs/oj-c/min/button',
         'x/input-text': 'packs/oj-c/min/input-text',
+        'x/input-number': 'packs/oj-c/min/input-number',
+        'x/form-layout': 'packs/oj-c/min/form-layout',
     })
 });
 

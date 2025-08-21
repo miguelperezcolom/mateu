@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "module": "src/index.ts",
-  "types": "types/mateu.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -2,7 +2,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { html, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { componentRenderer } from "mateu";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 export const renderComponentInSlot = (component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
     component.slot = slot
@@ -14,7 +14,7 @@ export const renderComponent = (component: Component, baseUrl: string | undefine
         return html``;
     }
     if (component.type == ComponentType.ClientSide ) {
-        return componentRenderer.get()?.renderClientSideComponent(component as ClientSideComponent, baseUrl, state, data)
+        return componentRenderer.get()!.renderClientSideComponent(component as ClientSideComponent, baseUrl, state, data)
     }
     return html`
         <mateu-component id="${component.id}" 

@@ -14,13 +14,8 @@ import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 
-
 @customElement('mateu-form')
 export class MateuForm extends MetadataDrivenElement {
-
-    protected createRenderRoot(): HTMLElement | DocumentFragment {
-        return this;
-    }
 
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -35,6 +30,7 @@ export class MateuForm extends MetadataDrivenElement {
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
+            <vaadin-vertical-layout theme="spacing">
            <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
            <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
            
@@ -48,13 +44,9 @@ export class MateuForm extends MetadataDrivenElement {
            </vaadin-horizontal-layout>
            <slot></slot>
            <vaadin-horizontal-layout theme="spacing">
-               ${metadata?.buttons?.map(button => html`
-                <vaadin-button
-                        data-action-id="${button.id}"
-                        @click="${() => this.handleButtonClick(button.actionId)}"
-                >${button.label}</vaadin-button>
-`)}
+               <slot name="buttons"></slot>
            </vaadin-horizontal-layout>
+            </vaadin-vertical-layout>    
        `
     }
 

@@ -7,6 +7,8 @@ export interface ComponentRenderer {
 
 export class ComponentRendererSingleton {
 
+    private afterRenderHook: any
+    private useShadowRoot = true
     private componentRenderer: ComponentRenderer | undefined = undefined
 
     public set(componentRenderer: ComponentRenderer) {
@@ -16,6 +18,23 @@ export class ComponentRendererSingleton {
     public get(): ComponentRenderer | undefined {
         return this.componentRenderer
     }
+
+    public setUseShadowRoot(useShadowRoot: boolean) {
+        this.useShadowRoot = useShadowRoot
+    }
+
+    public mustUseShadowRoot() {
+        return this.useShadowRoot
+    }
+
+    public setAfterRenderHook(afterRenderHook: any) {
+        this.afterRenderHook = afterRenderHook
+    }
+
+    public getAfterRenderHook() {
+        return this.afterRenderHook
+    }
+
 }
 
 export const componentRenderer = new ComponentRendererSingleton();

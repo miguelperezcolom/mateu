@@ -23,11 +23,15 @@ import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
+        if (componentRenderer.mustUseShadowRoot()) {
+            return super.createRenderRoot()
+        }
         return this;
     }
 

@@ -1,7 +1,7 @@
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { property } from "lit/decorators.js";
 import Component from "@mateu/shared/apiClients/dtos/Component";
-import UIFragment from "@/mateu/shared/apiClients/dtos/UIFragment";
+import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 
 export default class MetadataDrivenElement extends ConnectedElement {
 

@@ -1,6 +1,6 @@
-import 'mateu'
-import { componentRenderer } from 'mateu'
+import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { SapUi5ComponentRenderer } from "./SapUi5ComponentRenderer";
+import '@infra/ui/mateu-ui'
 
 
 import "@ui5/webcomponents/dist/Label.js";
