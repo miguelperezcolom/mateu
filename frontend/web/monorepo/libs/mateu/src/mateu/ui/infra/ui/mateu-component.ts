@@ -202,7 +202,7 @@ export class MateuComponent extends ComponentElement {
             try {
                 eval(action.js)
                 this.state = { ...this.state}
-                this.data = { ...this.state}
+                this.data = { ...this.data}
             } catch (e) {
                 console.error('when evaluating ' +action.js, component, state, data )
             }
