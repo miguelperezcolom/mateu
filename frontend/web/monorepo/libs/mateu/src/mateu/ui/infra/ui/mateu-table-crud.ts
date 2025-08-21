@@ -56,29 +56,6 @@ export class MateuTableCrud extends LitElement {
             composed: true
         }))
     }
-    redispatchEvent: EventListenerOrEventListenerObject = (e: Event) => {
-        if (e instanceof CustomEvent) {
-            e.stopPropagation()
-            e.preventDefault()
-
-            const metadata = (this.component as ClientSideComponent).metadata as TableCrud
-            const action = metadata.actions?.find(action => action.id == e.detail.actionId)
-            console.log('hola', action, metadata, this.state)
-            if (action && action.rowsSelectedRequired) {
-                if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
-                    this.notify('You first need to select some rows')
-                    return
-                }
-            }
-
-
-            this.dispatchEvent(new CustomEvent(e.type, {
-                detail: e.detail,
-                bubbles: true,
-                composed: true
-            }))
-        }
-    }
 
     notify = (message: string) => {
         Notification.show(message, {
@@ -139,7 +116,6 @@ export class MateuTableCrud extends LitElement {
                     @search-requested="${this.search}"
                     .state="${this.state}"
                     .data="${this.data}"
-                    @action-requested="${this.redispatchEvent}"
             >
                 ${metadata.header?.map(component => renderComponent(component, this.baseUrl, this.state, this.data))}
             </mateu-filter-bar>

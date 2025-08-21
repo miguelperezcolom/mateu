@@ -128,6 +128,14 @@ export class MateuComponent extends ComponentElement {
         if (e.type == 'action-requested') {
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
+
+            if (action && action.rowsSelectedRequired) {
+                if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
+                    this.notify('You first need to select some rows')
+                    return
+                }
+            }
+
             if (action && action.validationRequired) {
                 if (!this.validate()) {
                     this.notify('There are validation errors')
@@ -216,11 +224,11 @@ export class MateuComponent extends ComponentElement {
 
     render() {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this)
+            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data, this))}
+            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data))}
             </mateu-api-caller>
         `
     }

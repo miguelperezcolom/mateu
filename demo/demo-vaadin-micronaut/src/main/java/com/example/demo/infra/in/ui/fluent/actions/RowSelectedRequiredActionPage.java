@@ -140,10 +140,11 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
 
     @Override
     public List<Action> actions() {
-        return List.of(                                        Action.builder()
-                .id("xx")
-                .rowsSelectedRequired(true)
-                .build()
+        return List.of(
+                Action.builder()
+                        .id("xx")
+                        .rowsSelectedRequired(true)
+                        .build()
         );
     }
 }
