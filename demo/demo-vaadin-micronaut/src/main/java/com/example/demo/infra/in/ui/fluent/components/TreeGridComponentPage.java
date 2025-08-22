@@ -14,7 +14,7 @@ import java.util.Map;
 @Route("/fluent-app/components/tree-grid")
 public class TreeGridComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Tree grid")
                 .content(List.of(

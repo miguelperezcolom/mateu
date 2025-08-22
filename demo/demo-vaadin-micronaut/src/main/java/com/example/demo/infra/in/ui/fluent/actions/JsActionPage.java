@@ -21,7 +21,7 @@ import java.util.Map;
 public class JsActionPage implements ComponentTreeSupplier, HasActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Run action in browser")
                 .content(List.of(

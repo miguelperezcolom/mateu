@@ -11,7 +11,7 @@ import java.util.List;
 @Route("/fluent-app/components/micro-frontend")
 public class MicroFrontendComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Micro frontend")
                 .content(List.of(

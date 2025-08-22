@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/rules/set-metadata-value")
 public class SetMetadataValueRulePage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Set metadata value rule")
                 .content(List.of(

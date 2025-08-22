@@ -8,12 +8,12 @@ import java.util.regex.Pattern;
 public interface RouteResolver {
 
   default boolean supportsRoute(String route) {
-    return getMatchingPattern(route).isPresent();
+    return matchingPattern(route).isPresent();
   }
 
-  default Optional<Pattern> getMatchingPattern(String route) {
+  default Optional<Pattern> matchingPattern(String route) {
     for (Pattern pattern :
-        getSupportedRoutesPatterns().stream()
+        supportedRoutesPatterns().stream()
             .sorted(Comparator.comparingInt(pattern -> pattern.pattern().length()))
             .toList()) {
       if (pattern.matcher(route).matches()) {
@@ -25,7 +25,7 @@ public interface RouteResolver {
 
   default int weight(String route) {
     if (route != null) {
-      var matchingPattern = getMatchingPattern(route);
+      var matchingPattern = matchingPattern(route);
       if (matchingPattern.isPresent()) {
         return matchingPattern.get().pattern().length();
       }
@@ -35,5 +35,5 @@ public interface RouteResolver {
 
   Class<?> resolveRoute(String route, HttpRequest httpRequest);
 
-  List<Pattern> getSupportedRoutesPatterns();
+  List<Pattern> supportedRoutesPatterns();
 }

@@ -18,7 +18,7 @@ import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.bui
 @Route("/fluent-app/layouts/horizontal")
 public class HorizontalLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Horizontal Layout")
                 .content(List.of(

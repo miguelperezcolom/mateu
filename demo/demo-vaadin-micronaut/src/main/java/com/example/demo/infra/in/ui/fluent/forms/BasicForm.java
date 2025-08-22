@@ -2,31 +2,30 @@ package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.interfaces.ReactiveHandlesActions;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/basic")
-public class BasicForm implements ComponentTreeSupplier, ReactiveHandlesActions, HasActions, HasTriggers {
+public class BasicForm implements ComponentTreeSupplier, HandlesActions, HasActions, HasTriggers {
 
     String name = "Mateu";
     int age = 17;
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
                 .id("form_id")
                 .title(name + " " + age)
@@ -82,11 +81,11 @@ public class BasicForm implements ComponentTreeSupplier, ReactiveHandlesActions,
     }
 
     @Override
-    public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId);
 
-        return Flux.just(this);
+        return this;
     }
 
     @Override

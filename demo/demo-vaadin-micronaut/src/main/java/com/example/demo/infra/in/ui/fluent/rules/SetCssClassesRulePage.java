@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/rules/set-css-classes")
 public class SetCssClassesRulePage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Set css classes rule")
                 .content(List.of(

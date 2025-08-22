@@ -19,7 +19,7 @@ import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.bui
 public class CarouselLayoutSample implements ComponentTreeSupplier {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Carousel Layout")
                 .content(List.of(

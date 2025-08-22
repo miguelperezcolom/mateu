@@ -12,6 +12,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.micronaut.serde.annotation.Serdeable;
@@ -27,7 +28,7 @@ record Row(String name, int age) {}
 
 @Route("/fluent-app/crudls/basic")
 @Slf4j
-public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row> {
+public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row> {
 
     @JsonIgnore
     List<Row> allItems = List.of(
@@ -48,7 +49,7 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<F
     );
 
     @Override
-    public Crudl getComponent(HttpRequest httpRequest) {
+    public Crudl component(HttpRequest httpRequest) {
         return Crudl.builder() // vertical layout as default container for children
                 .title("Basic crudl")
                 .id("crud")
@@ -82,7 +83,7 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<F
     }
 
     @Override
-    public Mono<CrudlData<Row>> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    public CrudlData<Row> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -106,12 +107,12 @@ public class BasicCrudl implements ComponentTreeSupplier, ReactiveCrudlBackend<F
                     return compare;
                 })
                 .toList();
-        return Mono.just(new CrudlData<>(new Page<>(
+        return new CrudlData<>(new Page<>(
                 pageable.size(),
                 pageable.page(),
                 filteredItems.size(),
                 filteredItems.stream().skip((long) pageable.size() * pageable.page()).limit(pageable.size()).toList()
         ),
-                "No items found. Please try again."));
+                "No items found. Please try again.");
     }
 }

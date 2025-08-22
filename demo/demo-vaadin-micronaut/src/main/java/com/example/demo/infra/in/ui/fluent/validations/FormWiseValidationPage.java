@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/validations/form-wise")
 public class FormWiseValidationPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Form wise validation")
                 .content(List.of(

@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/rules/visibility")
 public class VisibilityRulePage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Visibility rule")
                 .content(List.of(

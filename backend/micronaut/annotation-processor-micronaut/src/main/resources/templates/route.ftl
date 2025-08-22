@@ -32,7 +32,7 @@ public class ${simpleClassName}RouteResolver implements RouteResolver {
     }
 
     @Override
-    public List<Pattern> getSupportedRoutesPatterns() {
+    public List<Pattern> supportedRoutesPatterns() {
         return patterns;
     }
 

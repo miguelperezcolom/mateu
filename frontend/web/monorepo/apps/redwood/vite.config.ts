@@ -34,7 +34,6 @@ export default defineConfig({
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
       '/fluent/mateu': 'http://localhost:8091',
       '/mateu': 'http://localhost:8091',
-      '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
     },
   },

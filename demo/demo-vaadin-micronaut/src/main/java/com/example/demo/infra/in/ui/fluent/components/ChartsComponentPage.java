@@ -17,7 +17,7 @@ import java.util.List;
 @Route("/fluent-app/components/charts")
 public class ChartsComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Charts")
                 .content(List.of(

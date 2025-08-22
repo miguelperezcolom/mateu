@@ -34,7 +34,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
     }
 
-    async wrap<T>(call: Promise<T>, initiator: HTMLElement, background: boolean): Promise<T> {
+    async wrap<T>(call: Promise<T>, initiator: HTMLElement, background: boolean, actionId: string): Promise<T> {
         if (!background) {
             initiator.dispatchEvent(new CustomEvent('backend-called-event', {
                 bubbles: true,
@@ -48,6 +48,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 bubbles: true,
                 composed: true,
                 detail: {
+                    actionId
                 }
             }))
             return response
@@ -64,6 +65,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     bubbles: true,
                     composed: true,
                     detail: {
+                        actionId,
                         reason: this.serialize(reason)
                     }
                 }))
@@ -106,7 +108,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             config,
             path
         })
-            .then((response) => response.data), initiator, false)
+            .then((response) => response.data), initiator, false, 'ui')
     }
 
     async runAction(baseUrl: string, route: string, consumedRoute: string,
@@ -132,7 +134,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             route: '/' + route,
             actionId
         })
-            .then((response) => response.data), initiator, background)
+            .then((response) => response.data), initiator, background, actionId)
     }
 
 }

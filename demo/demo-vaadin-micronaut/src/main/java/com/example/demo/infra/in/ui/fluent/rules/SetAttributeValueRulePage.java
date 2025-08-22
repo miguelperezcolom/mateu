@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/rules/set-attribute-value")
 public class SetAttributeValueRulePage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Set attribute value rule")
                 .content(List.of(

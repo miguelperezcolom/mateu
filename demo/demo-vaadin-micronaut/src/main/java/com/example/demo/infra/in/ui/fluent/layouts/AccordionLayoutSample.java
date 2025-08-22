@@ -14,7 +14,7 @@ import java.util.List;
 @Route("/fluent-app/layouts/accordion")
 public class AccordionLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Accordion Layout")
                 .content(List.of(

@@ -140,6 +140,21 @@ export class MateuComponent extends ComponentElement {
                 const newState = {...this.state}
                 newState[detail.fieldId] = detail.value
                 this.state = newState
+
+                const serverSideComponent = this.component as ServerSideComponent
+                serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnValueChange)
+                    .filter(trigger => detail.fieldId == trigger.propertyName)
+                    .forEach(trigger => {
+                        if (!trigger.condition || eval(trigger.condition)) {
+                            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: trigger.actionId
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }
+                    })
             }
         }
     }
@@ -267,13 +282,69 @@ export class MateuComponent extends ComponentElement {
 
     }
 
+    handleBackendSucceeded = (e: Event) => {
+        const customEvent = e as CustomEvent
+        if (customEvent.detail.actionId) {
+            const serverSideComponent = this.component as ServerSideComponent
+            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)
+                .filter(trigger => (e as CustomEvent).detail.actionId == trigger.calledActionId)
+                .forEach(trigger => {
+                    if (!trigger.condition || eval(trigger.condition)) {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: trigger.actionId
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                })
+        }
+    }
+
+    handleBackendFailed = (e: Event) => {
+        const customEvent = e as CustomEvent
+        if (customEvent.detail.actionId) {
+            const serverSideComponent = this.component as ServerSideComponent
+            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnError)
+                .filter(trigger => (e as CustomEvent).detail.actionId == trigger.calledActionId)
+                .forEach(trigger => {
+                    if (!trigger.condition || eval(trigger.condition)) {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: trigger.actionId
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                })
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded)
+        this.addEventListener('backend-call-failed', this.handleBackendFailed)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.removeEventListener('backend-call-succeeded', this.handleBackendSucceeded)
+        this.removeEventListener('backend-call-failed', this.handleBackendFailed)
+    }
+
     render() {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(child, this.baseUrl, this.state, this.data))}
+            ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data))}
             </mateu-api-caller>
         `
     }

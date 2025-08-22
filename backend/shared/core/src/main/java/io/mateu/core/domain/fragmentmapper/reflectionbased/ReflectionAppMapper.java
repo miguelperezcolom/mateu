@@ -111,7 +111,7 @@ public class ReflectionAppMapper {
       Object componentSupplier, Object app, HttpRequest httpRequest, String route) {
     Pattern pattern = null;
     if (componentSupplier instanceof RouteResolver routeResolver) {
-      pattern = routeResolver.getMatchingPattern(route).orElse(null);
+      pattern = routeResolver.matchingPattern(route).orElse(null);
     }
     if (pattern == null) {
       if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {

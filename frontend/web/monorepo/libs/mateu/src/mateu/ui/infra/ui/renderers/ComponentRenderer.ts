@@ -1,8 +1,8 @@
-import { TemplateResult } from "lit";
+import { LitElement, TemplateResult } from "lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 
 export interface ComponentRenderer {
-    renderClientSideComponent(component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult
 }
 
 export class ComponentRendererSingleton {

@@ -15,7 +15,7 @@ import java.util.List;
 @Route("/fluent-app/layouts/tab")
 public class TabLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Tab Layout")
                 .content(List.of(

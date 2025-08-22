@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/validations/row-selected-required")
 public class RowSelectedRequiredValidationPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Row selected required validation")
                 .content(List.of(

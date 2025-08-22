@@ -1,4 +1,4 @@
-import { html, nothing, TemplateResult } from "lit";
+import { html, LitElement, nothing, TemplateResult } from "lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
@@ -51,56 +51,56 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 
 
-export const renderClientSideComponent = (component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     if (component?.metadata) {
 
         if (component.metadata.type == ComponentMetadataType.Directory) {
             return renderDirectory(component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(component, baseUrl, state, data)
+            return renderFormLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.FormRow) {
-            return renderFormRow(component, baseUrl, state, data)
+            return renderFormRow(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.FormItem) {
-            return renderFormItem(component, baseUrl, state, data)
+            return renderFormItem(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(component, baseUrl, state, data)
+            return renderHorizontalLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(component, baseUrl, state, data)
+            return renderVerticalLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.SplitLayout) {
-            return renderSplitLayout(component, baseUrl, state, data)
+            return renderSplitLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.MasterDetailLayout) {
-            return renderMasterDetailLayout(component, baseUrl, state, data)
+            return renderMasterDetailLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.TabLayout) {
-            return renderTabLayout(component, baseUrl, state, data)
+            return renderTabLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
-            return renderAccordionLayout(component, baseUrl, state, data)
+            return renderAccordionLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayout) {
-            return renderBoardLayout(component, baseUrl, state, data)
+            return renderBoardLayout(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
-            return renderBoardLayoutRow(component, baseUrl, state, data)
+            return renderBoardLayoutRow(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.BoardLayoutItem) {
-            return renderBoardLayoutItem(component, baseUrl, state, data)
+            return renderBoardLayoutItem(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Scroller) {
-            return renderScroller(component, baseUrl, state, data)
+            return renderScroller(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.FullWidth) {
-            return renderFullWidth(component, baseUrl, state, data)
+            return renderFullWidth(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Container) {
-            return renderContainer(component, baseUrl, state, data)
+            return renderContainer(container, component, baseUrl, state, data)
         }
         if (component.metadata.type == ComponentMetadataType.Form) {
             const metadata = component.metadata as Form
@@ -113,9 +113,9 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
                 >
-                    ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                 ${metadata?.buttons?.map(button => html`
-                   ${renderComponent({
+                   ${renderComponent(container, {
                     metadata: button,
                     type: ComponentType.ClientSide,
                        slot: 'buttons'
@@ -133,7 +133,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
-                 ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                 </mateu-table>`
         }
         if (component.metadata.type == ComponentMetadataType.TableCrud) {
@@ -146,7 +146,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
-                 ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
              </mateu-table-crud>`
         }
         if (component.metadata.type == ComponentMetadataType.CardCrud) {
@@ -159,7 +159,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
-                 ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
              </mateu-table-crud>`
         }
 
@@ -175,7 +175,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                             style="${component.style}" 
                             class="${component.cssClasses}"
                 >
-                 ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
              </mateu-app></mateu-api-caller>`
         }
 
@@ -192,7 +192,7 @@ export const renderClientSideComponent = (component: ClientSideComponent | undef
                        style="${component.style}" class="${component.cssClasses}"
                        slot="${component.slot??nothing}"
                 >
-                        ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                     </mateu-field>`
         }
         if (component.metadata.type == ComponentMetadataType.Text) {

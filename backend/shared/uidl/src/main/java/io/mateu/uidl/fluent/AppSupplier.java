@@ -6,7 +6,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public interface AppSupplier extends ComponentTreeSupplier {
 
   @Override
-  default Component getComponent(HttpRequest httpRequest) {
+  default Component component(HttpRequest httpRequest) {
     return getApp(httpRequest);
   }
 

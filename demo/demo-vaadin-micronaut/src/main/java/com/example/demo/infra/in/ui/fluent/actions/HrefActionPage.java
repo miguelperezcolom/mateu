@@ -13,7 +13,7 @@ import java.util.List;
 @Route("/fluent-app/actions/href")
 public class HrefActionPage implements ComponentTreeSupplier, HasActions {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Href (go to external url) action")
                 .content(List.of(

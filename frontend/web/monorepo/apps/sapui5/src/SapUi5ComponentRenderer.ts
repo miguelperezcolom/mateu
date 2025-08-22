@@ -1,10 +1,14 @@
-import { html, type TemplateResult } from 'lit';
+import { html, LitElement, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import { renderButton } from "@/renderers/renderButton.ts";
+import { renderField } from "@/renderers/renderField.ts";
+import { renderApp } from "@/renderers/renderApp.ts";
+import { renderForm } from "@/renderers/renderForm.ts";
 
 export const changed = (event: Event) => {
     const element = event.target as HTMLInputElement
@@ -34,37 +38,20 @@ export const handleButtonClick = (event: Event) => {
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
     // @ts-ignore
-    renderClientSideComponent(component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
+        if (ComponentMetadataType.App == component?.metadata?.type) {
+            return renderApp(container, component, baseUrl, state, data)
+        }
+        if (ComponentMetadataType.Form == component?.metadata?.type) {
+            return renderForm(container, component, baseUrl, state, data)
+        }
         if (ComponentMetadataType.Button == component?.metadata?.type) {
-            const metadata = component.metadata as Button
-            return html`<ui5-button
-                    part="button"
-                    @click=${handleButtonClick}
-                    data-action-id="${metadata.actionId}"
-            >${metadata.label}</ui5-button>`
+            return renderButton(component, baseUrl, state, data)
         }
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
-            const metadata = component.metadata as FormField
-            const fieldId = metadata?.fieldId??''
-            const value = state && fieldId in state?state[ fieldId]:metadata?.initialValue
-            if (metadata.dataType == 'string') {
-                return html`<ui5-label for="${component.id}" show-colon>${metadata.label}</ui5-label><ui5-input
-                    id="${component.id}"
-                    @change="${changed}"
-                    value="${value}"
-            >
-            </ui5-input>`
-            }
-            if (metadata.dataType == 'integer') {
-                return html`<ui5-label for="${component.id}" show-colon>${metadata.label}</ui5-label><ui5-input
-                    id="${component.id}"
-                    value="${value}"
-                    @change="${changed}"
-            >
-                </ui5-input>`
-            }
+            return renderField(component, baseUrl, state, data)
         }
-        return super.renderClientSideComponent(component, baseUrl, state, data)
+        return super.renderClientSideComponent(container, component, baseUrl, state, data)
     }
 
 }

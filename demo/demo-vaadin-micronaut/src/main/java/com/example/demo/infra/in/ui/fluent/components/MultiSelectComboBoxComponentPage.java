@@ -13,7 +13,7 @@ import java.util.List;
 @Route("/fluent-app/components/multi-select-combo-box")
 public class MultiSelectComboBoxComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Multi-select combo box")
                 .content(List.of(

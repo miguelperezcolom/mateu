@@ -19,7 +19,7 @@ public class Counter3 implements ComponentTreeSupplier {
     }
 
     @Override
-    public Component getComponent(HttpRequest httpRequest) {
+    public Component component(HttpRequest httpRequest) {
         return new VerticalLayout(
                 new Text("${state.count}"),
                 new Button("Increment")

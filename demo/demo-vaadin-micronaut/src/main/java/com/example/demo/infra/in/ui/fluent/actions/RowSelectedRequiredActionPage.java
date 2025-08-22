@@ -43,7 +43,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     );
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Row selected required")
                 .content(List.of(

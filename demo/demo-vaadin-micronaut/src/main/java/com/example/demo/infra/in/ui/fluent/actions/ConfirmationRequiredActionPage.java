@@ -21,7 +21,7 @@ import java.util.Map;
 public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, HasActions, HandlesActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Run action in foreground")
                 .content(List.of(

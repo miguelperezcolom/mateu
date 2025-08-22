@@ -2,3 +2,69 @@
 
 }
 
+oj-c-input-text, oj-c-input-number {
+    padding-top: 1rem;
+}
+.demo-controls {
+    padding-bottom: 1rem;
+}
+
+.demo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* width: 100%; */
+    height: 6.25rem;
+}
+
+.demo-button {
+    margin-right: 0.5rem;
+}
+
+.demo-switch {
+    margin-left: 2rem;
+}
+
+.demo-padding {
+    padding: 1rem;
+}
+
+#demo-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+.demo-drawer-layout {
+    position: absolute;
+    top: 6.25rem;
+    right: 0;
+    bottom: 6.25rem;
+    left: 0;
+}
+
+.demo-footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    height: 6.25rem;
+}
+
+/*Drawers*/
+.demo-drawer-start,
+.demo-drawer-end {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.demo-drawer-header {
+    display: flex;
+    padding: 0.3rem 1rem 0 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.demo-drawer-content {
+    width: 21.875rem;
+    overflow-y: auto;
+}

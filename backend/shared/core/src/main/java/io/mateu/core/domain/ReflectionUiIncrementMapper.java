@@ -49,6 +49,9 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     if (instance instanceof MapsToDto mapsToDto) {
       return Mono.just(mapsToDto.toUIIncrementDto());
     }
+    if (instance instanceof Mono<?> mono) {
+      return mono.flatMap(object -> map(object, baseUrl, route, initiatorComponentId, httpRequest));
+    }
     return Mono.just(
         new UIIncrementDto(
             mapToCommands(instance, baseUrl, httpRequest),

@@ -31,6 +31,7 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
                     httpRequest.getInt("page"),
                     httpRequest.getInt("size"),
                     httpRequest.getListOfMaps("sort").stream()
+                        .filter(map -> map.containsKey("direction"))
                         .map(
                             map ->
                                 new Sort(

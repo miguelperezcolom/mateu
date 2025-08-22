@@ -11,7 +11,7 @@ import java.util.List;
 @Route("/fluent-app/components/cookie-consent")
 public class CookieConsentComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Cookie consent")
                 .content(List.of(

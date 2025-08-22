@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/components/train")
 public class TrainComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Train")
                 .content(List.of(

@@ -17,7 +17,7 @@ import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.bui
 @Route("/fluent-app/layouts/form")
 public class FormLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Form Layout")
                 .content(List.of(

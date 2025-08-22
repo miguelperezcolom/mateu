@@ -134,7 +134,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/triggers/on-success", "On Success"),
                                 new RouteLink("/fluent-app/triggers/on-error", "On Error"),
                                 new RouteLink("/fluent-app/triggers/on-custom-event", "On Custom Event"),
-                                new RouteLink("/fluent-app/triggers/on-data-change", "On Data Change")
+                                new RouteLink("/fluent-app/triggers/on-value-change", "On Value Change")
                         )),
                         new Menu("Client-Side Logic (Rules)", List.of(
                                 new RouteLink("/fluent-app/rules/visibility", "Visibility"),

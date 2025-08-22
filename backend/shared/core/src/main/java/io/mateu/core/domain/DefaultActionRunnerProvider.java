@@ -1,13 +1,10 @@
 package io.mateu.core.domain;
 
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ReactiveHandlesActions;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,24 +29,6 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     if (instance == null) {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }
-    if (instance instanceof ReactiveHandlesActions handlesActions) {
-      if (handlesActions.supportsAction(actionId)) {
-        return new ActionRunner() {
-          @Override
-          public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-            return false;
-          }
-
-          @Override
-          public Flux<Object> run(
-              Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-            return handlesActions
-                .handleAction(actionId, httpRequest)
-                .defaultIfEmpty(UIIncrementDto.builder().build());
-          }
-        };
-      }
-    }
     if (instance instanceof HandlesActions handlesActions) {
       if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
@@ -62,16 +41,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           public Flux<?> run(
               Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
             var result = handlesActions.handleAction(actionId, httpRequest);
-            if (result instanceof Flux<?> flux) {
-              return flux;
-            }
-            if (result instanceof Mono<?> mono) {
-              return mono.flux();
-            }
-            if (result == null) {
-              return Flux.just(instance);
-            }
-            return Flux.just(result);
+            return asFlux(result, instance);
           }
         };
       }
@@ -99,5 +69,18 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           "No method with name " + actionId + " on " + instance.getClass().getName());
     }
     return runner.get();
+  }
+
+  public static Flux<?> asFlux(Object result, Object instance) {
+    if (result instanceof Flux<?> flux) {
+      return flux;
+    }
+    if (result instanceof Mono<?> mono) {
+      return mono.flux();
+    }
+    if (result == null) {
+      return Flux.just(instance);
+    }
+    return Flux.just(result);
   }
 }

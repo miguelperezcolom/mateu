@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/data/app-data")
 public class AppDataPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("App data")
                 .content(List.of(

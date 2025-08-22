@@ -7,22 +7,21 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ReactiveHandlesActions;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/counter1")
 @Schema
-public class Counter1 implements ComponentTreeSupplier, ReactiveHandlesActions {
+public class Counter1 implements ComponentTreeSupplier, HandlesActions {
 
     int count = 0;
 
     @Override
-    public Component getComponent(HttpRequest httpRequest) {
+    public Component component(HttpRequest httpRequest) {
         return VerticalLayout.builder()
                 .content(List.of(
                                 new Text("" + count),

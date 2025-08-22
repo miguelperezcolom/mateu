@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/number-field")
 public class NumberFieldComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Number field")
                 .content(List.of(

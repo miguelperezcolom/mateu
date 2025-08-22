@@ -15,7 +15,7 @@ import java.util.List;
 @Route("/fluent-app/components/scroller")
 public class ScrollerComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         var content = new ArrayList<Component>();
         for (int i = 0; i < 100; i++) {
             content.add(new Text("Hola " + i));

@@ -42,7 +42,7 @@ class RunActionUseCaseTest {
                       }
 
                       @Override
-                      public List<Pattern> getSupportedRoutesPatterns() {
+                      public List<Pattern> supportedRoutesPatterns() {
                         return List.of(Pattern.compile("xx"));
                       }
                     });

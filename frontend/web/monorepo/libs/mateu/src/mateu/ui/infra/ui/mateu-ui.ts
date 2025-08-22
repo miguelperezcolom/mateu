@@ -80,7 +80,7 @@ export class MateuUi extends LitElement {
             || _changedProperties.has('config')
         ) {
 
-            service.loadUi(mateuApiClient, this.baseUrl, this.route, parseOverrides(this.config), this).then();
+            service.loadUi(mateuApiClient, this.baseUrl, this.route, parseOverrides(this.config), this);
 
         }
 

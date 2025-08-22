@@ -8,7 +8,7 @@ public interface ComponentTreeSupplier extends Component {
     return this.getClass().getName();
   }
 
-  Component getComponent(HttpRequest httpRequest);
+  Component component(HttpRequest httpRequest);
 
   default String style() {
     return null;

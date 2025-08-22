@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/date-picker")
 public class DatePickerComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Date picker")
                 .content(List.of(

@@ -1,20 +1,20 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
-import { html, nothing, TemplateResult } from "lit";
+import { html, LitElement, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
-export const renderComponentInSlot = (component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
+export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
     component.slot = slot
-    return renderComponent(component, baseUrl, state, data)
+    return renderComponent(container, component, baseUrl, state, data)
 }
 
-export const renderComponent = (component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     if (!component) {
         return html``;
     }
     if (component.type == ComponentType.ClientSide ) {
-        return componentRenderer.get()!.renderClientSideComponent(component as ClientSideComponent, baseUrl, state, data)
+        return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data)
     }
     return html`
         <mateu-component id="${component.id}" 

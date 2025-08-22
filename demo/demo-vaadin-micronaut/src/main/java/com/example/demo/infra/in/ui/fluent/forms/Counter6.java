@@ -26,7 +26,7 @@ public class Counter6 implements ComponentTreeSupplier {
     }
 
     @Override
-    public Component getComponent(HttpRequest httpRequest) {
+    public Component component(HttpRequest httpRequest) {
         return new VerticalLayout(
                 new Text("${data.count}"),
                 new Button("Increment", () -> new Data(increment()))

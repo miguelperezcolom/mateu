@@ -50,6 +50,9 @@ require.config({
         'x/input-text': 'packs/oj-c/min/input-text',
         'x/input-number': 'packs/oj-c/min/input-number',
         'x/form-layout': 'packs/oj-c/min/form-layout',
+        'x/navigation-list': 'oj/19.0.0/min/ojnavigationlist',
+        'x/drawer-layout': 'packs/oj-c/min/drawer-layout',
+        'x/avatar': 'packs/oj-c/min/avatar',
     })
 });
 

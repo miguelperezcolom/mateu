@@ -26,7 +26,7 @@ import java.util.Map;
 public class ValidationRequiredActionPage implements ComponentTreeSupplier, HasActions, HandlesActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Validation required")
                 .content(List.of(

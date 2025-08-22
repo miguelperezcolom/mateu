@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/rules/enabled")
 public class EnabledRulePage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Enabled rule")
                 .content(List.of(

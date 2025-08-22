@@ -30,7 +30,7 @@ record Detail(String a, int b) {
 class CustomEventActionComponent implements ComponentTreeSupplier, HasActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Nested component")
                 .content(List.of(
@@ -76,7 +76,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, HasActions {
 public class CustomEventActionPage implements ComponentTreeSupplier, HasActions, HasTriggers, HandlesActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Run action in browser")
                 .content(List.of(

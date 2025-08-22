@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/text")
 public class TextComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Text")
                 .content(List.of(

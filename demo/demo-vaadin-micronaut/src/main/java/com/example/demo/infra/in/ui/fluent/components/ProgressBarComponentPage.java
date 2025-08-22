@@ -11,7 +11,7 @@ import java.util.List;
 @Route("/fluent-app/components/progress-bar")
 public class ProgressBarComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Progress bar")
                 .content(List.of(

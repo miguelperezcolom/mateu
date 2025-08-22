@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/components/choice")
 public class ChoiceComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Choice")
                 .content(List.of(

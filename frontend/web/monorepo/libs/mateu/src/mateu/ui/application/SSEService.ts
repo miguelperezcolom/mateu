@@ -23,7 +23,6 @@ export class SSEService implements Service {
             //     evtSource.close();
             // };
 
-            console.log('route', route)
             route = route?route:'_no_route'
 
             if (route && route.startsWith('/')) {
@@ -41,7 +40,15 @@ export class SSEService implements Service {
                 actionId
             }
 
-            const response = await fetch(baseUrl + '/mateu/v3/' +
+            if (!background) {
+                initiator.dispatchEvent(new CustomEvent('backend-called-event', {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                    }
+                }))
+            }
+            fetch(baseUrl + '/mateu/v3/' +
                 route + (actionId?'/' + actionId:''), {
                 method: 'POST',
                 headers: {
@@ -49,20 +56,69 @@ export class SSEService implements Service {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
+            }).then(async response => {
+                const reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
+                if (reader) {
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) break;
+                        if (value.startsWith('data:')) {
+                            const increment = JSON.parse(value.substring('data:'.length));
+                            this.handleUIIncrement(increment)
+                        } else {
+                            let message = value;
+                            try {
+                                const error = JSON.parse(value);
+                                message = error.message;
+                                if (error._embedded?.errors?.length > 0) {
+                                    if (error._embedded.errors[0].message) {
+                                        message = error._embedded.errors[0].message
+                                    }
+                                }
+                            } catch (ignored) {
+
+                            }
+                            throw new Error(message)
+                        }
+                    }
+                }
+                if (!background) {
+                    initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
+                        bubbles: true,
+                        composed: true,
+                        detail: {
+                            actionId
+                        }
+                    }))
+                }
+                initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-succeeded', {
+                    detail: {
+                        actionId
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            })
+                .catch(reason => {
+                initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        actionId,
+                        reason: this.serialize(reason)
+                    }
+                }))
+                    initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
+                        detail: {
+                            actionId
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
             })
 //            console.log('response', response)
-            const reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
-//            console.log('entering loop')
-            if (reader) {
-                while (true) {
-                    const {value, done} = await reader.read();
-                    if (done) break;
-                    //console.log('Received', value);
-                    const increment = JSON.parse(value.substring('data:'.length));
-                    //console.log('Received', increment);
-                    this.handleUIIncrement(increment)
-                }
-            }
+
+
             //console.log('closed')
 
         } else {
@@ -70,7 +126,14 @@ export class SSEService implements Service {
         }
     }
 
+    private serialize(reason: any) {
+        if (reason.message) {
+            return reason
+        }
+        return JSON.stringify(reason)
+    }
     handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
+        console.log('ui increment', uiIncrement)
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 fragment,

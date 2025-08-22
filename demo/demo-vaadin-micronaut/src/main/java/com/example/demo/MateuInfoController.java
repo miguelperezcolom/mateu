@@ -32,7 +32,7 @@ public class MateuInfoController {
   private List<String> getRoutes() {
     return beanProvider
             .getBeans(RouteResolver.class).stream()
-            .flatMap(resolver -> resolver.getSupportedRoutesPatterns().stream())
+            .flatMap(resolver -> resolver.supportedRoutesPatterns().stream())
             .map(Pattern::pattern).sorted(String::compareTo).toList();
   }
 }

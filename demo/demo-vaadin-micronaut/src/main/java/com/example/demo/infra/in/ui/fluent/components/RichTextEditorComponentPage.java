@@ -13,7 +13,7 @@ import java.util.List;
 @Route("/fluent-app/components/rich-text-editor")
 public class RichTextEditorComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Rich text editor")
                 .content(List.of(

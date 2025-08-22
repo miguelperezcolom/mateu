@@ -1,5 +1,7 @@
 package io.mateu.core.domain.reflection;
 
+import static io.mateu.core.domain.DefaultActionRunnerProvider.asFlux;
+
 import io.mateu.core.domain.ActionRunner;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Component;
@@ -11,7 +13,6 @@ import jakarta.inject.Named;
 import java.util.Map;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Named
 public class ComponentTreeActionRunner implements ActionRunner {
@@ -50,21 +51,12 @@ public class ComponentTreeActionRunner implements ActionRunner {
         result = button.callable().call();
       }
     }
-    if (result instanceof Flux<?> flux) {
-      return flux;
-    }
-    if (result instanceof Mono<?> mono) {
-      return mono.flux();
-    }
-    if (result == null) {
-      return Flux.just(instance);
-    }
-    return Flux.just(result);
+    return asFlux(result, instance);
   }
 
   private Button findButton(
       ComponentTreeSupplier componentTreeSupplier, String actionId, HttpRequest httpRequest) {
-    var root = componentTreeSupplier.getComponent(httpRequest);
+    var root = componentTreeSupplier.component(httpRequest);
     return findButton(root, actionId);
   }
 

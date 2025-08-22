@@ -1,11 +1,11 @@
 package com.example.uis;
 
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasFavicon;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ReactiveHandlesActions;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-public class UsingInterfacesUI implements HasFavicon, ReactiveHandlesActions {
+public class UsingInterfacesUI implements HasFavicon, HandlesActions {
 
   @Override
   public String getFavicon() {
@@ -18,7 +18,7 @@ public class UsingInterfacesUI implements HasFavicon, ReactiveHandlesActions {
   }
 
   @Override
-  public Mono<Object> handleAction(String actionId, HttpRequest httpRequest) {
-    return Mono.just(this);
+  public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
+    return Flux.just(this);
   }
 }

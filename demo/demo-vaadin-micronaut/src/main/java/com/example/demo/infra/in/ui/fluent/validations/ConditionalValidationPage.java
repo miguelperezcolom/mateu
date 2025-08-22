@@ -10,7 +10,7 @@ import java.util.List;
 @Route("/fluent-app/validations/conditional")
 public class ConditionalValidationPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Conditional validation")
                 .content(List.of(

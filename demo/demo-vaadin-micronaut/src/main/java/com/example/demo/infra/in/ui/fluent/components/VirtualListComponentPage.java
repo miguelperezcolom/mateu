@@ -14,7 +14,7 @@ import java.util.Map;
 @Route("/fluent-app/components/virtual-list")
 public class VirtualListComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Virtual list")
                 .content(List.of(

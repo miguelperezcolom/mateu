@@ -6,11 +6,10 @@ import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActions {
+public interface ReactiveCrudlBackend<Filters, Row> extends HandlesActions {
 
   @Override
   default boolean supportsAction(String actionId) {
@@ -39,7 +38,8 @@ public interface ReactiveCrudlBackend<Filters, Row> extends ReactiveHandlesActio
                                 Direction.valueOf((String) map.get("direction"))))
                     .toList()),
             httpRequest)
-        .map(crudlData -> (Object) new Data(Map.of("crud", crudlData))).flux();
+        .map(crudlData -> (Object) new Data(Map.of("crud", crudlData)))
+        .flux();
   }
 
   Class<Filters> filtersClass();

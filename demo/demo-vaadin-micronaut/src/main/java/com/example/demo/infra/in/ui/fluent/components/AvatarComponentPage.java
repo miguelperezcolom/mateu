@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/avatar")
 public class AvatarComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Avatar")
                 .content(List.of(

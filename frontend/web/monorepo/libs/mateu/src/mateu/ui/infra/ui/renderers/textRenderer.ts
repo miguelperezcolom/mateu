@@ -76,7 +76,12 @@ export const renderText = (component: ClientSideComponent, state: any, data: any
                     slot="${component.slot??nothing}">${content??nothing}</div>
             `
     }
-
+    if (TextContainer.span == metadata.container) {
+        return html`
+               <span style="${component.style}" class="${component.cssClasses}"
+                    slot="${component.slot??nothing}">${content??nothing}</span>
+            `
+    }
     return html`
                <p
                        slot="${component.slot??nothing}">

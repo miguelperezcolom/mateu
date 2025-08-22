@@ -19,6 +19,8 @@ import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
+
+import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -76,12 +78,12 @@ public class RunActionUseCase {
     if (app != null) {
       Actionable actionable = resolveMenu(app.menu(), command.route());
       if (actionable instanceof ContentLink contentLink) {
-        return Mono.just(contentLink.componentSupplier().getComponent(command.httpRequest()));
+        return Mono.just(contentLink.componentSupplier().component(command.httpRequest()));
       }
       var appRoute = getRoute(instance, app, command.httpRequest(), command.route());
       if (appRoute.equals(command.consumedRoute())) {
-        throw new NoSuchMethodException(
-            "No route found for " + command.route() + " in " + app + " for " + command);
+        throw new FileNotFoundException(
+            "No route found for " + command.route() + " in " + app.getClass().getSimpleName());
       }
     }
     return Mono.just(instance);
@@ -171,7 +173,7 @@ public class RunActionUseCase {
                         if (getPathInApp(appRoute, actionable).equals(route)) {
                           if (actionable instanceof ContentLink contentLink) {
                             return Mono.just(
-                                contentLink.componentSupplier().getComponent(httpRequest));
+                                contentLink.componentSupplier().component(httpRequest));
                           }
                           if (actionable instanceof Menu menu) {
                             return Mono.just(new Text("Es un menu"));

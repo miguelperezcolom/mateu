@@ -12,7 +12,7 @@ import java.util.Map;
 @Route("/fluent-app/components/element")
 public class ElementComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Element")
                 .content(List.of(

@@ -13,7 +13,7 @@ import java.util.List;
 @Route("/fluent-app/layouts/master-detail")
 public class MasterDetailLayoutSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Mater-detail Layout")
                 .content(List.of(

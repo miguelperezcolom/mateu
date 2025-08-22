@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/breadcrumbs")
 public class BreadcrumbsComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Breadcrumbs")
                 .content(List.of(

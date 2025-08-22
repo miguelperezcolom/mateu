@@ -20,7 +20,7 @@ import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.bui
 public class VerticalLayoutSample implements ComponentTreeSupplier {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Vertical Layout")
                 .content(List.of(

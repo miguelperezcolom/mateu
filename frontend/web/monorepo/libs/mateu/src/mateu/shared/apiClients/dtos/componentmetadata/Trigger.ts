@@ -5,7 +5,8 @@ export default interface Trigger {
     type: TriggerType
     actionId: string
     condition: string
-    data: string
     eventName: string
+    propertyName: string
+    calledActionId: string
 
 }

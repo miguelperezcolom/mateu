@@ -37,7 +37,7 @@ public class JsonSchemaBased implements ComponentTreeSupplier, HandlesRoute {
     }
 
     @Override
-    public Component getComponent(HttpRequest httpRequest) {
+    public Component component(HttpRequest httpRequest) {
         if ("/".equals(route)) {
             return getIndexComponent();
         }

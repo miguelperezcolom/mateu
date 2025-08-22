@@ -24,7 +24,7 @@ public class ServerSentEventsActionPage implements ComponentTreeSupplier, Handle
     int count = 0;
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("SSE")
                 .content(List.of(
@@ -54,11 +54,9 @@ public class ServerSentEventsActionPage implements ComponentTreeSupplier, Handle
             first = false;
             counts.add(++count);
         }
-        return Flux.fromStream(counts.stream()).map(count -> UIIncrementDto.builder()
-                .fragments(List.of(UIFragmentDto.builder()
-                        .state(Map.of("count", count))
-                                .targetComponentId(httpRequest.runActionRq().initiatorComponentId())
-                        .build()))
-                .build()).delayElements(Duration.ofMillis(100));
+        return Flux
+                .fromStream(counts.stream())
+                .map(count -> new State(Map.of("count", count)))
+                .delayElements(Duration.ofMillis(100));
     }
 }

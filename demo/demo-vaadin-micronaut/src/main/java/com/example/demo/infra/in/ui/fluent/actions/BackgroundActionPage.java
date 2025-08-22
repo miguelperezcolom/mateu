@@ -22,7 +22,7 @@ import java.util.Map;
 public class BackgroundActionPage implements ComponentTreeSupplier, HasActions, HandlesActions {
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Run action in background")
                 .content(List.of(

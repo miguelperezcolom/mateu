@@ -8,7 +8,10 @@ import io.mateu.dtos.ConfirmationTextsDto;
 import io.mateu.dtos.CustomEventDto;
 import io.mateu.dtos.OnCustomEventTriggerDto;
 import io.mateu.dtos.OnEnterTriggerDto;
+import io.mateu.dtos.OnErrorTriggerDto;
 import io.mateu.dtos.OnLoadTriggerDto;
+import io.mateu.dtos.OnSuccessTriggerDto;
+import io.mateu.dtos.OnValueChangeTriggerDto;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.RuleResultDto;
@@ -20,7 +23,10 @@ import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
+import io.mateu.uidl.fluent.OnErrorTrigger;
 import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.OnSuccessTrigger;
+import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
@@ -39,7 +45,7 @@ public class ComponentTreeSupplierToDtoMapper {
         List.of(
             mapComponentToDto(
                 componentTreeSupplier,
-                componentTreeSupplier.getComponent(httpRequest),
+                componentTreeSupplier.component(httpRequest),
                 baseUrl,
                 route,
                 httpRequest)),
@@ -85,6 +91,21 @@ public class ComponentTreeSupplierToDtoMapper {
                             onCustomEventTrigger.actionId(),
                             onCustomEventTrigger.eventName(),
                             onCustomEventTrigger.condition());
+                    case OnSuccessTrigger onSuccessTrigger ->
+                        new OnSuccessTriggerDto(
+                            onSuccessTrigger.actionId(),
+                            onSuccessTrigger.calledActionId(),
+                            onSuccessTrigger.condition());
+                    case OnErrorTrigger onErrorTrigger ->
+                        new OnErrorTriggerDto(
+                            onErrorTrigger.actionId(),
+                            onErrorTrigger.calledActionId(),
+                            onErrorTrigger.condition());
+                    case OnValueChangeTrigger onValueChangeTrigger ->
+                        new OnValueChangeTriggerDto(
+                            onValueChangeTrigger.actionId(),
+                            onValueChangeTrigger.propertyName(),
+                            onValueChangeTrigger.condition());
                     case OnEnterTrigger onEnterTrigger ->
                         new OnEnterTriggerDto(
                             onEnterTrigger.actionId(), onEnterTrigger.condition());

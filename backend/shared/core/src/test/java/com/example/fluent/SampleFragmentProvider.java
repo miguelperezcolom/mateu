@@ -12,7 +12,7 @@ public class SampleFragmentProvider implements ComponentTreeSupplier {
   }
 
   @Override
-  public Form getComponent(HttpRequest httpRequest) {
+  public Form component(HttpRequest httpRequest) {
     return Form.builder().title("Hola!").build();
   }
 }

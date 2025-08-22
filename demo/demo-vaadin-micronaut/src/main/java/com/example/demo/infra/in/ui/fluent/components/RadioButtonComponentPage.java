@@ -14,7 +14,7 @@ import java.util.List;
 @Route("/fluent-app/components/radio-button")
 public class RadioButtonComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Radio button")
                 .content(List.of(

@@ -11,7 +11,7 @@ import java.util.List;
 @Route("/fluent-app/components/notification")
 public class NotificationComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Notification")
                 .content(List.of(

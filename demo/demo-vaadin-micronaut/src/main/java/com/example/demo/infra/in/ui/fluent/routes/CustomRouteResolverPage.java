@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.routes;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -15,10 +16,11 @@ import java.util.regex.Pattern;
 @Singleton
 public class CustomRouteResolverPage implements ComponentTreeSupplier, RouteResolver {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Custom Route Resolver")
                 .content(List.of(
+                        new Text("This page is not annotated with @Route, but implements the RouteResolver interface.")
                 ))
                 .build();
     }
@@ -29,7 +31,7 @@ public class CustomRouteResolverPage implements ComponentTreeSupplier, RouteReso
     }
 
     @Override
-    public List<Pattern> getSupportedRoutesPatterns() {
+    public List<Pattern> supportedRoutesPatterns() {
         return List.of(Pattern.compile("/fluent-app/routes/custom-route-resolver"));
     }
 }

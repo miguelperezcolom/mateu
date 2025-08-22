@@ -48,7 +48,6 @@ export class MateuApiCaller extends LitElement {
     fetchFailed: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
-        console.log(e)
         this.loading = false
         this.error = (e as CustomEvent).detail.reason
         this.openNotification()

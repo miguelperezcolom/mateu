@@ -40,7 +40,7 @@ public class Counter5 implements ComponentTreeSupplier, HasActions, HasTriggers 
     }
 
     @Override
-    public Component getComponent(HttpRequest httpRequest) {
+    public Component component(HttpRequest httpRequest) {
         return new VerticalLayout(
                 new Text("${state.count}"),
                 new Button("Increment", (Runnable) () -> count++)

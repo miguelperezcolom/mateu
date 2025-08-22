@@ -13,7 +13,7 @@ import java.util.List;
 @Route("/fluent-app/styling/full-width")
 public class FullWidthSample implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Full width")
                 .content(List.of(new FullWidth(VerticalLayout.builder()

@@ -17,6 +17,9 @@ import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import { appState } from "@domain/state";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
+import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
 
 @customElement('mateu-ux')
@@ -69,6 +72,31 @@ export class MateuUx extends ConnectedElement {
         }
     }
 
+    backendFailedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            if ((e as CustomEvent).detail.actionId == '') {
+                this.fragment = {
+                    targetComponentId: this.id,
+                    data: {},
+                    state: {},
+                    component: {
+                        type: ComponentType.ClientSide,
+                        // @ts-ignore
+                        metadata: {
+                            type: ComponentMetadataType.Element,
+                            name: "div",
+                            content: "Not found"
+                        },
+                        "id": "fieldId"
+                    },
+                    action: UIFragmentAction.Replace
+                }
+            }
+        }
+    }
+
     manageActionEvent = (e: CustomEvent) => {
         e.preventDefault()
         e.stopPropagation()
@@ -93,7 +121,7 @@ export class MateuUx extends ConnectedElement {
                     detail.componentState,
                     detail.parameters,
                     detail.initiator,
-                detail.background).then();
+                detail.background);
             } else {
                 console.log('no route', e)
             }
@@ -113,6 +141,7 @@ export class MateuUx extends ConnectedElement {
         super.connectedCallback()
         this.overridesParsed = parseOverrides(this.overrides);
         this.addEventListener('server-side-action-requested', this.actionRequestedListener)
+        this.addEventListener('backend-call-failed', this.backendFailedListener)
         // @ts-ignore
         window.Vaadin.featureFlags.masterDetailLayoutComponent = true
     }
@@ -120,6 +149,7 @@ export class MateuUx extends ConnectedElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
+        this.removeEventListener('backend-call-failed', this.backendFailedListener)
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -156,6 +186,7 @@ export class MateuUx extends ConnectedElement {
     render() {
         return html`
            ${this.fragment?.component?renderComponent(
+               this,
                this.fragment?.component, 
                    this.baseUrl, 
                    this.fragment?.state??{}, 

@@ -12,7 +12,7 @@ import java.util.List;
 @Route("/fluent-app/components/text-field")
 public class TextFieldComponentPage implements ComponentTreeSupplier {
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Text field")
                 .content(List.of(

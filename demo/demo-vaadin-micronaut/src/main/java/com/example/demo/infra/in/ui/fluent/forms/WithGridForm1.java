@@ -2,24 +2,23 @@ package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.interfaces.ReactiveHandlesActions;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,7 @@ record Person(String name, int age) {
 }
 
 @Route("/fluent-app/forms/with-grid1")
-public class WithGridForm1 implements ComponentTreeSupplier, ReactiveHandlesActions, HasActions, HasTriggers {
+public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, HasActions, HasTriggers {
 
     String name = "Mateu";
     int age = 17;
@@ -41,7 +40,7 @@ public class WithGridForm1 implements ComponentTreeSupplier, ReactiveHandlesActi
     List<Person> people = new ArrayList<>();
 
     @Override
-    public Form getComponent(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
                 .id("form_id")
                 .title(name + " " + age)
