@@ -44,14 +44,30 @@ By using this design system you should be able to easily integrate your UIs buil
 
 <p align="center"><img src="../../../images/basic-form-redwood.png?raw=true" width="600"/></p >
 
+Oracle Redwood design system is great. It's modern and looks nice.
+
+At the moment I have only used the components from the Redwood design system, but I plan to bring in also the UX patterns. 
+
 ## Vaadin 
 
 <p align="center"><img src="../../../images/vaadin-logo.svg?raw=true" width="70"/></p>
 
 <p align="center"><img src="../../../images/basic-form-vaadin.png?raw=true" width="600"/></p>
 
+Vaadin's design system is clean and simple. This is the first design system I used for building Mateu's frontend.
+
 ## Bring your own design system
 
 You know, you just need to create a frontend which consumes the Mateu API. As easy as that. 
 
 You can take any of the frontend project from the repository and start from there, if you want something quick.
+
+E.g. this is something we did in **Wefox**, for some broker's portal stuff.
+
+<p align="center"><img src="../../../images/wefox-1.png?raw=true" width="600"/></p>
+
+<p align="center"><img src="../../../images/wefox-2.png?raw=true" width="600"/></p>
+
+<p align="center"><img src="../../../images/wefox-3.png?raw=true" width="600"/></p>
+
+<p align="center"><img src="../../../images/wefox-4.png?raw=true" width="600"/></p>
