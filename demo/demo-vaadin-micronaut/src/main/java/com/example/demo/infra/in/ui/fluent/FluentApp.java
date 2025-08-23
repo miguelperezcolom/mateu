@@ -171,6 +171,6 @@ public class FluentApp implements AppSupplier {
 
     @Override
     public String style() {
-        return "width: 100%;";
+        return "width: 100%; display: block;";
     }
 }

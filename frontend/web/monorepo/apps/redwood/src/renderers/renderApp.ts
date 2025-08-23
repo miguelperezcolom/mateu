@@ -2,17 +2,47 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 //import '../../public/js/libs/oj/19.0.0/min/ojarraytreedataprovider.js'
+import { nanoid } from "nanoid";
 
+let route = ''
 
+const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
+    route = document.getElementById(event.detail.value)?.dataset.route??''
+    console.log('hola', route)
+    if (route) {
+        if (window.location.pathname != baseUrl + route) {
+            window.history.pushState({},"", baseUrl + route);
+        }
+        container.requestUpdate()
+    }
+}
+
+const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = extractGrossRouteFromUrl(w, baseUrl)
+    if ('/' == route) {
+        return ''
+    }
+    return route
+}
+
+const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = w.location.pathname
+    if (route.startsWith(baseUrl)) {
+        return route.substring(baseUrl.length)
+    }
+    return route
+}
 
 export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     const metadata = component.metadata as App
 
-    const opened = data.opened??false;
+    const opened = data.opened == undefined?true:data.opened!!;
+    data.opened = opened
 
-    console.log('opened', opened)
+    route = extractRouteFromUrl(window, baseUrl??'')
 
-    const open = (e:Event) => {
+    const toggle = (e:Event) => {
+        console.log('open', data.opened)
         data.opened = !data.opened;
         container.requestUpdate()
     }
@@ -23,16 +53,16 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
     }
 
     return html`
-        <div id="componentDemoContent">
+        <div id="componentDemoContent" style="width: 100%;">
 
-            <div id="demo-container">
+            <div id="demo-container" style="width: 100%; height: -webkit-fill-available;">
                 <header id="header" role="banner" class="oj-flex-bar oj-web-applayout-header oj-sm-align-items-center"> <!-- Header: Main -->
                     <div class="oj-flex-bar oj-sm-flex-1 oj-sm-align-items-center oj-sm-only-width-full oj-sm-only-padding-0-end oj-sm-only-padding-0-start">
                         <div class="oj-flex-bar-start">
                             <div class="oj-sm-only-hide oj-flex oj-sm-align-items-center">
                                 <oj-button id="toggleNavListButton"
                                            class="toggleNavListButton oj-lg-hide oj-button oj-button-half-chrome oj-button-icon-only oj-enabled oj-default oj-complete"
-                                           chroming="half" display="icons" @ojAction="${open}"
+                                           chroming="half" display="icons" @ojAction="${toggle}"
                                            title="Cookbook navigation">
                                     <button aria-labelledby="toggleNavListButton_oj0|text" class="oj-button-button">
                                         <div class="oj-button-label"><span class="oj-button-icon oj-start"><span
@@ -86,6 +116,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                         </div>
                     </div>
                 </header>
+                <!--
                 <div class="demo-header demo-padding oj-bg-neutral-0 oj-divider-bottom">
                     <div>
                         <oj-c-button id="buttonOpener" display="icons" @ojAction="${open}" label="Start">
@@ -102,46 +133,13 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                             shape="circle">
                     </oj-c-avatar>
                 </div>
-                <oj-c-drawer-layout start-opened="${opened}" class="demo-full-height">
+                -->
+                <oj-c-drawer-layout start-opened="${opened}"
+                                    start-display="reflow"
+                                    class="demo-full-height"
+                                    style="height: calc(100vh - 54px);"
+>
                     
-                    <div class="demo-padding">
-                        <!--
-                        <div class="demo-controls">
-                            <oj-c-button id="buttonOpener" display="icons" @ojAction="${open}" label="Start">
-                                <span slot="startIcon" class="oj-ux-ico-menu"></span>
-                            </oj-c-button>${metadata.title}
-                        </div>
-                        -->
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                            labore et dolore magna aliqua. Venenatis a condimentum vitae sapien pellentesque habitant
-                            morbi tristique senectus. Hendrerit dolor magna eget est lorem ipsum dolor sit. Volutpat
-                            consequat mauris nunc congue nisi vitae. Parturient montes nascetur ridiculus mus mauris
-                            vitae ultricies. Fermentum leo vel orci porta non pulvinar neque laoreet.
-                        </p>
-                        <p>
-                            Non arcu risus quis varius quam quisque. In metus vulputate eu scelerisque felis imperdiet
-                            proin fermentum leo. Pretium viverra suspendisse potenti nullam ac tortor vitae. Bibendum
-                            arcu vitae elementum curabitur. Fermentum leo vel orci porta. Nisl vel pretium lectus quam
-                            id leo in. Lorem ipsum dolor sit amet consectetur. Orci sagittis eu volutpat odio facilisis
-                            mauris sit. Risus nullam eget felis eget nunc lobortis mattis aliquam faucibus.
-                        </p>
-                        <p>
-                            Pellentesque dignissim ac orci a elementum. Morbi at venenatis nisl. Lorem ipsum dolor sit
-                            amet, consectetur adipiscing elit. Nulla enim magna, mattis sit amet arcu molestie,
-                            fermentum pellentesque enim. Vivamus commodo est eget justo pharetra convallis. Phasellus
-                            hendrerit elementum ipsum, sit amet dignissim risus lacinia fringilla. Aenean non diam
-                            nulla. Maecenas imperdiet lacus accumsan venenatis tempus. Aliquam vulputate facilisis
-                            tellus bibendum vestibulum.
-                        </p>
-                        <p>
-                            Sed at odio luctus, tempus felis quis, hendrerit justo. Aliquam varius congue massa id
-                            fringilla. In consectetur urna et accumsan ornare. Quisque consequat consequat lorem, et
-                            euismod metus faucibus vitae. Sed sit amet risus a leo aliquet imperdiet. Cras pulvinar
-                            consequat feugiat. Proin tristique congue dignissim. Phasellus in erat ultrices, mollis orci
-                            in, consectetur arcu.
-                        </p>
-                    </div>
                     <div slot="start" class="demo-drawer-start" id="demo-drawer-start">
                         <!--
                         <div class="demo-drawer-header" style="display: flex; padding: 0.3rem 1rem 0 1rem; justify-content: space-between; align-items: center;">
@@ -160,16 +158,16 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                         -->
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
-                            @ojSelectionAction="${(e) => console.log(e)}"
+                            @ojSelectionAction="${(e) => selected(e, container, baseUrl??'')}"
                                             root-label="Welcome"
                         >
                             <ul>
                                 ${metadata.menu.map(menu => html`
-                                    <li><a href="#">${menu.label}</a>
+                                    <li data-route="${menu.destination?.route}"><a href="#">${menu.label}</a>
                                         ${menu.submenus?html`
                                         <ul>
                                             ${menu.submenus.map(sub => html`
-                                                <li><a href="#">${sub.label}</a></li>
+                                                <li data-route="${sub.destination?.route}"><a href="#">${sub.label}</a></li>
                                             `)}
                                         </ul>
                                         `:nothing}
@@ -178,6 +176,20 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                             </ul>
                         </oj-navigation-list>
                     </div>
+
+                    <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
+                        <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${route}"
+                                        id="${nanoid()}"
+                                        baseUrl="${baseUrl}"
+                                        consumedRoute="${metadata.route}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                        </div>
+                    </div>
+
                 </oj-c-drawer-layout>
             </div>
 

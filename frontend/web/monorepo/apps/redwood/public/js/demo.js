@@ -12,13 +12,21 @@ require([
         class Model {
         }
 
+        // initial binding, after the ui is painted
         (0, ojbootstrap_1.whenDocumentReady)().then(() => {
-            try {
-                ko.cleanNode(document.getElementById('component-container'));
-            } catch (e) {
-                console.log('not cleanable')
+            const elements = document.getElementsByTagName('mateu-component');
+            for (let i = 0; i < elements.length; i++) {
+                const element = elements.item(i);
+                console.log('binding element', element);
+                try {
+                    console.log('cleaning node');
+                    ko.cleanNode(element);
+                } catch (e) {
+                    console.log('not cleanable');
+                }
+                console.log('applying bindings');
+                ko.applyBindings({}, element);
             }
-            ko.applyBindings({}, document.getElementById('component-container'));
         });
     }
 );

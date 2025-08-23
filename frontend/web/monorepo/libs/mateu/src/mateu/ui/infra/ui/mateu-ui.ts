@@ -126,11 +126,12 @@ export class MateuUi extends LitElement {
 
     render() {
        return html`
-           <mateu-api-caller>
+           <mateu-api-caller style="display: block;width: 100%;">
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.route?this.route:this.ui?.homeRoute}"
                           top="true"
+                          style="display: block;width: 100%;"
                 ></mateu-ux>
            </mateu-api-caller>
        `

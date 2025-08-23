@@ -4,7 +4,8 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 componentRenderer.set(new RedwoodComponentRenderer())
 componentRenderer.setUseShadowRoot(false)
 setTimeout(() => {
-    componentRenderer.setAfterRenderHook(() => {
+    componentRenderer.setAfterRenderHook((element: HTMLElement) => {
+        console.log('after render', element)
         setTimeout(() => {
             require([
                     "require",
@@ -17,8 +18,33 @@ setTimeout(() => {
                 // @ts-ignore
                 function (require, exports, ko, ojbootstrap_1) {
                     "use strict";
-                    ko.cleanNode(document.getElementById('component-container'));
-                    ko.applyBindings({}, document.getElementById('component-container'));
+                    if (true || !!ko.dataFor(element)) {
+                            try {
+                                console.log('cleaning node')
+                                ko.cleanNode(element);
+                            } catch (e) {
+                                console.log('not cleanable');
+                            }
+                        console.log('applying bindings')
+                            ko.applyBindings({}, element);
+                    }
+                    // ko.cleanNode(element);
+                    // ko.applyBindings({}, element);
+
+                    // const elements = document.getElementsByTagName('mateu-component');
+                    // for (let i = 0; i < elements.length; i++) {
+                    //     const element = elements.item(i);
+                    //     console.log('binding element', element)
+                    //     if (!!ko.dataFor(element)) {
+                    //
+                    //     }
+                    //     try {
+                    //         ko.cleanNode(element);
+                    //     } catch (e) {
+                    //         console.log('not cleanable');
+                    //     }
+                    //     ko.applyBindings({}, element);
+                    // }
                 }
             );
 

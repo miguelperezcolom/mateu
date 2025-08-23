@@ -120,12 +120,15 @@ export class MateuComponent extends ComponentElement {
                 .forEach(trigger => {
                     this.addEventListener(trigger.eventName, this.customEventManager)
                 })
-        }
-        this.updateComplete.then(() => {
             if (componentRenderer.getAfterRenderHook()) {
-                componentRenderer.getAfterRenderHook()()
+                setTimeout(componentRenderer.getAfterRenderHook()(this))
             }
-        })
+        }
+        // this.updateComplete.then(() => {
+        //     if (componentRenderer.getAfterRenderHook()) {
+        //         componentRenderer.getAfterRenderHook()(this)
+        //     }
+        // })
     }
 
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
@@ -343,7 +346,7 @@ export class MateuComponent extends ComponentElement {
             return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
         }
         return html`
-            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
+            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}" style="display: block;width: 100%;">
             ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data))}
             </mateu-api-caller>
         `

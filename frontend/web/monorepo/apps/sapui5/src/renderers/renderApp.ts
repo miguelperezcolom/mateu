@@ -12,13 +12,35 @@ const toggle = (container: LitElement) => {
     container.requestUpdate()
 }
 
-const selected = (event: CustomEvent, container: LitElement) => {
+const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
     route = event.detail.item.dataset.route
+    if (window.location.pathname != baseUrl + route) {
+        window.history.pushState({},"", baseUrl + route);
+    }
     container.requestUpdate()
 }
 
+const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = extractGrossRouteFromUrl(w, baseUrl)
+    if ('/' == route) {
+        return ''
+    }
+    return route
+}
+
+const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = w.location.pathname
+    if (route.startsWith(baseUrl)) {
+        return route.substring(baseUrl.length)
+    }
+    return route
+}
+
+
 export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     const metadata = component.metadata as App
+
+    route = extractRouteFromUrl(window, baseUrl??'')
 
     return html`
         <ui5-navigation-layout id="nl1" mode="${mode}">
@@ -29,7 +51,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 <ui5-shellbar-branding slot="branding">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => toggle(container)}"></ui5-button>
             </ui5-shellbar>
-            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e) => selected(e, container)}" collapsed>
+            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e) => selected(e, container, baseUrl??'')}" collapsed>
                 <!-- Items -->
                 ${metadata.menu.map(menu => html`
                     ${menu.submenus?html`
