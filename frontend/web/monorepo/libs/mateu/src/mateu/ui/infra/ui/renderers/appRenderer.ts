@@ -20,7 +20,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                         </vaadin-side-nav>
                     </vaadin-scroller>
                     <div style="padding-left: 2em; padding-right: 2em;">
-                        <mateu-api-caller>
+                        <mateu-api-caller style="width: 100%;">
                             <mateu-ux
                                     route="${container.selectedRoute}"
                                     id="${nanoid()}"

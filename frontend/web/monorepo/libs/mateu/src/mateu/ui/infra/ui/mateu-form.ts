@@ -30,18 +30,22 @@ export class MateuForm extends MetadataDrivenElement {
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
-            <vaadin-vertical-layout theme="spacing">
-           <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
-           <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
-           
-           <vaadin-horizontal-layout theme="spacing">
-               ${metadata?.toolbar?.map(button => html`
+            <vaadin-vertical-layout theme="spacing" style="width: 100%;">
+                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
+                    <vaadin-vertical-layout>
+                        <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
+                        <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
+                    </vaadin-vertical-layout>
+                    <vaadin-horizontal-layout theme="spacing" slot="end">
+                        ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"
                         @click="${() => this.handleButtonClick(button.actionId)}"
                 >${button.label}</vaadin-button>
 `)}
-           </vaadin-horizontal-layout>
+                    </vaadin-horizontal-layout>
+                </vaadin-horizontal-layout>
+           
            <slot></slot>
            <vaadin-horizontal-layout theme="spacing">
                <slot name="buttons"></slot>

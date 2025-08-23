@@ -31,6 +31,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import java.util.List;
+import java.util.UUID;
 
 public class ComponentTreeSupplierToDtoMapper {
 
@@ -40,7 +41,7 @@ public class ComponentTreeSupplierToDtoMapper {
       String route,
       HttpRequest httpRequest) {
     return new ServerSideComponentDto(
-        componentTreeSupplier.id(),
+            UUID.randomUUID().toString(),
         componentTreeSupplier.getClass().getName(),
         List.of(
             mapComponentToDto(

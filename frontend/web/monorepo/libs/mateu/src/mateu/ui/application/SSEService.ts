@@ -133,7 +133,6 @@ export class SSEService implements Service {
         return JSON.stringify(reason)
     }
     handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
-        console.log('ui increment', uiIncrement)
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 fragment,

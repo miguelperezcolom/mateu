@@ -18,7 +18,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
         return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data)
     }
     return html`
-        <mateu-component id="${nanoid()}" 
+        <mateu-component id="${component.id}" 
                                      .component="${component}"
                                      .state="${state}"
                                      .data="${data}"

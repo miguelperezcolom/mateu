@@ -14,10 +14,12 @@ const toggle = (container: LitElement) => {
 
 const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
     route = event.detail.item.dataset.route
-    if (window.location.pathname != baseUrl + route) {
-        window.history.pushState({},"", baseUrl + route);
+    if (route) {
+        if (window.location.pathname != baseUrl + route) {
+            window.history.pushState({},"", baseUrl + route);
+        }
+        container.requestUpdate()
     }
-    container.requestUpdate()
 }
 
 const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
@@ -25,6 +27,7 @@ const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
     if ('/' == route) {
         return ''
     }
+    console.log('route', route, baseUrl)
     return route
 }
 
@@ -105,7 +108,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                                           icon="locked"></ui5-side-navigation-item>
             </ui5-side-navigation>
             <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
-                <mateu-api-caller>
+                <mateu-api-caller style="width: 100%;">
                     <mateu-ux
                             route="${route}"
                             id="${nanoid()}"

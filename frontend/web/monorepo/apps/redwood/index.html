@@ -145,13 +145,16 @@
       <div class="oj-flex-bar oj-sm-margin-2x-top">
         <div class="oj-flex-bar-start">
           <div class="oj-text-sm oj-sm-margin-2x-top oj-link-standalone oj-link-subtle-primary">
-            <!--oj-bind-text value='[[copyright]]'--><!--ko text:copyright-->Copyright © 2014, 2025 Oracle and/or its affiliates All rights reserved.<!--/ko--><!--/oj-bind-text--></div>
+            <!--Copyright © 2014, 2025 Oracle and/or its affiliates All rights reserved. -->
+          Copyright © 2025 Your company.
+          </div>
         </div>
         <div class="oj-flex-bar-end">
           <!--oj-bind-for-each data='[[globalLinks]]'--><!--ko _ojBindForEach_:{data:globalLinks}-->
           <!--oj-bind-if test='[[$current.data.label]]'--><!--ko if:$current.data.label-->
           <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-link-standalone oj-link-subtle-primary oj-sm-margin-2x-end" id="aboutOracle" href="https://www.oracle.com/us/corporate/index.html#menu-about">
-            <!--oj-bind-text value='[[$current.data.label]]'--><!--ko text:$current.data.label-->About Oracle<!--/ko--><!--/oj-bind-text-->
+            <!-- About Oracle -->
+            About Your Company
           </a>
           <!--/ko--><!--/oj-bind-if-->
 

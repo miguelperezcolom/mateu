@@ -10,22 +10,34 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
     return html`
         
         <mateu-sapui5-form 
-                id="${component.id}" 
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .values="${state}"
+                .state="${state}"
+                .data="${data}"
                 style="${component.style}" 
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
                 >
                     ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+            
+                            ${metadata?.toolbar?.map(button => html`
+                   ${renderComponent(container, {
+        metadata: button,
+        type: ComponentType.ClientSide,
+        slot: 'toolbar'
+    } as unknown as ClientSideComponent, baseUrl, state, data)}
+                `)}
+            
+            
                 ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
         metadata: button,
         type: ComponentType.ClientSide,
         slot: 'buttons'
-    } as unknown as ClientSideComponent, undefined, undefined, undefined)}
-`)}
+    } as unknown as ClientSideComponent, baseUrl, state, data)}
+
+                `)}
 
                 </mateu-sapui5-form>
         
