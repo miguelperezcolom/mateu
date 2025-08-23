@@ -6,6 +6,8 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import { renderButton } from "@/renderers/renderButton.ts";
 import { renderField } from "@/renderers/renderField.ts";
 import { renderApp } from "@/renderers/renderApp.ts";
+import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { renderForm } from "@/renderers/renderForm.ts";
 
 export const changed = (event: Event, fieldId: string) => {
     const element = event.target as HTMLInputElement
@@ -32,10 +34,9 @@ export const handleButtonClick = (event: Event) => {
 
 export class RedwoodComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
-
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
-        if (ComponentMetadataType.App == component?.metadata?.type) {
-            return renderApp(container, component, baseUrl, state, data)
+        if (ComponentMetadataType.Form == component?.metadata?.type) {
+            return renderForm(container, component, baseUrl, state, data)
         }
         if (ComponentMetadataType.Button == component?.metadata?.type) {
             return renderButton(component, baseUrl, state, data)
@@ -46,4 +47,7 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
         return super.renderClientSideComponent(container, component, baseUrl, state, data)
     }
 
+    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
+        return renderApp(container, component!, baseUrl, state, data)
+    }
 }

@@ -1,10 +1,8 @@
-import { html, LitElement, type TemplateResult } from 'lit';
+import { LitElement, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
-import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderButton } from "@/renderers/renderButton.ts";
 import { renderField } from "@/renderers/renderField.ts";
 import { renderApp } from "@/renderers/renderApp.ts";

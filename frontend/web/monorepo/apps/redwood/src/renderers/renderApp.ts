@@ -1,15 +1,17 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
-import { html, LitElement, nothing, TemplateResult } from "lit";
+import { html, nothing, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 //import '../../public/js/libs/oj/19.0.0/min/ojarraytreedataprovider.js'
 import { nanoid } from "nanoid";
+import { MateuApp } from "@infra/ui/mateu-app.ts";
 
 let route = ''
 
-const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
-    route = document.getElementById(event.detail.value)?.dataset.route??''
-    console.log('hola', route)
+const selected = (event: CustomEvent, container: MateuApp, baseUrl: string) => {
+    console.log(event)
+    const route = document.getElementById(event.detail.value)?.dataset.route??''
     if (route) {
+        // container.selectRoute(route)
         if (window.location.pathname != baseUrl + route) {
             window.history.pushState({},"", baseUrl + route);
         }
@@ -33,18 +35,21 @@ const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
     return route
 }
 
-export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+    console.log('render app')
     const metadata = component.metadata as App
+
+    route = extractRouteFromUrl(window, baseUrl??'')
 
     const opened = data.opened == undefined?true:data.opened!!;
     data.opened = opened
 
-    route = extractRouteFromUrl(window, baseUrl??'')
-
     const toggle = (e:Event) => {
-        console.log('open', data.opened)
-        data.opened = !data.opened;
-        container.requestUpdate()
+        setTimeout(() => {
+            console.log('open', data.opened)
+            data.opened = !data.opened;
+            container.requestUpdate()
+        }, 100)
     }
 
     const close = (e:Event) => {
@@ -137,10 +142,10 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 <oj-c-drawer-layout start-opened="${opened}"
                                     start-display="reflow"
                                     class="demo-full-height"
-                                    style="height: calc(100vh - 54px);"
+                                    style="height: calc(100vh - 165px);"
 >
                     
-                    <div slot="start" class="demo-drawer-start" id="demo-drawer-start">
+                    <div slot="start" class="demo-drawer-start  oj-bg-neutral-170 oj-color-invert" id="demo-drawer-start" style="height: calc(100% - 10px);">
                         <!--
                         <div class="demo-drawer-header" style="display: flex; padding: 0.3rem 1rem 0 1rem; justify-content: space-between; align-items: center;">
                             <div>
@@ -158,16 +163,19 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                         -->
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
+                                            selection="${route}"
                             @ojSelectionAction="${(e) => selected(e, container, baseUrl??'')}"
                                             root-label="Welcome"
+                                            class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
+                                            style="height: 100%;"
                         >
                             <ul>
                                 ${metadata.menu.map(menu => html`
-                                    <li data-route="${menu.destination?.route}"><a href="#">${menu.label}</a>
+                                    <li data-route="${menu.destination?.route}" id="${menu.destination?.route}"><a href="#">${menu.label}</a>
                                         ${menu.submenus?html`
                                         <ul>
                                             ${menu.submenus.map(sub => html`
-                                                <li data-route="${sub.destination?.route}"><a href="#">${sub.label}</a></li>
+                                                <li data-route="${sub.destination?.route}" id="${sub.destination?.route}"><a href="#">${sub.label}</a></li>
                                             `)}
                                         </ul>
                                         `:nothing}
@@ -179,12 +187,13 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
 
                     <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
-                            <mateu-api-caller>
+                            <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
                                         route="${route}"
-                                        id="${nanoid()}"
+                                        id="uwuwu"
                                         baseUrl="${baseUrl}"
                                         consumedRoute="${metadata.route}"
+                                        style="width: 100%;"
                                 ></mateu-ux>
                             </mateu-api-caller>
                         </div>

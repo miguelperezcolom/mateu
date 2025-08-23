@@ -109,6 +109,8 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             baseUrl="${baseUrl}"
                 .component="${component}"
                 .values="${state}"
+                .state="${state}"
+                .data="${data}"
                 style="${component.style}" 
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
@@ -165,8 +167,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
 
         if (component.metadata.type == ComponentMetadataType.App) {
             console.log('component', component)
-            return html`<mateu-api-caller
-                    slot="${component.slot??nothing}">
+            return html`
                 <mateu-app
                             id="${component.id}"
                             baseUrl="${baseUrl}"
@@ -176,7 +177,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             class="${component.cssClasses}"
                 >
                  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
-             </mateu-app></mateu-api-caller>`
+             </mateu-app>`
         }
 
         if (component.metadata.type == ComponentMetadataType.Element) {

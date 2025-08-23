@@ -154,6 +154,7 @@ export class MateuUx extends ConnectedElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        console.log('updated', _changedProperties)
         if (_changedProperties.has('baseurl') || _changedProperties.has('route')) {
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {

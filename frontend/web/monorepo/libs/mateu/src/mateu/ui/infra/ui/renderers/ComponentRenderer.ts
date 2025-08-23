@@ -1,7 +1,9 @@
 import { LitElement, TemplateResult } from "lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import { MateuApp } from "@infra/ui/mateu-app.ts";
 
 export interface ComponentRenderer {
+    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult
 }
 

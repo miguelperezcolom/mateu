@@ -3,6 +3,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { nanoid } from "nanoid";
 
 export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
     component.slot = slot
@@ -17,7 +18,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
         return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data)
     }
     return html`
-        <mateu-component id="${component.id}" 
+        <mateu-component id="${nanoid()}" 
                                      .component="${component}"
                                      .state="${state}"
                                      .data="${data}"

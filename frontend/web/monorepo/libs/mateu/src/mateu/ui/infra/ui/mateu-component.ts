@@ -124,11 +124,6 @@ export class MateuComponent extends ComponentElement {
                 setTimeout(componentRenderer.getAfterRenderHook()(this))
             }
         }
-        // this.updateComplete.then(() => {
-        //     if (componentRenderer.getAfterRenderHook()) {
-        //         componentRenderer.getAfterRenderHook()(this)
-        //     }
-        // })
     }
 
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
