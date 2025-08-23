@@ -18,7 +18,7 @@ your needs. This allows you to easily create with **Mateu** your **micro fronten
 **SAP**/**Oracle**/**Vaadin** user interfaces. In the end, Mateu's frontends are just web components which you can embed anywhere, indeed. 
 
 E.g. you can use the **Redwood** frontend if you want your microfrontends to be embedded in/coexist with existing **Oracle** UIs, or choose
-the **SapUI5/OpenUI5** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
+the **SAPUI5/OpenUI5** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
 choose **Vaadin** just because you like it.
 
 I imagine I do not need to say this but, obviously, you can also serve your applications in a **standalone** mode without 
