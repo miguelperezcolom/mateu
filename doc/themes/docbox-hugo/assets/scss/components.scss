@@ -175,6 +175,7 @@
         }
         & > ul {
           @apply block max-h-[3000px];
+          overflow: visible;
         }
       }
 
