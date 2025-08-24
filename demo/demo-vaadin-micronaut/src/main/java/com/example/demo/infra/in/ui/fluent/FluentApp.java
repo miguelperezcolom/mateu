@@ -137,6 +137,8 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/triggers/on-value-change", "On Value Change")
                         )),
                         new Menu("Client-Side Logic (Rules)", List.of(
+                                new RouteLink("/fluent-app/rules/visibility-from-backend", "Visibility from backend"),
+                                new RouteLink("/fluent-app/rules/enabled-from-backend", "Enabled from backend"),
                                 new RouteLink("/fluent-app/rules/visibility", "Visibility"),
                                 new RouteLink("/fluent-app/rules/enabled", "Enabled"),
                                 new RouteLink("/fluent-app/rules/run-action", "Run Action"),

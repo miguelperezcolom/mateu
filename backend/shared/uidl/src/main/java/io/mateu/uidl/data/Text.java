@@ -6,7 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record Text(
-        String id,
+    String id,
     String text,
     TextContainer container,
     List<TextVariant> variants,
@@ -25,7 +25,6 @@ public record Text(
   public Text(String id, String text, TextContainer container) {
     this(id, text, container, List.of(), "", "");
   }
-
 
   public Text(String text) {
     this(null, text, TextContainer.div, List.of(), "", "");

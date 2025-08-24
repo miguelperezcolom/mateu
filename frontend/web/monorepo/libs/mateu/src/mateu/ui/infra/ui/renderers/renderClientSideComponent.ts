@@ -65,7 +65,7 @@ export const updateStyle = (component: ClientSideComponent, data: any): string =
         if (style == undefined) {
             style = ''
         }
-        if (data[component.id + '.visible'] == false) {
+        if (data[component.id + '.hidden'] == true) {
             style += 'display: none;'
         }
     }
@@ -88,7 +88,7 @@ export const updateMedata = (component: ClientSideComponent, data: any): Compone
             }
         }
     }
-    console.log('metadata', component, data, metadata)
+    //console.log('metadata', component, data, metadata)
     return metadata
 }
 
@@ -273,7 +273,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderIcon(component)
         }
         if (type == ComponentMetadataType.ConfirmDialog) {
-            return renderConfirmDialog(component, baseUrl, state, data)
+            return renderConfirmDialog(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.ContextMenu) {
             return renderContextMenu(component, baseUrl, state, data)

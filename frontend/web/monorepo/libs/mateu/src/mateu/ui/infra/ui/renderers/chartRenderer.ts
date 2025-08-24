@@ -6,7 +6,7 @@ export const renderChart = (component: ClientSideComponent) => {
     // @ts-ignore
     const metadata = component.metadata as Chart
 
-    console.log('metadata', metadata)
+    //console.log('metadata', metadata)
 
     return html`
         <mateu-chart 

@@ -34,28 +34,13 @@ public record Button(
 
   public Button(String label, String actionId) {
     this(
-            actionId,
-            label,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            false,
-            actionId,
-            null,
-            null,
-            null,
-            null,
-            null);
+        actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
+        null, null, null, null);
   }
 
   public Button(String label, Runnable runnable) {
     this(
-            camelcasize(label),
+        camelcasize(label),
         label,
         null,
         null,
@@ -76,7 +61,7 @@ public record Button(
 
   public Button(String label, Callable<?> callable) {
     this(
-            camelcasize(label),
+        camelcasize(label),
         label,
         null,
         null,
@@ -129,7 +114,7 @@ public record Button(
 
   public Button(String label) {
     this(
-            camelcasize(label),
+        camelcasize(label),
         label,
         "",
         "",

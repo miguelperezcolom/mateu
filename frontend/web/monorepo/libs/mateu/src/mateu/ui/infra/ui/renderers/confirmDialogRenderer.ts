@@ -1,9 +1,9 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import ConfirmDialog from "@mateu/shared/apiClients/dtos/componentmetadata/ConfirmDialog";
-import { html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderConfirmDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as ConfirmDialog
     let opened = false;
     if (metadata.openedCondition) {
@@ -26,7 +26,7 @@ export const renderConfirmDialog = (component: ClientSideComponent, baseUrl: str
   style="${component.style}" class="${component.cssClasses}"
   slot="${component.slot??nothing}"
 >
-  ${component.children?.map(child => renderComponent(child, baseUrl, state, data))}
+  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
 </vaadin-confirm-dialog>
             `
 }

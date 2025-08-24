@@ -5,22 +5,27 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.Rule;
+import io.mateu.uidl.data.RuleAction;
+import io.mateu.uidl.data.RuleFieldAttribute;
+import io.mateu.uidl.data.RuleResult;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/rules/enabled")
-public class EnabledRulePage implements ComponentTreeSupplier {
+public class EnabledRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     boolean buttonDisabled = false;
     boolean fieldDisabled = false;
 
     @Override
-    public Form component(HttpRequest httpRequest) {
+    public Form component(HttpRequest httpRequest)  {
         return Form.builder()
                 .title("Enabled rule")
                 .content(List.of(
@@ -30,14 +35,26 @@ public class EnabledRulePage implements ComponentTreeSupplier {
                                 .dataType(FieldDataType.string)
                                 .label("A Field")
                                 .build(),
-                        new Button("Toggle", () ->
-                                new Data(
-                                        Map.of(
-                                                "aButton.disabled", buttonDisabled = !buttonDisabled,
-                                                "aField.disabled", fieldDisabled = !fieldDisabled
-                                        ),
-                                        this))
+                        FormField.builder()
+                                .id("enable")
+                                .dataType(FieldDataType.bool)
+                                .label("Enable")
+                                .build()
                 ))
                 .build();
+    }
+
+    @Override
+    public List<Rule> rules() {
+        return List.of(
+                Rule.builder()
+                        .filter("true")
+                        .action(RuleAction.UpdateData)
+                        .fieldName("aButton,aField")
+                        .fieldAttribute(RuleFieldAttribute.disabled)
+                        .expression("!state.enable")
+                        .result(RuleResult.Continue)
+                        .build()
+        );
     }
 }

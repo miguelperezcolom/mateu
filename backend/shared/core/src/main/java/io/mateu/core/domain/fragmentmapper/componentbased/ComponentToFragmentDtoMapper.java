@@ -332,7 +332,7 @@ public final class ComponentToFragmentDtoMapper {
     }
     return new ClientSideComponentDto(
         new ElementDto("div", Map.of(), component.toString()),
-            UUID.randomUUID().toString(),
+        UUID.randomUUID().toString(),
         List.of(),
         component.style(),
         component.cssClasses(),

@@ -13,7 +13,7 @@ public class TextComponentToDtoMapper {
   public static ClientSideComponentDto mapTextToDto(Text text) {
     return new ClientSideComponentDto(
         new TextDto(TextContainerDto.valueOf(text.container().name()), Map.of(), text.text()),
-            text.id() != null ? text.id() : UUID.randomUUID().toString(),
+        text.id() != null ? text.id() : UUID.randomUUID().toString(),
         List.of(),
         text.style(),
         text.cssClasses(),

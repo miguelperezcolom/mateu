@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, PropertyValues, unsafeCSS } from "lit";
+import { css, html, PropertyValues, TemplateResult, unsafeCSS } from "lit";
 import { badge } from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -61,6 +61,9 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import './mateu-chart'
 import {Notification} from "@vaadin/notification"
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { RuleAction } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
+import { RuleFieldAttribute } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
+import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -96,8 +99,62 @@ export class MateuComponent extends ComponentElement {
     @property()
     baseUrl: string | undefined
 
+
+    applyRules = () => {
+        const rules = (this.component as ServerSideComponent).rules
+        if (rules) {
+            // @ts-ignore
+            const state = this.state
+            // @ts-ignore
+            const data = this.state
+            const newState = {...this.state}
+            const newData = {...this.data}
+            let stateUpdated = false;
+            let dataUpdated = false;
+            for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
+                const rule = rules[ruleIndex]
+                try {
+                    if (eval(rule.filter)) {
+                        const target = RuleAction.UpdateState == rule.action?newState:newData
+                        const fieldNames = rule.fieldName.split(',')
+                        for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                            const fieldName = fieldNames[fieldIndex]
+                            if (!target[fieldName] || target[fieldName] != rule.value) {
+                                const value = rule.expression?eval(eval('`' + rule.expression + '`')):rule.value
+                                const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
+                                if (value != target[propertyName]) {
+                                    target[propertyName] = value
+                                    if (RuleAction.UpdateState == rule.action) {
+                                        stateUpdated = true
+                                    }
+                                    if (RuleAction.UpdateData == rule.action) {
+                                        dataUpdated = true
+                                    }
+                                }
+                            }
+                        }
+                        if (RuleResult.Stop == rule.result) {
+                            break
+                        }
+                    }
+                } catch (e) {
+                    console.log('rule failed', rule, e)
+                }
+            }
+            if (stateUpdated) {
+                this.state = newState
+            }
+            if (dataUpdated) {
+                this.data = newData
+            }
+        }
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        if (_changedProperties.has('state')) {
+            this.applyRules()
+        }
         if (_changedProperties.has('component')) {
             const serverSideComponent = this.component as ServerSideComponent
             // @ts-ignore
@@ -153,6 +210,7 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                     })
+                this.applyRules()
             }
         }
     }
@@ -338,7 +396,7 @@ export class MateuComponent extends ComponentElement {
 
     render() {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data) as TemplateResult
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}" style="display: block;width: 100%;">

@@ -14,6 +14,7 @@ import io.mateu.dtos.OnSuccessTriggerDto;
 import io.mateu.dtos.OnValueChangeTriggerDto;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
+import io.mateu.dtos.RuleFieldAttributeDto;
 import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
@@ -41,7 +42,7 @@ public class ComponentTreeSupplierToDtoMapper {
       String route,
       HttpRequest httpRequest) {
     return new ServerSideComponentDto(
-            UUID.randomUUID().toString(),
+        UUID.randomUUID().toString(),
         componentTreeSupplier.getClass().getName(),
         List.of(
             mapComponentToDto(
@@ -67,7 +68,10 @@ public class ComponentTreeSupplierToDtoMapper {
                   RuleDto.builder()
                       .filter(rule.filter())
                       .action(RuleActionDto.valueOf(rule.action().name()))
-                      .data(rule.data())
+                      .fieldAttribute(RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name()))
+                      .fieldName(rule.fieldName())
+                      .value(rule.value())
+                      .expression(rule.expression())
                       .result(RuleResultDto.valueOf(rule.result().name()))
                       .build())
           .toList();

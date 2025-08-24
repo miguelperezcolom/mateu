@@ -19,7 +19,6 @@ import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
-
 import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.List;
