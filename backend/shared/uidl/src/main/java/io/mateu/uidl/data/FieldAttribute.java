@@ -11,5 +11,7 @@ public enum FieldAttribute {
     css,
     style,
     theme,
+    errorMessage,
+    description,
     none
 }

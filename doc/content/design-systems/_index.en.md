@@ -19,7 +19,7 @@ your needs. This allows you to easily create with **Mateu** your **micro fronten
 
 E.g. you can use the **Redwood** frontend if you want your microfrontends to be embedded in/coexist with existing **Oracle** UIs, or choose
 the **SAPUI5/OpenUI5** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
-choose **Vaadin** just because you like it.
+choose **Vaadin** just because you like it (like I do).
 
 I imagine I do not need to say this but, obviously, you can also serve your applications in a **standalone** mode without 
 embedding them in existing **SAP**/**Oracle**/**Vaadin** web user interfaces. In fact, changing the design system for your 
