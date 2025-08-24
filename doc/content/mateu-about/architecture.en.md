@@ -91,6 +91,7 @@ With time I realised that, if I wanted Mateu to be really useful to people, I ne
 anyone can easily introduce support for their particularities. You know, open for extension but closed for modification :)
 
 You can extend the backend by providing your own beans for changing the behaviour in the backend, or by using aspects
-(AOP) or http filters (you know, in the end it's just a rest service). 
+(AOP) or http filters (you know, in the end it's just a rest service). You could even use your own annotation processors
+or templates to generate a different code, for the controllers.
 
 You can extend the frontend by providing your own web components.
