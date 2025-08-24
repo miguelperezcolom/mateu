@@ -84,3 +84,13 @@ scalability to the project and has made it easy to support many backend framewor
 Micronaut, Quarkus, Helidon) and several frontends relying on different design systems (SAPUI5, Oracle Redwood, Vaadin).
 
 If tomorrow I need to add something (e.g. a new design system) I know I will easily do it, maximizing code reuse. 
+
+## Extension points
+
+With time I realised that, if I wanted Mateu to be really useful to people, I needed to provide extension points so 
+anyone can easily introduce support for their particularities. You know, open for extension but closed for modification :)
+
+You can extend the backend by providing your own beans for changing the behaviour in the backend, or by using aspects
+(AOP) or http filters (you know, in the end it's just a rest service). 
+
+You can extend the frontend by providing your own web components.
