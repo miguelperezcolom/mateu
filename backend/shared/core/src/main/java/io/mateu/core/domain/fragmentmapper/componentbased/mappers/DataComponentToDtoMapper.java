@@ -5,7 +5,12 @@ import io.mateu.uidl.data.Data;
 
 public class DataComponentToDtoMapper {
 
-  public static UIFragmentDto mapDataToDto(Data data, String targetComponentId) {
-    return new UIFragmentDto(targetComponentId, null, null, data.data(), null);
+  public static UIFragmentDto mapDataToDto(Data data, String targetComponentId, Object componentSupplier) {
+    return new UIFragmentDto(
+            targetComponentId,
+            null,
+            data.newState(),
+            data.data(),
+            null);
   }
 }

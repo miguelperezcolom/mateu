@@ -4,10 +4,13 @@ import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import {
     renderAccordionLayout,
-    renderBoardLayout, renderBoardLayoutItem,
+    renderBoardLayout,
+    renderBoardLayoutItem,
     renderBoardLayoutRow,
-    renderContainer, renderFormItem,
-    renderFormLayout, renderFormRow,
+    renderContainer,
+    renderFormItem,
+    renderFormLayout,
+    renderFormRow,
     renderFullWidth,
     renderHorizontalLayout,
     renderMasterDetailLayout,
@@ -49,60 +52,102 @@ import { renderCarouselLayout } from "@infra/ui/renderers/carouselRenderer";
 import { renderDirectory } from "@infra/ui/renderers/directoryRenderer";
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
+export const updateStyle = (component: ClientSideComponent, data: any): string => {
+    let style = component.style
+    if (component.id) {
+        if (style && !style.endsWith(';')) {
+            style += ';'
+        }
+        if (style == undefined) {
+            style = ''
+        }
+        if (data[component.id + '.visible'] == false) {
+            style += 'display: none;'
+        }
+    }
+    return style
+}
+
+export const updateMedata = (component: ClientSideComponent, data: any): ComponentMetadata | undefined => {
+    let metadata = { ...component.metadata} as ComponentMetadata
+    if (component.id && metadata) {
+        if (metadata.type == ComponentMetadataType.Button) {
+            const button = metadata as Button
+            if (data[component.id + '.disabled'] == true) {
+                button.disabled = true
+            }
+        }
+        if (metadata.type == ComponentMetadataType.FormField) {
+            const field = metadata as FormField
+            if (data[component.id + '.disabled'] == true) {
+                field.disabled = true
+            }
+        }
+    }
+    console.log('metadata', component, data, metadata)
+    return metadata
+}
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     if (component?.metadata) {
+        
+        const type = component.metadata.type
 
-        if (component.metadata.type == ComponentMetadataType.Directory) {
+        component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
+
+        if (type == ComponentMetadataType.Directory) {
             return renderDirectory(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.FormLayout) {
+        if (type == ComponentMetadataType.FormLayout) {
             return renderFormLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.FormRow) {
+        if (type == ComponentMetadataType.FormRow) {
             return renderFormRow(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.FormItem) {
+        if (type == ComponentMetadataType.FormItem) {
             return renderFormItem(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.HorizontalLayout) {
+        if (type == ComponentMetadataType.HorizontalLayout) {
             return renderHorizontalLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.VerticalLayout) {
+        if (type == ComponentMetadataType.VerticalLayout) {
             return renderVerticalLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.SplitLayout) {
+        if (type == ComponentMetadataType.SplitLayout) {
             return renderSplitLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.MasterDetailLayout) {
+        if (type == ComponentMetadataType.MasterDetailLayout) {
             return renderMasterDetailLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.TabLayout) {
+        if (type == ComponentMetadataType.TabLayout) {
             return renderTabLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.AccordionLayout) {
+        if (type == ComponentMetadataType.AccordionLayout) {
             return renderAccordionLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.BoardLayout) {
+        if (type == ComponentMetadataType.BoardLayout) {
             return renderBoardLayout(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.BoardLayoutRow) {
+        if (type == ComponentMetadataType.BoardLayoutRow) {
             return renderBoardLayoutRow(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.BoardLayoutItem) {
+        if (type == ComponentMetadataType.BoardLayoutItem) {
             return renderBoardLayoutItem(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Scroller) {
+        if (type == ComponentMetadataType.Scroller) {
             return renderScroller(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.FullWidth) {
+        if (type == ComponentMetadataType.FullWidth) {
             return renderFullWidth(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Container) {
+        if (type == ComponentMetadataType.Container) {
             return renderContainer(container, component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Form) {
+        if (type == ComponentMetadataType.Form) {
             const metadata = component.metadata as Form
             return html`<mateu-form 
                 id="${component.id}" 
@@ -126,7 +171,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
 
                 </mateu-form>`
         }
-        if (component.metadata.type == ComponentMetadataType.Table) {
+        if (type == ComponentMetadataType.Table) {
             return html`<mateu-table
                             id="${component.id}"
             baseUrl="${baseUrl}"
@@ -138,7 +183,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                 </mateu-table>`
         }
-        if (component.metadata.type == ComponentMetadataType.TableCrud) {
+        if (type == ComponentMetadataType.TableCrud) {
             return html`<mateu-table-crud
                             id="${component.id}"
                             baseUrl="${baseUrl}"
@@ -151,7 +196,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
              </mateu-table-crud>`
         }
-        if (component.metadata.type == ComponentMetadataType.CardCrud) {
+        if (type == ComponentMetadataType.CardCrud) {
             return html`<mateu-table-crud
                             id="${component.id}"
                             baseUrl="${baseUrl}"
@@ -165,7 +210,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
              </mateu-table-crud>`
         }
 
-        if (component.metadata.type == ComponentMetadataType.App) {
+        if (type == ComponentMetadataType.App) {
             console.log('component', component)
             return html`
                 <mateu-app
@@ -180,11 +225,11 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
              </mateu-app>`
         }
 
-        if (component.metadata.type == ComponentMetadataType.Element) {
+        if (type == ComponentMetadataType.Element) {
             return renderElement(component.metadata as Element, component.slot)
         }
 
-        if (component.metadata.type == ComponentMetadataType.FormField) {
+        if (type == ComponentMetadataType.FormField) {
             return html`<mateu-field
                        id="${component.id}"
                 .field="${component.metadata}"
@@ -196,98 +241,98 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                         ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                     </mateu-field>`
         }
-        if (component.metadata.type == ComponentMetadataType.Text) {
+        if (type == ComponentMetadataType.Text) {
             return renderText(component, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Avatar) {
+        if (type == ComponentMetadataType.Avatar) {
             return renderAvatar(component)
         }
-        if (component.metadata.type == ComponentMetadataType.AvatarGroup) {
+        if (type == ComponentMetadataType.AvatarGroup) {
             return renderAvatarGroup(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Badge) {
+        if (type == ComponentMetadataType.Badge) {
             return renderBadge(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Breadcrumbs) {
+        if (type == ComponentMetadataType.Breadcrumbs) {
             return renderBreadcrumbs(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Anchor) {
+        if (type == ComponentMetadataType.Anchor) {
             return renderAnchor(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Button) {
+        if (type == ComponentMetadataType.Button) {
             return renderButton(component)
         }
         // @ts-ignore
-        if (component.metadata.type == ComponentMetadataType.Card) {
+        if (type == ComponentMetadataType.Card) {
             return renderCard(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Chart) {
+        if (type == ComponentMetadataType.Chart) {
             return renderChart(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Icon) {
+        if (type == ComponentMetadataType.Icon) {
             return renderIcon(component)
         }
-        if (component.metadata.type == ComponentMetadataType.ConfirmDialog) {
+        if (type == ComponentMetadataType.ConfirmDialog) {
             return renderConfirmDialog(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.ContextMenu) {
+        if (type == ComponentMetadataType.ContextMenu) {
             return renderContextMenu(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.CookieConsent) {
+        if (type == ComponentMetadataType.CookieConsent) {
             return renderCookieConsent(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Details) {
+        if (type == ComponentMetadataType.Details) {
             return renderDetails(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Dialog) {
+        if (type == ComponentMetadataType.Dialog) {
             return renderDialog(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Image) {
+        if (type == ComponentMetadataType.Image) {
             return renderImage(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Map) {
+        if (type == ComponentMetadataType.Map) {
             return renderMap(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Markdown) {
+        if (type == ComponentMetadataType.Markdown) {
             return renderMarkdown(component)
         }
-        if (component.metadata.type == ComponentMetadataType.MicroFrontend) {
+        if (type == ComponentMetadataType.MicroFrontend) {
             return renderMicroFrontend(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Notification) {
+        if (type == ComponentMetadataType.Notification) {
             return renderNotification(component)
         }
-        if (component.metadata.type == ComponentMetadataType.ProgressBar) {
+        if (type == ComponentMetadataType.ProgressBar) {
             return renderProgressBar(component)
         }
-        if (component.metadata.type == ComponentMetadataType.Popover) {
+        if (type == ComponentMetadataType.Popover) {
             return renderPopover(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.CarouselLayout) {
+        if (type == ComponentMetadataType.CarouselLayout) {
             return renderCarouselLayout(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Tooltip) {
+        if (type == ComponentMetadataType.Tooltip) {
             return renderTooltip(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.MessageInput) {
+        if (type == ComponentMetadataType.MessageInput) {
             return renderMessageInput(component)
         }
-        if (component.metadata.type == ComponentMetadataType.MessageList) {
+        if (type == ComponentMetadataType.MessageList) {
             return renderMessageList(component)
         }
-        if (component.metadata.type == ComponentMetadataType.CustomField) {
+        if (type == ComponentMetadataType.CustomField) {
             return customFieldRenderer(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.MenuBar) {
+        if (type == ComponentMetadataType.MenuBar) {
             return renderMenuBar(component, baseUrl, state, data)
         }
-        if (component.metadata.type == ComponentMetadataType.Grid) {
+        if (type == ComponentMetadataType.Grid) {
             return renderGrid(component, state)
         }
-        if (component.metadata.type == ComponentMetadataType.VirtualList) {
+        if (type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component, baseUrl, state, data)
         }
-        return html`<p ${component?.slot??nothing}>Unknown metadata type ${component.metadata.type} for component ${component?.id}</p>`
+        return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`
     }
     return html`<p ${component?.slot??nothing}>No metadata for component ${component?.id}</p>`
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record Text(
+        String id,
     String text,
     TextContainer container,
     List<TextVariant> variants,
@@ -13,16 +14,29 @@ public record Text(
     String cssClasses)
     implements Component {
 
+  public Text(String id, String text) {
+    this(id, text, TextContainer.div, List.of(), "", "");
+  }
+
+  public Text(String id, String text, List<TextVariant> variants) {
+    this(id, text, TextContainer.div, variants, "", "");
+  }
+
+  public Text(String id, String text, TextContainer container) {
+    this(id, text, container, List.of(), "", "");
+  }
+
+
   public Text(String text) {
-    this(text, TextContainer.div, List.of(), "", "");
+    this(null, text, TextContainer.div, List.of(), "", "");
   }
 
   public Text(String text, List<TextVariant> variants) {
-    this(text, TextContainer.div, variants, "", "");
+    this(null, text, TextContainer.div, variants, "", "");
   }
 
   public Text(String text, TextContainer container) {
-    this(text, container, List.of(), "", "");
+    this(null, text, container, List.of(), "", "");
   }
 
   @Override

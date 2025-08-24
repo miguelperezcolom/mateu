@@ -25,8 +25,9 @@ I imagine I do not need to say this but, obviously, you can also serve your appl
 embedding them in existing **SAP**/**Oracle**/**Vaadin** web user interfaces. In fact, changing the design system for your 
 **Mateu**-based UIs is as easy as just changing a maven dependency. 
 
-I have used the components which are open source / free to use from each design system, and complemented it with my own 
-ones when it was necessary, to allow you to use any of them wherever. I will double-check before releasing the version 3 of Mateu, anyway.
+I have used the components which are open source / free-to-use from each design system, and provided my own alternate 
+components when the design system ones were under a restrictive licensing model, to allow you to use Mateu wherever. I 
+will double-check before releasing the version 3 of Mateu, anyway.
 
 ## SAPUI5/OpenUI5 
 

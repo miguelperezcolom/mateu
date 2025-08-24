@@ -25,5 +25,7 @@ export default interface FormField extends ComponentMetadata {
     options?: Option[] | undefined
     charLimit?: string
     required: boolean
+    disabled: boolean
+    readOnly: boolean
 
 }

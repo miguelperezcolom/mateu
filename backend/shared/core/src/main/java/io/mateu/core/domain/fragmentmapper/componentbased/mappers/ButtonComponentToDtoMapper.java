@@ -8,6 +8,7 @@ import io.mateu.dtos.ButtonVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.uidl.data.Button;
 import java.util.List;
+import java.util.UUID;
 
 public class ButtonComponentToDtoMapper {
 
@@ -30,7 +31,7 @@ public class ButtonComponentToDtoMapper {
             .iconOnRight(button.iconOnRight())
             .disabled(button.disabled())
             .build(),
-        "fieldId",
+        button.id() != null ? button.id() : UUID.randomUUID().toString(),
         List.of(),
         button.style(),
         button.cssClasses(),

@@ -125,6 +125,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class ComponentToFragmentDtoMapper {
 
@@ -139,7 +140,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapStateToDto(state, initiatorComponentId);
     }
     if (component instanceof Data data) {
-      return mapDataToDto(data, initiatorComponentId);
+      return mapDataToDto(data, initiatorComponentId, componentSupplier);
     }
     return new UIFragmentDto(
         initiatorComponentId,
@@ -331,7 +332,7 @@ public final class ComponentToFragmentDtoMapper {
     }
     return new ClientSideComponentDto(
         new ElementDto("div", Map.of(), component.toString()),
-        "fieldId",
+            UUID.randomUUID().toString(),
         List.of(),
         component.style(),
         component.cssClasses(),

@@ -32,9 +32,30 @@ public record Button(
     return color != null ? color : ButtonColor.normal;
   }
 
+  public Button(String label, String actionId) {
+    this(
+            actionId,
+            label,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            false,
+            actionId,
+            null,
+            null,
+            null,
+            null,
+            null);
+  }
+
   public Button(String label, Runnable runnable) {
     this(
-        null,
+            camelcasize(label),
         label,
         null,
         null,
@@ -55,7 +76,7 @@ public record Button(
 
   public Button(String label, Callable<?> callable) {
     this(
-        null,
+            camelcasize(label),
         label,
         null,
         null,
@@ -108,7 +129,7 @@ public record Button(
 
   public Button(String label) {
     this(
-        "",
+            camelcasize(label),
         label,
         "",
         "",

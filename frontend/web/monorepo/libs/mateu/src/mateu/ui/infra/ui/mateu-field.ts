@@ -206,6 +206,7 @@ export class MateuField extends LitElement {
                         ?autofocus="${this.field.wantsFocus}"
                         required="${this.field.required}"
                         pattern="${this.field.validations?.find(validation => validation.type == ValidationType.Pattern)?.data}"
+                        ?disabled="${this.field.disabled}"
                 ></vaadin-text-field>
 `
         }
