@@ -38,8 +38,8 @@ url = "native/"
 weight = 7
 
 [[main]]
-name = "IA"
-url = "ia/"
+name = "AI"
+url = "ai/"
 weight = 8
 
 #[[main]]
