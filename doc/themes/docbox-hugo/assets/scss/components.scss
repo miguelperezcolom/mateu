@@ -106,7 +106,7 @@
   @apply cs-scrollbar max-h-[100vh] max-lg:fixed max-lg:-left-full lg:overflow-visible;
 
   &.active {
-    @apply border-r-border xs:max-w-[400px] left-0 top-0 z-40 h-full w-full max-w-[270px] overflow-auto border-r bg-white px-4 pt-4 lg:border-r-0;
+    @apply border-r-border xs:max-w-[400px] left-0 top-0 z-40 h-full w-full max-w-[270px] overflow-visible border-r bg-white px-4 pt-4 lg:border-r-0;
   }
 }
 
@@ -284,7 +284,7 @@
   }
 }
 #TableOfContents {
-  @apply cs-scrollbar max-h-[calc(80vh_-_100px)] overflow-auto py-4 md:pr-4;
+  @apply cs-scrollbar max-h-[calc(80vh_-_100px)] overflow-visible py-4 md:pr-4;
 
   ol {
     @apply my-0 md:ml-2;
