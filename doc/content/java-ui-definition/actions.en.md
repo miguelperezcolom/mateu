@@ -134,7 +134,7 @@ Depending on the object returned, Mateu will infer what you want to happen in th
 
 # Triggers
 
-Triggers can also be defined for actions. E.g.:
+Triggers can also be defined for triggering actions. E.g.:
 
 - OnLoad
 - OnSuccess
