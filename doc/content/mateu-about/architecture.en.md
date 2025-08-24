@@ -77,4 +77,10 @@ As per today, I'm using a rx stream for async UI updates, as shown below:
 For using our own design system, we could just provide a different implementation of the mateu-component web component 
 and tell the UI to load the javascript, instead of the default one.
 
+## Hexagonal everywhere
 
+I have used hexagonal architecture both in the backend and in the frontend. This strategy has definitely brought 
+scalability to the project and has made it easy to support many backend frameworks (Spring MVC, String Webflux, 
+Micronaut, Quarkus, Helidon) and several frontends relying on different design systems (SAPUI5, Oracle Redwood, Vaadin).
+
+If tomorrow I need to add something (e.g. a new design system) I know I will easily do it, maximizing code reuse. 
