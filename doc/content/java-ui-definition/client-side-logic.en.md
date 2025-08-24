@@ -1,17 +1,19 @@
 ---
-title: "Client-side behaviour"
+title: "Client-side logic"
 weight: 75
 ---
 
 Usually there is some logic you want to happen in the browser, without a server round-trip. 
 Some examples could be hiding some content or changing the validation of a field according to a field value.
 
-Mateu provides kind of business rules support for changing properties of things on the browser according to the 
-component state (or what is the same, the field values). 
+Instead of making you write frontend code, Mateu provides kind of business rules support for changing properties of things on the browser according to the 
+component state (or what is the same, the field values). This approach is indeed a good fit for 99.9999% of the use cases I have found.
+
+So, you declare a list of rules like below:
 
 <p align="center"><img src="../../../images/arch-overall-8.svg?raw=true" width="600"/></p>
 
-Those rules are sequentially evaluated and, if the filter evaluation return truthy, then the rule is applied. This way
+Those rules are sequentially evaluated and, for each rule, if the filter evaluation return truthy then the rule is applied. This way
 you can change attributes in the browser without a server round-trip.
 
 More or less, the logic is this: the sentence "field x is hidden if y == 5 and z" is always true, and Mateu will make sure 
