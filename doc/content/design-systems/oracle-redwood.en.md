@@ -3,7 +3,7 @@ title: "Oracle Redwood"
 #icon: "/images/icons/start.svg" # https://fonts.google.com/icons
 #icon_bg: ""
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
-weight: 40
+weight: 200
 ---
 
 <p align="center"><img src="../../../images/oracle_redwood_1.webp?raw=true" width="200"/></p> 
