@@ -29,4 +29,4 @@ For some of the frontends I have used the components which are open source / fre
 components when the design system ones were under a restrictive licensing model, to allow you to use Mateu wherever. I 
 will double-check before releasing the version 3 of Mateu, anyway.
 
-SAP Fiori is a different case, and you will need a valid SAP license including SAP Fiori.
+SAP Fiori is a different case, and you will need a valid SAP license including SAP Fiori in case you want to use that frontend.
