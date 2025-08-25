@@ -6,18 +6,22 @@ description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, l
 weight: 100
 ---
 
-<p align="center"><img src="../../../images/phenix_blue.svg?raw=true" width="60"/></p>
+<div style="display: flex; width: 100%; align-items: center; justify-content: center;">
+  <img src="../../../images/phenix_blue.svg?raw=true" width="60" style="margin-right: 10px;"/>
+  <img src="../../../images/fiori.png?raw=true" width="60"/>
+</div>
 
 <p align="center"><img src="../../../images/basic-form-sapui5.png?raw=true" width="600"/></p>
 
-I have always loved the SAP Fiori design system. It's clean and a perfect fit for any enterprise application.
+I have always admired the SAP Fiori design system for its clean, modern look and its suitability for enterprise applications.
 
-By using this design system you should be able to easily integrate your UIs built with Mateu in any SAP web UI.
+With Mateu, you can seamlessly integrate your UIs into any SAP web application that uses Fiori.
 
-Please notice SAP Fiori is under a private license, so you can only use it in case you have the license for using 
-the SAP products which include it.
+Please note that SAP Fiori is distributed under a proprietary license, so it can only be used if you are licensed for the SAP products that include it.
 
-However there are only a few components which belong to SAP Fiori, and most of the components that I use belong to the 
-open source UI5. I will probably create a fork of this frontend implementations UI5 based only and will replace the 
-proprietary SAP Fiori components by equivalent ones. That way you will be able to choose a SAP Fiori based frontend in
-case you have the license, or the UI5 in case you want the open source version. 
+That said, only a small portion of the components I rely on come directly from Fiori. Most are based on UI5, which is open source. I plan to create a fork of the current frontend implementation that is purely UI5-based, replacing the proprietary Fiori components with open-source equivalents.
+
+This approach will give you flexibility:
+
+-	Use a **Fiori-based** frontend if you have the proper SAP license.
+-	Or opt for the **UI5-based** frontend if you prefer a fully open-source solution.
