@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, PropertyValues, TemplateResult, unsafeCSS } from "lit";
+import { css, html, nothing, PropertyValues, TemplateResult, unsafeCSS } from "lit";
 import { badge } from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -150,10 +150,86 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    checkValidations = () => {
+        const validatons = (this.component as ServerSideComponent).validations
+        let valid = true
+        let dataUpdated = false
+        // @ts-ignore
+        const data = this.state
+        const newData: Record<string, any> = {...this.data, errors: {}}
+        if (validatons) {
+            // @ts-ignore
+            const state = this.state
+            for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
+                const validation = validatons[validationIndex]
+                const fieldNames = (validation.fieldId??'_component').split(',')
+                for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                    const fieldName = fieldNames[fieldIndex]
+                    newData['errors'][fieldName] = []
+                }
+            }
+            for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
+                const validation = validatons[validationIndex]
+                try {
+                    const failed = validation.condition && !eval(validation.condition)
+                    if (failed) {
+                        valid = false
+                        const fieldNames = (validation.fieldId??'_component').split(',')
+                        for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                            const fieldName = fieldNames[fieldIndex]
+                            let errors = newData['errors'][fieldName]
+                            if (!errors) {
+                                newData['errors'][fieldName] = []
+                            }
+                            errors = newData['errors'][fieldName]
+                            if (!data[fieldName]) {
+                                let message = validation.message
+                                try {
+                                    message = eval(validation.message)
+                                } catch (ignored) {
+
+                                }
+                                errors.push(message)
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('validation failed', validation, e)
+                }
+            }
+            for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
+                const validation = validatons[validationIndex]
+                const fieldNames = (validation.fieldId??'_component').split(',')
+                for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                    const fieldName = fieldNames[fieldIndex]
+                    if (data['errors']?[fieldName]?.join(','):'' == newData['errors']?[fieldName]?.join(','):'') {
+                        dataUpdated = true
+                        break
+                    }
+                }
+            }
+            if (data['errors']?['_component']?.join(','):'' == newData['errors']?['_component']?.join(','):'') {
+                dataUpdated = true
+            }
+        }
+        newData._valid = valid
+        if (newData._valid != data._valid) {
+            dataUpdated = true
+        }
+        if (dataUpdated) {
+            this.data = newData
+        }
+    }
+
+    onChange = () => {
+        this.applyRules()
+        this.checkValidations()
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('state')) {
-            this.applyRules()
+            this.onChange()
         }
         if (_changedProperties.has('component')) {
             const serverSideComponent = this.component as ServerSideComponent
@@ -210,7 +286,7 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                     })
-                this.applyRules()
+                this.onChange()
             }
         }
     }
@@ -240,7 +316,9 @@ export class MateuComponent extends ComponentElement {
             }
 
             if (action && action.validationRequired) {
-                if (!this.validate()) {
+                this.checkValidations()
+                if (!this.data._valid) {
+                    console.log('data', this.data)
                     this.notify('There are validation errors')
                     return
                 }
@@ -395,6 +473,13 @@ export class MateuComponent extends ComponentElement {
     }
 
     render() {
+        return html`<div><div>${this._render()}</div>
+            ${this.data.errors && this.data.errors['_component'] &&  this.data.errors['_component'].length > 0?html`
+                <div><ul>${this.data.errors['_component'].map((error: string) => html`<li>${error}</li>`)}</ul></div>
+            `:nothing}</div>`
+    }
+
+    _render(): TemplateResult {
         if (this.component?.type == ComponentType.ClientSide) {
             return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data) as TemplateResult
         }

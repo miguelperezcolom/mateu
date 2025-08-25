@@ -17,17 +17,11 @@ public record FormField(
     List<Option> options,
     Object initialValue,
     String style,
-    String cssClasses,
-    List<FieldValidation> validations)
+    String cssClasses)
     implements Component {
 
   public FormField {
     stereotype = stereotype != null ? stereotype : FieldStereotype.regular;
-  }
-
-  @Override
-  public List<FieldValidation> validations() {
-    return validations != null ? validations : List.of();
   }
 
   @Override

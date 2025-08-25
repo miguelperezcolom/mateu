@@ -17,7 +17,6 @@ import lombok.Builder;
  * @param cssClasses Css cssClasses to be applied to this field
  * @param description A help text to be used as tooltip
  * @param badges Badges which must appear close to this field
- * @param validations This fields validations
  * @param attributes Some generic attributes
  * @param colspan Colspan for this field
  */
@@ -33,7 +32,6 @@ public record FormFieldDto(
     String cssClasses,
     String description,
     List<BadgeDto> badges,
-    List<ValidationDto> validations,
     List<PairDto> attributes,
     int colspan,
     boolean rightAligned,
@@ -46,9 +44,6 @@ public record FormFieldDto(
   public FormFieldDto {
     badges =
         Collections.unmodifiableList(badges != null ? badges : Collections.<BadgeDto>emptyList());
-    validations =
-        Collections.unmodifiableList(
-            validations != null ? validations : Collections.<ValidationDto>emptyList());
     attributes =
         Collections.unmodifiableList(
             attributes != null ? attributes : Collections.<PairDto>emptyList());
@@ -60,11 +55,6 @@ public record FormFieldDto(
   @Override
   public List<BadgeDto> badges() {
     return Collections.unmodifiableList(badges);
-  }
-
-  @Override
-  public List<ValidationDto> validations() {
-    return Collections.unmodifiableList(validations);
   }
 
   @Override

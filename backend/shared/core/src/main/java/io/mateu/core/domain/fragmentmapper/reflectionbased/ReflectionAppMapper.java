@@ -61,6 +61,7 @@ public class ReflectionAppMapper {
             List.of(),
             List.of(),
             List.of(),
+            List.of(),
             null);
     return new UIFragmentDto(
         initiatorComponentId, component, app, null, UIFragmentActionDto.Replace);

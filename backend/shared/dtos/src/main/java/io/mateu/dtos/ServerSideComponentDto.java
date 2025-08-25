@@ -12,6 +12,7 @@ public record ServerSideComponentDto(
     List<ActionDto> actions,
     List<TriggerDto> triggers,
     List<RuleDto> rules,
+    List<ValidationDto> validations,
     String slot)
     implements ComponentDto {
 
@@ -27,6 +28,7 @@ public record ServerSideComponentDto(
         actions,
         triggers,
         rules,
+        validations,
         slot);
   }
 
@@ -42,6 +44,7 @@ public record ServerSideComponentDto(
         actions,
         triggers,
         rules,
+        validations,
         slot);
   }
 }

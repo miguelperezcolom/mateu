@@ -44,6 +44,7 @@ public final class ReflectionFormMapper {
             List.of(),
             List.of(),
             List.of(),
+            List.of(),
             null);
     return new UIFragmentDto(
         initiatorComponentId, component, form, null, UIFragmentActionDto.Replace);
@@ -70,7 +71,6 @@ public final class ReflectionFormMapper {
                             "placeholder",
                             "css_classes",
                             "description",
-                            List.of(),
                             List.of(),
                             List.of(),
                             0,

@@ -49,19 +49,19 @@ public class ValidationRequiredActionPage implements ComponentTreeSupplier, HasA
                                                 .dataType(FieldDataType.string)
                                                 .label("Nick name")
                                                 .description("Pattern")
-                                                .validations(List.of(
-                                                        new PatternValidation("[a-zA-Z]*", "Only characters are allowed")
-                                                ))
+//                                                .validations(List.of(
+//                                                        new PatternValidation("[a-zA-Z]*", "Only characters are allowed")
+//                                                ))
                                                 .build(),
 
                                         FormField.builder()
                                                 .id("age")
                                                 .dataType(FieldDataType.integer)
                                                 .label("Age")
-                                                .validations(List.of(
-                                                        new MinValidation(0, "Must be greater than or equal to 0"),
-                                                        new MaxValidation(120, "Must be less than 121")
-                                                ))
+//                                                .validations(List.of(
+//                                                        new MinValidation(0, "Must be greater than or equal to 0"),
+//                                                        new MaxValidation(120, "Must be less than 121")
+//                                                ))
                                                 .build(),
 
                                         Button.builder()

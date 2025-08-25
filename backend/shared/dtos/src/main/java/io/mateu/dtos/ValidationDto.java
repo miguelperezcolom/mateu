@@ -1,10 +1,11 @@
 package io.mateu.dtos;
 
+import lombok.Builder;
+
 /**
  * A field validation
  *
- * @param type Validation dataType: required, min, max, pattern
  * @param message An text to show if not valid
- * @param data Data needed to perform the validation
  */
-public record ValidationDto(ValidationTypeDto type, String message, Object data) {}
+@Builder
+public record ValidationDto(String condition, String fieldId, String message) {}

@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -23,7 +23,6 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import '@vaadin/item'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
-import { ValidationType } from "@mateu/shared/apiClients/dtos/componentmetadata/ValidationType";
 
 
 @customElement('mateu-field')
@@ -95,6 +94,16 @@ export class MateuField extends LitElement {
     }
 
     render() {
+        const fieldId = this.field?.fieldId??''
+        return html`<div>
+            <div>${this.renderField()}</div>
+            ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
+                <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
+            `:nothing}
+        </div>`
+    }
+
+    renderField() {
         //console.log('render field', this.field)
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
@@ -105,11 +114,12 @@ export class MateuField extends LitElement {
                 ></vaadin-upload>
             `
         }
+        const label = this.field?.label + '' + (this.field?.required?' (*)':'')
         if (this.field?.dataType == 'string') {
             if (this.field?.stereotype == 'select') {
                 return html`
                     <vaadin-select
-                            label="${this.field.label}"
+                            label="${label}"
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
@@ -124,7 +134,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'combobox') {
                 return html`
                     <vaadin-combo-box
-                            label="${this.field.label}"
+                            label="${label}"
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
@@ -137,7 +147,7 @@ export class MateuField extends LitElement {
                     `
             }
             if (this.field?.stereotype == 'listBox') {
-                return html`aaa
+                return html`
                     <vaadin-list-box ?selected="${this.selectedIndex()}"
                                      @value-changed="${this.listItemSelected}"
                                      ?autofocus="${this.field.wantsFocus}"
@@ -151,7 +161,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'radio') {
                 return html`
                     <vaadin-radio-group 
-                            label="${this.field.label}"
+                            label="${label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             theme="vertical"
@@ -167,7 +177,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'richText') {
                 return html`
                     <vaadin-rich-text-editor
-                            label="${this.field.label}"
+                            label="${label}"
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
                             .helperText="${this.field.description}"
@@ -178,7 +188,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'textarea') {
                 return html`
                     <vaadin-text-area
-                            label="${this.field.label}"
+                            label="${label}"
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
                             .helperText="${this.field.description}"
@@ -191,7 +201,7 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-email-field
                             id="${this.field.fieldId}"
-                            label="${this.field.label}"
+                            label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -203,7 +213,7 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-password-field
                             id="${this.field.fieldId}"
-                            label="${this.field.label}"
+                            label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -214,12 +224,10 @@ export class MateuField extends LitElement {
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
-                        ?required="${this.field.required}"
-                        pattern="${this.field.validations?.find(validation => validation.type == ValidationType.Pattern)?.data}"
                         ?disabled="${this.field.disabled}"
                 ></vaadin-text-field>
 `
@@ -227,26 +235,22 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'number') {
             return html`<vaadin-number-field
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required}"
-                        min="${this.field.validations?.find(validation => validation.type == ValidationType.Min)?.data}"
-                        max="${this.field.validations?.find(validation => validation.type == ValidationType.Max)?.data}"
             ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
             return html`
                 <vaadin-integer-field
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required}"
-                        min="${this.field.validations?.find(validation => validation.type == ValidationType.Min)?.data}"
-                        max="${this.field.validations?.find(validation => validation.type == ValidationType.Max)?.data}"
                 ></vaadin-integer-field>
             `
         }
@@ -254,7 +258,7 @@ export class MateuField extends LitElement {
             return html `
                 <vaadin-checkbox
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @change="${this.checked}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
@@ -265,7 +269,7 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'date') {
             return html`<vaadin-date-picker
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
@@ -275,7 +279,7 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'dateTime') {
             return html`<vaadin-date-time-picker
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
@@ -285,7 +289,7 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'time') {
             return html`<vaadin-time-picker
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
@@ -308,7 +312,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'combobox') {
                 return html`
                     <vaadin-multi-select-combo-box
-                            label="${this.field.label}"
+                            label="${label}"
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
@@ -323,7 +327,7 @@ export class MateuField extends LitElement {
             return html `
                 <vaadin-checkbox-group
                         id="${this.field.fieldId}"
-                        label="${this.field.label}"
+                        label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
                         theme="vertical"
@@ -340,7 +344,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'combobox') {
                 return html`
                     <vaadin-combo-box
-                            label="${this.field.label}"
+                            label="${label}"
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
@@ -367,7 +371,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'radio') {
                 return html`
                     <vaadin-radio-group 
-                            label="${this.field.label}"
+                            label="${label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
