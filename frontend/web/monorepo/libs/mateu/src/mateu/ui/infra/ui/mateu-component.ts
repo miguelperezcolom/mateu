@@ -155,8 +155,8 @@ export class MateuComponent extends ComponentElement {
         let valid = true
         let dataUpdated = false
         // @ts-ignore
-        const data = this.data
-        const newData: Record<string, any> = {...this.data, errors: {}}
+        const data = this.data??{}
+        const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
             // @ts-ignore
             const state = this.state
@@ -476,7 +476,7 @@ export class MateuComponent extends ComponentElement {
 
     render() {
         return html`<div><div>${this._render()}</div>
-            ${this.data.errors && this.data.errors['_component'] &&  this.data.errors['_component'].length > 0?html`
+            ${this.data && this.data.errors && this.data.errors['_component'] &&  this.data.errors['_component'].length > 0?html`
                 <div><ul>${this.data.errors['_component'].map((error: string) => html`<li>${error}</li>`)}</ul></div>
             `:nothing}</div>`
     }
