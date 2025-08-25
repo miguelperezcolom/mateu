@@ -3,6 +3,7 @@ import { AxiosMateuApiClient } from "../infra/http/AxiosMateuApiClient";
 import { httpService } from "@application/HttpService.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import { appState, upstream } from "@domain/state.ts";
+import { Notification, NotificationPosition } from "@vaadin/notification";
 
 export class SSEService implements Service {
 
@@ -132,7 +133,32 @@ export class SSEService implements Service {
         }
         return JSON.stringify(reason)
     }
+
+    mapPosition = (position: string): NotificationPosition => {
+        switch(position) {
+            case 'topStretch': return 'top-stretch'
+            case 'topStart': return 'top-start'
+            case 'topCenter': return 'top-center'
+            case 'topEnd': return 'top-end'
+            case 'middle': return 'middle'
+            case 'bottomStart': return 'bottom-start'
+            case 'bottomEnd': return 'bottom-end'
+            case 'bottomStretch': return 'bottom-stretch'
+            case 'bottomCenter': return 'bottom-center'
+        }
+        return 'bottom-end'
+    }
+
     handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
+        console.log('increment', uiIncrement)
+        uiIncrement?.messages?.forEach(message => {
+            Notification.show(message.text, {
+                position: message.position?this.mapPosition(message.position):'bottom-end',
+                theme: message.variant,
+                duration: message.duration
+            });
+        })
+
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 fragment,

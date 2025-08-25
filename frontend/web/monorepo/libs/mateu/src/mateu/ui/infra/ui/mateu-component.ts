@@ -155,7 +155,7 @@ export class MateuComponent extends ComponentElement {
         let valid = true
         let dataUpdated = false
         // @ts-ignore
-        const data = this.state
+        const data = this.data
         const newData: Record<string, any> = {...this.data, errors: {}}
         if (validatons) {
             // @ts-ignore
@@ -172,6 +172,7 @@ export class MateuComponent extends ComponentElement {
                 const validation = validatons[validationIndex]
                 try {
                     const failed = validation.condition && !eval(validation.condition)
+                    console.log('validating', validation, !eval(validation.condition), state)
                     if (failed) {
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')
@@ -219,6 +220,7 @@ export class MateuComponent extends ComponentElement {
         if (dataUpdated) {
             this.data = newData
         }
+        console.log('valid and data', valid, data)
     }
 
     onChange = () => {

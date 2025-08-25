@@ -51,10 +51,17 @@ export class MateuField extends LitElement {
         }))
     }
 
+    convert = (value: string): any => {
+        if (this.field?.dataType == 'integer') {
+            return parseInt(value)
+        }
+        return value
+    }
+
     valueChanged = (e: CustomEvent) => {
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
-                value: e.detail.value,
+                value: this.convert(e.detail.value),
                 //@ts-ignore
                 fieldId: e.target.id
             },

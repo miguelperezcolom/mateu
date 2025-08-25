@@ -152,6 +152,7 @@ public class FluentApp implements AppSupplier {
                         new Menu("Validations", List.of(
                                 new RouteLink("/fluent-app/validations/required", "Required"),
                                 new RouteLink("/fluent-app/validations/min-and-max", "Min and Max"),
+                                new RouteLink("/fluent-app/validations/min-and-max-length", "Min and Max length"),
                                 new RouteLink("/fluent-app/validations/pattern", "Pattern"),
                                 new RouteLink("/fluent-app/validations/conditional", "Conditional"),
                                 new RouteLink("/fluent-app/validations/form-wise", "Form wise"),

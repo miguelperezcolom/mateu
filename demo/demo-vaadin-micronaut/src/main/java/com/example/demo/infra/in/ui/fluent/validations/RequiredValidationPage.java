@@ -4,7 +4,9 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Notification;
+import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.Validation;
 import io.mateu.uidl.fluent.Action;
@@ -56,7 +58,10 @@ public class RequiredValidationPage implements ComponentTreeSupplier, Validation
 
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
-        return new Notification("passed");
+        return Message.builder()
+                .variant(NotificationVariant.success)
+                .text("passed")
+                .build();
     }
 
     @Override

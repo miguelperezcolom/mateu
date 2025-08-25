@@ -1,6 +1,8 @@
 package io.mateu.core.domain;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.commandmapper.CommandMapper.mapToCommandDtos;
+import static io.mateu.core.domain.messagemapper.MessageMapper.mapToMessageDtos;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
@@ -11,6 +13,7 @@ import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Named;
@@ -63,11 +66,11 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private List<UICommandDto> mapToCommands(
       Object instance, String baseUrl, HttpRequest httpRequest) {
-    return List.of();
+    return mapToCommandDtos(instance, baseUrl, httpRequest);
   }
 
   private List<MessageDto> mapToMessages(Object instance, String baseUrl, HttpRequest httpRequest) {
-    return List.of();
+    return mapToMessageDtos(instance, baseUrl, httpRequest);
   }
 
   private List<UIFragmentDto> mapToFragments(
@@ -76,6 +79,9 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (instance instanceof Message) {
+      return List.of();
+    }
     return List.of(
         serializeData(
             reflectionFragmentMapper.mapToFragment(
