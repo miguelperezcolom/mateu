@@ -18,14 +18,15 @@ your needs. This allows you to easily create with **Mateu** your **micro fronten
 **SAP**/**Oracle**/**Vaadin** user interfaces. In the end, Mateu's frontends are just web components which you can embed anywhere, indeed. 
 
 E.g. you can use the **Redwood** frontend if you want your microfrontends to be embedded in/coexist with existing **Oracle** UIs, or choose
-the **SAPUI5/OpenUI5** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
+the **SAP Fiori** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
 choose **Vaadin** just because you like it (like I do).
 
 I imagine I do not need to say this but, obviously, you can also serve your applications in a **standalone** mode without 
 embedding them in existing **SAP**/**Oracle**/**Vaadin** web user interfaces. In fact, changing the design system for your 
 **Mateu**-based UIs is as easy as just changing a maven dependency. 
 
-I have used the components which are open source / free-to-use from each design system, and provided my own alternate 
+For some of the frontends I have used the components which are open source / free-to-use from each design system, and provided my own alternate 
 components when the design system ones were under a restrictive licensing model, to allow you to use Mateu wherever. I 
 will double-check before releasing the version 3 of Mateu, anyway.
 
+SAP Fiori is a different case, and you will need a valid SAP license including SAP Fiori.
