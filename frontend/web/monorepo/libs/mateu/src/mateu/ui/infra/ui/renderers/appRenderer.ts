@@ -20,7 +20,9 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
                         ${metadata.menu && metadata.menu.length > 4?html`
-                            <vaadin-text-field style="width: 100%" @value-changed="${e => filterMenu(e, container)}"></vaadin-text-field>
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${e => filterMenu(e, container)}">
+                                <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
+                            </vaadin-text-field>
                             `:nothing}
 
                         <vaadin-side-nav .onNavigate="${container.navItemSelected}">
