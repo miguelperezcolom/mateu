@@ -4,9 +4,13 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { nanoid } from "nanoid";
 
+const filterMenu = (e: CustomEvent, container: MateuApp) => {
+    container.filter = e.detail.value
+}
+
 export const renderApp = (container: MateuApp, metadata: App) => {
 
-    const items = container.mapItems(metadata.menu)
+    const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
     return html`
 
@@ -15,6 +19,10 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
+                        ${metadata.menu && metadata.menu.length > 4?html`
+                            <vaadin-text-field style="width: 100%" @value-changed="${e => filterMenu(e, container)}"></vaadin-text-field>
+                            `:nothing}
+
                         <vaadin-side-nav .onNavigate="${container.navItemSelected}">
                             ${container.renderSideNav(items, undefined)}
                         </vaadin-side-nav>

@@ -161,12 +161,24 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/data/app-state", "App state"),
                                 new RouteLink("/fluent-app/data/app-data", "App data"),
                                 new RouteLink("/fluent-app/data/component-state", "Component state"),
-                                new RouteLink("/fluent-app/data/component-data", "Component data")
+                                new RouteLink("/fluent-app/data/component-data", "Component data"),
+                                new RouteLink("/fluent-app/data/component-state-and-data", "Component state and data")
                         )),
                         new Menu("Routes", List.of(
                                 new RouteLink("/fluent-app/routes/404", "404"),
                                 new RouteLink("/fluent-app/routes/custom-route-resolver", "Custom route resolver")
+                        )),
+                        new Menu("Commands and messages", List.of(
+                                new RouteLink("/fluent-app/commands-and-messages/close-dialog", "Close dialog"),
+                                new RouteLink("/fluent-app/commands-and-messages/update-favicon", "Update favicon"),
+                                new RouteLink("/fluent-app/commands-and-messages/message", "Message")
+                        )),
+                        new Menu("Use cases", List.of(
+                                new RouteLink("/fluent-app/use-cases/bookings", "Bookings list"),
+                                new RouteLink("/fluent-app/use-cases/booking-detail", "Booking detail"),
+                                new RouteLink("/fluent-app/use-cases/x-config", "X-config")
                         ))
+
                 ))
                 .build();
     }

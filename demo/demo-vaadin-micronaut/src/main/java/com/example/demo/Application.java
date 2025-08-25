@@ -21,6 +21,8 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.triggers")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.validations")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.routes")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.commandsandmessages")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.usecases")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.declarative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.imperative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui")

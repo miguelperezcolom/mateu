@@ -35,6 +35,9 @@ export class MateuApp extends ComponentElement {
     }
 
     @state()
+    filter: string | undefined = undefined
+
+    @state()
     selectedRoute: string | undefined = undefined
 
     @state()
@@ -94,27 +97,36 @@ export class MateuApp extends ComponentElement {
         this.instant = nanoid()
     }
 
-    mapItems = (options: MenuOption[]): any => {
+    mapItems = (options: MenuOption[], filter: string): any => {
         return options.map(option => {
             if (option.submenus) {
-                return {
-                    text: option.label,
-                    route: option.destination?.route,
-                    selected: option.selected,
-                    children: this.mapItems(option.submenus)
+                let children = this.mapItems(option.submenus, filter)
+                if (filter && option.label.toLowerCase().includes(filter)) {
+                    children = this.mapItems(option.submenus, '')
                 }
+                if (children && children.length > 0) {
+                    return {
+                        text: option.label,
+                        route: option.destination?.route,
+                        selected: filter || option.selected,
+                        children
+                    }
+                }
+                return undefined
             }
             if (option.separator) {
-                return {
+                return filter?undefined:{
                     component: 'hr'
                 }
             }
-            return {
-                text: option.label,
-                route: option.destination?.route,
-                selected: option.selected,
-            }
-        })
+            if (!filter || option.label.toLowerCase().includes(filter)) {
+                return {
+                    text: option.label,
+                    route: option.destination?.route,
+                    selected: filter || option.selected,
+                }
+            } else return undefined
+        }).filter(option => option)
     }
 
     getSelectedIndex = (menu: MenuOption[] | null) => {
@@ -150,16 +162,19 @@ export class MateuApp extends ComponentElement {
     }
 
     renderSideNav = (items: any, slot: string | undefined) => {
-        return items?html`${items.map((item: MenuBarItem & {
+        return items?html`
+            ${items.map((item: MenuBarItem & {
             route: string | undefined
             icon: string | undefined
+                selected: boolean | undefined
         }) => html`
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
                                 <vaadin-side-nav-item 
                                 .path="${item.route?item.route:undefined}"
                                 .pathAliases="${[this.baseUrl + (item.route?item.route:'')]}"
-                                slot="${slot}"                                  
+                                slot="${slot}"             
+                                ?expanded="${item.selected}"
                                 >
                                     ${item.icon?html`
                                         <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>

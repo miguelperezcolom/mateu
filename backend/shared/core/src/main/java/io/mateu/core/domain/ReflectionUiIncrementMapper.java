@@ -14,9 +14,11 @@ import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Named;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +83,23 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       HttpRequest httpRequest) {
     if (instance instanceof Message) {
       return List.of();
+    }
+    if (instance instanceof UICommand) {
+      return List.of();
+    }
+    if (instance instanceof Collection<?> collection) {
+      return collection.stream()
+          .map(
+              object ->
+                  serializeData(
+                      reflectionFragmentMapper.mapToFragment(
+                          componentFragmentMapper.mapToFragment(
+                              instance, baseUrl, route, initiatorComponentId, httpRequest),
+                          baseUrl,
+                          route,
+                          initiatorComponentId,
+                          httpRequest)))
+          .toList();
     }
     return List.of(
         serializeData(
