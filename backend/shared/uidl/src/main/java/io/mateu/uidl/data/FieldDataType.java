@@ -10,5 +10,6 @@ public enum FieldDataType {
   bool,
   reference,
   array,
-  file
+  file,
+  status
 }

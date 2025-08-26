@@ -25,7 +25,7 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
         Map.of(
             "crud",
             search(
-                searchText,
+                searchText != null ? searchText : "",
                 filters,
                 new Pageable(
                     httpRequest.getInt("page"),

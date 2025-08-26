@@ -4,6 +4,7 @@ import static io.mateu.core.domain.Humanizer.camelcasize;
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getHomeRoute;
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
+import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
 
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
@@ -38,6 +39,7 @@ public final class AppComponentToDtoMapper {
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(menu, route))
             .menu(menu)
+                .totalMenuOptions(totalMenuOptions(menu))
             .style(app.style())
             .cssClasses(app.cssClasses())
             .build();

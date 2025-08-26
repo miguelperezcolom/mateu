@@ -9,6 +9,7 @@ export default interface App extends ComponentMetadata {
     title: string | undefined
     subtitle: string | undefined
     menu: MenuOption[]
+    totalMenuOptions: number
     homeRoute: string
     style: string | undefined
 

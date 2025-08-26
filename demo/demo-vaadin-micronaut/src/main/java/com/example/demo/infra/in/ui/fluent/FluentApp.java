@@ -55,7 +55,8 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/forms/with-grid2", "With Grid 2")
                                 )),
                         new Menu("Crudls", List.of(
-                                new RouteLink("/fluent-app/crudls/basic", "Basic")
+                                new RouteLink("/fluent-app/crudls/basic", "Basic"),
+                                new RouteLink("/fluent-app/crudls/more-columns", "More columns")
                         )),
                         new Menu("Nested apps", List.of(
                                 new RouteLink("/fluent-app/nested-apps/left", "Menu On Left"),
@@ -169,6 +170,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/routes/custom-route-resolver", "Custom route resolver")
                         )),
                         new Menu("Commands and messages", List.of(
+                                new RouteLink("/fluent-app/commands-and-messages/run-action", "Run action"),
                                 new RouteLink("/fluent-app/commands-and-messages/close-dialog", "Close dialog"),
                                 new RouteLink("/fluent-app/commands-and-messages/update-favicon", "Update favicon"),
                                 new RouteLink("/fluent-app/commands-and-messages/message", "Message")

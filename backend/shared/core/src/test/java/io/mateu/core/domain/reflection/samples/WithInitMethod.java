@@ -1,14 +1,14 @@
 package io.mateu.core.domain.reflection.samples;
 
-import io.mateu.uidl.interfaces.HasInitMethod;
+import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-public class WithInitMethod implements HasInitMethod {
+public class WithInitMethod implements HasPostHydrationMethod {
 
   public String name;
 
   @Override
-  public void init(HttpRequest httpRequest) {
+  public void onHydrated(HttpRequest httpRequest) {
     name = "Mateu";
   }
 

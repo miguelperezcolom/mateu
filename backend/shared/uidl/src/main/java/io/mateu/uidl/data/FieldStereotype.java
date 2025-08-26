@@ -11,5 +11,9 @@ public enum FieldStereotype {
   email,
   password,
   richText,
-  listBox
+  listBox,
+  html,
+  image,
+  icon,
+  link
 }

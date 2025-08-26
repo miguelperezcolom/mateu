@@ -13,6 +13,7 @@ public record AppDto(
     String title,
     String subtitle,
     List<MenuOptionDto> menu,
+    int totalMenuOptions,
     String homeRoute,
     String loginUrl,
     String welcomeMessage,

@@ -7,8 +7,9 @@ import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactory;
-import io.mateu.uidl.interfaces.HasInitMethod;
+import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Hydratable;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Constructor;
@@ -45,6 +46,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
 
     return Mono.just(loadClass(className))
         .map(uiClass -> newInstance(uiClass, data))
+        .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
         .map(uiInstance -> initIfNeeded(uiInstance, httpRequest));
   }
 
@@ -56,9 +58,16 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     }
   }
 
+  private Object hydrateIfNeeded(Object uiInstance, HttpRequest httpRequest) {
+    if (uiInstance instanceof Hydratable hydratable) {
+      hydratable.hydrate(httpRequest);
+    }
+    return uiInstance;
+  }
+
   private Object initIfNeeded(Object uiInstance, HttpRequest httpRequest) {
-    if (uiInstance instanceof HasInitMethod hasInitMethod) {
-      hasInitMethod.init(httpRequest);
+    if (uiInstance instanceof HasPostHydrationMethod hasInitMethod) {
+      hasInitMethod.onHydrated(httpRequest);
     }
     return uiInstance;
   }

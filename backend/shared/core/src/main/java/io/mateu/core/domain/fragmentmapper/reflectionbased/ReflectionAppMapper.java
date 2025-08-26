@@ -43,6 +43,7 @@ public class ReflectionAppMapper {
             getTitle(app),
             getSubtitle(app),
             menu,
+            totalMenuOptions(menu),
             getHomeRoute(menu, route),
             "login_url",
             "welcome_message",
@@ -65,6 +66,18 @@ public class ReflectionAppMapper {
             null);
     return new UIFragmentDto(
         initiatorComponentId, component, app, null, UIFragmentActionDto.Replace);
+  }
+
+  public static int totalMenuOptions(List<MenuOptionDto> menu) {
+    int total = 0;
+    if (menu != null) {
+      for (int index = 0; index < menu.size(); index++) {
+        total++;
+        var option = menu.get(index);
+        total += totalMenuOptions(option.submenus());
+      }
+    }
+    return total;
   }
 
   public static String getHomeRoute(List<MenuOptionDto> menu, String route) {
