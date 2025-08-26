@@ -30,6 +30,7 @@ public class ButtonComponentToDtoMapper {
             .iconOnLeft(button.iconOnLeft())
             .iconOnRight(button.iconOnRight())
             .disabled(button.disabled())
+            .parameters(button.parameters())
             .build(),
         button.id() != null ? button.id() : UUID.randomUUID().toString(),
         List.of(),

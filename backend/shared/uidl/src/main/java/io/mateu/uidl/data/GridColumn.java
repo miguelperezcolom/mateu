@@ -10,6 +10,7 @@ public record GridColumn(
     FieldStereotype stereotype,
     String style,
     String cssClasses,
+    ColumnAlignment align,
     boolean sortable,
     String sortingProperty,
     boolean filterable,

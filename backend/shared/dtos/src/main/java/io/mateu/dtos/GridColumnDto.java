@@ -11,6 +11,7 @@ public record GridColumnDto(
     String stereotype,
     String style,
     String cssClasses,
+    String align,
     boolean sortable,
     String sortingProperty,
     boolean filterable,

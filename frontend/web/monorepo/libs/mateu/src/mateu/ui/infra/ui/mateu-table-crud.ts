@@ -117,7 +117,7 @@ export class MateuTableCrud extends LitElement {
                     .state="${this.state}"
                     .data="${this.data}"
             >
-                ${metadata.header?.map(component => renderComponent(component, this.baseUrl, this.state, this.data))}
+                ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
             </mateu-filter-bar>
             ${metadata?.type == ComponentMetadataType.TableCrud?html`
                 <mateu-table id="${this.component?.id}" 
@@ -126,6 +126,7 @@ export class MateuTableCrud extends LitElement {
                              .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
                              @sort-direction-changed="${this.directionChanged}"
                              .state="${this.state}"
+                             baseUrl="${this.baseUrl}"
                 ></mateu-table>
             `:html`
                 <mateu-card id="${this.component?.id}.page" 
@@ -143,7 +144,7 @@ export class MateuTableCrud extends LitElement {
                         data-testid="pagination"
                         pageNumber=${this.data[this.component?.id!]?.page?.pageNumber}
                 >
-                    ${metadata.footer?.map(component => renderComponent(component, this.baseUrl, this.state, this.data))}
+                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
                 </mateu-pagination>
 `}
        `

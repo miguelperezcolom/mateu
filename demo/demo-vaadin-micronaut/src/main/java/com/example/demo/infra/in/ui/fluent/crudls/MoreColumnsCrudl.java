@@ -86,12 +86,6 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .sortable(true)
                                 .build(),
                         GridColumn.builder()
-                                .id("age")
-                                .dataType(FieldDataType.integer)
-                                .label("Age")
-                                .sortable(true)
-                                .build(),
-                        GridColumn.builder()
                                 .id("balance")
                                 .dataType(FieldDataType.decimal)
                                 .label("Balance")
@@ -102,27 +96,10 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .label("Status")
                                 .build(),
                         GridColumn.builder()
-                                .id("spanish")
-                                .dataType(FieldDataType.bool)
-                                .label("Spanish")
-                                .build(),
-                        GridColumn.builder()
                                 .id("html")
                                 .dataType(FieldDataType.string)
                                 .stereotype(FieldStereotype.html)
                                 .label("Html")
-                                .build(),
-                        GridColumn.builder()
-                                .id("icon")
-                                .dataType(FieldDataType.string)
-                                .stereotype(FieldStereotype.icon)
-                                .label("Icon")
-                                .build(),
-                        GridColumn.builder()
-                                .id("link")
-                                .dataType(FieldDataType.string)
-                                .stereotype(FieldStereotype.link)
-                                .label("Link")
                                 .build(),
                         GridColumn.builder()
                                 .id("image")
@@ -132,6 +109,7 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .build()
                 ))
                 .emptyStateMessage("Please search.")
+                .style("width: 100%;")
                 .build();
     }
 

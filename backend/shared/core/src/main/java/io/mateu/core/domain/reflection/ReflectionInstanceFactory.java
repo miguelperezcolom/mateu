@@ -12,6 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -102,6 +103,14 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         }
         if (builderMethod != null) {
           Object builder = c.getMethod("builder").invoke(null);
+          for (String key : data.keySet()) {
+            Method setter =
+                Arrays.stream(builder.getClass().getMethods())
+                    .filter(m -> m.getName().equals(key))
+                    .findFirst()
+                    .get();
+            setter.invoke(builder, createInstance(setter.getParameterTypes()[0], data.get(key)));
+          }
           o = (T) builder.getClass().getMethod("build").invoke(builder);
         } else {
           Constructor con = getConstructor(c);
@@ -126,22 +135,34 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
-      if (isBasic(parameter.getType())) {
-        if (LocalDate.class.equals(parameter.getType())) {
-          params.add(LocalDate.parse(convert(data.get(parameter.getName()))));
-        } else if (LocalDateTime.class.equals(parameter.getType())) {
-          params.add(LocalDateTime.parse(convert(data.get(parameter.getName()))));
-        } else {
-          params.add(convert(data.get(parameter.getName()), parameter.getType()));
-        }
-      } else {
-        params.add(
-            newInstance(
-                parameter.getType(),
-                (Map<String, Object>) data.getOrDefault(parameter.getName(), Map.of())));
-      }
+      params.add(createInstance(parameter.getType(), data.get(parameter.getName())));
     }
     return params.toArray();
+  }
+
+  private Object createInstance(Class type, Object data) {
+    if (isBasic(type)) {
+      if (LocalDate.class.equals(type)) {
+        return LocalDate.parse(convert(data));
+      } else if (LocalDateTime.class.equals(type)) {
+        return LocalDateTime.parse(convert(data));
+      } else {
+        return convert(data, type);
+      }
+    } else if (type.isEnum()) {
+      return Enum.valueOf(type, (String) data);
+    } else if (type.isArray()) {
+      List<Object> values = new ArrayList<>();
+      List<Map<String, Object>> datas = (List<Map<String, Object>>) data;
+      datas.forEach(map -> values.add(newInstance(type.componentType(), map)));
+      var array = Array.newInstance(type.componentType(), values.size());
+      for (var i = 0; i < values.size(); i++) {
+        ((Object[]) array)[i] = values.get(i);
+      }
+      return array;
+    } else {
+      return newInstance(type, (Map<String, Object>) data);
+    }
   }
 
   private Constructor getConstructor(Class type) {

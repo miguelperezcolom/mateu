@@ -11,5 +11,8 @@ public enum FieldDataType {
   reference,
   array,
   file,
-  status
+  status,
+  money,
+  menu,
+  component
 }

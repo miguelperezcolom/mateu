@@ -2,11 +2,13 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import { html, nothing } from "lit";
 
-export const handleButtonClick = (event: Event) => {
+export const handleButtonClick = (event: Event, button: Button) => {
     const actionId = (event.target as HTMLElement).dataset.actionId
+    console.log('boton', button)
     event.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
             actionId,
+            parameters: button.parameters
         },
         bubbles: true,
         composed: true
@@ -24,7 +26,7 @@ export const renderButton = (component: ClientSideComponent) => {
     }
     return html`<vaadin-button
             data-action-id="${metadata.actionId}"
-            @click="${handleButtonClick}"
+            @click="${e => handleButtonClick(e, metadata)}"
             style="${component.style}" 
             class="${component.cssClasses}"
             theme="${theme}"

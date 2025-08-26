@@ -93,6 +93,24 @@ public interface HttpRequest {
         .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data)).toList();
   }
 
+  default <T> T getClickedRow(Class<T> rowType) {
+    if (runActionRq().parameters() == null) {
+      return null;
+    }
+    var data = runActionRq().parameters().get("_clickedRow");
+    if (data != null) {
+      return MateuInstanceFactory.newInstance(rowType, (Map<String, Object>) data);
+    }
+    return null;
+  }
+
+  default <T> T getParameters(Class<T> rowType) {
+    if (runActionRq().parameters() == null) {
+      return null;
+    }
+    return MateuInstanceFactory.newInstance(rowType, runActionRq().parameters());
+  }
+
   default <T> T getAppState(Class<T> appStateType) {
     return MateuInstanceFactory.newInstance(appStateType, runActionRq().appState());
   }

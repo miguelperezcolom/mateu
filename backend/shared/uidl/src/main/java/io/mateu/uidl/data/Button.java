@@ -24,7 +24,8 @@ public record Button(
     Runnable runnable,
     Callable<?> callable,
     String style,
-    String cssClasses)
+    String cssClasses,
+    Object parameters)
     implements Component, UserTrigger {
 
   @Override
@@ -35,7 +36,7 @@ public record Button(
   public Button(String label, String actionId) {
     this(
         actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
-        null, null, null, null);
+        null, null, null, null, null);
   }
 
   public Button(String label, Runnable runnable) {
@@ -54,6 +55,7 @@ public record Button(
         camelcasize(label),
         null,
         runnable,
+        null,
         null,
         null,
         null);
@@ -76,6 +78,7 @@ public record Button(
         null,
         null,
         callable,
+        null,
         null,
         null);
   }
@@ -126,6 +129,7 @@ public record Button(
         false,
         false,
         camelcasize(label),
+        null,
         null,
         null,
         null,

@@ -1,15 +1,20 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Icon;
+import io.mateu.uidl.data.Map;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
@@ -20,17 +25,16 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
-import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
-record Filters(int age) {}
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
+
+record Filters3(int age) {}
 @Serdeable
-record Row(
+record Row3(
         String name,
         int age,
         double balance,
@@ -38,15 +42,23 @@ record Row(
         Status status,
         boolean spanish,
         String icon,
-        String link) {}
+        String link,
+        ColumnActionGroup actions,
+        ComponentDto button
+        ) {}
 
-@Route("/fluent-app/crudls/basic")
+@Serdeable
+record Params(String name, int age) {
+
+}
+
+@Route("/fluent-app/crudls/with-row-menu")
 @Slf4j
-public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row> {
+public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3> {
 
     @JsonIgnore
-    List<Row> allItems = List.of(
-            new Row(
+    List<Row3> allItems = List.of(
+            new Row3(
                     "Mateu",
                     17,
                     253671.21,
@@ -54,17 +66,38 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                     new Status(StatusType.SUCCESS, "Active"),
                     true,
                     IconKey.Sword.iconName,
-                    "htts://mateu.io"
-                    ),
-            new Row(
+                    "htts://mateu.io",
+                    new ColumnActionGroup(
+                                    new ColumnAction[] {
+                                            new ColumnAction("unblockRow", "Unblock", IconKey.Unlock.iconName),
+                                            new ColumnAction("deleteRow", "Delete", IconKey.Trash.iconName)
+                                    }
+                                    ),
+                    mapButtonToDto(Button.builder()
+                            .label("Hola")
+                            .actionId("action-id-1")
+                            .parameters(new Params("Mateu", 17))
+                            .build())
+            ),
+            new Row3(
                     "Antonia",
-                    29,
+                    49,
                     10,
                     new Amount("EUR", 302122),
                     new Status(StatusType.WARNING, "Applying"),
                     false,
                     IconKey.Newspaper.iconName,
-                    "htts://mateu.io"
+                    "htts://mateu.io",
+                    new ColumnActionGroup(
+                            new ColumnAction[] {
+                                    new ColumnAction("blockRow", "Block", IconKey.Lock.iconName)
+                            }
+                            ),
+                    mapButtonToDto(Button.builder()
+                            .label("Adiós")
+                            .actionId("action-id-2")
+                            .parameters(new Params("Antonia", 49))
+                            .build())
             )
     );
 
@@ -109,6 +142,16 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                                 .dataType(FieldDataType.string)
                                 .stereotype(FieldStereotype.link)
                                 .label("Link")
+                                .build(),
+                        GridColumn.builder()
+                                .id("actions")
+                                .dataType(FieldDataType.menu)
+                                .label("Actions")
+                                .build(),
+                        GridColumn.builder()
+                                .id("button")
+                                .dataType(FieldDataType.component)
+                                .label("Button")
                                 .build()
                 ))
                 .emptyStateMessage("Please search.")
@@ -117,12 +160,12 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
     }
 
     @Override
-    public Class<Filters> filtersClass() {
-        return Filters.class;
+    public Class<Filters3> filtersClass() {
+        return Filters3.class;
     }
 
     @Override
-    public CrudlData<Row> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    public CrudlData<Row3> search(String searchText, Filters3 filters, Pageable pageable, HttpRequest httpRequest) {
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -153,5 +196,32 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                 filteredItems.stream().skip((long) pageable.size() * pageable.page()).limit(pageable.size()).toList()
         ),
                 "No items found. Please try again.");
+    }
+
+    @Override
+    public boolean supportsAction(String actionId) {
+        if (List.of("unblockRow", "blockRow", "deleteRow", "action-id-1", "action-id-2").contains(actionId)) {
+            return true;
+        }
+        return CrudlBackend.super.supportsAction(actionId);
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if (List.of("unblockRow", "blockRow", "deleteRow").contains(actionId)) {
+            var row = httpRequest.getClickedRow(Row3.class);
+            log.info(actionId + " row {}", row);
+            return Message.builder()
+                    .text(actionId + " on " + row.name())
+                    .build();
+        }
+        if (List.of("action-id-1", "action-id-2").contains(actionId)) {
+            var params = httpRequest.getParameters(Params.class);
+            log.info(actionId + " on {}", this);
+            return Message.builder()
+                    .text(actionId + " on " + (params != null?params.name():null))
+                    .build();
+        }
+        return CrudlBackend.super.handleAction(actionId, httpRequest);
     }
 }

@@ -3,6 +3,8 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DataPageDto;
 import io.mateu.dtos.GridColumnDto;
+import io.mateu.uidl.data.ColumnAlignment;
+import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,6 +16,7 @@ public class GridColumnComponentToDtoMapper {
       GridColumn gridColumn, String baseUrl, String route, HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         GridColumnDto.builder()
+            .align(getAlignment(gridColumn))
             .dataType(gridColumn.dataType().name())
             .stereotype(gridColumn.stereotype().name())
             .autoWidth(gridColumn.autoWidth())
@@ -27,13 +30,38 @@ public class GridColumnComponentToDtoMapper {
             .resizable(gridColumn.resizable())
             .sortable(gridColumn.sortable())
             .sortingProperty(gridColumn.sortingProperty())
-            .width(gridColumn.width())
+            .width(getWidth(gridColumn))
             .build(),
         gridColumn.id(),
         List.of(),
         gridColumn.style(),
         gridColumn.cssClasses(),
         null);
+  }
+
+  private static String getWidth(GridColumn gridColumn) {
+    if (gridColumn.width() != null) {
+      return gridColumn.width();
+    }
+    if (FieldDataType.money.equals(gridColumn.dataType())) {
+      return "9rem";
+    }
+
+    return null;
+  }
+
+  private static String getAlignment(GridColumn gridColumn) {
+    if (gridColumn.align() != null) {
+      return gridColumn.align().name();
+    }
+    if (List.of(FieldDataType.integer, FieldDataType.decimal, FieldDataType.money)
+        .contains(gridColumn.dataType())) {
+      return ColumnAlignment.end.name();
+    }
+    if (List.of(FieldDataType.bool).contains(gridColumn.dataType())) {
+      return ColumnAlignment.center.name();
+    }
+    return null;
   }
 
   private static DataPageDto gatePage(Grid grid) {

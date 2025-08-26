@@ -13,5 +13,7 @@ export default interface GridColumn extends ComponentMetadata {
     flexGrow: string
     resizable: boolean
     width: string
+    dataType: string
+    stereotype: string
 
 }

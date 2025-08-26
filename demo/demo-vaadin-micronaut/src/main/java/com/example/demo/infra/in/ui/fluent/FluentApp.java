@@ -56,7 +56,8 @@ public class FluentApp implements AppSupplier {
                                 )),
                         new Menu("Crudls", List.of(
                                 new RouteLink("/fluent-app/crudls/basic", "Basic"),
-                                new RouteLink("/fluent-app/crudls/more-columns", "More columns")
+                                new RouteLink("/fluent-app/crudls/more-columns", "More columns"),
+                                new RouteLink("/fluent-app/crudls/with-row-menu", "With row menu")
                         )),
                         new Menu("Nested apps", List.of(
                                 new RouteLink("/fluent-app/nested-apps/left", "Menu On Left"),

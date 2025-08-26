@@ -327,7 +327,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderMenuBar(component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Grid) {
-            return renderGrid(component, state)
+            return renderGrid(component, container, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component, baseUrl, state, data)

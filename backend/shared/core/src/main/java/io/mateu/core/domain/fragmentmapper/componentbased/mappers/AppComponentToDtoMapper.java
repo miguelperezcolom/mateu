@@ -39,7 +39,7 @@ public final class AppComponentToDtoMapper {
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(menu, route))
             .menu(menu)
-                .totalMenuOptions(totalMenuOptions(menu))
+            .totalMenuOptions(totalMenuOptions(menu))
             .style(app.style())
             .cssClasses(app.cssClasses())
             .build();

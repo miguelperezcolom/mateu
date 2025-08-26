@@ -15,5 +15,6 @@ public record ButtonDto(
     ButtonSizeDto size,
     boolean autofocus,
     boolean disabled,
-    String actionId)
+    String actionId,
+    Object parameters)
     implements ComponentMetadataDto {}

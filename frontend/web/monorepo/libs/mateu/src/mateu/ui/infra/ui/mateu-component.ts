@@ -229,29 +229,41 @@ export class MateuComponent extends ComponentElement {
         this.checkValidations()
     }
 
+    triggerOnLoad = () => {
+        // @ts-ignore
+        const state = this.state
+        // @ts-ignore
+        const data = this.data
+        const serverSideComponent = this.component as ServerSideComponent
+        serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
+            .forEach(trigger => {
+                if (!trigger.condition || eval(trigger.condition)) {
+                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: trigger.actionId
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+            })
+
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('state')) {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
+            this.state = {}
+            this.data = {}
             const serverSideComponent = this.component as ServerSideComponent
             // @ts-ignore
             const state = this.state
             // @ts-ignore
             const data = this.data
-            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
-                .forEach(trigger => {
-                    if (!trigger.condition || eval(trigger.condition)) {
-                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: trigger.actionId
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
-                })
+            setTimeout(() => this.triggerOnLoad())
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .forEach(trigger => {
                     this.addEventListener(trigger.eventName, this.customEventManager)
