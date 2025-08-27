@@ -21,6 +21,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class ReflectionAppMapper {
@@ -53,7 +54,7 @@ public class ReflectionAppMapper {
             null);
     var component =
         new ServerSideComponentDto(
-            "component_id",
+                UUID.randomUUID().toString(),
             app.getClass().getName(),
             List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "", null)),
             app,

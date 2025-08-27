@@ -20,7 +20,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${e => filterMenu(e, container)}">
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e:any) => filterMenu(e, container)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
                             </vaadin-text-field>
                             `:nothing}
@@ -33,7 +33,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                         <mateu-api-caller style="width: 100%;">
                             <mateu-ux
                                     route="${container.selectedRoute}"
-                                    id="${nanoid()}"
+                                    id="ux_${container.id}"
                                     baseUrl="${container.baseUrl}"
                                     consumedRoute="${metadata.route}"
                             ></mateu-ux>

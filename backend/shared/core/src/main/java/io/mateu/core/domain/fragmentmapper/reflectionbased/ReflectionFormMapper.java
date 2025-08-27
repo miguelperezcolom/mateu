@@ -21,6 +21,7 @@ import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public final class ReflectionFormMapper {
 
@@ -35,7 +36,7 @@ public final class ReflectionFormMapper {
             .build();
     var component =
         new ServerSideComponentDto(
-            "component_id",
+                UUID.randomUUID().toString(),
             form.getClass().getName(),
             List.of(new ClientSideComponentDto(formDto, "", createFormContent(form), "", "", null)),
             form,

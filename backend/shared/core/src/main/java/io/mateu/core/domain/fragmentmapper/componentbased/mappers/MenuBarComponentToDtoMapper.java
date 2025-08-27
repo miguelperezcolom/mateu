@@ -7,6 +7,7 @@ import io.mateu.dtos.MenuBarDto;
 import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
+import java.util.UUID;
 
 public final class MenuBarComponentToDtoMapper {
 
@@ -17,6 +18,6 @@ public final class MenuBarComponentToDtoMapper {
             .options(buildMenu(menuBar.options(), baseUrl, route, httpRequest))
             .build();
     return new ClientSideComponentDto(
-        menuDto, "component_id", List.of(), menuBar.style(), menuBar.cssClasses(), null);
+        menuDto, UUID.randomUUID().toString(), List.of(), menuBar.style(), menuBar.cssClasses(), null);
   }
 }

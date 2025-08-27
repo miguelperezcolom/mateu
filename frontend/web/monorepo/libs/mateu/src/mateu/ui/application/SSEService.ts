@@ -14,6 +14,11 @@ export class SSEService implements Service {
     async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
+
+        if (!route) {
+            console.log('no route')
+            return
+        }
         if (true || 'server-action' == actionId) {
             // const evtSource = new EventSource("/sse");
             // evtSource.onmessage = (event) => {

@@ -74,6 +74,9 @@ export class HttpService implements Service {
                     parameters: any,
                     initiator: HTMLElement,
                     background: boolean) {
+        if (!route) {
+            return
+        }
         const changes = await runActionCommandHandler.handle(mateuApiClient, {
             baseUrl,
             route: route?route:'_no_route',

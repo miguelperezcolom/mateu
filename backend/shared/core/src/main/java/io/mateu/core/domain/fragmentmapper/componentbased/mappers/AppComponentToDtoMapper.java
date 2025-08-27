@@ -20,6 +20,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
+import java.util.UUID;
 
 public final class AppComponentToDtoMapper {
 
@@ -45,7 +46,7 @@ public final class AppComponentToDtoMapper {
             .build();
     return new ClientSideComponentDto(
         appDto,
-        "component_id",
+            UUID.randomUUID().toString(),
         List.of(),
         componentSupplier.style(),
         componentSupplier.cssClasses(),

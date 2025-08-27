@@ -157,8 +157,6 @@ export class MateuTable extends LitElement {
                                                              model: GridItemModel<any>,
                                                              column: VaadinGridColumn) => {
 
-        console.log('xxx', item)
-
         const type = column.dataset.dataType??''
         const stereotype = column.dataset.stereotype??''
         if ('status' == type) {
