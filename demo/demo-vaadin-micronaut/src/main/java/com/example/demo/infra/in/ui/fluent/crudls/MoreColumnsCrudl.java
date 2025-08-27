@@ -14,6 +14,9 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -38,7 +41,7 @@ record Row2(
 
 @Route("/fluent-app/crudls/more-columns")
 @Slf4j
-public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Filters2, Row2> {
+public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Filters2, Row2>, HasTriggers {
 
     @JsonIgnore
     List<Row2> allItems = List.of(
@@ -150,5 +153,10 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                 filteredItems.stream().skip((long) pageable.size() * pageable.page()).limit(pageable.size()).toList()
         ),
                 "No items found. Please try again.");
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        return List.of(new OnLoadTrigger("search"));
     }
 }

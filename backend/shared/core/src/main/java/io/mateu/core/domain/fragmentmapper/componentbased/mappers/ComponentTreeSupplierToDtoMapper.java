@@ -161,6 +161,7 @@ public class ComponentTreeSupplierToDtoMapper {
             action.customEvent() != null
                 ? new CustomEventDto(action.customEvent().name(), action.customEvent().detail())
                 : null)
+        .sse(action.sse())
         .build();
   }
 

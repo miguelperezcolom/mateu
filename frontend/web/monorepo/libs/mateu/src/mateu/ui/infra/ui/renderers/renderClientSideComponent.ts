@@ -211,7 +211,6 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
 
         if (type == ComponentMetadataType.App) {
-            console.log('component', component)
             return html`
                 <mateu-app
                             id="${component.id}"
@@ -312,7 +311,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderCarouselLayout(component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Tooltip) {
-            return renderTooltip(component, baseUrl, state, data)
+            return renderTooltip(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.MessageInput) {
             return renderMessageInput(component)

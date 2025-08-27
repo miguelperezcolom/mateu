@@ -31,6 +31,7 @@ public class GridColumnComponentToDtoMapper {
             .sortable(gridColumn.sortable())
             .sortingProperty(gridColumn.sortingProperty())
             .width(getWidth(gridColumn))
+            .tooltipPath(gridColumn.tooltipPath())
             .build(),
         gridColumn.id(),
         List.of(),

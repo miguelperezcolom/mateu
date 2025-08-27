@@ -20,8 +20,6 @@ export const renderComponent = (container: LitElement, component: Component, bas
     return html`
         <mateu-component id="${component.id}" 
                                      .component="${component}"
-                                     .state="${state}"
-                                     .data="${data}"
                                      baseUrl="${baseUrl}"
                          slot="${component.slot??nothing}"
                          style="${component.style}" class="${component.cssClasses}">

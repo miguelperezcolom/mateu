@@ -70,6 +70,8 @@ import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/Rule
 export class MateuComponent extends ComponentElement {
 
     customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
+        event.stopPropagation()
+        event.preventDefault()
         if (event instanceof CustomEvent) {
             const customEvent = event as CustomEvent
             const serverSideComponent = this.component as ServerSideComponent
@@ -221,7 +223,6 @@ export class MateuComponent extends ComponentElement {
         if (dataUpdated) {
             this.data = newData
         }
-        console.log('valid and data', valid, data)
     }
 
     onChange = () => {
@@ -289,7 +290,7 @@ export class MateuComponent extends ComponentElement {
 
                 const serverSideComponent = this.component as ServerSideComponent
                 serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnValueChange)
-                    .filter(trigger => detail.fieldId == trigger.propertyName)
+                    .filter(trigger => !trigger.propertyName || detail.fieldId == trigger.propertyName)
                     .forEach(trigger => {
                         if (!trigger.condition || eval(trigger.condition)) {
                             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
@@ -320,6 +321,8 @@ export class MateuComponent extends ComponentElement {
             parameters: any
         }
         if (e.type == 'action-requested') {
+            e.preventDefault()
+            e.stopPropagation()
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
 
@@ -423,7 +426,8 @@ export class MateuComponent extends ComponentElement {
                 serverSideType: serverSideComponent.serverSideType,
                 initiatorComponentId: serverSideComponent.id,
                 initiator: this,
-                background: action?.background
+                background: action?.background,
+                sse: action?.sse
             },
             bubbles: true,
             composed: true

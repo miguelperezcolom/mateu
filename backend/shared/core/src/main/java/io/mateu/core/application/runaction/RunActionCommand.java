@@ -10,11 +10,11 @@ public record RunActionCommand(
     String route,
     String consumedRoute,
     String actionId,
-    String componentType,
     Map<String, Object> componentState,
     Map<String, Object> appState,
     String initiatorComponentId,
-    HttpRequest httpRequest) {
+    HttpRequest httpRequest,
+    String serverSiteType) {
 
   public RunActionCommand {
     componentState =

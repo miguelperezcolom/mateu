@@ -10,6 +10,15 @@ public record Grid(
     List<GridContent> content,
     Page<?> page,
     boolean tree,
+    int size,
     String style,
-    String cssClasses)
+    String cssClasses,
+    boolean wrapCellContent,
+    boolean compact,
+    boolean noBorder,
+    boolean noRowBorder,
+    boolean columnBorders,
+    boolean rowStripes,
+    String vaadinGridCellBackground,
+    String vaadinGridCellPadding)
     implements Component {}

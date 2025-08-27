@@ -23,16 +23,27 @@ public record Crudl(
     Boolean searchOnEnter,
     Boolean autoFocusOnSearchText,
     boolean allRowsVisible,
+    int size,
     boolean lazyLoading,
     boolean lazyColumnRendering,
     boolean infiniteScrolling,
     boolean useButtonForDetail,
-    String actionIdOnSelectionChanged,
     boolean columnReorderingAllowed,
     int pageSize,
     boolean rowsSelectionEnabled,
     List<Component> header,
-    List<Component> footer)
+    List<Component> footer,
+    boolean wrapCellContent,
+    boolean compact,
+    boolean noBorder,
+    boolean noRowBorder,
+    boolean columnBorders,
+    boolean rowStripes,
+    String vaadinGridCellBackground,
+    String vaadinGridCellPadding,
+    String gridStyle,
+    String detailPath,
+    String onRowSelectionChangedActionId)
     implements Component {
 
   public Boolean autoFocusOnSearchText() {

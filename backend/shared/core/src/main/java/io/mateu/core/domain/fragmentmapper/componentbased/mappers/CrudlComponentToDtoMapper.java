@@ -48,11 +48,11 @@ public class CrudlComponentToDtoMapper {
             .autoFocusOnSearchText(crudl.autoFocusOnSearchText())
             .searchOnEnter(crudl.searchOnEnter())
             .allRowsVisible(crudl.allRowsVisible())
+            .size(crudl.size())
             .lazyLoading(crudl.lazyLoading())
             .lazyColumnRendering(crudl.lazyColumnRendering())
             .infiniteScrolling(crudl.infiniteScrolling())
             .useButtonForDetail(crudl.useButtonForDetail())
-            .actionIdOnSelectionChanged(crudl.actionIdOnSelectionChanged())
             .columnReorderingAllowed(crudl.columnReorderingAllowed())
             .pageSize(crudl.pageSize())
             .rowsSelectionEnabled(crudl.rowsSelectionEnabled())
@@ -68,6 +68,17 @@ public class CrudlComponentToDtoMapper {
                         component ->
                             mapComponentToDto(null, component, baseUrl, route, httpRequest))
                     .toList())
+            .wrapCellContent(crudl.wrapCellContent())
+            .compact(crudl.compact())
+            .noBorder(crudl.noBorder())
+            .noRowBorder(crudl.noRowBorder())
+            .columnBorders(crudl.columnBorders())
+            .rowStripes(crudl.rowStripes())
+            .vaadinGridCellBackground(crudl.vaadinGridCellBackground())
+            .vaadinGridCellPadding(crudl.vaadinGridCellPadding())
+            .gridStyle(crudl.gridStyle())
+            .detailPath(crudl.detailPath())
+            .onRowSelectionChangedActionId(crudl.onRowSelectionChangedActionId())
             .build();
     return new ClientSideComponentDto(
         crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses(), null);

@@ -109,7 +109,6 @@ export class MateuTableCrud extends LitElement {
     render() {
         const metadata = (this.component as ClientSideComponent).metadata as TableCrud
         metadata.serverSideOrdering = true
-        console.log('header', metadata.header)
         return html`
             <mateu-filter-bar 
                     .metadata="${metadata}"

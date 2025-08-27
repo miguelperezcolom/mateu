@@ -69,7 +69,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
                                                 .label("Age")
                                                 .build()
                                 ))
-                                .actionIdOnSelectionChanged("selection-changed")
+                                .onRowSelectionChangedActionId("selection-changed")
                                 .header(List.of(
                                         Button.builder()
                                                 .label("Do something")

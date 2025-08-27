@@ -14,4 +14,5 @@ public record Action(
     String modalTitle,
     CustomEvent customEvent,
     String href,
-    String js) {}
+    String js,
+    boolean sse) {}

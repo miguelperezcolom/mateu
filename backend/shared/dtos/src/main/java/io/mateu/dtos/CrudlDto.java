@@ -32,16 +32,27 @@ public record CrudlDto(
     boolean searchOnEnter,
     boolean autoFocusOnSearchText,
     boolean allRowsVisible,
+    int size,
     boolean lazyLoading,
     boolean lazyColumnRendering,
     boolean infiniteScrolling,
     boolean useButtonForDetail,
-    String actionIdOnSelectionChanged,
     boolean columnReorderingAllowed,
     int pageSize,
     boolean rowsSelectionEnabled,
     List<ComponentDto> header,
-    List<ComponentDto> footer)
+    List<ComponentDto> footer,
+    boolean wrapCellContent,
+    boolean compact,
+    boolean noBorder,
+    boolean noRowBorder,
+    boolean columnBorders,
+    boolean rowStripes,
+    String vaadinGridCellBackground,
+    String vaadinGridCellPadding,
+    String gridStyle,
+    String detailPath,
+    String onRowSelectionChangedActionId)
     implements ComponentMetadataDto {
 
   public CrudlDto {

@@ -48,9 +48,18 @@ public class ${simpleClassName}MateuController {
         new MicronautHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
     }
 
+    @Post("v3/sync/{/ignored:.*}")
+    public Mono<UIIncrementDto> runStepSync(
+        @PathVariable("ignored") @Nullable String ignored,
+        @Body RunActionRqDto rq,
+        HttpRequest serverHttpRequest) throws Throwable {
+        return service.runAction(uiId, rq, baseUrl,
+        new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).next();
+    }
+
     @Produces(MediaType.TEXT_EVENT_STREAM)
-    @Post("v3/{/ignored:.*}")
-    public Flux<UIIncrementDto> runStep(
+    @Post("v3/sse/{/ignored:.*}")
+    public Flux<UIIncrementDto> runStepSse(
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {

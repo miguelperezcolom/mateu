@@ -21,6 +21,9 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -54,7 +57,7 @@ record Params(String name, int age) {
 
 @Route("/fluent-app/crudls/with-row-menu")
 @Slf4j
-public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3> {
+public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3>, HasTriggers {
 
     @JsonIgnore
     List<Row3> allItems = List.of(
@@ -223,5 +226,10 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                     .build();
         }
         return CrudlBackend.super.handleAction(actionId, httpRequest);
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        return List.of(new OnLoadTrigger("search"));
     }
 }

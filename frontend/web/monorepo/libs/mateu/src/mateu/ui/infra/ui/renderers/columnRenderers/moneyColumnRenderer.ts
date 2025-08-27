@@ -11,8 +11,7 @@ export const renderMoneyCell = (item: any,
     // @ts-ignore
     const amount = item[column.path]
     let formatted = amount
-    console.log('money', type, stereotype)
-    if ('money' == type) {
+    if ('money' == type && amount && amount.locale && amount.currency) {
         formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
             amount.value,
         )

@@ -46,7 +46,7 @@ public final class AppComponentToDtoMapper {
             .build();
     return new ClientSideComponentDto(
         appDto,
-            UUID.randomUUID().toString(),
+        UUID.randomUUID().toString(),
         List.of(),
         componentSupplier.style(),
         componentSupplier.cssClasses(),

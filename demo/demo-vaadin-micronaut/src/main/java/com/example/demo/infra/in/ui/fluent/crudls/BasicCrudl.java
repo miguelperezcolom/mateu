@@ -1,8 +1,10 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
@@ -10,23 +12,32 @@ import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Icon;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.micronaut.serde.annotation.Serdeable;
+import lombok.Builder;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 
 record Filters(int age) {}
 @Serdeable
@@ -38,11 +49,53 @@ record Row(
         Status status,
         boolean spanish,
         String icon,
-        String link) {}
+        String link,
+        String longText,
+        ComponentDto detail) {}
 
 @Route("/fluent-app/crudls/basic")
 @Slf4j
-public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row> {
+@With
+public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row>, HasTriggers {
+
+    public BasicCrudl() {
+    }
+
+    public BasicCrudl(boolean wrapCellContent, boolean compact, boolean noBorder, boolean noRowBorder, boolean columnBorders, boolean rowStripes, String vaadinGridCellBackground, String vaadinGridCellPadding, int height, boolean allRowsVisible, List<Row> allItems) {
+        this.wrapCellContent = wrapCellContent;
+        this.compact = compact;
+        this.noBorder = noBorder;
+        this.noRowBorder = noRowBorder;
+        this.columnBorders = columnBorders;
+        this.rowStripes = rowStripes;
+        this.vaadinGridCellBackground = vaadinGridCellBackground;
+        this.vaadinGridCellPadding = vaadinGridCellPadding;
+        this.height = height;
+        this.allRowsVisible = allRowsVisible;
+        this.allItems = allItems;
+    }
+
+    @JsonIgnore
+    boolean wrapCellContent;
+    @JsonIgnore
+    boolean compact;
+    @JsonIgnore
+    boolean noBorder;
+    @JsonIgnore
+    boolean noRowBorder;
+    @JsonIgnore
+    boolean columnBorders;
+    @JsonIgnore
+    boolean rowStripes;
+    @JsonIgnore
+    String vaadinGridCellBackground = "--lumo-base-color";
+    @JsonIgnore
+    String vaadinGridCellPadding = "--lumo-space-xs";
+    @JsonIgnore
+    int height;
+    @JsonIgnore
+    boolean allRowsVisible;
+
 
     @JsonIgnore
     List<Row> allItems = List.of(
@@ -54,17 +107,29 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                     new Status(StatusType.SUCCESS, "Active"),
                     true,
                     IconKey.Sword.iconName,
-                    "htts://mateu.io"
+                    "htts://mateu.io",
+                    "ibiu weoi weih weihd ioweh iofh woiefhiowef hwioefh iewfo fe ioewfh weif eiwofefh ehiwf",
+                    mapButtonToDto(Button.builder()
+                            .label("Hola")
+                            .actionId("action-id-1")
+                            .parameters(new Params("Mateu", 17))
+                            .build())
                     ),
             new Row(
                     "Antonia",
-                    29,
+                    49,
                     10,
                     new Amount("EUR", 302122),
                     new Status(StatusType.WARNING, "Applying"),
                     false,
                     IconKey.Newspaper.iconName,
-                    "htts://mateu.io"
+                    "htts://mateu.io",
+                    "ibiu weoi weih weihd wfowejf weofowep fowef ioweh iofh woiefhiowef hwioefh iewfo fe ioewfh weif eiwofefh ehiwf",
+                    mapButtonToDto(Button.builder()
+                            .label("Adiós")
+                            .actionId("action-id-2")
+                            .parameters(new Params("Antonia", 49))
+                            .build())
             )
     );
 
@@ -92,6 +157,13 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                                 .dataType(FieldDataType.integer)
                                 .label("Age")
                                 .sortable(true)
+                                .tooltipPath("longText")
+                                .build(),
+                        GridColumn.builder()
+                                .id("balance2")
+                                .dataType(FieldDataType.money)
+                                .label("Balance 2")
+                                .sortable(true)
                                 .build(),
                         GridColumn.builder()
                                 .id("spanish")
@@ -109,10 +181,33 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                                 .dataType(FieldDataType.string)
                                 .stereotype(FieldStereotype.link)
                                 .label("Link")
+                                .build(),
+                        GridColumn.builder()
+                                .id("longText")
+                                .dataType(FieldDataType.string)
+                                .label("Long text")
                                 .build()
                 ))
                 .emptyStateMessage("Please search.")
+                .wrapCellContent(wrapCellContent)
+                .rowStripes(rowStripes)
+                .columnBorders(columnBorders)
+                .noRowBorder(noRowBorder)
+                .noBorder(noBorder)
+                .compact(compact)
+                .allRowsVisible(allRowsVisible)
+                .gridStyle(height > 0?"height: " + height + "px;":null)
+                .detailPath("detail")
+                .useButtonForDetail(true)
+                .rowsSelectionEnabled(true)
                 .style("width: 100%;")
+                .toolbar(List.of(
+                        Button.builder()
+                                .label("Action 1")
+                                .actionId("xxx")
+                                .build()
+                ))
+                .onRowSelectionChangedActionId("row-selected")
                 .build();
     }
 
@@ -153,5 +248,28 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                 filteredItems.stream().skip((long) pageable.size() * pageable.page()).limit(pageable.size()).toList()
         ),
                 "No items found. Please try again.");
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        return List.of(new OnLoadTrigger("search"));
+    }
+
+    @Override
+    public boolean supportsAction(String actionId) {
+        if ("row-selected".equals(actionId)) {
+            return true;
+        }
+        return CrudlBackend.super.supportsAction(actionId);
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("row-selected".equals(actionId)) {
+            return Message.builder()
+                    .text("row selected" + httpRequest.getSelectedRows(Row.class))
+                    .build();
+        }
+        return CrudlBackend.super.handleAction(actionId, httpRequest);
     }
 }

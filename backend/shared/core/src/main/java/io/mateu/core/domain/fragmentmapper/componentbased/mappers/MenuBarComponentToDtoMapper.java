@@ -18,6 +18,11 @@ public final class MenuBarComponentToDtoMapper {
             .options(buildMenu(menuBar.options(), baseUrl, route, httpRequest))
             .build();
     return new ClientSideComponentDto(
-        menuDto, UUID.randomUUID().toString(), List.of(), menuBar.style(), menuBar.cssClasses(), null);
+        menuDto,
+        UUID.randomUUID().toString(),
+        List.of(),
+        menuBar.style(),
+        menuBar.cssClasses(),
+        null);
   }
 }

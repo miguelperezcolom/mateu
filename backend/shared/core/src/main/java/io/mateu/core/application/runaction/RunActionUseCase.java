@@ -207,20 +207,22 @@ public class RunActionUseCase {
 
   private String getInstanceNameUsingResolvers(
       String instanceTypeName, String route, String consumedRoute, HttpRequest httpRequest) {
-    for (RouteResolver resolver :
-        beanProvider.getBeans(RouteResolver.class).stream()
-            .sorted(Comparator.comparingInt(a -> a.weight(route)))
-            .toList()) {
-      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
-        return resolver.resolveRoute(route, httpRequest).getName();
+    if (instanceTypeName == null || instanceTypeName.isEmpty()) {
+      for (RouteResolver resolver :
+          beanProvider.getBeans(RouteResolver.class).stream()
+              .sorted(Comparator.comparingInt(a -> a.weight(route)))
+              .toList()) {
+        if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
+          return resolver.resolveRoute(route, httpRequest).getName();
+        }
       }
     }
     return instanceTypeName;
   }
 
   private String getInstanceTypeName(RunActionCommand command) {
-    if (command.componentType() != null && !command.componentType().isEmpty()) {
-      return command.componentType();
+    if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
+      return command.serverSiteType();
     }
     var routeResolverBeans = beanProvider.getBeans(RouteResolver.class);
     for (RouteResolver bean :

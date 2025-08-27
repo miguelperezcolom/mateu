@@ -36,7 +36,7 @@ public final class ReflectionFormMapper {
             .build();
     var component =
         new ServerSideComponentDto(
-                UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
             form.getClass().getName(),
             List.of(new ClientSideComponentDto(formDto, "", createFormContent(form), "", "", null)),
             form,
@@ -106,6 +106,7 @@ public final class ReflectionFormMapper {
                         null,
                         null,
                         null,
+                        false,
                         false))
             .toList());
     return actions;

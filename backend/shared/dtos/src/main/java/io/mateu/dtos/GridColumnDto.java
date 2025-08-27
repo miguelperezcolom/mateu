@@ -20,5 +20,6 @@ public record GridColumnDto(
     boolean autoWidth,
     String flexGrow,
     boolean resizable,
-    String width)
+    String width,
+    String tooltipPath)
     implements ComponentMetadataDto {}

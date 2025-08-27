@@ -19,5 +19,6 @@ export default interface Action {
     onError: string[]
     background: boolean
     js: string
+    sse: boolean
 
 }

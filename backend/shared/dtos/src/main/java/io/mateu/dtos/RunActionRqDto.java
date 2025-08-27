@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.Map;
 
 public record RunActionRqDto(
-    String componentType,
     Map<String, Object> componentState,
     Map<String, Object> appState,
     Map<String, Object> parameters,
     String initiatorComponentId,
     String consumedRoute,
     String actionId,
-    String route) {
+    String route,
+    String serverSideType) {
 
   public RunActionRqDto {
     componentState =

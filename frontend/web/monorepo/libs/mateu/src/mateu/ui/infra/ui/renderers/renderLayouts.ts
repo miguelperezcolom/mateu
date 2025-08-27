@@ -44,7 +44,7 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                        column-width="${metadata.columnWidth??nothing}"
                        ?expandColumns="${metadata.expandColumns}"
                        ?expandFields="${metadata.expandFields}"
-                       ?labelsAside="${metadata.labelsAside}"
+                       ?labels-aside="${metadata.labelsAside}"
                        slot="${component.slot??nothing}"
                >
                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}

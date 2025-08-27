@@ -56,14 +56,14 @@ class DefaultMateuServiceTest {
             .runAction(
                 UsingInterfacesUI.class.getName(),
                 new RunActionRqDto(
-                    UsingInterfacesUI.class.getName(),
                     Map.of(),
                     Map.of(),
                     Map.of(),
                     "initiator_component_id",
                     "consumed_route",
                     "action_id",
-                    "route"),
+                    "route",
+                    "server_side_type"),
                 "base_url",
                 new FakeHttpRequest())
             .blockLast());

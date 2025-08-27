@@ -27,4 +27,5 @@ public record ActionDto(
     CustomEventDto customEvent,
     String href,
     String js,
-    boolean background) {}
+    boolean background,
+    boolean sse) {}

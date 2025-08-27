@@ -42,7 +42,6 @@ export class HttpService implements Service {
     }
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
-        console.log('increment', uiIncrement)
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):undefined,

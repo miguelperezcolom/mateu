@@ -54,7 +54,7 @@ public class ReflectionAppMapper {
             null);
     var component =
         new ServerSideComponentDto(
-                UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
             app.getClass().getName(),
             List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "", null)),
             app,

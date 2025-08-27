@@ -104,9 +104,19 @@ export class MateuFilterBar extends LitElement {
         }))
     }
 
+    handleToolbarButtonClick = (actionId: string) => {
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                actionId,
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
     render() {
         return html`
-            <vaadin-horizontal-layout theme="spacing">
+            <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
                 ${this.metadata?.searchable
                         || this.metadata?.filters?html`
                 `:nothing}
@@ -116,18 +126,25 @@ export class MateuFilterBar extends LitElement {
                             @value-changed="${this.valueChanged}"
                             value=""
                             autofocus="${this.metadata?.autoFocusOnSearchText?true:nothing}"
+                            style="flex-grow: 1;"
                     ></vaadin-text-field>
                     ${this.metadata.filters?html`
                         <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
                         <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
                     `:nothing}
                     <vaadin-button 
-                            @click="${this.handleButtonClick}"
+                            @click="${() => this.handleButtonClick()}"
                             theme="primary"
                     >Search</vaadin-button>
                 `:nothing}
                 ${this.metadata?.filters?html`
                 `:nothing}
+                ${this.metadata?.toolbar?.map(button => html`
+                    <vaadin-button
+                            data-action-id="${button.id}"
+                            @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                    >${button.label}</vaadin-button>
+                `)}
                 <slot></slot>
             </vaadin-horizontal-layout>
 
@@ -139,7 +156,7 @@ export class MateuFilterBar extends LitElement {
                         <mateu-event-interceptor .target="${this}">
                 <vaadin-form-layout max-columns="2" @keydown="${this.handleKey}">
                     <vaadin-form-row>
-                        ${this.metadata?.filters.map(filter => renderComponent({
+                        ${this.metadata?.filters.map(filter => renderComponent(this, {
                             id: '',
                             cssClasses: '',
                             type: ComponentType.ClientSide,

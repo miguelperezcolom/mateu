@@ -19,7 +19,8 @@ public record GridColumn(
     boolean autoWidth,
     String flexGrow,
     boolean resizable,
-    String width)
+    String width,
+    String tooltipPath)
     implements GridContent {
 
   public FieldDataType dataType() {

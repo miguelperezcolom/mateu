@@ -1,5 +1,5 @@
 import { AxiosMateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { sseService } from "@application/SSEService.ts";
+import { httpService } from "@application/HttpService.ts";
 
 export interface Service {
 
@@ -22,4 +22,4 @@ export interface Service {
 
 }
 
-export const service: Service = sseService
+export const service: Service = httpService

@@ -20,6 +20,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import { sseService, SSEService } from "@application/SSEService.ts";
 
 
 @customElement('mateu-ux')
@@ -97,21 +98,38 @@ export class MateuUx extends ConnectedElement {
         }
     }
 
+    private detail1: {
+        parameters: any
+        componentState: any
+        actionId: string
+        serverSideType: string
+        initiatorComponentId: string
+        initiator: HTMLElement
+        background: boolean
+        sse: boolean
+    };
+
     manageActionEvent = (e: CustomEvent) => {
         e.preventDefault()
         e.stopPropagation()
-        const detail = e.detail as {
+        this.detail1 = e.detail as {
             parameters: any
             componentState: any
             actionId: string
             serverSideType: string
             initiatorComponentId: string,
             initiator: HTMLElement,
-            background: boolean
-        }
+            background: boolean,
+            sse: boolean
+        };
+        const detail = this.detail1
         if (e.type == 'server-side-action-requested') {
             if (this.route != undefined) {
-                service.runAction(mateuApiClient, this.baseUrl,
+                let selectedService = service
+                if (detail.sse) {
+                    selectedService = sseService
+                }
+                selectedService.runAction(mateuApiClient, this.baseUrl,
                     this.route,
                     this.consumedRoute,
                     detail.actionId,
@@ -154,7 +172,6 @@ export class MateuUx extends ConnectedElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        console.log('xxx', _changedProperties, this.id, this.baseUrl, this.route)
         if (_changedProperties.has('id') || _changedProperties.has('baseurl') || _changedProperties.has('route')) {
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {

@@ -15,5 +15,6 @@ export default interface GridColumn extends ComponentMetadata {
     width: string
     dataType: string
     stereotype: string
+    tooltipPath: string
 
 }

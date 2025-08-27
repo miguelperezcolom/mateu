@@ -1,6 +1,6 @@
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
-import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 
 export default interface Crud extends Table {
 
@@ -9,7 +9,7 @@ export default interface Crud extends Table {
     subtitle: string
     searchable: boolean
     filters: FormField[]
-    actions: Action[]
+    toolbar: Button[]
     pageSize: number,
     clientSidePagination: boolean
     searchOnEnter: boolean
