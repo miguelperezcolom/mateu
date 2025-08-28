@@ -1,9 +1,11 @@
 package com.example.demo.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
 import lombok.Builder;
 
 import java.util.List;
 
+@Serdeable
 @Builder
 public record Product(
         String id,

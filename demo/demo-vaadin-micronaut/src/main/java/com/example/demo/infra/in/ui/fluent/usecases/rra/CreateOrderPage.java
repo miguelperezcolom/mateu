@@ -7,7 +7,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Singleton;
 
-//@Route("/fluent-app/use-cases/rra/orders/create")
+@Route("/fluent-app/use-cases/rra/orders/create")
 @Singleton
 public class CreateOrderPage implements ComponentTreeSupplier {
 

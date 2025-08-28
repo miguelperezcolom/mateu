@@ -1,11 +1,13 @@
 package com.example.demo.domain;
 
+import io.micronaut.serde.annotation.Serdeable;
 import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Serdeable
 @Builder
 public record Order(
     String id,
