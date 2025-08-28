@@ -12,10 +12,12 @@ export const renderApp = (container: MateuApp, metadata: App) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
+    console.log(container.component)
+
     return html`
 
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
-                <vaadin-app-layout style="width: 100%;">
+                <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
@@ -29,7 +31,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                             ${container.renderSideNav(items, undefined)}
                         </vaadin-side-nav>
                     </vaadin-scroller>
-                    <div style="padding-left: 2em; padding-right: 2em;">
+                    <div class="app-content">
                         <mateu-api-caller style="width: 100%;">
                             <mateu-ux
                                     route="${container.selectedRoute}"
@@ -88,8 +90,8 @@ export const renderApp = (container: MateuApp, metadata: App) => {
 
             ${metadata.variant == AppVariant.TABS?html`
                 
-                <vaadin-vertical-layout style="width: 100%;">
-                    <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}">
+                <vaadin-vertical-layout class="vl"  style="width: 100%;">
+                    <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}" class="${container.component?.cssClasses}">
                         ${metadata.menu.map(option => {
         return html`
                                 <vaadin-tab 
@@ -98,7 +100,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                             `
     })}
                     </vaadin-tabs>
-                    <mateu-api-caller>
+                    <mateu-api-caller style="width: 100%;">
                         <mateu-ux
                                 route="${container.selectedRoute}"
                                 id="${nanoid()}"

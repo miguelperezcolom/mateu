@@ -1,9 +1,9 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { html } from "lit";
+import { html, LitElement } from "lit";
 import CarouselLayout from "@mateu/shared/apiClients/dtos/componentmetadata/CarouselLayout";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderCarouselLayout = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderCarouselLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as CarouselLayout
 
     return html`
@@ -15,7 +15,7 @@ export const renderCarouselLayout = (component: ClientSideComponent, baseUrl: st
                 style="${component.style}"
                 css="${component.cssClasses}"
         >
-            ${component.children?.map(component => html`<div>${renderComponent(component, baseUrl, state, data)}</div>`)}
+            ${component.children?.map(component => html`<div>${renderComponent(container, component, baseUrl, state, data)}</div>`)}
         </skeleton-carousel>
     `
 }

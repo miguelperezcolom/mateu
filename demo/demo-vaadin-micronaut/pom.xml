@@ -103,6 +103,12 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>2.4.4</version>
+        </dependency>
+
 
     </dependencies>
 

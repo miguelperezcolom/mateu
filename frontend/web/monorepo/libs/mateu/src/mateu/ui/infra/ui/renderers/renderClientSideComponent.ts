@@ -263,7 +263,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         // @ts-ignore
         if (type == ComponentMetadataType.Card) {
-            return renderCard(component, baseUrl, state, data)
+            return renderCard(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Chart) {
             return renderChart(component)
@@ -305,10 +305,10 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderProgressBar(component)
         }
         if (type == ComponentMetadataType.Popover) {
-            return renderPopover(component, baseUrl, state, data)
+            return renderPopover(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.CarouselLayout) {
-            return renderCarouselLayout(component, baseUrl, state, data)
+            return renderCarouselLayout(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Tooltip) {
             return renderTooltip(container, component, baseUrl, state, data)

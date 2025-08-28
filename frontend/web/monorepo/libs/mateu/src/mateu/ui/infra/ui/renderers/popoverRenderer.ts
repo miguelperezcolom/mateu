@@ -1,15 +1,15 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Popover from "@mateu/shared/apiClients/dtos/componentmetadata/Popover";
-import { html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderPopover = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderPopover = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Popover
-    html`${renderComponent(metadata.content, baseUrl, state, data)}`
+    html`${renderComponent(container, metadata.content, baseUrl, state, data)}`
 
     return html`
-        <div id="show-notifications">${renderComponent(metadata.wrapped, baseUrl, state, data)}</div>
+        <div id="show-notifications">${renderComponent(container, metadata.wrapped, baseUrl, state, data)}</div>
         <vaadin-popover
                 for="show-notifications"
                 theme="arrow no-padding"
@@ -20,7 +20,7 @@ export const renderPopover = (component: ClientSideComponent, baseUrl: string | 
                 slot="${component.slot??nothing}"
                 ${popoverRenderer(popover => {
         console.log('popover', popover)
-        return html`${renderComponent(metadata.content, baseUrl, state, data)}`
+        return html`${renderComponent(container, metadata.content, baseUrl, state, data)}`
     }, [])}
                 style="${component.style}" class="${component.cssClasses}"
         ></vaadin-popover>

@@ -50,6 +50,7 @@ public class ReflectionAppMapper {
             "welcome_message",
             "logout_url",
             List.of(),
+            false,
             null,
             null);
     var component =

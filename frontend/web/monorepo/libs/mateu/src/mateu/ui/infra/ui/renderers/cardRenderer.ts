@@ -1,10 +1,15 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
-import { html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { renderComponent, renderComponentInSlot } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderCard = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderCard = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Card
+
+    if (!metadata) {
+        return html``
+    }
+
     let theme = '';
     metadata.variants?.map(variant => {
         if (variant == 'stretchMedia') {
@@ -25,14 +30,14 @@ export const renderCard = (component: ClientSideComponent, baseUrl: string | und
                 theme="${theme}"
                 slot="${component.slot??nothing}"
         >
-            ${metadata.media?renderComponentInSlot(metadata.media, baseUrl, state, data, 'media'):nothing}
-            ${metadata.title?renderComponentInSlot(metadata.title, baseUrl, state, data, 'title'):nothing}
-            ${metadata.subtitle?renderComponentInSlot(metadata.subtitle, baseUrl, state, data, 'subtitle'):nothing}
-            ${metadata.header?renderComponentInSlot(metadata.header, baseUrl, state, data, 'header'):nothing}
-            ${metadata.headerPrefix?renderComponentInSlot(metadata.headerPrefix, baseUrl, state, data, 'header-prefix'):nothing}
-            ${metadata.headerSuffix?renderComponentInSlot(metadata.headerSuffix, baseUrl, state, data, 'header-suffix'):nothing}
-            ${metadata.footer?renderComponentInSlot(metadata.footer, baseUrl, state, data, 'footer'):nothing}
-            ${metadata.content?renderComponent(metadata.content, baseUrl, state, data):nothing}
+            ${metadata.media?renderComponentInSlot(container, metadata.media, baseUrl, state, data, 'media'):nothing}
+            ${metadata.title?renderComponentInSlot(container, metadata.title, baseUrl, state, data, 'title'):nothing}
+            ${metadata.subtitle?renderComponentInSlot(container, metadata.subtitle, baseUrl, state, data, 'subtitle'):nothing}
+            ${metadata.header?renderComponentInSlot(container, metadata.header, baseUrl, state, data, 'header'):nothing}
+            ${metadata.headerPrefix?renderComponentInSlot(container, metadata.headerPrefix, baseUrl, state, data, 'header-prefix'):nothing}
+            ${metadata.headerSuffix?renderComponentInSlot(container, metadata.headerSuffix, baseUrl, state, data, 'header-suffix'):nothing}
+            ${metadata.footer?renderComponentInSlot(container, metadata.footer, baseUrl, state, data, 'footer'):nothing}
+            ${metadata.content?renderComponent(container, metadata.content, baseUrl, state, data):nothing}
         </vaadin-card>
     `
 }

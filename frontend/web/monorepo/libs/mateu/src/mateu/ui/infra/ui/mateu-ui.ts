@@ -138,7 +138,7 @@ export class MateuUi extends LitElement {
     }
 
     static styles = css`
-        :root {
+        :host {
             width: 100%;
         }
   `

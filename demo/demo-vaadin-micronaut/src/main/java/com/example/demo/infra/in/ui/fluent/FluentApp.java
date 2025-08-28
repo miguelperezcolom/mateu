@@ -23,7 +23,9 @@ public class FluentApp implements AppSupplier {
                 .title("Antonia")
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.HAMBURGUER_MENU)
+                .drawerClosed(true)
                 .style("width: 100%;")
+                .cssClasses("redwood")
                 .menu(List.of(
                         new RouteLink("/fluent-app/home", "Home", true),
                         new Menu("Layouts", List.of(
@@ -52,7 +54,8 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/forms/counter5", "Counter 5"),
                                 new RouteLink("/fluent-app/forms/counter6", "Counter 6"),
                                 new RouteLink("/fluent-app/forms/with-grid1", "With Grid 1"),
-                                new RouteLink("/fluent-app/forms/with-grid2", "With Grid 2")
+                                new RouteLink("/fluent-app/forms/with-grid2", "With Grid 2"),
+                                new RouteLink("/fluent-app/forms/all-fields", "All fields")
                                 )),
                         new Menu("Crudls", List.of(
                                 new RouteLink("/fluent-app/crudls/basic", "Basic"),
@@ -180,7 +183,7 @@ public class FluentApp implements AppSupplier {
                         new Menu("Use cases", List.of(
                                 new RouteLink("/fluent-app/use-cases/bookings", "Bookings list"),
                                 new RouteLink("/fluent-app/use-cases/booking-detail", "Booking detail"),
-                                new RouteLink("/fluent-app/use-cases/x-config", "X-config")
+                                new RouteLink("/fluent-app/use-cases/rra", "Redwood Reference App")
                         ))
 
                 ))

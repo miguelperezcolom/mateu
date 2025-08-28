@@ -41,6 +41,7 @@ public final class AppComponentToDtoMapper {
             .homeRoute(getHomeRoute(menu, route))
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
+            .drawerClosed(app.drawerClosed())
             .style(app.style())
             .cssClasses(app.cssClasses())
             .build();

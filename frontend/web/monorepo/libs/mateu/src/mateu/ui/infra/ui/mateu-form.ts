@@ -30,8 +30,8 @@ export class MateuForm extends MetadataDrivenElement {
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
-            <vaadin-vertical-layout theme="spacing" style="width: 100%;">
-                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
+            <vaadin-vertical-layout theme="spacing" style="width: 100%;" class="${this.component?.cssClasses}">
+                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                     <vaadin-vertical-layout>
                         <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
                         <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
@@ -46,10 +46,12 @@ export class MateuForm extends MetadataDrivenElement {
                     </vaadin-horizontal-layout>
                 </vaadin-horizontal-layout>
            
-           <slot></slot>
-           <vaadin-horizontal-layout theme="spacing">
-               <slot name="buttons"></slot>
-           </vaadin-horizontal-layout>
+                <div class="form-content">
+                    <slot></slot>
+                    <vaadin-horizontal-layout theme="spacing" class="form-buttons">
+                        <slot name="buttons"></slot>
+                    </vaadin-horizontal-layout>
+                </div>
             </vaadin-vertical-layout>    
        `
     }
@@ -58,7 +60,19 @@ export class MateuForm extends MetadataDrivenElement {
         :host {
             width: 100%;
         }
-  `
+
+        .redwood .form-header  {
+            background-color: rgb(44, 82, 102);
+            color: var(--lumo-base-color);
+            padding: 30px;
+            font-family: "Times New Roman";
+        }
+
+        .form-content {
+            width: 100%;
+        }
+
+    `
 }
 
 declare global {

@@ -3,18 +3,7 @@ import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
 import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
 import { html, LitElement, nothing } from "lit";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
-import { columnBodyRenderer, GridColumnBodyLitRenderer } from "@vaadin/grid/lit";
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
-import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
-import { renderBooleanCell } from "@infra/ui/renderers/columnRenderers/booleanColumnRenderer.ts";
-import { renderMoneyCell } from "@infra/ui/renderers/columnRenderers/moneyColumnRenderer.ts";
-import { renderLinkCell } from "@infra/ui/renderers/columnRenderers/linkColumnRenderer.ts";
-import { renderIconCell } from "@infra/ui/renderers/columnRenderers/iconColumnRenderer.ts";
-import { renderHtmlCell } from "@infra/ui/renderers/columnRenderers/htmlColumnRenderer.ts";
-import { renderImageCell } from "@infra/ui/renderers/columnRenderers/imageColumnRenderer.ts";
-import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
-import { renderMenuCell } from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
-import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
+import { columnBodyRenderer } from "@vaadin/grid/lit";
 
 
 export const renderGrid = (component: ClientSideComponent,

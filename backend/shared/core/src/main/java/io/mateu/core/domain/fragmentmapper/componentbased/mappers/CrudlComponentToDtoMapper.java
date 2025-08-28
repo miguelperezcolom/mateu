@@ -31,19 +31,21 @@ public class CrudlComponentToDtoMapper {
                     .map(column -> mapComponentToDto(null, column, baseUrl, route, httpRequest))
                     .toList())
             .filters(
-                crudl.filters().stream()
-                    .map(
-                        filter ->
-                            FormFieldDto.builder()
-                                .fieldId(filter.id())
-                                .label(filter.label())
-                                .dataType(filter.dataType().name())
-                                .stereotype(filter.stereotype().name())
-                                .cssClasses(filter.cssClasses())
-                                .description(filter.description())
-                                .placeholder(filter.placeholder())
-                                .build())
-                    .toList())
+                crudl.filters() != null
+                    ? crudl.filters().stream()
+                        .map(
+                            filter ->
+                                FormFieldDto.builder()
+                                    .fieldId(filter.id())
+                                    .label(filter.label())
+                                    .dataType(filter.dataType().name())
+                                    .stereotype(filter.stereotype().name())
+                                    .cssClasses(filter.cssClasses())
+                                    .description(filter.description())
+                                    .placeholder(filter.placeholder())
+                                    .build())
+                        .toList()
+                    : List.of())
             .emptyStateMessage(crudl.emptyStateMessage())
             .autoFocusOnSearchText(crudl.autoFocusOnSearchText())
             .searchOnEnter(crudl.searchOnEnter())

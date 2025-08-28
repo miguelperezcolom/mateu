@@ -12,5 +12,7 @@ export default interface App extends ComponentMetadata {
     totalMenuOptions: number
     homeRoute: string
     style: string | undefined
+    cssClasses: string | undefined
+    drawerClosed: boolean
 
 }

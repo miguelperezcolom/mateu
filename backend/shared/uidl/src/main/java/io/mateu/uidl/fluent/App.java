@@ -13,6 +13,7 @@ public record App(
     List<Actionable> menu,
     AppVariant variant,
     List<Component> widgets,
+    boolean drawerClosed,
     String style,
     String cssClasses)
     implements Component {

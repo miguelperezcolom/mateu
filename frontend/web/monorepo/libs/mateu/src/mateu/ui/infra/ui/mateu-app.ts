@@ -202,6 +202,49 @@ export class MateuApp extends ComponentElement {
         vaadin-tabs {
             width: 100%;
         }
+        .redwood::part(navbar) {
+            background-color: var(--lumo-contrast);
+            color: var(--lumo-base-color);
+        }
+
+        .redwood vaadin-drawer-toggle  {
+            color: var(--lumo-base-color);
+        }
+
+        .app-content {
+            padding-left: 2em; padding-right: 2em;
+        }
+
+        .redwood {
+            //background-color: var(--lumo-contrast-20pct);
+            background-color: var(--lumo-contrast-20pct);
+        }
+        
+        .redwood .app-content {
+            background-color: var(--lumo-base-color);
+            padding-left: 0; padding-right: 0;
+            width:90%;
+            max-width: 1024px;
+            margin: 0 auto;
+        }
+
+
+
+        vaadin-vertical-layout.vl {
+            height: 100%;
+        }
+        :host(.tabs-at-bottom) {
+            //background-color: #646cff;
+        }
+        vaadin-tabs.tabs-at-bottom {
+            bottom: 0px;
+            position: absolute;
+            box-shadow: inset 0 0 2px 0 var(--lumo-contrast-10pct);
+        }
+        vaadin-tabs.tabs-at-bottom vaadin-tab::before {
+            bottom: unset;
+            top: 2px;
+        }
   `
 }
 

@@ -23,6 +23,8 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.routes")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.commandsandmessages")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.usecases")
+@SerdeImport(packageName = "com.example.demo.infra.in.ui.fluent.usecases.rra")
+@SerdeImport(packageName = "com.example.demo.domain")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.declarative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui.imperative")
 @SerdeImport(packageName = "com.example.demo.infra.in.ui")
