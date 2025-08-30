@@ -10,6 +10,7 @@ import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
@@ -34,24 +35,20 @@ import lombok.SneakyThrows;
 import java.net.URI;
 import java.util.List;
 
-record TrainingFilters() {
-
-}
-
 @Serdeable
 record TrainingRow(
         String id,
-        Status status,
-        String customerName,
-        String idAndDate,
-        Amount totalValue,
-        ColumnActionGroup actions) {
+        String title,
+        String content,
+        String subtitle,
+        String image,
+        Status status) {
 
 }
 
 @Route("/fluent-app/use-cases/rra/training")
 @Singleton
-public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<TrainingFilters, TrainingRow>, HasTriggers {
+public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilters, TrainingRow>, HasTriggers {
 
     @Override
     public Component component(HttpRequest httpRequest) {
@@ -97,14 +94,29 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<Trainin
     }
 
     @Override
-    public Class<TrainingFilters> filtersClass() {
-        return TrainingFilters.class;
-    }
-
-    @Override
-    public CrudlData<TrainingRow> search(String searchText, TrainingFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public CrudlData<TrainingRow> search(String searchText, NoFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         List<TrainingRow> allRows = List.of(
-
+            new TrainingRow(
+                    "001",
+                    "New Products from Vision Corporation",
+                    "0/06/25",
+                    "/images/trainings/001.jpeg",
+                    "0 of 4 tasks completed",
+                    new Status(StatusType.WARNING, "Pending")),
+                new TrainingRow(
+                        "002",
+                        "New This Week",
+                        "0/06/25",
+                        "/images/trainings/001.jpeg",
+                        "0 of 4 tasks completed",
+                        new Status(StatusType.WARNING, "Pending")),
+                new TrainingRow(
+                        "003",
+                        "Product Recall Announcement",
+                        "0/06/25",
+                        "/images/trainings/001.jpeg",
+                        "0 of 4 tasks completed",
+                        new Status(StatusType.WARNING, "Pending"))
         );
         return new CrudlData<>(new Page<>(
                 pageable.size(),

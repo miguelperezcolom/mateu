@@ -21,6 +21,7 @@ import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { sseService } from "@application/SSEService.ts";
+import { nanoid } from "nanoid";
 
 
 @customElement('mateu-ux')
@@ -68,8 +69,6 @@ export class MateuUx extends ConnectedElement {
      */
 
     actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
-        e.preventDefault()
-        e.stopPropagation()
         if (e instanceof CustomEvent) {
             this.manageActionEvent(e)
         }
@@ -175,15 +174,24 @@ export class MateuUx extends ConnectedElement {
     }
 
     protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-        if (_changedProperties.has('id') || _changedProperties.has('baseurl') || _changedProperties.has('route') || _changedProperties.has('instant')) {
+        //super.updated(_changedProperties);
+        if (_changedProperties.has('id') ||
+            _changedProperties.has('baseurl') ||
+            _changedProperties.has('route')  ||
+            _changedProperties.has('consumedRoute') ||
+            _changedProperties.has('instant')) {
+            if (!_changedProperties.has('id')) {
+                this.id = nanoid()
+                console.log('new id', this.id)
+                this.setAttribute('id', this.id)
+            }
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {
                     userData: undefined,
                     actionId: '',
                     serverSideType: undefined,
                     initiatorComponentId: this.id,
-                    initiator: this
+                    initiator: this,
                 },
                 bubbles: true,
                 composed: true
@@ -202,6 +210,7 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
+        console.log('applying', fragment)
         this.fragment = fragment
     }
 

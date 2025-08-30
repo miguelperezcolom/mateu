@@ -233,15 +233,15 @@ public class RunActionUseCase {
                         && !resolver.supportsRoute(command.consumedRoute()))
             .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
             .toList()) {
+      System.out.println(
+          "route="
+              + command.route()
+              + ", consumed="
+              + command.consumedRoute()
+              + ", result="
+              + bean.resolveRoute(command.route(), command.httpRequest()).getName());
       return bean.resolveRoute(command.route(), command.httpRequest()).getName();
     }
-    for (RouteResolver bean :
-        routeResolverBeans.stream()
-            .filter(resolver -> resolver.supportsRoute(command.route()))
-            .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
-            .toList()) {
-      return bean.resolveRoute(command.route(), command.httpRequest()).getName();
-    }
-    return command.uiId();
+    return null;
   }
 }

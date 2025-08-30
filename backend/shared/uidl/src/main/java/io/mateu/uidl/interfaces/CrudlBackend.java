@@ -3,6 +3,7 @@ package io.mateu.uidl.interfaces;
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Direction;
+import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
@@ -49,7 +50,9 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
     return "crud";
   }
 
-  Class<Filters> filtersClass();
+  default Class<Filters> filtersClass() {
+    return (Class<Filters>) NoFilters.class;
+  }
 
   CrudlData<Row> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);

@@ -5,7 +5,10 @@ import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { nanoid } from "nanoid";
 
 const filterMenu = (e: CustomEvent, container: MateuApp) => {
-    container.filter = e.detail.value
+    if (container.filter != e.detail.value) {
+        debugger
+        container.filter = e.detail.value
+    }
 }
 
 export const renderApp = (container: MateuApp, metadata: App) => {
@@ -55,7 +58,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <mateu-api-caller>
                         <mateu-ux 
                                 route="${container.selectedRoute}" 
-                                id="${nanoid()}" 
+                                id="ux_${container.id}" 
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
                         ></mateu-ux>
@@ -75,7 +78,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${container.selectedRoute}"
-                                id="${nanoid()}"
+                                id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
                                 style="padding: 1em;"
@@ -101,7 +104,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
                                 route="${container.selectedRoute}"
-                                id="${nanoid()}"
+                                id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
                         ></mateu-ux>

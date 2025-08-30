@@ -133,15 +133,26 @@ export class MateuCardList extends LitElement {
     @state()
     hasMore = false
 
+    clickedOnCard = (item: any) => {
+        this.state[this.id + '_selected_items'] = [item];
+        if (this.metadata?.onRowSelectionChangedActionId) {
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: this.metadata?.onRowSelectionChangedActionId
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+    }
+
 
     render():TemplateResult {
 
         const page = this.data[this.id]?.page
-        const hasMore = this.metadata?.infiniteScrolling
-        console.log('page', page, hasMore)
         return html`
             <div class="card-container">
-                ${page?.content?.map(item => this.renderItem(item))}
+                ${page?.content?.map(item => html`<div @click="${e => this.clickedOnCard(item)}" class="car-container">${this.renderItem(item)}</div>`)}
                 <div id="ask-for-more" style="display: ${this.hasMore?'':'none'};">xx</div>
             </div>
 

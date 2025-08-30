@@ -13,7 +13,7 @@ public record ClientSideComponentDto(
     implements ComponentDto {
 
   public ClientSideComponentDto {
-    children = Collections.unmodifiableList(children);
+    children = children != null ? Collections.unmodifiableList(children) : List.of();
   }
 
   @Override

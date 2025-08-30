@@ -18,7 +18,9 @@ export default abstract class ConnectedElement extends LitElement {
         this.upstreamSubscription = upstream.subscribe((message: Message) => {
             if (message.fragment) {
                 const fragment = message.fragment
+                console.log('received fragment for', fragment.targetComponentId)
                 if (this.id == fragment.targetComponentId) {
+                    console.log('applying fragment to', this.id)
                     this.applyFragment(fragment)
                 }
 

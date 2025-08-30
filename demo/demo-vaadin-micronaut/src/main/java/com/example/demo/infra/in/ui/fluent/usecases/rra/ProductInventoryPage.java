@@ -18,6 +18,7 @@ import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
@@ -72,6 +73,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
                                 .searchable(true)
                         .style("width: 100%;")
                                 .infiniteScrolling(true)
+                                .onRowSelectionChangedActionId("go-to-selected-product")
                         .build()))
                 .style("width: 100%;")
                 .build();
@@ -110,7 +112,18 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
         if ("create".equals(actionId)) {
             return true;
         }
+        if ("go-to-selected-product".equals(actionId)) {
+            return true;
+        }
         return CrudlBackend.super.supportsAction(actionId);
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("go-to-selected-product".equals(actionId)) {
+            return UICommand.navigateTo("/fluent-app/use-cases/rra/inventory/" + httpRequest.getSelectedRows(ProductInventoryRow.class).get(0).id());
+        }
+        return CrudlBackend.super.handleAction(actionId, httpRequest);
     }
 
     public static Card createCard(Product product) {

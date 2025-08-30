@@ -14,9 +14,11 @@ public class DivComponentToDtoMapper {
     return new ClientSideComponentDto(
         new DivDto(div.content()),
         "fieldId",
-        div.children().stream()
-            .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
-            .toList(),
+        div.children() != null
+            ? div.children().stream()
+                .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+                .toList()
+            : null,
         div.style(),
         div.cssClasses(),
         null);

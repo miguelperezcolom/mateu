@@ -1,0 +1,37 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : "initiator_component_id",
+    "component" : {
+      "type" : "ServerSide",
+      "id" : "5c6ebcde-6f64-48da-925b-143a48c8e425",
+      "serverSideType" : "com.example.components.SampleComponent",
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Div",
+          "content" : null
+        },
+        "id" : "fieldId",
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null
+      } ],
+      "initialData" : { },
+      "style" : null,
+      "cssClasses" : null,
+      "actions" : [ ],
+      "triggers" : [ ],
+      "rules" : [ ],
+      "validations" : [ ],
+      "slot" : null
+    },
+    "state" : { },
+    "data" : null,
+    "action" : "Replace"
+  } ],
+  "appData" : { },
+  "appState" : { }
+}

@@ -35,7 +35,7 @@ export class MateuApp extends ComponentElement {
     }
 
     @state()
-    filter: string | undefined = undefined
+    filter: string = ''
 
     @state()
     selectedRoute: string | undefined = undefined

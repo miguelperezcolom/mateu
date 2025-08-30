@@ -111,7 +111,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
                             route="${route}"
-                            id="${nanoid()}"
+                            id="${container.id}_ux"
                             baseUrl="${baseUrl}"
                             consumedRoute="${metadata.route}"
                     ></mateu-ux>

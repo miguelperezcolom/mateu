@@ -15,13 +15,17 @@ public class ${simpleClassName}RouteResolver implements RouteResolver {
     <#list routes>
         <#items as route>
             Pattern.compile((
-            io.mateu.uidl.interfaces.App.class
-            .isAssignableFrom(${simpleClassName}.class)
+                io.mateu.uidl.interfaces.App.class
+                    .isAssignableFrom(${simpleClassName}.class)
             ||
-            io.mateu.uidl.fluent.AppSupplier.class
-            .isAssignableFrom(${simpleClassName}.class)
-            )
-            && !"${route}".endsWith(".*")?"${route}" + ".*":"${route}")<#sep>,
+                io.mateu.uidl.fluent.AppSupplier.class
+                    .isAssignableFrom(${simpleClassName}.class)
+                )
+            &&
+                !"${route}".endsWith(".*")
+            ?
+                "${route}" + ".*":
+                "${route}")<#sep>,
         </#items>
     </#list>
     );
