@@ -23,7 +23,7 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
 
     return new Data(
         Map.of(
-            "crud",
+            getCrudId(httpRequest),
             search(
                 searchText != null ? searchText : "",
                 filters,
@@ -39,6 +39,14 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
                                     Direction.valueOf((String) map.get("direction"))))
                         .toList()),
                 httpRequest)));
+  }
+
+  default String getCrudId(HttpRequest httpRequest) {
+    if (httpRequest.runActionRq().parameters() != null
+        && httpRequest.runActionRq().parameters().get("crudId") != null) {
+      return (String) httpRequest.runActionRq().parameters().get("crudId");
+    }
+    return "crud";
   }
 
   Class<Filters> filtersClass();

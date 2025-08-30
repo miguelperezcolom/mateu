@@ -11,6 +11,7 @@ import { parseOverrides } from "@infra/ui/common";
 import Message from "@domain/Message";
 import { Subscription } from "rxjs";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { nanoid } from "nanoid";
 
 
 @customElement('mateu-ui')
@@ -36,6 +37,9 @@ export class MateuUi extends LitElement {
     // state
     @state()
     ui: UI | undefined = undefined;
+
+    @state()
+    instant: any
 
     private upstreamSubscription: Subscription | undefined;
 
@@ -88,6 +92,7 @@ export class MateuUi extends LitElement {
 
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
+        this.instant = nanoid()
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
             const configParam = urlParams.get('overrides')
@@ -95,7 +100,6 @@ export class MateuUi extends LitElement {
                 this.config = configParam
             }
         }
-
     }
 
     extractRouteFromUrl(w: Window) {
@@ -130,6 +134,7 @@ export class MateuUi extends LitElement {
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.route?this.route:this.ui?.homeRoute}"
+                          instant="${this.instant}"
                           top="true"
                           style="display: block;width: 100%;"
                 ></mateu-ux>

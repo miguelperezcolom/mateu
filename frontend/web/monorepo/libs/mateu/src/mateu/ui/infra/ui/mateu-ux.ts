@@ -20,7 +20,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import { sseService, SSEService } from "@application/SSEService.ts";
+import { sseService } from "@application/SSEService.ts";
 
 
 @customElement('mateu-ux')
@@ -46,6 +46,8 @@ export class MateuUx extends ConnectedElement {
     route: string | undefined = undefined;
     @property()
     top: boolean | undefined = undefined;
+    @property()
+    instant: any
 
 
     // state
@@ -107,7 +109,7 @@ export class MateuUx extends ConnectedElement {
         initiator: HTMLElement
         background: boolean
         sse: boolean
-    };
+    } | undefined = undefined
 
     manageActionEvent = (e: CustomEvent) => {
         e.preventDefault()
@@ -117,10 +119,11 @@ export class MateuUx extends ConnectedElement {
             componentState: any
             actionId: string
             serverSideType: string
-            initiatorComponentId: string,
-            initiator: HTMLElement,
-            background: boolean,
+            initiatorComponentId: string
+            initiator: HTMLElement
+            background: boolean
             sse: boolean
+            callback: any
         };
         const detail = this.detail1
         if (e.type == 'server-side-action-requested') {
@@ -139,7 +142,8 @@ export class MateuUx extends ConnectedElement {
                     detail.componentState,
                     detail.parameters,
                     detail.initiator,
-                detail.background);
+                detail.background,
+                detail.callback);
             } else {
                 console.log('no route', e)
             }
@@ -172,7 +176,7 @@ export class MateuUx extends ConnectedElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has('id') || _changedProperties.has('baseurl') || _changedProperties.has('route')) {
+        if (_changedProperties.has('id') || _changedProperties.has('baseurl') || _changedProperties.has('route') || _changedProperties.has('instant')) {
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {
                     userData: undefined,
@@ -216,6 +220,13 @@ export class MateuUx extends ConnectedElement {
     static styles = css`
         :host {
             width: 100%;
+        }
+        
+        .container {
+            padding-left: 0; padding-right: 0;
+            width:100%;
+            max-width: 1392px;
+            margin: 0 auto;
         }
   `
 }

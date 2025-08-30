@@ -70,6 +70,8 @@ export class MateuForm extends MetadataDrivenElement {
 
         .form-content {
             width: 100%;
+            background-color: var(--lumo-base-color);
+            padding-bottom: 3rem;
         }
 
     `

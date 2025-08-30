@@ -17,12 +17,33 @@ const itemSelected = (e: CustomEvent) => {
     }))
 }
 
+export const createItem = (iconName: string, text: string) => {
+    const item = document.createElement('vaadin-context-menu-item');
+    const icon = document.createElement('vaadin-icon');
+
+    icon.style.color = 'var(--lumo-secondary-text-color)';
+    icon.style.marginInlineEnd = 'var(--lumo-space-s)';
+    icon.style.padding = 'var(--lumo-space-xs)';
+
+    icon.setAttribute('icon', iconName);
+    item.appendChild(icon);
+    if (text) {
+        item.appendChild(document.createTextNode(text));
+    }
+    return item;
+}
+
 export const renderMenuCell = (item: any,
                                  model: GridItemModel<any>,
                                  column: VaadinGridColumn
 ) => {
     // @ts-ignore
-    const actions = item[column.path]?.actions.map(a => {
+    const actions = item[column.path]?.actions?.map(a => {
+        if (a.icon) {
+            return {
+                component: createItem(a.icon, a.label)
+            }
+        }
         return {
             ...a,text: a.label
         }

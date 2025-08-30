@@ -26,12 +26,14 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DataCom
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DetailsComponentToDtoMapper.mapDetailsToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DialogComponentToDtoMapper.mapDialogToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DirectoryComponentToDtoMapper.mapDirectoryToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.DivComponentToDtoMapper.mapDivToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormItemComponentToDtoMapper.mapFormItemToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormRowComponentToDtoMapper.mapFormRowToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormSectionComponentToDtoMapper.mapFormSectionToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridColumnComponentToDtoMapper.mapGridColumnToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
@@ -87,11 +89,13 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Directory;
+import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormItem;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
+import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
@@ -299,6 +303,12 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Popover popover) {
       return mapPopoverToDto(popover, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Div div) {
+      return mapDivToDto(div, baseUrl, route, httpRequest);
+    }
+    if (component instanceof FormSection formSection) {
+      return mapFormSectionToDto(formSection, baseUrl, route, httpRequest);
     }
     if (component instanceof Tooltip tooltip) {
       return mapTooltipToDto(tooltip, baseUrl, route, httpRequest);

@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 public record Order(
     String id,
+    OrderStatus status,
     Customer customer,
     LocalDate date,
     Amount totalAmount,

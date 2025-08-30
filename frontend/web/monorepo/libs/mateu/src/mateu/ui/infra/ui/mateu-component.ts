@@ -318,7 +318,8 @@ export class MateuComponent extends ComponentElement {
     manageActionRequestedEvent = (e: CustomEvent) => {
         const detail = e.detail as {
             actionId: string,
-            parameters: any
+            parameters: any,
+            callback: any
         }
         if (e.type == 'action-requested') {
             e.preventDefault()
@@ -387,7 +388,8 @@ export class MateuComponent extends ComponentElement {
 
     requestActionCallToServer = (detail: {
         actionId: string,
-        parameters: any
+        parameters: any,
+        callback: any
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
         if (action && action.href) {
@@ -427,7 +429,8 @@ export class MateuComponent extends ComponentElement {
                 initiatorComponentId: serverSideComponent.id,
                 initiator: this,
                 background: action?.background,
-                sse: action?.sse
+                sse: action?.sse,
+                callback: detail.callback
             },
             bubbles: true,
             composed: true
@@ -516,6 +519,10 @@ export class MateuComponent extends ComponentElement {
         }
 
         ${unsafeCSS(badge.cssText)}
+        
+        vaadin-card.image-on-right::part(media) {
+            grid-column: 3;
+        }
         
   `
 }

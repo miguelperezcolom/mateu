@@ -1,10 +1,10 @@
 export enum ComponentMetadataType {
 
+    Div = "Div",
     Element = "Element",
     MicroFrontend = "MicroFrontend",
     Form = "Form",
-    TableCrud = "TableCrud",
-    CardCrud = "CardCrud",
+    Crud = "Crud",
     Result = "Result",
     Card = "Card",
     Directory = "Directory",

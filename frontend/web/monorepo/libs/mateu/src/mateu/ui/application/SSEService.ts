@@ -11,7 +11,7 @@ export class SSEService implements Service {
         await httpService.loadUi(mateuApiClient, baseUrl, path, config, initiator)
     }
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -127,8 +127,12 @@ export class SSEService implements Service {
 
             //console.log('closed')
 
+            if (callback) {
+                callback()
+            }
+
         } else {
-            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, componentState, parameters, initiator, background)
+            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, componentState, parameters, initiator, background, callback)
         }
     }
 

@@ -26,5 +26,6 @@ export default interface Table extends ComponentMetadata {
     vaadinGridCellPadding: string
     gridStyle: string
     detailPath: string
+    pageSize: number
 
 }

@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = FormDto.class, name = "Form"),
   @JsonSubTypes.Type(value = AppDto.class, name = "App"),
-  @JsonSubTypes.Type(value = CrudlDto.class, name = "TableCrud"),
+  @JsonSubTypes.Type(value = CrudlDto.class, name = "Crud"),
   @JsonSubTypes.Type(value = ResultDto.class, name = "Result"),
   @JsonSubTypes.Type(value = MicroFrontendDto.class, name = "MicroFrontend"),
   @JsonSubTypes.Type(value = CardDto.class, name = "Card"),
@@ -63,7 +63,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = BoardLayoutItemDto.class, name = "BoardLayoutItem"),
   @JsonSubTypes.Type(value = BreadcrumbsDto.class, name = "Breadcrumbs"),
   @JsonSubTypes.Type(value = BreadcrumbDto.class, name = "Breadcrumb"),
-  @JsonSubTypes.Type(value = CarouselLayoutDto.class, name = "CarouselLayout")
+  @JsonSubTypes.Type(value = CarouselLayoutDto.class, name = "CarouselLayout"),
+  @JsonSubTypes.Type(value = DivDto.class, name = "Div"),
+  @JsonSubTypes.Type(value = FormSectionDto.class, name = "FormSection")
 })
 @Schema(
     oneOf = {
@@ -121,6 +123,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
       BoardLayoutDto.class,
       BoardLayoutRowDto.class,
       BoardLayoutItemDto.class,
-      CarouselLayoutDto.class
+      CarouselLayoutDto.class,
+      DivDto.class,
+      FormSectionDto.class
     })
 public interface ComponentMetadataDto {}

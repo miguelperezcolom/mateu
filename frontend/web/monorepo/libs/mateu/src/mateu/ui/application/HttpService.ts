@@ -23,7 +23,7 @@ export class HttpService implements Service {
             ui: changes.ui,
             error: undefined
         })
-        this.handleUIIncrement(changes.ui.home)
+        this.handleUIIncrement(changes.ui.home, baseUrl)
     }
 
     mapPosition = (position: string): NotificationPosition => {
@@ -41,13 +41,26 @@ export class HttpService implements Service {
         return 'bottom-end'
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined, baseUrl: string) => {
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):undefined,
                 theme: message.variant,
                 duration: message.duration
             });
+        })
+        uiIncrement?.commands?.forEach(command => {
+            if ('NavigateTo' == command.type) {
+                const destination = command.data as string
+                if (destination) {
+                    if (destination.startsWith('http:') || destination.startsWith('https:')) {
+                        window.location.href = command.data as string
+                    } else {
+                        window.history.pushState({},"", baseUrl + destination);
+                        window.dispatchEvent(new PopStateEvent('popstate', window.history.state))
+                    }
+                }
+            }
         })
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
@@ -72,7 +85,8 @@ export class HttpService implements Service {
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,
-                    background: boolean) {
+                    background: boolean,
+    callback: any) {
         if (!route) {
             return
         }
@@ -89,7 +103,10 @@ export class HttpService implements Service {
             initiator,
             background
         } as RunActionCommand)
-        this.handleUIIncrement(changes.uiIncrement)
+        this.handleUIIncrement(changes.uiIncrement, baseUrl)
+        if (callback) {
+            callback()
+        }
     }
 
 }

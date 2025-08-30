@@ -55,6 +55,8 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import { renderDiv } from "@infra/ui/renderers/divRenderer.ts";
+import { nanoid } from "nanoid";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -99,6 +101,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
 
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
 
+        if (type == ComponentMetadataType.Div) {
+            return renderDiv(container, component, baseUrl, state, data)
+        }
         if (type == ComponentMetadataType.Directory) {
             return renderDirectory(component, baseUrl, state, data)
         }
@@ -183,23 +188,11 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                 </mateu-table>`
         }
-        if (type == ComponentMetadataType.TableCrud) {
+        if (type == ComponentMetadataType.Crud) {
             return html`<mateu-table-crud
                             id="${component.id}"
                             baseUrl="${baseUrl}"
                             .component="${component}"
-                            .state="${state}"
-                            .data="${data}"
-                            style="${component.style}" class="${component.cssClasses}"
-                            slot="${component.slot??nothing}"
-                >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
-             </mateu-table-crud>`
-        }
-        if (type == ComponentMetadataType.CardCrud) {
-            return html`<mateu-table-crud
-                            id="${component.id}"
-                            baseUrl="${baseUrl}"
                             .metadata="${component.metadata}"
                             .state="${state}"
                             .data="${data}"
@@ -331,7 +324,17 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         if (type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component, baseUrl, state, data)
         }
+        console.log('Unknown metadata type for component', type, component)
         return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`
     }
+    else {
+        return renderClientSideComponent(container, {
+            id: nanoid(),
+            metadata: component,
+            type: ComponentType.ClientSide
+        } as ClientSideComponent, baseUrl, state, data)
+
+    }
+    console.log('No metadata for component', component)
     return html`<p ${component?.slot??nothing}>No metadata for component ${component?.id}</p>`
 }

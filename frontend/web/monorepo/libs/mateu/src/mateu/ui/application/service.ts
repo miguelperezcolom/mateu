@@ -18,7 +18,8 @@ export interface Service {
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,
-                    background: boolean): void
+                    background: boolean,
+    callback: any): void
 
 }
 

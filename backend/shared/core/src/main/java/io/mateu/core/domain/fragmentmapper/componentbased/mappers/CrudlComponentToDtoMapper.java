@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
+import io.mateu.dtos.CrudlTypeDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -21,6 +22,10 @@ public class CrudlComponentToDtoMapper {
       HttpRequest httpRequest) {
     var crudlDto =
         CrudlDto.builder()
+            .crudlType(
+                crudl.crudlType() != null
+                    ? CrudlTypeDto.valueOf(crudl.crudlType().name())
+                    : CrudlTypeDto.table)
             .title(crudl.title())
             .subtitle(crudl.subtitle())
             .searchable(crudl.searchable())
@@ -83,6 +88,11 @@ public class CrudlComponentToDtoMapper {
             .onRowSelectionChangedActionId(crudl.onRowSelectionChangedActionId())
             .build();
     return new ClientSideComponentDto(
-        crudlDto, crudl.id(), List.of(), crudl.style(), crudl.cssClasses(), null);
+        crudlDto,
+        crudl.id() != null ? crudl.id() : "crud",
+        List.of(),
+        crudl.style(),
+        crudl.cssClasses(),
+        null);
   }
 }

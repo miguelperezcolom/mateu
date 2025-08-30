@@ -18,6 +18,8 @@ import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Named;
+import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,9 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return List.of();
     }
     if (instance instanceof UICommand) {
+      return List.of();
+    }
+    if (instance instanceof URI || instance instanceof URL) {
       return List.of();
     }
     if (instance instanceof Collection<?> collection) {

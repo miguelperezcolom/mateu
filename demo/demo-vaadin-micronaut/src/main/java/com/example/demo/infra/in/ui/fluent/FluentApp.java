@@ -25,7 +25,7 @@ public class FluentApp implements AppSupplier {
                 .variant(AppVariant.HAMBURGUER_MENU)
                 .drawerClosed(true)
                 .style("width: 100%;")
-                .cssClasses("redwood")
+                //.cssClasses("redwood")
                 .menu(List.of(
                         new RouteLink("/fluent-app/home", "Home", true),
                         new Menu("Layouts", List.of(

@@ -16,6 +16,7 @@ import lombok.Builder;
  */
 @Builder
 public record CrudlDto(
+    CrudlTypeDto crudlType,
     String title,
     String subtitle,
     boolean canEdit,

@@ -7,6 +7,7 @@ import lombok.Builder;
 
 @Builder
 public record Crudl(
+    CrudlType crudlType,
     String id,
     String favicon,
     String pageTitle,

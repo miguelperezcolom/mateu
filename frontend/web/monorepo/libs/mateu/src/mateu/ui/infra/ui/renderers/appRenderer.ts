@@ -12,8 +12,6 @@ export const renderApp = (container: MateuApp, metadata: App) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
-    console.log(container.component)
-
     return html`
 
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`

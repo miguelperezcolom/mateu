@@ -1,6 +1,6 @@
 import { customElement, property, query, state } from "lit/decorators.js";
 import {ifDefined} from "lit/directives/if-defined.js";
-import { css, html, LitElement, nothing, PropertyValues } from "lit";
+import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -83,6 +83,8 @@ export class MateuTable extends LitElement {
 
     @state()
     detailsOpenedItems: any[] = []
+
+    pagesRequested = []
 
     renderGroup = (group: GridGroupColumn) => {
         return html`
@@ -204,7 +206,36 @@ export class MateuTable extends LitElement {
     // @ts-ignore
     dataProvider:GridDataProvider<unknown> = (params, callback) => {
         const page = this.data[this.id]?.page
-        callback(page?.content??[], page?.content?.length??0);
+        if (this.metadata?.infiniteScrolling && params.page > 0) {
+            let satisfied = false
+            if (page) {
+                if (page.content.length >= (params.page + 1) * params.pageSize) {
+                    callback(page.content
+                            .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
+                        page.totalElements)
+                    satisfied = true
+                }
+            }
+            if (!satisfied) {
+                if (!this.pagesRequested.find(page => page == params.page)) {
+                    this.pagesRequested.push(params.page)
+                    this.dispatchEvent(new CustomEvent('fetch-more-elements', {
+                        detail: {
+                            params,
+                            callback: () => {
+                                callback(this.data[this.id].page.content
+                                        .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
+                                    this.data[this.id].page.totalElements)
+                            }
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+            }
+        } else {
+            callback(page?.content??[], this.metadata?.infiniteScrolling?page?.totalElements:page?.content?.length??0);
+        }
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -233,11 +264,10 @@ export class MateuTable extends LitElement {
         return text;
     };
 
-    render() {
+    render():TemplateResult {
 
         const page = this.data[this.id]?.page
         let theme = '';
-        console.log(this.metadata)
         if (this.metadata?.wrapCellContent) {
             theme += ' wrap-cell-content';
         }
@@ -266,10 +296,10 @@ export class MateuTable extends LitElement {
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
-                    .dataProvider="${this.dataProvider}"      
+                    .dataProvider="${this.dataProvider}"
+                    page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
-                        console.log('xxxx', e, this.metadata?.onRowSelectionChangedActionId)
                         this.state[this.id + '_selected_items'] = e.detail.value;
                         if (this.metadata?.onRowSelectionChangedActionId) {
                             this.dispatchEvent(new CustomEvent('action-requested', {

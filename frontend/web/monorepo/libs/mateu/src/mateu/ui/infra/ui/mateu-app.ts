@@ -223,12 +223,10 @@ export class MateuApp extends ComponentElement {
         .redwood .app-content {
             background-color: var(--lumo-base-color);
             padding-left: 0; padding-right: 0;
-            width:90%;
-            max-width: 1024px;
+            width:100%;
+            max-width: 1392px;
             margin: 0 auto;
         }
-
-
 
         vaadin-vertical-layout.vl {
             height: 100%;
@@ -240,6 +238,8 @@ export class MateuApp extends ComponentElement {
             bottom: 0px;
             position: absolute;
             box-shadow: inset 0 0 2px 0 var(--lumo-contrast-10pct);
+            z-index: 1;
+            background-color: var(--lumo-base-color);
         }
         vaadin-tabs.tabs-at-bottom vaadin-tab::before {
             bottom: unset;
