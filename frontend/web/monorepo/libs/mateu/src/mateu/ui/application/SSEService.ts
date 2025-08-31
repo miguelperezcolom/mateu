@@ -168,8 +168,17 @@ export class SSEService implements Service {
             });
         })
 
+        uiIncrement?.commands?.forEach(command => {
+            upstream.next({
+                command,
+                fragment: undefined,
+                ui: undefined,
+                error: undefined
+            })
+        })
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
+                command: undefined,
                 fragment,
                 ui: undefined,
                 error: undefined

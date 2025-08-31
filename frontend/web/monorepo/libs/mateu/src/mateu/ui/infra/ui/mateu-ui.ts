@@ -92,6 +92,7 @@ export class MateuUi extends LitElement {
 
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
+        this.setAttribute('route', this.route)
         this.instant = nanoid()
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);

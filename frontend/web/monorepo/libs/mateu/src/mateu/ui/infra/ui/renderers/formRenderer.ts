@@ -3,7 +3,6 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { html } from "lit";
 
 export const renderForm = (container: MateuForm, metadata: Form) => {
-    console.log('render form')
     return html`
             <vaadin-vertical-layout theme="spacing">
            <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>

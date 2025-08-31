@@ -1,4 +1,5 @@
 export default interface UICommand {
-    type: string,
+    type: string
     data: unknown
+    targetComponentId: string
 }

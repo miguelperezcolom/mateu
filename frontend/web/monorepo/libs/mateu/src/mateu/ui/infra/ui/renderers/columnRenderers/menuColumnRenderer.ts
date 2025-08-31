@@ -17,7 +17,7 @@ const itemSelected = (e: CustomEvent) => {
     }))
 }
 
-export const createItem = (iconName: string, text: string) => {
+export const createItem = (a: any) => {
     const item = document.createElement('vaadin-context-menu-item');
     const icon = document.createElement('vaadin-icon');
 
@@ -25,10 +25,10 @@ export const createItem = (iconName: string, text: string) => {
     icon.style.marginInlineEnd = 'var(--lumo-space-s)';
     icon.style.padding = 'var(--lumo-space-xs)';
 
-    icon.setAttribute('icon', iconName);
+    icon.setAttribute('icon', a.icon);
     item.appendChild(icon);
-    if (text) {
-        item.appendChild(document.createTextNode(text));
+    if (a.label) {
+        item.appendChild(document.createTextNode(a.label));
     }
     return item;
 }
@@ -41,7 +41,8 @@ export const renderMenuCell = (item: any,
     const actions = item[column.path]?.actions?.map(a => {
         if (a.icon) {
             return {
-                component: createItem(a.icon, a.label)
+                component: createItem(a),
+                methodNameInCrud: a.methodNameInCrud
             }
         }
         return {

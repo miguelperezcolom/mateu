@@ -44,4 +44,9 @@ public class QuarkusHttpRequest implements HttpRequest {
   public List<String> getHeaderValues(String key) {
     return delegate.headers().getAll(key);
   }
+
+  @Override
+  public String path() {
+    return delegate.path();
+  }
 }

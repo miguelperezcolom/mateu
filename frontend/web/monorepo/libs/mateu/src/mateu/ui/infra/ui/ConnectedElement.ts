@@ -4,23 +4,31 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { LitElement } from "lit";
 import { property } from "lit/decorators.js";
 import Message from "@domain/Message";
+import UICommand from "@mateu/shared/apiClients/dtos/UICommand.ts";
 
 export default abstract class ConnectedElement extends LitElement {
 
     // public properties
     @property()
     id = ''
+    @property()
+    baseUrl = ''
 
     private upstreamSubscription: Subscription | undefined;
 
     connectedCallback() {
         super.connectedCallback()
         this.upstreamSubscription = upstream.subscribe((message: Message) => {
+            if (message.command) {
+                const command = message.command
+                if (this.id == command.targetComponentId) {
+                    this.applyCommand(command)
+                }
+
+            }
             if (message.fragment) {
                 const fragment = message.fragment
-                console.log('received fragment for', fragment.targetComponentId)
                 if (this.id == fragment.targetComponentId) {
-                    console.log('applying fragment to', this.id)
                     this.applyFragment(fragment)
                 }
 
@@ -34,4 +42,24 @@ export default abstract class ConnectedElement extends LitElement {
     }
 
     abstract applyFragment(fragment: UIFragment):void
+
+    applyCommand(command: UICommand) {
+        if ('NavigateTo' == command.type) {
+            const destination = command.data as string
+            if (destination) {
+                if (destination.startsWith('http:') || destination.startsWith('https:')) {
+                    window.location.href = command.data as string
+                } else {
+                    this.dispatchEvent(new CustomEvent('navigate-to-requested', {
+                        detail: {
+                            route: destination
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+            }
+        }
+    }
+
 }

@@ -83,6 +83,9 @@ public class ReflectionAppMapper {
   }
 
   public static String getHomeRoute(List<MenuOptionDto> menu, String route) {
+    if (route != null && !route.isEmpty()) {
+      return route;
+    }
     if (menu != null) {
       var selectedRoute = getSelectedRoute(menu, route, true);
       if (selectedRoute != null) {

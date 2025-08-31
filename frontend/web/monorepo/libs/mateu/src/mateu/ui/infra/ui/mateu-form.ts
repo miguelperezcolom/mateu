@@ -29,6 +29,7 @@ export class MateuForm extends MetadataDrivenElement {
 
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
+        document.title = metadata.title
         return html`
             <vaadin-vertical-layout theme="spacing" style="width: 100%;" class="${this.component?.cssClasses}">
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">

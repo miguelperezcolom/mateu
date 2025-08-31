@@ -14,5 +14,6 @@ export default interface App extends ComponentMetadata {
     style: string | undefined
     cssClasses: string | undefined
     drawerClosed: boolean
+    initialRoute: string
 
 }

@@ -5,7 +5,6 @@ import { changed } from "@/SapUi5ComponentRenderer.ts";
 
 export const renderField = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
 
-    console.log('render', component?.metadata?.type)
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId??''
     const value = state && fieldId in state?state[ fieldId]:metadata?.initialValue

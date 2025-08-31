@@ -22,6 +22,7 @@ import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.TextContainer;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
@@ -67,6 +68,7 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
                         .searchable(false)
                         .style("width: 100%;")
                                 .infiniteScrolling(true)
+                        .onRowSelectionChangedActionId("go-to-selected-order")
                         .build()))
                 .build();
     }
@@ -132,4 +134,19 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
                 "No orders.");
     }
 
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("go-to-selected-order".equals(actionId)) {
+            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getSelectedRows(CardRow.class).get(0).id());
+        }
+        return CrudlBackend.super.handleAction(actionId, httpRequest);
+    }
+
+    @Override
+    public boolean supportsAction(String actionId) {
+        if ("go-to-selected-order".equals(actionId)) {
+            return true;
+        }
+        return CrudlBackend.super.supportsAction(actionId);
+    }
 }

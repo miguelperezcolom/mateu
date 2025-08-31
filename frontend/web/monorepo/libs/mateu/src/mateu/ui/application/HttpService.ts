@@ -19,11 +19,12 @@ export class HttpService implements Service {
             path: path
         })
         upstream.next({
+            command: undefined,
             fragment: undefined,
             ui: changes.ui,
             error: undefined
         })
-        this.handleUIIncrement(changes.ui.home, baseUrl)
+        this.handleUIIncrement(changes.ui.home)
     }
 
     mapPosition = (position: string): NotificationPosition => {
@@ -41,7 +42,7 @@ export class HttpService implements Service {
         return 'bottom-end'
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined, baseUrl: string) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):undefined,
@@ -50,20 +51,16 @@ export class HttpService implements Service {
             });
         })
         uiIncrement?.commands?.forEach(command => {
-            if ('NavigateTo' == command.type) {
-                const destination = command.data as string
-                if (destination) {
-                    if (destination.startsWith('http:') || destination.startsWith('https:')) {
-                        window.location.href = command.data as string
-                    } else {
-                        window.history.pushState({},"", baseUrl + destination);
-                        window.dispatchEvent(new PopStateEvent('popstate', window.history.state))
-                    }
-                }
-            }
+            upstream.next({
+                command,
+                fragment: undefined,
+                ui: undefined,
+                error: undefined
+            })
         })
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
+                command: undefined,
                 fragment,
                 ui: undefined,
                 error: undefined
@@ -103,7 +100,7 @@ export class HttpService implements Service {
             initiator,
             background
         } as RunActionCommand)
-        this.handleUIIncrement(changes.uiIncrement, baseUrl)
+        this.handleUIIncrement(changes.uiIncrement)
         if (callback) {
             callback()
         }

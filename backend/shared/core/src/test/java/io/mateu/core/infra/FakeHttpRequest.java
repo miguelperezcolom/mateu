@@ -38,4 +38,9 @@ public class FakeHttpRequest implements HttpRequest {
   public List<String> getHeaderValues(String key) {
     return List.of();
   }
+
+  @Override
+  public String path() {
+    return "";
+  }
 }

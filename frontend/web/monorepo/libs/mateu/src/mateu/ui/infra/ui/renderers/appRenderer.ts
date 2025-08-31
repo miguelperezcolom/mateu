@@ -2,7 +2,6 @@ import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
-import { nanoid } from "nanoid";
 
 const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
@@ -16,7 +15,6 @@ export const renderApp = (container: MateuApp, metadata: App) => {
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
     return html`
-
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
@@ -35,7 +33,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     <div class="app-content">
                         <mateu-api-caller style="width: 100%;">
                             <mateu-ux
-                                    route="${container.selectedRoute}"
+                                    route="${metadata.homeRoute}"
                                     id="ux_${container.id}"
                                     baseUrl="${container.baseUrl}"
                                     consumedRoute="${metadata.route}"
@@ -57,7 +55,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     </vaadin-menu-bar>
                     <mateu-api-caller>
                         <mateu-ux 
-                                route="${container.selectedRoute}" 
+                                route="${metadata.homeRoute}" 
                                 id="ux_${container.id}" 
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -77,7 +75,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     </vaadin-scroller>
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${container.selectedRoute}"
+                                route="${metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -96,14 +94,14 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                         ${metadata.menu.map(option => {
         return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectedRoute = option.destination.route}"
+                                        @click="${() => container.selectRoute(option.destination.route)}"
                                 >${option.label}</vaadin-tab>
                             `
     })}
                     </vaadin-tabs>
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${container.selectedRoute}"
+                                route="${metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"

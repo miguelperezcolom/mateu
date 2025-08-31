@@ -118,4 +118,11 @@ public interface HttpRequest {
   default <T> T getComponentState(Class<T> componentStateType) {
     return MateuInstanceFactory.newInstance(componentStateType, runActionRq().componentState());
   }
+
+  String path();
+
+  default String lastPathItem() {
+    var items = path().split("/");
+    return items[items.length - 1];
+  }
 }

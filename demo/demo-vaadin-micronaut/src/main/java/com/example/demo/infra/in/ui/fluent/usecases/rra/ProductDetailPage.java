@@ -17,16 +17,16 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route("/fluent-app/use-cases/rra/orders/.*")
+@Route("/fluent-app/use-cases/rra/inventory/.*")
 @Singleton
-public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
+public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
 
-    String orderId;
+    String productId;
 
     @Override
     public Component component(HttpRequest httpRequest) {
         return Form.builder()
-                .title("Order " + orderId)
+                .title("Product " + productId)
                 .subtitle("${state.customerName} ${state.date} Total Amount: ${state.customerName}")
                 .toolbar(List.of(
                         Button.builder()
@@ -109,6 +109,6 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
 
     @Override
     public void onHydrated(HttpRequest httpRequest) {
-        orderId = httpRequest.lastPathItem();
+        productId = httpRequest.lastPathItem();
     }
 }

@@ -36,7 +36,6 @@ const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
 }
 
 export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
-    console.log('render app')
     const metadata = component.metadata as App
 
     route = extractRouteFromUrl(window, baseUrl??'')

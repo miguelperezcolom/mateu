@@ -5,7 +5,6 @@ import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CrudlData;
@@ -16,7 +15,7 @@ import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
@@ -132,9 +131,9 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
                                 order.id() + "<br/>" + order.date(),
                                  new Amount(order.totalAmount().currencyCode(), order.totalAmount().value()),
                                 new ColumnActionGroup(List.of(
-                                        new ColumnAction("xxx", "View Order", IconKey.Eye.iconName),
+                                        new ColumnAction("go-to-selected-order", "View Order", IconKey.Eye.iconName),
                                         new ColumnAction("xxx", "Delete", IconKey.Trash.iconName),
-                                        new ColumnAction("xxx", "View Customer", IconKey.User.iconName)
+                                        new ColumnAction("go-to-selected-customer", "View Customer", IconKey.User.iconName)
                                 ).toArray(new ColumnAction[0]))
                         ))
                         .toList()
@@ -157,6 +156,12 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
         if ("create".equals(actionId)) {
             return true;
         }
+        if ("go-to-selected-order".equals(actionId)) {
+            return true;
+        }
+        if ("go-to-selected-customer".equals(actionId)) {
+            return true;
+        }
         return CrudlBackend.super.supportsAction(actionId);
     }
 
@@ -165,6 +170,12 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("create".equals(actionId)) {
             return new URI("/fluent-app/use-cases/rra/orders/create");
+        }
+        if ("go-to-selected-order".equals(actionId)) {
+            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
+        }
+        if ("go-to-selected-customer".equals(actionId)) {
+            return UICommand.navigateTo("/fluent-app/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).id());
         }
         return CrudlBackend.super.handleAction(actionId, httpRequest);
     }

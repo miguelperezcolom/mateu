@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, nothing, PropertyValues } from "lit";
+import { css, html, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -21,8 +21,6 @@ import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { sseService } from "@application/SSEService.ts";
-import { nanoid } from "nanoid";
-
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -35,10 +33,6 @@ export class MateuUx extends ConnectedElement {
     }
 
     // public properties
-    @property()
-    id = ''
-    @property()
-    baseUrl = ''
     @property()
     consumedRoute = ''
     @property()
@@ -70,7 +64,28 @@ export class MateuUx extends ConnectedElement {
 
     actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
         if (e instanceof CustomEvent) {
+            e.preventDefault()
+            e.stopPropagation()
             this.manageActionEvent(e)
+        }
+    }
+
+    navigateToRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        if (e instanceof CustomEvent) {
+            e.preventDefault()
+            e.stopPropagation()
+            this.route = e.detail.route
+            this.setAttribute('route', this.route??'')
+
+            this.dispatchEvent(new CustomEvent('update-route', {
+                detail: {
+                    route: e.detail.route
+                },
+                bubbles: true,
+                composed: true
+            }))
+            //window.history.pushState({},"", this.baseUrl + this.route);
+            //window.dispatchEvent(new PopStateEvent('popstate', window.history.state))
         }
     }
 
@@ -108,6 +123,7 @@ export class MateuUx extends ConnectedElement {
         initiator: HTMLElement
         background: boolean
         sse: boolean
+        callback: any
     } | undefined = undefined
 
     manageActionEvent = (e: CustomEvent) => {
@@ -163,6 +179,8 @@ export class MateuUx extends ConnectedElement {
         this.overridesParsed = parseOverrides(this.overrides);
         this.addEventListener('server-side-action-requested', this.actionRequestedListener)
         this.addEventListener('backend-call-failed', this.backendFailedListener)
+        this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
+
         // @ts-ignore
         window.Vaadin.featureFlags.masterDetailLayoutComponent = true
     }
@@ -171,6 +189,7 @@ export class MateuUx extends ConnectedElement {
         super.disconnectedCallback();
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
         this.removeEventListener('backend-call-failed', this.backendFailedListener)
+        this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -180,11 +199,6 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('route')  ||
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
-            if (!_changedProperties.has('id')) {
-                this.id = nanoid()
-                console.log('new id', this.id)
-                this.setAttribute('id', this.id)
-            }
             this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                 detail: {
                     userData: undefined,
@@ -210,11 +224,10 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
-        console.log('applying', fragment)
         this.fragment = fragment
     }
 
-    render() {
+    render(): TemplateResult {
         return html`
            ${this.fragment?.component?renderComponent(
                this,

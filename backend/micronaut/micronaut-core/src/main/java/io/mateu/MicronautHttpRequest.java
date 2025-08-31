@@ -40,4 +40,9 @@ public class MicronautHttpRequest implements HttpRequest {
   public List<String> getHeaderValues(String key) {
     return delegate.getHeaders().getAll(key);
   }
+
+  @Override
+  public String path() {
+    return delegate.getPath();
+  }
 }

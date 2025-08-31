@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, nothing, PropertyValues } from "lit";
+import { css, html, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -15,7 +15,6 @@ import "@vaadin/grid"
 import '@vaadin/details'
 import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
-import App from "@mateu/shared/apiClients/dtos/componentmetadata/App";
 import "./mateu-ux"
 import './mateu-api-caller'
 import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
@@ -23,6 +22,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -38,30 +38,7 @@ export class MateuApp extends ComponentElement {
     filter: string = ''
 
     @state()
-    selectedRoute: string | undefined = undefined
-
-    @state()
     instant: string | undefined = undefined
-
-    @property()
-    baseUrl: string | undefined = undefined
-
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-        if (_changedProperties.has('component')) {
-            this.selectedRoute = this.getInitialRoute((this.component as ClientSideComponent).metadata as App)
-        }
-        if (_changedProperties.has('selectedRoute')) {
-            this.dispatchEvent(new CustomEvent('route-changed', {
-                detail: {
-                    route: this.selectedRoute
-                },
-                bubbles: true,
-                composed: true
-            }))
-
-        }
-    }
 
     getSelectedOption = (options: MenuOption[]): MenuOption | null => {
         if (options) {
@@ -79,22 +56,20 @@ export class MateuApp extends ComponentElement {
         return null
     }
 
-    getInitialRoute = (app: App): string | undefined => {
-        const selectedOption = this.getSelectedOption(app.menu)
-        if (selectedOption) {
-            return selectedOption.destination.route
-        }
-        return app.homeRoute;
-    }
-
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
         this.selectRoute(e.detail.value.route)
     }
 
-    selectRoute = (route: string) => {
-        this.selectedRoute = route
-        this.instant = nanoid()
+    selectRoute = (route: string | undefined) => {
+        if (route) {
+            const app = ((this.component as ClientSideComponent).metadata as App)
+            app.homeRoute = route
+            this.instant = nanoid()
+            window.history.pushState({},"", this.baseUrl + app.homeRoute);
+        } else {
+
+        }
     }
 
     mapItems = (options: MenuOption[], filter: string): any => {
@@ -150,15 +125,14 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectedRoute = option.destination.route}"
+                @click="${() => this.selectRoute(option.destination.route)}"
         >${option.label}</vaadin-button>`
     }
 
     navItemSelected = (e: Event & {
         path: string | undefined
     }) => {
-        this.selectedRoute = e.path
-        this.instant = nanoid()
+        this.selectRoute(e.path)
     }
 
     renderSideNav = (items: any, slot: string | undefined) => {
@@ -186,6 +160,23 @@ export class MateuApp extends ComponentElement {
 
                             `)}`:nothing
     }
+
+    updateRoute: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        this.selectRoute((e as CustomEvent).detail.route)
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.addEventListener('update-route', this.updateRoute)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.removeEventListener('update-route', this.updateRoute)
+    }
+
 
     render() {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)

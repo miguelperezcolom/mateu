@@ -42,4 +42,9 @@ public class SpringHttpRequest implements HttpRequest {
   public List<String> getHeaderValues(String key) {
     return Collections.list(delegate.getHeaders(key));
   }
+
+  @Override
+  public String path() {
+    return delegate.getServletPath();
+  }
 }

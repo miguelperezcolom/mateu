@@ -45,4 +45,9 @@ public class HelidonMPHttpRequest implements HttpRequest {
   public List<String> getHeaderValues(String key) {
     return delegate.headers().get(HeaderNames.create(key)).allValues();
   }
+
+  @Override
+  public String path() {
+    return delegate.path().rawPath();
+  }
 }
