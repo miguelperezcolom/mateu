@@ -21,6 +21,7 @@ import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-gri
 import { GridDataProvider, GridSortColumn } from "@vaadin/grid/all-imports";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
+import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 
 
 const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
@@ -123,6 +124,16 @@ export class MateuCardList extends LitElement {
     renderItem = (item: any) => {
         if (item.card) {
             return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data)
+        }
+        if (item.title) {
+            return html`<vaadin-card
+        >
+                <div slot="title">${item.title}</div>
+                <div slot="subtitle">${item.subtitle}</div>
+                <div>${item.content}</div>
+                <span slot="header-suffix" theme="badge ${getThemeForBadgetType(item.status.type)}">${item.status.message}</span>
+                <img slot="media" src="${item.image}" alt="" />
+        </vaadin-card>`
         }
         return html`${item}`
     }
