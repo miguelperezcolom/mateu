@@ -45,7 +45,7 @@ public class ReflectionAppMapper {
             getSubtitle(app),
             menu,
             totalMenuOptions(menu),
-            getHomeRoute(menu, route),
+            getHomeRoute(menu, route, appRoute),
             "login_url",
             "welcome_message",
             "logout_url",
@@ -82,8 +82,9 @@ public class ReflectionAppMapper {
     return total;
   }
 
-  public static String getHomeRoute(List<MenuOptionDto> menu, String route) {
-    if (route != null && !route.isEmpty()) {
+  public static String getHomeRoute(List<MenuOptionDto> menu, String route, String appRoute) {
+    var optionRoute = route.replaceFirst(appRoute, "");
+    if (optionRoute != null && !optionRoute.isEmpty()) {
       return route;
     }
     if (menu != null) {

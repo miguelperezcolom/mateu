@@ -1,4 +1,4 @@
-import { customElement } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { css, html } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -13,9 +13,27 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
 import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+
+export const possiblyHtml = (text: string | undefined, state: any, data: any): string | undefined => {
+    if (text && text.indexOf("${") >= 0) {
+        try {
+            return eval('`' + text + '`')
+        } catch (e: any) {
+            return e.message
+        }
+    }
+    return text;
+}
 
 @customElement('mateu-form')
 export class MateuForm extends MetadataDrivenElement {
+
+    @property()
+    state: any
+
+    @property()
+    data: any
 
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -34,8 +52,8 @@ export class MateuForm extends MetadataDrivenElement {
             <vaadin-vertical-layout theme="spacing" style="width: 100%;" class="${this.component?.cssClasses}">
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                     <vaadin-vertical-layout>
-                        <h2 style="margin-block-end: 0px;">${metadata?.title}</h2>
-                        <span style="display: inline-block; margin-block-end: 0.83em;">${metadata?.subtitle}</span>
+                        <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
+                        <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                     </vaadin-vertical-layout>
                     <vaadin-horizontal-layout theme="spacing" slot="end">
                         ${metadata?.toolbar?.map(button => html`

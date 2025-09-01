@@ -4,10 +4,17 @@ import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
 import { html, LitElement, nothing } from "lit";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { columnBodyRenderer } from "@vaadin/grid/lit";
+import { columnRenderer } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
+import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 
 
-export const renderGrid = (component: ClientSideComponent,
-                           container: LitElement,
+
+
+export const renderGrid = (
+                            container: LitElement,
+                            component: ClientSideComponent,
+
                            baseUrl: string | undefined,
                            state: any,
                            data: any) => {
@@ -30,7 +37,7 @@ export const renderGrid = (component: ClientSideComponent,
                 managerId: params.parentItem ? params.parentItem.id : null,
             });
              */
-            const items = params.parentItem?params.parentItem.children:metadata.page.items
+            const items = params.parentItem?params.parentItem.children:metadata.page.content
 
             callback(items, items.length);
         }
@@ -43,7 +50,15 @@ export const renderGrid = (component: ClientSideComponent,
         >
             ${metadata.content.map((column, index) => index > 0?html`
             <vaadin-grid-column path="${column.id}" ${columnBodyRenderer(
-                    columnRenderer,
+                    (item: any,
+                     model: GridItemModel<any>,
+                     column: VaadinGridColumn) => columnRenderer(item,
+                            model,
+                            column,
+                            container,
+                            baseUrl,
+                            state,
+                            data),
                     []
             )}>${index} - ${(column.metadata as GridColumn)?.label}</vaadin-grid-column>
 `:html`
@@ -54,9 +69,9 @@ export const renderGrid = (component: ClientSideComponent,
     `
     }
 
-    let items = metadata.page?.items
-    if (component.id && data && data[component.id]) {
-        items = data[component.id]
+    let items = metadata.page?.content
+    if (component.id && state && state[component.id]) {
+        items = state[component.id]
     }
     if (!items) {
         items = []
@@ -70,7 +85,15 @@ export const renderGrid = (component: ClientSideComponent,
         >
             ${metadata.content.map(column => html`
             <vaadin-grid-column path="${column.id}" ${columnBodyRenderer(
-                    columnRenderer,
+                    (item: any,
+                     model: GridItemModel<any>,
+                     column: VaadinGridColumn) => columnRenderer(item,
+            model,
+            column,
+            container,
+            baseUrl,
+            state,
+            data),
                     []
             )}>${(column.metadata as GridColumn)?.label}</vaadin-grid-column>
 `)}

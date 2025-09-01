@@ -6,4 +6,12 @@ import lombok.Builder;
 @Builder
 @Serdeable
 public record Address(String address, String postalCode, String city, String state, String country) {
+
+    @Override
+    public String toString() {
+        return address + "<br/>"
+                + postalCode + " - " + city + "<br/>"
+                + state + " - " + country
+                ;
+    }
 }

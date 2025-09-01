@@ -52,12 +52,15 @@ public class RRAGenerator {
 
         var random = new Random();
         var df = new DecimalFormat("000");
+        var prodiddf = new DecimalFormat("P0000000000");
+        var custiddf = new DecimalFormat("C0000000000");
+        var ordiddf = new DecimalFormat("O0000000000");
 
-        for (int i = 0; i < MAX_PRODUCTS; i++) {
+        for (int i = 1; i <= MAX_PRODUCTS; i++) {
             var vehicle = faker.vehicle();
             var imageId = i % 35 + 1;
             productRepository.save(Product.builder()
-                            .id(faker.idNumber().ssnValid())
+                            .id(prodiddf.format(i ))
                             .brand(faker.brand().car())
                             .description(faker.text().text())
                             .category(vehicle.carType())
@@ -72,12 +75,12 @@ public class RRAGenerator {
                     .build());
         }
 
-        for (int i = 0; i < MAX_CUSTOMERS; i++) {
+        for (int i = 1; i <= MAX_CUSTOMERS; i++) {
             var person = faker.funnyName();
             var address1 = faker.address();
             var address2 = faker.address();
             customerRepository.save(Customer.builder()
-                            .id(faker.idNumber().peselNumber())
+                            .id(custiddf.format(i))
                             .email(faker.internet().emailAddress())
                             .billingAddress(Address.builder()
                                     .address(address1.streetAddress())
@@ -98,14 +101,14 @@ public class RRAGenerator {
                     .build());
         }
 
-        for (int i = 0; i < MAX_ORDERS; i++) {
+        for (int i = 1; i <= MAX_ORDERS; i++) {
             var lines = new ArrayList<OrderLine>();
             int maxLines = (Math.abs(random.nextInt()) % MAX_LINES_PER_ORDER) + 1;
             for (int j = 0; j < maxLines; j++) {
                 lines.add(new OrderLine(productRepository.findAll().get(Math.abs(random.nextInt()) % productRepository.findAll().size()), 3));
             }
             orderRepository.save(Order.builder()
-                    .id(faker.idNumber().peselNumber())
+                    .id(ordiddf.format(i))
                             .status(getOrderStatus(i))
                             .lines(lines)
                             .customer(customerRepository.findAll().get(Math.abs(random.nextInt()) % customerRepository.findAll().size()))

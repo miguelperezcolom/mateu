@@ -21,6 +21,7 @@ import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { sseService } from "@application/SSEService.ts";
+import ComponentElement from "@infra/ui/ComponentElement.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {

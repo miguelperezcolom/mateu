@@ -58,6 +58,7 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { renderDiv } from "@infra/ui/renderers/divRenderer.ts";
 import { nanoid } from "nanoid";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -320,10 +321,13 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderMenuBar(component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Grid) {
-            return renderGrid(component, container, baseUrl, state, data)
+            return renderGrid(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.VirtualList) {
             return renderVirtualList(component, baseUrl, state, data)
+        }
+        if (type == ComponentMetadataType.FormSection) {
+            return renderFormSection(container, component, baseUrl, state, data)
         }
         //console.log('Unknown metadata type for component', type, component)
         return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`

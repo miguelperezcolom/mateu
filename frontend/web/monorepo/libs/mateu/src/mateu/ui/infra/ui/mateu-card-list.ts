@@ -128,11 +128,22 @@ export class MateuCardList extends LitElement {
         if (item.title) {
             return html`<vaadin-card
         >
-                <div slot="title">${item.title}</div>
-                <div slot="subtitle">${item.subtitle}</div>
-                <div>${item.content}</div>
-                <span slot="header-suffix" theme="badge ${getThemeForBadgetType(item.status.type)}">${item.status.message}</span>
-                <img slot="media" src="${item.image}" alt="" />
+                ${item.title?html`
+                    <div slot="title">${item.title}</div>
+                `:nothing}
+                ${item.subtitle?html`
+                    <div slot="subtitle">${item.subtitle}</div>
+                `:nothing}
+                ${item.content?html`
+                    <div>${item.content}</div>
+                `:nothing}
+                ${item.status?html`
+                    <span slot="header-suffix" theme="badge ${getThemeForBadgetType(item.status.type)}">${item.status.message}</span>
+                `:nothing}
+                ${item.image?html`
+                    <img slot="media" src="${item.image}" alt="" />
+                `:nothing}
+                
         </vaadin-card>`
         }
         return html`${item}`

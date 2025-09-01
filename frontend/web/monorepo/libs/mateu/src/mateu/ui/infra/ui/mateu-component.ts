@@ -257,8 +257,6 @@ export class MateuComponent extends ComponentElement {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
-            this.state = {}
-            this.data = {}
             const serverSideComponent = this.component as ServerSideComponent
             // @ts-ignore
             const state = this.state

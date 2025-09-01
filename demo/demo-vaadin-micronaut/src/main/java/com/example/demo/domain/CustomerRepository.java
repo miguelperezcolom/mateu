@@ -15,7 +15,7 @@ public class CustomerRepository {
         return customers;
     }
 
-    Optional<Customer> findById(String id) {
+    public Optional<Customer> findById(String id) {
         return customers.stream().filter(order -> order.id().equals(id)).findFirst();
     }
 

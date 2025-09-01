@@ -44,19 +44,7 @@ import { renderImageCell } from "@infra/ui/renderers/columnRenderers/imageColumn
 import { renderMenuCell } from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-
-
-const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    event.currentTarget?.dispatchEvent(new CustomEvent('sort-direction-changed', {
-        detail: {
-            grid: (event.currentTarget as GridSortColumn).parentElement
-        },
-        bubbles: true,
-        composed: true
-    }))
-}
+import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 
 
 @customElement('mateu-table')
@@ -86,129 +74,14 @@ export class MateuTable extends LitElement {
 
     pagesRequested = []
 
-    renderGroup = (group: GridGroupColumn) => {
-        return html`
-<vaadin-grid-column-group header="${group.label}">
-    ${group.columns.map(column => this.renderColumn(column.metadata as GridColumn))}
-</vaadin-grid-column-group>
-`
-    }
 
-    renderColumnOrGroup = (columnOrGroup: ClientSideComponent) => {
-        if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
-            return this.renderGroup(columnOrGroup.metadata as GridGroupColumn)
-        } else {
-            return this.renderColumn(columnOrGroup.metadata as GridColumn)
-        }
-    }
-
-    renderColumn = (column: GridColumn) => {
-        if (column.sortable) {
-            return html`
-                        <vaadin-grid-sort-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
-                                @direction-changed="${directionChanged}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
-                                ${columnBodyRenderer(
-                                        this.columnRenderer,
-                []
-            )}
-                        ></vaadin-grid-sort-column>
-                    `
-        } else if (column.filterable) {
-            return html`
-                        <vaadin-grid-filter-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
-                                ${columnBodyRenderer(
-                                        this.columnRenderer,
-                []
-            )}
-                        ></vaadin-grid-filter-column>
-                    `
-        } else {
-            return html`
-                        <vaadin-grid-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
-                                ${columnBodyRenderer(
-                                        this.columnRenderer,
-                []
-            )}
-                        ></vaadin-grid-column>
-                    `
-        }
-    }
-
-    columnRenderer : GridColumnBodyLitRenderer<any> = (item: any,
-                                                             model: GridItemModel<any>,
-                                                             column: VaadinGridColumn) => {
-
-        const type = column.dataset.dataType??''
-        const stereotype = column.dataset.stereotype??''
-        if ('status' == type) {
-            return renderStatusCell(item, model, column)
-        }
-        if ('bool' == type) {
-            return renderBooleanCell(item, model, column)
-        }
-        if ('money' == type || 'money' == stereotype) {
-            return renderMoneyCell(item, model, column, type, stereotype)
-        }
-        if ('link' == type || 'link' == stereotype) {
-            return renderLinkCell(item, model, column, type, stereotype)
-        }
-        if ('icon' == type || 'icon' == stereotype) {
-            return renderIconCell(item, model, column, type, stereotype)
-        }
-        if ('html' == stereotype) {
-            return renderHtmlCell(item, model, column, type, stereotype)
-        }
-        if ('image' == stereotype) {
-            return renderImageCell(item, model, column, type, stereotype)
-        }
-        if ('menu' == type) {
-            return renderMenuCell(item, model, column)
-        }
-        if ('component' == type) {
-            return renderComponentCell(item, model, column, this, this.baseUrl, this.state, this.data)
-        }
-        return html`${item[column.path!]}`
-    }
 
     // @ts-ignore
     dataProvider:GridDataProvider<unknown> = (params, callback) => {
         const page = this.data[this.id]?.page
         if (this.metadata?.infiniteScrolling && params.page > 0) {
             let satisfied = false
-            if (page) {
+            if (page && page.content) {
                 if (page.content.length >= (params.page + 1) * params.pageSize) {
                     callback(page.content
                             .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
@@ -223,9 +96,11 @@ export class MateuTable extends LitElement {
                         detail: {
                             params,
                             callback: () => {
-                                callback(this.data[this.id].page.content
-                                        .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
-                                    this.data[this.id].page.totalElements)
+                                if (this.data[this.id].page.content) {
+                                    callback(this.data[this.id].page.content
+                                            .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
+                                        this.data[this.id].page.totalElements)
+                                }
                             }
                         },
                         bubbles: true,
@@ -335,7 +210,7 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
-                ${this.metadata?.columns?.map(column => this.renderColumnOrGroup(column))}
+                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
                             width="80px"

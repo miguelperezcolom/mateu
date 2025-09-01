@@ -21,13 +21,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 const children = fragment.component?.type == ComponentType.ServerSide?
                     fragment.component?.children:
                     [fragment.component]
-                this.component!.children = children
-                if (!fragment.state) {
-                    this.state = { }
+                if (this.component) {
+                    this.component.children = children
                 }
-                if (!fragment.data) {
-                    this.data = { }
-                }
+                this.state = { }
+                this.data = { }
             }
 
             if (fragment.state) {
@@ -37,9 +35,13 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             if (fragment.data) {
                 for (const key in fragment.data) {
                     const page = fragment.data[key].page as Page
-                    if (page.pageNumber > 0) {
+                    if (page?.pageNumber > 0) {
                         if (this.data[key] && this.data[key].page.content) {
-                            page.content = [...this.data[key].page.content, ...page.content]
+                            if (page.content) {
+                                page.content = [...this.data[key].page.content, ...page.content]
+                            } else {
+                                page.content = [...this.data[key].page.content]
+                            }
                         }
                     }
                 }

@@ -4,7 +4,6 @@ import { html, nothing } from "lit";
 
 export const handleButtonClick = (event: Event, button: Button) => {
     const actionId = (event.target as HTMLElement).dataset.actionId
-    console.log('boton', button)
     event.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
             actionId,

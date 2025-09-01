@@ -1,5 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
+import com.example.demo.domain.CustomerRepository;
+import com.example.demo.domain.OrderRepository;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
@@ -13,6 +15,7 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.util.List;
@@ -22,12 +25,26 @@ import java.util.List;
 public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
 
     String orderId;
+    String name;
+    String phoneNumber;
+    String email;
+    String address;
+    String totalAmount;
+    String date;
+
+    private final OrderRepository orderRepository;
+
+    @Inject
+    public OrderDetailPage(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
 
     @Override
     public Component component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Order " + orderId)
-                .subtitle("${state.customerName} ${state.date} Total Amount: ${state.customerName}")
+                .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
                 .toolbar(List.of(
                         Button.builder()
                                 .label("Cancel")
@@ -50,16 +67,19 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                         .content(List.of(
                                                                                 FormField.builder()
                                                                                         .dataType(FieldDataType.string)
-                                                                                        .id("customerName")
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .id("name")
                                                                                         .label("Name")
                                                                                         .build(),
                                                                                 FormField.builder()
                                                                                         .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
                                                                                         .id("phoneNumber")
                                                                                         .label("Phone Number")
                                                                                         .build(),
                                                                                 FormField.builder()
                                                                                         .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
                                                                                         .id("email")
                                                                                         .label("Email")
                                                                                         .build()
@@ -69,6 +89,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                         .content(List.of(
                                                                                 FormField.builder()
                                                                                         .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
                                                                                         .id("address")
                                                                                         .label("Address")
                                                                                         .build()
@@ -110,5 +131,13 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
     @Override
     public void onHydrated(HttpRequest httpRequest) {
         orderId = httpRequest.lastPathItem();
+        var order = orderRepository.findById(orderId).get();
+        var customer = order.customer();
+        name = customer.name();
+        phoneNumber = customer.phoneNumber();
+        email = customer.email();
+        address = customer.billingAddress().toString();
+        totalAmount = order.totalAmount().toString();
+        date = order.date().toString();
     }
 }

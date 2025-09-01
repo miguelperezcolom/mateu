@@ -23,6 +23,7 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import '@vaadin/item'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 
 @customElement('mateu-field')
@@ -226,6 +227,14 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required}"
                     ></vaadin-password-field>
+                `
+            }
+            if (this.field?.stereotype == 'html') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML(this.state[this.field.fieldId])}</div></vaadin-custom-field>
                 `
             }
             return html`

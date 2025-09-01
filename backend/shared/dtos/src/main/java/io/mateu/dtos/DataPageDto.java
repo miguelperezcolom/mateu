@@ -3,12 +3,12 @@ package io.mateu.dtos;
 import java.util.Collections;
 import java.util.List;
 
-public record DataPageDto(List<?> items, long totalElements) {
+public record DataPageDto(List<?> content, long totalElements) {
   public DataPageDto {
-    items = Collections.unmodifiableList(items);
+    content = Collections.unmodifiableList(content);
   }
 
-  public List<?> items() {
-    return Collections.unmodifiableList(items);
+  public List<?> content() {
+    return Collections.unmodifiableList(content);
   }
 }
