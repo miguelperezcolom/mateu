@@ -1,3 +1,3 @@
 package io.mateu.dtos;
 
-public record OptionDto(String value, String label, String description) {}
+public record OptionDto(Object value, String label, String description) {}

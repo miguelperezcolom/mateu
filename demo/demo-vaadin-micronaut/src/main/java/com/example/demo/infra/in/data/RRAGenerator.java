@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 @Singleton
 @Slf4j
@@ -105,7 +106,10 @@ public class RRAGenerator {
             var lines = new ArrayList<OrderLine>();
             int maxLines = (Math.abs(random.nextInt()) % MAX_LINES_PER_ORDER) + 1;
             for (int j = 0; j < maxLines; j++) {
-                lines.add(new OrderLine(productRepository.findAll().get(Math.abs(random.nextInt()) % productRepository.findAll().size()), 3));
+                lines.add(new OrderLine(
+                        UUID.randomUUID().toString(),
+                        productRepository.findAll().get(Math.abs(random.nextInt()) % productRepository.findAll().size()),
+                        3));
             }
             orderRepository.save(Order.builder()
                     .id(ordiddf.format(i))

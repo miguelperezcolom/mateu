@@ -69,6 +69,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
     @Override
     public CrudlData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         return new CrudlData<>(new Page<>(
+                searchText,
                 pageable.size(),
                 pageable.page(),
                 orderRepository.findAll().size(),

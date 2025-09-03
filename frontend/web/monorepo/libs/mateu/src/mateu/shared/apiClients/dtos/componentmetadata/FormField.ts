@@ -3,6 +3,8 @@ import Pair from "./Pair";
 import Badge from "./Badge";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import RemoteCoordinates from "@mateu/shared/apiClients/dtos/componentmetadata/RemoteCoordinates.ts";
 
 export default interface FormField extends ComponentMetadata {
 
@@ -23,9 +25,14 @@ export default interface FormField extends ComponentMetadata {
     bold?: boolean | undefined
     initialValue?: any
     options?: Option[] | undefined
+    remoteCoordinates: RemoteCoordinates | undefined
     charLimit?: string
     required: boolean
     disabled: boolean
     readOnly: boolean
+    style?: string | undefined
+    columns: ClientSideComponent[]
+    createForm: ClientSideComponent
+    editor: ClientSideComponent
 
 }

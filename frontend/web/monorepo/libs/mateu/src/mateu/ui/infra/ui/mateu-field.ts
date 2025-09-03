@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -22,8 +22,10 @@ import "@vaadin/email-field"
 import "@vaadin/upload"
 import "@vaadin/list-box"
 import '@vaadin/item'
-import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import { ComboBoxDataProvider } from "@vaadin/combo-box";
+import './mateu-grid'
 
 
 @customElement('mateu-field')
@@ -31,6 +33,9 @@ export class MateuField extends LitElement {
 
     @property()
     field: FormField | undefined = undefined
+
+    @property()
+    baseUrl: string | undefined = undefined
 
     @property()
     state: any | undefined = undefined
@@ -111,8 +116,7 @@ export class MateuField extends LitElement {
         </div>`
     }
 
-    renderField() {
-        //console.log('render field', this.field)
+    renderField(): TemplateResult {
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
         if (this.field?.dataType == 'file') {
@@ -313,6 +317,16 @@ export class MateuField extends LitElement {
             ></vaadin-time-picker>`
         }
         if (this.field?.dataType == 'array') {
+            if (this.field?.stereotype == 'grid') {
+                return html`
+                    <mateu-grid
+                            id="${this.field.fieldId}"
+                        .field="${this.field}"
+                        .state="${this.state}"
+                        .data="${this.data}"
+                    ></mateu-grid>
+`
+            }
             if (this.field?.stereotype == 'listBox') {
                 return html`aaa
                     <vaadin-list-box multiple ?selected="${this.selectedIndex()}"
@@ -358,15 +372,80 @@ export class MateuField extends LitElement {
         }
         if (this.field?.dataType == 'reference') {
             if (this.field?.stereotype == 'combobox') {
+                if (this.field?.remoteCoordinates) {
+
+                    const coords = this.field.remoteCoordinates;
+
+                    const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
+                        const { filter, page, pageSize } = params;
+                        if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
+                            this.data[this.id] = undefined
+                        }
+                        if (this.data[this.id]
+                            && this.data[this.id].content
+                            && (this.data[this.id].totalElements <= (page + 1) * pageSize
+                                ||
+                                this.data[this.id].content.length >= (page + 1) * pageSize)) {
+                            callback(this.data[this.id].content
+                                    .slice(page * pageSize, ((page + 1) * pageSize)),
+                                this.data[this.id].totalElements)
+                        } else {
+                            this.dispatchEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: coords.action,
+                                    parameters: {
+                                        searchText: filter,
+                                        fieldId: this.field?.fieldId,
+                                        size: pageSize,
+                                        page,
+                                        sort: undefined
+                                    },
+                                    callback: () => {
+                                        if (this.data[this.id] && this.data[this.id].content) {
+                                            callback(this.data[this.id].content
+                                                    .slice(page * pageSize, ((page + 1) * pageSize)),
+                                                this.data[this.id].totalElements)
+                                        }
+                                    }
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }
+                    };
+
+                    let selectedItem = value
+                    if (this.data[this.id] && this.data[this.id].content) {
+                        selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
+                    }
+
+                    console.log(this.id, value, this.data[this.id])
+
+                    return html`
+                    <vaadin-combo-box
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            item-label-path="label"
+                            item-id-path="value"
+                            .dataProvider="${dataProvider}"
+                            .helperText="${this.field.description}"
+                            @value-changed="${this.valueChanged}"
+                            ?autofocus="${this.field.wantsFocus}"
+                            ?required="${this.field.required}"
+                            .selectedItem="${selectedItem}"
+                    ></vaadin-combo-box>
+                    `
+                }
                 return html`
                     <vaadin-combo-box
+                            id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${value}"
+                            .selectedItem="${value}"
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required}"
                     ></vaadin-combo-box>

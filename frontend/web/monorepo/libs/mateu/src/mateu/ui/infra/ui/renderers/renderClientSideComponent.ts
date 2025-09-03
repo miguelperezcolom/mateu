@@ -54,11 +54,11 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
-import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderDiv } from "@infra/ui/renderers/divRenderer.ts";
 import { nanoid } from "nanoid";
-import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
+import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/RemoteCoordinates.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -328,6 +328,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         if (type == ComponentMetadataType.FormSection) {
             return renderFormSection(container, component, baseUrl, state, data)
+        }
+        if (type == ComponentMetadataType.FormSubSection) {
+            return renderFormSubSection(container, component, baseUrl, state, data)
         }
         //console.log('Unknown metadata type for component', type, component)
         return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`

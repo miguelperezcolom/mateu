@@ -19,7 +19,7 @@ public class VirtualListComponentPage implements ComponentTreeSupplier {
                 .title("Virtual list")
                 .content(List.of(
                         VirtualList.builder()
-                                .page(new Page<>(10, 1, 3, List.of(
+                                .page(new Page<>("", 10, 1, 3, List.of(
                                         new Text("Item 1"),
                                         new Text("Item 2"),
                                         new Text("Item 3")

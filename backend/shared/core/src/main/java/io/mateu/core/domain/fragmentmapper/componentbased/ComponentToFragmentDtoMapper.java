@@ -34,6 +34,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormIte
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormRowComponentToDtoMapper.mapFormRowToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormSectionComponentToDtoMapper.mapFormSectionToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormSubSectionComponentToDtoMapper.mapFormSubSectionToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridColumnComponentToDtoMapper.mapGridColumnToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
@@ -96,6 +97,7 @@ import io.mateu.uidl.data.FormItem;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FormSection;
+import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.FullWidth;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
@@ -129,6 +131,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class ComponentToFragmentDtoMapper {
@@ -150,8 +153,19 @@ public final class ComponentToFragmentDtoMapper {
         initiatorComponentId,
         mapComponentToDto(componentSupplier, component, baseUrl, route, httpRequest),
         componentSupplier,
-        null,
+        getData(httpRequest),
         UIFragmentActionDto.Replace);
+  }
+
+  private static Object getData(HttpRequest httpRequest) {
+    if (httpRequest == null) {
+      return null;
+    }
+    var data = httpRequest.getAttribute("data");
+    if (data instanceof Optional<?>) {
+      data = ((Optional<?>) data).orElse(null);
+    }
+    return data;
   }
 
   public static ComponentDto mapComponentToDto(
@@ -242,7 +256,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapTextToDto(text);
     }
     if (component instanceof FormField formField) {
-      return mapFormFieldToDto(formField);
+      return mapFormFieldToDto(formField, baseUrl, route, httpRequest);
     }
     if (component instanceof Avatar avatar) {
       return mapAvatarToDto(avatar);
@@ -309,6 +323,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof FormSection formSection) {
       return mapFormSectionToDto(formSection, baseUrl, route, httpRequest);
+    }
+    if (component instanceof FormSubSection formSubSection) {
+      return mapFormSubSectionToDto(formSubSection, baseUrl, route, httpRequest);
     }
     if (component instanceof Tooltip tooltip) {
       return mapTooltipToDto(tooltip, baseUrl, route, httpRequest);

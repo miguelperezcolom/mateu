@@ -40,7 +40,7 @@ public class RunActionUseCase {
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
-    log.info("run action for {}", command);
+    log.info("run action {} for {}", command.actionId(), command);
     // todo: use path somehow
     return Mono.just(command)
         .flatMap(ignored -> createInstance(command))
@@ -120,7 +120,7 @@ public class RunActionUseCase {
     var instanceTypeName = getInstanceTypeName(command);
     if (instanceTypeName != null) {
       var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-      return resolveRoute(
+      return createInstance(
           instanceTypeName,
           instanceFactory,
           command.route(),
@@ -131,7 +131,7 @@ public class RunActionUseCase {
     return tryWithApp(command.route(), command.componentState(), command.httpRequest());
   }
 
-  private Mono<?> resolveRoute(
+  private Mono<?> createInstance(
       String instanceTypeName,
       InstanceFactory instanceFactory,
       String route,
@@ -139,10 +139,7 @@ public class RunActionUseCase {
       Map<String, Object> data,
       HttpRequest httpRequest) {
     return instanceFactory
-        .createInstance(
-            getInstanceNameUsingResolvers(instanceTypeName, route, consumedRoute, httpRequest),
-            data,
-            httpRequest)
+        .createInstance(instanceTypeName, data, httpRequest)
         .flatMap(
             instance -> {
               if (instance instanceof HandlesRoute handlesRoute) {
@@ -206,42 +203,44 @@ public class RunActionUseCase {
   }
 
   private String getInstanceNameUsingResolvers(
-      String instanceTypeName, String route, String consumedRoute, HttpRequest httpRequest) {
-    if (instanceTypeName == null || instanceTypeName.isEmpty()) {
-      for (RouteResolver resolver :
-          beanProvider.getBeans(RouteResolver.class).stream()
-              .sorted(Comparator.comparingInt(a -> a.weight(route)))
-              .toList()) {
-        if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
-          return resolver.resolveRoute(route, httpRequest).getName();
-        }
+      String route, String consumedRoute, HttpRequest httpRequest) {
+    for (RouteResolver resolver :
+        beanProvider.getBeans(RouteResolver.class).stream()
+            .filter(
+                resolver -> {
+                  var resolved = resolver.resolveRoute(route, httpRequest);
+                  return AppSupplier.class.isAssignableFrom(resolved)
+                      || App.class.isAssignableFrom(resolved);
+                })
+            .sorted(Comparator.comparingInt(a -> a.weight(route)))
+            .toList()) {
+      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
+        return resolver.resolveRoute(route, httpRequest).getName();
       }
     }
-    return instanceTypeName;
+    for (RouteResolver resolver :
+        beanProvider.getBeans(RouteResolver.class).stream()
+            .filter(
+                resolver -> {
+                  var resolved = resolver.resolveRoute(route, httpRequest);
+                  return !(AppSupplier.class.isAssignableFrom(resolved)
+                      || App.class.isAssignableFrom(resolved));
+                })
+            .sorted(Comparator.comparingInt(a -> a.weight(route)))
+            .toList()
+            .reversed()) {
+      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
+        return resolver.resolveRoute(route, httpRequest).getName();
+      }
+    }
+    return null;
   }
 
   private String getInstanceTypeName(RunActionCommand command) {
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
       return command.serverSiteType();
     }
-    var routeResolverBeans = beanProvider.getBeans(RouteResolver.class);
-    for (RouteResolver bean :
-        routeResolverBeans.stream()
-            .filter(
-                resolver ->
-                    resolver.supportsRoute(command.route())
-                        && !resolver.supportsRoute(command.consumedRoute()))
-            .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
-            .toList()) {
-      System.out.println(
-          "route="
-              + command.route()
-              + ", consumed="
-              + command.consumedRoute()
-              + ", result="
-              + bean.resolveRoute(command.route(), command.httpRequest()).getName());
-      return bean.resolveRoute(command.route(), command.httpRequest()).getName();
-    }
-    return null;
+    return getInstanceNameUsingResolvers(
+        command.route(), command.consumedRoute(), command.httpRequest());
   }
 }

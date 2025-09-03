@@ -287,6 +287,7 @@ export class MateuComponent extends ComponentElement {
                 this.state = newState
 
                 const serverSideComponent = this.component as ServerSideComponent
+
                 serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnValueChange)
                     .filter(trigger => !trigger.propertyName || detail.fieldId == trigger.propertyName)
                     .forEach(trigger => {
@@ -300,6 +301,7 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                     })
+
                 this.onChange()
             }
         }
@@ -322,6 +324,7 @@ export class MateuComponent extends ComponentElement {
         if (e.type == 'action-requested') {
             e.preventDefault()
             e.stopPropagation()
+
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
 

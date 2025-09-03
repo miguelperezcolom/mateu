@@ -1,5 +1,5 @@
 import { customElement, property, query, state } from "lit/decorators.js";
-import {ifDefined} from "lit/directives/if-defined.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -19,30 +19,15 @@ import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
-import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn";
-import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
-import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import {
-    Grid, GridActiveItemChangedEvent,
+    Grid,
+    GridActiveItemChangedEvent,
     GridDataProvider,
     GridEventContext,
-    GridSelectedItemsChangedEvent,
-    GridSortColumn
+    GridSelectedItemsChangedEvent
 } from "@vaadin/grid/all-imports";
-import { columnBodyRenderer, GridColumnBodyLitRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
-import {badge} from "@vaadin/vaadin-lumo-styles";
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
-import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
-import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
-import { renderBooleanCell } from "@infra/ui/renderers/columnRenderers/booleanColumnRenderer.ts";
-import { renderMoneyCell } from "@infra/ui/renderers/columnRenderers/moneyColumnRenderer.ts";
-import { renderLinkCell } from "@infra/ui/renderers/columnRenderers/linkColumnRenderer.ts";
-import { renderIconCell } from "@infra/ui/renderers/columnRenderers/iconColumnRenderer.ts";
-import { renderHtmlCell } from "@infra/ui/renderers/columnRenderers/htmlColumnRenderer.ts";
-import { renderImageCell } from "@infra/ui/renderers/columnRenderers/imageColumnRenderer.ts";
-import { renderMenuCell } from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
-import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
+import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
+import { badge } from "@vaadin/vaadin-lumo-styles";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 
@@ -72,7 +57,7 @@ export class MateuTable extends LitElement {
     @state()
     detailsOpenedItems: any[] = []
 
-    pagesRequested = []
+    pagesRequested: number[] = []
 
 
 
@@ -210,7 +195,7 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
-                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column))}
+                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
                             width="80px"

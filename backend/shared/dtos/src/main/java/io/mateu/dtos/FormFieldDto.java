@@ -37,8 +37,13 @@ public record FormFieldDto(
     boolean rightAligned,
     boolean bold,
     List<OptionDto> options,
+    RemoteCoordinatesDto remoteCoordinates,
     Object initialValue,
-    boolean required)
+    boolean required,
+    String style,
+    List<ComponentDto> columns,
+    ComponentDto createForm,
+    ComponentDto editor)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

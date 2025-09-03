@@ -119,6 +119,7 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
         var filteredItems = orderRepository.findAll().stream()
                 .filter(order -> OrderStatus.Draft.equals(order.status())).toList();
         return new CrudlData<>(new Page<>(
+                searchText,
                 pageable.size(),
                 pageable.page(),
                 filteredItems.size(),

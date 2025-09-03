@@ -15,7 +15,7 @@ public class ProductRepository {
         return products;
     }
 
-    Optional<Product> findById(String id) {
+    public Optional<Product> findById(String id) {
         return products.stream().filter(order -> order.id().equals(id)).findFirst();
     }
 

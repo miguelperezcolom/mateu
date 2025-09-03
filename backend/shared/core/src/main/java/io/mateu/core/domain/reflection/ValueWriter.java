@@ -57,7 +57,11 @@ public class ValueWriter {
       if (!Modifier.isPublic(f.getModifiers())) {
         f.setAccessible(true);
       }
-      f.set(o, v);
+      try {
+        f.set(o, v);
+      } catch (Exception ignoredAgain) {
+        f.set(o, null);
+      }
     }
   }
 

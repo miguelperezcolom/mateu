@@ -11,7 +11,7 @@ export const renderImageCell = (item: any,
     if (type == 'string') {
         // @ts-ignore
         const src = item[column.path]
-        return html`<img src="${src}">`;
+        return html`<img src="${src}" style="max-height: 40px;">`;
     }
     // @ts-ignore
     const img = item[column.path]

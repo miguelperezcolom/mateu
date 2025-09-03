@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Form;
 import java.util.List;
 import lombok.Builder;
 
@@ -15,9 +16,13 @@ public record FormField(
     String placeholder,
     String description,
     List<Option> options,
+    RemoteCoordinates remoteCoordinates,
     Object initialValue,
     String style,
-    String cssClasses)
+    String cssClasses,
+    List<GridContent> columns,
+    Form createForm,
+    Form editor)
     implements Component {
 
   public FormField {
@@ -27,5 +32,9 @@ public record FormField(
   @Override
   public List<Option> options() {
     return options != null ? options : List.of();
+  }
+
+  public List<GridContent> columns() {
+    return columns != null ? columns : List.of();
   }
 }

@@ -99,7 +99,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
                   serializeData(
                       reflectionFragmentMapper.mapToFragment(
                           componentFragmentMapper.mapToFragment(
-                              instance, baseUrl, route, initiatorComponentId, httpRequest),
+                              object, baseUrl, route, initiatorComponentId, httpRequest),
                           baseUrl,
                           route,
                           initiatorComponentId,
@@ -138,5 +138,6 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return data;
     }
     return fromJson(toJson(data));
+    //return data;
   }
 }

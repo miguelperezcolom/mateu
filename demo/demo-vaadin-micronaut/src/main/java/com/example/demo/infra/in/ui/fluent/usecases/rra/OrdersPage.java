@@ -122,6 +122,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
     @Override
     public CrudlData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         return new CrudlData<>(new Page<>(
+                searchText,
                 pageable.size(),
                 pageable.page(),
                 orderRepository.findAll().size(),

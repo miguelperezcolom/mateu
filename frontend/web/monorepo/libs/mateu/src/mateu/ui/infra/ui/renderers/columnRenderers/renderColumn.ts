@@ -31,23 +31,47 @@ const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
 }
 
 
-export const renderGroup = (group: GridGroupColumn) => {
+export const renderGroup = (group: GridGroupColumn,
+                            container: LitElement,
+                            baseUrl: string | undefined,
+                            state: any,
+                            data: any) => {
     return html`
 <vaadin-grid-column-group header="${group.label}">
-    ${group.columns.map(column => renderColumn(column.metadata as GridColumn))}
+    ${group.columns.map(column => renderColumn(column.metadata as GridColumn,
+            container,
+    baseUrl,
+    state,
+    data))}
 </vaadin-grid-column-group>
 `
 }
 
-export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent) => {
+export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
+                                    container: LitElement,
+                                    baseUrl: string | undefined,
+                                    state: any,
+                                    data: any) => {
     if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
-        return renderGroup(columnOrGroup.metadata as GridGroupColumn)
+        return renderGroup(columnOrGroup.metadata as GridGroupColumn,
+            container,
+            baseUrl,
+            state,
+            data)
     } else {
-        return renderColumn(columnOrGroup.metadata as GridColumn)
+        return renderColumn(columnOrGroup.metadata as GridColumn,
+            container,
+            baseUrl,
+            state,
+            data)
     }
 }
 
-export const renderColumn = (column: GridColumn) => {
+export const renderColumn = (column: GridColumn,
+                             container: LitElement,
+                             baseUrl: string | undefined,
+                             state: any,
+                             data: any) => {
     if (column.sortable) {
         return html`
                         <vaadin-grid-sort-column
@@ -64,7 +88,16 @@ export const renderColumn = (column: GridColumn) => {
                                 data-data-type="${column.dataType}"
                                 data-stereotype="${column.stereotype}"
                                 ${columnBodyRenderer(
-            columnRenderer,
+
+                                        (item: any,
+                                         model: GridItemModel<any>,
+                                         column: VaadinGridColumn) => columnRenderer(item,
+                                                model,
+                                                column,
+                                                container,
+                                                baseUrl,
+                                                state,
+                                                data),
             []
         )}
                         ></vaadin-grid-sort-column>
@@ -84,7 +117,16 @@ export const renderColumn = (column: GridColumn) => {
                                 data-data-type="${column.dataType}"
                                 data-stereotype="${column.stereotype}"
                                 ${columnBodyRenderer(
-            columnRenderer,
+
+                                        (item: any,
+                                         model: GridItemModel<any>,
+                                         column: VaadinGridColumn) => columnRenderer(item,
+                                                model,
+                                                column,
+                                                container,
+                                                baseUrl,
+                                                state,
+                                                data),
             []
         )}
                         ></vaadin-grid-filter-column>
@@ -104,7 +146,16 @@ export const renderColumn = (column: GridColumn) => {
                                 data-data-type="${column.dataType}"
                                 data-stereotype="${column.stereotype}"
                                 ${columnBodyRenderer(
-            columnRenderer,
+
+                                        (item: any,
+                                         model: GridItemModel<any>,
+                                         column: VaadinGridColumn) => columnRenderer(item,
+                                                model,
+                                                column,
+                                                container,
+                                                baseUrl,
+                                                state,
+                                                data),
             []
         )}
                         ></vaadin-grid-column>

@@ -117,6 +117,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
                 })
                 .toList();
         return Mono.just(new CrudlData<>(new Page<>(
+                searchText + "#" + filters.age(),
                 pageable.size(),
                 pageable.page(),
                 filteredItems.size(),

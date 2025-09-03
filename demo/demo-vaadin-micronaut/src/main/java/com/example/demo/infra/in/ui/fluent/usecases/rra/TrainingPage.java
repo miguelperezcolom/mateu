@@ -96,6 +96,7 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
                         new Status(StatusType.WARNING, "Pending"))
         );
         return new CrudlData<>(new Page<>(
+                searchText,
                 pageable.size(),
                 0,
                 allRows.size(),

@@ -74,7 +74,7 @@ export class MateuApp extends ComponentElement {
 
     mapItems = (options: MenuOption[], filter: string): any => {
         return options.map(option => {
-            if (option.submenus) {
+            if (option.submenus && option.submenus.length > 0) {
                 let children = this.mapItems(option.submenus, filter)
                 if (filter && option.label.toLowerCase().includes(filter)) {
                     children = this.mapItems(option.submenus, '')

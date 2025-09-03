@@ -1,8 +1,12 @@
 package io.mateu.uidl.data;
 
-public record Option(String value, String label, String description) {
+public record Option(Object value, String label, String description) {
 
-  public Option(String value, String label) {
+  public Option(Object value) {
+    this(value, "" + value, "");
+  }
+
+  public Option(Object value, String label) {
     this(value, label, "");
   }
 }

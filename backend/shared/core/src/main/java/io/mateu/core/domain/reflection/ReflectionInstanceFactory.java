@@ -124,6 +124,8 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           }
         }
       }
+    } else {
+      hydrate(o, data);
     }
     return (T) o;
   }

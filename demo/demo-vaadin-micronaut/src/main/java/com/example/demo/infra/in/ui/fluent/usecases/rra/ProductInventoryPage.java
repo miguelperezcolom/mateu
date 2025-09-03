@@ -92,6 +92,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
     @Override
     public CrudlData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         return new CrudlData<>(new Page<>(
+                searchText,
                 pageable.size(),
                 pageable.page(),
                 productRepository.findAll().size(),

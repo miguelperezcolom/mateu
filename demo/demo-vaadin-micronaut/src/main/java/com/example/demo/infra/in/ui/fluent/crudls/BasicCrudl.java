@@ -242,6 +242,7 @@ public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, 
                 })
                 .toList();
         return new CrudlData<>(new Page<>(
+                searchText + "#" + filters.age(),
                 pageable.size(),
                 pageable.page(),
                 filteredItems.size(),

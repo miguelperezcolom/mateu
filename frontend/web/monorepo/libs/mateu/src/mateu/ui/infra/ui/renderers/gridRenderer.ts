@@ -4,7 +4,7 @@ import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
 import { html, LitElement, nothing } from "lit";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { columnBodyRenderer } from "@vaadin/grid/lit";
-import { columnRenderer } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import { columnRenderer, renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 
@@ -83,20 +83,7 @@ export const renderGrid = (
                 .items="${items}"
                 all-rows-visible
         >
-            ${metadata.content.map(column => html`
-            <vaadin-grid-column path="${column.id}" ${columnBodyRenderer(
-                    (item: any,
-                     model: GridItemModel<any>,
-                     column: VaadinGridColumn) => columnRenderer(item,
-            model,
-            column,
-            container,
-            baseUrl,
-            state,
-            data),
-                    []
-            )}>${(column.metadata as GridColumn)?.label}</vaadin-grid-column>
-`)}
+            ${metadata?.content?.map(column => renderColumnOrGroup(column, container, baseUrl, state, data))}
         </vaadin-grid>
     `
 
