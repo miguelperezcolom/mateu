@@ -11,6 +11,7 @@ import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
+import com.example.demo.domain.ProductStatus;
 import com.example.demo.domain.SupplierProduct;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -63,14 +64,30 @@ public class RRAGenerator {
             productRepository.save(Product.builder()
                             .id(prodiddf.format(i ))
                             .brand(faker.brand().car())
-                            .description(faker.text().text())
+                            .description(String.join(" ", faker.lorem().words(10)))
                             .category(vehicle.carType())
-                            .dimensions(vehicle.transmission())
+                            .dimensions("23 x 25.5 x 213")
                             .listPrice(new Amount(213.22, "EUR"))
-                            .weight(3220)
+                            .weight(21)
                             .manufacturer(faker.vehicle().manufacturer())
-                            .supplierContact(Contact.builder().build())
-                            .supplierProduct(SupplierProduct.builder().build())
+                            .supplierContact(Contact.builder()
+                                    .contact("John Smith (VP)")
+                                    .email("js@cxxx.com")
+                                    .name("John Smith")
+                                    .phoneNumber("+1 3737 838 292")
+                                    .url("https://sss.wwwww.com")
+                                    .supplierNumber("83081340")
+                                    .build())
+                            .supplierProduct(SupplierProduct.builder()
+                                    .averageLeadTime(1)
+                                    .msrp(new Amount(100.10, "EUR"))
+                                    .country("US")
+                                    .currentInventory(2)
+                                    .minimumOrderQuantity(3)
+                                    .supplierNumber("23434234234")
+                                    .status(ProductStatus.InStock)
+                                    .supplierPrice(new Amount(150.43, "EUR"))
+                                    .build())
                             .name(vehicle.makeAndModel())
                             .image("/images/products/" + df.format(imageId) + (imageId < 21?".jpg":".png"))
                     .build());

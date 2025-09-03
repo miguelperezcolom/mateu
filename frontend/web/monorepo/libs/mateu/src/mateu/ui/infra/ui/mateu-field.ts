@@ -238,7 +238,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
-                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML(this.state[this.field.fieldId])}</div></vaadin-custom-field>
+                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML(value)}</div></vaadin-custom-field>
                 `
             }
             return html`

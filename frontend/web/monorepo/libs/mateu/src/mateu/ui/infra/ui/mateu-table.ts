@@ -67,7 +67,7 @@ export class MateuTable extends LitElement {
         if (this.metadata?.infiniteScrolling && params.page > 0) {
             let satisfied = false
             if (page && page.content) {
-                if (page.content.length >= (params.page + 1) * params.pageSize) {
+                if (page.content.length >= (params.page + 1) * params.pageSize || page.content.length == page.totalElements) {
                     callback(page.content
                             .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
                         page.totalElements)

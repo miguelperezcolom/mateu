@@ -11,6 +11,7 @@ public record SupplierProduct(
         String supplierNumber,
         int averageLeadTime,
         ProductStatus status,
+        Amount supplierPrice,
         String country,
         int minimumOrderQuantity
 ) {
