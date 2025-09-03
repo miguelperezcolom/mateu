@@ -2,7 +2,9 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, LitElement, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode";
-import { nanoid } from "nanoid";
+import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import '../components/mateu-sapui5-app'
 
 let mode = NavigationLayoutMode.Auto
 let route = ''
@@ -13,6 +15,7 @@ const toggle = (container: LitElement) => {
 }
 
 const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
+    console.log('selected', event, baseUrl, event.detail.item.dataset.route)
     route = event.detail.item.dataset.route
     if (route) {
         if (window.location.pathname != baseUrl + route) {
@@ -45,7 +48,8 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
 
     route = extractRouteFromUrl(window, baseUrl??'')
 
-    return html`
+    if (AppVariant.HAMBURGUER_MENU == metadata.variant) {
+        return html`
         <ui5-navigation-layout id="nl1" mode="${mode}">
             <ui5-shellbar
                     slot="header"
@@ -59,7 +63,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 ${metadata.menu.map(menu => html`
                     ${menu.submenus?html`
 
-                        <ui5-side-navigation-item text="${menu.label}" unselectable>
+                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
                             ${menu.submenus.map(sub => html `
                                 <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
                             `)}
@@ -118,4 +122,16 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 </mateu-api-caller>
             </div>
         </ui5-navigation-layout>`
+    }
+    return html `
+        <mateu-sapui5-app
+                id="${container.id}_ux"
+                route="${route??metadata.homeRoute}"
+                consumedRoute="${metadata.route}"
+                baseUrl="${baseUrl}"
+                .component="${component}"
+                style="width: 100%;"
+        ></mateu-sapui5-app>
+    `
+
 }

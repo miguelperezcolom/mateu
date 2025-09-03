@@ -22,7 +22,7 @@ import java.io.OutputStream;
 @Primary
 public class MyObjectMapper implements JacksonObjectMapper {
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
     public @NonNull JacksonObjectMapper cloneWithConfiguration(@NonNull SerdeJacksonConfiguration jacksonConfiguration) {
