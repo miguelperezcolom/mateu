@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, TemplateResult } from "lit";
+import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -63,7 +63,7 @@ export class MateuGrid extends MetadataDrivenElement {
         return html`
             <vaadin-vertical-layout>
             <vaadin-master-detail-layout
-                    style="${showDetail?'min-height: 20rem;':''}"
+                    style="width: 100%; ${showDetail?'min-height: 20rem;':''}"
             >
                 <vaadin-grid
                         style="${this.field?.style}"
@@ -72,21 +72,21 @@ export class MateuGrid extends MetadataDrivenElement {
                         .selectedItems="${this.selectedItems}"
                         item-id-path="lineId"
                         @active-item-changed="${(e: GridActiveItemChangedEvent<any>) => {
-                            const item = e.detail.value
-                            this.selectedItems = item ? [item] : []
-                            this.state[this.field?.fieldId + '_editing'] = true
-                            this.state[this.field?.fieldId + '_show_detail'] = true
-                            this.state[this.id + '_selected_items'] = item ? [item] : []
-                            if (item) {
-                                this.dispatchEvent(new CustomEvent('action-requested', {
-                                    detail: {
-                                        actionId: this.id + '_selected'
-                                    },
-                                    bubbles: true,
-                                    composed: true
-                                }))
+                            if (this.field?.onItemSelectionActionId) {
+                                const item = e.detail.value
+                                this.selectedItems = item ? [item] : []
+                                this.state[this.id + '_selected_items'] = item ? [item] : []
+                                if (item) {
+                                    this.dispatchEvent(new CustomEvent('action-requested', {
+                                        detail: {
+                                            actionId: this.field?.onItemSelectionActionId
+                                        },
+                                        bubbles: true,
+                                        composed: true
+                                    }))
 
-                            }                                
+                                }
+                            }
                         }}"
                         all-rows-visible
                 >
@@ -101,22 +101,24 @@ export class MateuGrid extends MetadataDrivenElement {
                 
                 
             </vaadin-master-detail-layout>
-                <vaadin-horizontal-layout theme="spacing">
-                    <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: this.id + '_add'
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))}">Add</vaadin-button>
-                    <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: this.id + '_remove'
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))}">Remove</vaadin-button>
-                </vaadin-horizontal-layout>
+                ${(this.field?.readOnly)?nothing:html`
+                    <vaadin-horizontal-layout theme="spacing">
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: this.id + '_add'
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))}">Add</vaadin-button>
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: this.id + '_remove'
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))}">Remove</vaadin-button>
+                    </vaadin-horizontal-layout>
+                `}
             </vaadin-vertical-layout>
        `
     }

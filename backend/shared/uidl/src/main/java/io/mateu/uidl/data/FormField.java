@@ -11,6 +11,7 @@ public record FormField(
     String label,
     FieldDataType dataType,
     FieldStereotype stereotype,
+    boolean readOnly,
     boolean required,
     boolean autofocus,
     String placeholder,
@@ -22,7 +23,8 @@ public record FormField(
     String cssClasses,
     List<GridContent> columns,
     Form createForm,
-    Form editor)
+    Form editor,
+    String onItemSelectionActionId)
     implements Component {
 
   public FormField {

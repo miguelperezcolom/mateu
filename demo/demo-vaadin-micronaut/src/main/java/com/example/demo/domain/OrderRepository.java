@@ -20,8 +20,15 @@ public class OrderRepository {
     }
 
     public Order save(Order order) {
+        remove(order);
         orders.add(order);
         return order;
     }
 
+    public void remove(Order order) {
+        var found = orders.stream().filter(item -> item.id().equals(order.id())).findFirst();
+        if (found.isPresent()) {
+            orders.remove(found.get());
+        }
+    }
 }

@@ -200,6 +200,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'textarea') {
                 return html`
                     <vaadin-text-area
+                            id="${this.field.fieldId}"
                             label="${label}"
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"

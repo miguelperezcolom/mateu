@@ -39,11 +39,13 @@ public record FormFieldDto(
     List<OptionDto> options,
     RemoteCoordinatesDto remoteCoordinates,
     Object initialValue,
+    boolean readOnly,
     boolean required,
     String style,
     List<ComponentDto> columns,
     ComponentDto createForm,
-    ComponentDto editor)
+    ComponentDto editor,
+    String onItemSelectionActionId)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

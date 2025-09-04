@@ -34,5 +34,6 @@ export default interface FormField extends ComponentMetadata {
     columns: ClientSideComponent[]
     createForm: ClientSideComponent
     editor: ClientSideComponent
+    onItemSelectionActionId: string | undefined
 
 }

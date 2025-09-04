@@ -133,7 +133,7 @@ public class RRAGenerator {
                             .status(getOrderStatus(i))
                             .lines(lines)
                             .customer(customerRepository.findAll().get(Math.abs(random.nextInt()) % customerRepository.findAll().size()))
-                            .comments(faker.text().text())
+                            .comments(String.join(" ", faker.lorem().words(10)))
                             .date(LocalDate.now().plusDays(random.nextInt() % 30))
                             .lastUpdated(LocalDateTime.now().plusHours(random.nextInt() % 30))
                             .totalAmount(new Amount(100.21, "EUR"))

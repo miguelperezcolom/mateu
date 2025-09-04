@@ -46,6 +46,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
     String totalAmount;
     String date;
     List<OrderDetailLine> lines;
+    String comments;
 
     private final OrderRepository orderRepository;
 
@@ -60,17 +61,6 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
         return Form.builder()
                 .title("Order " + orderId)
                 .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
-                .toolbar(List.of(
-                        Button.builder()
-                                .label("Cancel")
-                                .build(),
-                        Button.builder()
-                                .label("Save")
-                                .build(),
-                        Button.builder()
-                                .label("Submit")
-                                .build()
-                ))
                 .content(List.of(
                         FormSection.builder()
                                 .title("Customer information")
@@ -122,6 +112,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                 .id("lines")
                                                                 .dataType(FieldDataType.array)
                                                                 .stereotype(FieldStereotype.grid)
+                                                                .readOnly(true)
                                                                 .label("")
                                                                 .columns(List.of(
                                                                         GridColumn.builder()
@@ -166,11 +157,13 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                         FormField.builder()
                                                 .id("attachments")
                                                 .dataType(FieldDataType.file)
+                                                .stereotype(FieldStereotype.html)
                                                 .label("Attachments")
                                                 .build(),
                                         FormField.builder()
                                                 .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.textarea)
+                                                .stereotype(FieldStereotype.html)
+                                                .id("comments")
                                                 .label("Comments")
                                                 .build()
                                 ))
@@ -182,23 +175,26 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
     @Override
     public void onHydrated(HttpRequest httpRequest) {
         orderId = httpRequest.lastPathItem();
-        var order = orderRepository.findById(orderId).get();
-        var customer = order.customer();
-        name = customer.name();
-        phoneNumber = customer.phoneNumber();
-        email = customer.email();
-        address = customer.billingAddress().toString();
-        totalAmount = order.totalAmount().toString();
-        date = order.date().toString();
-        lines = order.lines().stream().map(line -> new OrderDetailLine(
-                line.lineId(),
-                line.product().id(),
-                line.product().name(),
-                line.product().image(),
-                new Amount(line.product().listPrice().currencyCode(), line.product().listPrice().value()),
-                line.quantity(),
-                new Amount(line.product().listPrice().currencyCode(), line.product().listPrice().value() * line.quantity())
+        if ("".equals(httpRequest.runActionRq().actionId())) {
+            var order = orderRepository.findById(orderId).get();
+            var customer = order.customer();
+            name = customer.name();
+            phoneNumber = customer.phoneNumber();
+            email = customer.email();
+            address = customer.billingAddress().toString();
+            totalAmount = order.totalAmount().toString();
+            date = order.date().toString();
+            lines = order.lines().stream().map(line -> new OrderDetailLine(
+                    line.lineId(),
+                    line.product().id(),
+                    line.product().name(),
+                    line.product().image(),
+                    new Amount(line.product().listPrice().currencyCode(), line.product().listPrice().value()),
+                    line.quantity(),
+                    new Amount(line.product().listPrice().currencyCode(), line.product().listPrice().value() * line.quantity())
 
-        )).toList();
+            )).toList();
+            comments = order.comments();
+        }
     }
 }

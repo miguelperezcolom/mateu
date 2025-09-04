@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
+import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
@@ -85,9 +86,9 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
                                 "<span style='font-size: 14px;'>New Order</span><br/>" + order.id() + "<br/>" + order.date() + "<br/><br/><span style='font-size: 14px;'>Total Amount</span><br/>" + order.totalAmount() + "<br/>",
                                 new Amount(order.totalAmount().currencyCode(), order.totalAmount().value()),
                                 new ColumnActionGroup(List.of(
-                                        new ColumnAction("go-to-selected-order", "View Order", IconKey.Eye.iconName),
-                                        new ColumnAction("edit-selected-order", "Edit Order", IconKey.Pencil.iconName),
-                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName)
+                                        new ColumnAction("go-to-selected-order", "View Order", IconKey.Eye.iconName, OrderStatus.Draft.equals(order.status())),
+                                        new ColumnAction("edit-selected-order", "Edit Order", IconKey.Pencil.iconName, !OrderStatus.Draft.equals(order.status())),
+                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName, OrderStatus.Draft.equals(order.status()))
                                 ).toArray(new ColumnAction[0]))
                         ))
                         .toList()

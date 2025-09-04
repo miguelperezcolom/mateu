@@ -255,6 +255,7 @@ public class CreateOrderPage implements ComponentTreeSupplier, HandlesActions, H
                                                                                         .build()
                                                                         ))
                                                                         .build())
+                                                                .onItemSelectionActionId("line_selected")
                                                                 .style("width: 100%;")
                                                                 .build()))
                                 .build(),
@@ -340,7 +341,7 @@ public class CreateOrderPage implements ComponentTreeSupplier, HandlesActions, H
         if ("load-edit-product".equals(actionId)) {
             return new State(this);
         }
-        if ("lines_selected".equals(actionId)) {
+        if ("line_selected".equals(actionId)) {
             lines_show_detail = true;
             lines_editing = true;
             lines_selected_items.forEach(line -> {

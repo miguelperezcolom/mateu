@@ -138,7 +138,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
                                  new Amount(order.totalAmount().currencyCode(), order.totalAmount().value()),
                                 new ColumnActionGroup(List.of(
                                         new ColumnAction("go-to-selected-order", "View Order", IconKey.Eye.iconName),
-                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName),
+                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName, !OrderStatus.Draft.equals(order.status())),
                                         new ColumnAction("go-to-selected-customer", "View Customer", IconKey.User.iconName)
                                 ).toArray(new ColumnAction[0]))
                         ))
@@ -195,7 +195,8 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
             return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
         }
         if ("delete-order".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
+            orderRepository.remove(orderRepository.findById(httpRequest.getClickedRow(OrderRow.class).id()).get());
+            return this;
         }
         if ("go-to-selected-customer".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());

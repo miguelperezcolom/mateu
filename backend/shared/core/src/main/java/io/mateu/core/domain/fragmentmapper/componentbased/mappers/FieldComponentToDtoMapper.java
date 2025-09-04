@@ -33,6 +33,7 @@ public class FieldComponentToDtoMapper {
                     .toList())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
             .initialValue(formField.initialValue())
+            .readOnly(formField.readOnly())
             .required(formField.required())
             .autofocus(formField.autofocus())
             .style(formField.style())
@@ -48,6 +49,7 @@ public class FieldComponentToDtoMapper {
                 formField.editor() != null
                     ? mapFormToDto(formField.editor(), null, baseUrl, route, httpRequest)
                     : null)
+            .onItemSelectionActionId(formField.onItemSelectionActionId())
             .build(),
         formField.id(),
         List.of(),

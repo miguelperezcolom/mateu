@@ -30,6 +30,7 @@ export const createItem = (a: any) => {
     if (a.label) {
         item.appendChild(document.createTextNode(a.label));
     }
+    item.disabled = a.disabled
     return item;
 }
 
