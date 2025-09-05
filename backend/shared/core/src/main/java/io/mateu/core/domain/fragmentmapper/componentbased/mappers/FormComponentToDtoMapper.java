@@ -24,6 +24,22 @@ public class FormComponentToDtoMapper {
         FormDto.builder()
             .title(form.title())
             .subtitle(form.subtitle())
+            .header(
+                form.header() != null
+                    ? form.header().stream()
+                        .map(
+                            component ->
+                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                        .toList()
+                    : null)
+            .footer(
+                form.footer() != null
+                    ? form.footer().stream()
+                        .map(
+                            component ->
+                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                        .toList()
+                    : null)
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .build();

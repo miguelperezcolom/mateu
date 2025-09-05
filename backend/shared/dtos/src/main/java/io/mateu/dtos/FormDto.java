@@ -29,8 +29,8 @@ public record FormDto(
     List<ActionDto> actions,
     List<ButtonDto> toolbar,
     List<ButtonDto> buttons,
-    List<ClientSideComponentDto> header,
-    List<ClientSideComponentDto> footer)
+    List<ComponentDto> header,
+    List<ComponentDto> footer)
     implements ComponentMetadataDto {
 
   public FormDto {

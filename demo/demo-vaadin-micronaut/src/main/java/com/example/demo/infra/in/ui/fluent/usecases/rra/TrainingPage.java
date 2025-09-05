@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.ProductRepository;
+import com.example.demo.domain.TrainingRepository;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
@@ -35,6 +36,8 @@ import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
 
 import java.net.URI;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 
 @Serdeable
@@ -51,6 +54,13 @@ record TrainingRow(
 @Route("/fluent-app/use-cases/rra/training")
 @Singleton
 public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilters, TrainingRow>, HasTriggers {
+
+    private final TrainingRepository trainingRepository;
+
+    @Inject
+    public TrainingPage(TrainingRepository trainingRepository) {
+        this.trainingRepository = trainingRepository;
+    }
 
     @Override
     public Component component(HttpRequest httpRequest) {
@@ -72,29 +82,16 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
 
     @Override
     public CrudlData<TrainingRow> search(String searchText, NoFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
-        List<TrainingRow> allRows = List.of(
-            new TrainingRow(
-                    "001",
-                    "New Products from Vision Corporation",
-                    "02/06/25",
-                    "/images/trainings/001.jpeg",
-                    "0 of 4 tasks completed",
-                    new Status(StatusType.WARNING, "Pending")),
-                new TrainingRow(
-                        "002",
-                        "New This Week",
-                        "02/06/25",
-                        "/images/trainings/002.jpeg",
-                        "0 of 4 tasks completed",
-                        new Status(StatusType.WARNING, "Pending")),
-                new TrainingRow(
-                        "003",
-                        "Product Recall Announcement",
-                        "02/06/25",
-                        "/images/trainings/003.jpeg",
-                        "0 of 4 tasks completed",
-                        new Status(StatusType.WARNING, "Pending"))
-        );
+        List<TrainingRow> allRows = trainingRepository.findAll().stream().map(training -> new TrainingRow(
+                training.id(),
+                training.name(),
+                training.dueDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)),
+                training.image(),
+                training.completedSteps() + " of " + training.totalSteps() + " tasks completed",
+                new Status(training.completedSteps() < training.totalSteps()?StatusType.WARNING:StatusType.SUCCESS,
+                        training.completedSteps() < training.totalSteps()?"Pending":"Completed"
+                        ))
+        ).toList();
         return new CrudlData<>(new Page<>(
                 searchText,
                 pageable.size(),

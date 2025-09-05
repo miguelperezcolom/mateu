@@ -206,6 +206,7 @@ public class RunActionUseCase {
       String route, String consumedRoute, HttpRequest httpRequest) {
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
+                .filter(routeResolver -> routeResolver.supportsRoute(route))
             .filter(
                 resolver -> {
                   var resolved = resolver.resolveRoute(route, httpRequest);
@@ -220,6 +221,7 @@ public class RunActionUseCase {
     }
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
+                .filter(routeResolver -> routeResolver.supportsRoute(route))
             .filter(
                 resolver -> {
                   var resolved = resolver.resolveRoute(route, httpRequest);

@@ -7,7 +7,19 @@ export const renderProgressBar = (component: ClientSideComponent) => {
     const metadata = component.metadata as ProgressBar
 
     return html`
-        <vaadin-progress-bar indeterminate style="${component.style}" class="${component.cssClasses}"
-                             slot="${component.slot??nothing}"></vaadin-progress-bar>
+        <div>
+        <vaadin-progress-bar 
+                ?indeterminate="${metadata.indeterminate}"
+                min="${metadata.min && metadata.min != 0?metadata.min:nothing}"
+                max="${metadata.max && metadata.max != 0?metadata.max:nothing}"
+                value="${metadata.value?metadata.value:nothing}"
+                style="${component.style}" 
+                class="${component.cssClasses}"
+                slot="${component.slot??nothing}"
+        ></vaadin-progress-bar>
+        ${metadata.text?html`<span class="text-secondary text-xs" id="sublbl">
+    ${metadata.text}
+  </span>`:nothing}
+        </div>
     `
 }

@@ -34,7 +34,6 @@ record OrderDetailLine(
 
 }
 
-@Route("/fluent-app/use-cases/rra/orders/.*")
 @Singleton
 public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
 

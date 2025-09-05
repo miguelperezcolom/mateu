@@ -9,7 +9,13 @@ public class ProgressBarComponentToDtoMapper {
 
   public static ClientSideComponentDto mapProgressBarToDto(ProgressBar progressBar) {
     return new ClientSideComponentDto(
-        new ProgressBarDto(),
+        new ProgressBarDto(
+            progressBar.indeterminate(),
+            progressBar.min(),
+            progressBar.max(),
+            progressBar.value(),
+            progressBar.text(),
+            progressBar.theme()),
         "fieldId",
         List.of(),
         progressBar.style(),

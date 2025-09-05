@@ -125,4 +125,9 @@ public interface HttpRequest {
     var items = path().split("/");
     return items[items.length - 1];
   }
+
+  default String penultimatePathItem() {
+    var items = path().split("/");
+    return items[items.length - 2];
+  }
 }

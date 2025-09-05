@@ -3,8 +3,8 @@ import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status";
 import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
 import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
-import { Section } from "@mateu/shared/apiClients/dtos/componentmetadata/Section";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
+import Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
 export default interface Form extends ComponentMetadata {
 
@@ -18,6 +18,7 @@ export default interface Form extends ComponentMetadata {
     actions: Action[]
     toolbar: Button[]
     buttons: Button[]
-    sections: Section[]
+    header: Component[]
+    footer: Component[]
 
 }

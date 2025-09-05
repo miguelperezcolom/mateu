@@ -14,6 +14,7 @@ import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
 export const possiblyHtml = (text: string | undefined, state: any, data: any): string | undefined => {
     if (text && text.indexOf("${") >= 0) {
@@ -56,6 +57,7 @@ export class MateuForm extends MetadataDrivenElement {
                         <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                     </vaadin-vertical-layout>
                     <vaadin-horizontal-layout theme="spacing" slot="end">
+                        ${metadata?.header.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
                         ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"
