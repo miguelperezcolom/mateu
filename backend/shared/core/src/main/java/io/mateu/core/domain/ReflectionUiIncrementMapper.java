@@ -8,6 +8,8 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.DialogDto;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentActionDto;
@@ -123,7 +125,13 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         fragment.component(),
         toMap(fragment.state()),
         toMap(fragment.data()),
-        UIFragmentActionDto.Replace);
+        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace);
+  }
+
+  private boolean isDialog(UIFragmentDto fragment) {
+    return fragment.component() != null
+        && fragment.component() instanceof ClientSideComponentDto
+        && ((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto;
   }
 
   @SneakyThrows

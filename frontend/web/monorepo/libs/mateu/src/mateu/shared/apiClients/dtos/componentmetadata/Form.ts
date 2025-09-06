@@ -12,12 +12,14 @@ export default interface Form extends ComponentMetadata {
     title: string
     readOnly: boolean
     subtitle: string
+    noHeader: boolean
     status: Status
     badges: Badge[]
     banners: Banner[]
     actions: Action[]
     toolbar: Button[]
     buttons: Button[]
+    avatar: Component
     header: Component[]
     footer: Component[]
 

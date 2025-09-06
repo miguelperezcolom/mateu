@@ -27,6 +27,13 @@ public record ClientSideComponentDto(
   }
 
   @Override
+  public ComponentDto addStyle(String style) {
+    var newStyle = this.style == null ? "" : this.style;
+    newStyle += ";" + style;
+    return new ClientSideComponentDto(metadata, id, children, newStyle, cssClasses, slot);
+  }
+
+  @Override
   public ComponentDto setSlot(String slot) {
     return new ClientSideComponentDto(metadata, id, children, style, cssClasses, slot);
   }

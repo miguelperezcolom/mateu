@@ -65,6 +65,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { RuleAction } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import { RuleFieldAttribute } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
+import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -419,6 +420,17 @@ export class MateuComponent extends ComponentElement {
                 composed: true
             }))
             return
+        }
+
+        if ('search' == detail.actionId) {
+            if (!this.state.size) {
+                this.state.size = 10
+                this.state.page = 0
+                this.state.sort = []
+            }
+            if (this.state.page == 0) {
+                this.data = {...this.data, crud: {}}
+            }
         }
 
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {

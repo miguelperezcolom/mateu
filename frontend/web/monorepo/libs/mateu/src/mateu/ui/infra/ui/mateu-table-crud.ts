@@ -86,6 +86,7 @@ export class MateuTableCrud extends LitElement {
 
     fetchMoreElements = (e: CustomEvent) => {
         const {params, callback} = e.detail
+        this.state.size = params.pageSize
         this.state.page = params.page
         this.handleSearchRequested(callback)
     }
@@ -129,6 +130,9 @@ export class MateuTableCrud extends LitElement {
             >
                 ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
             </mateu-filter-bar>
+            ${metadata.infiniteScrolling?html`
+                <div>${this.data[this.id]?.page?.totalElements} items found.</div>
+            `:nothing}
             ${metadata?.crudlType == 'table'?html`
                 <mateu-table id="${this.id}" 
                              .metadata="${metadata}" 

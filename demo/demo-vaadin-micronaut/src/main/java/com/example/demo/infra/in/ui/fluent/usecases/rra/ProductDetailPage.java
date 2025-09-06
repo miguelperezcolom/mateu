@@ -15,6 +15,7 @@ import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
@@ -47,6 +48,7 @@ public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydratio
     public Component component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Product " + productId)
+                .noHeader(true)
                 .content(List.of(HorizontalLayout.builder()
                                 .content(List.of(
 
@@ -60,10 +62,14 @@ public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydratio
                                                                         .src(product.image())
                                                                         .build(),
                                                                 Text.builder()
+                                                                        .container(TextContainer.h1)
                                                                         .text(product.name())
+                                                                        .style("margin: 0;")
                                                                         .build(),
                                                                 Text.builder()
+                                                                        .container(TextContainer.h5)
                                                                         .text(product.id())
+                                                                        .style("margin: 0;margin-bottom: 1rem;")
                                                                         .build(),
                                                                 FormField.builder()
                                                                         .dataType(FieldDataType.string)

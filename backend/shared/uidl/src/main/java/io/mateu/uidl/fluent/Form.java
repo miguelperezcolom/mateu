@@ -11,6 +11,8 @@ public record Form(
     String pageTitle,
     String title,
     String subtitle,
+    boolean noHeader,
+    Component avatar,
     List<Component> content,
     List<Component> header,
     List<Component> footer,

@@ -43,6 +43,8 @@ export default abstract class ConnectedElement extends LitElement {
 
     abstract applyFragment(fragment: UIFragment):void
 
+    abstract manageActionRequestedEvent(event: CustomEvent):void
+
     applyCommand(command: UICommand) {
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
@@ -58,6 +60,20 @@ export default abstract class ConnectedElement extends LitElement {
                         composed: true
                     }))
                 }
+            }
+        }
+        if ('RunAction' == command.type) {
+            const data = command.data as {
+                actionId: string
+            }
+            if (data && data.actionId) {
+                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: data.actionId
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
             }
         }
     }

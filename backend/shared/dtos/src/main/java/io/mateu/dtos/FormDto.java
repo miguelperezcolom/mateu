@@ -24,11 +24,13 @@ public record FormDto(
     boolean readOnly,
     String subtitle,
     StatusDto status,
+    boolean noHeader,
     List<BadgeDto> badges,
     List<BannerDto> banners,
     List<ActionDto> actions,
     List<ButtonDto> toolbar,
     List<ButtonDto> buttons,
+    ComponentDto avatar,
     List<ComponentDto> header,
     List<ComponentDto> footer)
     implements ComponentMetadataDto {

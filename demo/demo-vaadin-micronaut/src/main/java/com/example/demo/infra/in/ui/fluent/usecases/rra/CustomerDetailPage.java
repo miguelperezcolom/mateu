@@ -5,6 +5,7 @@ import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -69,13 +70,14 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
 
     @Override
     public CrudlData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
+        var orders = orderRepository.findAll().stream()
+                .filter(order -> order.customer().id().equals(customerId)).toList();
         return new CrudlData<>(new Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
-                orderRepository.findAll().size(),
-                orderRepository.findAll().stream()
-                        .filter(order -> order.customer().id().equals(customerId))
+                orders.size(),
+                        orders.stream()
                         .skip((long) pageable.page() * pageable.size())
                         .limit(pageable.size())
                         .map(order -> new OrderCrudRow(
@@ -88,7 +90,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
                                 new ColumnActionGroup(List.of(
                                         new ColumnAction("go-to-selected-order", "View Order", IconKey.Eye.iconName, OrderStatus.Draft.equals(order.status())),
                                         new ColumnAction("edit-selected-order", "Edit Order", IconKey.Pencil.iconName, !OrderStatus.Draft.equals(order.status())),
-                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName, OrderStatus.Draft.equals(order.status()))
+                                        new ColumnAction("delete-order", "Delete", IconKey.Trash.iconName, !OrderStatus.Draft.equals(order.status()))
                                 ).toArray(new ColumnAction[0]))
                         ))
                         .toList()
@@ -146,7 +148,8 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("delete-order".equals(actionId)) {
-            return new URI("/fluent-app/use-cases/rra/orders/create");
+            orderRepository.remove(orderRepository.findById(httpRequest.getClickedRow(OrderCrudRow.class).id()).get());
+            return UICommand.runAction("search");
         }
         if ("go-to-selected-order".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
@@ -197,6 +200,9 @@ public class CustomerDetailPage implements ComponentTreeSupplier, HasPostHydrati
                 .content(List.of(
                         Form.builder()
                                 .title("Customer " + customerId)
+                                .avatar(Avatar.builder()
+                                                .name(name)
+                                        .build())
                                 .content(List.of(
                                         FormField.builder()
                                                 .id("name")

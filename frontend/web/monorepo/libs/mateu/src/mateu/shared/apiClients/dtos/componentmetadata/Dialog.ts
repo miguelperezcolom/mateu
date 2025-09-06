@@ -11,6 +11,7 @@ export default interface Dialog extends ComponentMetadata {
     modeless: boolean
     top: string
     left: string
+    right: string
     draggable: boolean
     width: string
     height: string

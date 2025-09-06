@@ -3,6 +3,7 @@ import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import { property } from "lit/decorators.js";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import { Page } from "@mateu/shared/apiClients/dtos/Page.ts";
+import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -18,14 +19,20 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     applyFragment(fragment: UIFragment) {
         if (this.id == fragment.targetComponentId) {
             if (fragment.component) {
-                const children = fragment.component?.type == ComponentType.ServerSide?
-                    fragment.component?.children:
-                    [fragment.component]
-                if (this.component) {
-                    this.component.children = children
+                if (UIFragmentAction.Add == fragment.action) {
+                    if (this.component) {
+                        this.component.children?.push(fragment.component)
+                    }
+                } else {
+                    const children = fragment.component?.type == ComponentType.ServerSide?
+                        fragment.component?.children:
+                        [fragment.component]
+                    if (this.component) {
+                        this.component.children = children
+                    }
+                    this.state = { }
+                    this.data = { }
                 }
-                this.state = { }
-                this.data = { }
             }
 
             if (fragment.state) {

@@ -32,33 +32,8 @@ export class MateuSapUI5Form extends MetadataDrivenElement {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
             <ui5-dynamic-page id="page" show-footer style="width: auto; display: block;">
-
-                <ui5-dynamic-page-title slot="titleArea">
-                    <!--
-                    <ui5-breadcrumbs slot="breadcrumbs">
-                        <ui5-breadcrumbs-item href="#">Man</ui5-breadcrumbs-item>
-                        <ui5-breadcrumbs-item href="#">Shoes</ui5-breadcrumbs-item>
-                        <ui5-breadcrumbs-item href="#">Running Shoes</ui5-breadcrumbs-item>
-                    </ui5-breadcrumbs>
--->
-                    
-                    <ui5-title slot="heading">${metadata.title}</ui5-title>
-
-                    <div slot="snappedHeading" class="snapped-title-heading">
-                        <!--
-                        <ui5-avatar shape="square" icon="laptop" color-scheme="Accent5" size="S"></ui5-avatar>
-                        -->
-                        <ui5-title wrapping-type="None">${metadata.title}</ui5-title>
-                    </div>
-
-                    ${metadata.subtitle?html`
-                        <p slot="subheading" class="text">${metadata.subtitle}</p>
-                        <p slot="snappedSubheading" class="text">${metadata.subtitle}</p>
-                    `:nothing}
-
-                    <!--
-                    <ui5-tag color-scheme="7" wrapping-type="None">Special 157.4M EUR</ui5-tag>
-                    -->
+                
+                ${metadata.noHeader?html`
 
                     ${metadata.toolbar?.length > 0?html`
                         <ui5-toolbar class="actionsBar" id="actionsToolbar" slot="actionsBar" design="Transparent">
@@ -70,15 +45,54 @@ export class MateuSapUI5Form extends MetadataDrivenElement {
                             -->
                         </ui5-toolbar>
                     `:nothing}
+                
+                `:html`
+                    <ui5-dynamic-page-title slot="titleArea">
+                        <!--
+                        <ui5-breadcrumbs slot="breadcrumbs">
+                            <ui5-breadcrumbs-item href="#">Man</ui5-breadcrumbs-item>
+                            <ui5-breadcrumbs-item href="#">Shoes</ui5-breadcrumbs-item>
+                            <ui5-breadcrumbs-item href="#">Running Shoes</ui5-breadcrumbs-item>
+                        </ui5-breadcrumbs>
+    -->
 
-                    <!--
-                    <ui5-toolbar class="navigationBar" slot="navigationBar" design="Transparent">
-                        <ui5-toolbar-button design="Transparent" icon="share"></ui5-toolbar-button>
-                        <ui5-toolbar-button design="Transparent" icon="action-settings"></ui5-toolbar-button>
-                    </ui5-toolbar>
-                    -->
-                </ui5-dynamic-page-title>
+                        <ui5-title slot="heading">${metadata.title}</ui5-title>
 
+                        <div slot="snappedHeading" class="snapped-title-heading">
+                            <!--
+                            <ui5-avatar shape="square" icon="laptop" color-scheme="Accent5" size="S"></ui5-avatar>
+                            -->
+                            <ui5-title wrapping-type="None">${metadata.title}</ui5-title>
+                        </div>
+
+                        ${metadata.subtitle?html`
+                        <p slot="subheading" class="text">${metadata.subtitle}</p>
+                        <p slot="snappedSubheading" class="text">${metadata.subtitle}</p>
+                    `:nothing}
+
+                        <!--
+                        <ui5-tag color-scheme="7" wrapping-type="None">Special 157.4M EUR</ui5-tag>
+                        -->
+
+                        ${metadata.toolbar?.length > 0?html`
+                        <ui5-toolbar class="actionsBar" id="actionsToolbar" slot="actionsBar" design="Transparent">
+                            <vaadin-horizontal-layout theme="spacing"><slot name="toolbar"></slot></vaadin-horizontal-layout>
+                            <!--
+                            <ui5-toolbar-button text="Create"></ui5-toolbar-button>
+                            <ui5-toolbar-button id="edit-button" design="Transparent" text="Edit"></ui5-toolbar-button>
+                            <ui5-toolbar-button design="Transparent" text="Paste"></ui5-toolbar-button>
+                            -->
+                        </ui5-toolbar>
+                    `:nothing}
+
+                        <!--
+                        <ui5-toolbar class="navigationBar" slot="navigationBar" design="Transparent">
+                            <ui5-toolbar-button design="Transparent" icon="share"></ui5-toolbar-button>
+                            <ui5-toolbar-button design="Transparent" icon="action-settings"></ui5-toolbar-button>
+                        </ui5-toolbar>
+                        -->
+                    </ui5-dynamic-page-title>
+                `}
                 <!--
                 <ui5-dynamic-page-header slot="headerArea">
                     <div class="product-info">
@@ -238,7 +252,11 @@ export class MateuSapUI5Form extends MetadataDrivenElement {
     static styles = css`
         :host {
             width: 100%;
-            height: calc(100vh - 6rem);
+            height: calc(100vh - 8.3rem);
+        }
+
+        ui5-dynamic-page-title {
+            padding-top: 1rem;
         }
   `
 }

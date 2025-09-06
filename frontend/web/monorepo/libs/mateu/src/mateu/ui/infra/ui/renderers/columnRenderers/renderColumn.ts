@@ -67,26 +67,26 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
     }
 }
 
-export const renderColumn = (column: GridColumn,
+export const renderColumn = (mateuColumn: GridColumn,
                              container: LitElement,
                              baseUrl: string | undefined,
                              state: any,
                              data: any) => {
-    if (column.sortable) {
+    if (mateuColumn.sortable) {
         return html`
                         <vaadin-grid-sort-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
+                                path="${mateuColumn.id}"
+                                header="${mateuColumn.label}"
+                                text-align="${mateuColumn.align??nothing}"
+                                ?frozen="${mateuColumn.frozen}"
+                                ?frozen-to-end="${mateuColumn.frozenToEnd}"
+                                ?auto-width="${mateuColumn.autoWidth}"
+                                flex-grow="${mateuColumn.flexGrow??nothing}"
+                                ?resizable="${mateuColumn.resizable}"
+                                width="${mateuColumn.width??nothing}"
                                 @direction-changed="${directionChanged}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
+                                data-data-type="${mateuColumn.dataType}"
+                                data-stereotype="${mateuColumn.stereotype}"
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -94,6 +94,7 @@ export const renderColumn = (column: GridColumn,
                                          column: VaadinGridColumn) => columnRenderer(item,
                                                 model,
                                                 column,
+                                            mateuColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
@@ -102,20 +103,20 @@ export const renderColumn = (column: GridColumn,
         )}
                         ></vaadin-grid-sort-column>
                     `
-    } else if (column.filterable) {
+    } else if (mateuColumn.filterable) {
         return html`
                         <vaadin-grid-filter-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
+                                path="${mateuColumn.id}"
+                                header="${mateuColumn.label}"
+                                text-align="${mateuColumn.align??nothing}"
+                                ?frozen="${mateuColumn.frozen}"
+                                ?frozen-to-end="${mateuColumn.frozenToEnd}"
+                                ?auto-width="${mateuColumn.autoWidth}"
+                                flex-grow="${mateuColumn.flexGrow??nothing}"
+                                ?resizable="${mateuColumn.resizable}"
+                                width="${mateuColumn.width??nothing}"
+                                data-data-type="${mateuColumn.dataType}"
+                                data-stereotype="${mateuColumn.stereotype}"
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -123,6 +124,7 @@ export const renderColumn = (column: GridColumn,
                                          column: VaadinGridColumn) => columnRenderer(item,
                                                 model,
                                                 column,
+                                            mateuColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
@@ -134,17 +136,17 @@ export const renderColumn = (column: GridColumn,
     } else {
         return html`
                         <vaadin-grid-column
-                                path="${column.id}"
-                                header="${column.label}"
-                                text-align="${column.align??nothing}"
-                                ?frozen="${column.frozen}"
-                                ?frozen-to-end="${column.frozenToEnd}"
-                                ?auto-width="${column.autoWidth}"
-                                flex-grow="${column.flexGrow??nothing}"
-                                ?resizable="${column.resizable}"
-                                width="${column.width??nothing}"
-                                data-data-type="${column.dataType}"
-                                data-stereotype="${column.stereotype}"
+                                path="${mateuColumn.id}"
+                                header="${mateuColumn.label}"
+                                text-align="${mateuColumn.align??nothing}"
+                                ?frozen="${mateuColumn.frozen}"
+                                ?frozen-to-end="${mateuColumn.frozenToEnd}"
+                                ?auto-width="${mateuColumn.autoWidth}"
+                                flex-grow="${mateuColumn.flexGrow??nothing}"
+                                ?resizable="${mateuColumn.resizable}"
+                                width="${mateuColumn.width??nothing}"
+                                data-data-type="${mateuColumn.dataType}"
+                                data-stereotype="${mateuColumn.stereotype}"
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -152,6 +154,7 @@ export const renderColumn = (column: GridColumn,
                                          column: VaadinGridColumn) => columnRenderer(item,
                                                 model,
                                                 column,
+                                            mateuColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
@@ -165,40 +168,41 @@ export const renderColumn = (column: GridColumn,
 
 export const columnRenderer = (item: any,
                                                    model: GridItemModel<any>,
-                                                   column: VaadinGridColumn,
+                                                   vaadinColumn: VaadinGridColumn,
+                               column: GridColumn,
                                                                 container: LitElement,
                                                                 baseUrl: string | undefined,
                                                                 state: any,
                                                                 data: any) => {
 
-    const type = column.dataset.dataType??''
-    const stereotype = column.dataset.stereotype??''
+    const type = vaadinColumn.dataset.dataType??''
+    const stereotype = vaadinColumn.dataset.stereotype??''
     if ('status' == type) {
-        return renderStatusCell(item, model, column)
+        return renderStatusCell(item, model, vaadinColumn)
     }
     if ('bool' == type) {
-        return renderBooleanCell(item, model, column)
+        return renderBooleanCell(item, model, vaadinColumn)
     }
     if ('money' == type || 'money' == stereotype) {
-        return renderMoneyCell(item, model, column, type, stereotype)
+        return renderMoneyCell(item, model, vaadinColumn, type, stereotype)
     }
     if ('link' == type || 'link' == stereotype) {
-        return renderLinkCell(item, model, column, type, stereotype)
+        return renderLinkCell(item, model, vaadinColumn, type, stereotype, column)
     }
     if ('icon' == type || 'icon' == stereotype) {
-        return renderIconCell(item, model, column, type, stereotype)
+        return renderIconCell(item, model, vaadinColumn, type, stereotype)
     }
     if ('html' == stereotype) {
-        return renderHtmlCell(item, model, column, type, stereotype)
+        return renderHtmlCell(item, model, vaadinColumn, type, stereotype)
     }
     if ('image' == stereotype) {
-        return renderImageCell(item, model, column, type, stereotype)
+        return renderImageCell(item, model, vaadinColumn, type, stereotype)
     }
     if ('menu' == type) {
-        return renderMenuCell(item, model, column)
+        return renderMenuCell(item, model, vaadinColumn)
     }
     if ('component' == type) {
-        return renderComponentCell(item, model, column, container, baseUrl, state, data)
+        return renderComponentCell(item, model, vaadinColumn, container, baseUrl, state, data)
     }
-    return html`${item[column.path!]}`
+    return html`${item[vaadinColumn.path!]}`
 }

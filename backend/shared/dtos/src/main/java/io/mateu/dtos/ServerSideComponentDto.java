@@ -33,6 +33,24 @@ public record ServerSideComponentDto(
   }
 
   @Override
+  public ComponentDto addStyle(String style) {
+    var newStyle = this.style == null ? "" : this.style;
+    newStyle += ";" + style;
+    return new ServerSideComponentDto(
+        id,
+        serverSideType,
+        children,
+        initialData,
+        newStyle,
+        cssClasses,
+        actions,
+        triggers,
+        rules,
+        validations,
+        slot);
+  }
+
+  @Override
   public ComponentDto setSlot(String slot) {
     return new ServerSideComponentDto(
         id,

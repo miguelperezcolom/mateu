@@ -111,10 +111,10 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                                           unselectable
                                           icon="locked"></ui5-side-navigation-item>
             </ui5-side-navigation>
-            <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+            <div class="content" style="">
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
-                            route="${route}"
+                            route="${route??metadata.homeRoute}"
                             id="${container.id}_ux"
                             baseUrl="${baseUrl}"
                             consumedRoute="${metadata.route}"

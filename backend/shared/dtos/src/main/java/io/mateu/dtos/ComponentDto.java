@@ -23,5 +23,7 @@ public interface ComponentDto {
 
   ComponentDto setStyle(String s);
 
+  ComponentDto addStyle(String s);
+
   ComponentDto setSlot(String s);
 }

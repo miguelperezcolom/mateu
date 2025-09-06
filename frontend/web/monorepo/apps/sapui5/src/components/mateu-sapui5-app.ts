@@ -119,6 +119,17 @@ export class MateuSapUI5App extends MetadataDrivenElement {
     }
 
     static styles = css`
+        ::part(tabstrip) {
+            height: 4rem;
+            top: 0rem;
+        }
+        .ui5-tc__tabStrip {
+            padding: 2rem;
+        }
+        ::part(content) {
+            padding: 0;
+            top: -10px;
+        }
   `
 }
 

@@ -6,10 +6,12 @@ import com.example.demo.domain.OrderLine;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.ProductRepository;
+import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -18,12 +20,14 @@ import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasTriggers;
@@ -33,6 +37,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -55,9 +60,10 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
 
     String orderId;
 
-    String totalAmount;
-    String date;
+    String totalAmount = "";
+    String date = "";
     String customer;
+    String customerName = "";
     String phoneNumber;
     String email;
     String address;
@@ -65,8 +71,14 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
     String comments;
 
     String new_product;
+    String new_image;
+    String new_brand;
+    String new_price;
     int new_quantity;
     String edit_product;
+    String edit_image;
+    String edit_brand;
+    String edit_price;
     int edit_quantity;
 
     boolean lines_editing = false;
@@ -89,7 +101,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
     public Component component(HttpRequest httpRequest) {
         return Form.builder()
                 .title(getTitle())
-                .subtitle("${state.customerName} ${state.date} Total Amount: ${state.customerName}")
+                .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
                 .toolbar(List.of(
                         Button.builder()
                                 .label("Cancel")
@@ -167,8 +179,10 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                                 .build(),
                                                                         GridColumn.builder()
                                                                                 .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.link)
                                                                                 .id("productId")
                                                                                 .label("Product Number")
+                                                                                .actionId("view-product")
                                                                                 .build(),
                                                                         GridColumn.builder()
                                                                                 .dataType(FieldDataType.string)
@@ -210,6 +224,24 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                                                 .build())
                                                                                         .build(),
                                                                                 FormField.builder()
+                                                                                        .id("new_image")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Image")
+                                                                                        .build(),
+                                                                                FormField.builder()
+                                                                                        .id("new_brand")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Brand")
+                                                                                        .build(),
+                                                                                FormField.builder()
+                                                                                        .id("new_price")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Price")
+                                                                                        .build(),
+                                                                                FormField.builder()
                                                                                         .id("new_quantity")
                                                                                         .dataType(FieldDataType.integer)
                                                                                         .label("Quantity")
@@ -237,6 +269,24 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                                         .remoteCoordinates(RemoteCoordinates.builder()
                                                                                                 .action("search-products")
                                                                                                 .build())
+                                                                                        .build(),
+                                                                                FormField.builder()
+                                                                                        .id("edit_image")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Image")
+                                                                                        .build(),
+                                                                                FormField.builder()
+                                                                                        .id("edit_brand")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Brand")
+                                                                                        .build(),
+                                                                                FormField.builder()
+                                                                                        .id("edit_price")
+                                                                                        .dataType(FieldDataType.string)
+                                                                                        .stereotype(FieldStereotype.html)
+                                                                                        .label("Price")
                                                                                         .build(),
                                                                                 FormField.builder()
                                                                                         .id("edit_quantity")
@@ -332,7 +382,9 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                 phoneNumber = customer.phoneNumber();
                 email = customer.email();
                 address = customer.shippingAddress().toString();
+                customerName = customer.name();
             } else {
+                customerName = "";
                 phoneNumber = "";
                 email = "";
                 address = "";
@@ -340,9 +392,23 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
             return new State(this);
         }
         if ("load-new-product".equals(actionId)) {
+            var found = productRepository.findById(new_product);
+            if (found.isPresent()) {
+                var product = found.get();
+                new_image = "<img src='" + product.image() + "' width='200px'></img>";
+                new_price = product.listPrice().toString();
+                new_brand = product.brand();
+            }
             return new State(this);
         }
         if ("load-edit-product".equals(actionId)) {
+            var found = productRepository.findById(edit_product);
+            if (found.isPresent()) {
+                var product = found.get();
+                edit_image = "<img src='" + product.image() + "' width='200px'></img>";
+                edit_price = product.listPrice().toString();
+                edit_brand = product.brand();
+            }
             return new State(this);
         }
         if ("line_selected".equals(actionId)) {
@@ -357,6 +423,47 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                     new Page<>("xxxx", 1, 0, 1,
                             List.of(new Option(product.id(), product.name()))))));
         }
+        if ("view-product".equals(actionId)) {
+                var productId = (String) httpRequest.runActionRq().parameters().get("productId");
+                var product = productRepository.findById(productId).get();
+                var dialog = Dialog.builder()
+                        .style("background-color: red;")
+                        .left("0")
+                        .height("100vh")
+                        .content(Form.builder()
+                                .title(product.name())
+                                .content(List.of(
+                                        FormField.builder()
+                                                .dataType(FieldDataType.string)
+                                                .stereotype(FieldStereotype.html)
+                                                .initialValue("<img width='200' src='" + product.image() + "'></img>")
+                                                .label("Image")
+                                                .build(),
+                                        FormField.builder()
+                                                .dataType(FieldDataType.string)
+                                                .stereotype(FieldStereotype.html)
+                                                .label("Brand")
+                                                .initialValue(product.brand())
+                                                .build(),
+                                        FormField.builder()
+                                                .dataType(FieldDataType.string)
+                                                .stereotype(FieldStereotype.html)
+                                                .initialValue(product.listPrice().toString())
+                                                .label("Price")
+                                                .build()
+                                ))
+                                .toolbar(List.of(
+                                        Button.builder()
+                                                .iconOnLeft(IconKey.ChevronLeft.iconName)
+                                                .build(),
+                                        Button.builder()
+                                                .iconOnRight(IconKey.ChevronRight.iconName)
+                                                .build()
+                                ))
+                                .build())
+                        .build();
+                return dialog;
+        }
         if ("lines_add".equals(actionId)) {
             lines_show_detail = true;
             lines_editing = false;
@@ -369,6 +476,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                             .filter(selected -> selected.lineId().equals(line.lineId()))
                             .findAny()
                             .isEmpty()).toList();
+            totalAmount = calculateTotal();
             return new State(this);
         }
         if ("cancel_line".equals(actionId)) {
@@ -387,6 +495,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                     new_quantity,
                     new Amount(product.listPrice().currencyCode(), new_quantity * product.listPrice().value())
             ));
+            totalAmount = calculateTotal();
             return new State(this);
         }
         if ("save_line".equals(actionId)) {
@@ -408,6 +517,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                             :
                             line)
                     .toList();
+            totalAmount = calculateTotal();
             return new State(this);
         }
         if ("save".equals(actionId)) {
@@ -449,6 +559,16 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
         return new State(this);
     }
 
+    private String calculateTotal() {
+        var currency = "EUR";
+        var total = 0d;
+        for (OrderDetailLine line : lines) {
+            currency = line.listPrice().currency();
+            total += line.quantity() * line.listPrice().value();
+        }
+        return new Amount(currency, total).toString();
+    }
+
     String getOrderId() {
         return orderId;
     }
@@ -482,6 +602,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
             if ("".equals(httpRequest.runActionRq().actionId())) {
                 var order = orderRepository.findById(orderId).get();
                 customer = order.customer().id();
+                customerName = order.customer().name();
                 var customer = order.customer();
 
                 data.put("customer",
@@ -506,6 +627,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                 comments = order.comments();
             }
         }
+        totalAmount = calculateTotal();
 
         if (edit_product != null && !edit_product.isEmpty()) {
             var product = productRepository.findById(edit_product).get();
@@ -520,10 +642,13 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                             List.of(new Option(product.id(), product.name()))));
         }
         if (customer != null && !customer.isEmpty()) {
-            var customer = customerRepository.findById(this.customer).get();
-            data.put("customer",
-                    new Page<>("xxxx", 1, 0, 1,
-                            List.of(new Option(customer.id(), customer.name()))));
+            var found = customerRepository.findById(this.customer);
+            if (found.isPresent()) {
+                var customer = found.get();
+                data.put("customer",
+                        new Page<>("xxxx", 1, 0, 1,
+                                List.of(new Option(customer.id(), customer.name()))));
+            }
         }
         httpRequest.setAttribute("data", data);
     }

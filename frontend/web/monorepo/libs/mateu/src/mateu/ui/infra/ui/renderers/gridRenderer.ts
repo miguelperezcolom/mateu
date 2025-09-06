@@ -48,21 +48,22 @@ export const renderGrid = (
                      slot="${component.slot??nothing}"
                      all-rows-visible
         >
-            ${metadata.content.map((column, index) => index > 0?html`
-            <vaadin-grid-column path="${column.id}" ${columnBodyRenderer(
+            ${metadata.content.map((mateuColumn, index) => index > 0?html`
+            <vaadin-grid-column path="${mateuColumn.id}" ${columnBodyRenderer(
                     (item: any,
                      model: GridItemModel<any>,
                      column: VaadinGridColumn) => columnRenderer(item,
                             model,
                             column,
+                            mateuColumn.metadata as GridColumn,
                             container,
                             baseUrl,
                             state,
                             data),
                     []
-            )}>${index} - ${(column.metadata as GridColumn)?.label}</vaadin-grid-column>
+            )}>${index} - ${(mateuColumn.metadata as GridColumn)?.label}</vaadin-grid-column>
 `:html`
-            <vaadin-grid-tree-column path="${column.id}">${index} - ${(column.metadata as GridColumn)?.label}</vaadin-grid-tree-column>
+            <vaadin-grid-tree-column path="${mateuColumn.id}">${index} - ${(mateuColumn.metadata as GridColumn)?.label}</vaadin-grid-tree-column>
 `)}
             <span slot="empty-state">No data.</span>
         </vaadin-grid>

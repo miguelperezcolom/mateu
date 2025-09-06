@@ -24,6 +24,12 @@ public class FormComponentToDtoMapper {
         FormDto.builder()
             .title(form.title())
             .subtitle(form.subtitle())
+            .noHeader(form.noHeader())
+            .avatar(
+                form.avatar() != null
+                    ? mapComponentToDto(null, form.avatar(), baseUrl, route, httpRequest)
+                        .addStyle("width: 4rem;height: 4rem;")
+                    : null)
             .header(
                 form.header() != null
                     ? form.header().stream()
@@ -57,7 +63,12 @@ public class FormComponentToDtoMapper {
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
     if (userTrigger == null) return null;
     if (userTrigger instanceof Button button) {
-      return ButtonDto.builder().actionId(button.actionId()).label(button.label()).build();
+      return ButtonDto.builder()
+          .actionId(button.actionId())
+          .label(button.label())
+          .iconOnLeft(button.iconOnLeft())
+          .iconOnRight(button.iconOnRight())
+          .build();
     }
     return null;
   }

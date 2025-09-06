@@ -66,7 +66,6 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
     public Component component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Product Inventory")
-                .toolbar(List.of(new Button("Create", "create")))
                 .content(List.of(
                         Crudl.builder()
                                 .crudlType(CrudlType.card)
@@ -110,9 +109,6 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
 
     @Override
     public boolean supportsAction(String actionId) {
-        if ("create".equals(actionId)) {
-            return true;
-        }
         if ("go-to-selected-product".equals(actionId)) {
             return true;
         }

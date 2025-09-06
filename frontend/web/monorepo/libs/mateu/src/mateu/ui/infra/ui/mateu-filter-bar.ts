@@ -128,7 +128,7 @@ export class MateuFilterBar extends LitElement {
                             autofocus="${this.metadata?.autoFocusOnSearchText?true:nothing}"
                             style="flex-grow: 1;"
                     ></vaadin-text-field>
-                    ${this.metadata.filters?html`
+                    ${this.metadata.filters && this.metadata.filters.length > 0?html`
                         <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
                         <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
                     `:nothing}

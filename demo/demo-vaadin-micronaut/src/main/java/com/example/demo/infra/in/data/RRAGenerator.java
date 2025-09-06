@@ -46,7 +46,7 @@ public class RRAGenerator {
 
     private static final int MAX_CUSTOMERS = 100;
     private static final int MAX_PRODUCTS = 100;
-    private static final int MAX_ORDERS = 100;
+    private static final int MAX_ORDERS = 1000;
     private static final int MAX_LINES_PER_ORDER = 10;
 
     Faker faker = new Faker();

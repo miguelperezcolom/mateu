@@ -81,7 +81,7 @@ export class MateuTable extends LitElement {
                         detail: {
                             params,
                             callback: () => {
-                                if (this.data[this.id].page.content) {
+                                if (this.data[this.id]?.page?.content) {
                                     callback(this.data[this.id].page.content
                                             .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
                                         this.data[this.id].page.totalElements)
@@ -94,13 +94,15 @@ export class MateuTable extends LitElement {
                 }
             }
         } else {
-            callback(page?.content??[], this.metadata?.infiniteScrolling?page?.totalElements:page?.content?.length??0);
+            const totalElements = this.metadata?.infiniteScrolling?page?.totalElements:page?.content?.length??0
+            callback(page?.content??[], totalElements);
         }
     }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         this.grid?.clearCache()
+        this.pagesRequested = []
     }
 
     @query("vaadin-grid")

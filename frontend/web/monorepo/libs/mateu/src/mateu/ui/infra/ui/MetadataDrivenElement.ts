@@ -9,6 +9,12 @@ export default class MetadataDrivenElement extends ConnectedElement {
         // do nothing
     }
 
+    manageActionRequestedEvent(event: CustomEvent): void {
+        // do nothing
+    }
+
+
+
     // public properties
 
     @property()

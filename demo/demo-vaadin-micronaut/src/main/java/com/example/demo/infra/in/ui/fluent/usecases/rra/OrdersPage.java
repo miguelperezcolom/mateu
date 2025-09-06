@@ -1,5 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
+import com.example.demo.domain.Order;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.annotations.Route;
@@ -121,12 +122,13 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
 
     @Override
     public CrudlData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+        var found = orderRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
         return new CrudlData<>(new Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
-                orderRepository.findAll().size(),
-                orderRepository.findAll().stream()
+                found.size(),
+                found.stream()
                         .skip((long) pageable.page() * pageable.size())
                         .limit(pageable.size())
                         .map(order -> new OrderRow(
@@ -145,6 +147,20 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
                         .toList()
         ),
                 "No orders.");
+    }
+
+    private boolean matches(Order order, String searchText, OrdersFilters ordersFilters) {
+        if (searchText == null || searchText.isEmpty()) {
+            return true;
+        }
+        boolean match = true;
+        for (String token : searchText.split(" ")) {
+            token = token.toLowerCase();
+            match &= (order.customer().name().toLowerCase().contains(token)
+                    || order.status().name().toLowerCase().contains(token)
+            );
+        }
+        return match;
     }
 
     public static Status map(OrderStatus status) {
@@ -196,7 +212,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
         }
         if ("delete-order".equals(actionId)) {
             orderRepository.remove(orderRepository.findById(httpRequest.getClickedRow(OrderRow.class).id()).get());
-            return this;
+            return UICommand.runAction("search");
         }
         if ("go-to-selected-customer".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());

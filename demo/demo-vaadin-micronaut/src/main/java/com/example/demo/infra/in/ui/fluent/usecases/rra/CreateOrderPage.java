@@ -4,6 +4,7 @@ import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 

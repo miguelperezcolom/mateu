@@ -12,6 +12,9 @@ import "@ui5/webcomponents-fiori/dist/Wizard.js"; // ui5-wizard
 import "@ui5/webcomponents-fiori/dist/NavigationLayout.js";
 import "@ui5/webcomponents/dist/Button.js";
 import "@ui5/webcomponents/dist/Text.js";
+import "@ui5/webcomponents/dist/TextArea.js";
+import "@ui5/webcomponents/dist/Select.js";
+import "@ui5/webcomponents/dist/ComboBox.js";
 import "@ui5/webcomponents/dist/Title.js";
 
 import "@ui5/webcomponents-fiori/dist/NavigationLayout.js";
