@@ -3,7 +3,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, nothing, TemplateResult } from "lit";
 import { handleButtonClick } from "@/RedwoodComponentRenderer.ts";
 
-export const renderButton = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderButton = (component: ClientSideComponent, _baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as Button
     return html`<oj-c-button
                     id="button1"

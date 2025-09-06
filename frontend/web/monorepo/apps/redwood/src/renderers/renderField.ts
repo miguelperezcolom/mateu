@@ -1,9 +1,9 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { html, nothing, TemplateResult } from "lit";
+import { html, TemplateResult } from "lit";
 import { changed } from "@/RedwoodComponentRenderer.ts";
 
-export const renderField = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderField = (component: ClientSideComponent, _baseUrl: string | undefined, state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId??''
     const value = state && fieldId in state?state[ fieldId]:metadata?.initialValue

@@ -2,7 +2,6 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, nothing, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 //import '../../public/js/libs/oj/19.0.0/min/ojarraytreedataprovider.js'
-import { nanoid } from "nanoid";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 
 let route = ''
@@ -35,7 +34,7 @@ const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
     return route
 }
 
-export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, _state: any, data: any): TemplateResult => {
     const metadata = component.metadata as App
 
     route = extractRouteFromUrl(window, baseUrl??'')
@@ -43,7 +42,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
     const opened = data.opened == undefined?true:data.opened!!;
     data.opened = opened
 
-    const toggle = (e:Event) => {
+    const toggle = (_e:Event) => {
         setTimeout(() => {
             console.log('open', data.opened)
             data.opened = !data.opened;
@@ -51,7 +50,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
         }, 100)
     }
 
-    const close = (e:Event) => {
+    const close = (_e:Event) => {
         data.opened = false;
         container.requestUpdate()
     }
@@ -163,7 +162,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
                                             selection="${route}"
-                            @ojSelectionAction="${(e) => selected(e, container, baseUrl??'')}"
+                            @ojSelectionAction="${(e: any) => selected(e, container, baseUrl??'')}"
                                             root-label="Welcome"
                                             class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
                                             style="height: 100%;"
@@ -211,7 +210,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
         <oj-navigation-list
                 aria-label="Choose a navigation item"
                 drill-mode="sliding"
-                @ojSelectionAction="${(e) => console.log(e)}"
+                @ojSelectionAction="${(e: any) => console.log(e)}"
                 root-label="Hola"
         >
             <ul>
