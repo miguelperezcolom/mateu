@@ -1,4 +1,4 @@
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import { css, html, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'

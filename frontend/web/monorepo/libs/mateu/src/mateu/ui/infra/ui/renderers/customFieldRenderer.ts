@@ -1,9 +1,9 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import CustomField from "@mateu/shared/apiClients/dtos/componentmetadata/CustomField";
-import { html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const customFieldRenderer = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const customFieldRenderer = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as CustomField
 
     return html`
@@ -11,7 +11,7 @@ export const customFieldRenderer = (component: ClientSideComponent, baseUrl: str
                              style="${component.style}" 
                              class="${component.cssClasses}"
                              slot="${component.slot??nothing}">
-            ${renderComponent(metadata.content, baseUrl, state, data)}
+            ${renderComponent(container, metadata.content, baseUrl, state, data)}
         </vaadin-custom-field>
             `
 }

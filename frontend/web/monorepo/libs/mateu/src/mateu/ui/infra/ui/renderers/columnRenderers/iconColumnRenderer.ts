@@ -3,10 +3,10 @@ import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 
 export const renderIconCell = (item: any,
-                                 model: GridItemModel<any>,
+                                 _model: GridItemModel<any>,
                                  column: VaadinGridColumn,
                                 type: string,
-                                stereotype: string
+                                _stereotype: string
 ) => {
     if (type == 'string') {
         // @ts-ignore

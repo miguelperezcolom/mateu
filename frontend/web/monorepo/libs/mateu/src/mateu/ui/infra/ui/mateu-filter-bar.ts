@@ -17,6 +17,7 @@ import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
 
 @customElement('mateu-filter-bar')
@@ -156,14 +157,14 @@ export class MateuFilterBar extends LitElement {
                         <mateu-event-interceptor .target="${this}">
                 <vaadin-form-layout max-columns="2" @keydown="${this.handleKey}">
                     <vaadin-form-row>
-                        ${this.metadata?.filters.map(filter => renderComponent(this, {
+                        ${this.metadata?.filters?.map(filter => renderComponent(this, {
                             id: '',
-                            cssClasses: '',
+                            metadata: {...(filter as unknown as FormField), wantsFocus: true },
                             type: ComponentType.ClientSide,
                             style: '',
                             children: [],
                             slot: '',
-                            metadata: {...filter, wantsFocus: true }
+                            cssClasses: ''
         } as ClientSideComponent, this.baseUrl, this.state, this.data))}
                     </vaadin-form-row>
                 </vaadin-form-layout>

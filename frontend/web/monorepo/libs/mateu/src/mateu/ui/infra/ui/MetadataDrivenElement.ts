@@ -9,7 +9,7 @@ export default class MetadataDrivenElement extends ConnectedElement {
         // do nothing
     }
 
-    manageActionRequestedEvent(event: CustomEvent): void {
+    manageActionRequestedEvent(_event: CustomEvent): void {
         // do nothing
     }
 

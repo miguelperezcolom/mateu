@@ -35,7 +35,7 @@ export const createItem = (a: any) => {
 }
 
 export const renderMenuCell = (item: any,
-                                 model: GridItemModel<any>,
+                                 _model: GridItemModel<any>,
                                  column: VaadinGridColumn
 ) => {
     // @ts-ignore

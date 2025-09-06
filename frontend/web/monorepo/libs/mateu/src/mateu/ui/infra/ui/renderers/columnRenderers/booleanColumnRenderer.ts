@@ -3,7 +3,7 @@ import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 
 export const renderBooleanCell = (item: any,
-                                 model: GridItemModel<any>,
+                                 _model: GridItemModel<any>,
                                  column: VaadinGridColumn) => {
     // @ts-ignore
     const value = item[column.path]

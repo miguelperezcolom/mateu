@@ -57,6 +57,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final OrderProductList orderProductList;
 
     String orderId;
 
@@ -90,10 +91,11 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
 
 
     @Inject
-    public EditOrderPage(CustomerRepository customerRepository, OrderRepository orderRepository, ProductRepository productRepository) {
+    public EditOrderPage(CustomerRepository customerRepository, OrderRepository orderRepository, ProductRepository productRepository, OrderProductList orderProductList) {
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.orderProductList = orderProductList;
     }
 
 
@@ -425,42 +427,11 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
         }
         if ("view-product".equals(actionId)) {
                 var productId = (String) httpRequest.runActionRq().parameters().get("productId");
-                var product = productRepository.findById(productId).get();
                 var dialog = Dialog.builder()
                         .style("background-color: red;")
                         .left("0")
                         .height("100vh")
-                        .content(Form.builder()
-                                .title(product.name())
-                                .content(List.of(
-                                        FormField.builder()
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.html)
-                                                .initialValue("<img width='200' src='" + product.image() + "'></img>")
-                                                .label("Image")
-                                                .build(),
-                                        FormField.builder()
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.html)
-                                                .label("Brand")
-                                                .initialValue(product.brand())
-                                                .build(),
-                                        FormField.builder()
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.html)
-                                                .initialValue(product.listPrice().toString())
-                                                .label("Price")
-                                                .build()
-                                ))
-                                .toolbar(List.of(
-                                        Button.builder()
-                                                .iconOnLeft(IconKey.ChevronLeft.iconName)
-                                                .build(),
-                                        Button.builder()
-                                                .iconOnRight(IconKey.ChevronRight.iconName)
-                                                .build()
-                                ))
-                                .build())
+                        .content(orderProductList.load(lines.stream().map(OrderDetailLine::productId).distinct().toList(), productId))
                         .build();
                 return dialog;
         }

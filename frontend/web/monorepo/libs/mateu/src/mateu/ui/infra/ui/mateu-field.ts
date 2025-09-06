@@ -420,8 +420,6 @@ export class MateuField extends LitElement {
                         selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                     }
 
-                    console.log(this.id, value, this.data[this.id])
-
                     return html`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"

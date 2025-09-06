@@ -68,6 +68,7 @@ public class FormComponentToDtoMapper {
           .label(button.label())
           .iconOnLeft(button.iconOnLeft())
           .iconOnRight(button.iconOnRight())
+              .disabled(button.disabled())
           .build();
     }
     return null;

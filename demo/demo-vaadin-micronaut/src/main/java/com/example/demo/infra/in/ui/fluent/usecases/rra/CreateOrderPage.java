@@ -15,8 +15,8 @@ import java.util.UUID;
 public class CreateOrderPage extends EditOrderPage {
 
     @Inject
-    public CreateOrderPage(CustomerRepository customerRepository, OrderRepository orderRepository, ProductRepository productRepository) {
-        super(customerRepository, orderRepository, productRepository);
+    public CreateOrderPage(CustomerRepository customerRepository, OrderRepository orderRepository, ProductRepository productRepository, OrderProductList orderProductList) {
+        super(customerRepository, orderRepository, productRepository, orderProductList);
     }
 
     @Override

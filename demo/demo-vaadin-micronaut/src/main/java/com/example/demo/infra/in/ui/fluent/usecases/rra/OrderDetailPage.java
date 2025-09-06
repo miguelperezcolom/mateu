@@ -4,6 +4,7 @@ import com.example.demo.domain.OrderRepository;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -15,6 +16,7 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
@@ -35,7 +37,7 @@ record OrderDetailLine(
 }
 
 @Singleton
-public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
+public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod, HandlesActions {
 
     String orderId;
     String name;
@@ -47,10 +49,12 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
     List<OrderDetailLine> lines;
     String comments;
 
+    private final OrderProductList orderProductList;
     private final OrderRepository orderRepository;
 
     @Inject
-    public OrderDetailPage(OrderRepository orderRepository) {
+    public OrderDetailPage(OrderProductList orderProductList, OrderRepository orderRepository) {
+        this.orderProductList = orderProductList;
         this.orderRepository = orderRepository;
     }
 
@@ -121,8 +125,10 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                                 .build(),
                                                                         GridColumn.builder()
                                                                                 .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.link)
                                                                                 .id("productId")
                                                                                 .label("Product Number")
+                                                                                .actionId("view-product")
                                                                                 .build(),
                                                                         GridColumn.builder()
                                                                                 .dataType(FieldDataType.string)
@@ -195,5 +201,20 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
             )).toList();
             comments = order.comments();
         }
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("view-product".equals(actionId)) {
+            var productId = (String) httpRequest.runActionRq().parameters().get("productId");
+            var dialog = Dialog.builder()
+                    .style("background-color: red;")
+                    .left("0")
+                    .height("100vh")
+                    .content(orderProductList.load(lines.stream().map(OrderDetailLine::productId).distinct().toList(), productId))
+                    .build();
+            return dialog;
+        }
+        return null;
     }
 }

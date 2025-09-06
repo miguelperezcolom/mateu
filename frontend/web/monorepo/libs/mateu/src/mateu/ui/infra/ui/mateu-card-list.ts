@@ -17,24 +17,10 @@ import '@vaadin/grid/vaadin-grid-sort-column.js';
 import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
-import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
-import { GridDataProvider, GridSortColumn } from "@vaadin/grid/all-imports";
+import { GridDataProvider } from "@vaadin/grid/all-imports";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
-
-
-const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    event.currentTarget?.dispatchEvent(new CustomEvent('sort-direction-changed', {
-        detail: {
-            grid: (event.currentTarget as GridSortColumn).parentElement
-        },
-        bubbles: true,
-        composed: true
-    }))
-}
 
 
 @customElement('mateu-card-list')
@@ -78,7 +64,7 @@ export class MateuCardList extends LitElement {
             root: document.documentElement,
         };
 
-        var observer = new IntersectionObserver((entries, observer) => {
+        var observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 callback(entry.intersectionRatio > 0);
             });
@@ -92,7 +78,7 @@ export class MateuCardList extends LitElement {
 
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
-        this.respondToVisibility(this.askForMore, x => {
+        this.respondToVisibility(this.askForMore, (x:any) => {
             this.keepAsking = x
             if (x) {
                 this.askToUpper()
@@ -174,7 +160,7 @@ export class MateuCardList extends LitElement {
         const page = this.data[this.id]?.page
         return html`
             <div class="card-container">
-                ${page?.content?.map(item => html`<div @click="${e => this.clickedOnCard(item)}" class="car-container">${this.renderItem(item)}</div>`)}
+                ${page?.content?.map((item:any) => html`<div @click="${() => this.clickedOnCard(item)}" class="car-container">${this.renderItem(item)}</div>`)}
                 <div id="ask-for-more" style="display: ${this.hasMore?'':'none'};">xx</div>
             </div>
 

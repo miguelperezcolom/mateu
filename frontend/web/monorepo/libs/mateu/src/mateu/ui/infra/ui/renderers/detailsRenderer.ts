@@ -1,9 +1,9 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Details from "@mateu/shared/apiClients/dtos/componentmetadata/Details";
-import { html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderDetails = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderDetails = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as Details
 
     return html`
@@ -14,9 +14,9 @@ export const renderDetails = (component: ClientSideComponent, baseUrl: string | 
                 slot="${component.slot??nothing}"
         >
             <vaadin-details-summary slot="summary">
-            ${renderComponent(metadata.summary, baseUrl, state, data)}
+            ${renderComponent(container, metadata.summary, baseUrl, state, data)}
             </vaadin-details-summary>
-            ${renderComponent(metadata.content, baseUrl, state, data)}
+            ${renderComponent(container, metadata.content, baseUrl, state, data)}
         </vaadin-details>
             `
 }

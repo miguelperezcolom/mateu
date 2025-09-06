@@ -4,7 +4,7 @@ import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/Stat
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 
 export const renderStatusCell = (item: any,
-                                 model: GridItemModel<any>,
+                                 _model: GridItemModel<any>,
                                  column: VaadinGridColumn) => {
     // @ts-ignore
     const status = item[column.path]

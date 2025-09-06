@@ -95,7 +95,7 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
                 .build();
     }
 
-    private static BadgeColor color(OrderStatus status) {
+    public static BadgeColor color(OrderStatus status) {
         return switch (status) {
             case Draft -> BadgeColor.normal;
             case Completed -> BadgeColor.contrast;

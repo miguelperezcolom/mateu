@@ -16,7 +16,13 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const possiblyHtml = (text: string | undefined, state: any, data: any): string | undefined => {
+export const possiblyHtml = (
+    text: string | undefined,
+    // @ts-ignore
+    state: any,
+    // @ts-ignore
+    data: any
+): string | undefined => {
     if (text && text.indexOf("${") >= 0) {
         try {
             return eval('`' + text + '`')
@@ -58,6 +64,7 @@ export class MateuForm extends MetadataDrivenElement {
                 <vaadin-button
                         data-action-id="${button.id}"
                         @click="${() => this.handleButtonClick(button.actionId)}"
+                        ?disabled="${button.disabled}"
                 >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>
 `)}
                     </vaadin-horizontal-layout>
@@ -74,6 +81,7 @@ export class MateuForm extends MetadataDrivenElement {
                 <vaadin-button
                         data-action-id="${button.id}"
                         @click="${() => this.handleButtonClick(button.actionId)}"
+                        ?disabled="${button.disabled}"
                 >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>
 `)}
                         </vaadin-horizontal-layout>

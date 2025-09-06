@@ -4,7 +4,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { LitElement } from "lit";
 
 export const renderComponentCell = (item: any,
-                                 model: GridItemModel<any>,
+                                 _model: GridItemModel<any>,
                                  column: VaadinGridColumn,
                                     container: LitElement,
                                     baseUrl: string | undefined,

@@ -1,4 +1,4 @@
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -15,17 +15,6 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { GridActiveItemChangedEvent } from "@vaadin/grid/all-imports";
-
-export const possiblyHtml = (text: string | undefined, state: any, data: any): string | undefined => {
-    if (text && text.indexOf("${") >= 0) {
-        try {
-            return eval('`' + text + '`')
-        } catch (e: any) {
-            return e.message
-        }
-    }
-    return text;
-}
 
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
@@ -95,7 +84,7 @@ export class MateuGrid extends MetadataDrivenElement {
                 </vaadin-grid>
                 <div slot="${showDetail?'detail':'detail-hidden'}" style="display: contents;">
                     <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
-                    ${renderComponent(this, editing?(this.field?.editor):this.field?.createForm, this.baseUrl, this.state, this.data)}
+                    ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data)}
                     </div>
                 </div>
                 

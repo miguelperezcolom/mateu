@@ -60,12 +60,11 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
-import {Notification} from "@vaadin/notification"
+import { Notification } from "@vaadin/notification"
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { RuleAction } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import { RuleFieldAttribute } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
-import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -101,7 +100,7 @@ export class MateuComponent extends ComponentElement {
     }
 
     @property()
-    baseUrl: string | undefined
+    baseUrl = ''
 
 
     applyRules = () => {

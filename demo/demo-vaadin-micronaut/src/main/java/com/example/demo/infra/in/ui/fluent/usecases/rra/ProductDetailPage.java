@@ -2,10 +2,18 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.Amount;
 import com.example.demo.domain.Contact;
+import com.example.demo.domain.Order;
+import com.example.demo.domain.OrderRepository;
+import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Anchor;
+import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.CardVariant;
+import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -16,6 +24,7 @@ import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.TextContainer;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
@@ -28,6 +37,9 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
+import static com.example.demo.infra.in.ui.fluent.usecases.rra.HomePage.color;
+
+
 @Route("/fluent-app/use-cases/rra/inventory/.*")
 @Singleton
 public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
@@ -37,15 +49,24 @@ public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydratio
 
 
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
     @Inject
-    public ProductDetailPage(ProductRepository productRepository) {
+    public ProductDetailPage(ProductRepository productRepository, OrderRepository orderRepository) {
         this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
     }
 
 
     @Override
     public Component component(HttpRequest httpRequest) {
+
+        var nextOrders = orderRepository.findAll().stream().filter(order -> order.lines().stream()
+                .anyMatch(line -> line.product().id().equals(productId)))
+                .filter(order -> !OrderStatus.Delivered.equals(order.status()))
+                .toList();
+
+
         return Form.builder()
                 .title("Product " + productId)
                 .noHeader(true)
@@ -243,8 +264,13 @@ public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydratio
                                                                 .label("Upcoming Orders")
                                                                 .initialValue("10000")
                                                                 .build(),
-                                                        Crudl.builder()
-                                                                .crudlType(CrudlType.card)
+                                                        VerticalLayout.builder()
+                                                                .content(nextOrders.stream().limit(3).map(order -> createCard(order)).toList())
+                                                                .spacing(true)
+                                                                .build(),
+                                                        Anchor.builder()
+                                                                .url("../orders")
+                                                                .text("View All Orders")
                                                                 .build()
                                                 )
                                         )
@@ -254,6 +280,27 @@ public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydratio
                         .build()
                 ))
                 .build();
+    }
+
+    private Component createCard(Order order) {
+        return Card.builder()
+                .title(new Text(order.customer().name()))
+                .content(VerticalLayout.builder()
+                        .content(List.of(
+                                Badge.builder()
+                                        .color(color(order.status()))
+                                        .text(order.status().name())
+                                        .build(),
+                                new Div("" + order.totalAmount().value() + " " + order.totalAmount().currencyCode())
+                        ))
+                        .spacing(true)
+                        .build())
+                .variants(List.of(CardVariant.horizontal))
+                .subtitle(new Text(order.id()))
+                .style("width: fit-content;")
+                .cssClasses("image-on-right")
+                .build();
+
     }
 
     @Override

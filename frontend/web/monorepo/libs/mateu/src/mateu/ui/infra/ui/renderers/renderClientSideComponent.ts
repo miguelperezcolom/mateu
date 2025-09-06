@@ -58,7 +58,7 @@ import { renderDiv } from "@infra/ui/renderers/divRenderer.ts";
 import { nanoid } from "nanoid";
 import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
-import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/RemoteCoordinates.ts";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -270,13 +270,13 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderConfirmDialog(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.ContextMenu) {
-            return renderContextMenu(component, baseUrl, state, data)
+            return renderContextMenu(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.CookieConsent) {
             return renderCookieConsent(component)
         }
         if (type == ComponentMetadataType.Details) {
-            return renderDetails(component, baseUrl, state, data)
+            return renderDetails(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Dialog) {
             return renderDialog(component, baseUrl, state, data)
@@ -315,16 +315,16 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderMessageList(component)
         }
         if (type == ComponentMetadataType.CustomField) {
-            return customFieldRenderer(component, baseUrl, state, data)
+            return customFieldRenderer(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.MenuBar) {
-            return renderMenuBar(component, baseUrl, state, data)
+            return renderMenuBar(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Grid) {
             return renderGrid(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.VirtualList) {
-            return renderVirtualList(component, baseUrl, state, data)
+            return renderVirtualList(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.FormSection) {
             return renderFormSection(container, component, baseUrl, state, data)

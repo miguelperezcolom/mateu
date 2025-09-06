@@ -1,43 +1,43 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MenuBar from "@mateu/shared/apiClients/dtos/componentmetadata/MenuBar";
-import { html, nothing, render } from "lit";
+import { html, LitElement, nothing, render } from "lit";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/ContextMenu";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 
-export const renderContextMenu = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as ContextMenu
 
     return html`
-        <vaadin-context-menu .items=${mapItems(metadata.menu, baseUrl, state, data)} 
+        <vaadin-context-menu .items=${mapItems(container, metadata.menu, baseUrl, state, data)} 
                              style="${component.style}" 
                              class="${component.cssClasses}"
                              open-on="${metadata.activateOnLeftClick?'click':nothing}"
                              slot="${component.slot??nothing}">
-            ${renderComponent(metadata.wrapped, baseUrl, state, data)}
+            ${renderComponent(container, metadata.wrapped, baseUrl, state, data)}
         </vaadin-context-menu>
             `
 }
 
-export const renderMenuBar = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderMenuBar = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as MenuBar
 
     return html`
-        <vaadin-menu-bar .items=${mapItems(metadata.options, baseUrl, state, data)}
+        <vaadin-menu-bar .items=${mapItems(container, metadata.options, baseUrl, state, data)}
                          style="${component.style}" class="${component.cssClasses}"
                          slot="${component.slot??nothing}">
         </vaadin-menu-bar>
             `
 }
 
-const createItem = (component: Component, baseUrl: string | undefined, state: any, data: any) => {
+const createItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
     const item = document.createElement('vaadin-context-menu-item');
-    render(renderComponent(component, baseUrl, state, data), item)
+    render(renderComponent(container, component, baseUrl, state, data), item)
     return item
 }
 
-const mapItems = (options: MenuOption[], baseUrl: string | undefined, state: any, data: any): any => {
+const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: any, data: any): any => {
     return options.map(option => {
         if (option.submenus) {
             return {
@@ -46,8 +46,8 @@ const mapItems = (options: MenuOption[], baseUrl: string | undefined, state: any
                 checked: option.selected,
                 disabled: option.disabled,
                 className: option.className,
-                component: option.component?createItem(option.component, baseUrl, state, data):undefined,
-                children: mapItems(option.submenus, baseUrl, state, data)
+                component: option.component?createItem(container, option.component, baseUrl, state, data):undefined,
+                children: mapItems(container, option.submenus, baseUrl, state, data)
             }
         }
         if (option.separator) {
@@ -61,7 +61,7 @@ const mapItems = (options: MenuOption[], baseUrl: string | undefined, state: any
             checked: option.selected,
             disabled: option.disabled,
             className: option.className,
-            component: option.component?createItem(option.component, baseUrl, state, data):undefined,
+            component: option.component?createItem(container, option.component, baseUrl, state, data):undefined,
         }
     })
 }
