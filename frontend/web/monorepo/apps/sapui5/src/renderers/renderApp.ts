@@ -1,9 +1,8 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { html, LitElement, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
-import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode";
+import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import '../components/mateu-sapui5-app'
 
 let mode = NavigationLayoutMode.Auto
@@ -43,7 +42,7 @@ const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
 }
 
 
-export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as App
 
     route = extractRouteFromUrl(window, baseUrl??'')
@@ -58,7 +57,7 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
                 <ui5-shellbar-branding slot="branding">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => toggle(container)}"></ui5-button>
             </ui5-shellbar>
-            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e) => selected(e, container, baseUrl??'')}" collapsed>
+            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => selected(e, container, baseUrl??'')}" collapsed>
                 <!-- Items -->
                 ${metadata.menu.map(menu => html`
                     ${menu.submenus?html`

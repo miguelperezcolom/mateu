@@ -12,4 +12,5 @@ export default interface MenuOption {
     disabled: boolean
     disabledOnClick: boolean
     itemData: any
+    icon: string
 }

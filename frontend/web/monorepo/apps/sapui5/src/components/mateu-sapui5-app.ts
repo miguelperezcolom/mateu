@@ -1,4 +1,4 @@
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -54,7 +54,7 @@ export class MateuSapUI5App extends MetadataDrivenElement {
             return html`
 
 <ui5-tabcontainer
-        @tab-select="${(e) => this.tabSelected(e, this, this.baseUrl??'')}"
+        @tab-select="${(e: any) => this.tabSelected(e, this, this.baseUrl??'')}"
 >
  ${metadata.menu.map(menu => html`
      <ui5-tab ?icon="${menu.icon}" 
@@ -83,7 +83,7 @@ export class MateuSapUI5App extends MetadataDrivenElement {
         }
         return html`
                     <vaadin-horizontal-layout style="width: 100%;">
-            <ui5-side-navigation id="snx" @selection-change="${(e) => this.selected(e, this, this.baseUrl??'')}" style="flex-grow: 0;">
+            <ui5-side-navigation id="snx" @selection-change="${(e: any) => this.selected(e, this, this.baseUrl??'')}" style="flex-grow: 0;">
                 <!-- Items -->
                 ${metadata.menu.map(menu => html`
                 ${menu.submenus?html`

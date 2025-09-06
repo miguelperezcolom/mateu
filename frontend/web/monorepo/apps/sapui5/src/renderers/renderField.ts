@@ -3,7 +3,7 @@ import { html, TemplateResult } from "lit";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { changed } from "@/SapUi5ComponentRenderer.ts";
 
-export const renderField = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderField = (component: ClientSideComponent, _baseUrl: string | undefined, state: any, _data: any): TemplateResult => {
 
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId??''
