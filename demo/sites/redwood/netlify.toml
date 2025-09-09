@@ -1,0 +1,25 @@
+[[redirects]]
+from = "/fluent/mateu/*"
+to = "https://demo.mateu.io/fluent/mateu/:splat"
+status = 200
+force = true
+headers = {X-From = "Netlify"}
+
+[[redirects]]
+from = "/mateu/*"
+to = "https://demo.mateu.io/mateu/:splat"
+status = 200
+force = true
+headers = {X-From = "Netlify"}
+
+[[redirects]]
+from = "/images/*"
+to = "https://demo.mateu.io/images/:splat"
+status = 200
+force = true
+headers = {X-From = "Netlify"}
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
