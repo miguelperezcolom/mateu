@@ -14,6 +14,7 @@ require([
 
                 console.log('initial binding, after the ui is painted');
 
+
                 setTimeout(() => {
                     const container = document.getElementById("ui-container");
                     /*
