@@ -924,9 +924,9 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
-                                        route="${route}"
-                                        id="uwuwu"
-                                        baseUrl="${O}"
+                                        route="${Y.homeRoute}"
+                                        id="ux_${U.id}"
+                                        baseUrl="${U.baseUrl}"
                                         consumedRoute="${Y.route}"
                                         style="width: 100%;"
                                 ></mateu-ux>

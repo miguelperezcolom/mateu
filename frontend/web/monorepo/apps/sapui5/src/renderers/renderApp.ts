@@ -4,6 +4,7 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import '../components/mateu-sapui5-app'
+import { MateuApp } from "@infra/ui/mateu-app.ts";
 
 let mode = NavigationLayoutMode.Auto
 let route = ''
@@ -42,7 +43,7 @@ const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
 }
 
 
-export const renderApp = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
+export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as App
 
     route = extractRouteFromUrl(window, baseUrl??'')
@@ -113,9 +114,9 @@ export const renderApp = (container: LitElement, component: ClientSideComponent,
             <div class="content" style="">
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
-                            route="${route??metadata.homeRoute}"
-                            id="${container.id}_ux"
-                            baseUrl="${baseUrl}"
+                            route="${metadata.homeRoute}"
+                            id="ux_${container.id}"
+                            baseUrl="${container.baseUrl}"
                             consumedRoute="${metadata.route}"
                     ></mateu-ux>
                 </mateu-api-caller>
