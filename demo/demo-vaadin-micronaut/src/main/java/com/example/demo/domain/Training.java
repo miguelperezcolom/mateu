@@ -2,12 +2,14 @@ package com.example.demo.domain;
 
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Builder;
+import lombok.With;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Serdeable
 @Builder
+@With
 public record Training(
         String id,
         String name,

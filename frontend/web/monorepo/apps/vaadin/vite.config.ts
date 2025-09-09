@@ -38,6 +38,7 @@ export default defineConfig({
       '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
       '/sse': 'http://localhost:8091',
+      '/upload': 'http://localhost:8091',
     },
   },
 })

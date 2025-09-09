@@ -64,11 +64,11 @@ public class FormComponentToDtoMapper {
     if (userTrigger == null) return null;
     if (userTrigger instanceof Button button) {
       return ButtonDto.builder()
-          .actionId(button.actionId())
+          .actionId(button.getActionId())
           .label(button.label())
           .iconOnLeft(button.iconOnLeft())
           .iconOnRight(button.iconOnRight())
-              .disabled(button.disabled())
+          .disabled(button.disabled())
           .build();
     }
     return null;

@@ -108,6 +108,9 @@ public interface HttpRequest {
     if (runActionRq().parameters() == null) {
       return null;
     }
+    if (Map.class.equals(rowType)) {
+      return (T) runActionRq().parameters();
+    }
     return MateuInstanceFactory.newInstance(rowType, runActionRq().parameters());
   }
 

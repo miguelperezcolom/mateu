@@ -26,6 +26,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComboBoxDataProvider } from "@vaadin/combo-box";
 import './mateu-grid'
+import { Upload } from "@vaadin/upload";
 
 
 @customElement('mateu-field')
@@ -116,13 +117,27 @@ export class MateuField extends LitElement {
         </div>`
     }
 
+    fileUploaded = (e: CustomEvent) => {
+        const input = e.target as Upload
+        console.log(e, input, input.files)
+        console.log(e.detail.file.name)
+    }
+
+    fileChanged = (e:CustomEvent) => {
+        console.log('changed', e.detail.value)
+    }
+
     renderField(): TemplateResult {
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
+        const files:any[] = []
         if (this.field?.dataType == 'file') {
             return html`
                 <vaadin-upload
-                        target="/api/fileupload"
+                        target="/upload"
+                        .files="${files}"
+                        @upload-success="${this.fileUploaded}"
+                        @files-changed="${this.fileChanged}"
                 ></vaadin-upload>
             `
         }

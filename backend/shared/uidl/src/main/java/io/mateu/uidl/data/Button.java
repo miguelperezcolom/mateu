@@ -136,4 +136,14 @@ public record Button(
         null,
         null);
   }
+
+  public String getActionId() {
+    if (actionId != null) {
+      return actionId;
+    }
+    if (label != null) {
+      return camelcasize(label);
+    }
+    return null;
+  }
 }
