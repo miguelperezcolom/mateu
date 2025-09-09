@@ -4,22 +4,22 @@ to = "/index.html"
 status = 200
 
 [[redirects]]
-from = "/fluent"
-to = "https://demo.mateu.io"
+from = "/fluent/*"
+to = "https://demo.mateu.io/fluent/:splat"
 status = 200
 force = true
 headers = {X-From = "Netlify"}
 
 [[redirects]]
-from = "/mateu"
-to = "https://demo.mateu.io"
+from = "/mateu/*"
+to = "https://demo.mateu.io/:splat"
 status = 200
 force = true
 headers = {X-From = "Netlify"}
 
 [[redirects]]
-from = "/images"
-to = "https://demo.mateu.io"
+from = "/images/*"
+to = "https://demo.mateu.io/images/:splat"
 status = 200
 force = true
 headers = {X-From = "Netlify"}
