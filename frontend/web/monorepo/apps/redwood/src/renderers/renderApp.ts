@@ -3,12 +3,26 @@ import { html, nothing, TemplateResult } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 //import '../../public/js/libs/oj/19.0.0/min/ojarraytreedataprovider.js'
 import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
+import { TabData } from "../../public/oj-c/types/tab-bar";
 
 let route = ''
 
 const selected = (event: CustomEvent, container: MateuApp, baseUrl: string) => {
     console.log(event)
     const route = document.getElementById(event.detail.value)?.dataset.route??''
+    if (route) {
+        // container.selectRoute(route)
+        if (window.location.pathname != baseUrl + route) {
+            window.history.pushState({},"", baseUrl + route);
+        }
+        container.requestUpdate()
+    }
+}
+
+const selectedTab = (event: CustomEvent, container: MateuApp, baseUrl: string) => {
+    console.log(event)
+    const route = event.detail.value
     if (route) {
         // container.selectRoute(route)
         if (window.location.pathname != baseUrl + route) {
@@ -38,21 +52,69 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
     const metadata = component.metadata as App
 
     route = extractRouteFromUrl(window, baseUrl??'')
+    if (route == metadata.route) {
+        route = metadata.homeRoute
+    }
+
+    console.log('renderApp', route, metadata.homeRoute)
 
     const opened = data.opened == undefined?true:data.opened!!;
     data.opened = opened
 
     const toggle = (_e:Event) => {
-        setTimeout(() => {
-            console.log('open', data.opened)
-            data.opened = !data.opened;
-            container.requestUpdate()
-        }, 100)
+        console.log('open', data.opened)
+        data.opened = !data.opened;
+        container.requestUpdate()
     }
 
     const close = (_e:Event) => {
         data.opened = false;
         container.requestUpdate()
+    }
+
+    if (AppVariant.TABS == metadata.variant) {
+        const data: TabData<string>[] = metadata.menu.map(menu => ({
+            label: menu.label,
+            itemKey: menu.destination?.route,
+            // icon: {
+            //     type: 'class',
+            //     class: 'oj-ux-ico-home'
+            // }
+        } as TabData<string>))
+        console.log('tabs', data)
+        return html`<div>
+            <div><oj-c-tab-bar
+                    .data="${data}"
+                    .selection="${data[0].itemKey}"
+                    @ojSelectionAction="${(e: any) => selectedTab(e, container, baseUrl??'')}"
+                    edge="top"
+                    layout="condense"
+                    display="standard"
+                    aria-label="Basic TabBar"
+            >
+            </oj-c-tab-bar></div>
+            <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
+                <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                    <mateu-api-caller style="width: 100%;">
+                        <mateu-ux
+                                route="${route??metadata.homeRoute}"
+                                id="ux_${container.id}"
+                                baseUrl="${container.baseUrl}"
+                                consumedRoute="${metadata.route}"
+                                style="width: 100%;"
+                        ></mateu-ux>
+                    </mateu-api-caller>
+                </div>
+            </div>
+        </div>`
+    }
+
+    if (AppVariant.MENU_ON_TOP == metadata.variant) {
+        return html`<p>menu on top</p>`
+    }
+
+    if (AppVariant.MENU_ON_LEFT == metadata.variant) {
+        return html`<p>menu on left</p>`
     }
 
     return html`
@@ -187,7 +249,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
-                                        route="${metadata.homeRoute}"
+                                        route="${route??metadata.homeRoute}"
                                         id="ux_${container.id}"
                                         baseUrl="${container.baseUrl}"
                                         consumedRoute="${metadata.route}"

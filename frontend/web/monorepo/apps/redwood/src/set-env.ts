@@ -18,6 +18,8 @@ setTimeout(() => {
                 // @ts-ignore
                 function (require, exports, ko, ojbootstrap_1) {
                     "use strict";
+
+                    // THIS IS NEEDED FOR RENDERING NEW CONTENT
                     if (true || !!ko.dataFor(element)) {
                             try {
                                 console.log('cleaning node')
@@ -28,23 +30,6 @@ setTimeout(() => {
                         console.log('applying bindings')
                             ko.applyBindings({}, element);
                     }
-                    // ko.cleanNode(element);
-                    // ko.applyBindings({}, element);
-
-                    // const elements = document.getElementsByTagName('mateu-component');
-                    // for (let i = 0; i < elements.length; i++) {
-                    //     const element = elements.item(i);
-                    //     console.log('binding element', element)
-                    //     if (!!ko.dataFor(element)) {
-                    //
-                    //     }
-                    //     try {
-                    //         ko.cleanNode(element);
-                    //     } catch (e) {
-                    //         console.log('not cleanable');
-                    //     }
-                    //     ko.applyBindings({}, element);
-                    // }
                 }
             );
 

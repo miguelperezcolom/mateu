@@ -674,20 +674,20 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                        slot="${D.slot??E}"
                 >
                         ${D.children?.map(q=>renderComponent(U,q,O,F,W))}
-                    </mateu-field>`:Y==ComponentMetadataType.Text?renderText$1(D,F,W):Y==ComponentMetadataType.Avatar?renderAvatar(D):Y==ComponentMetadataType.AvatarGroup?renderAvatarGroup(D):Y==ComponentMetadataType.Badge?renderBadge(D):Y==ComponentMetadataType.Breadcrumbs?renderBreadcrumbs(D):Y==ComponentMetadataType.Anchor?renderAnchor(D):Y==ComponentMetadataType.Button?renderButton$1(D):Y==ComponentMetadataType.Card?renderCard(U,D,O,F,W):Y==ComponentMetadataType.Chart?renderChart(D):Y==ComponentMetadataType.Icon?renderIcon(D):Y==ComponentMetadataType.ConfirmDialog?renderConfirmDialog(U,D,O,F,W):Y==ComponentMetadataType.ContextMenu?renderContextMenu(U,D,O,F,W):Y==ComponentMetadataType.CookieConsent?renderCookieConsent(D):Y==ComponentMetadataType.Details?renderDetails(U,D,O,F,W):Y==ComponentMetadataType.Dialog?renderDialog(D,O,F,W):Y==ComponentMetadataType.Image?renderImage(D):Y==ComponentMetadataType.Map?renderMap(D):Y==ComponentMetadataType.Markdown?renderMarkdown(D):Y==ComponentMetadataType.MicroFrontend?renderMicroFrontend(D):Y==ComponentMetadataType.Notification?renderNotification(D):Y==ComponentMetadataType.ProgressBar?renderProgressBar(D):Y==ComponentMetadataType.Popover?renderPopover(U,D,O,F,W):Y==ComponentMetadataType.CarouselLayout?renderCarouselLayout(U,D,O,F,W):Y==ComponentMetadataType.Tooltip?renderTooltip(U,D,O,F,W):Y==ComponentMetadataType.MessageInput?renderMessageInput(D):Y==ComponentMetadataType.MessageList?renderMessageList(D):Y==ComponentMetadataType.CustomField?customFieldRenderer(U,D,O,F,W):Y==ComponentMetadataType.MenuBar?renderMenuBar(U,D,O,F,W):Y==ComponentMetadataType.Grid?renderGrid(U,D,O,F,W):Y==ComponentMetadataType.VirtualList?renderVirtualList(U,D,O,F,W):Y==ComponentMetadataType.FormSection?renderFormSection(U,D,O,F,W):Y==ComponentMetadataType.FormSubSection?renderFormSubSection(U,D,O,F,W):x`<p ${D?.slot??E}>Unknown metadata type ${Y} for component ${D?.id}</p>`}else return renderClientSideComponent(U,{id:nanoid(),metadata:D,type:ComponentType.ClientSide},O,F,W)};var AppVariant=(U=>(U.HAMBURGUER_MENU="HAMBURGUER_MENU",U.MENU_ON_LEFT="MENU_ON_LEFT",U.MENU_ON_TOP="MENU_ON_TOP",U.TABS="TABS",U))(AppVariant||{});const filterMenu=(U,D)=>{if(D.filter!=U.detail.value){debugger;D.filter=U.detail.value}},renderApp$1=(U,D)=>{const O=U.mapItems(D.menu,U.filter?.toLowerCase()??"");return x`
+                    </mateu-field>`:Y==ComponentMetadataType.Text?renderText$1(D,F,W):Y==ComponentMetadataType.Avatar?renderAvatar(D):Y==ComponentMetadataType.AvatarGroup?renderAvatarGroup(D):Y==ComponentMetadataType.Badge?renderBadge(D):Y==ComponentMetadataType.Breadcrumbs?renderBreadcrumbs(D):Y==ComponentMetadataType.Anchor?renderAnchor(D):Y==ComponentMetadataType.Button?renderButton$1(D):Y==ComponentMetadataType.Card?renderCard(U,D,O,F,W):Y==ComponentMetadataType.Chart?renderChart(D):Y==ComponentMetadataType.Icon?renderIcon(D):Y==ComponentMetadataType.ConfirmDialog?renderConfirmDialog(U,D,O,F,W):Y==ComponentMetadataType.ContextMenu?renderContextMenu(U,D,O,F,W):Y==ComponentMetadataType.CookieConsent?renderCookieConsent(D):Y==ComponentMetadataType.Details?renderDetails(U,D,O,F,W):Y==ComponentMetadataType.Dialog?renderDialog(D,O,F,W):Y==ComponentMetadataType.Image?renderImage(D):Y==ComponentMetadataType.Map?renderMap(D):Y==ComponentMetadataType.Markdown?renderMarkdown(D):Y==ComponentMetadataType.MicroFrontend?renderMicroFrontend(D):Y==ComponentMetadataType.Notification?renderNotification(D):Y==ComponentMetadataType.ProgressBar?renderProgressBar(D):Y==ComponentMetadataType.Popover?renderPopover(U,D,O,F,W):Y==ComponentMetadataType.CarouselLayout?renderCarouselLayout(U,D,O,F,W):Y==ComponentMetadataType.Tooltip?renderTooltip(U,D,O,F,W):Y==ComponentMetadataType.MessageInput?renderMessageInput(D):Y==ComponentMetadataType.MessageList?renderMessageList(D):Y==ComponentMetadataType.CustomField?customFieldRenderer(U,D,O,F,W):Y==ComponentMetadataType.MenuBar?renderMenuBar(U,D,O,F,W):Y==ComponentMetadataType.Grid?renderGrid(U,D,O,F,W):Y==ComponentMetadataType.VirtualList?renderVirtualList(U,D,O,F,W):Y==ComponentMetadataType.FormSection?renderFormSection(U,D,O,F,W):Y==ComponentMetadataType.FormSubSection?renderFormSubSection(U,D,O,F,W):x`<p ${D?.slot??E}>Unknown metadata type ${Y} for component ${D?.id}</p>`}else return renderClientSideComponent(U,{id:nanoid(),metadata:D,type:ComponentType.ClientSide},O,F,W)};var AppVariant=(U=>(U.HAMBURGUER_MENU="HAMBURGUER_MENU",U.MENU_ON_LEFT="MENU_ON_LEFT",U.MENU_ON_TOP="MENU_ON_TOP",U.TABS="TABS",U))(AppVariant||{});let route$1="";const filterMenu=(U,D)=>{if(D.filter!=U.detail.value){debugger;D.filter=U.detail.value}},extractRouteFromUrl$1=(U,D)=>{const O=extractGrossRouteFromUrl$1(U,D);return O=="/"?"":(console.log("route",O,D),O)},extractGrossRouteFromUrl$1=(U,D)=>{const O=U.location.pathname;return O.startsWith(D)?O.substring(D.length):O},renderApp$1=(U,D,O,F,W)=>{const Y=U.mapItems(D.menu,U.filter?.toLowerCase()??"");return route$1=extractRouteFromUrl$1(window,O??""),console.log("route",route$1),x`
             ${D.variant==AppVariant.HAMBURGUER_MENU?x`
                 <vaadin-app-layout style="${D?.style}" class="${D?.cssClasses}" .drawerOpened=${!D.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${D.title}</h2><p slot="navbar">${D.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
                         ${D.menu&&D.totalMenuOptions>10?x`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${F=>filterMenu(F,U)}">
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${q=>filterMenu(q,U)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
                             </vaadin-text-field>
                             `:E}
 
                         <vaadin-side-nav .onNavigate="${U.navItemSelected}">
-                            ${U.renderSideNav(O,void 0)}
+                            ${U.renderSideNav(Y,void 0)}
                         </vaadin-side-nav>
                     </vaadin-scroller>
                     <div class="app-content">
@@ -708,14 +708,14 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
 
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-menu-bar
-                            .items="${O}"
+                            .items="${Y}"
                             @item-selected="${U.itemSelected}"
                             theme="dropdown-indicators"
                     >
                     </vaadin-menu-bar>
                     <mateu-api-caller>
                         <mateu-ux 
-                                route="${D.homeRoute}" 
+                                route="${route$1??D.homeRoute}" 
                                 id="ux_${U.id}" 
                                 baseUrl="${U.baseUrl}"
                                 consumedRoute="${D.route}"
@@ -730,12 +730,12 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 <vaadin-horizontal-layout style="width: 100%;">
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout>
-                            ${D.menu.map(F=>U.renderOptionOnLeftMenu(F))}
+                            ${D.menu.map(q=>U.renderOptionOnLeftMenu(q))}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${D.homeRoute}"
+                                route="${route$1??D.homeRoute}"
                                 id="ux_${U.id}"
                                 baseUrl="${U.baseUrl}"
                                 consumedRoute="${D.route}"
@@ -751,15 +751,15 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 
                 <vaadin-vertical-layout class="vl"  style="width: 100%;">
                     <vaadin-tabs selected="${U.getSelectedIndex(D.menu)}" class="${U.component?.cssClasses}">
-                        ${D.menu.map(F=>x`
+                        ${D.menu.map(q=>x`
                                 <vaadin-tab 
-                                        @click="${()=>U.selectRoute(F.destination.route)}"
-                                >${F.label}</vaadin-tab>
+                                        @click="${()=>U.selectRoute(q.destination.route)}"
+                                >${q.label}</vaadin-tab>
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${D.homeRoute}"
+                                route="${route$1??D.homeRoute}"
                                 id="ux_${U.id}"
                                 baseUrl="${U.baseUrl}"
                                 consumedRoute="${D.route}"
@@ -770,7 +770,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             `:E}
 
             <slot></slot>
-       `};class BasicComponentRenderer{renderClientSideComponent(D,O,F,W,Y){return renderClientSideComponent(D,O,F,W,Y)}renderAppComponent(D,O,F,W,Y){return renderApp$1(D,O?.metadata)}}const renderButton=(U,D,O,F)=>{const W=U.metadata;return x`<oj-c-button
+       `};class BasicComponentRenderer{renderClientSideComponent(D,O,F,W,Y){return renderClientSideComponent(D,O,F,W,Y)}renderAppComponent(D,O,F,W,Y){return renderApp$1(D,O?.metadata,F)}}const renderButton=(U,D,O,F)=>{const W=U.metadata;return x`<oj-c-button
                     id="button1"
                     data-action-id="${W.actionId}"
                     label="${W.label}"
@@ -792,7 +792,31 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                     value="${q}"
                     @change="${X=>changed(X,U.id)}"
             >
-                </oj-c-input-number>`:x``};let route="";const selected=(U,D,O)=>{console.log(U);const F=document.getElementById(U.detail.value)?.dataset.route??"";F&&(window.location.pathname!=O+F&&window.history.pushState({},"",O+F),D.requestUpdate())},extractRouteFromUrl=(U,D)=>{const O=extractGrossRouteFromUrl(U,D);return O=="/"?"":O},extractGrossRouteFromUrl=(U,D)=>{const O=U.location.pathname;return O.startsWith(D)?O.substring(D.length):O},renderApp=(U,D,O,F,W)=>{const Y=D.metadata;route=extractRouteFromUrl(window,O??"");const q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{setTimeout(()=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},100)},K=Z=>{W.opened=!1,U.requestUpdate()};return x`
+                </oj-c-input-number>`:x``};let route="";const selected=(U,D,O)=>{console.log(U);const F=document.getElementById(U.detail.value)?.dataset.route??"";F&&(window.location.pathname!=O+F&&window.history.pushState({},"",O+F),D.requestUpdate())},selectedTab=(U,D,O)=>{console.log(U);const F=U.detail.value;F&&(window.location.pathname!=O+F&&window.history.pushState({},"",O+F),D.requestUpdate())},extractRouteFromUrl=(U,D)=>{const O=extractGrossRouteFromUrl(U,D);return O=="/"?"":O},extractGrossRouteFromUrl=(U,D)=>{const O=U.location.pathname;return O.startsWith(D)?O.substring(D.length):O},renderApp=(U,D,O,F,W)=>{const Y=D.metadata;route=extractRouteFromUrl(window,O??""),route==Y.route&&(route=Y.homeRoute),console.log("renderApp",route,Y.homeRoute);const q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},K=Z=>{W.opened=!1,U.requestUpdate()};if(AppVariant.TABS==Y.variant){const Z=Y.menu.map(Q=>({label:Q.label,itemKey:Q.destination?.route}));return console.log("tabs",Z),x`<div>
+            <div><oj-c-tab-bar
+                    .data="${Z}"
+                    .selection="${Z[0].itemKey}"
+                    @ojSelectionAction="${Q=>selectedTab(Q,U,O??"")}"
+                    edge="top"
+                    layout="condense"
+                    display="standard"
+                    aria-label="Basic TabBar"
+            >
+            </oj-c-tab-bar></div>
+            <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
+                <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                    <mateu-api-caller style="width: 100%;">
+                        <mateu-ux
+                                route="${route??Y.homeRoute}"
+                                id="ux_${U.id}"
+                                baseUrl="${U.baseUrl}"
+                                consumedRoute="${Y.route}"
+                                style="width: 100%;"
+                        ></mateu-ux>
+                    </mateu-api-caller>
+                </div>
+            </div>
+        </div>`}return AppVariant.MENU_ON_TOP==Y.variant?x`<p>menu on top</p>`:AppVariant.MENU_ON_LEFT==Y.variant?x`<p>menu on left</p>`:x`
         <div id="componentDemoContent" style="width: 100%;">
 
             <div id="demo-container" style="width: 100%; height: -webkit-fill-available;">
@@ -924,7 +948,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
-                                        route="${Y.homeRoute}"
+                                        route="${route??Y.homeRoute}"
                                         id="ux_${U.id}"
                                         baseUrl="${U.baseUrl}"
                                         consumedRoute="${Y.route}"

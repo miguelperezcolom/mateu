@@ -13,7 +13,7 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
     }
 
     renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any): TemplateResult {
-        return renderApp(container, component?.metadata as App)
+        return renderApp(container, component?.metadata as App, _baseUrl, _state, _data)
     }
 
 }

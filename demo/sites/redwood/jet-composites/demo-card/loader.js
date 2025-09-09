@@ -5,7 +5,8 @@ define(['ojs/ojcomposite',
         'x/form-layout',
     'x/navigation-list',
     'x/drawer-layout',
-        'x/avatar'
+        'x/avatar',
+    'x/tab-bar'
     ],
     function(Composite, view, viewModel, metadata) {
     }

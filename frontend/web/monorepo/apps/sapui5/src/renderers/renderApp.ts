@@ -114,7 +114,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
             <div class="content" style="">
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
-                            route="${metadata.homeRoute}"
+                            route="${route??metadata.homeRoute}"
                             id="ux_${container.id}"
                             baseUrl="${container.baseUrl}"
                             consumedRoute="${metadata.route}"

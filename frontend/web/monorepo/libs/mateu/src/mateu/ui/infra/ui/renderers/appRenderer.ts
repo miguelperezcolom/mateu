@@ -3,6 +3,8 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 
+let route = ''
+
 const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
         debugger
@@ -10,9 +12,30 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
     }
 }
 
-export const renderApp = (container: MateuApp, metadata: App) => {
+const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = extractGrossRouteFromUrl(w, baseUrl)
+    if ('/' == route) {
+        return ''
+    }
+    console.log('route', route, baseUrl)
+    return route
+}
+
+const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
+    const route = w.location.pathname
+    if (route.startsWith(baseUrl)) {
+        return route.substring(baseUrl.length)
+    }
+    return route
+}
+
+export const renderApp = (container: MateuApp, metadata: App, baseUrl: string | undefined, _state: any, _data: any) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
+
+    route = extractRouteFromUrl(window, baseUrl??'')
+
+    console.log('route', route)
 
     return html`
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
@@ -55,7 +78,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     </vaadin-menu-bar>
                     <mateu-api-caller>
                         <mateu-ux 
-                                route="${metadata.homeRoute}" 
+                                route="${route??metadata.homeRoute}" 
                                 id="ux_${container.id}" 
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -75,7 +98,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     </vaadin-scroller>
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${metadata.homeRoute}"
+                                route="${route??metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -101,7 +124,7 @@ export const renderApp = (container: MateuApp, metadata: App) => {
                     </vaadin-tabs>
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${metadata.homeRoute}"
+                                route="${route??metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
