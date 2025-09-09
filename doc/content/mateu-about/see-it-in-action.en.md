@@ -5,9 +5,7 @@ weight: 3
 
 To see Mateu in action just go to:
 
-- https://demo.mateu.io/fluent/fluent-app/use-cases/rra for a component/feature explorer
-- https://article2.mateu.io for a micro frontends example
-- https://vaadin.mateu.io/fluent/fluent-app/use-cases/rra for a **VAADIN** component/feature explorer
+- https://demo.mateu.io/fluent/fluent-app/use-cases/rra for a **VAADIN** component/feature explorer
 - https://sapui5.mateu.io/fluent/fluent-app/use-cases/rra for a **SAPUI5** component/feature explorer
 - https://redwood.mateu.io/fluent/fluent-app/use-cases/rra for a **REDWOOD** component/feature explorer
 
