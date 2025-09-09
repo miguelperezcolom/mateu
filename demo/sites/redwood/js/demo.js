@@ -1,18 +1,21 @@
 require([
-            "require",
-            "exports",
-            "knockout",
-            "ojs/ojbootstrap",
-            "jet-composites/demo-card/loader",
-            "ojs/ojknockout"
-        ],
-        function (require, exports, ko, ojbootstrap_1) {
-            "use strict";
+        "require",
+        "exports",
+        "knockout",
+        "ojs/ojbootstrap",
+        "jet-composites/demo-card/loader",
+        "ojs/ojknockout"
+    ],
+    function (require, exports, ko, ojbootstrap_1) {
+        "use strict";
 
-            setTimeout(() => {
-                (0, ojbootstrap_1.whenDocumentReady)().then(() => {
+        setTimeout(() => {
+            (0, ojbootstrap_1.whenDocumentReady)().then(() => {
 
-                    console.log('initial binding, after the ui is painted');
+                console.log('initial binding, after the ui is painted');
+
+                document.addEventListener("DOMContentLoaded", (event) => {
+                    console.log("DOM fully loaded and parsed");
 
                     setTimeout(() => {
                         const container = document.getElementById("ui-container");
@@ -50,7 +53,10 @@ require([
                         }, 500);
                     }, 100);
                 });
-            }, 0);
-        }
-    );
+
+            });
+
+        }, 0);
+    }
+);
 
