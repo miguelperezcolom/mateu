@@ -3,7 +3,6 @@ Thumbs.db
 .gradle
 build/
 target/
-out/
 .micronaut/
 .idea
 *.iml
