@@ -1,7 +1,7 @@
 docker login
-docker buildx build --platform=linux/x86 -t miguelperezcolom/mateu-demo .
+docker buildx build --platform=linux/amd64 -t miguelperezcolom/mateu-demo .
 #docker build -t miguelperezcolom/mateu-demo .
-export VERSION=3.0-alpha.65
+export VERSION=3.0-alpha.68
 docker image tag miguelperezcolom/mateu-demo miguelperezcolom/mateu-demo:latest
 docker image tag miguelperezcolom/mateu-demo miguelperezcolom/mateu-demo:$VERSION
 echo "pushing latest"
