@@ -4,14 +4,7 @@ to = "/index.html"
 status = 200
 
 [[redirects]]
-from = "/fluent/mateu"
-to = "https://demo.mateu.io"
-status = 200
-force = true
-headers = {X-From = "Netlify"}
-
-[[redirects]]
-from = "/fluent/mateu"
+from = "/fluent"
 to = "https://demo.mateu.io"
 status = 200
 force = true
