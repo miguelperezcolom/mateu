@@ -16,7 +16,7 @@ headers = {X-From = "Netlify"}
 from = "/images/*"
 to = "https://demo.mateu.io/images/:splat"
 status = 200
-force = true
+force = false
 headers = {X-From = "Netlify"}
 
 [[redirects]]
