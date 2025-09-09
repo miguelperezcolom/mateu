@@ -11,11 +11,11 @@ To see Mateu in action just go to:
 
 
 Please notice that the demo app backend has been deployed to 2 pods inside a Kubernetes cluster running on infrastructure 
-provided by Hetzner and managed using Cloudfleet, and all that behind Cloudflare. 
-This means that every request you do is load balanced between those 2 pods and that showcases the stateless nature 
-of any UI built with Mateu :) 
+provided by Hetzner and managed using Cloudfleet. This means that every request you do is load balanced between those 2 
+pods and that showcases the stateless nature of any UI built with Mateu :) 
 
-All the demos are deployed as static sites in Netlify, calling the same backend.
+All the demos frontends are deployed as static sites in Netlify, calling the same backend.
 
-> Note: I finally removed Cloudflare due to random failures. Now I use a nginx running on a pod inside the cluster, 
-with certbot automatically renewed let's encrypt certificates, and no issue so far. 
+> Note: Even though I first relied on Cloudflare for the ssl support and as CDN, I finally removed it due to random 
+> failures. Now I use a nginx running on a pod inside the cluster, with certbot automatically renewed let's encrypt 
+> certificates, and no issue so far. 
