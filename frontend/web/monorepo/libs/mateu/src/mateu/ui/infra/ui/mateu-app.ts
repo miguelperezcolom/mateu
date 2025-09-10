@@ -66,7 +66,16 @@ export class MateuApp extends ComponentElement {
             const app = ((this.component as ClientSideComponent).metadata as App)
             app.homeRoute = route
             this.instant = nanoid()
-            window.history.pushState({},"", this.baseUrl + app.homeRoute);
+            let targetUrl = new URL(this.baseUrl + route)
+            if (window.location.pathname != targetUrl.pathname) {
+                let pathname = targetUrl.pathname
+                if (pathname && !pathname.startsWith('/')) {
+                    pathname = '/' + pathname
+                }
+                console.log('pushing state from app', pathname)
+                window.history.pushState({},"", pathname);
+            }
+            //window.history.pushState({},"", this.baseUrl + app.homeRoute);
         } else {
 
         }
