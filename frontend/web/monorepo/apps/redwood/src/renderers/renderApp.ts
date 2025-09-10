@@ -8,28 +8,45 @@ import { TabData } from "../../public/oj-c/types/tab-bar";
 
 let route = ''
 
-const selected = (event: CustomEvent, container: MateuApp, baseUrl: string) => {
-    console.log(event)
+const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string) => {
     const route = document.getElementById(event.detail.value)?.dataset.route??''
-    if (route) {
-        // container.selectRoute(route)
-        if (window.location.pathname != baseUrl + route) {
-            window.history.pushState({},"", baseUrl + route);
+    let baseUrl = _baseUrl??''
+    if (baseUrl.indexOf('://') < 0) {
+        if (!baseUrl.startsWith('/')) {
+            baseUrl = '/' + baseUrl
         }
+        baseUrl = window.location.origin + baseUrl
+    }
+    let targetUrl = new URL(baseUrl + route)
+    if (window.location.pathname != targetUrl.pathname) {
+        let pathname = targetUrl.pathname
+        if (pathname && !pathname.startsWith('/')) {
+            pathname = '/' + pathname
+        }
+        window.history.pushState({},"", pathname);
         container.requestUpdate()
     }
 }
 
-const selectedTab = (event: CustomEvent, container: MateuApp, baseUrl: string) => {
-    console.log(event)
+const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string) => {
     const route = event.detail.value
-    if (route) {
-        // container.selectRoute(route)
-        if (window.location.pathname != baseUrl + route) {
-            window.history.pushState({},"", baseUrl + route);
+    let baseUrl = _baseUrl??''
+    if (baseUrl.indexOf('://') < 0) {
+        if (!baseUrl.startsWith('/')) {
+            baseUrl = '/' + baseUrl
         }
+        baseUrl = window.location.origin + baseUrl
+    }
+    let targetUrl = new URL(baseUrl + route)
+    if (window.location.pathname != targetUrl.pathname) {
+        let pathname = targetUrl.pathname
+        if (pathname && !pathname.startsWith('/')) {
+            pathname = '/' + pathname
+        }
+        window.history.pushState({},"", pathname);
         container.requestUpdate()
     }
+
 }
 
 const extractRouteFromUrl = (w: Window, baseUrl: string): string => {

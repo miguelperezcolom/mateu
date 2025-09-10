@@ -27,22 +27,49 @@ export class MateuSapUI5App extends MetadataDrivenElement {
     @property()
     consumedRoute = ''
 
-    selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
+    selected = (event: CustomEvent, container: LitElement, _baseUrl: string) => {
         this.route = event.detail.item.dataset.route
-        if (this.route) {
-            if (window.location.pathname != this.baseUrl + this.route) {
-                window.history.pushState({},"", baseUrl + this.route);
+        const route = this.route
+        let baseUrl = this.baseUrl??''
+        if (baseUrl.indexOf('://') < 0) {
+            if (!baseUrl.startsWith('/')) {
+                baseUrl = '/' + baseUrl
             }
+            baseUrl = window.location.origin + baseUrl
+        }
+        let targetUrl = new URL(baseUrl + route)
+        if (window.location.pathname != targetUrl.pathname) {
+            let pathname = targetUrl.pathname
+            if (pathname && !pathname.startsWith('/')) {
+                pathname = '/' + pathname
+            }
+            window.history.pushState({},"", pathname);
+        }
+        if (this.route) {
             container.requestUpdate()
         }
     }
 
-    tabSelected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
+    tabSelected = (event: CustomEvent, container: LitElement, _baseUrl: string) => {
         this.route = event.detail.tab.dataset.route
-        if (this.route) {
-            if (window.location.pathname != this.baseUrl + this.route) {
-                window.history.pushState({},"", baseUrl + this.route);
+        const route = this.route
+        let baseUrl = this.baseUrl??''
+        if (baseUrl.indexOf('://') < 0) {
+            if (!baseUrl.startsWith('/')) {
+                baseUrl = '/' + baseUrl
             }
+            baseUrl = window.location.origin + baseUrl
+        }
+        let targetUrl = new URL(baseUrl + route)
+        if (window.location.pathname != targetUrl.pathname) {
+            let pathname = targetUrl.pathname
+            if (pathname && !pathname.startsWith('/')) {
+                pathname = '/' + pathname
+            }
+            window.history.pushState({},"", pathname);
+        }
+
+        if (this.route) {
             container.requestUpdate()
         }
     }

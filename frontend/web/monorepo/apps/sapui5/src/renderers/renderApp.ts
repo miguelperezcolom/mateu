@@ -13,13 +13,24 @@ const toggle = (container: LitElement) => {
     container.requestUpdate()
 }
 
-const selected = (event: CustomEvent, container: LitElement, baseUrl: string, metadata: App) => {
-    console.log('selected', event, baseUrl, event.detail.item.dataset.route)
+const selected = (event: CustomEvent, container: LitElement, _baseUrl: string, metadata: App) => {
     const route = event.detail.item.dataset.route
-    if (route) {
-        if (window.location.pathname != baseUrl + route) {
-            window.history.pushState({},"", baseUrl + route);
+    let baseUrl = _baseUrl??''
+    if (baseUrl.indexOf('://') < 0) {
+        if (!baseUrl.startsWith('/')) {
+            baseUrl = '/' + baseUrl
         }
+        baseUrl = window.location.origin + baseUrl
+    }
+    let targetUrl = new URL(baseUrl + route)
+    if (window.location.pathname != targetUrl.pathname) {
+        let pathname = targetUrl.pathname
+        if (pathname && !pathname.startsWith('/')) {
+            pathname = '/' + pathname
+        }
+        window.history.pushState({},"", pathname);
+    }
+    if (route) {
         metadata.homeRoute = route
         container.requestUpdate()
     }
