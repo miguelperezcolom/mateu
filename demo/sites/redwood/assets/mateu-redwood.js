@@ -792,11 +792,11 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                     value="${q}"
                     @change="${X=>changed(X,U.id)}"
             >
-                </oj-c-input-number>`:x``},selected=(U,D,O)=>{const F=document.getElementById(U.detail.value)?.dataset.route??"";let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},selectedTab=(U,D,O)=>{const F=U.detail.value;let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},renderApp=(U,D,O,F,W)=>{const Y=D.metadata,q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},K=Z=>{W.opened=!1,U.requestUpdate()};if(AppVariant.TABS==Y.variant){const Z=Y.menu.map(Q=>({label:Q.label,itemKey:Q.destination?.route}));return x`<div>
+                </oj-c-input-number>`:x``},selected=(U,D,O,F)=>{const W=document.getElementById(U.detail.value)?.dataset.route??"";let Y=O??"";Y.indexOf("://")<0&&(Y.startsWith("/")||(Y="/"+Y),Y=window.location.origin+Y);let q=new URL(Y+W);if(window.location.pathname!=q.pathname){let X=q.pathname;X&&!X.startsWith("/")&&(X="/"+X),window.history.pushState({},"",X),F.homeRoute=W,D.requestUpdate()}},selectedTab=(U,D,O,F)=>{const W=U.detail.value;let Y=O??"";Y.indexOf("://")<0&&(Y.startsWith("/")||(Y="/"+Y),Y=window.location.origin+Y);let q=new URL(Y+W);if(window.location.pathname!=q.pathname){let X=q.pathname;X&&!X.startsWith("/")&&(X="/"+X),window.history.pushState({},"",X),F.homeRoute=W,D.requestUpdate()}},renderApp=(U,D,O,F,W)=>{const Y=D.metadata,q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},K=Z=>{W.opened=!1,U.requestUpdate()};if(AppVariant.TABS==Y.variant){const Z=Y.menu.map(Q=>({label:Q.label,itemKey:Q.destination?.route}));return x`<div>
             <div><oj-c-tab-bar
                     .data="${Z}"
                     .selection="${Z[0].itemKey}"
-                    @ojSelectionAction="${Q=>selectedTab(Q,U,O??"")}"
+                    @ojSelectionAction="${Q=>selectedTab(Q,U,O??"",Y)}"
                     edge="top"
                     layout="condense"
                     display="standard"
@@ -923,7 +923,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
                                             selection="${Y.route}"
-                            @ojSelectionAction="${Z=>selected(Z,U,O??"")}"
+                            @ojSelectionAction="${Z=>selected(Z,U,O??"",Y)}"
                                             root-label="Welcome"
                                             class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
                                             style="height: 100%;"
@@ -931,7 +931,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                             <ul>
                                 ${Y.menu.map(Z=>x`
                                     <li data-route="${Z.destination?.route}" id="${Z.destination?.route}"><a href="#">${Z.label}</a>
-                                        ${Z.submenus?x`
+                                        ${Z.submenus&&Z.submenus.length>0?x`
                                         <ul>
                                             ${Z.submenus.map(Q=>x`
                                                 <li data-route="${Q.destination?.route}" id="${Q.destination?.route}"><a href="#">${Q.label}</a></li>
