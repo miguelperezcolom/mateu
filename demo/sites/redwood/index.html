@@ -32,16 +32,18 @@
 
   <script src="/js/libs/knockout/knockout-3.5.1.js"></script>
   <script src="/scripts/require.js"></script>
+
+  <script type="module" crossorigin src="/assets/mateu-redwood.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index.css">
+
   <!-- RequireJS bootstrap file -->
   <script src="/main.js"></script>
   <script src="/js/demo.js"></script>
 
-
-  <script type="module" crossorigin src="/assets/mateu-redwood.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index.css">
 </head>
 <body class="cookbook-page" style="overflow-y: auto;">
-<div id="page-container" class="page-container oj-web-applayout-page demo-pinned-navlist">
+<div id="landing-loader">Loading...</div>
+<div id="page-container" class="page-container oj-web-applayout-page demo-pinned-navlist" style="display:none;">
   <div id="ui-container"></div>
   <footer id="" role="contentinfo" data-bind="template: {name: 'footerTemplate'}" class="oj-web-applayout-footer oj-sm-padding-2x-horizontal">
     <!--

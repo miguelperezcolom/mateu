@@ -4,49 +4,29 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import '../components/mateu-sapui5-app'
-import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { MateuComponent } from "@infra/ui/mateu-component.ts";
 
 let mode = NavigationLayoutMode.Auto
-let route = ''
 
 const toggle = (container: LitElement) => {
     mode = mode == NavigationLayoutMode.Expanded?NavigationLayoutMode.Collapsed:NavigationLayoutMode.Expanded
     container.requestUpdate()
 }
 
-const selected = (event: CustomEvent, container: LitElement, baseUrl: string) => {
+const selected = (event: CustomEvent, container: LitElement, baseUrl: string, metadata: App) => {
     console.log('selected', event, baseUrl, event.detail.item.dataset.route)
-    route = event.detail.item.dataset.route
+    const route = event.detail.item.dataset.route
     if (route) {
         if (window.location.pathname != baseUrl + route) {
             window.history.pushState({},"", baseUrl + route);
         }
+        metadata.homeRoute = route
         container.requestUpdate()
     }
 }
 
-const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
-    const route = extractGrossRouteFromUrl(w, baseUrl)
-    if ('/' == route) {
-        return ''
-    }
-    console.log('route', route, baseUrl)
-    return route
-}
-
-const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
-    const route = w.location.pathname
-    if (route.startsWith(baseUrl)) {
-        return route.substring(baseUrl.length)
-    }
-    return route
-}
-
-
-export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
+export const renderApp = (container: MateuComponent, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as App
-
-    route = extractRouteFromUrl(window, baseUrl??'')
 
     if (AppVariant.HAMBURGUER_MENU == metadata.variant) {
         return html`
@@ -58,7 +38,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                 <ui5-shellbar-branding slot="branding">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => toggle(container)}"></ui5-button>
             </ui5-shellbar>
-            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => selected(e, container, baseUrl??'')}" collapsed>
+            <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => selected(e, container, baseUrl??'', metadata)}" collapsed>
                 <!-- Items -->
                 ${metadata.menu.map(menu => html`
                     ${menu.submenus?html`
@@ -114,7 +94,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
             <div class="content" style="">
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
-                            route="${route??metadata.homeRoute}"
+                            route="${metadata.homeRoute}"
                             id="ux_${container.id}"
                             baseUrl="${container.baseUrl}"
                             consumedRoute="${metadata.route}"
@@ -126,7 +106,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
     return html `
         <mateu-sapui5-app
                 id="${container.id}_ux"
-                route="${route??metadata.homeRoute}"
+                route="${metadata.homeRoute}"
                 consumedRoute="${metadata.route}"
                 baseUrl="${baseUrl}"
                 .component="${component}"

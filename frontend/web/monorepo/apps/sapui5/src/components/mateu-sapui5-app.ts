@@ -49,7 +49,6 @@ export class MateuSapUI5App extends MetadataDrivenElement {
 
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as App
-        console.log('menu', metadata.menu)
         if (AppVariant.TABS == metadata.variant) {
             return html`
 

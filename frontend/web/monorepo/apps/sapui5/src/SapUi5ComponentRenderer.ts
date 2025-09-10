@@ -7,7 +7,7 @@ import { renderButton } from "@/renderers/renderButton.ts";
 import { renderField } from "@/renderers/renderField.ts";
 import { renderApp } from "@/renderers/renderApp.ts";
 import { renderForm } from "@/renderers/renderForm.ts";
-import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { MateuComponent } from "@infra/ui/mateu-component.ts";
 
 export const changed = (event: Event) => {
     const element = event.target as HTMLInputElement
@@ -39,7 +39,7 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
     // @ts-ignore
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
         if (ComponentMetadataType.App == component?.metadata?.type) {
-            return renderApp(container as MateuApp, component, baseUrl, state, data)
+            return renderApp(container as MateuComponent, component, baseUrl, state, data)
         }
         if (ComponentMetadataType.Form == component?.metadata?.type) {
             return renderForm(container, component, baseUrl, state, data)

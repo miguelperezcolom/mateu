@@ -76,7 +76,7 @@ export class MateuForm extends MetadataDrivenElement {
                             <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                         </vaadin-vertical-layout>
                         <vaadin-horizontal-layout theme="spacing" slot="end">
-                            ${metadata?.header.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
+                            ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
                             ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"

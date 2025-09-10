@@ -33,6 +33,9 @@ require([
 
                         console.log('added ui');
 
+                    document.getElementById("page-container").style.display = 'block';
+                    document.getElementById("landing-loader").style.display = 'none';
+
                 });
         }
     );

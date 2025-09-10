@@ -21591,7 +21591,7 @@ found at http://polymer.github.io/PATENTS.txt
                             <span style="display: inline-block; margin-block-end: 0.83em;">${o$5(possiblyHtml(U?.subtitle,this.state,this.data))}</span>
                         </vaadin-vertical-layout>
                         <vaadin-horizontal-layout theme="spacing" slot="end">
-                            ${U?.header.map(D=>renderComponent(this,D,this.baseUrl,this.state,this.data))}
+                            ${U?.header?.map(D=>renderComponent(this,D,this.baseUrl,this.state,this.data))}
                             ${U?.toolbar?.map(D=>x`
                 <vaadin-button
                         data-action-id="${D.id}"
@@ -23292,20 +23292,20 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         :host {
             width: 100%;
         }
-  `;__decorateClass([n$1()],MateuUi.prototype,"baseUrl",2);__decorateClass([n$1()],MateuUi.prototype,"route",2);__decorateClass([n$1()],MateuUi.prototype,"config",2);__decorateClass([r$1()],MateuUi.prototype,"ui",2);__decorateClass([r$1()],MateuUi.prototype,"instant",2);MateuUi=__decorateClass([t("mateu-ui")],MateuUi);var AppVariant=(U=>(U.HAMBURGUER_MENU="HAMBURGUER_MENU",U.MENU_ON_LEFT="MENU_ON_LEFT",U.MENU_ON_TOP="MENU_ON_TOP",U.TABS="TABS",U))(AppVariant||{});const filterMenu=(U,D)=>{if(D.filter!=U.detail.value){debugger;D.filter=U.detail.value}},renderApp=(U,D)=>{const O=U.mapItems(D.menu,U.filter?.toLowerCase()??"");return x`
+  `;__decorateClass([n$1()],MateuUi.prototype,"baseUrl",2);__decorateClass([n$1()],MateuUi.prototype,"route",2);__decorateClass([n$1()],MateuUi.prototype,"config",2);__decorateClass([r$1()],MateuUi.prototype,"ui",2);__decorateClass([r$1()],MateuUi.prototype,"instant",2);MateuUi=__decorateClass([t("mateu-ui")],MateuUi);var AppVariant=(U=>(U.HAMBURGUER_MENU="HAMBURGUER_MENU",U.MENU_ON_LEFT="MENU_ON_LEFT",U.MENU_ON_TOP="MENU_ON_TOP",U.TABS="TABS",U))(AppVariant||{});const filterMenu=(U,D)=>{D.filter!=U.detail.value&&(D.filter=U.detail.value)},renderApp=(U,D,O,F,W)=>{const Y=U.mapItems(D.menu,U.filter?.toLowerCase()??"");return x`
             ${D.variant==AppVariant.HAMBURGUER_MENU?x`
                 <vaadin-app-layout style="${D?.style}" class="${D?.cssClasses}" .drawerOpened=${!D.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${D.title}</h2><p slot="navbar">${D.subtitle}</p>
                     <vaadin-scroller slot="drawer" class="p-s">
                         ${D.menu&&D.totalMenuOptions>10?x`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${F=>filterMenu(F,U)}">
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${q=>filterMenu(q,U)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
                             </vaadin-text-field>
                             `:E}
 
                         <vaadin-side-nav .onNavigate="${U.navItemSelected}">
-                            ${U.renderSideNav(O,void 0)}
+                            ${U.renderSideNav(Y,void 0)}
                         </vaadin-side-nav>
                     </vaadin-scroller>
                     <div class="app-content">
@@ -23326,7 +23326,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
 
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-menu-bar
-                            .items="${O}"
+                            .items="${Y}"
                             @item-selected="${U.itemSelected}"
                             theme="dropdown-indicators"
                     >
@@ -23348,7 +23348,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 <vaadin-horizontal-layout style="width: 100%;">
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout>
-                            ${D.menu.map(F=>U.renderOptionOnLeftMenu(F))}
+                            ${D.menu.map(q=>U.renderOptionOnLeftMenu(q))}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <mateu-api-caller>
@@ -23369,10 +23369,10 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 
                 <vaadin-vertical-layout class="vl"  style="width: 100%;">
                     <vaadin-tabs selected="${U.getSelectedIndex(D.menu)}" class="${U.component?.cssClasses}">
-                        ${D.menu.map(F=>x`
+                        ${D.menu.map(q=>x`
                                 <vaadin-tab 
-                                        @click="${()=>U.selectRoute(F.destination.route)}"
-                                >${F.label}</vaadin-tab>
+                                        @click="${()=>U.selectRoute(q.destination.route)}"
+                                >${q.label}</vaadin-tab>
                             `)}
                     </vaadin-tabs>
                     <mateu-api-caller style="width: 100%;">
