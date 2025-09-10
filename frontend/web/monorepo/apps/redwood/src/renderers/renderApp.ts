@@ -7,7 +7,7 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 import { TabData } from "../../public/oj-c/types/tab-bar";
 
 
-const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string) => {
+const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string, metadata: App) => {
     const route = document.getElementById(event.detail.value)?.dataset.route??''
     let baseUrl = _baseUrl??''
     if (baseUrl.indexOf('://') < 0) {
@@ -23,11 +23,12 @@ const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string) => 
             pathname = '/' + pathname
         }
         window.history.pushState({},"", pathname);
+        metadata.homeRoute = route
         container.requestUpdate()
     }
 }
 
-const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string) => {
+const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string, metadata: App) => {
     const route = event.detail.value
     let baseUrl = _baseUrl??''
     if (baseUrl.indexOf('://') < 0) {
@@ -43,6 +44,7 @@ const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string) 
             pathname = '/' + pathname
         }
         window.history.pushState({},"", pathname);
+        metadata.homeRoute = route
         container.requestUpdate()
     }
 
@@ -79,7 +81,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
             <div><oj-c-tab-bar
                     .data="${data}"
                     .selection="${data[0].itemKey}"
-                    @ojSelectionAction="${(e: any) => selectedTab(e, container, baseUrl??'')}"
+                    @ojSelectionAction="${(e: any) => selectedTab(e, container, baseUrl??'', metadata)}"
                     edge="top"
                     layout="condense"
                     display="standard"
@@ -217,7 +219,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
                                             selection="${metadata.route}"
-                            @ojSelectionAction="${(e: any) => selected(e, container, baseUrl??'')}"
+                            @ojSelectionAction="${(e: any) => selected(e, container, baseUrl??'', metadata)}"
                                             root-label="Welcome"
                                             class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
                                             style="height: 100%;"
@@ -225,7 +227,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                             <ul>
                                 ${metadata.menu.map(menu => html`
                                     <li data-route="${menu.destination?.route}" id="${menu.destination?.route}"><a href="#">${menu.label}</a>
-                                        ${menu.submenus?html`
+                                        ${menu.submenus && menu.submenus.length > 0?html`
                                         <ul>
                                             ${menu.submenus.map(sub => html`
                                                 <li data-route="${sub.destination?.route}" id="${sub.destination?.route}"><a href="#">${sub.label}</a></li>

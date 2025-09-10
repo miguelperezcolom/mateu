@@ -26,7 +26,7 @@ require([
       </mateu-ui>
                          */
                         const ui = document.createElement('mateu-ui');
-                        ui.setAttribute("baseUrl", "/fluent");
+                        ui.setAttribute("baseUrl", "https://demo.mateu.io/fluent");
                         ui.setAttribute("config", '{"tenantId": "1111","profile": "dev"}');
                         ui.setAttribute("style", "display: block; width: 100%; height: calc(100vh - 100px);");
                         container?.appendChild(ui);
