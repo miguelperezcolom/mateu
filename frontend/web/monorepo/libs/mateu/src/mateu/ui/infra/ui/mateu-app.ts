@@ -66,7 +66,14 @@ export class MateuApp extends ComponentElement {
             const app = ((this.component as ClientSideComponent).metadata as App)
             app.homeRoute = route
             this.instant = nanoid()
-            let targetUrl = new URL(this.baseUrl + route)
+            let baseUrl = this.baseUrl??''
+            if (baseUrl.indexOf('://') < 0) {
+                if (!baseUrl.startsWith('/')) {
+                    baseUrl = '/' + baseUrl
+                }
+                baseUrl = window.location.origin + baseUrl
+            }
+            let targetUrl = new URL(baseUrl + route)
             if (window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
                 if (pathname && !pathname.startsWith('/')) {
