@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 function _getCDNPath(paths) {
     //var cdnPath = 'https://www.oracle.com/webfolder/technetwork/jet/';
     var cdnPath = '';
@@ -19,7 +18,6 @@ function _getCDNPath(paths) {
     });
     return newPaths;
 }
-
 
 require.config({
     paths: _getCDNPath({

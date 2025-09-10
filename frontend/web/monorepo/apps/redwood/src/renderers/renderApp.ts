@@ -56,8 +56,6 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
         route = metadata.homeRoute
     }
 
-    console.log('renderApp', route, metadata.homeRoute)
-
     const opened = data.opened == undefined?true:data.opened!!;
     data.opened = opened
 
@@ -81,7 +79,6 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
             //     class: 'oj-ux-ico-home'
             // }
         } as TabData<string>))
-        console.log('tabs', data)
         return html`<div>
             <div><oj-c-tab-bar
                     .data="${data}"
