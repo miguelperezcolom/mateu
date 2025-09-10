@@ -6,7 +6,6 @@ import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { TabData } from "../../public/oj-c/types/tab-bar";
 
-let route = ''
 
 const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string) => {
     const route = document.getElementById(event.detail.value)?.dataset.route??''
@@ -49,29 +48,9 @@ const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string) 
 
 }
 
-const extractRouteFromUrl = (w: Window, baseUrl: string): string => {
-    const route = extractGrossRouteFromUrl(w, baseUrl)
-    if ('/' == route) {
-        return ''
-    }
-    return route
-}
-
-const extractGrossRouteFromUrl = (w: Window, baseUrl: string): string => {
-    const route = w.location.pathname
-    if (route.startsWith(baseUrl)) {
-        return route.substring(baseUrl.length)
-    }
-    return route
-}
 
 export const renderApp = (container: MateuApp, component: ClientSideComponent, baseUrl: string | undefined, _state: any, data: any): TemplateResult => {
     const metadata = component.metadata as App
-
-    route = extractRouteFromUrl(window, baseUrl??'')
-    if (route == metadata.route) {
-        route = metadata.homeRoute
-    }
 
     const opened = data.opened == undefined?true:data.opened!!;
     data.opened = opened
@@ -111,7 +90,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                 <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${route??metadata.homeRoute}"
+                                route="${metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -237,7 +216,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         -->
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
-                                            selection="${route}"
+                                            selection="${metadata.route}"
                             @ojSelectionAction="${(e: any) => selected(e, container, baseUrl??'')}"
                                             root-label="Welcome"
                                             class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
@@ -263,7 +242,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
-                                        route="${route??metadata.homeRoute}"
+                                        route="${metadata.homeRoute}"
                                         id="ux_${container.id}"
                                         baseUrl="${container.baseUrl}"
                                         consumedRoute="${metadata.route}"

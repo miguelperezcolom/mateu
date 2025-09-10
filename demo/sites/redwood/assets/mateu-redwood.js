@@ -792,7 +792,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                     value="${q}"
                     @change="${X=>changed(X,U.id)}"
             >
-                </oj-c-input-number>`:x``};let route="";const selected=(U,D,O)=>{const F=document.getElementById(U.detail.value)?.dataset.route??"";let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},selectedTab=(U,D,O)=>{const F=U.detail.value;let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},extractRouteFromUrl=(U,D)=>{const O=extractGrossRouteFromUrl(U,D);return O=="/"?"":O},extractGrossRouteFromUrl=(U,D)=>{const O=U.location.pathname;return O.startsWith(D)?O.substring(D.length):O},renderApp=(U,D,O,F,W)=>{const Y=D.metadata;route=extractRouteFromUrl(window,O??""),route==Y.route&&(route=Y.homeRoute);const q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},K=Z=>{W.opened=!1,U.requestUpdate()};if(AppVariant.TABS==Y.variant){const Z=Y.menu.map(Q=>({label:Q.label,itemKey:Q.destination?.route}));return x`<div>
+                </oj-c-input-number>`:x``},selected=(U,D,O)=>{const F=document.getElementById(U.detail.value)?.dataset.route??"";let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},selectedTab=(U,D,O)=>{const F=U.detail.value;let W=O??"";W.indexOf("://")<0&&(W.startsWith("/")||(W="/"+W),W=window.location.origin+W);let Y=new URL(W+F);if(window.location.pathname!=Y.pathname){let q=Y.pathname;q&&!q.startsWith("/")&&(q="/"+q),window.history.pushState({},"",q),D.requestUpdate()}},renderApp=(U,D,O,F,W)=>{const Y=D.metadata,q=W.opened==null?!0:W.opened;W.opened=q;const X=Z=>{console.log("open",W.opened),W.opened=!W.opened,U.requestUpdate()},K=Z=>{W.opened=!1,U.requestUpdate()};if(AppVariant.TABS==Y.variant){const Z=Y.menu.map(Q=>({label:Q.label,itemKey:Q.destination?.route}));return x`<div>
             <div><oj-c-tab-bar
                     .data="${Z}"
                     .selection="${Z[0].itemKey}"
@@ -807,7 +807,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${route??Y.homeRoute}"
+                                route="${Y.homeRoute}"
                                 id="ux_${U.id}"
                                 baseUrl="${U.baseUrl}"
                                 consumedRoute="${Y.route}"
@@ -922,7 +922,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         -->
                         <oj-navigation-list aria-label="Choose a navigation item"
                         drill-mode="sliding"
-                                            selection="${route}"
+                                            selection="${Y.route}"
                             @ojSelectionAction="${Z=>selected(Z,U,O??"")}"
                                             root-label="Welcome"
                                             class="demo-main-navigation oj-bg-neutral-170 oj-color-invert"
@@ -948,7 +948,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
-                                        route="${route??Y.homeRoute}"
+                                        route="${Y.homeRoute}"
                                         id="ux_${U.id}"
                                         baseUrl="${U.baseUrl}"
                                         consumedRoute="${Y.route}"
