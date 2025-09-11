@@ -1,4 +1,4 @@
-import { LitElement, type TemplateResult } from 'lit';
+import { html, LitElement, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
@@ -8,6 +8,8 @@ import { renderField } from "@/renderers/renderField.ts";
 import { renderApp } from "@/renderers/renderApp.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { renderForm } from "@/renderers/renderForm.ts";
+import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
+import './components/mateu-redwood-table'
 
 export const changed = (event: Event, fieldId: string) => {
     const element = event.target as HTMLInputElement
@@ -33,6 +35,20 @@ export const handleButtonClick = (event: Event) => {
 }
 
 export class RedwoodComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
+
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any): TemplateResult {
+        return html`
+        <mateu-redwood-table id="${container.id}"
+                     .metadata="${component?.metadata}"
+                     .data="${container.data}"
+                     .emptyStateMessage="${state[component?.id!]?.emptyStateMessage}"
+                     @sort-direction-changed="${container.directionChanged}"
+                     @fetch-more-elements="${container.fetchMoreElements}"
+                     .state="${state}"
+                     baseUrl="${baseUrl}"
+        ></mateu-redwood-table>
+        `
+    }
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
         if (ComponentMetadataType.Form == component?.metadata?.type) {

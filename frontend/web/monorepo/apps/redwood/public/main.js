@@ -51,7 +51,8 @@ require.config({
         'x/navigation-list': 'oj/19.0.0/min/ojnavigationlist',
         'x/drawer-layout': 'packs/oj-c/min/drawer-layout',
         'x/avatar': 'packs/oj-c/min/avatar',
-        'x/tab-bar': 'packs/oj-c/min/tab-bar'
+        'x/tab-bar': 'packs/oj-c/min/tab-bar',
+        'x/table': 'packs/oj-c/min/table'
     })
 });
 

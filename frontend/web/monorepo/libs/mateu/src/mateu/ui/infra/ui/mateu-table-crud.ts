@@ -20,6 +20,7 @@ import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { Notification } from "@vaadin/notification";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -133,17 +134,8 @@ export class MateuTableCrud extends LitElement {
             ${metadata.infiniteScrolling?html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             `:nothing}
-            ${metadata?.crudlType == 'table'?html`
-                <mateu-table id="${this.id}" 
-                             .metadata="${metadata}" 
-                             .data="${this.data}"
-                             .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
-                             @sort-direction-changed="${this.directionChanged}"
-                             @fetch-more-elements="${this.fetchMoreElements}"
-                             .state="${this.state}"
-                             baseUrl="${this.baseUrl}"
-                ></mateu-table>
-            `:html`
+            ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            :html`
                 <mateu-card-list id="${this.id}"
                             .metadata="${metadata}"
                             .data="${this.data}"

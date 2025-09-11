@@ -13,6 +13,6 @@ _build:
   render: always
 ---
 
-Use AI for generating Mateu code, MCP server for AI driven UIs. 
+Use AI for generating Mateu code plus MCP server for AI driven UIs. 
 
 TBD
