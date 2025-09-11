@@ -1,4 +1,5 @@
-import './set-env.ts'
+import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer'
+import { RedwoodComponentRenderer } from "./RedwoodComponentRenderer.ts";
 import '@infra/ui/mateu-ui'
-import './components/mateu-redwood-form'
 
+componentRenderer.set(new RedwoodComponentRenderer())

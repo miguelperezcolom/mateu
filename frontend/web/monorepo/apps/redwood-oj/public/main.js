@@ -81,5 +81,6 @@ requirejs.config({
                 // 'ojtranslations/nls/ojtranslations': 'resources/nls/menu'
             }
         }
-    }
+    },
+    waitSeconds : 120, // crazy, I know
 });

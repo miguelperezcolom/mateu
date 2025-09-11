@@ -23,7 +23,7 @@ export default defineConfig({
     rollupOptions: {
       //external: /^lit/,
       output: {
-        entryFileNames: `assets/mateu-redwood.js`,
+        entryFileNames: `assets/mateu-redwood-oj.js`,
         chunkFileNames: `assets/[name].js`,
         assetFileNames: `assets/[name].[ext]`
       }
@@ -34,7 +34,8 @@ export default defineConfig({
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
       '/fluent/mateu': 'http://localhost:8091',
       '/mateu': 'http://localhost:8091',
-      '/images': 'https://demo.mateu.io',
+      '/images': 'http://localhost:8091',
+      '/myassets': 'http://localhost:8091',
       '/sse': 'http://localhost:8091',
       '/upload': 'http://localhost:8091',
     },

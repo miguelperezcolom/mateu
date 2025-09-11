@@ -1,187 +1,27 @@
 <!doctype html>
-<html lang="en-us" style="height:100%;" dir="ltr">
-<head>
-  <title>Web Components - Basic</title>
-  <meta charset="UTF-8">
-  <meta http-equiv="x-ua-compatible" content="IE=edge">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="css/images/JET-Favicon-Red-32x32.png">
-  <link rel="apple-touch-icon-precomposed" href="css/images/touchicon.png">
-  <meta name="apple-mobile-web-app-title" content="Oracle JET">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Lit + TS</title>
 
-  <link rel="stylesheet" href="styles/redwood/19.0.0/web/redwood.min.css" id="basestyles" />
-  <link rel="stylesheet" href="styles/theme-redwood/19.0.0/web/theme.css" id="themestyle" />
-  <link rel="stylesheet" href="styles/oj-redwood-min.css">
-  <!-- endinjector -->
-  <!-- This contains icon fonts used by the starter template -->
-  <!-- injector:font -->
-  <link rel="stylesheet" id="redwoodcss" href="https://static.oracle.com/cdn/jet/18.1.0/default/css/redwood/oj-redwood-min.css">
-  <link rel="stylesheet" id="sitecss" href="css/samples/site/demo-redwood-site-min.css">
-  <link rel="stylesheet" id="oraclefont" href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css">
-  <link rel="stylesheet" id="uxiconfont" href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css">
-
-  <link rel="stylesheet" href="css/demo.css">
-
-  <script>
-    // The "oj_whenReady" global variable enables a strategy that the busy context whenReady,
-    // will implicitly add a busy state, until the application calls applicationBootstrapComplete
-    // on the busy state context.
-    window["oj_whenReady"] = true;
-  </script>
-
-  <script src="js/libs/knockout/knockout-3.5.1.js"></script>
-  <script src="scripts/require.js"></script>
-
-  <link rel="stylesheet" href="/src/index.css" />
-  <script type="module" src="/src/index.ts"></script>
-
-  <!-- RequireJS bootstrap file -->
-  <script src="main.js"></script>
-  <script src="js/demo.js"></script>
-
-</head>
-<body class="cookbook-page" style="overflow-y: auto;">
-<div id="landing-loader">Loading...</div>
-<div id="page-container" class="page-container oj-web-applayout-page demo-pinned-navlist" style="display:none;">
-  <div id="ui-container"></div>
-  <footer id="" role="contentinfo" data-bind="template: {name: 'footerTemplate'}" class="oj-web-applayout-footer oj-sm-padding-2x-horizontal">
-    <!--
-    <div class="oj-flex  oj-sm-justify-content-space-around oj-sm-flex-items-initial">
-      <div class="oj-flex-item oj-flex oj-sm-flex-direction-column oj-sm-align-self-flex-start">
-        <h2 class="oj-flex-item oj-typography-body-md oj-typography-bold">Documentation</h2>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="getStarted" href="./index.html?ojr=home">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="developerGuide" href="https://www.oracle.com/pls/topic/lookup?ctx=jetlatest&amp;id=JETDG">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="releaseNotes" href="./index.html?ojr=releasenotes">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="migration" href="https://www.oracle.com/pls/topic/lookup?ctx=jetlatest&amp;id=GUID-F4E07884-1C35-4B7C-84E3-60F6D949D344">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="apiDocumentation" href="https://www.oracle.com/pls/topic/lookup?ctx=jetlatest&amp;id=OJSET">
-          </a>
-        </div>
-      </div>
-      <div class="oj-flex-item oj-flex oj-sm-flex-direction-column oj-sm-align-self-flex-start">
-        <h2 class="oj-flex-item oj-typography-body-md oj-typography-bold">Learning</h2>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="learningPath" href="./?ojr=learn">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="developerTools" href="https://www.oracle.com/pls/topic/lookup?ctx=jetlatest&amp;id=JETDG">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="starters" href="./?ojr=learn">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="themeBuilder" href="./public_samples/JET-Theme-Builder-CSS-Vars/public_html/index.html">
-          </a>
-        </div>
-      </div>
-      <div class="oj-flex-item oj-flex oj-sm-flex-direction-column oj-sm-align-self-flex-start">
-        <h2 class="oj-flex-item oj-typography-body-md oj-typography-bold">Help &amp; Support</h2>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="faq" href="./?ojr=faq">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="slack" href="https://proddev-paas-fmw.slack.com/archives/CFXE9SXR7">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="medium" href="https://medium.com/tag/oracle-jet/latest">
-          </a>
-        </div>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="thirdPartyLibraries" href="https://www.oracle.com/pls/topic/lookup?ctx=jetlatest&amp;id=GUID-E9825AD6-8A81-42B0-8085-323C04545F2A">
-          </a>
-        </div>
-      </div>
-      <div class="oj-flex-item oj-flex oj-sm-flex-direction-column oj-sm-align-self-flex-start">
-        <h2 class="oj-flex-item oj-typography-body-md oj-typography-bold">JET</h2>
-        <div class="oj-flex-item">
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-flex-item oj-link-standalone oj-link-subtle-primary" id="successStories" href="./?ojr=success">
-          </a>
-        </div>
-      </div>
-    </div>
--->
-    <div class="oj-sm-margin-6x-vertical">
-      <!--
-      <div class="oj-flex-bar">
-        <div class="oj-flex-bar-start">
-          <a id="VBCookbook" target="_blank" rel="noopener" class="oj-link-standalone oj-link-subtle-primary oj-typography-body-md oj-typography-bold" href="https://vbcookbook.oracle.com/">Visual Builder Cookbook</a>
-        </div>
-        <div class="oj-flex-bar-end oj-sm-only-hide ">
-          <div class="">
-            <a target="_blank" rel="noopener" class="oj-sm-margin-2x oj-link-standalone oj-link-subtle-primary oj-typography-body-md oj-typography-bold" href="https://stackoverflow.com/tags/oracle-jet"><img src="css/images/spacer.gif" class="stackoverflow" alt="Oracle JET on Stackoverflow" title="StackOverflow">StackOverflow </a>
-            <a target="_blank" rel="noopener" class="oj-sm-margin-2x oj-link-standalone oj-typography-body-md oj-typography-bold
-			  oj-link-subtle-primary" href="https://www.youtube.com/channel/UCcPYy1QhTNyR6fPAGLEsSTw"><img src="css/images/spacer.gif" class="youtube" alt="Oracle JET YouTube channel" title="YouTube">YouTube</a>
-            <a target="_blank" rel="noopener" class="oj-sm-margin-2x oj-link-standalone oj-typography-body-md oj-typography-bold
-			  oj-link-subtle-primary" href="https://community.oracle.com/community/groundbreakers/development_tools/oracle-jet/content"><img src="css/images/spacer.gif" class="chat" alt="Oracle JET Forum page" title="Forum">Forum</a>
-            <a target="_blank" rel="noopener" class="oj-sm-margin-2x oj-link-standalone oj-typography-body-md oj-typography-bold
-			  oj-link-subtle-primary" href="https://twitter.com/oraclejet"><img src="css/images/spacer.gif" class="twitter" alt="Oracle JET Twitter page" title="Twitter" rel="noopener">Twitter</a>
-            <a target="_blank" rel="noopener" class="oj-sm-margin-2x oj-link-standalone oj-typography-body-md oj-typography-bold
-			  oj-link-subtle-primary" href="https://medium.com/tag/oracle-jet/latest"><img src="css/images/spacer.gif" class="rss" alt="Oracle JET Blog page" title="Blogs">Blogs</a>
-          </div>
-        </div>
-      </div>
-      <hr>
--->
-      <div class="oj-flex-bar oj-sm-margin-2x-top">
-        <div class="oj-flex-bar-start">
-          <div class="oj-text-sm oj-sm-margin-2x-top oj-link-standalone oj-link-subtle-primary">
-            <!--Copyright © 2014, 2025 Oracle and/or its affiliates All rights reserved. -->
-          Copyright © 2025 Your company.
-          </div>
-        </div>
-        <div class="oj-flex-bar-end">
-          <!--oj-bind-for-each data='[[globalLinks]]'--><!--ko _ojBindForEach_:{data:globalLinks}-->
-          <!--oj-bind-if test='[[$current.data.label]]'--><!--ko if:$current.data.label-->
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-link-standalone oj-link-subtle-primary oj-sm-margin-2x-end" id="aboutOracle" href="https://www.oracle.com/us/corporate/index.html#menu-about">
-            <!-- About Oracle -->
-            About Your Company
-          </a>
-          <!--/ko--><!--/oj-bind-if-->
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_Rg.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_SBd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_Rg.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_Bd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_SBd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSansCd_W_Bd.woff2">
 
 
-          <!--oj-bind-if test='[[$current.data.label]]'--><!--ko if:$current.data.label-->
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-link-standalone oj-link-subtle-primary oj-sm-margin-2x-end" id="contactUs" href="https://www.oracle.com/us/corporate/contact/index.html">
-            <!--oj-bind-text value='[[$current.data.label]]'--><!--ko text:$current.data.label-->Contact Us<!--/ko--><!--/oj-bind-text-->
-          </a>
-          <!--/ko--><!--/oj-bind-if-->
 
-
-          <!--oj-bind-if test='[[$current.data.label]]'--><!--ko if:$current.data.label-->
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-link-standalone oj-link-subtle-primary oj-sm-margin-2x-end" id="legalNotices" href="https://www.oracle.com/us/legal/index.html">
-            <!--oj-bind-text value='[[$current.data.label]]'--><!--ko text:$current.data.label-->Legal Notices<!--/ko--><!--/oj-bind-text-->
-          </a>
-          <!--/ko--><!--/oj-bind-if-->
-
-
-          <!--oj-bind-if test='[[$current.data.label]]'--><!--ko if:$current.data.label-->
-          <a target="_blank" rel="noopener" :id="[[$current.data.id]]" :href="[[$current.data.url]]" class="oj-link-standalone oj-link-subtle-primary oj-sm-margin-2x-end" id="termsOfUseAndPrivacy" href="https://www.oracle.com/us/legal/privacy/">
-            <!--oj-bind-text value='[[$current.data.label]]'--><!--ko text:$current.data.label-->Terms of Use and Privacy<!--/ko--><!--/oj-bind-text-->
-          </a>
-          <!--/ko--><!--/oj-bind-if-->
-
-          <!--/ko--><!--/oj-bind-for-each-->
-        </div>
-      </div>
-    </div>
-  </footer>
-</div>
-</body>
+    <link rel="stylesheet" href="./src/index.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+  <mateu-ui baseUrl="https://demo.mateu.io/fluent"
+            config='{"tenantId": "1111","profile": "dev"}'
+  >
+  </mateu-ui>
+  </body>
 </html>

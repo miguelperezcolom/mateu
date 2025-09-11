@@ -132,7 +132,7 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.25.9.tgz#585624dc829cfb6e7c0aa6c3ca7d7e6daa87e34f"
   integrity sha512-PPOl1mi6lpLNQxnGoyAfschAodRFYXJ+9fs6WHXz7CSWKbOqiMZsubC+BQsVKuul+3vKLuwTHsS2c2y9EoKwxQ==
 
-"@lit-labs/ssr-dom-shim@^1.1.2", "@lit-labs/ssr-dom-shim@^1.4.0":
+"@lit-labs/ssr-dom-shim@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@lit-labs/ssr-dom-shim/-/ssr-dom-shim-1.4.0.tgz#55eb80ab5ef6e188f7e541c1e2bea1ef582413b8"
   integrity sha512-ficsEARKnmmW5njugNYKipTm4SFnbik7CXtoencDZzmzo/dQ+2Q0bgkzJuoJP20Aj0F+izzJjOqsnkd6F/o1bw==
@@ -244,137 +244,15 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.46.2.tgz#87079f137b5fdb75da11508419aa998cc8cc3d8b"
   integrity sha512-CvUo2ixeIQGtF6WvuB87XWqPQkoFAFqW+HUo/WzHwuHDvIwZCtjdWXoYCcr06iKGydiqTclC4jU/TNObC/xKZg==
 
-"@sap-theming/theming-base-content@11.29.3":
-  version "11.29.3"
-  resolved "https://registry.yarnpkg.com/@sap-theming/theming-base-content/-/theming-base-content-11.29.3.tgz#2ca5606e977cad85b5c485bff7a88ac8f59b61f9"
-  integrity sha512-0LVCUYqoTQGcKmgPShbxQLBoF8469ZojUrYtVm1k3op/1pgLA/FMN//bvgGEm7HTBJBu3gW2Ad2f4ASqEzLolA==
-
 "@types/estree@1.0.8":
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.8.tgz#958b91c991b1867ced318bedea0e215ee050726e"
   integrity sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
 
-"@types/jquery@~3.5.13":
-  version "3.5.32"
-  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.5.32.tgz#3eb0da20611b92c7c49ebed6163b52a4fdc57def"
-  integrity sha512-b9Xbf4CkMqS02YH8zACqN1xzdxc3cO735Qe5AbSUFmyOiaWAbcpqh9Wna+Uk0vgACvoQHpWDg2rGdHkYPLmCiQ==
-  dependencies:
-    "@types/sizzle" "*"
-
-"@types/openui5@^1.113.0":
-  version "1.138.0"
-  resolved "https://registry.yarnpkg.com/@types/openui5/-/openui5-1.138.0.tgz#2ce58dcebbdb7139409d80f117bb9a44dce30132"
-  integrity sha512-gxEgcNkYgFSDvHQs1Rk8lAF5etHeUxLFFRyMn0vVgw7xoIVtbMU+Y0t4E2SP4lLc3b+tIcma3Vq5s5CCmwg+nQ==
-  dependencies:
-    "@types/jquery" "~3.5.13"
-    "@types/qunit" "^2.5.4"
-
-"@types/qunit@^2.5.4":
-  version "2.19.13"
-  resolved "https://registry.yarnpkg.com/@types/qunit/-/qunit-2.19.13.tgz#f131ad3a7d39c938c20a03ca218afe90c53d9c54"
-  integrity sha512-N4xp3v4s7f0jb2Oij6+6xw5QhH7/IgHCoGIFLCWtbEWoPkGYp8Te4mIwIP21qaurr6ed5JiPMiy2/ZoiGPkLIw==
-
-"@types/sizzle@*":
-  version "2.3.9"
-  resolved "https://registry.yarnpkg.com/@types/sizzle/-/sizzle-2.3.9.tgz#d4597dbd4618264c414d7429363e3f50acb66ea2"
-  integrity sha512-xzLEyKB50yqCUPUJkIsrVvoWNfFUbIZI+RspLWt8u+tIW/BetMBZtgV2LY/2o+tYH8dRvQ+eoPf3NdhQCcLE2w==
-
 "@types/trusted-types@^2.0.2":
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.7.tgz#baccb07a970b91707df3a3e8ba6896c57ead2d11"
   integrity sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==
-
-"@ui5/webcomponents-ai@^2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-ai/-/webcomponents-ai-2.13.2.tgz#5af6ebcf51914371d30cac56e977086647f1f4ab"
-  integrity sha512-XmCVaxHIzgcs+aXBLP/xKfCY704kc65BEQSDItP2jx/nvF9rq1l7uPRmudbGE0td/oXD87W3bCBmtXffxr6RSw==
-  dependencies:
-    "@ui5/webcomponents" "2.13.2"
-    "@ui5/webcomponents-base" "2.13.2"
-    "@ui5/webcomponents-icons" "2.13.2"
-    "@ui5/webcomponents-theming" "2.13.2"
-
-"@ui5/webcomponents-base@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-base/-/webcomponents-base-2.13.2.tgz#a7ff11922e2076163d0076cf0cbac397f2bddf75"
-  integrity sha512-zyHzZYqNWC4V9y0wsN+uQi68onENVOzVkaDNd9d4EGTwheaVaknwsSN3YqC7a1QTNK/ljb/vmGY9hdJcKTsA7w==
-  dependencies:
-    "@lit-labs/ssr-dom-shim" "^1.1.2"
-    lit-html "^2.0.1"
-
-"@ui5/webcomponents-fiori@^2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-fiori/-/webcomponents-fiori-2.13.2.tgz#2e037e7937fb1632b0751f5c6e4f5bfa1ee6f0e9"
-  integrity sha512-ene8zGb4WyI5DPDcm8BVemBm/2tOq7Nar1FudLKl8sWq984u5zB1qRowY1dSc89Kvcno2BByxARvRhLod2otgg==
-  dependencies:
-    "@ui5/webcomponents" "2.13.2"
-    "@ui5/webcomponents-base" "2.13.2"
-    "@ui5/webcomponents-icons" "2.13.2"
-    "@ui5/webcomponents-theming" "2.13.2"
-    "@zxing/library" "^0.21.3"
-
-"@ui5/webcomponents-icons-business-suite@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons-business-suite/-/webcomponents-icons-business-suite-2.13.2.tgz#0093ab1d14137702cf3e0673d667132429cc5654"
-  integrity sha512-DX9cJumzqosv+T94LLDAx1C+YlnGE9q7P89dXqEpZE7/0plocHUG3jmSdLhmdkP5TNPitQ0ZoU1ohZhOtD9ZMQ==
-  dependencies:
-    "@ui5/webcomponents-base" "2.13.2"
-
-"@ui5/webcomponents-icons-tnt@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons-tnt/-/webcomponents-icons-tnt-2.13.2.tgz#d2f47d55f75bf525174f87483aaf49a06d1e6b28"
-  integrity sha512-VVmuIKYuBd/3YgypSYZBprpIUVCBts1z05lkvDKh4qH2q/F72Kxy6pjaypiIsGL9pBm88QpH6raeqXS7Wb0PTQ==
-  dependencies:
-    "@ui5/webcomponents-base" "2.13.2"
-
-"@ui5/webcomponents-icons@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons/-/webcomponents-icons-2.13.2.tgz#979c0e5956596d4e0c672f877a633a497f621760"
-  integrity sha512-2FhZtuM5JG0wTHhUFeGDiWCNs4fuoZ1u6i4/DskAonmqJ4+YoL8eesgIYiFVI6XGup3A/2vBPm1bXYHvCsI7/Q==
-  dependencies:
-    "@ui5/webcomponents-base" "2.13.2"
-
-"@ui5/webcomponents-localization@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-localization/-/webcomponents-localization-2.13.2.tgz#7b7ebc3c50141219670561a62ef1ee8bc779ce2f"
-  integrity sha512-71C7vbNCNGTb1dpxA0PiBFG/nX/hPiNEGk/mqcqedadZw1jcbavoMsTK/AY3gYnF4JtwxGyVo+ivYCk8+9gUag==
-  dependencies:
-    "@types/openui5" "^1.113.0"
-    "@ui5/webcomponents-base" "2.13.2"
-
-"@ui5/webcomponents-theming@2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-theming/-/webcomponents-theming-2.13.2.tgz#09a15471ffd868245bdac2132a9194c005613245"
-  integrity sha512-+Nrd9ZKUknAMifYRGchZ4MWIx3LDAkaQE4bVxVvxkE/IjLtsDu3F512/51Tvclv8W0m/WgN7ybbZAnZyzg3bWA==
-  dependencies:
-    "@sap-theming/theming-base-content" "11.29.3"
-    "@ui5/webcomponents-base" "2.13.2"
-
-"@ui5/webcomponents@2.13.2", "@ui5/webcomponents@^2.13.2":
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/@ui5/webcomponents/-/webcomponents-2.13.2.tgz#44d5e5eac7c9bf7ddb43ba3995f05b6a4a267f7f"
-  integrity sha512-/aOdA1uAy5C1DzWthcrwH2SkEPiUcEedp6BeSdjcLsw12qkgzdqPT/HlxttQo1R63jFBC0RUC97Ln0Fb5CMHeA==
-  dependencies:
-    "@ui5/webcomponents-base" "2.13.2"
-    "@ui5/webcomponents-icons" "2.13.2"
-    "@ui5/webcomponents-icons-business-suite" "2.13.2"
-    "@ui5/webcomponents-icons-tnt" "2.13.2"
-    "@ui5/webcomponents-localization" "2.13.2"
-    "@ui5/webcomponents-theming" "2.13.2"
-
-"@zxing/library@^0.21.3":
-  version "0.21.3"
-  resolved "https://registry.yarnpkg.com/@zxing/library/-/library-0.21.3.tgz#0a4cb777701884131832b05922d7e88ef1b87ab4"
-  integrity sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==
-  dependencies:
-    ts-custom-error "^3.2.1"
-  optionalDependencies:
-    "@zxing/text-encoding" "~0.9.0"
-
-"@zxing/text-encoding@~0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@zxing/text-encoding/-/text-encoding-0.9.0.tgz#fb50ffabc6c7c66a0c96b4c03e3d9be74864b70b"
-  integrity sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==
 
 esbuild@^0.25.0:
   version "0.25.9"
@@ -426,13 +304,6 @@ lit-element@^4.2.0:
     "@lit-labs/ssr-dom-shim" "^1.4.0"
     "@lit/reactive-element" "^2.1.0"
     lit-html "^3.3.0"
-
-lit-html@^2.0.1:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/lit-html/-/lit-html-2.8.0.tgz#96456a4bb4ee717b9a7d2f94562a16509d39bffa"
-  integrity sha512-o9t+MQM3P4y7M7yNzqAyjp7z+mQGa4NS4CxiyLqFPyFWyc4O+nodLrkrxSaCTrla6M5YOLaT3RpbbqjszB5g3Q==
-  dependencies:
-    "@types/trusted-types" "^2.0.2"
 
 lit-html@^3.3.0:
   version "3.3.1"
@@ -515,11 +386,6 @@ tinyglobby@^0.2.14:
   dependencies:
     fdir "^6.4.4"
     picomatch "^4.0.2"
-
-ts-custom-error@^3.2.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.3.1.tgz#8bd3c8fc6b8dc8e1cb329267c45200f1e17a65d1"
-  integrity sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==
 
 typescript@~5.8.3:
   version "5.8.3"

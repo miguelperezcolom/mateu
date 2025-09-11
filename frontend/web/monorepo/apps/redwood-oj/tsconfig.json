@@ -45,6 +45,7 @@
         "../../libs/mateu/src/mateu/ui/infra*"
       ]
     }
+
   },
   "include": ["src"]
 }
