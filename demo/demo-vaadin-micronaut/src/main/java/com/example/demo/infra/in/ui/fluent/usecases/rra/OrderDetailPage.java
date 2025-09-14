@@ -1,9 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.OrderRepository;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -142,7 +140,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                                 .label("List Price")
                                                                                 .build(),
                                                                         GridColumn.builder()
-                                                                                .dataType(FieldDataType.decimal)
+                                                                                .dataType(FieldDataType.number)
                                                                                 .id("quantity")
                                                                                 .label("Quantity")
                                                                                 .build(),

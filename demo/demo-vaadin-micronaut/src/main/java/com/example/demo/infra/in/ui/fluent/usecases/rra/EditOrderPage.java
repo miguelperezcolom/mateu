@@ -6,8 +6,6 @@ import com.example.demo.domain.OrderLine;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.ProductRepository;
-import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
@@ -20,14 +18,12 @@ import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasTriggers;
@@ -37,7 +33,6 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -48,7 +43,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Singleton
 @Serdeable
@@ -198,7 +192,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                                 .label("List Price")
                                                                                 .build(),
                                                                         GridColumn.builder()
-                                                                                .dataType(FieldDataType.decimal)
+                                                                                .dataType(FieldDataType.number)
                                                                                 .id("quantity")
                                                                                 .label("Quantity")
                                                                                 .build(),

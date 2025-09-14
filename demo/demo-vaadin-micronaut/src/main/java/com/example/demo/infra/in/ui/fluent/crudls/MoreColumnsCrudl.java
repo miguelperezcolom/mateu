@@ -90,7 +90,7 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .build(),
                         GridColumn.builder()
                                 .id("balance")
-                                .dataType(FieldDataType.decimal)
+                                .dataType(FieldDataType.number)
                                 .label("Balance")
                                 .build(),
                         GridColumn.builder()

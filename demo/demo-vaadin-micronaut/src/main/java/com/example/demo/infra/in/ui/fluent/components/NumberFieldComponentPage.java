@@ -24,7 +24,7 @@ public class NumberFieldComponentPage implements ComponentTreeSupplier {
                         FormField.builder()
                                 .id("decimal")
                                 .label("Decimal")
-                                .dataType(FieldDataType.decimal)
+                                .dataType(FieldDataType.number)
                                 .build()
                 ))
                 .build();

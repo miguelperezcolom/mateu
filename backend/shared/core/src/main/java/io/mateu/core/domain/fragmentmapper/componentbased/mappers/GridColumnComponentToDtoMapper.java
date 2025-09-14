@@ -56,7 +56,7 @@ public class GridColumnComponentToDtoMapper {
     if (gridColumn.align() != null) {
       return gridColumn.align().name();
     }
-    if (List.of(FieldDataType.integer, FieldDataType.decimal, FieldDataType.money)
+    if (List.of(FieldDataType.integer, FieldDataType.number, FieldDataType.money)
         .contains(gridColumn.dataType())) {
       return ColumnAlignment.end.name();
     }

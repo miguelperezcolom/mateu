@@ -17,5 +17,6 @@ public enum FieldStereotype {
   icon,
   link,
   money,
-  grid
+  grid,
+  color
 }

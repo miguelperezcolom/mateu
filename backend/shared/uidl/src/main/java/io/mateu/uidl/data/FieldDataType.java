@@ -3,7 +3,7 @@ package io.mateu.uidl.data;
 public enum FieldDataType {
   integer,
   string,
-  decimal,
+  number,
   date,
   time,
   dateTime,

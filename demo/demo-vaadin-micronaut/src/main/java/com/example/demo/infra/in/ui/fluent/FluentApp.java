@@ -55,8 +55,15 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/forms/counter6", "Counter 6"),
                                 new RouteLink("/fluent-app/forms/with-grid1", "With Grid 1"),
                                 new RouteLink("/fluent-app/forms/with-grid2", "With Grid 2"),
-                                new RouteLink("/fluent-app/forms/all-fields", "All fields")
-                                )),
+                                new RouteLink("/fluent-app/forms/string-fields", "String fields"),
+                                new RouteLink("/fluent-app/forms/boolean-fields", "Boolean fields"),
+                                new RouteLink("/fluent-app/forms/numeric-fields", "Numeric fields"),
+                                new RouteLink("/fluent-app/forms/collection-fields", "Collection fields"),
+                                new RouteLink("/fluent-app/forms/date-fields", "Date fields"),
+                                new RouteLink("/fluent-app/forms/file-fields", "File fields"),
+                                new RouteLink("/fluent-app/forms/other-fields", "Other fields"),
+                                new RouteLink("/fluent-app/forms/choice-fields", "Choice field")
+                        )),
                         new Menu("Crudls", List.of(
                                 new RouteLink("/fluent-app/crudls/basic", "Basic"),
                                 new RouteLink("/fluent-app/crudls/more-columns", "More columns"),
