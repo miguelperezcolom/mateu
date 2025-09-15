@@ -46,7 +46,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       String className, Map<String, Object> data, HttpRequest httpRequest) {
 
     return Mono.just(loadClass(className))
-        .map(uiClass -> newInstance(uiClass, data))
+        .map(uiClass -> newInstance(uiClass, data, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
         .map(uiInstance -> initIfNeeded(uiInstance, httpRequest));
   }
@@ -73,20 +73,20 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return uiInstance;
   }
 
-  public <T> T newInstance(Class c)
+  public <T> T newInstance(Class c, HttpRequest httpRequest)
       throws NoSuchMethodException,
           IllegalAccessException,
           InvocationTargetException,
           InstantiationException {
-    return (T) newInstance(c, Map.of());
+    return (T) newInstance(c, Map.of(), httpRequest);
   }
 
   @SneakyThrows
-  public <T> T newInstance(Class<T> c, Map<String, Object> data) {
+  public <T> T newInstance(Class<T> c, Map<String, Object> data, HttpRequest httpRequest) {
     var o = beanProvider.getBean(c);
     if (o == null) { // not from spring
       if (c.getDeclaringClass() != null) { // inner class
-        Object p = newInstance(c.getDeclaringClass(), data);
+        Object p = newInstance(c.getDeclaringClass(), data, httpRequest);
         Constructor<?> cons =
             Arrays.stream(c.getDeclaredConstructors())
                 .filter(constructor -> constructor.getParameterCount() == 1)
@@ -109,40 +109,42 @@ public class ReflectionInstanceFactory implements InstanceFactory {
                     .filter(m -> m.getName().equals(key))
                     .findFirst()
                     .get();
-            setter.invoke(builder, createInstance(setter.getParameterTypes()[0], data.get(key)));
+            setter.invoke(
+                builder, createInstance(setter.getParameterTypes()[0], data.get(key), httpRequest));
           }
           o = (T) builder.getClass().getMethod("build").invoke(builder);
         } else {
           Constructor con = getConstructor(c);
           if (con != null) {
             if (con.getParameterCount() > 0) {
-              o = (T) con.newInstance(buildConstructorParams(con, data));
+              o = (T) con.newInstance(buildConstructorParams(con, data, httpRequest));
             } else {
               o = (T) con.newInstance();
-              o = hydrate(o, data);
+              o = hydrate(o, data, this, httpRequest);
             }
           }
         }
       }
     } else {
-      hydrate(o, data);
+      hydrate(o, data, this, httpRequest);
     }
     return (T) o;
   }
 
-  private Object[] buildConstructorParams(Constructor con, Map<String, Object> data)
+  private Object[] buildConstructorParams(
+      Constructor con, Map<String, Object> data, HttpRequest httpRequest)
       throws InvocationTargetException,
           IllegalAccessException,
           InstantiationException,
           NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
-      params.add(createInstance(parameter.getType(), data.get(parameter.getName())));
+      params.add(createInstance(parameter.getType(), data.get(parameter.getName()), httpRequest));
     }
     return params.toArray();
   }
 
-  private Object createInstance(Class type, Object data) {
+  private Object createInstance(Class type, Object data, HttpRequest httpRequest) {
     if (isBasic(type)) {
       if (LocalDate.class.equals(type)) {
         return LocalDate.parse(convert(data));
@@ -156,14 +158,14 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     } else if (type.isArray()) {
       List<Object> values = new ArrayList<>();
       List<Map<String, Object>> datas = (List<Map<String, Object>>) data;
-      datas.forEach(map -> values.add(newInstance(type.componentType(), map)));
+      datas.forEach(map -> values.add(newInstance(type.componentType(), map, httpRequest)));
       var array = Array.newInstance(type.componentType(), values.size());
       for (var i = 0; i < values.size(); i++) {
         ((Object[]) array)[i] = values.get(i);
       }
       return array;
     } else {
-      return newInstance(type, (Map<String, Object>) data);
+      return newInstance(type, (Map<String, Object>) data, httpRequest);
     }
   }
 

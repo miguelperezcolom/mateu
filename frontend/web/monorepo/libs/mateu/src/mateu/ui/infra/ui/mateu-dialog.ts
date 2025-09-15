@@ -1,4 +1,4 @@
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -62,7 +62,7 @@ export class MateuDialog extends LitElement {
     }
 
 
-    render() {
+    render(): TemplateResult {
 
         const metadata = this.component?.metadata as Dialog
 

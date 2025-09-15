@@ -1,5 +1,6 @@
 package io.mateu.core.domain.reflection;
 
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import jakarta.inject.Named;
@@ -25,15 +26,15 @@ public class DefaultInstanceFactory implements InstanceFactory {
   }
 
   @Override
-  public <T> T newInstance(Class<T> type)
+  public <T> T newInstance(Class<T> type, HttpRequest httpRequest)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
           InstantiationException {
-    return getReflectionInstanceFactory().newInstance(type);
+    return getReflectionInstanceFactory().newInstance(type, httpRequest);
   }
 
-  public <T> T newInstance(Class<T> type, Map<String, Object> data) {
-    return getReflectionInstanceFactory().newInstance(type, data);
+  public <T> T newInstance(Class<T> type, Map<String, Object> data, HttpRequest httpRequest) {
+    return getReflectionInstanceFactory().newInstance(type, data, httpRequest);
   }
 }

@@ -26,7 +26,7 @@ public class FileUploadController {
         return Mono.fromDirect(uploadPublisher).map(success -> {
             log.info("result {}", success);
             if (success) {
-                return HttpResponse.ok("Uploaded");
+                return HttpResponse.ok(tempFile.getAbsolutePath());
             }
             else {
                 return HttpResponse.status(HttpStatus.CONFLICT).body("Upload Failed");

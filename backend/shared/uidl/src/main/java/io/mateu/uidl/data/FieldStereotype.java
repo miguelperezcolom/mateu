@@ -13,10 +13,15 @@ public enum FieldStereotype {
   richText,
   listBox,
   html,
+  markdown,
   image,
   icon,
   link,
   money,
   grid,
-  color
+  color,
+  choice,
+  popover,
+  slider,
+  stars
 }

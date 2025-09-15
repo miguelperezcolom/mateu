@@ -37,13 +37,13 @@ class ReflectionInstanceFactoryTest {
           NoSuchMethodException,
           IllegalAccessException,
           InstantiationException {
-    var instance = factory.newInstance(WithInitMethod.class);
+    var instance = factory.newInstance(WithInitMethod.class, new FakeHttpRequest());
     assertNotNull(instance);
 
-    instance = factory.newInstance(Subclass.class);
+    instance = factory.newInstance(Subclass.class, new FakeHttpRequest());
     assertNotNull(instance);
 
-    instance = factory.newInstance(WithBuilder.class);
+    instance = factory.newInstance(WithBuilder.class, new FakeHttpRequest());
     assertNotNull(instance);
 
     instance =
@@ -55,23 +55,30 @@ class ReflectionInstanceFactoryTest {
                 "birthDate",
                 LocalDate.of(2008, 4, 18),
                 "lastAccess",
-                LocalDateTime.of(2025, 5, 9, 21, 15)));
+                LocalDateTime.of(2025, 5, 9, 21, 15)),
+            new FakeHttpRequest());
     assertNotNull(instance);
     assertEquals("Mateu 2008-04-18 2025-05-09T21:15", instance.toString());
 
     instance =
         factory.newInstance(
-            WithObjectConstructorParameters.class, Map.of("value", Map.of("name", "Mateu")));
+            WithObjectConstructorParameters.class,
+            Map.of("value", Map.of("name", "Mateu")),
+            new FakeHttpRequest());
     assertNotNull(instance);
     assertEquals("Mateu", instance.toString());
 
     instance =
         factory.newInstance(
-            WithObjectConstructorParameters.class, Map.of("value", Map.of("name", "Mateu")));
+            WithObjectConstructorParameters.class,
+            Map.of("value", Map.of("name", "Mateu")),
+            new FakeHttpRequest());
     assertNotNull(instance);
     assertEquals("Mateu", instance.toString());
 
-    instance = factory.newInstance(WithProtectedConstructors.class, Map.of("name", "Mateu"));
+    instance =
+        factory.newInstance(
+            WithProtectedConstructors.class, Map.of("name", "Mateu"), new FakeHttpRequest());
     assertNotNull(instance);
     assertEquals("Mateu", instance.toString());
   }

@@ -90,7 +90,7 @@ public interface HttpRequest {
   default <T> List<T> getSelectedRows(Class<T> rowType) {
     return ((List<Map<String, Object>>)
             runActionRq().componentState().getOrDefault("crud_selected_items", List.of()))
-        .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data)).toList();
+        .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
   }
 
   default <T> T getClickedRow(Class<T> rowType) {
@@ -99,7 +99,7 @@ public interface HttpRequest {
     }
     var data = runActionRq().parameters().get("_clickedRow");
     if (data != null) {
-      return MateuInstanceFactory.newInstance(rowType, (Map<String, Object>) data);
+      return MateuInstanceFactory.newInstance(rowType, (Map<String, Object>) data, this);
     }
     return null;
   }
@@ -111,15 +111,16 @@ public interface HttpRequest {
     if (Map.class.equals(rowType)) {
       return (T) runActionRq().parameters();
     }
-    return MateuInstanceFactory.newInstance(rowType, runActionRq().parameters());
+    return MateuInstanceFactory.newInstance(rowType, runActionRq().parameters(), this);
   }
 
   default <T> T getAppState(Class<T> appStateType) {
-    return MateuInstanceFactory.newInstance(appStateType, runActionRq().appState());
+    return MateuInstanceFactory.newInstance(appStateType, runActionRq().appState(), this);
   }
 
   default <T> T getComponentState(Class<T> componentStateType) {
-    return MateuInstanceFactory.newInstance(componentStateType, runActionRq().componentState());
+    return MateuInstanceFactory.newInstance(
+        componentStateType, runActionRq().componentState(), this);
   }
 
   String path();

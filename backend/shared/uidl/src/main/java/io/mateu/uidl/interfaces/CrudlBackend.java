@@ -20,7 +20,7 @@ public interface CrudlBackend<Filters, Row> extends HandlesActions {
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(
-            filtersClass(), httpRequest.runActionRq().componentState());
+            filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
 
     return new Data(
         Map.of(

@@ -11,6 +11,8 @@ import static io.mateu.core.infra.JsonSerializer.fromMap;
 import static io.mateu.core.infra.JsonSerializer.pojoFromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
+import io.mateu.core.domain.InstanceFactory;
+import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -28,7 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ActualValueExtractor {
 
-  public static Object getActualValue(Class targetType, Object value) throws Exception {
+  public static Object getActualValue(
+      Class targetType, Object value, InstanceFactory instanceFactory, HttpRequest httpRequest)
+      throws Exception {
     Object targetValue = value;
     if (value == null) {
       if (int.class.equals(targetType)) {
@@ -83,6 +87,12 @@ public class ActualValueExtractor {
         targetValue = Class.forName("" + value);
         //            } else if (IconChooser.class.equals(targetType)) {
         //                targetValue = new IconChooser(Icon.valueOf("" + initialValue));
+      } else if (Map.class.isAssignableFrom(value.getClass())) {
+        targetValue =
+            instanceFactory
+                .createInstance(targetType.getName(), (Map<String, Object>) value, httpRequest)
+                .toFuture()
+                .get();
       }
     }
     return targetValue;
@@ -94,7 +104,11 @@ public class ActualValueExtractor {
         && (field.isAnnotationPresent(Inject.class) || Modifier.isFinal(field.getModifiers()));
   }
 
-  public static Object getActualValue(Map.Entry<String, Object> entry, Object object)
+  public static Object getActualValue(
+      Map.Entry<String, Object> entry,
+      Object object,
+      InstanceFactory instanceFactory,
+      HttpRequest httpRequest)
       throws Exception {
     Object targetValue = entry.getValue();
     Field f = getFieldByName(object.getClass(), entry.getKey());
@@ -273,6 +287,12 @@ public class ActualValueExtractor {
             }
             return t.toArray((Object[]) Array.newInstance(f.getType().getComponentType(), 0));
           }
+          List t = new ArrayList();
+          for (int i = 0; i < l.size(); i++) {
+            Object v = l.get(i);
+            t.add(getActualValue(f.getType().getComponentType(), v, instanceFactory, httpRequest));
+          }
+          return t.toArray((Object[]) Array.newInstance(f.getType().getComponentType(), 0));
         }
       }
       if (!f.getType().isAssignableFrom(entry.getValue().getClass())) {
@@ -291,7 +311,7 @@ public class ActualValueExtractor {
           // ExternalReference(initialValue.get("initialValue"), (String)
           // initialValue.get("key"));
         } else if (entry.getValue() instanceof String) {
-          targetValue = getActualValue(f.getType(), entry.getValue());
+          targetValue = getActualValue(f.getType(), entry.getValue(), instanceFactory, httpRequest);
         } else if (entry.getValue() instanceof Map) {
           targetValue = fromMap((Map<String, Object>) entry.getValue(), f.getType());
         } else if (float.class.equals(f.getType())) {

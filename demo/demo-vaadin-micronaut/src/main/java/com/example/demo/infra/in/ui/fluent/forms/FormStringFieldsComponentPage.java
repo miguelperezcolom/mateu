@@ -126,6 +126,12 @@ public class FormStringFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .label("String/RichText")
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.richText)
+                                                                        .build(),
+                                                                FormField.builder()
+                                                                        .id("name")
+                                                                        .label("String/Markdown")
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.markdown)
                                                                         .build()
                                                         ))
                                                         .build()

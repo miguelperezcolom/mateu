@@ -21,6 +21,7 @@ import "@vaadin/rich-text-editor"
 import "@vaadin/email-field"
 import "@vaadin/upload"
 import "@vaadin/list-box"
+import "@vaadin/markdown"
 import '@vaadin/item'
 import '@polymer/paper-toggle-button'
 import "@ui5/webcomponents/dist/ColorPicker.js";
@@ -28,10 +29,11 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComboBoxDataProvider } from "@vaadin/combo-box";
 import './mateu-grid'
-import { Upload } from "@vaadin/upload";
+import './mateu-choice'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
+import { popoverRenderer } from "@vaadin/popover/lit";
 
 
 @customElement('mateu-field')
@@ -158,7 +160,7 @@ export class MateuField extends LitElement {
         return undefined
     }
 
-    compareArrays = (a: [], b: []) =>
+    compareArrays = (a: any[], b: any[]) =>
         a.length === b.length &&
         a.every((element, index) => element === b[index]);
 
@@ -209,14 +211,44 @@ export class MateuField extends LitElement {
         </div>`
     }
 
-    fileUploaded = (e: CustomEvent) => {
-        const input = e.target as Upload
-        console.log(e, input, input.files)
-        console.log(e.detail.file.name)
+    fileUploaded = (e:CustomEvent) => {
+        const fieldId = this.field?.fieldId??''
+        const value = this.state[fieldId] as any[]
+        value.push({
+            id: e.detail.xhr.responseText,
+            name: e.detail.file.name
+        })
+
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: {
+                value,
+                fieldId: this.field?.fieldId
+            },
+            bubbles: true,
+            composed: true
+        }))
     }
 
     fileChanged = (e:CustomEvent) => {
-        console.log('file changed', e.detail.value)
+        const fieldId = this.field?.fieldId??''
+        const newIds = ((e.detail.value as any[])??[]).filter((file: any) => file.id).map((file: any) => file.id)
+        const oldIds = ((this.state[fieldId] as any[])??[]).map((file: any) => file.id)
+        if (!this.compareArrays(oldIds, newIds)) {
+            const newValues = ((e.detail.value as any[])??[]).filter((file: any) => file.id).map((file: any) => {
+                return {
+                    id: file.id,
+                    name: file.name
+                }
+            })
+            this.dispatchEvent(new CustomEvent('value-changed', {
+                detail: {
+                    value: newValues,
+                    fieldId: this.field?.fieldId
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
     }
 
     iconComboboxRenderer: ComboBoxLitRenderer<string> = (icon) => html`
@@ -882,6 +914,7 @@ export class MateuField extends LitElement {
     @state()
     private filteredIcons: string[] = [];
 
+
     protected override async firstUpdated() {
         this.filteredIcons = this.allIcons;
     }
@@ -892,9 +925,20 @@ export class MateuField extends LitElement {
 
     renderField(): TemplateResult {
         const fieldId = this.field?.fieldId??''
-        const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
-        const files:any[] = []
+        const value = this.state && fieldId in this.state?this.state[fieldId]:this.field?.initialValue
         if (this.field?.dataType == 'file') {
+            console.log('value', value)
+            const files = value.map((file: { id: string,
+                name: string
+            }) => {
+                return {
+                    id: file.id,
+                    name: file.name,
+                    type: '',
+                    uploadTarget: '',
+                    complete: true
+                }
+            })
             return html`
                 <vaadin-upload
                         target="/upload"
@@ -920,6 +964,19 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required}"
                     ></vaadin-select>
+                `
+            }
+            if (this.field?.stereotype == 'markdown') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            required="${this.field.required}"
+                            .helperText="${this.field.description}"
+                    ><vaadin-markdown
+                            .content="${value}"
+                    ></vaadin-markdown>
+                    </vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'combobox') {
@@ -973,16 +1030,82 @@ export class MateuField extends LitElement {
 </vaadin-radio-group>
                     `
             }
+            if (this.field.stereotype == 'popover') {
+                return html`<vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            required="${this.field.required}"
+                    >
+                        <vaadin-horizontal-layout theme="spacing">
+                            <div>${value}</div>
+                            <div id="${this.field.fieldId}_popover">
+                                <vaadin-icon icon="vaadin:angle-down"></vaadin-icon>
+                            </div>
+                        </vaadin-horizontal-layout>
+                    <vaadin-popover
+                            for="${this.field.fieldId}_popover"
+                            theme="arrow no-padding"
+                            modal
+                            accessible-name-ref="notifications-heading"
+                            content-width="300px"
+                            position="bottom"
+                            ${popoverRenderer(() => html`
+                                <mateu-event-interceptor .target="${this}">
+                                <mateu-choice
+                                        .field="${this.field}"
+                                        .value="${value}"
+                                ></mateu-choice>
+                                </mateu-event-interceptor>
+                            `, [])}
+                    ></vaadin-popover>
+                    </vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'choice') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            required="${this.field.required}"
+                    >
+                        <mateu-choice
+                                .field="${this.field}"
+                                .value="${value}"
+                        ></mateu-choice>
+                        
+                    </vaadin-custom-field>
+                    `
+            }
+            if (this.field?.stereotype == 'popover') {
+                return html`
+                    <vaadin-radio-group
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${value}"
+                            theme="vertical"
+                            ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required}"
+                    >
+                        ${this.field.options?.map(option => html`
+                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
+                        `)}
+</vaadin-radio-group>
+                    `
+            }
             if (this.field?.stereotype == 'richText') {
                 return html`
-                    <vaadin-rich-text-editor
+                    <vaadin-custom-field
                             label="${label}"
+                    >
+                    <vaadin-rich-text-editor
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
-                    ></vaadin-rich-text-editor>`
+                    ></vaadin-rich-text-editor>
+                    </vaadin-custom-field>`
             }
             if (this.field?.stereotype == 'textarea') {
                 return html`
@@ -1012,7 +1135,10 @@ export class MateuField extends LitElement {
             }
             if (this.field?.stereotype == 'link') {
                 if (this.field.readOnly) {
-                    return html`<a href="${value}">${value}</a>`
+                    return html`<vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                    ><a href="${value}">${value}</a></vaadin-custom-field>`
                 }
                 return html`
                             <vaadin-text-field
@@ -1099,10 +1225,24 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                     >
+                        <input type="color" @input="${(e: Event) => {
+                            console.log(e, e.target, (e.target as HTMLInputElement).value)
+                            this.dispatchEvent(new CustomEvent('value-changed', {
+                                detail: {
+                                    value: (e.target as HTMLInputElement).value,
+                                    //@ts-ignore
+                                    fieldId: this.field!.fieldId
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }}"/>
+                        <!--
                         <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                             <span style="background-color: ${value}; display: inline-block; height: 20px; width: 40px; border: 1px solid var(--lumo-secondary-text-color);"></span>
                             <vaadin-button @click="${() => this.colorPickerOpened = true}">Change</vaadin-button>
                         </vaadin-horizontal-layout>
+                        -->
                     </vaadin-custom-field>
                     <vaadin-dialog
   header-title="Choose color"
@@ -1137,6 +1277,55 @@ export class MateuField extends LitElement {
             ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
+            if (this.field.stereotype == 'stars') {
+                let renderValue = value;
+                if (isNaN(renderValue)) {
+                    renderValue = 0
+                }
+                const values = [1, 2, 3, 4, 5]
+                return html`<vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                    >${values.map(index => html`
+                    <vaadin-icon 
+                            icon="vaadin:star" 
+                            style="cursor: pointer; color: var(${index <= renderValue?'--lumo-warning-color':'--lumo-shade-30pct'});"
+                            @click="${() => this.dispatchEvent(new CustomEvent('value-changed', {
+                                detail: {
+                                    value: index,
+                                    //@ts-ignore
+                                    fieldId: this.field!.fieldId
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))}"
+                    
+                    ></vaadin-icon>
+                `)}</vaadin-custom-field>`
+            }
+            if (this.field.stereotype == 'slider') {
+                let renderValue = value;
+                if (isNaN(renderValue)) {
+                    renderValue = 0
+                }
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                    ><input type="range" @input="${(e: Event) => {
+                        console.log(e, e.target, (e.target as HTMLInputElement).value)
+                        this.dispatchEvent(new CustomEvent('value-changed', {
+                            detail: {
+                                value: (e.target as HTMLInputElement).value,
+                                //@ts-ignore
+                                fieldId: this.field!.fieldId
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }}" min="0" max="10" value="${renderValue??0}"/></vaadin-custom-field>
+                `
+            }
             return html`
                 <vaadin-integer-field
                         id="${this.field.fieldId}"
@@ -1145,6 +1334,7 @@ export class MateuField extends LitElement {
                         value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required}"
+                        step-buttons-visible
                 ></vaadin-integer-field>
             `
         }
@@ -1369,6 +1559,26 @@ export class MateuField extends LitElement {
             }
         }
         if (this.field?.dataType == 'money') {
+            if (this.field.readOnly) {
+                const amount = value
+                let formatted = amount
+                if (amount && amount.locale && amount.currency) {
+                    formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
+                        amount.value,
+                    )
+                }
+                formatted = new Intl.NumberFormat("de-DE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+
+                }).format(
+                    amount,
+                )
+                return html`<vaadin-custom-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                ><div style="width: 186px; text-align: right;">${formatted}</div></vaadin-custom-field>`
+            }
             return html`<vaadin-number-field
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1398,6 +1608,9 @@ export class MateuField extends LitElement {
     }
 
     static styles = css`
+        
+
+        
   `
 }
 

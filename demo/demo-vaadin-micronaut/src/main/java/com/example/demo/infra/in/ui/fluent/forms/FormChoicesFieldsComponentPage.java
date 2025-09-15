@@ -75,8 +75,36 @@ public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
                                                                         ))
                                                                         .build()
                                                         ))
-                                                        .build()
-                                        )
+                                                        .build(),
+                                                FormRow.builder()
+                                                        .content(List.of(
+                                                                FormField.builder()
+                                                                        .id("name")
+                                                                        .label("String/Choice")
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.choice)
+                                                                        .options(List.of(
+                                                                                new Option("1", "Uno", "bla, bla, bla, bla, bla, bla, bla"),
+                                                                                new Option("2", "Dos", "bla, bla, bla, bla, bla, bla, bla"),
+                                                                                new Option("3", "Tres", "bla, bla, bla, bla, bla, bla, bla")
+                                                                        ))
+                                                                        .build()
+                                                        )).build(),
+                                                FormRow.builder()
+                                                        .content(List.of(
+                                                                FormField.builder()
+                                                                        .id("name")
+                                                                        .label("String/Popover")
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.popover)
+                                                                        .options(List.of(
+                                                                                new Option("1", "Uno", "bla, bla, bla, bla, bla, bla, bla"),
+                                                                                new Option("2", "Dos", "bla, bla, bla, bla, bla, bla, bla"),
+                                                                                new Option("3", "Tres", "bla, bla, bla, bla, bla, bla, bla")
+                                                                        ))
+                                                                        .build()
+                                                        )).build()
+                                                                )
                                 )
                                 .maxColumns(5)
                                 .build()

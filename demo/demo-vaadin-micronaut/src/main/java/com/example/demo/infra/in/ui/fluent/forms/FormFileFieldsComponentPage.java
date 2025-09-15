@@ -1,8 +1,10 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.File;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
@@ -10,12 +12,18 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
+import static io.mateu.core.infra.JsonSerializer.toJson;
+
 @Route("/fluent-app/forms/file-fields")
-public class FormFileFieldsComponentPage implements ComponentTreeSupplier {
+public class FormFileFieldsComponentPage implements ComponentTreeSupplier, HandlesActions {
+
+    File[] file = {new File("xx", "fichero.png")};
+
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()
@@ -37,8 +45,18 @@ public class FormFileFieldsComponentPage implements ComponentTreeSupplier {
                                         )
                                 )
                                 .maxColumns(5)
+                                .build(),
+                        Button.builder()
+                                .label("Send")
+                                .actionId("send")
                                 .build()
                 ))
                 .build();
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        System.out.println(toJson(this));
+        return this;
     }
 }

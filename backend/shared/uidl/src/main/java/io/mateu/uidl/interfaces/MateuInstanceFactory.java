@@ -10,7 +10,8 @@ public class MateuInstanceFactory {
     _instanceFactory = instanceFactory;
   }
 
-  public static <T> T newInstance(Class<T> type, Map<String, Object> data) {
-    return _instanceFactory.newInstance(type, data);
+  public static <T> T newInstance(
+      Class<T> type, Map<String, Object> data, HttpRequest httpRequest) {
+    return _instanceFactory.newInstance(type, data, httpRequest);
   }
 }

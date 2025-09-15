@@ -1,4 +1,4 @@
-import { customElement, state } from "lit/decorators.js";
+import { customElement, query, state } from "lit/decorators.js";
 import { css, html, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -23,6 +23,7 @@ import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import { AppLayout } from "@vaadin/app-layout";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -145,10 +146,18 @@ export class MateuApp extends ComponentElement {
         >${option.label}</vaadin-button>`
     }
 
+    @query('vaadin-app-layout')
+    vaadinAppLayout: AppLayout | undefined
+
     navItemSelected = (e: Event & {
         path: string | undefined
     }) => {
         this.selectRoute(e.path)
+        if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
+            if (this.vaadinAppLayout) {
+                this.vaadinAppLayout.drawerOpened = false
+            }
+        }
     }
 
     renderSideNav = (items: any, slot: string | undefined) => {
@@ -192,7 +201,6 @@ export class MateuApp extends ComponentElement {
         super.disconnectedCallback();
         this.removeEventListener('update-route', this.updateRoute)
     }
-
 
     render() {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)

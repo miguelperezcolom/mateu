@@ -41,6 +41,33 @@ public class FormNumericFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .id("money")
                                                                         .label("Money")
                                                                         .dataType(FieldDataType.money)
+                                                                        .build(),
+                                                                FormField.builder()
+                                                                        .id("money")
+                                                                        .label("Money")
+                                                                        .dataType(FieldDataType.money)
+                                                                        .readOnly(true)
+                                                                        .build()
+                                                        ))
+                                                        .build(),
+                                                FormRow.builder()
+                                                        .content(List.of(
+                                                                FormField.builder()
+                                                                        .id("integer")
+                                                                        .label("Integer/Slider")
+                                                                        .dataType(FieldDataType.integer)
+                                                                        .stereotype(FieldStereotype.slider)
+                                                                        .build(),
+                                                                FormField.builder()
+                                                                        .id("integer")
+                                                                        .label("Integer/Stars")
+                                                                        .dataType(FieldDataType.integer)
+                                                                        .stereotype(FieldStereotype.stars)
+                                                                        .build(),
+                                                                FormField.builder()
+                                                                        .id("integer")
+                                                                        .label("Range")
+                                                                        .dataType(FieldDataType.range)
                                                                         .build()
                                                         ))
                                                         .build()

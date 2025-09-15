@@ -14,5 +14,6 @@ public enum FieldDataType {
   status,
   money,
   menu,
-  component
+  component,
+  range
 }
