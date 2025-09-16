@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copy": "tsc && vite build && cp -rf dist/assets/* ../../../../../demo/sites/sapui5/assets"
   },
   "dependencies": {
     "@ui5/webcomponents": "^2.13.2",

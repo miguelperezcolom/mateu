@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copy": "tsc && vite build && cp -rf dist/assets/* ../../../../../demo/sites/redwood/assets"
   },
   "dependencies": {
     "lit": "^3.3.1",
