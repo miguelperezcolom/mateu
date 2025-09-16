@@ -36,16 +36,16 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
 
     return html`
                <vaadin-form-layout 
-                       .responsiveSteps="${metadata.responsiveSteps??nothing}"  
-                       style="${style}" 
+                       .responsiveSteps="${metadata.responsiveSteps || nothing}"  
+                       style="${style || nothing}" 
                        class="w-full ${component.cssClasses}"
-                       max-columns="${metadata.maxColumns??nothing}"
-                       auto-responsive="${metadata.autoResponsive??nothing}"
-                       column-width="${metadata.columnWidth??nothing}"
-                       ?expandColumns="${metadata.expandColumns}"
-                       ?expandFields="${metadata.expandFields}"
-                       ?labels-aside="${metadata.labelsAside}"
-                       slot="${component.slot??nothing}"
+                       max-columns="${metadata.maxColumns && metadata.maxColumns > 0?metadata.maxColumns:nothing}"
+                       auto-responsive="${metadata.autoResponsive || nothing}"
+                       column-width="${metadata.columnWidth || nothing}"
+                       expand-columns="${metadata.expandColumns || nothing}"
+                       expand-fields="${metadata.expandFields || nothing}"
+                       labels-aside="${metadata.labelsAside || nothing}"
+                       slot="${component.slot || nothing}"
                >
                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
                </vaadin-form-layout>

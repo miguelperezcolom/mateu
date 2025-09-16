@@ -24,7 +24,8 @@ public record FormField(
     List<GridContent> columns,
     Form createForm,
     Form editor,
-    String onItemSelectionActionId)
+    String onItemSelectionActionId,
+    int colspan)
     implements Component {
 
   public FormField {

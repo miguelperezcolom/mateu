@@ -48,6 +48,7 @@ public class CrudlComponentToDtoMapper {
                                     .cssClasses(filter.cssClasses())
                                     .description(filter.description())
                                     .placeholder(filter.placeholder())
+                                    .colspan(filter.colspan() > 0 ? filter.colspan() : 1)
                                     .build())
                         .toList()
                     : List.of())

@@ -16,6 +16,8 @@ pods and that showcases the stateless nature of any UI built with Mateu :)
 
 All the demos frontends are deployed as static sites in Netlify, calling the same backend.
 
+<p align="center"><img src="../../../images/demo-1.svg" width="900"/></p>
+
 > Note: Even though I first relied on Cloudflare for the ssl support and as CDN, I finally removed it due to random 
 > failures. Now I use a nginx running on a pod inside the cluster, with certbot automatically renewed let's encrypt 
 > certificates, and no issue so far. 

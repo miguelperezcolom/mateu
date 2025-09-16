@@ -34,7 +34,12 @@ public class FormDateFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .id("datetime")
                                                                         .label("DateTime")
                                                                         .dataType(FieldDataType.dateTime)
-                                                                        .build(),
+                                                                        .colspan(2)
+                                                                        .build()
+                                                        ))
+                                                        .build(),
+                                                FormRow.builder()
+                                                        .content(List.of(
                                                                 FormField.builder()
                                                                         .id("time")
                                                                         .label("Time")
@@ -44,7 +49,7 @@ public class FormDateFieldsComponentPage implements ComponentTreeSupplier {
                                                         .build()
                                         )
                                 )
-                                .maxColumns(5)
+                                .autoResponsive(true)
                                 .build()
                 ))
                 .build();

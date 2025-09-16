@@ -25,6 +25,7 @@ public class FieldComponentToDtoMapper {
             .placeholder(formField.placeholder())
             .description(formField.description())
             .cssClasses(formField.cssClasses())
+            .colspan(formField.colspan() > 0 ? formField.colspan() : 1)
             .options(
                 formField.options().stream()
                     .map(
