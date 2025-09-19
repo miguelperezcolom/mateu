@@ -67,6 +67,7 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/forms/file-fields", "File fields"),
                                 new RouteLink("/fluent-app/forms/other-fields", "Other fields"),
                                 new RouteLink("/fluent-app/forms/choice-fields", "Choice field"),
+                                new RouteLink("/fluent-app/forms/choice-with-images-fields", "Choice with images field"),
                                 new RouteLink("/fluent-app/forms/combobox-default-value", "Combobox default value")
                         )),
                         new Menu("Crudls", List.of(

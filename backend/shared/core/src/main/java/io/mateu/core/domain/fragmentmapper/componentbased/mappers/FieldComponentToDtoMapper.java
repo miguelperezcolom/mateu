@@ -31,7 +31,11 @@ public class FieldComponentToDtoMapper {
                 formField.options().stream()
                     .map(
                         option ->
-                            new OptionDto(option.value(), option.label(), option.description()))
+                            new OptionDto(
+                                option.value(),
+                                option.label(),
+                                option.description(),
+                                option.image()))
                     .toList())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
             .initialValue(formField.initialValue())

@@ -38,7 +38,6 @@ public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
                                                                                 new Option("3", "Tres")
                                                                         ))
                                                                         .build(),
-
                                                                 FormField.builder()
                                                                         .id("name")
                                                                         .label("String/Select")
@@ -50,7 +49,6 @@ public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
                                                                                 new Option("3", "Tres")
                                                                         ))
                                                                         .build(),
-
                                                                 FormField.builder()
                                                                         .id("name")
                                                                         .label("String/ListBox")
@@ -84,9 +82,9 @@ public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.choice)
                                                                         .options(List.of(
-                                                                                new Option("1", "Uno", "bla, bla, bla, bla, bla, bla, bla"),
-                                                                                new Option("2", "Dos", "bla, bla, bla, bla, bla, bla, bla"),
-                                                                                new Option("3", "Tres", "bla, bla, bla, bla, bla, bla, bla")
+                                                                                new Option("1", "Uno"),
+                                                                                new Option("2", "Dos"),
+                                                                                new Option("3", "Tres")
                                                                         ))
                                                                         .build()
                                                         )).build(),
@@ -98,9 +96,9 @@ public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.popover)
                                                                         .options(List.of(
-                                                                                new Option("1", "Uno", "bla, bla, bla, bla, bla, bla, bla"),
-                                                                                new Option("2", "Dos", "bla, bla, bla, bla, bla, bla, bla"),
-                                                                                new Option("3", "Tres", "bla, bla, bla, bla, bla, bla, bla")
+                                                                                new Option("1", "Uno"),
+                                                                                new Option("2", "Dos"),
+                                                                                new Option("3", "Tres")
                                                                         ))
                                                                         .build()
                                                         )).build()

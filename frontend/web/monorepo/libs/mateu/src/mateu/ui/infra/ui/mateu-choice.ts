@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -87,8 +87,21 @@ export class MateuChoice extends LitElement {
             bubbles: true,
             composed: true
         }))}"
-                            ><h5>${option.label}</h5>
-                            <p>${option.description}</p></div>
+                            >${option.description || option.image?html`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${option.image?html`
+                                            <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
+                                        `:nothing}
+                                    <vaadin-vertical-layout>
+                                        <span> ${option.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${option.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:option.label}</div>
                         `)}
                                 </div>
 

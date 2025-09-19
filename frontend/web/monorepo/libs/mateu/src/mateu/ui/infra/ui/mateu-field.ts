@@ -39,6 +39,7 @@ import { allIcons } from "@infra/ui/allIcons.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
+import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 
 
 @customElement('mateu-field')
@@ -323,6 +324,31 @@ export class MateuField extends LitElement {
   </div>
 `;
 
+    comboRenderer: ComboBoxLitRenderer<Option> = (option) => html`
+        ${option.description || option.image?html`
+            <vaadin-horizontal-layout theme="spacing">
+                ${option.image?html`
+                    <div>
+                    <img
+                            style="width: var(--lumo-size-m); margin-right: var(--lumo-space-s);"
+                            src="${option.image}"
+                            alt="${option.label}"
+                    />
+                    </div>
+                                        `:nothing}
+                <div>
+                    ${option.label}
+                    ${option.description?html`
+            <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
+                ${option.description}
+            </div>
+        `:nothing}
+                </div>
+
+            </vaadin-horizontal-layout>
+                            `:option.label}
+`;
+
     @state()
     private filteredIcons: string[] = [];
 
@@ -497,6 +523,7 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             .selectedItem="${selectedItem}"
                             data-colspan="${this.field.colspan}"
+                            ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `
                 }
@@ -513,6 +540,7 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
+                            ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `
             }
@@ -561,7 +589,21 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.data[this.id]?.content?.map((option: any) => html`
-                            <vaadin-item>${option.label}</vaadin-item>
+                            <vaadin-item>${option.description || option.image?html`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${option.image?html`
+                                            <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
+                                        `:nothing}
+                                    <vaadin-vertical-layout>
+                                        <span> ${option.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${option.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:option.label}</vaadin-item>
                         `)}
                     </vaadin-list-box>
                         </vaadin-custom-field>
@@ -579,7 +621,21 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(option => html`
-                            <vaadin-item>${option.label}</vaadin-item>
+                            <vaadin-item>${option.description || option.image?html`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${option.image?html`
+                                            <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
+                                        `:nothing}
+                                    <vaadin-vertical-layout>
+                                        <span> ${option.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${option.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:option.label}</vaadin-item>
                         `)}
                     </vaadin-list-box>
                     </vaadin-custom-field>
@@ -630,7 +686,21 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         ${this.data[this.id]?.content?.map((option: any) => html`
-                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
+                            <vaadin-radio-button value="${option.value}" label="${option.label}">
+                                ${option.description || option.image?html`
+                                    <label slot="label">
+                                        <vaadin-horizontal-layout theme="spacing">
+                                            ${option.image?html`
+                                                <img src="${option.image}" alt="${option.label}" style="height: 1rem;" />
+                                            `:nothing}
+                                            <span>${option.label}</span>
+                                        </vaadin-horizontal-layout>
+                                        ${option.description?html`
+                                            <div>${option.description}</div>
+                                        `:nothing}
+                                    </label>
+                                `:nothing}
+                            </vaadin-radio-button>
                         `)}
 </vaadin-radio-group>
                     `
@@ -646,7 +716,21 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         ${this.field.options?.map(option => html`
-                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
+                            <vaadin-radio-button value="${option.value}" label="${option.label}">
+                                ${option.description || option.image?html`
+                                    <label slot="label">
+                                        <vaadin-horizontal-layout theme="spacing">
+                                            ${option.image?html`
+                                                <img src="${option.image}" alt="${option.label}" style="height: 1rem;" />
+                                            `:nothing}
+                                            <span>${option.label}</span>
+                                        </vaadin-horizontal-layout>
+                                        ${option.description?html`
+                                            <div>${option.description}</div>
+                                        `:nothing}
+                                    </label>
+                                `:nothing}
+                            </vaadin-radio-button>
                         `)}
 </vaadin-radio-group>
                     `
