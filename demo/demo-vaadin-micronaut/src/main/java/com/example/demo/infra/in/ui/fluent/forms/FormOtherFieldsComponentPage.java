@@ -1,12 +1,15 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.Option;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -16,6 +19,9 @@ import java.util.List;
 
 @Route("/fluent-app/forms/other-fields")
 public class FormOtherFieldsComponentPage implements ComponentTreeSupplier {
+
+    Status status = new Status(StatusType.SUCCESS, "It works!");
+
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()
@@ -23,6 +29,7 @@ public class FormOtherFieldsComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         new Text("${JSON.stringify(state)}"),
                         FormLayout.builder()
+                                .autoResponsive(true)
                                 .content(
                                         List.of(
                                                 FormRow.builder()
@@ -36,36 +43,15 @@ public class FormOtherFieldsComponentPage implements ComponentTreeSupplier {
                                                         .build(),
                                                 FormRow.builder()
                                                         .content(List.of(
-                                                                FormField.builder()
-                                                                        .id("component")
+                                                                CustomField.builder()
                                                                         .label("Component")
-                                                                        .dataType(FieldDataType.component)
-                                                                        .build()
-                                                        ))
-                                                        .build(),
-
-                                                FormRow.builder()
-                                                        .content(List.of(
-                                                                FormField.builder()
-                                                                        .id("reference")
-                                                                        .label("Reference")
-                                                                        .dataType(FieldDataType.reference)
-                                                                        .build()
-                                                        ))
-                                                        .build(),
-                                                FormRow.builder()
-                                                        .content(List.of(
-                                                                FormField.builder()
-                                                                        .id("menu")
-                                                                        .label("Menu")
-                                                                        .dataType(FieldDataType.menu)
+                                                                        .content(new Text("Hola!"))
                                                                         .build()
                                                         ))
                                                         .build()
 
                                         )
                                 )
-                                .maxColumns(5)
                                 .build()
                 ))
                 .build();

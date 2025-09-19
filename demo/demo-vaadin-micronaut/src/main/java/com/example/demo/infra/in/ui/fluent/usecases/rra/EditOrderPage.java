@@ -122,7 +122,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                 FormRow.builder()
                                                                         .content(List.of(
                                                                                 FormField.builder()
-                                                                                        .dataType(FieldDataType.reference)
+                                                                                        .dataType(FieldDataType.string)
                                                                                         .stereotype(FieldStereotype.combobox)
                                                                                         .id("customer")
                                                                                         .label("Name")
@@ -212,7 +212,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                         .content(List.of(
                                                                                 FormField.builder()
                                                                                         .id("new_product")
-                                                                                        .dataType(FieldDataType.reference)
+                                                                                        .dataType(FieldDataType.string)
                                                                                         .stereotype(FieldStereotype.combobox)
                                                                                         .label("Product Name")
                                                                                         .remoteCoordinates(RemoteCoordinates.builder()
@@ -259,7 +259,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                         .content(List.of(
                                                                                 FormField.builder()
                                                                                         .id("edit_product")
-                                                                                        .dataType(FieldDataType.reference)
+                                                                                        .dataType(FieldDataType.string)
                                                                                         .stereotype(FieldStereotype.combobox)
                                                                                         .label("Product Name")
                                                                                         .remoteCoordinates(RemoteCoordinates.builder()

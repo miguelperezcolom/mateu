@@ -30,14 +30,14 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
                 theme="${theme}"
                 slot="${component.slot??nothing}"
         >
-            ${metadata.media?renderComponentInSlot(container, metadata.media, baseUrl, state, data, 'media'):nothing}
-            ${metadata.title?renderComponentInSlot(container, metadata.title, baseUrl, state, data, 'title'):nothing}
-            ${metadata.subtitle?renderComponentInSlot(container, metadata.subtitle, baseUrl, state, data, 'subtitle'):nothing}
-            ${metadata.header?renderComponentInSlot(container, metadata.header, baseUrl, state, data, 'header'):nothing}
-            ${metadata.headerPrefix?renderComponentInSlot(container, metadata.headerPrefix, baseUrl, state, data, 'header-prefix'):nothing}
-            ${metadata.headerSuffix?renderComponentInSlot(container, metadata.headerSuffix, baseUrl, state, data, 'header-suffix'):nothing}
-            ${metadata.footer?renderComponentInSlot(container, metadata.footer, baseUrl, state, data, 'footer'):nothing}
-            ${metadata.content?renderComponent(container, metadata.content, baseUrl, state, data):nothing}
+            ${metadata.media?renderComponentInSlot(container, metadata.media, baseUrl, state, data, 'media', false):nothing}
+            ${metadata.title?renderComponentInSlot(container, metadata.title, baseUrl, state, data, 'title', false):nothing}
+            ${metadata.subtitle?renderComponentInSlot(container, metadata.subtitle, baseUrl, state, data, 'subtitle', false):nothing}
+            ${metadata.header?renderComponentInSlot(container, metadata.header, baseUrl, state, data, 'header', false):nothing}
+            ${metadata.headerPrefix?renderComponentInSlot(container, metadata.headerPrefix, baseUrl, state, data, 'header-prefix', false):nothing}
+            ${metadata.headerSuffix?renderComponentInSlot(container, metadata.headerSuffix, baseUrl, state, data, 'header-suffix', false):nothing}
+            ${metadata.footer?renderComponentInSlot(container, metadata.footer, baseUrl, state, data, 'footer', false):nothing}
+            ${metadata.content?renderComponent(container, metadata.content, baseUrl, state, data, false):nothing}
         </vaadin-card>
     `
 }

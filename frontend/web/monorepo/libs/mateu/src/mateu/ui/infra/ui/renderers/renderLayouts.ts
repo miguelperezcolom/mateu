@@ -1,6 +1,6 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
-import { html, LitElement, nothing } from "lit";
+import { html, LitElement, nothing, TemplateResult } from "lit";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
@@ -13,6 +13,9 @@ import AccordionLayout, {
 } from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
 import BoardLayoutItem from "@mateu/shared/apiClients/dtos/componentmetadata/BoardLayout";
+import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     const metadata = component.metadata as FormLayout
@@ -30,6 +33,9 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     if (metadata.itemLabelSpacing) {
         style += '--vaadin-form-layout-label-spacing: ' + metadata.itemLabelSpacing + ';'
     }
+    if (metadata.labelsAside) {
+        style += '--vaadin-form-item-label-width: 92px;'
+    }
     if (metadata.fullWidth) {
         style += 'width: 100%;';
     }
@@ -38,7 +44,7 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                <vaadin-form-layout 
                        .responsiveSteps="${metadata.responsiveSteps || nothing}"  
                        style="${style || nothing}" 
-                       class="w-full ${component.cssClasses}"
+                       class="${component.cssClasses}"
                        max-columns="${metadata.maxColumns && metadata.maxColumns > 0?metadata.maxColumns:nothing}"
                        auto-responsive="${metadata.autoResponsive || nothing}"
                        column-width="${metadata.columnWidth || nothing}"
@@ -47,24 +53,37 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                        labels-aside="${metadata.labelsAside || nothing}"
                        slot="${component.slot || nothing}"
                >
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderFormComponent(metadata, container, child, baseUrl, state, data))}
                </vaadin-form-layout>
             `
 }
 
-export const renderFormRow = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
-    return html`
-        <vaadin-form-row>
-            ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
-        </vaadin-form-row>
-            `
+export const renderFormComponent = (form: FormLayout, container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+    if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormRow) {
+        return renderFormRow(form, container, component as ClientSideComponent, baseUrl, state, data)
+    }
+    return form.labelsAside?wrapWithFormItem(container, component, baseUrl, state, data):renderComponent(container, component, baseUrl, state, data)
 }
 
-export const renderFormItem = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const wrapWithFormItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+    if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField && ((component as ClientSideComponent).metadata as FormField).label) {
+        const field =  (component as ClientSideComponent).metadata as FormField
+        return html`
+                       <vaadin-form-item data-colspan="${field.colspan}">
+                           <label slot="label">${field.label}</label>
+                           ${renderComponent(container, component, baseUrl, state, data, true)}
+                       </vaadin-form-item>
+                   `
+    }
+    return renderComponent(container, component, baseUrl, state, data)
+}
+
+
+export const renderFormRow = (form: FormLayout, container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
     return html`
-        <vaadin-form-item>
-            ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
-        </vaadin-form-item>
+        <vaadin-form-row>
+            ${tab.children?.map(child => renderFormComponent(form, container, child, baseUrl, state, data))}
+        </vaadin-form-row>
             `
 }
 

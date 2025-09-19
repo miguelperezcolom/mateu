@@ -61,6 +61,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions, Has
                         List.of(
                                 FormLayout.builder()
                                         .id("form_layout_id")
+                                        .autoResponsive(true)
                                         .content(
                                                 List.of(
                                                         FormField.builder()

@@ -24,6 +24,7 @@ public class FormLayoutComponentToDtoMapper {
             .itemLabelWidth(formLayout.itemLabelWidth())
             .labelsAside(formLayout.labelsAside())
             .responsiveSteps(formLayout.responsiveSteps())
+            .maxColumns(formLayout.maxColumns() > 0 ? formLayout.maxColumns() : 100)
             .build();
     return new ClientSideComponentDto(
         metadataDto,

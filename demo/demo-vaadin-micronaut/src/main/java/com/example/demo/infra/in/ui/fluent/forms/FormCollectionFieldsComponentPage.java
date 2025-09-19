@@ -1,28 +1,38 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
+import com.example.demo.domain.OrderRepository;
+import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
+import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/collection-fields")
+@Singleton
 public class FormCollectionFieldsComponentPage implements ComponentTreeSupplier {
+
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()
                 .title("Form fields")
                 .content(List.of(
-                        new Text("${JSON.stringify(state)}"),
                         FormLayout.builder()
+                                .autoResponsive(true)
+                                .maxColumns(6)
                                 .content(
                                         List.of(
                                                 FormRow.builder()
@@ -59,15 +69,34 @@ public class FormCollectionFieldsComponentPage implements ComponentTreeSupplier 
                                                                                 new Option("2", "Dos"),
                                                                                 new Option("3", "Tres")
                                                                         ))
+                                                                        .build(),
+                                                                FormField.builder()
+                                                                        .id("array")
+                                                                        .label("Array/Choice")
+                                                                        .dataType(FieldDataType.array)
+                                                                        .stereotype(FieldStereotype.choice)
+                                                                        .options(List.of(
+                                                                                new Option("1", "Uno"),
+                                                                                new Option("2", "Dos"),
+                                                                                new Option("3", "Tres")
+                                                                        ))
+                                                                        .colspan(3)
+                                                                        .build(),
+                                                                CustomField.builder()
+                                                                        .label("State")
+                                                                        .content(new Text("${JSON.stringify(state)}"))
+                                                                        .colspan(3)
                                                                         .build()
-                                                                ))
+
+                                                        ))
                                                         .build()
 
                                         )
                                 )
-                                .maxColumns(5)
                                 .build()
-                ))
+                        ))
                 .build();
     }
+
+
 }

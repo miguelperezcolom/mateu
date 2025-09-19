@@ -22,18 +22,6 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-record OrderDetailLine(
-        String lineId,
-        String productId,
-        String productName,
-        String image,
-        Amount listPrice,
-        int quantity,
-        Amount amount
-) {
-
-}
-
 @Singleton
 public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod, HandlesActions {
 

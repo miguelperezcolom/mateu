@@ -23,6 +23,7 @@ public class FormStringFieldsComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         new Text("${JSON.stringify(state)}"),
                         FormLayout.builder()
+                                .autoResponsive(true)
                                 .content(
                                         List.of(
                                                 FormRow.builder()
@@ -126,19 +127,20 @@ public class FormStringFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .label("String/RichText")
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.richText)
+                                                                        .colspan(2)
                                                                         .build(),
                                                                 FormField.builder()
                                                                         .id("name")
                                                                         .label("String/Markdown")
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.markdown)
+                                                                        .colspan(2)
                                                                         .build()
                                                         ))
                                                         .build()
 
                                         )
                                 )
-                                .maxColumns(5)
                                 .build()
                 ))
                 .build();

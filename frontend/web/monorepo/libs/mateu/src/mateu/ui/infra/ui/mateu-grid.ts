@@ -15,6 +15,7 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { GridActiveItemChangedEvent } from "@vaadin/grid/all-imports";
+import { badge } from "@vaadin/vaadin-lumo-styles";
 
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
@@ -49,10 +50,43 @@ export class MateuGrid extends MetadataDrivenElement {
         const showDetail = this.state[this.field?.fieldId + '_show_detail']
         const editing = this.state[this.field?.fieldId + '_editing']
 
+
+        if (this.field?.remoteCoordinates) {
+            const coords = this.field.remoteCoordinates;
+            const filter = ''
+
+            if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
+                this.data[this.id] = undefined
+            }
+            if (this.data[this.id]
+                && this.data[this.id].content
+                && this.data[this.id].totalElements) {
+                items = this.data[this.id].content
+            } else {
+                this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: coords.action,
+                        parameters: {
+                            searchText: filter,
+                            fieldId: this.field?.fieldId,
+                            size: 200,
+                            page: 0,
+                            sort: undefined
+                        }
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
+
+        const orientation = (this.field?.formPosition == 'left' || this.field?.formPosition == 'right')?'horizontal':'vertical'
+
         return html`
             <vaadin-vertical-layout>
             <vaadin-master-detail-layout
                     style="width: 100%; ${showDetail?'min-height: 20rem;':''}"
+                    orientation="${orientation}"
             >
                 <vaadin-grid
                         style="${this.field?.style}"
@@ -113,6 +147,7 @@ export class MateuGrid extends MetadataDrivenElement {
     }
 
     static styles = css`
+        ${badge}
     `
 }
 

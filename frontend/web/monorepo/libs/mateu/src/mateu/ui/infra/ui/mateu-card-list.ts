@@ -109,7 +109,7 @@ export class MateuCardList extends LitElement {
 
     renderItem = (item: any) => {
         if (item.card) {
-            return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data)
+            return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data, false)
         }
         if (item.title) {
             return html`<vaadin-card

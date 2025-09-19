@@ -5,6 +5,7 @@ import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
 import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/form-layout/vaadin-form-item.js';
 import '@vaadin/split-layout'
 import '@vaadin/master-detail-layout'
 import '@vaadin/app-layout'
@@ -515,7 +516,7 @@ export class MateuComponent extends ComponentElement {
 
     _render(): TemplateResult {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data) as TemplateResult
+            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, false) as TemplateResult
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}" style="display: block;width: 100%;">

@@ -5,5 +5,6 @@ export default interface CustomField extends ComponentMetadata {
 
     label: string
     content: Component
+    colspan: number
 
 }

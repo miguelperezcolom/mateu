@@ -8,12 +8,11 @@ public enum FieldDataType {
   time,
   dateTime,
   bool,
-  reference,
   array,
   file,
   status,
   money,
-  menu,
   component,
+  menu,
   range
 }

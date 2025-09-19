@@ -50,7 +50,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         `
     }
 
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         if (ComponentMetadataType.Form == component?.metadata?.type) {
             return renderForm(container, component, baseUrl, state, data)
         }
@@ -60,7 +60,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
             return renderField(component, baseUrl, state, data)
         }
-        return super.renderClientSideComponent(container, component, baseUrl, state, data)
+        return super.renderClientSideComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
     }
 
     renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {

@@ -22,7 +22,22 @@ public class FormLayoutSample implements ComponentTreeSupplier {
                 .title("Form Layout")
                 .content(List.of(
 
-                        new Text("basic"),
+                        new Text("max columns = 2"),
+
+                        FormLayout.builder()
+                                .content(List.of(
+                                        FormRow.builder()
+                                                .content(List.of(
+                                                        buildPanel(),
+                                                        buildPanel(),
+                                                        buildPanel()
+                                                ))
+                                                .build()
+                                ))
+                                .maxColumns(2)
+                        .build(),
+
+                        new Text("max columns = 2, autoresponsive"),
 
                         FormLayout.builder()
                                 .content(List.of(
@@ -36,9 +51,9 @@ public class FormLayoutSample implements ComponentTreeSupplier {
                                 ))
                                 .autoResponsive(true)
                                 .maxColumns(2)
-                        .build(),
+                                .build(),
 
-                        new Text("using fields"),
+                        new Text("using fields, autoresponsive"),
 
                         FormLayout.builder()
                                 .content(List.of(
@@ -53,18 +68,32 @@ public class FormLayoutSample implements ComponentTreeSupplier {
                                                                 .label("Age")
                                                                 .build(),
                                                         FormField.builder()
+                                                                .dataType(FieldDataType.string)
+                                                                .label("Address (colspan = 2)")
+                                                                .colspan(2)
+                                                                .build(),
+                                                        FormField.builder()
                                                                 .dataType(FieldDataType.bool)
                                                                 .label("Registered")
+                                                                .build()
+                                                ))
+                                                .build(),
+                                        FormRow.builder()
+                                                .content(List.of(
+                                                        FormField.builder()
+                                                                .dataType(FieldDataType.string)
+                                                                .label("Description (colspan = 2, alone in a row, width=100%)")
+                                                                .colspan(2)
+                                                                .style("width: 100%;")
                                                                 .build()
                                                 ))
                                                 .build()
                                 ))
                                 .autoResponsive(true)
-                                .maxColumns(2)
                                 .build(),
 
 
-                        new Text("labels aside"),
+                        new Text("labels aside, autoresponsive, max columns = 2"),
 
                         FormLayout.builder()
                                 .content(List.of(

@@ -34,15 +34,54 @@ export class MateuChoice extends LitElement {
     @property()
     value?: any
 
+    getNewValue = (optionValue: any): any => {
+        if (this.field?.dataType == 'array') {
+            if (!this.value) {
+                return [optionValue]
+            }
+            if (this.value.indexOf(optionValue) >= 0) {
+                return this.value.filter((obj: any) => obj !== optionValue)
+            }
+            return [...this.value, optionValue]
+        }
+        return optionValue
+    }
+
     render() {
+        let options = this.field?.options
+        if (this.field?.remoteCoordinates) {
+            const coords = this.field.remoteCoordinates;
+
+            if (this.data[this.field.fieldId]
+                && this.data[this.field.fieldId].content
+                && this.data[this.field.fieldId].totalElements) {
+                options = this.data[this.field.fieldId].content
+            } else {
+                this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: coords.action,
+                        parameters: {
+                            searchText: '',
+                            fieldId: this.field?.fieldId,
+                            size: 200,
+                            page: 0,
+                            sort: undefined
+                        }
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
+
         return html`
-        <div style="display: flex; gap: 1rem; padding: 1rem;">
-                                    ${this.field?.options?.map(option => html`
+        <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap;">
+                                    ${options?.map(option => html`
                             <div 
-                                    class="choice ${this.value == option.value?'selected':''}"
+                                    class="choice ${(this.value == option.value || (this.value && this.value.indexOf && this.value.indexOf(option.value) >= 0))?'selected':''}"
                                     @click="${() => this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
-                value: option.value,
+                value: this.getNewValue(option.value),
                 fieldId: this.field?.fieldId
             },
             bubbles: true,

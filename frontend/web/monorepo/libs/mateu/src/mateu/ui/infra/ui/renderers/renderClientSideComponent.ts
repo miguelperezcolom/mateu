@@ -8,9 +8,7 @@ import {
     renderBoardLayoutItem,
     renderBoardLayoutRow,
     renderContainer,
-    renderFormItem,
     renderFormLayout,
-    renderFormRow,
     renderFullWidth,
     renderHorizontalLayout,
     renderMasterDetailLayout,
@@ -96,9 +94,9 @@ export const updateMedata = (component: ClientSideComponent, data: any): Compone
     return metadata
 }
 
-export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     if (component?.metadata) {
-        
+
         const type = component.metadata.type
 
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
@@ -111,12 +109,6 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         if (type == ComponentMetadataType.FormLayout) {
             return renderFormLayout(container, component, baseUrl, state, data)
-        }
-        if (type == ComponentMetadataType.FormRow) {
-            return renderFormRow(container, component, baseUrl, state, data)
-        }
-        if (type == ComponentMetadataType.FormItem) {
-            return renderFormItem(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.HorizontalLayout) {
             return renderHorizontalLayout(container, component, baseUrl, state, data)
@@ -224,16 +216,21 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
 
         if (type == ComponentMetadataType.FormField) {
-            return html`<mateu-field
+            const field = component.metadata as FormField
+            return html`
+        <mateu-field
                        id="${component.id}"
                 .field="${component.metadata}"
                        .state="${state}"
                        .data="${data}"
                        style="${component.style}" class="${component.cssClasses}"
                        slot="${component.slot??nothing}"
+                       data-colspan="${field.colspan}"
+                       .labelAlreadyRendered="${labelAlreadyRendered}"
                 >
-                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
-                    </mateu-field>`
+                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, labelAlreadyRendered))}
+                    </mateu-field>
+            `
         }
         if (type == ComponentMetadataType.Text) {
             return renderText(component, state, data)
@@ -340,7 +337,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             id: nanoid(),
             metadata: component,
             type: ComponentType.ClientSide
-        } as ClientSideComponent, baseUrl, state, data)
+        } as ClientSideComponent, baseUrl, state, data, labelAlreadyRendered)
 
     }
     console.log('No metadata for component', component)

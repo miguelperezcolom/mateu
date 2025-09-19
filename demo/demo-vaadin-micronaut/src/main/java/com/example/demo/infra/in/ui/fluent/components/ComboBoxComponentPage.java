@@ -30,17 +30,6 @@ public class ComboBoxComponentPage implements ComponentTreeSupplier {
                                 ))
                                 .build(),
                         FormField.builder()
-                                .id("name")
-                                .label("Name")
-                                .dataType(FieldDataType.reference)
-                                .stereotype(FieldStereotype.combobox)
-                                .options(List.of(
-                                        new Option("1", "Uno", ""),
-                                        new Option("2", "Dos", ""),
-                                        new Option("3", "Tres", "")
-                                ))
-                                .build(),
-                        FormField.builder()
                                 .id("array")
                                 .label("Array")
                                 .dataType(FieldDataType.array)

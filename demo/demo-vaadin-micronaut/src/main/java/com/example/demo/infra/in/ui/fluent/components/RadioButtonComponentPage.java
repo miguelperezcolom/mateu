@@ -28,17 +28,6 @@ public class RadioButtonComponentPage implements ComponentTreeSupplier {
                                         new Option("2", "Dos", ""),
                                         new Option("3", "Tres", "")
                                 ))
-                                .build(),
-                        FormField.builder()
-                                .id("name")
-                                .label("Name")
-                                .dataType(FieldDataType.reference)
-                                .stereotype(FieldStereotype.radio)
-                                .options(List.of(
-                                        new Option("1", "Uno", ""),
-                                        new Option("2", "Dos", ""),
-                                        new Option("3", "Tres", "")
-                                ))
                                 .build()
                 ))
                 .build();

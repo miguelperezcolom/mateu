@@ -30,17 +30,6 @@ public class ListBoxComponentPage implements ComponentTreeSupplier {
                                 ))
                                 .build(),
                         FormField.builder()
-                                .id("ref")
-                                .label("Reference")
-                                .dataType(FieldDataType.reference)
-                                .stereotype(FieldStereotype.listBox)
-                                .options(List.of(
-                                        new Option("1", "Uno", ""),
-                                        new Option("2", "Dos", ""),
-                                        new Option("3", "Tres", "")
-                                ))
-                                .build(),
-                        FormField.builder()
                                 .id("array")
                                 .label("Array")
                                 .dataType(FieldDataType.array)

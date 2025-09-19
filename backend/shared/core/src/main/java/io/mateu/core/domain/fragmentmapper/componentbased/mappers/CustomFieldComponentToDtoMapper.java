@@ -15,7 +15,8 @@ public class CustomFieldComponentToDtoMapper {
     return new ClientSideComponentDto(
         new CustomFieldDto(
             customField.label(),
-            mapComponentToDto(null, customField.content(), baseUrl, route, httpRequest)),
+            mapComponentToDto(null, customField.content(), baseUrl, route, httpRequest),
+            customField.colspan() > 0 ? customField.colspan() : 1),
         "fieldId",
         List.of(),
         customField.style(),

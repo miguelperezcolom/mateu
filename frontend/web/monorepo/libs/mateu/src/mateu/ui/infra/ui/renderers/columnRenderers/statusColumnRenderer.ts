@@ -8,7 +8,7 @@ export const renderStatusCell = (item: any,
                                  column: VaadinGridColumn) => {
     // @ts-ignore
     const status = item[column.path]
-    return status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``;
+    return status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``
 }
 
 export const getThemeForBadgetType = (type: StatusType): string => {

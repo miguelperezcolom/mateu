@@ -25,7 +25,12 @@ public record FormField(
     Form createForm,
     Form editor,
     String onItemSelectionActionId,
-    int colspan)
+    int colspan,
+    FormPosition formPosition,
+    int sliderMin,
+    int sliderMax,
+    boolean stepButtonsVisible,
+    double step)
     implements Component {
 
   public FormField {

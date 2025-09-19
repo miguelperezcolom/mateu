@@ -1,4 +1,5 @@
 package io.mateu.dtos;
 
 /** Metadata for a html element */
-public record CustomFieldDto(String label, ComponentDto content) implements ComponentMetadataDto {}
+public record CustomFieldDto(String label, ComponentDto content, int colspan)
+    implements ComponentMetadataDto {}

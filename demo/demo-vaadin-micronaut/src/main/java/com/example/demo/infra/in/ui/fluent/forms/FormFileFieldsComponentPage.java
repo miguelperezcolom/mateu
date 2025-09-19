@@ -31,6 +31,7 @@ public class FormFileFieldsComponentPage implements ComponentTreeSupplier, Handl
                 .content(List.of(
                         new Text("${JSON.stringify(state)}"),
                         FormLayout.builder()
+                                .autoResponsive(true)
                                 .content(
                                         List.of(
                                                 FormRow.builder()
@@ -44,7 +45,6 @@ public class FormFileFieldsComponentPage implements ComponentTreeSupplier, Handl
                                                         .build()
                                         )
                                 )
-                                .maxColumns(5)
                                 .build(),
                         Button.builder()
                                 .label("Send")

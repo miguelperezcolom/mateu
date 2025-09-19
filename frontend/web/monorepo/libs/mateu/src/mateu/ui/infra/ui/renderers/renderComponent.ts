@@ -4,17 +4,17 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
-export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, slot: string): TemplateResult => {
+export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, slot: string, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     component.slot = slot
-    return renderComponent(container, component, baseUrl, state, data)
+    return renderComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
 }
 
-export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered?: boolean | undefined): TemplateResult => {
     if (!component) {
         return html``;
     }
     if (component.type == ComponentType.ClientSide ) {
-        return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data)
+        return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data, labelAlreadyRendered)
     }
     return html`
         <mateu-component id="${component.id}" 

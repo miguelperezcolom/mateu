@@ -5,6 +5,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.FormCom
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.FormFieldDto;
+import io.mateu.dtos.FormPositionDto;
 import io.mateu.dtos.OptionDto;
 import io.mateu.dtos.RemoteCoordinatesDto;
 import io.mateu.uidl.data.FormField;
@@ -37,6 +38,14 @@ public class FieldComponentToDtoMapper {
             .readOnly(formField.readOnly())
             .required(formField.required())
             .autofocus(formField.autofocus())
+            .formPosition(
+                formField.formPosition() != null
+                    ? FormPositionDto.valueOf(formField.formPosition().name())
+                    : null)
+            .sliderMin(formField.sliderMin())
+            .sliderMax(formField.sliderMax())
+            .stepButtonsVisible(formField.stepButtonsVisible())
+            .step(formField.step())
             .style(formField.style())
             .columns(
                 formField.columns().stream()

@@ -10,7 +10,9 @@ export const customFieldRenderer = (container: LitElement, component: ClientSide
         <vaadin-custom-field label="${metadata.label}"
                              style="${component.style}" 
                              class="${component.cssClasses}"
-                             slot="${component.slot??nothing}">
+                             slot="${component.slot??nothing}"
+                             data-colspan="${metadata.colspan || nothing}"
+        >
             ${renderComponent(container, metadata.content, baseUrl, state, data)}
         </vaadin-custom-field>
             `

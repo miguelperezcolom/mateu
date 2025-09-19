@@ -45,7 +45,12 @@ public record FormFieldDto(
     List<ComponentDto> columns,
     ComponentDto createForm,
     ComponentDto editor,
-    String onItemSelectionActionId)
+    String onItemSelectionActionId,
+    FormPositionDto formPosition,
+    int sliderMin,
+    int sliderMax,
+    boolean stepButtonsVisible,
+    double step)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

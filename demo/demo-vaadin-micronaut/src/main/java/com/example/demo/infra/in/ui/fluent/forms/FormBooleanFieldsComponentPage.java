@@ -22,6 +22,7 @@ public class FormBooleanFieldsComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         new Text("${JSON.stringify(state)}"),
                         FormLayout.builder()
+                                .autoResponsive(true)
                                 .content(
                                         List.of(
                                                 FormRow.builder()
