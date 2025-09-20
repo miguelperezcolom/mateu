@@ -3,6 +3,12 @@ title: "Backend-driven frontend"
 weight: 10
 ---
 
+Backend-driven frontend means that the frontend is a simple renderer which paints whatever the backend tells it to paint.
+
+You do not write frontend code (javascript, html, css) but just backend code (java, kotlin, c#, ...) which runs on a server.
+With that code, at runtime, you tell the renderer which is running in the browser what to paint, either explicitly when 
+using the fluent interfaces or declaratively when using annotations.
+
 In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
