@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "copy": "tsc && vite build && cp -rf dist/assets/* ../../../../../demo/sites/redhat/assets"
+    "copy": "tsc && vite build && cp -rf dist/* ../../../../../backend/shared/frontend/redhat-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/redhat-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/redhat/assets"
   },
   "dependencies": {
     "@rhds/elements": "^3.1.1",

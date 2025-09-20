@@ -10,25 +10,17 @@
  * @license
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const t$u=globalThis,e$w=t$u.ShadowRoot&&(t$u.ShadyCSS===void 0||t$u.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$x=Symbol(),o$B=new WeakMap;let n$A=class{constructor(Q,X,ee){if(this._$cssResult$=!0,ee!==s$x)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=Q,this.t=X}get styleSheet(){let Q=this.o;const X=this.t;if(e$w&&Q===void 0){const ee=X!==void 0&&X.length===1;ee&&(Q=o$B.get(X)),Q===void 0&&((this.o=Q=new CSSStyleSheet).replaceSync(this.cssText),ee&&o$B.set(X,Q))}return Q}toString(){return this.cssText}};const r$v=te=>new n$A(typeof te=="string"?te:te+"",void 0,s$x),S$a=(te,Q)=>{if(e$w)te.adoptedStyleSheets=Q.map((X=>X instanceof CSSStyleSheet?X:X.styleSheet));else for(const X of Q){const ee=document.createElement("style"),ie=t$u.litNonce;ie!==void 0&&ee.setAttribute("nonce",ie),ee.textContent=X.cssText,te.appendChild(ee)}},c$t=e$w?te=>te:te=>te instanceof CSSStyleSheet?(Q=>{let X="";for(const ee of Q.cssRules)X+=ee.cssText;return r$v(X)})(te):te;/**
+ */const t$t=globalThis,e$u=t$t.ShadowRoot&&(t$t.ShadyCSS===void 0||t$t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$w=Symbol(),o$z=new WeakMap;let n$y=class{constructor(Q,X,ee){if(this._$cssResult$=!0,ee!==s$w)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=Q,this.t=X}get styleSheet(){let Q=this.o;const X=this.t;if(e$u&&Q===void 0){const ee=X!==void 0&&X.length===1;ee&&(Q=o$z.get(X)),Q===void 0&&((this.o=Q=new CSSStyleSheet).replaceSync(this.cssText),ee&&o$z.set(X,Q))}return Q}toString(){return this.cssText}};const r$t=te=>new n$y(typeof te=="string"?te:te+"",void 0,s$w),i$w=(te,...Q)=>{const X=te.length===1?te[0]:Q.reduce(((ee,ie,oe)=>ee+(ne=>{if(ne._$cssResult$===!0)return ne.cssText;if(typeof ne=="number")return ne;throw Error("Value passed to 'css' function must be a 'css' function result: "+ne+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(ie)+te[oe+1]),te[0]);return new n$y(X,te,s$w)},S$9=(te,Q)=>{if(e$u)te.adoptedStyleSheets=Q.map((X=>X instanceof CSSStyleSheet?X:X.styleSheet));else for(const X of Q){const ee=document.createElement("style"),ie=t$t.litNonce;ie!==void 0&&ee.setAttribute("nonce",ie),ee.textContent=X.cssText,te.appendChild(ee)}},c$r=e$u?te=>te:te=>te instanceof CSSStyleSheet?(Q=>{let X="";for(const ee of Q.cssRules)X+=ee.cssText;return r$t(X)})(te):te;/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const{is:i$x,defineProperty:e$v,getOwnPropertyDescriptor:h$d,getOwnPropertyNames:r$u,getOwnPropertySymbols:o$A,getPrototypeOf:n$z}=Object,a$p=globalThis,c$s=a$p.trustedTypes,l$u=c$s?c$s.emptyScript:"",p$f=a$p.reactiveElementPolyfillSupport,d$k=(te,Q)=>te,u$m={toAttribute(te,Q){switch(Q){case Boolean:te=te?l$u:null;break;case Object:case Array:te=te==null?te:JSON.stringify(te)}return te},fromAttribute(te,Q){let X=te;switch(Q){case Boolean:X=te!==null;break;case Number:X=te===null?null:Number(te);break;case Object:case Array:try{X=JSON.parse(te)}catch{X=null}}return X}},f$m=(te,Q)=>!i$x(te,Q),b$d={attribute:!0,type:String,converter:u$m,reflect:!1,useDefault:!1,hasChanged:f$m};Symbol.metadata??=Symbol("metadata"),a$p.litPropertyMetadata??=new WeakMap;let y$d=class extends HTMLElement{static addInitializer(Q){this._$Ei(),(this.l??=[]).push(Q)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(Q,X=b$d){if(X.state&&(X.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(Q)&&((X=Object.create(X)).wrapped=!0),this.elementProperties.set(Q,X),!X.noAccessor){const ee=Symbol(),ie=this.getPropertyDescriptor(Q,ee,X);ie!==void 0&&e$v(this.prototype,Q,ie)}}static getPropertyDescriptor(Q,X,ee){const{get:ie,set:oe}=h$d(this.prototype,Q)??{get(){return this[X]},set(ne){this[X]=ne}};return{get:ie,set(ne){const ae=ie?.call(this);oe?.call(this,ne),this.requestUpdate(Q,ae,ee)},configurable:!0,enumerable:!0}}static getPropertyOptions(Q){return this.elementProperties.get(Q)??b$d}static _$Ei(){if(this.hasOwnProperty(d$k("elementProperties")))return;const Q=n$z(this);Q.finalize(),Q.l!==void 0&&(this.l=[...Q.l]),this.elementProperties=new Map(Q.elementProperties)}static finalize(){if(this.hasOwnProperty(d$k("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$k("properties"))){const X=this.properties,ee=[...r$u(X),...o$A(X)];for(const ie of ee)this.createProperty(ie,X[ie])}const Q=this[Symbol.metadata];if(Q!==null){const X=litPropertyMetadata.get(Q);if(X!==void 0)for(const[ee,ie]of X)this.elementProperties.set(ee,ie)}this._$Eh=new Map;for(const[X,ee]of this.elementProperties){const ie=this._$Eu(X,ee);ie!==void 0&&this._$Eh.set(ie,X)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(Q){const X=[];if(Array.isArray(Q)){const ee=new Set(Q.flat(1/0).reverse());for(const ie of ee)X.unshift(c$t(ie))}else Q!==void 0&&X.push(c$t(Q));return X}static _$Eu(Q,X){const ee=X.attribute;return ee===!1?void 0:typeof ee=="string"?ee:typeof Q=="string"?Q.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise((Q=>this.enableUpdating=Q)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((Q=>Q(this)))}addController(Q){(this._$EO??=new Set).add(Q),this.renderRoot!==void 0&&this.isConnected&&Q.hostConnected?.()}removeController(Q){this._$EO?.delete(Q)}_$E_(){const Q=new Map,X=this.constructor.elementProperties;for(const ee of X.keys())this.hasOwnProperty(ee)&&(Q.set(ee,this[ee]),delete this[ee]);Q.size>0&&(this._$Ep=Q)}createRenderRoot(){const Q=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$a(Q,this.constructor.elementStyles),Q}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((Q=>Q.hostConnected?.()))}enableUpdating(Q){}disconnectedCallback(){this._$EO?.forEach((Q=>Q.hostDisconnected?.()))}attributeChangedCallback(Q,X,ee){this._$AK(Q,ee)}_$ET(Q,X){const ee=this.constructor.elementProperties.get(Q),ie=this.constructor._$Eu(Q,ee);if(ie!==void 0&&ee.reflect===!0){const oe=(ee.converter?.toAttribute!==void 0?ee.converter:u$m).toAttribute(X,ee.type);this._$Em=Q,oe==null?this.removeAttribute(ie):this.setAttribute(ie,oe),this._$Em=null}}_$AK(Q,X){const ee=this.constructor,ie=ee._$Eh.get(Q);if(ie!==void 0&&this._$Em!==ie){const oe=ee.getPropertyOptions(ie),ne=typeof oe.converter=="function"?{fromAttribute:oe.converter}:oe.converter?.fromAttribute!==void 0?oe.converter:u$m;this._$Em=ie;const ae=ne.fromAttribute(X,oe.type);this[ie]=ae??this._$Ej?.get(ie)??ae,this._$Em=null}}requestUpdate(Q,X,ee){if(Q!==void 0){const ie=this.constructor,oe=this[Q];if(ee??=ie.getPropertyOptions(Q),!((ee.hasChanged??f$m)(oe,X)||ee.useDefault&&ee.reflect&&oe===this._$Ej?.get(Q)&&!this.hasAttribute(ie._$Eu(Q,ee))))return;this.C(Q,X,ee)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(Q,X,{useDefault:ee,reflect:ie,wrapped:oe},ne){ee&&!(this._$Ej??=new Map).has(Q)&&(this._$Ej.set(Q,ne??X??this[Q]),oe!==!0||ne!==void 0)||(this._$AL.has(Q)||(this.hasUpdated||ee||(X=void 0),this._$AL.set(Q,X)),ie===!0&&this._$Em!==Q&&(this._$Eq??=new Set).add(Q))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(X){Promise.reject(X)}const Q=this.scheduleUpdate();return Q!=null&&await Q,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[ie,oe]of this._$Ep)this[ie]=oe;this._$Ep=void 0}const ee=this.constructor.elementProperties;if(ee.size>0)for(const[ie,oe]of ee){const{wrapped:ne}=oe,ae=this[ie];ne!==!0||this._$AL.has(ie)||ae===void 0||this.C(ie,void 0,oe,ae)}}let Q=!1;const X=this._$AL;try{Q=this.shouldUpdate(X),Q?(this.willUpdate(X),this._$EO?.forEach((ee=>ee.hostUpdate?.())),this.update(X)):this._$EM()}catch(ee){throw Q=!1,this._$EM(),ee}Q&&this._$AE(X)}willUpdate(Q){}_$AE(Q){this._$EO?.forEach((X=>X.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(Q)),this.updated(Q)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(Q){return!0}update(Q){this._$Eq&&=this._$Eq.forEach((X=>this._$ET(X,this[X]))),this._$EM()}updated(Q){}firstUpdated(Q){}};y$d.elementStyles=[],y$d.shadowRootOptions={mode:"open"},y$d[d$k("elementProperties")]=new Map,y$d[d$k("finalized")]=new Map,p$f?.({ReactiveElement:y$d}),(a$p.reactiveElementVersions??=[]).push("2.1.1");/**
+ */const{is:i$v,defineProperty:e$t,getOwnPropertyDescriptor:h$c,getOwnPropertyNames:r$s,getOwnPropertySymbols:o$y,getPrototypeOf:n$x}=Object,a$o=globalThis,c$q=a$o.trustedTypes,l$t=c$q?c$q.emptyScript:"",p$e=a$o.reactiveElementPolyfillSupport,d$j=(te,Q)=>te,u$l={toAttribute(te,Q){switch(Q){case Boolean:te=te?l$t:null;break;case Object:case Array:te=te==null?te:JSON.stringify(te)}return te},fromAttribute(te,Q){let X=te;switch(Q){case Boolean:X=te!==null;break;case Number:X=te===null?null:Number(te);break;case Object:case Array:try{X=JSON.parse(te)}catch{X=null}}return X}},f$l=(te,Q)=>!i$v(te,Q),b$c={attribute:!0,type:String,converter:u$l,reflect:!1,useDefault:!1,hasChanged:f$l};Symbol.metadata??=Symbol("metadata"),a$o.litPropertyMetadata??=new WeakMap;let y$c=class extends HTMLElement{static addInitializer(Q){this._$Ei(),(this.l??=[]).push(Q)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(Q,X=b$c){if(X.state&&(X.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(Q)&&((X=Object.create(X)).wrapped=!0),this.elementProperties.set(Q,X),!X.noAccessor){const ee=Symbol(),ie=this.getPropertyDescriptor(Q,ee,X);ie!==void 0&&e$t(this.prototype,Q,ie)}}static getPropertyDescriptor(Q,X,ee){const{get:ie,set:oe}=h$c(this.prototype,Q)??{get(){return this[X]},set(ne){this[X]=ne}};return{get:ie,set(ne){const ae=ie?.call(this);oe?.call(this,ne),this.requestUpdate(Q,ae,ee)},configurable:!0,enumerable:!0}}static getPropertyOptions(Q){return this.elementProperties.get(Q)??b$c}static _$Ei(){if(this.hasOwnProperty(d$j("elementProperties")))return;const Q=n$x(this);Q.finalize(),Q.l!==void 0&&(this.l=[...Q.l]),this.elementProperties=new Map(Q.elementProperties)}static finalize(){if(this.hasOwnProperty(d$j("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$j("properties"))){const X=this.properties,ee=[...r$s(X),...o$y(X)];for(const ie of ee)this.createProperty(ie,X[ie])}const Q=this[Symbol.metadata];if(Q!==null){const X=litPropertyMetadata.get(Q);if(X!==void 0)for(const[ee,ie]of X)this.elementProperties.set(ee,ie)}this._$Eh=new Map;for(const[X,ee]of this.elementProperties){const ie=this._$Eu(X,ee);ie!==void 0&&this._$Eh.set(ie,X)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(Q){const X=[];if(Array.isArray(Q)){const ee=new Set(Q.flat(1/0).reverse());for(const ie of ee)X.unshift(c$r(ie))}else Q!==void 0&&X.push(c$r(Q));return X}static _$Eu(Q,X){const ee=X.attribute;return ee===!1?void 0:typeof ee=="string"?ee:typeof Q=="string"?Q.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise((Q=>this.enableUpdating=Q)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((Q=>Q(this)))}addController(Q){(this._$EO??=new Set).add(Q),this.renderRoot!==void 0&&this.isConnected&&Q.hostConnected?.()}removeController(Q){this._$EO?.delete(Q)}_$E_(){const Q=new Map,X=this.constructor.elementProperties;for(const ee of X.keys())this.hasOwnProperty(ee)&&(Q.set(ee,this[ee]),delete this[ee]);Q.size>0&&(this._$Ep=Q)}createRenderRoot(){const Q=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$9(Q,this.constructor.elementStyles),Q}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((Q=>Q.hostConnected?.()))}enableUpdating(Q){}disconnectedCallback(){this._$EO?.forEach((Q=>Q.hostDisconnected?.()))}attributeChangedCallback(Q,X,ee){this._$AK(Q,ee)}_$ET(Q,X){const ee=this.constructor.elementProperties.get(Q),ie=this.constructor._$Eu(Q,ee);if(ie!==void 0&&ee.reflect===!0){const oe=(ee.converter?.toAttribute!==void 0?ee.converter:u$l).toAttribute(X,ee.type);this._$Em=Q,oe==null?this.removeAttribute(ie):this.setAttribute(ie,oe),this._$Em=null}}_$AK(Q,X){const ee=this.constructor,ie=ee._$Eh.get(Q);if(ie!==void 0&&this._$Em!==ie){const oe=ee.getPropertyOptions(ie),ne=typeof oe.converter=="function"?{fromAttribute:oe.converter}:oe.converter?.fromAttribute!==void 0?oe.converter:u$l;this._$Em=ie;const ae=ne.fromAttribute(X,oe.type);this[ie]=ae??this._$Ej?.get(ie)??ae,this._$Em=null}}requestUpdate(Q,X,ee){if(Q!==void 0){const ie=this.constructor,oe=this[Q];if(ee??=ie.getPropertyOptions(Q),!((ee.hasChanged??f$l)(oe,X)||ee.useDefault&&ee.reflect&&oe===this._$Ej?.get(Q)&&!this.hasAttribute(ie._$Eu(Q,ee))))return;this.C(Q,X,ee)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(Q,X,{useDefault:ee,reflect:ie,wrapped:oe},ne){ee&&!(this._$Ej??=new Map).has(Q)&&(this._$Ej.set(Q,ne??X??this[Q]),oe!==!0||ne!==void 0)||(this._$AL.has(Q)||(this.hasUpdated||ee||(X=void 0),this._$AL.set(Q,X)),ie===!0&&this._$Em!==Q&&(this._$Eq??=new Set).add(Q))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(X){Promise.reject(X)}const Q=this.scheduleUpdate();return Q!=null&&await Q,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[ie,oe]of this._$Ep)this[ie]=oe;this._$Ep=void 0}const ee=this.constructor.elementProperties;if(ee.size>0)for(const[ie,oe]of ee){const{wrapped:ne}=oe,ae=this[ie];ne!==!0||this._$AL.has(ie)||ae===void 0||this.C(ie,void 0,oe,ae)}}let Q=!1;const X=this._$AL;try{Q=this.shouldUpdate(X),Q?(this.willUpdate(X),this._$EO?.forEach((ee=>ee.hostUpdate?.())),this.update(X)):this._$EM()}catch(ee){throw Q=!1,this._$EM(),ee}Q&&this._$AE(X)}willUpdate(Q){}_$AE(Q){this._$EO?.forEach((X=>X.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(Q)),this.updated(Q)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(Q){return!0}update(Q){this._$Eq&&=this._$Eq.forEach((X=>this._$ET(X,this[X]))),this._$EM()}updated(Q){}firstUpdated(Q){}};y$c.elementStyles=[],y$c.shadowRootOptions={mode:"open"},y$c[d$j("elementProperties")]=new Map,y$c[d$j("finalized")]=new Map,p$e?.({ReactiveElement:y$c}),(a$o.reactiveElementVersions??=[]).push("2.1.1");/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const t$t=globalThis,i$w=t$t.trustedTypes,s$w=i$w?i$w.createPolicy("lit-html",{createHTML:te=>te}):void 0,e$u="$lit$",h$c=`lit$${Math.random().toFixed(9).slice(2)}$`,o$z="?"+h$c,n$y=`<${o$z}>`,r$t=document,l$t=()=>r$t.createComment(""),c$r=te=>te===null||typeof te!="object"&&typeof te!="function",a$o=Array.isArray,u$l=te=>a$o(te)||typeof te?.[Symbol.iterator]=="function",d$j=`[ 	
-\f\r]`,f$l=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v$5=/-->/g,_$7=/>/g,m$k=RegExp(`>|${d$j}(?:([^\\s"'>=/]+)(${d$j}*=${d$j}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g"),p$e=/'/g,g$e=/"/g,$$5=/^(?:script|style|textarea|title)$/i,T$9=Symbol.for("lit-noChange"),E$6=Symbol.for("lit-nothing"),A$7=new WeakMap,C$6=r$t.createTreeWalker(r$t,129);function P$9(te,Q){if(!a$o(te)||!te.hasOwnProperty("raw"))throw Error("invalid template strings array");return s$w!==void 0?s$w.createHTML(Q):Q}const V$4=(te,Q)=>{const X=te.length-1,ee=[];let ie,oe=Q===2?"<svg>":Q===3?"<math>":"",ne=f$l;for(let ae=0;ae<X;ae++){const se=te[ae];let le,de,ce=-1,he=0;for(;he<se.length&&(ne.lastIndex=he,de=ne.exec(se),de!==null);)he=ne.lastIndex,ne===f$l?de[1]==="!--"?ne=v$5:de[1]!==void 0?ne=_$7:de[2]!==void 0?($$5.test(de[2])&&(ie=RegExp("</"+de[2],"g")),ne=m$k):de[3]!==void 0&&(ne=m$k):ne===m$k?de[0]===">"?(ne=ie??f$l,ce=-1):de[1]===void 0?ce=-2:(ce=ne.lastIndex-de[2].length,le=de[1],ne=de[3]===void 0?m$k:de[3]==='"'?g$e:p$e):ne===g$e||ne===p$e?ne=m$k:ne===v$5||ne===_$7?ne=f$l:(ne=m$k,ie=void 0);const ue=ne===m$k&&te[ae+1].startsWith("/>")?" ":"";oe+=ne===f$l?se+n$y:ce>=0?(ee.push(le),se.slice(0,ce)+e$u+se.slice(ce)+h$c+ue):se+h$c+(ce===-2?ae:ue)}return[P$9(te,oe+(te[X]||"<?>")+(Q===2?"</svg>":Q===3?"</math>":"")),ee]};let N$4=class sr{constructor({strings:Q,_$litType$:X},ee){let ie;this.parts=[];let oe=0,ne=0;const ae=Q.length-1,se=this.parts,[le,de]=V$4(Q,X);if(this.el=sr.createElement(le,ee),C$6.currentNode=this.el.content,X===2||X===3){const ce=this.el.content.firstChild;ce.replaceWith(...ce.childNodes)}for(;(ie=C$6.nextNode())!==null&&se.length<ae;){if(ie.nodeType===1){if(ie.hasAttributes())for(const ce of ie.getAttributeNames())if(ce.endsWith(e$u)){const he=de[ne++],ue=ie.getAttribute(ce).split(h$c),pe=/([.?@])?(.*)/.exec(he);se.push({type:1,index:oe,name:pe[2],strings:ue,ctor:pe[1]==="."?H$6:pe[1]==="?"?I$8:pe[1]==="@"?L$6:k$7}),ie.removeAttribute(ce)}else ce.startsWith(h$c)&&(se.push({type:6,index:oe}),ie.removeAttribute(ce));if($$5.test(ie.tagName)){const ce=ie.textContent.split(h$c),he=ce.length-1;if(he>0){ie.textContent=i$w?i$w.emptyScript:"";for(let ue=0;ue<he;ue++)ie.append(ce[ue],l$t()),C$6.nextNode(),se.push({type:2,index:++oe});ie.append(ce[he],l$t())}}}else if(ie.nodeType===8)if(ie.data===o$z)se.push({type:2,index:oe});else{let ce=-1;for(;(ce=ie.data.indexOf(h$c,ce+1))!==-1;)se.push({type:7,index:oe}),ce+=h$c.length-1}oe++}}static createElement(Q,X){const ee=r$t.createElement("template");return ee.innerHTML=Q,ee}};function S$9(te,Q,X=te,ee){if(Q===T$9)return Q;let ie=ee!==void 0?X._$Co?.[ee]:X._$Cl;const oe=c$r(Q)?void 0:Q._$litDirective$;return ie?.constructor!==oe&&(ie?._$AO?.(!1),oe===void 0?ie=void 0:(ie=new oe(te),ie._$AT(te,X,ee)),ee!==void 0?(X._$Co??=[])[ee]=ie:X._$Cl=ie),ie!==void 0&&(Q=S$9(te,ie._$AS(te,Q.values),ie,ee)),Q}let M$5=class{constructor(Q,X){this._$AV=[],this._$AN=void 0,this._$AD=Q,this._$AM=X}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(Q){const{el:{content:X},parts:ee}=this._$AD,ie=(Q?.creationScope??r$t).importNode(X,!0);C$6.currentNode=ie;let oe=C$6.nextNode(),ne=0,ae=0,se=ee[0];for(;se!==void 0;){if(ne===se.index){let le;se.type===2?le=new R$8(oe,oe.nextSibling,this,Q):se.type===1?le=new se.ctor(oe,se.name,se.strings,this,Q):se.type===6&&(le=new z$4(oe,this,Q)),this._$AV.push(le),se=ee[++ae]}ne!==se?.index&&(oe=C$6.nextNode(),ne++)}return C$6.currentNode=r$t,ie}p(Q){let X=0;for(const ee of this._$AV)ee!==void 0&&(ee.strings!==void 0?(ee._$AI(Q,ee,X),X+=ee.strings.length-2):ee._$AI(Q[X])),X++}},R$8=class lr{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(Q,X,ee,ie){this.type=2,this._$AH=E$6,this._$AN=void 0,this._$AA=Q,this._$AB=X,this._$AM=ee,this.options=ie,this._$Cv=ie?.isConnected??!0}get parentNode(){let Q=this._$AA.parentNode;const X=this._$AM;return X!==void 0&&Q?.nodeType===11&&(Q=X.parentNode),Q}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(Q,X=this){Q=S$9(this,Q,X),c$r(Q)?Q===E$6||Q==null||Q===""?(this._$AH!==E$6&&this._$AR(),this._$AH=E$6):Q!==this._$AH&&Q!==T$9&&this._(Q):Q._$litType$!==void 0?this.$(Q):Q.nodeType!==void 0?this.T(Q):u$l(Q)?this.k(Q):this._(Q)}O(Q){return this._$AA.parentNode.insertBefore(Q,this._$AB)}T(Q){this._$AH!==Q&&(this._$AR(),this._$AH=this.O(Q))}_(Q){this._$AH!==E$6&&c$r(this._$AH)?this._$AA.nextSibling.data=Q:this.T(r$t.createTextNode(Q)),this._$AH=Q}$(Q){const{values:X,_$litType$:ee}=Q,ie=typeof ee=="number"?this._$AC(Q):(ee.el===void 0&&(ee.el=N$4.createElement(P$9(ee.h,ee.h[0]),this.options)),ee);if(this._$AH?._$AD===ie)this._$AH.p(X);else{const oe=new M$5(ie,this),ne=oe.u(this.options);oe.p(X),this.T(ne),this._$AH=oe}}_$AC(Q){let X=A$7.get(Q.strings);return X===void 0&&A$7.set(Q.strings,X=new N$4(Q)),X}k(Q){a$o(this._$AH)||(this._$AH=[],this._$AR());const X=this._$AH;let ee,ie=0;for(const oe of Q)ie===X.length?X.push(ee=new lr(this.O(l$t()),this.O(l$t()),this,this.options)):ee=X[ie],ee._$AI(oe),ie++;ie<X.length&&(this._$AR(ee&&ee._$AB.nextSibling,ie),X.length=ie)}_$AR(Q=this._$AA.nextSibling,X){for(this._$AP?.(!1,!0,X);Q!==this._$AB;){const ee=Q.nextSibling;Q.remove(),Q=ee}}setConnected(Q){this._$AM===void 0&&(this._$Cv=Q,this._$AP?.(Q))}},k$7=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(Q,X,ee,ie,oe){this.type=1,this._$AH=E$6,this._$AN=void 0,this.element=Q,this.name=X,this._$AM=ie,this.options=oe,ee.length>2||ee[0]!==""||ee[1]!==""?(this._$AH=Array(ee.length-1).fill(new String),this.strings=ee):this._$AH=E$6}_$AI(Q,X=this,ee,ie){const oe=this.strings;let ne=!1;if(oe===void 0)Q=S$9(this,Q,X,0),ne=!c$r(Q)||Q!==this._$AH&&Q!==T$9,ne&&(this._$AH=Q);else{const ae=Q;let se,le;for(Q=oe[0],se=0;se<oe.length-1;se++)le=S$9(this,ae[ee+se],X,se),le===T$9&&(le=this._$AH[se]),ne||=!c$r(le)||le!==this._$AH[se],le===E$6?Q=E$6:Q!==E$6&&(Q+=(le??"")+oe[se+1]),this._$AH[se]=le}ne&&!ie&&this.j(Q)}j(Q){Q===E$6?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,Q??"")}},H$6=class extends k$7{constructor(){super(...arguments),this.type=3}j(Q){this.element[this.name]=Q===E$6?void 0:Q}},I$8=class extends k$7{constructor(){super(...arguments),this.type=4}j(Q){this.element.toggleAttribute(this.name,!!Q&&Q!==E$6)}},L$6=class extends k$7{constructor(Q,X,ee,ie,oe){super(Q,X,ee,ie,oe),this.type=5}_$AI(Q,X=this){if((Q=S$9(this,Q,X,0)??E$6)===T$9)return;const ee=this._$AH,ie=Q===E$6&&ee!==E$6||Q.capture!==ee.capture||Q.once!==ee.once||Q.passive!==ee.passive,oe=Q!==E$6&&(ee===E$6||ie);ie&&this.element.removeEventListener(this.name,this,ee),oe&&this.element.addEventListener(this.name,this,Q),this._$AH=Q}handleEvent(Q){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,Q):this._$AH.handleEvent(Q)}},z$4=class{constructor(Q,X,ee){this.element=Q,this.type=6,this._$AN=void 0,this._$AM=X,this.options=ee}get _$AU(){return this._$AM._$AU}_$AI(Q){S$9(this,Q)}};const j$3=t$t.litHtmlPolyfillSupport;j$3?.(N$4,R$8),(t$t.litHtmlVersions??=[]).push("3.3.1");/**
- * @license
- * Copyright 2019 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */const t$s=globalThis,e$t=t$s.ShadowRoot&&(t$s.ShadyCSS===void 0||t$s.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$v=Symbol(),o$y=new WeakMap;let n$x=class{constructor(Q,X,ee){if(this._$cssResult$=!0,ee!==s$v)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=Q,this.t=X}get styleSheet(){let Q=this.o;const X=this.t;if(e$t&&Q===void 0){const ee=X!==void 0&&X.length===1;ee&&(Q=o$y.get(X)),Q===void 0&&((this.o=Q=new CSSStyleSheet).replaceSync(this.cssText),ee&&o$y.set(X,Q))}return Q}toString(){return this.cssText}};const r$s=te=>new n$x(typeof te=="string"?te:te+"",void 0,s$v),i$v=(te,...Q)=>{const X=te.length===1?te[0]:Q.reduce(((ee,ie,oe)=>ee+(ne=>{if(ne._$cssResult$===!0)return ne.cssText;if(typeof ne=="number")return ne;throw Error("Value passed to 'css' function must be a 'css' function result: "+ne+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(ie)+te[oe+1]),te[0]);return new n$x(X,te,s$v)},S$8=(te,Q)=>{if(e$t)te.adoptedStyleSheets=Q.map((X=>X instanceof CSSStyleSheet?X:X.styleSheet));else for(const X of Q){const ee=document.createElement("style"),ie=t$s.litNonce;ie!==void 0&&ee.setAttribute("nonce",ie),ee.textContent=X.cssText,te.appendChild(ee)}},c$q=e$t?te=>te:te=>te instanceof CSSStyleSheet?(Q=>{let X="";for(const ee of Q.cssRules)X+=ee.cssText;return r$s(X)})(te):te;/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */const{is:i$u,defineProperty:e$s,getOwnPropertyDescriptor:h$b,getOwnPropertyNames:r$r,getOwnPropertySymbols:o$x,getPrototypeOf:n$w}=Object,a$n=globalThis,c$p=a$n.trustedTypes,l$s=c$p?c$p.emptyScript:"",p$d=a$n.reactiveElementPolyfillSupport,d$i=(te,Q)=>te,u$k={toAttribute(te,Q){switch(Q){case Boolean:te=te?l$s:null;break;case Object:case Array:te=te==null?te:JSON.stringify(te)}return te},fromAttribute(te,Q){let X=te;switch(Q){case Boolean:X=te!==null;break;case Number:X=te===null?null:Number(te);break;case Object:case Array:try{X=JSON.parse(te)}catch{X=null}}return X}},f$k=(te,Q)=>!i$u(te,Q),b$c={attribute:!0,type:String,converter:u$k,reflect:!1,useDefault:!1,hasChanged:f$k};Symbol.metadata??=Symbol("metadata"),a$n.litPropertyMetadata??=new WeakMap;let y$c=class extends HTMLElement{static addInitializer(Q){this._$Ei(),(this.l??=[]).push(Q)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(Q,X=b$c){if(X.state&&(X.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(Q)&&((X=Object.create(X)).wrapped=!0),this.elementProperties.set(Q,X),!X.noAccessor){const ee=Symbol(),ie=this.getPropertyDescriptor(Q,ee,X);ie!==void 0&&e$s(this.prototype,Q,ie)}}static getPropertyDescriptor(Q,X,ee){const{get:ie,set:oe}=h$b(this.prototype,Q)??{get(){return this[X]},set(ne){this[X]=ne}};return{get:ie,set(ne){const ae=ie?.call(this);oe?.call(this,ne),this.requestUpdate(Q,ae,ee)},configurable:!0,enumerable:!0}}static getPropertyOptions(Q){return this.elementProperties.get(Q)??b$c}static _$Ei(){if(this.hasOwnProperty(d$i("elementProperties")))return;const Q=n$w(this);Q.finalize(),Q.l!==void 0&&(this.l=[...Q.l]),this.elementProperties=new Map(Q.elementProperties)}static finalize(){if(this.hasOwnProperty(d$i("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$i("properties"))){const X=this.properties,ee=[...r$r(X),...o$x(X)];for(const ie of ee)this.createProperty(ie,X[ie])}const Q=this[Symbol.metadata];if(Q!==null){const X=litPropertyMetadata.get(Q);if(X!==void 0)for(const[ee,ie]of X)this.elementProperties.set(ee,ie)}this._$Eh=new Map;for(const[X,ee]of this.elementProperties){const ie=this._$Eu(X,ee);ie!==void 0&&this._$Eh.set(ie,X)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(Q){const X=[];if(Array.isArray(Q)){const ee=new Set(Q.flat(1/0).reverse());for(const ie of ee)X.unshift(c$q(ie))}else Q!==void 0&&X.push(c$q(Q));return X}static _$Eu(Q,X){const ee=X.attribute;return ee===!1?void 0:typeof ee=="string"?ee:typeof Q=="string"?Q.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise((Q=>this.enableUpdating=Q)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((Q=>Q(this)))}addController(Q){(this._$EO??=new Set).add(Q),this.renderRoot!==void 0&&this.isConnected&&Q.hostConnected?.()}removeController(Q){this._$EO?.delete(Q)}_$E_(){const Q=new Map,X=this.constructor.elementProperties;for(const ee of X.keys())this.hasOwnProperty(ee)&&(Q.set(ee,this[ee]),delete this[ee]);Q.size>0&&(this._$Ep=Q)}createRenderRoot(){const Q=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$8(Q,this.constructor.elementStyles),Q}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((Q=>Q.hostConnected?.()))}enableUpdating(Q){}disconnectedCallback(){this._$EO?.forEach((Q=>Q.hostDisconnected?.()))}attributeChangedCallback(Q,X,ee){this._$AK(Q,ee)}_$ET(Q,X){const ee=this.constructor.elementProperties.get(Q),ie=this.constructor._$Eu(Q,ee);if(ie!==void 0&&ee.reflect===!0){const oe=(ee.converter?.toAttribute!==void 0?ee.converter:u$k).toAttribute(X,ee.type);this._$Em=Q,oe==null?this.removeAttribute(ie):this.setAttribute(ie,oe),this._$Em=null}}_$AK(Q,X){const ee=this.constructor,ie=ee._$Eh.get(Q);if(ie!==void 0&&this._$Em!==ie){const oe=ee.getPropertyOptions(ie),ne=typeof oe.converter=="function"?{fromAttribute:oe.converter}:oe.converter?.fromAttribute!==void 0?oe.converter:u$k;this._$Em=ie;const ae=ne.fromAttribute(X,oe.type);this[ie]=ae??this._$Ej?.get(ie)??ae,this._$Em=null}}requestUpdate(Q,X,ee){if(Q!==void 0){const ie=this.constructor,oe=this[Q];if(ee??=ie.getPropertyOptions(Q),!((ee.hasChanged??f$k)(oe,X)||ee.useDefault&&ee.reflect&&oe===this._$Ej?.get(Q)&&!this.hasAttribute(ie._$Eu(Q,ee))))return;this.C(Q,X,ee)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(Q,X,{useDefault:ee,reflect:ie,wrapped:oe},ne){ee&&!(this._$Ej??=new Map).has(Q)&&(this._$Ej.set(Q,ne??X??this[Q]),oe!==!0||ne!==void 0)||(this._$AL.has(Q)||(this.hasUpdated||ee||(X=void 0),this._$AL.set(Q,X)),ie===!0&&this._$Em!==Q&&(this._$Eq??=new Set).add(Q))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(X){Promise.reject(X)}const Q=this.scheduleUpdate();return Q!=null&&await Q,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[ie,oe]of this._$Ep)this[ie]=oe;this._$Ep=void 0}const ee=this.constructor.elementProperties;if(ee.size>0)for(const[ie,oe]of ee){const{wrapped:ne}=oe,ae=this[ie];ne!==!0||this._$AL.has(ie)||ae===void 0||this.C(ie,void 0,oe,ae)}}let Q=!1;const X=this._$AL;try{Q=this.shouldUpdate(X),Q?(this.willUpdate(X),this._$EO?.forEach((ee=>ee.hostUpdate?.())),this.update(X)):this._$EM()}catch(ee){throw Q=!1,this._$EM(),ee}Q&&this._$AE(X)}willUpdate(Q){}_$AE(Q){this._$EO?.forEach((X=>X.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(Q)),this.updated(Q)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(Q){return!0}update(Q){this._$Eq&&=this._$Eq.forEach((X=>this._$ET(X,this[X]))),this._$EM()}updated(Q){}firstUpdated(Q){}};y$c.elementStyles=[],y$c.shadowRootOptions={mode:"open"},y$c[d$i("elementProperties")]=new Map,y$c[d$i("finalized")]=new Map,p$d?.({ReactiveElement:y$c}),(a$n.reactiveElementVersions??=[]).push("2.1.1");/**
+ */const t$s=globalThis,i$u=t$s.trustedTypes,s$v=i$u?i$u.createPolicy("lit-html",{createHTML:te=>te}):void 0,e$s="$lit$",h$b=`lit$${Math.random().toFixed(9).slice(2)}$`,o$x="?"+h$b,n$w=`<${o$x}>`,r$r=document,l$s=()=>r$r.createComment(""),c$p=te=>te===null||typeof te!="object"&&typeof te!="function",a$n=Array.isArray,u$k=te=>a$n(te)||typeof te?.[Symbol.iterator]=="function",d$i=`[ 	
+\f\r]`,f$k=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v$5=/-->/g,_$7=/>/g,m$k=RegExp(`>|${d$i}(?:([^\\s"'>=/]+)(${d$i}*=${d$i}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`,"g"),p$d=/'/g,g$e=/"/g,$$5=/^(?:script|style|textarea|title)$/i,T$9=Symbol.for("lit-noChange"),E$6=Symbol.for("lit-nothing"),A$7=new WeakMap,C$6=r$r.createTreeWalker(r$r,129);function P$9(te,Q){if(!a$n(te)||!te.hasOwnProperty("raw"))throw Error("invalid template strings array");return s$v!==void 0?s$v.createHTML(Q):Q}const V$4=(te,Q)=>{const X=te.length-1,ee=[];let ie,oe=Q===2?"<svg>":Q===3?"<math>":"",ne=f$k;for(let ae=0;ae<X;ae++){const se=te[ae];let le,de,ce=-1,he=0;for(;he<se.length&&(ne.lastIndex=he,de=ne.exec(se),de!==null);)he=ne.lastIndex,ne===f$k?de[1]==="!--"?ne=v$5:de[1]!==void 0?ne=_$7:de[2]!==void 0?($$5.test(de[2])&&(ie=RegExp("</"+de[2],"g")),ne=m$k):de[3]!==void 0&&(ne=m$k):ne===m$k?de[0]===">"?(ne=ie??f$k,ce=-1):de[1]===void 0?ce=-2:(ce=ne.lastIndex-de[2].length,le=de[1],ne=de[3]===void 0?m$k:de[3]==='"'?g$e:p$d):ne===g$e||ne===p$d?ne=m$k:ne===v$5||ne===_$7?ne=f$k:(ne=m$k,ie=void 0);const ue=ne===m$k&&te[ae+1].startsWith("/>")?" ":"";oe+=ne===f$k?se+n$w:ce>=0?(ee.push(le),se.slice(0,ce)+e$s+se.slice(ce)+h$b+ue):se+h$b+(ce===-2?ae:ue)}return[P$9(te,oe+(te[X]||"<?>")+(Q===2?"</svg>":Q===3?"</math>":"")),ee]};let N$4=class sr{constructor({strings:Q,_$litType$:X},ee){let ie;this.parts=[];let oe=0,ne=0;const ae=Q.length-1,se=this.parts,[le,de]=V$4(Q,X);if(this.el=sr.createElement(le,ee),C$6.currentNode=this.el.content,X===2||X===3){const ce=this.el.content.firstChild;ce.replaceWith(...ce.childNodes)}for(;(ie=C$6.nextNode())!==null&&se.length<ae;){if(ie.nodeType===1){if(ie.hasAttributes())for(const ce of ie.getAttributeNames())if(ce.endsWith(e$s)){const he=de[ne++],ue=ie.getAttribute(ce).split(h$b),pe=/([.?@])?(.*)/.exec(he);se.push({type:1,index:oe,name:pe[2],strings:ue,ctor:pe[1]==="."?H$6:pe[1]==="?"?I$8:pe[1]==="@"?L$6:k$7}),ie.removeAttribute(ce)}else ce.startsWith(h$b)&&(se.push({type:6,index:oe}),ie.removeAttribute(ce));if($$5.test(ie.tagName)){const ce=ie.textContent.split(h$b),he=ce.length-1;if(he>0){ie.textContent=i$u?i$u.emptyScript:"";for(let ue=0;ue<he;ue++)ie.append(ce[ue],l$s()),C$6.nextNode(),se.push({type:2,index:++oe});ie.append(ce[he],l$s())}}}else if(ie.nodeType===8)if(ie.data===o$x)se.push({type:2,index:oe});else{let ce=-1;for(;(ce=ie.data.indexOf(h$b,ce+1))!==-1;)se.push({type:7,index:oe}),ce+=h$b.length-1}oe++}}static createElement(Q,X){const ee=r$r.createElement("template");return ee.innerHTML=Q,ee}};function S$8(te,Q,X=te,ee){if(Q===T$9)return Q;let ie=ee!==void 0?X._$Co?.[ee]:X._$Cl;const oe=c$p(Q)?void 0:Q._$litDirective$;return ie?.constructor!==oe&&(ie?._$AO?.(!1),oe===void 0?ie=void 0:(ie=new oe(te),ie._$AT(te,X,ee)),ee!==void 0?(X._$Co??=[])[ee]=ie:X._$Cl=ie),ie!==void 0&&(Q=S$8(te,ie._$AS(te,Q.values),ie,ee)),Q}let M$5=class{constructor(Q,X){this._$AV=[],this._$AN=void 0,this._$AD=Q,this._$AM=X}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(Q){const{el:{content:X},parts:ee}=this._$AD,ie=(Q?.creationScope??r$r).importNode(X,!0);C$6.currentNode=ie;let oe=C$6.nextNode(),ne=0,ae=0,se=ee[0];for(;se!==void 0;){if(ne===se.index){let le;se.type===2?le=new R$8(oe,oe.nextSibling,this,Q):se.type===1?le=new se.ctor(oe,se.name,se.strings,this,Q):se.type===6&&(le=new z$4(oe,this,Q)),this._$AV.push(le),se=ee[++ae]}ne!==se?.index&&(oe=C$6.nextNode(),ne++)}return C$6.currentNode=r$r,ie}p(Q){let X=0;for(const ee of this._$AV)ee!==void 0&&(ee.strings!==void 0?(ee._$AI(Q,ee,X),X+=ee.strings.length-2):ee._$AI(Q[X])),X++}},R$8=class lr{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(Q,X,ee,ie){this.type=2,this._$AH=E$6,this._$AN=void 0,this._$AA=Q,this._$AB=X,this._$AM=ee,this.options=ie,this._$Cv=ie?.isConnected??!0}get parentNode(){let Q=this._$AA.parentNode;const X=this._$AM;return X!==void 0&&Q?.nodeType===11&&(Q=X.parentNode),Q}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(Q,X=this){Q=S$8(this,Q,X),c$p(Q)?Q===E$6||Q==null||Q===""?(this._$AH!==E$6&&this._$AR(),this._$AH=E$6):Q!==this._$AH&&Q!==T$9&&this._(Q):Q._$litType$!==void 0?this.$(Q):Q.nodeType!==void 0?this.T(Q):u$k(Q)?this.k(Q):this._(Q)}O(Q){return this._$AA.parentNode.insertBefore(Q,this._$AB)}T(Q){this._$AH!==Q&&(this._$AR(),this._$AH=this.O(Q))}_(Q){this._$AH!==E$6&&c$p(this._$AH)?this._$AA.nextSibling.data=Q:this.T(r$r.createTextNode(Q)),this._$AH=Q}$(Q){const{values:X,_$litType$:ee}=Q,ie=typeof ee=="number"?this._$AC(Q):(ee.el===void 0&&(ee.el=N$4.createElement(P$9(ee.h,ee.h[0]),this.options)),ee);if(this._$AH?._$AD===ie)this._$AH.p(X);else{const oe=new M$5(ie,this),ne=oe.u(this.options);oe.p(X),this.T(ne),this._$AH=oe}}_$AC(Q){let X=A$7.get(Q.strings);return X===void 0&&A$7.set(Q.strings,X=new N$4(Q)),X}k(Q){a$n(this._$AH)||(this._$AH=[],this._$AR());const X=this._$AH;let ee,ie=0;for(const oe of Q)ie===X.length?X.push(ee=new lr(this.O(l$s()),this.O(l$s()),this,this.options)):ee=X[ie],ee._$AI(oe),ie++;ie<X.length&&(this._$AR(ee&&ee._$AB.nextSibling,ie),X.length=ie)}_$AR(Q=this._$AA.nextSibling,X){for(this._$AP?.(!1,!0,X);Q!==this._$AB;){const ee=Q.nextSibling;Q.remove(),Q=ee}}setConnected(Q){this._$AM===void 0&&(this._$Cv=Q,this._$AP?.(Q))}},k$7=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(Q,X,ee,ie,oe){this.type=1,this._$AH=E$6,this._$AN=void 0,this.element=Q,this.name=X,this._$AM=ie,this.options=oe,ee.length>2||ee[0]!==""||ee[1]!==""?(this._$AH=Array(ee.length-1).fill(new String),this.strings=ee):this._$AH=E$6}_$AI(Q,X=this,ee,ie){const oe=this.strings;let ne=!1;if(oe===void 0)Q=S$8(this,Q,X,0),ne=!c$p(Q)||Q!==this._$AH&&Q!==T$9,ne&&(this._$AH=Q);else{const ae=Q;let se,le;for(Q=oe[0],se=0;se<oe.length-1;se++)le=S$8(this,ae[ee+se],X,se),le===T$9&&(le=this._$AH[se]),ne||=!c$p(le)||le!==this._$AH[se],le===E$6?Q=E$6:Q!==E$6&&(Q+=(le??"")+oe[se+1]),this._$AH[se]=le}ne&&!ie&&this.j(Q)}j(Q){Q===E$6?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,Q??"")}},H$6=class extends k$7{constructor(){super(...arguments),this.type=3}j(Q){this.element[this.name]=Q===E$6?void 0:Q}},I$8=class extends k$7{constructor(){super(...arguments),this.type=4}j(Q){this.element.toggleAttribute(this.name,!!Q&&Q!==E$6)}},L$6=class extends k$7{constructor(Q,X,ee,ie,oe){super(Q,X,ee,ie,oe),this.type=5}_$AI(Q,X=this){if((Q=S$8(this,Q,X,0)??E$6)===T$9)return;const ee=this._$AH,ie=Q===E$6&&ee!==E$6||Q.capture!==ee.capture||Q.once!==ee.once||Q.passive!==ee.passive,oe=Q!==E$6&&(ee===E$6||ie);ie&&this.element.removeEventListener(this.name,this,ee),oe&&this.element.addEventListener(this.name,this,Q),this._$AH=Q}handleEvent(Q){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,Q):this._$AH.handleEvent(Q)}},z$4=class{constructor(Q,X,ee){this.element=Q,this.type=6,this._$AN=void 0,this._$AM=X,this.options=ee}get _$AU(){return this._$AM._$AU}_$AI(Q){S$8(this,Q)}};const j$3=t$s.litHtmlPolyfillSupport;j$3?.(N$4,R$8),(t$s.litHtmlVersions??=[]).push("3.3.1");/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -42,7 +34,7 @@
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */function getEffectiveStyles(te){const Q=te.constructor,X=te.__cssInjectorStyleSheet;return X?[...Q.baseStyles,X,...Q.themeStyles]:Q.elementStyles}function applyInstanceStyles(te){[...te.shadowRoot.querySelectorAll("style")].forEach(Q=>Q.remove()),S$8(te.shadowRoot,getEffectiveStyles(te))}/**
+ */function getEffectiveStyles(te){const Q=te.constructor,X=te.__cssInjectorStyleSheet;return X?[...Q.baseStyles,X,...Q.themeStyles]:Q.elementStyles}function applyInstanceStyles(te){[...te.shadowRoot.querySelectorAll("style")].forEach(Q=>Q.remove()),S$9(te.shadowRoot,getEffectiveStyles(te))}/**
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -50,7 +42,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const themeRegistry=[],themableInstances=new Set,themableTagNames=new Set;function classHasThemes(te){return te&&Object.prototype.hasOwnProperty.call(te,"__themes")}function hasThemes(te){return classHasThemes(customElements.get(te))}function flattenStyles(te=[]){return[te].flat(1/0).filter(Q=>Q instanceof n$x?!0:(console.warn("An item in styles is not of type CSSResult. Use `unsafeCSS` or `css`."),!1))}function matchesThemeFor(te,Q){return(te||"").split(" ").some(X=>new RegExp(`^${X.split("*").join(".*")}$`,"u").test(Q))}function getCssText(te){return te.map(Q=>Q.cssText).join(`
+ */const themeRegistry=[],themableInstances=new Set,themableTagNames=new Set;function classHasThemes(te){return te&&Object.prototype.hasOwnProperty.call(te,"__themes")}function hasThemes(te){return classHasThemes(customElements.get(te))}function flattenStyles(te=[]){return[te].flat(1/0).filter(Q=>Q instanceof n$y?!0:(console.warn("An item in styles is not of type CSSResult. Use `unsafeCSS` or `css`."),!1))}function matchesThemeFor(te,Q){return(te||"").split(" ").some(X=>new RegExp(`^${X.split("*").join(".*")}$`,"u").test(Q))}function getCssText(te){return te.map(Q=>Q.cssText).join(`
 `)}const STYLE_ID="vaadin-themable-mixin-style";function addStylesToTemplate(te,Q){const X=document.createElement("style");X.id=STYLE_ID,X.textContent=getCssText(te),Q.content.appendChild(X)}function updateInstanceStyles(te){if(!te.shadowRoot)return;const Q=te.constructor;if(te instanceof i$s)applyInstanceStyles(te);else{const X=te.shadowRoot.getElementById(STYLE_ID),ee=Q.prototype._template;X.textContent=ee.content.getElementById(STYLE_ID).textContent}}function updateInstanceStylesOfType(te){themableInstances.forEach(Q=>{const X=Q.deref();X instanceof te?updateInstanceStyles(X):X||themableInstances.delete(Q)})}function updateComponentStyles(te){if(te.prototype instanceof i$s)te.elementStyles=te.finalizeStyles(te.styles);else{const Q=te.prototype._template;Q.content.getElementById(STYLE_ID).textContent=getCssText(te.getStylesForThis())}themableTagNames.forEach(Q=>{const X=customElements.get(Q);X!==te&&X.prototype instanceof te&&updateComponentStyles(X)})}function hasMatchingStyle(te,Q){const X=te.__themes;return!X||!Q?!1:X.some(ee=>ee.styles.some(ie=>Q.some(oe=>oe.cssText===ie.cssText)))}function registerStyles(te,Q,X={}){Q=flattenStyles(Q),window.Vaadin&&window.Vaadin.styleModules?window.Vaadin.styleModules.registerStyles(te,Q,X):themeRegistry.push({themeFor:te,styles:Q,include:X.include,moduleId:X.moduleId}),te&&themableTagNames.forEach(ee=>{if(matchesThemeFor(te,ee)&&hasThemes(ee)){const ie=customElements.get(ee);hasMatchingStyle(ie,Q)?console.warn(`Registering styles that already exist for ${ee}`):(!window.Vaadin||!window.Vaadin.suppressPostFinalizeStylesWarning)&&console.warn(`The custom element definition for "${ee}" was finalized before a style module was registered. Ideally, import component specific style modules before importing the corresponding custom element. This warning can be suppressed by setting "window.Vaadin.suppressPostFinalizeStylesWarning = true".`),updateComponentStyles(ie),updateInstanceStylesOfType(ie)}})}function getAllThemes(){return window.Vaadin&&window.Vaadin.styleModules?window.Vaadin.styleModules.getAllThemes():themeRegistry}function getIncludePriority(te=""){let Q=0;return te.startsWith("lumo-")||te.startsWith("material-")?Q=1:te.startsWith("vaadin-")&&(Q=2),Q}function getIncludedStyles(te){const Q=[];return te.include&&[].concat(te.include).forEach(X=>{const ee=getAllThemes().find(ie=>ie.moduleId===X);ee?Q.push(...getIncludedStyles(ee),...ee.styles):console.warn(`Included moduleId ${X} not found in style registry`)},te.styles),Q}function getThemes(te){const Q=`${te}-default-theme`,X=getAllThemes().filter(ee=>ee.moduleId!==Q&&matchesThemeFor(ee.themeFor,te)).map(ee=>({...ee,styles:[...getIncludedStyles(ee),...ee.styles],includePriority:getIncludePriority(ee.moduleId)})).sort((ee,ie)=>ie.includePriority-ee.includePriority);return X.length>0?X:getAllThemes().filter(ee=>ee.moduleId===Q)}const ThemableMixin=te=>class extends ThemePropertyMixin(te){constructor(){super(),themableInstances.add(new WeakRef(this))}static finalize(){if(super.finalize(),this.is&&themableTagNames.add(this.is),this.elementStyles)return;const X=this.prototype._template;!X||classHasThemes(this)||addStylesToTemplate(this.getStylesForThis(),X)}static finalizeStyles(X){return this.baseStyles=X?[X].flat(1/0):[],this.themeStyles=this.getStylesForThis(),[...this.baseStyles,...this.themeStyles]}static getStylesForThis(){const X=te.__themes||[],ee=Object.getPrototypeOf(this.prototype),ie=(ee?ee.constructor.__themes:[])||[];this.__themes=[...X,...ie,...getThemes(this.is)];const oe=this.__themes.flatMap(ne=>ne.styles);return oe.filter((ne,ae)=>ae===oe.lastIndexOf(ne))}};/**
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
@@ -60,7 +52,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const colorBase=i$v`
+ */const colorBase=i$w`
   :host {
     /* Base (background) */
     --lumo-base-color: #fff;
@@ -145,7 +137,7 @@
       --lumo-disabled-text-color: GrayText;
     }
   }
-`;addLumoGlobalStyles("color-props",colorBase);const color$i=i$v`
+`;addLumoGlobalStyles("color-props",colorBase);const color$i=i$w`
   [theme~='dark'] {
     /* Base (background) */
     --lumo-base-color: hsl(214, 35%, 21%);
@@ -267,7 +259,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const fontIcons=i$v`
+ */const fontIcons=i$w`
   @font-face {
     font-family: 'lumo-icons';
     src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABHAAAsAAAAAI6AAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABCAAAADsAAABUIIslek9TLzIAAAFEAAAAQwAAAFZAIUuNY21hcAAAAYgAAAD+AAADymne8hxnbHlmAAACiAAAC+gAABioIzlOlWhlYWQAAA5wAAAAMAAAADZa/6SsaGhlYQAADqAAAAAdAAAAJAbpA4BobXR4AAAOwAAAABAAAAC0q+AAAGxvY2EAAA7QAAAAXAAAAFyF7o1GbWF4cAAADywAAAAfAAAAIAFMAXBuYW1lAAAPTAAAATEAAAIuUUJZCHBvc3QAABCAAAABPQAAAgfdkltveJxjYGRgYOBiMGCwY2BycfMJYeDLSSzJY5BiYGGAAJA8MpsxJzM9kYEDxgPKsYBpDiBmg4gCACY7BUgAeJxjYGS+xDiBgZWBgamKaQ8DA0MPhGZ8wGDIyAQUZWBlZsAKAtJcUxgcXjG+0mEO+p/FEMUcxDANKMwIkgMABvgMMAB4nO3SV26EMABF0UsZpjG9d6Y3FpgF5StLYxMTP16WEUvHV1gGIQzQAJKgDFKIfojQ+A6rUb2e0KnXU77qPanWq/LzCXOkOVyn9RyHvWl4YkaTFu1wX5ecHn0GDBkxZsKUGXMWLFmxZsOWHXsOFBw5cebClRt3Hjx58dZ7RRn/I9cUF39Xpb691acRG2piOtUqNZ1P1TCdeJUZatNQW4baNtSO6U+ouoaam96u6hlq31AHhjo01JGhjg11YqhTQ50Z6txQF4a6NNSVoa4NdWOoW0PdGereUA+GWhjq0VBPhno21IuhXg31Zqh3Q30Y6tNQX4b6NtTSKH8BOIRpQQAAeJy1WH1sW9UVv+fG9vPz+7Bf/N6zHcd2/J04jbP6s0lap4kDpB9JWzUUCqxNgaHxpTI6hNhUNLVr17HSISb2D2iAJrWb6FTWahNQdQxRvmHamAR0qibE1E18CG3QaVNFvJ17n+3YIf1AiMQ679x77j3v3HPPPed3H7ER/OsYpw8TmQRIiuQJ8RZK+WjO1B3xaCzla21orY10a+OQ6aHTHtP0zB31mBs1GZ6RNU2uXc7oPL+xdRS9R9X1oK4fVfijdsBqvqF6vd1eLzPrYrYZ57WteF7bPDIc5+ZcJnta+S9i2Vfhs4MaMwZNQmO0Vv7gF/MZcNsCcJp4sJFSwYyAmRuFCmTBDRBUkwGqnlViyjmVBpLqaXhNpt0J5V1JOqMkuqn8WkMHvZX+iOlImiqkBiFVYDrCqINulmkwKb8ry2fkZBBn7FcTlk4ZdfpRZ9MOesLSAakKt0N3g4p2jAL8eIEOOqom/U0lgQRXUl8LtXM7HFkojUIpF0ErVBhcZC1vtyjtpsqr83a8RVcSH+ool8LgcIMjNohmVCACuDs506BdO6WIQeXjUsh1XKZGRNpp9piv3+Givoh00OU6KEV81HUHTLtN093Q+YGlE3wLHWRtMNy9XWqdLm2HKbaNsGzhu+41eswFOjE6WKSk2/1Wpt+qHeM6phbohmVmj3GvpdcVkiy9zbXfzHVqKuDB0IR2P6ZpF+D7dy6YC/9svGmBE5hKB9+X2+hh4iYRMkhGyTqyFc9APmeGQHf043tWQKHkizmwaY5AroTNVJzJDc2SFzUu92kOLsdmKu77vByb8/IjtxmhkMFISRBFISO4XMLJlj4XgGuRXtaHw2FLyHifdSOpisIhJjgkiPBAyJh7lfXTkhEadwk1mUngrOC6MazX7mASeEAPV1FyjEumBOaEDu4DP/ogRDKkiLEV1woVyMeLLKJCEM+FwdCwL4XLcRgdbfkhbzS8BNvXDKzNQiAWgOzagTXF1Eyq+Ci6/TPm/JrNY/59p1epKN4jQFGe0fx+LTMwNVCrAU2VSqnaKYzIiGmWe2Rvp9KDJhncrjLaFce8VCUbyQ1kB9lNfkJ+To6R58mfyd/Ip9ABXohDHqqwEW7A2Mij1ehntLu+h8xMtocjUJcYwoLdtYafv/1Vjy8vjLaLtBfOt3/B931Rexa24e5zstgnyqvZHs69zuhq3vFgRpQVJyN7FuE++RLSeW4xMi+t6Zeo5sIK6S5dlGVRD2hWnGoB3j7OV3lesvNLic8tOnLRSRfRdOna63VJp/1WbYs5dFZjy1AqpGICQEWKmNI+CZNoVTJ7pNop+IZkRrBHgnEmqr3TrEsfw1Gi8LqE+S1aV0SNNwXVVVvuUoU3ld6TLwmditIpvKTU50zSzWwO1h0rL8awnulwTXMYrGDT4aQ1fb4GPkyv5vMEh5Vec6yw0AMXnfcx1l/rfVZaKLDi0W4j/HfeyGZuHOf1IUGW1udizU2leXY0OmLpVDpVKJfKpZzPRKHgEBzpXAUKWYipoIeBdl3JfLZVBizEqWun1i4ZGFiyduq3DebayXsmJ+95gBG4+Urm1a2SdpKV57lP2wZyZqI+FAlfUtO+NCmgdWhMOS1gDY+jHWnBhwjBQLMEXxmLbx6t9JXTWDLtsSxgisfErqvQMbbBoywZmeyLeWe8OWNydFDxzMx4lMGRtX0xN3YFJkeW+O0bascGNwwObtjCCOzrzAVWjSwN2K9cpyn9o5cZOXMmkAuM85EbNHnJyHhfLLCnPhxJYw9eoIMkyC3l+4ZuY5ig7lW2oYUynDgg+Xrk+++Xe3zSgRYetnyuy+KbfjiB+GAAtZ8HHXmtijZfFFgrujhmOs2qkXvuSV6WqA1WLYqhPHOfsa26rklKFqbAGL2dOIlGurB6LWFVFd/KoBBaYTFYVBs93hZRFlrG5Ex4NVFIJguJVvqnBW2kNNvFGx90YUcSEvyZSMDeZjc0xYlEYy8+hHcWx9YrZOaPPyCGepP5Q34aXnGBr8d1QhSf4yjtiebZqNJfEYl4SY6dDRb8WSguLZW9ZQtBpoW4hX0QMyB2KmsYcOh8HMQxBn288oZ6BXV0GOq/ClKsC6T8g9X3OFKZNkJrYkOx2lEk+KNDy953+wGHXuGGzhGZ+uLK8FVrQkbtKBv+9EztU2sgTCNpvXMdJjqJ4tkdw+x00dPKkZ1QR254x7GQoFmvfakSnL3gCc5nREly2mN2pyTLMacMipNT7YInGU7JzlN2p9N+yinXTirOKEvPUafSWMNDmCf9pIQYaG19DSxKGqvAQ+xg60iabEm5MheUU2n+HxO4TDDbjnw6xxK8QzfhbHXq8pWVqanKysun9s6ztdt7sivGqruqYyuyPS6Hw9XehGt6q+l0dT0jvaFMZjiTuTHo7+vdtHJTb58/2ML+IxHt9/n9vv5owiWKrrbWD+sakKxhKoYzxF5f7y9INxki42QNuYrVFDPfvqxyY83xWNMV+ZxPSMWb62W+wPSCJwkDDl1WZOGW84nAEo4A7HjB/uWmOdayRFnKjazi668u/ajJlUd87aPk048Crlu4j1Oh9gxdL3Z1inNPIt2xvKNlsU4hn54Z5Y6YbTDu9hHOvkcFAb35fU6hNovKOrtQmcvbNV9/Ntfv5xf4atDWOOTX6CSHZ08xujhPs51+f9zvf1YLIGoPPKvxVh0TSLAXzzUBFiXs7GJVB7vH5/PAXznd4+vx4a95h3qI/oYIpIdMkA1kC7kVLS3GhWI5bwj1fIaVKG/Ei5gXWOjhtcJbzFthaMQrwIcIRj0ppvO6yV95icu9j/YPDNySWp7w+kOr95R1RfGpfVlDVhS/2geJ5Umv2mn0rkxBvzvgdisndJXaVF1X5z5jdHGe2n/QnYo8+b2uaMivhowgjYcLnVqnrEpQezsieyVZ6ooETbdJO6ip+cORLpes6BL82/qg8VHbo45B/vch/YQeJX28QvEANR3sQhxh+TcMCEd4l8BKF7uID7KM05tRYlIHHXY63YIi2fXQyj5XSBbcMeewKLpttkJ2Syz33YJfDdJdSYkqHbYb3VHRJgTV8c0TAy67YHeK7htwOKWax5co7Do8Pfh1tKdx1g5j9o6TZeQyMo27FuW3vbYsbY/Op3AG06DMKionRlpgHzCEeMmLU5opRrCyS670RzppZeW5p/iT3jL3lB4O63QS6dzzh8SAtOqwGJK3bv+lGJTWbr++471wsVKMRJCEK5H+cLg/Qp+IDsdqs7HhKD7hMXyyrD/Li8RjRqimHhI7HP2vSDZn9brplySb0L9dgpURSwmSiBFhilrwB8OA9gZ29NkRO/669parW9e7XZDxwvgRu+SE7zgl+xG5p/HtRqJ3cdwSZwsbwTA1WT3jEdyPN0sWxvDGy+xovIzHosnwc9LePf9tywun0fMkWaFYZbB4oovRq8VyKYUBkMVXqVhBHSylQ0wanvla3+rQ1XbR8ZzstYOo2Mf7vjk8ftcGDWxdSdXx0cAVveHg1TZFtEOn8ntBBFs11V++vuLUQ5qz+U6d/oUjpGIdNjOQhJXNqn5YCS1Yy5PofLGEs6Js2yOKe2yyOLxtaGjbt7cNIURCEDdWfaQ6lurtRYbePCuItv1iUNxvE4Vdw2zQ0LZhdv2fxjHp5uAmdlBpopHXoJGU8e6BRc0yi+PztkaHTRRrW1m2hcfFLlEUzzD+DGczjEVCg9jEQZhFcdAL2DjD+DPiSWQzjM2I89g5RXdxfECS+CIWy1hTGmFs6EIbkv/pbtkfU3aPrZ+4c2Lizn07qufym/L5TTdtyuU2/We3HPeDsjtb3bGPSSfW31aX3LQpX/d9sL7fWYpRJPBbCJavYjrFjj0rT2GWCZjf6Ytffr8beXl/HYeyGwJiIK8FLDHbfo65xGz7YCSRqCQSkbbHI5eUU5X4sjj+zrU9aHnRlEnrd7YGptd0x2Jf/RbH9PAiovadckSnEsJ661OgPFuH9B4O6e202vIN0h9xHXSJh1wRP5Vqv1uI6Wn9Gxmrwzqrii1gqhEscJanuAlGas+s2/uzvetgS72NpHZ6aHbZstmh/wPq1seEeJxjYGRgYADi31ySEvH8Nl8ZuJlfAEUYalQ3NCLo/6+ZpzLdAnI5GJhAogAiBgraeJxjYGRgYA76nwUkXzAAAfNUBkYGVKALAFb4A3EAAAB4nGNgYGBgfjG0MAAMzihlAAAAAABOAJoA6AEKASwBTgFwAZoBxAHuAhoCnALoBJoEvATWBPIFDgUqBXoF0AX+BkQGlga4BwgHagfiCGoIpAi8CVAJmAoQCiwKVgqQCtYLGAtOC4gL6AwuDFR4nGNgZGBg0GVMYRBlAAEmIOYCQgaG/2A+AwAYygG+AHicbZE9TsMwGIbf9A/RSggEYmHxAgtq+jN2ZGj3Dt3T1GlTOXHkuBW9AyfgEByCgTNwCA7BW/NJlVBtyd/jx+8XKwmAa3whwnFE6Ib1OBq44O6Pm6Qb4Rb5QbiNHh6FO/RD4S6eMRHu4RaaT4halzR3eBVu4Apvwk36d+EW+UO4jXt8Cnfov4W7WOBHuIen6MXsCtvPU1vWc73emcSdxIkW2tW5LdUoHp7kTJfaJV6v1PKg6v167H2mMmcLNbWl18ZYVTm71amPN95Xk8EgEx+ntoDBDgUs+siRspaoMef7rukNEriziXNuwS7Hmoe9wggxv+e55IzJMqQTeNYV00scuNbY8+YxrUfGfcaMZb/CNPQe04bT0lThbEuT0sfYhK6K/23Amf3Lx+H24hcj4GScAAAAeJxtjuduwzAMhH2NnTqOk+6993TfSZFY24giGZTVon36eiRFf5SAiO/A05HBWtBXEvxfGdYwQIgIQ6wjxggJxkgxwRQb2MQWtrGDXexhHwc4xBGOcYJTnOEcF7jEFa5xg1vc4R4PeMQTnvGCV2R4C1Khy9xkkkxNnPRC03s97pHLvKgTYXJNmbKfZom9o8POEffsq0Qw28+ltcPe2uHS2rGvRjPBmSwE1+GMtI6l0GSU4JEsSM4XgudpQx9sTRf3K9rAyUr0962UryKprZwPpM0jyda5uP2qrVBjxSLPCmGUplixrdpBSKqsI2oO4gF9Udq8TJVOzDSpcEHGR4vSeJdaVsSkMl26OqoKa6jttQ0rLb6a5l3YjO2QqV01YXLlNy2XDR0JlkXojbJTb/5GDX3V+kPviIPgB9AUks0AAAA=)
@@ -326,7 +318,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const sizing$1=i$v`
+ */const sizing$1=i$w`
   :host {
     --lumo-size-xs: 1.625rem;
     --lumo-size-s: 1.875rem;
@@ -345,7 +337,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const style$1=i$v`
+ */const style$1=i$w`
   :host {
     /* Border radius */
     --lumo-border-radius-s: 0.25em; /* Checkbox, badge, date-picker year indicator, etc */
@@ -362,7 +354,7 @@
     /* Clickable element cursor */
     --lumo-clickable-cursor: default;
   }
-`;i$v`
+`;i$w`
   html {
     /* Button */
     --vaadin-button-background: var(--lumo-contrast-5pct);
@@ -449,7 +441,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const fieldButton=i$v`
+ */const fieldButton=i$w`
   [part$='button'] {
     flex: none;
     width: 1em;
@@ -480,7 +472,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const spacing$1=i$v`
+ */const spacing$1=i$w`
   :host {
     /* Square */
     --lumo-space-xs: 0.25rem;
@@ -507,7 +499,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const font=i$v`
+ */const font=i$w`
   :host {
     /* prettier-ignore */
     --lumo-font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -527,7 +519,7 @@
     --lumo-line-height-s: 1.375;
     --lumo-line-height-m: 1.625;
   }
-`,typography$1=i$v`
+`,typography$1=i$w`
   body,
   :host {
     font-family: var(--lumo-font-family);
@@ -623,7 +615,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const overlay=i$v`
+ */const overlay=i$w`
   :host {
     top: var(--lumo-space-m);
     right: var(--lumo-space-m);
@@ -692,7 +684,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const menuOverlayCore=i$v`
+ */const menuOverlayCore=i$w`
   :host([opening]),
   :host([closing]) {
     animation: 0.14s lumo-overlay-dummy-animation;
@@ -722,7 +714,7 @@
       opacity: 0;
     }
   }
-`;registerStyles("",menuOverlayCore,{moduleId:"lumo-menu-overlay-core"});const menuOverlayExt=i$v`
+`;registerStyles("",menuOverlayCore,{moduleId:"lumo-menu-overlay-core"});const menuOverlayExt=i$w`
   /* Small viewport (bottom sheet) styles */
   /* Use direct media queries instead of the state attributes ([phone] and [fullscreen]) provided by the elements */
   @media (max-width: 450px), (max-height: 450px) {
@@ -788,7 +780,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const requiredField=i$v`
+ */const requiredField=i$w`
   [part='label'] {
     align-self: flex-start;
     color: var(--vaadin-input-field-label-color, var(--lumo-secondary-text-color));
@@ -894,7 +886,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const badge=i$v`
+ */const badge=i$w`
   [theme~='badge'] {
     display: inline-flex;
     align-items: center;
@@ -1061,7 +1053,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const userColors=i$v`
+ */const userColors=i$w`
   :host {
     --vaadin-user-color-0: #df0b92;
     --vaadin-user-color-1: #650acc;
@@ -1085,7 +1077,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const accessibility=i$v`
+ */const accessibility=i$w`
   /* === Screen readers === */
   .sr-only {
     border-width: 0;
@@ -1102,7 +1094,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const background=i$v`
+ */const background=i$w`
   /* === Background color === */
   .bg-base {
     background-color: var(--lumo-base-color);
@@ -1254,7 +1246,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const border=i$v`
+ */const border=i$w`
   /* === Border === */
   .border-0 {
     border: none;
@@ -1397,7 +1389,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const filter$1=i$v`
+ */const filter$1=i$w`
   /* === Backdrop filter === */
   .backdrop-blur-none {
     backdrop-filter: blur(0);
@@ -1427,7 +1419,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const flexboxAndGrid=i$v`
+ */const flexboxAndGrid=i$w`
   /* === Align content === */
   .content-center {
     align-content: center;
@@ -2042,7 +2034,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const layout=i$v`
+ */const layout=i$w`
   /* === Aspect ratio === */
   .aspect-square {
     aspect-ratio: 1 / 1;
@@ -2542,7 +2534,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const shadows=i$v`
+ */const shadows=i$w`
   /* === Box shadow === */
   .shadow-none {
     box-shadow: none;
@@ -2566,7 +2558,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const sizing=i$v`
+ */const sizing=i$w`
   /* === Height === */
   .h-0 {
     height: 0;
@@ -2683,7 +2675,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const spacing=i$v`
+ */const spacing=i$w`
   /* === Margin === */
   .-m-xs {
     margin: calc(var(--lumo-space-xs) / -1);
@@ -3221,7 +3213,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const transition=i$v`
+ */const transition=i$w`
   .transition {
     transition-property: -webkit-backdrop-filter, backdrop-filter, background-color, border-color, box-shadow, color,
       fill, filter, opacity, rotate, scale, stroke, text-decoration-color, transform, translate;
@@ -3266,7 +3258,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const typography=i$v`
+ */const typography=i$w`
   /* === Font size === */
   .text-2xs {
     font-size: var(--lumo-font-size-xxs);
@@ -3606,7 +3598,7 @@
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const utility=i$v`
+ */const utility=i$w`
 ${accessibility}
 ${background}
 ${border}
@@ -4308,7 +4300,7 @@ ${utility.cssText}
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const o$s={attribute:!0,type:String,converter:u$m,reflect:!1,hasChanged:f$m},r$p=(te=o$s,Q,X)=>{const{kind:ee,metadata:ie}=X;let oe=globalThis.litPropertyMetadata.get(ie);if(oe===void 0&&globalThis.litPropertyMetadata.set(ie,oe=new Map),ee==="setter"&&((te=Object.create(te)).wrapped=!0),oe.set(X.name,te),ee==="accessor"){const{name:ne}=X;return{set(ae){const se=Q.get.call(this);Q.set.call(this,ae),this.requestUpdate(ne,se,te)},init(ae){return ae!==void 0&&this.C(ne,void 0,te,ae),ae}}}if(ee==="setter"){const{name:ne}=X;return function(ae){const se=this[ne];Q.call(this,ae),this.requestUpdate(ne,se,te)}}throw Error("Unsupported decorator location: "+ee)};function n$t(te){return(Q,X)=>typeof X=="object"?r$p(te,Q,X):((ee,ie,oe)=>{const ne=ie.hasOwnProperty(oe);return ie.constructor.createProperty(oe,ee),ne?Object.getOwnPropertyDescriptor(ie,oe):void 0})(te,Q,X)}/**
+ */const o$s={attribute:!0,type:String,converter:u$l,reflect:!1,hasChanged:f$l},r$p=(te=o$s,Q,X)=>{const{kind:ee,metadata:ie}=X;let oe=globalThis.litPropertyMetadata.get(ie);if(oe===void 0&&globalThis.litPropertyMetadata.set(ie,oe=new Map),ee==="setter"&&((te=Object.create(te)).wrapped=!0),oe.set(X.name,te),ee==="accessor"){const{name:ne}=X;return{set(ae){const se=Q.get.call(this);Q.set.call(this,ae),this.requestUpdate(ne,se,te)},init(ae){return ae!==void 0&&this.C(ne,void 0,te,ae),ae}}}if(ee==="setter"){const{name:ne}=X;return function(ae){const se=this[ne];Q.call(this,ae),this.requestUpdate(ne,se,te)}}throw Error("Unsupported decorator location: "+ee)};function n$t(te){return(Q,X)=>typeof X=="object"?r$p(te,Q,X):((ee,ie,oe)=>{const ne=ie.hasOwnProperty(oe);return ie.constructor.createProperty(oe,ee),ne?Object.getOwnPropertyDescriptor(ie,oe):void 0})(te,Q,X)}/**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -4324,7 +4316,7 @@ ${utility.cssText}
  * @license
  * Copyright 2021 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */function o$r(te){return(Q,X)=>{const{slot:ee,selector:ie}=te??{},oe="slot"+(ee?`[name=${ee}]`:":not([name])");return e$n(Q,X,{get(){const ne=this.renderRoot?.querySelector(oe),ae=ne?.assignedElements(te)??[];return ie===void 0?ae:ae.filter((se=>se.matches(ie)))}})}}const verticalLayout=i$v`
+ */function o$r(te){return(Q,X)=>{const{slot:ee,selector:ie}=te??{},oe="slot"+(ee?`[name=${ee}]`:":not([name])");return e$n(Q,X,{get(){const ne=this.renderRoot?.querySelector(oe),ae=ne?.assignedElements(te)??[];return ie===void 0?ae:ae.filter((se=>se.matches(ie)))}})}}const verticalLayout=i$w`
   :host([theme~='margin']) {
     margin: var(--lumo-space-m);
   }
@@ -5018,7 +5010,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const baseStyles$2=i$v`
+ */const baseStyles$2=i$w`
   :host {
     display: flex;
     flex-direction: column;
@@ -5042,7 +5034,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   :host([theme~='spacing']) {
     gap: 1em;
   }
-`,enableLayoutImprovements$1=window.Vaadin.featureFlags.layoutComponentImprovements,layoutImprovementStyles$1=i$v`
+`,enableLayoutImprovements$1=window.Vaadin.featureFlags.layoutComponentImprovements,layoutImprovementStyles$1=i$w`
   ::slotted([data-height-full]) {
     flex: 1;
   }
@@ -5057,7 +5049,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
  */registerStyles("vaadin-vertical-layout",verticalLayoutStyles,{moduleId:"vaadin-vertical-layout-styles"});class VerticalLayout extends ElementMixin(ThemableMixin(PolymerElement)){static get template(){return html$3`<slot></slot>`}static get is(){return"vaadin-vertical-layout"}}defineCustomElement(VerticalLayout);var extendStatics=function(te,Q){return extendStatics=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(X,ee){X.__proto__=ee}||function(X,ee){for(var ie in ee)Object.prototype.hasOwnProperty.call(ee,ie)&&(X[ie]=ee[ie])},extendStatics(te,Q)};function __extends$1G(te,Q){if(typeof Q!="function"&&Q!==null)throw new TypeError("Class extends value "+String(Q)+" is not a constructor or null");extendStatics(te,Q);function X(){this.constructor=te}te.prototype=Q===null?Object.create(Q):(X.prototype=Q.prototype,new X)}function __values(te){var Q=typeof Symbol=="function"&&Symbol.iterator,X=Q&&te[Q],ee=0;if(X)return X.call(te);if(te&&typeof te.length=="number")return{next:function(){return te&&ee>=te.length&&(te=void 0),{value:te&&te[ee++],done:!te}}};throw new TypeError(Q?"Object is not iterable.":"Symbol.iterator is not defined.")}function __read(te,Q){var X=typeof Symbol=="function"&&te[Symbol.iterator];if(!X)return te;var ee=X.call(te),ie,oe=[],ne;try{for(;(Q===void 0||Q-- >0)&&!(ie=ee.next()).done;)oe.push(ie.value)}catch(ae){ne={error:ae}}finally{try{ie&&!ie.done&&(X=ee.return)&&X.call(ee)}finally{if(ne)throw ne.error}}return oe}function __spreadArray(te,Q,X){if(X||arguments.length===2)for(var ee=0,ie=Q.length,oe;ee<ie;ee++)(oe||!(ee in Q))&&(oe||(oe=Array.prototype.slice.call(Q,0,ee)),oe[ee]=Q[ee]);return te.concat(oe||Array.prototype.slice.call(Q))}typeof SuppressedError=="function"&&SuppressedError;function isFunction$8(te){return typeof te=="function"}function createErrorClass(te){var Q=function(ee){Error.call(ee),ee.stack=new Error().stack},X=te(Q);return X.prototype=Object.create(Error.prototype),X.prototype.constructor=X,X}var UnsubscriptionError=createErrorClass(function(te){return function(X){te(this),this.message=X?X.length+` errors occurred during unsubscription:
 `+X.map(function(ee,ie){return ie+1+") "+ee.toString()}).join(`
-  `):"",this.name="UnsubscriptionError",this.errors=X}});function arrRemove(te,Q){if(te){var X=te.indexOf(Q);0<=X&&te.splice(X,1)}}var Subscription=(function(){function te(Q){this.initialTeardown=Q,this.closed=!1,this._parentage=null,this._finalizers=null}return te.prototype.unsubscribe=function(){var Q,X,ee,ie,oe;if(!this.closed){this.closed=!0;var ne=this._parentage;if(ne)if(this._parentage=null,Array.isArray(ne))try{for(var ae=__values(ne),se=ae.next();!se.done;se=ae.next()){var le=se.value;le.remove(this)}}catch(fe){Q={error:fe}}finally{try{se&&!se.done&&(X=ae.return)&&X.call(ae)}finally{if(Q)throw Q.error}}else ne.remove(this);var de=this.initialTeardown;if(isFunction$8(de))try{de()}catch(fe){oe=fe instanceof UnsubscriptionError?fe.errors:[fe]}var ce=this._finalizers;if(ce){this._finalizers=null;try{for(var he=__values(ce),ue=he.next();!ue.done;ue=he.next()){var pe=ue.value;try{execFinalizer(pe)}catch(fe){oe=oe??[],fe instanceof UnsubscriptionError?oe=__spreadArray(__spreadArray([],__read(oe)),__read(fe.errors)):oe.push(fe)}}}catch(fe){ee={error:fe}}finally{try{ue&&!ue.done&&(ie=he.return)&&ie.call(he)}finally{if(ee)throw ee.error}}}if(oe)throw new UnsubscriptionError(oe)}},te.prototype.add=function(Q){var X;if(Q&&Q!==this)if(this.closed)execFinalizer(Q);else{if(Q instanceof te){if(Q.closed||Q._hasParent(this))return;Q._addParent(this)}(this._finalizers=(X=this._finalizers)!==null&&X!==void 0?X:[]).push(Q)}},te.prototype._hasParent=function(Q){var X=this._parentage;return X===Q||Array.isArray(X)&&X.includes(Q)},te.prototype._addParent=function(Q){var X=this._parentage;this._parentage=Array.isArray(X)?(X.push(Q),X):X?[X,Q]:Q},te.prototype._removeParent=function(Q){var X=this._parentage;X===Q?this._parentage=null:Array.isArray(X)&&arrRemove(X,Q)},te.prototype.remove=function(Q){var X=this._finalizers;X&&arrRemove(X,Q),Q instanceof te&&Q._removeParent(this)},te.EMPTY=(function(){var Q=new te;return Q.closed=!0,Q})(),te})(),EMPTY_SUBSCRIPTION=Subscription.EMPTY;function isSubscription(te){return te instanceof Subscription||te&&"closed"in te&&isFunction$8(te.remove)&&isFunction$8(te.add)&&isFunction$8(te.unsubscribe)}function execFinalizer(te){isFunction$8(te)?te():te.unsubscribe()}var config={Promise:void 0},timeoutProvider={setTimeout:function(te,Q){for(var X=[],ee=2;ee<arguments.length;ee++)X[ee-2]=arguments[ee];return setTimeout.apply(void 0,__spreadArray([te,Q],__read(X)))},clearTimeout:function(te){return clearTimeout(te)},delegate:void 0};function reportUnhandledError(te){timeoutProvider.setTimeout(function(){throw te})}function noop$n(){}function errorContext(te){te()}var Subscriber=(function(te){__extends$1G(Q,te);function Q(X){var ee=te.call(this)||this;return ee.isStopped=!1,X?(ee.destination=X,isSubscription(X)&&X.add(ee)):ee.destination=EMPTY_OBSERVER,ee}return Q.create=function(X,ee,ie){return new SafeSubscriber(X,ee,ie)},Q.prototype.next=function(X){this.isStopped||this._next(X)},Q.prototype.error=function(X){this.isStopped||(this.isStopped=!0,this._error(X))},Q.prototype.complete=function(){this.isStopped||(this.isStopped=!0,this._complete())},Q.prototype.unsubscribe=function(){this.closed||(this.isStopped=!0,te.prototype.unsubscribe.call(this),this.destination=null)},Q.prototype._next=function(X){this.destination.next(X)},Q.prototype._error=function(X){try{this.destination.error(X)}finally{this.unsubscribe()}},Q.prototype._complete=function(){try{this.destination.complete()}finally{this.unsubscribe()}},Q})(Subscription),ConsumerObserver=(function(){function te(Q){this.partialObserver=Q}return te.prototype.next=function(Q){var X=this.partialObserver;if(X.next)try{X.next(Q)}catch(ee){handleUnhandledError(ee)}},te.prototype.error=function(Q){var X=this.partialObserver;if(X.error)try{X.error(Q)}catch(ee){handleUnhandledError(ee)}else handleUnhandledError(Q)},te.prototype.complete=function(){var Q=this.partialObserver;if(Q.complete)try{Q.complete()}catch(X){handleUnhandledError(X)}},te})(),SafeSubscriber=(function(te){__extends$1G(Q,te);function Q(X,ee,ie){var oe=te.call(this)||this,ne;return isFunction$8(X)||!X?ne={next:X??void 0,error:ee??void 0,complete:ie??void 0}:ne=X,oe.destination=new ConsumerObserver(ne),oe}return Q})(Subscriber);function handleUnhandledError(te){reportUnhandledError(te)}function defaultErrorHandler(te){throw te}var EMPTY_OBSERVER={closed:!0,next:noop$n,error:defaultErrorHandler,complete:noop$n},observable=(function(){return typeof Symbol=="function"&&Symbol.observable||"@@observable"})();function identity(te){return te}function pipeFromArray(te){return te.length===0?identity:te.length===1?te[0]:function(X){return te.reduce(function(ee,ie){return ie(ee)},X)}}var Observable$1=(function(){function te(Q){Q&&(this._subscribe=Q)}return te.prototype.lift=function(Q){var X=new te;return X.source=this,X.operator=Q,X},te.prototype.subscribe=function(Q,X,ee){var ie=this,oe=isSubscriber(Q)?Q:new SafeSubscriber(Q,X,ee);return errorContext(function(){var ne=ie,ae=ne.operator,se=ne.source;oe.add(ae?ae.call(oe,se):se?ie._subscribe(oe):ie._trySubscribe(oe))}),oe},te.prototype._trySubscribe=function(Q){try{return this._subscribe(Q)}catch(X){Q.error(X)}},te.prototype.forEach=function(Q,X){var ee=this;return X=getPromiseCtor(X),new X(function(ie,oe){var ne=new SafeSubscriber({next:function(ae){try{Q(ae)}catch(se){oe(se),ne.unsubscribe()}},error:oe,complete:ie});ee.subscribe(ne)})},te.prototype._subscribe=function(Q){var X;return(X=this.source)===null||X===void 0?void 0:X.subscribe(Q)},te.prototype[observable]=function(){return this},te.prototype.pipe=function(){for(var Q=[],X=0;X<arguments.length;X++)Q[X]=arguments[X];return pipeFromArray(Q)(this)},te.prototype.toPromise=function(Q){var X=this;return Q=getPromiseCtor(Q),new Q(function(ee,ie){var oe;X.subscribe(function(ne){return oe=ne},function(ne){return ie(ne)},function(){return ee(oe)})})},te.create=function(Q){return new te(Q)},te})();function getPromiseCtor(te){var Q;return(Q=te??config.Promise)!==null&&Q!==void 0?Q:Promise}function isObserver(te){return te&&isFunction$8(te.next)&&isFunction$8(te.error)&&isFunction$8(te.complete)}function isSubscriber(te){return te&&te instanceof Subscriber||isObserver(te)&&isSubscription(te)}var ObjectUnsubscribedError=createErrorClass(function(te){return function(){te(this),this.name="ObjectUnsubscribedError",this.message="object unsubscribed"}}),Subject=(function(te){__extends$1G(Q,te);function Q(){var X=te.call(this)||this;return X.closed=!1,X.currentObservers=null,X.observers=[],X.isStopped=!1,X.hasError=!1,X.thrownError=null,X}return Q.prototype.lift=function(X){var ee=new AnonymousSubject(this,this);return ee.operator=X,ee},Q.prototype._throwIfClosed=function(){if(this.closed)throw new ObjectUnsubscribedError},Q.prototype.next=function(X){var ee=this;errorContext(function(){var ie,oe;if(ee._throwIfClosed(),!ee.isStopped){ee.currentObservers||(ee.currentObservers=Array.from(ee.observers));try{for(var ne=__values(ee.currentObservers),ae=ne.next();!ae.done;ae=ne.next()){var se=ae.value;se.next(X)}}catch(le){ie={error:le}}finally{try{ae&&!ae.done&&(oe=ne.return)&&oe.call(ne)}finally{if(ie)throw ie.error}}}})},Q.prototype.error=function(X){var ee=this;errorContext(function(){if(ee._throwIfClosed(),!ee.isStopped){ee.hasError=ee.isStopped=!0,ee.thrownError=X;for(var ie=ee.observers;ie.length;)ie.shift().error(X)}})},Q.prototype.complete=function(){var X=this;errorContext(function(){if(X._throwIfClosed(),!X.isStopped){X.isStopped=!0;for(var ee=X.observers;ee.length;)ee.shift().complete()}})},Q.prototype.unsubscribe=function(){this.isStopped=this.closed=!0,this.observers=this.currentObservers=null},Object.defineProperty(Q.prototype,"observed",{get:function(){var X;return((X=this.observers)===null||X===void 0?void 0:X.length)>0},enumerable:!1,configurable:!0}),Q.prototype._trySubscribe=function(X){return this._throwIfClosed(),te.prototype._trySubscribe.call(this,X)},Q.prototype._subscribe=function(X){return this._throwIfClosed(),this._checkFinalizedStatuses(X),this._innerSubscribe(X)},Q.prototype._innerSubscribe=function(X){var ee=this,ie=this,oe=ie.hasError,ne=ie.isStopped,ae=ie.observers;return oe||ne?EMPTY_SUBSCRIPTION:(this.currentObservers=null,ae.push(X),new Subscription(function(){ee.currentObservers=null,arrRemove(ae,X)}))},Q.prototype._checkFinalizedStatuses=function(X){var ee=this,ie=ee.hasError,oe=ee.thrownError,ne=ee.isStopped;ie?X.error(oe):ne&&X.complete()},Q.prototype.asObservable=function(){var X=new Observable$1;return X.source=this,X},Q.create=function(X,ee){return new AnonymousSubject(X,ee)},Q})(Observable$1),AnonymousSubject=(function(te){__extends$1G(Q,te);function Q(X,ee){var ie=te.call(this)||this;return ie.destination=X,ie.source=ee,ie}return Q.prototype.next=function(X){var ee,ie;(ie=(ee=this.destination)===null||ee===void 0?void 0:ee.next)===null||ie===void 0||ie.call(ee,X)},Q.prototype.error=function(X){var ee,ie;(ie=(ee=this.destination)===null||ee===void 0?void 0:ee.error)===null||ie===void 0||ie.call(ee,X)},Q.prototype.complete=function(){var X,ee;(ee=(X=this.destination)===null||X===void 0?void 0:X.complete)===null||ee===void 0||ee.call(X)},Q.prototype._subscribe=function(X){var ee,ie;return(ie=(ee=this.source)===null||ee===void 0?void 0:ee.subscribe(X))!==null&&ie!==void 0?ie:EMPTY_SUBSCRIPTION},Q})(Subject);const upstream=new Subject,appState={value:{}};class LoadUiCommandHandler{async handle(Q,X){return{ui:await Q.fetchUi(X.baseUrl,X.path,X.config,X.initiator)}}}const loadUiCommandHandler=new LoadUiCommandHandler;class RunActionCommandHandler{async handle(Q,X){return{uiIncrement:await Q.runAction(X.baseUrl,X.route,X.consumedRoute,X.actionId,X.initiatorComponentId,X.appState,X.serverSideType,X.componentState,X.parameters,X.initiator,X.background)}}}const runActionCommandHandler=new RunActionCommandHandler;registerStyles("vaadin-notification-card",i$v`
+  `):"",this.name="UnsubscriptionError",this.errors=X}});function arrRemove(te,Q){if(te){var X=te.indexOf(Q);0<=X&&te.splice(X,1)}}var Subscription=(function(){function te(Q){this.initialTeardown=Q,this.closed=!1,this._parentage=null,this._finalizers=null}return te.prototype.unsubscribe=function(){var Q,X,ee,ie,oe;if(!this.closed){this.closed=!0;var ne=this._parentage;if(ne)if(this._parentage=null,Array.isArray(ne))try{for(var ae=__values(ne),se=ae.next();!se.done;se=ae.next()){var le=se.value;le.remove(this)}}catch(fe){Q={error:fe}}finally{try{se&&!se.done&&(X=ae.return)&&X.call(ae)}finally{if(Q)throw Q.error}}else ne.remove(this);var de=this.initialTeardown;if(isFunction$8(de))try{de()}catch(fe){oe=fe instanceof UnsubscriptionError?fe.errors:[fe]}var ce=this._finalizers;if(ce){this._finalizers=null;try{for(var he=__values(ce),ue=he.next();!ue.done;ue=he.next()){var pe=ue.value;try{execFinalizer(pe)}catch(fe){oe=oe??[],fe instanceof UnsubscriptionError?oe=__spreadArray(__spreadArray([],__read(oe)),__read(fe.errors)):oe.push(fe)}}}catch(fe){ee={error:fe}}finally{try{ue&&!ue.done&&(ie=he.return)&&ie.call(he)}finally{if(ee)throw ee.error}}}if(oe)throw new UnsubscriptionError(oe)}},te.prototype.add=function(Q){var X;if(Q&&Q!==this)if(this.closed)execFinalizer(Q);else{if(Q instanceof te){if(Q.closed||Q._hasParent(this))return;Q._addParent(this)}(this._finalizers=(X=this._finalizers)!==null&&X!==void 0?X:[]).push(Q)}},te.prototype._hasParent=function(Q){var X=this._parentage;return X===Q||Array.isArray(X)&&X.includes(Q)},te.prototype._addParent=function(Q){var X=this._parentage;this._parentage=Array.isArray(X)?(X.push(Q),X):X?[X,Q]:Q},te.prototype._removeParent=function(Q){var X=this._parentage;X===Q?this._parentage=null:Array.isArray(X)&&arrRemove(X,Q)},te.prototype.remove=function(Q){var X=this._finalizers;X&&arrRemove(X,Q),Q instanceof te&&Q._removeParent(this)},te.EMPTY=(function(){var Q=new te;return Q.closed=!0,Q})(),te})(),EMPTY_SUBSCRIPTION=Subscription.EMPTY;function isSubscription(te){return te instanceof Subscription||te&&"closed"in te&&isFunction$8(te.remove)&&isFunction$8(te.add)&&isFunction$8(te.unsubscribe)}function execFinalizer(te){isFunction$8(te)?te():te.unsubscribe()}var config={Promise:void 0},timeoutProvider={setTimeout:function(te,Q){for(var X=[],ee=2;ee<arguments.length;ee++)X[ee-2]=arguments[ee];return setTimeout.apply(void 0,__spreadArray([te,Q],__read(X)))},clearTimeout:function(te){return clearTimeout(te)},delegate:void 0};function reportUnhandledError(te){timeoutProvider.setTimeout(function(){throw te})}function noop$n(){}function errorContext(te){te()}var Subscriber=(function(te){__extends$1G(Q,te);function Q(X){var ee=te.call(this)||this;return ee.isStopped=!1,X?(ee.destination=X,isSubscription(X)&&X.add(ee)):ee.destination=EMPTY_OBSERVER,ee}return Q.create=function(X,ee,ie){return new SafeSubscriber(X,ee,ie)},Q.prototype.next=function(X){this.isStopped||this._next(X)},Q.prototype.error=function(X){this.isStopped||(this.isStopped=!0,this._error(X))},Q.prototype.complete=function(){this.isStopped||(this.isStopped=!0,this._complete())},Q.prototype.unsubscribe=function(){this.closed||(this.isStopped=!0,te.prototype.unsubscribe.call(this),this.destination=null)},Q.prototype._next=function(X){this.destination.next(X)},Q.prototype._error=function(X){try{this.destination.error(X)}finally{this.unsubscribe()}},Q.prototype._complete=function(){try{this.destination.complete()}finally{this.unsubscribe()}},Q})(Subscription),ConsumerObserver=(function(){function te(Q){this.partialObserver=Q}return te.prototype.next=function(Q){var X=this.partialObserver;if(X.next)try{X.next(Q)}catch(ee){handleUnhandledError(ee)}},te.prototype.error=function(Q){var X=this.partialObserver;if(X.error)try{X.error(Q)}catch(ee){handleUnhandledError(ee)}else handleUnhandledError(Q)},te.prototype.complete=function(){var Q=this.partialObserver;if(Q.complete)try{Q.complete()}catch(X){handleUnhandledError(X)}},te})(),SafeSubscriber=(function(te){__extends$1G(Q,te);function Q(X,ee,ie){var oe=te.call(this)||this,ne;return isFunction$8(X)||!X?ne={next:X??void 0,error:ee??void 0,complete:ie??void 0}:ne=X,oe.destination=new ConsumerObserver(ne),oe}return Q})(Subscriber);function handleUnhandledError(te){reportUnhandledError(te)}function defaultErrorHandler(te){throw te}var EMPTY_OBSERVER={closed:!0,next:noop$n,error:defaultErrorHandler,complete:noop$n},observable=(function(){return typeof Symbol=="function"&&Symbol.observable||"@@observable"})();function identity(te){return te}function pipeFromArray(te){return te.length===0?identity:te.length===1?te[0]:function(X){return te.reduce(function(ee,ie){return ie(ee)},X)}}var Observable$1=(function(){function te(Q){Q&&(this._subscribe=Q)}return te.prototype.lift=function(Q){var X=new te;return X.source=this,X.operator=Q,X},te.prototype.subscribe=function(Q,X,ee){var ie=this,oe=isSubscriber(Q)?Q:new SafeSubscriber(Q,X,ee);return errorContext(function(){var ne=ie,ae=ne.operator,se=ne.source;oe.add(ae?ae.call(oe,se):se?ie._subscribe(oe):ie._trySubscribe(oe))}),oe},te.prototype._trySubscribe=function(Q){try{return this._subscribe(Q)}catch(X){Q.error(X)}},te.prototype.forEach=function(Q,X){var ee=this;return X=getPromiseCtor(X),new X(function(ie,oe){var ne=new SafeSubscriber({next:function(ae){try{Q(ae)}catch(se){oe(se),ne.unsubscribe()}},error:oe,complete:ie});ee.subscribe(ne)})},te.prototype._subscribe=function(Q){var X;return(X=this.source)===null||X===void 0?void 0:X.subscribe(Q)},te.prototype[observable]=function(){return this},te.prototype.pipe=function(){for(var Q=[],X=0;X<arguments.length;X++)Q[X]=arguments[X];return pipeFromArray(Q)(this)},te.prototype.toPromise=function(Q){var X=this;return Q=getPromiseCtor(Q),new Q(function(ee,ie){var oe;X.subscribe(function(ne){return oe=ne},function(ne){return ie(ne)},function(){return ee(oe)})})},te.create=function(Q){return new te(Q)},te})();function getPromiseCtor(te){var Q;return(Q=te??config.Promise)!==null&&Q!==void 0?Q:Promise}function isObserver(te){return te&&isFunction$8(te.next)&&isFunction$8(te.error)&&isFunction$8(te.complete)}function isSubscriber(te){return te&&te instanceof Subscriber||isObserver(te)&&isSubscription(te)}var ObjectUnsubscribedError=createErrorClass(function(te){return function(){te(this),this.name="ObjectUnsubscribedError",this.message="object unsubscribed"}}),Subject=(function(te){__extends$1G(Q,te);function Q(){var X=te.call(this)||this;return X.closed=!1,X.currentObservers=null,X.observers=[],X.isStopped=!1,X.hasError=!1,X.thrownError=null,X}return Q.prototype.lift=function(X){var ee=new AnonymousSubject(this,this);return ee.operator=X,ee},Q.prototype._throwIfClosed=function(){if(this.closed)throw new ObjectUnsubscribedError},Q.prototype.next=function(X){var ee=this;errorContext(function(){var ie,oe;if(ee._throwIfClosed(),!ee.isStopped){ee.currentObservers||(ee.currentObservers=Array.from(ee.observers));try{for(var ne=__values(ee.currentObservers),ae=ne.next();!ae.done;ae=ne.next()){var se=ae.value;se.next(X)}}catch(le){ie={error:le}}finally{try{ae&&!ae.done&&(oe=ne.return)&&oe.call(ne)}finally{if(ie)throw ie.error}}}})},Q.prototype.error=function(X){var ee=this;errorContext(function(){if(ee._throwIfClosed(),!ee.isStopped){ee.hasError=ee.isStopped=!0,ee.thrownError=X;for(var ie=ee.observers;ie.length;)ie.shift().error(X)}})},Q.prototype.complete=function(){var X=this;errorContext(function(){if(X._throwIfClosed(),!X.isStopped){X.isStopped=!0;for(var ee=X.observers;ee.length;)ee.shift().complete()}})},Q.prototype.unsubscribe=function(){this.isStopped=this.closed=!0,this.observers=this.currentObservers=null},Object.defineProperty(Q.prototype,"observed",{get:function(){var X;return((X=this.observers)===null||X===void 0?void 0:X.length)>0},enumerable:!1,configurable:!0}),Q.prototype._trySubscribe=function(X){return this._throwIfClosed(),te.prototype._trySubscribe.call(this,X)},Q.prototype._subscribe=function(X){return this._throwIfClosed(),this._checkFinalizedStatuses(X),this._innerSubscribe(X)},Q.prototype._innerSubscribe=function(X){var ee=this,ie=this,oe=ie.hasError,ne=ie.isStopped,ae=ie.observers;return oe||ne?EMPTY_SUBSCRIPTION:(this.currentObservers=null,ae.push(X),new Subscription(function(){ee.currentObservers=null,arrRemove(ae,X)}))},Q.prototype._checkFinalizedStatuses=function(X){var ee=this,ie=ee.hasError,oe=ee.thrownError,ne=ee.isStopped;ie?X.error(oe):ne&&X.complete()},Q.prototype.asObservable=function(){var X=new Observable$1;return X.source=this,X},Q.create=function(X,ee){return new AnonymousSubject(X,ee)},Q})(Observable$1),AnonymousSubject=(function(te){__extends$1G(Q,te);function Q(X,ee){var ie=te.call(this)||this;return ie.destination=X,ie.source=ee,ie}return Q.prototype.next=function(X){var ee,ie;(ie=(ee=this.destination)===null||ee===void 0?void 0:ee.next)===null||ie===void 0||ie.call(ee,X)},Q.prototype.error=function(X){var ee,ie;(ie=(ee=this.destination)===null||ee===void 0?void 0:ee.error)===null||ie===void 0||ie.call(ee,X)},Q.prototype.complete=function(){var X,ee;(ee=(X=this.destination)===null||X===void 0?void 0:X.complete)===null||ee===void 0||ee.call(X)},Q.prototype._subscribe=function(X){var ee,ie;return(ie=(ee=this.source)===null||ee===void 0?void 0:ee.subscribe(X))!==null&&ie!==void 0?ie:EMPTY_SUBSCRIPTION},Q})(Subject);const upstream=new Subject,appState={value:{}};class LoadUiCommandHandler{async handle(Q,X){return{ui:await Q.fetchUi(X.baseUrl,X.path,X.config,X.initiator)}}}const loadUiCommandHandler=new LoadUiCommandHandler;class RunActionCommandHandler{async handle(Q,X){return{uiIncrement:await Q.runAction(X.baseUrl,X.route,X.consumedRoute,X.actionId,X.initiatorComponentId,X.appState,X.serverSideType,X.componentState,X.parameters,X.initiator,X.background)}}}const runActionCommandHandler=new RunActionCommandHandler;registerStyles("vaadin-notification-card",i$w`
     :host {
       position: relative;
       margin: var(--lumo-space-s);
@@ -5295,7 +5287,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const notificationContainerStyles=i$v`
+ */const notificationContainerStyles=i$w`
   :host {
     position: fixed;
     z-index: 1000;
@@ -5342,7 +5334,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       flex: initial;
     }
   }
-`,notificationCardStyles=i$v`
+`,notificationCardStyles=i$w`
   :host {
     display: block;
   }
@@ -5395,7 +5387,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 `)}getSetCookie(){return this.get("set-cookie")||[]}get[Symbol.toStringTag](){return"AxiosHeaders"}static from(Q){return Q instanceof this?Q:new this(Q)}static concat(Q,...X){const ee=new this(Q);return X.forEach(ie=>ee.set(ie)),ee}static accessor(Q){const ee=(this[$internals]=this[$internals]={accessors:{}}).accessors,ie=this.prototype;function oe(ne){const ae=normalizeHeader(ne);ee[ae]||(buildAccessors(ie,ne),ee[ae]=!0)}return utils$1.isArray(Q)?Q.forEach(oe):oe(Q),this}};AxiosHeaders$1.accessor(["Content-Type","Content-Length","Accept","Accept-Encoding","User-Agent","Authorization"]);utils$1.reduceDescriptors(AxiosHeaders$1.prototype,({value:te},Q)=>{let X=Q[0].toUpperCase()+Q.slice(1);return{get:()=>te,set(ee){this[X]=ee}}});utils$1.freezeMethods(AxiosHeaders$1);function transformData(te,Q){const X=this||defaults$3,ee=Q||X,ie=AxiosHeaders$1.from(ee.headers);let oe=ee.data;return utils$1.forEach(te,function(ae){oe=ae.call(X,oe,ie.normalize(),Q?Q.status:void 0)}),ie.normalize(),oe}function isCancel$1(te){return!!(te&&te.__CANCEL__)}function CanceledError$1(te,Q,X){AxiosError$1.call(this,te??"canceled",AxiosError$1.ERR_CANCELED,Q,X),this.name="CanceledError"}utils$1.inherits(CanceledError$1,AxiosError$1,{__CANCEL__:!0});function settle(te,Q,X){const ee=X.config.validateStatus;!X.status||!ee||ee(X.status)?te(X):Q(new AxiosError$1("Request failed with status code "+X.status,[AxiosError$1.ERR_BAD_REQUEST,AxiosError$1.ERR_BAD_RESPONSE][Math.floor(X.status/100)-4],X.config,X.request,X))}function parseProtocol(te){const Q=/^([-+\w]{1,25})(:?\/\/|:)/.exec(te);return Q&&Q[1]||""}function speedometer(te,Q){te=te||10;const X=new Array(te),ee=new Array(te);let ie=0,oe=0,ne;return Q=Q!==void 0?Q:1e3,function(se){const le=Date.now(),de=ee[oe];ne||(ne=le),X[ie]=se,ee[ie]=le;let ce=oe,he=0;for(;ce!==ie;)he+=X[ce++],ce=ce%te;if(ie=(ie+1)%te,ie===oe&&(oe=(oe+1)%te),le-ne<Q)return;const ue=de&&le-de;return ue?Math.round(he*1e3/ue):void 0}}function throttle(te,Q){let X=0,ee=1e3/Q,ie,oe;const ne=(le,de=Date.now())=>{X=de,ie=null,oe&&(clearTimeout(oe),oe=null),te(...le)};return[(...le)=>{const de=Date.now(),ce=de-X;ce>=ee?ne(le,de):(ie=le,oe||(oe=setTimeout(()=>{oe=null,ne(ie)},ee-ce)))},()=>ie&&ne(ie)]}const progressEventReducer=(te,Q,X=3)=>{let ee=0;const ie=speedometer(50,250);return throttle(oe=>{const ne=oe.loaded,ae=oe.lengthComputable?oe.total:void 0,se=ne-ee,le=ie(se),de=ne<=ae;ee=ne;const ce={loaded:ne,total:ae,progress:ae?ne/ae:void 0,bytes:se,rate:le||void 0,estimated:le&&ae&&de?(ae-ne)/le:void 0,event:oe,lengthComputable:ae!=null,[Q?"download":"upload"]:!0};te(ce)},X)},progressEventDecorator=(te,Q)=>{const X=te!=null;return[ee=>Q[0]({lengthComputable:X,total:te,loaded:ee}),Q[1]]},asyncDecorator=te=>(...Q)=>utils$1.asap(()=>te(...Q)),isURLSameOrigin=platform.hasStandardBrowserEnv?((te,Q)=>X=>(X=new URL(X,platform.origin),te.protocol===X.protocol&&te.host===X.host&&(Q||te.port===X.port)))(new URL(platform.origin),platform.navigator&&/(msie|trident)/i.test(platform.navigator.userAgent)):()=>!0,cookies=platform.hasStandardBrowserEnv?{write(te,Q,X,ee,ie,oe){const ne=[te+"="+encodeURIComponent(Q)];utils$1.isNumber(X)&&ne.push("expires="+new Date(X).toGMTString()),utils$1.isString(ee)&&ne.push("path="+ee),utils$1.isString(ie)&&ne.push("domain="+ie),oe===!0&&ne.push("secure"),document.cookie=ne.join("; ")},read(te){const Q=document.cookie.match(new RegExp("(^|;\\s*)("+te+")=([^;]*)"));return Q?decodeURIComponent(Q[3]):null},remove(te){this.write(te,"",Date.now()-864e5)}}:{write(){},read(){return null},remove(){}};function isAbsoluteURL(te){return/^([a-z][a-z\d+\-.]*:)?\/\//i.test(te)}function combineURLs(te,Q){return Q?te.replace(/\/?\/$/,"")+"/"+Q.replace(/^\/+/,""):te}function buildFullPath(te,Q,X){let ee=!isAbsoluteURL(Q);return te&&(ee||X==!1)?combineURLs(te,Q):Q}const headersToObject=te=>te instanceof AxiosHeaders$1?{...te}:te;function mergeConfig$1(te,Q){Q=Q||{};const X={};function ee(le,de,ce,he){return utils$1.isPlainObject(le)&&utils$1.isPlainObject(de)?utils$1.merge.call({caseless:he},le,de):utils$1.isPlainObject(de)?utils$1.merge({},de):utils$1.isArray(de)?de.slice():de}function ie(le,de,ce,he){if(utils$1.isUndefined(de)){if(!utils$1.isUndefined(le))return ee(void 0,le,ce,he)}else return ee(le,de,ce,he)}function oe(le,de){if(!utils$1.isUndefined(de))return ee(void 0,de)}function ne(le,de){if(utils$1.isUndefined(de)){if(!utils$1.isUndefined(le))return ee(void 0,le)}else return ee(void 0,de)}function ae(le,de,ce){if(ce in Q)return ee(le,de);if(ce in te)return ee(void 0,le)}const se={url:oe,method:oe,data:oe,baseURL:ne,transformRequest:ne,transformResponse:ne,paramsSerializer:ne,timeout:ne,timeoutMessage:ne,withCredentials:ne,withXSRFToken:ne,adapter:ne,responseType:ne,xsrfCookieName:ne,xsrfHeaderName:ne,onUploadProgress:ne,onDownloadProgress:ne,decompress:ne,maxContentLength:ne,maxBodyLength:ne,beforeRedirect:ne,transport:ne,httpAgent:ne,httpsAgent:ne,cancelToken:ne,socketPath:ne,responseEncoding:ne,validateStatus:ae,headers:(le,de,ce)=>ie(headersToObject(le),headersToObject(de),ce,!0)};return utils$1.forEach(Object.keys({...te,...Q}),function(de){const ce=se[de]||ie,he=ce(te[de],Q[de],de);utils$1.isUndefined(he)&&ce!==ae||(X[de]=he)}),X}const resolveConfig=te=>{const Q=mergeConfig$1({},te);let{data:X,withXSRFToken:ee,xsrfHeaderName:ie,xsrfCookieName:oe,headers:ne,auth:ae}=Q;Q.headers=ne=AxiosHeaders$1.from(ne),Q.url=buildURL(buildFullPath(Q.baseURL,Q.url,Q.allowAbsoluteUrls),te.params,te.paramsSerializer),ae&&ne.set("Authorization","Basic "+btoa((ae.username||"")+":"+(ae.password?unescape(encodeURIComponent(ae.password)):"")));let se;if(utils$1.isFormData(X)){if(platform.hasStandardBrowserEnv||platform.hasStandardBrowserWebWorkerEnv)ne.setContentType(void 0);else if((se=ne.getContentType())!==!1){const[le,...de]=se?se.split(";").map(ce=>ce.trim()).filter(Boolean):[];ne.setContentType([le||"multipart/form-data",...de].join("; "))}}if(platform.hasStandardBrowserEnv&&(ee&&utils$1.isFunction(ee)&&(ee=ee(Q)),ee||ee!==!1&&isURLSameOrigin(Q.url))){const le=ie&&oe&&cookies.read(oe);le&&ne.set(ie,le)}return Q},isXHRAdapterSupported=typeof XMLHttpRequest<"u",xhrAdapter=isXHRAdapterSupported&&function(te){return new Promise(function(X,ee){const ie=resolveConfig(te);let oe=ie.data;const ne=AxiosHeaders$1.from(ie.headers).normalize();let{responseType:ae,onUploadProgress:se,onDownloadProgress:le}=ie,de,ce,he,ue,pe;function fe(){ue&&ue(),pe&&pe(),ie.cancelToken&&ie.cancelToken.unsubscribe(de),ie.signal&&ie.signal.removeEventListener("abort",de)}let ve=new XMLHttpRequest;ve.open(ie.method.toUpperCase(),ie.url,!0),ve.timeout=ie.timeout;function me(){if(!ve)return;const _e=AxiosHeaders$1.from("getAllResponseHeaders"in ve&&ve.getAllResponseHeaders()),ye={data:!ae||ae==="text"||ae==="json"?ve.responseText:ve.response,status:ve.status,statusText:ve.statusText,headers:_e,config:te,request:ve};settle(function(we){X(we),fe()},function(we){ee(we),fe()},ye),ve=null}"onloadend"in ve?ve.onloadend=me:ve.onreadystatechange=function(){!ve||ve.readyState!==4||ve.status===0&&!(ve.responseURL&&ve.responseURL.indexOf("file:")===0)||setTimeout(me)},ve.onabort=function(){ve&&(ee(new AxiosError$1("Request aborted",AxiosError$1.ECONNABORTED,te,ve)),ve=null)},ve.onerror=function(){ee(new AxiosError$1("Network Error",AxiosError$1.ERR_NETWORK,te,ve)),ve=null},ve.ontimeout=function(){let be=ie.timeout?"timeout of "+ie.timeout+"ms exceeded":"timeout exceeded";const ye=ie.transitional||transitionalDefaults;ie.timeoutErrorMessage&&(be=ie.timeoutErrorMessage),ee(new AxiosError$1(be,ye.clarifyTimeoutError?AxiosError$1.ETIMEDOUT:AxiosError$1.ECONNABORTED,te,ve)),ve=null},oe===void 0&&ne.setContentType(null),"setRequestHeader"in ve&&utils$1.forEach(ne.toJSON(),function(be,ye){ve.setRequestHeader(ye,be)}),utils$1.isUndefined(ie.withCredentials)||(ve.withCredentials=!!ie.withCredentials),ae&&ae!=="json"&&(ve.responseType=ie.responseType),le&&([he,pe]=progressEventReducer(le,!0),ve.addEventListener("progress",he)),se&&ve.upload&&([ce,ue]=progressEventReducer(se),ve.upload.addEventListener("progress",ce),ve.upload.addEventListener("loadend",ue)),(ie.cancelToken||ie.signal)&&(de=_e=>{ve&&(ee(!_e||_e.type?new CanceledError$1(null,te,ve):_e),ve.abort(),ve=null)},ie.cancelToken&&ie.cancelToken.subscribe(de),ie.signal&&(ie.signal.aborted?de():ie.signal.addEventListener("abort",de)));const ge=parseProtocol(ie.url);if(ge&&platform.protocols.indexOf(ge)===-1){ee(new AxiosError$1("Unsupported protocol "+ge+":",AxiosError$1.ERR_BAD_REQUEST,te));return}ve.send(oe||null)})},composeSignals=(te,Q)=>{const{length:X}=te=te?te.filter(Boolean):[];if(Q||X){let ee=new AbortController,ie;const oe=function(le){if(!ie){ie=!0,ae();const de=le instanceof Error?le:this.reason;ee.abort(de instanceof AxiosError$1?de:new CanceledError$1(de instanceof Error?de.message:de))}};let ne=Q&&setTimeout(()=>{ne=null,oe(new AxiosError$1(`timeout ${Q} of ms exceeded`,AxiosError$1.ETIMEDOUT))},Q);const ae=()=>{te&&(ne&&clearTimeout(ne),ne=null,te.forEach(le=>{le.unsubscribe?le.unsubscribe(oe):le.removeEventListener("abort",oe)}),te=null)};te.forEach(le=>le.addEventListener("abort",oe));const{signal:se}=ee;return se.unsubscribe=()=>utils$1.asap(ae),se}},streamChunk=function*(te,Q){let X=te.byteLength;if(X<Q){yield te;return}let ee=0,ie;for(;ee<X;)ie=ee+Q,yield te.slice(ee,ie),ee=ie},readBytes=async function*(te,Q){for await(const X of readStream(te))yield*streamChunk(X,Q)},readStream=async function*(te){if(te[Symbol.asyncIterator]){yield*te;return}const Q=te.getReader();try{for(;;){const{done:X,value:ee}=await Q.read();if(X)break;yield ee}}finally{await Q.cancel()}},trackStream=(te,Q,X,ee)=>{const ie=readBytes(te,Q);let oe=0,ne,ae=se=>{ne||(ne=!0,ee&&ee(se))};return new ReadableStream({async pull(se){try{const{done:le,value:de}=await ie.next();if(le){ae(),se.close();return}let ce=de.byteLength;if(X){let he=oe+=ce;X(he)}se.enqueue(new Uint8Array(de))}catch(le){throw ae(le),le}},cancel(se){return ae(se),ie.return()}},{highWaterMark:2})},isFetchSupported=typeof fetch=="function"&&typeof Request=="function"&&typeof Response=="function",isReadableStreamSupported=isFetchSupported&&typeof ReadableStream=="function",encodeText=isFetchSupported&&(typeof TextEncoder=="function"?(te=>Q=>te.encode(Q))(new TextEncoder):async te=>new Uint8Array(await new Response(te).arrayBuffer())),test=(te,...Q)=>{try{return!!te(...Q)}catch{return!1}},supportsRequestStream=isReadableStreamSupported&&test(()=>{let te=!1;const Q=new Request(platform.origin,{body:new ReadableStream,method:"POST",get duplex(){return te=!0,"half"}}).headers.has("Content-Type");return te&&!Q}),DEFAULT_CHUNK_SIZE=64*1024,supportsResponseStream=isReadableStreamSupported&&test(()=>utils$1.isReadableStream(new Response("").body)),resolvers={stream:supportsResponseStream&&(te=>te.body)};isFetchSupported&&(te=>{["text","arrayBuffer","blob","formData","stream"].forEach(Q=>{!resolvers[Q]&&(resolvers[Q]=utils$1.isFunction(te[Q])?X=>X[Q]():(X,ee)=>{throw new AxiosError$1(`Response type '${Q}' is not supported`,AxiosError$1.ERR_NOT_SUPPORT,ee)})})})(new Response);const getBodyLength=async te=>{if(te==null)return 0;if(utils$1.isBlob(te))return te.size;if(utils$1.isSpecCompliantForm(te))return(await new Request(platform.origin,{method:"POST",body:te}).arrayBuffer()).byteLength;if(utils$1.isArrayBufferView(te)||utils$1.isArrayBuffer(te))return te.byteLength;if(utils$1.isURLSearchParams(te)&&(te=te+""),utils$1.isString(te))return(await encodeText(te)).byteLength},resolveBodyLength=async(te,Q)=>{const X=utils$1.toFiniteNumber(te.getContentLength());return X??getBodyLength(Q)},fetchAdapter=isFetchSupported&&(async te=>{let{url:Q,method:X,data:ee,signal:ie,cancelToken:oe,timeout:ne,onDownloadProgress:ae,onUploadProgress:se,responseType:le,headers:de,withCredentials:ce="same-origin",fetchOptions:he}=resolveConfig(te);le=le?(le+"").toLowerCase():"text";let ue=composeSignals([ie,oe&&oe.toAbortSignal()],ne),pe;const fe=ue&&ue.unsubscribe&&(()=>{ue.unsubscribe()});let ve;try{if(se&&supportsRequestStream&&X!=="get"&&X!=="head"&&(ve=await resolveBodyLength(de,ee))!==0){let ye=new Request(Q,{method:"POST",body:ee,duplex:"half"}),xe;if(utils$1.isFormData(ee)&&(xe=ye.headers.get("content-type"))&&de.setContentType(xe),ye.body){const[we,$e]=progressEventDecorator(ve,progressEventReducer(asyncDecorator(se)));ee=trackStream(ye.body,DEFAULT_CHUNK_SIZE,we,$e)}}utils$1.isString(ce)||(ce=ce?"include":"omit");const me="credentials"in Request.prototype;pe=new Request(Q,{...he,signal:ue,method:X.toUpperCase(),headers:de.normalize().toJSON(),body:ee,duplex:"half",credentials:me?ce:void 0});let ge=await fetch(pe,he);const _e=supportsResponseStream&&(le==="stream"||le==="response");if(supportsResponseStream&&(ae||_e&&fe)){const ye={};["status","statusText","headers"].forEach(Ae=>{ye[Ae]=ge[Ae]});const xe=utils$1.toFiniteNumber(ge.headers.get("content-length")),[we,$e]=ae&&progressEventDecorator(xe,progressEventReducer(asyncDecorator(ae),!0))||[];ge=new Response(trackStream(ge.body,DEFAULT_CHUNK_SIZE,we,()=>{$e&&$e(),fe&&fe()}),ye)}le=le||"text";let be=await resolvers[utils$1.findKey(resolvers,le)||"text"](ge,te);return!_e&&fe&&fe(),await new Promise((ye,xe)=>{settle(ye,xe,{data:be,headers:AxiosHeaders$1.from(ge.headers),status:ge.status,statusText:ge.statusText,config:te,request:pe})})}catch(me){throw fe&&fe(),me&&me.name==="TypeError"&&/Load failed|fetch/i.test(me.message)?Object.assign(new AxiosError$1("Network Error",AxiosError$1.ERR_NETWORK,te,pe),{cause:me.cause||me}):AxiosError$1.from(me,me&&me.code,te,pe)}}),knownAdapters={http:httpAdapter,xhr:xhrAdapter,fetch:fetchAdapter};utils$1.forEach(knownAdapters,(te,Q)=>{if(te){try{Object.defineProperty(te,"name",{value:Q})}catch{}Object.defineProperty(te,"adapterName",{value:Q})}});const renderReason=te=>`- ${te}`,isResolvedHandle=te=>utils$1.isFunction(te)||te===null||te===!1,adapters$1={getAdapter:te=>{te=utils$1.isArray(te)?te:[te];const{length:Q}=te;let X,ee;const ie={};for(let oe=0;oe<Q;oe++){X=te[oe];let ne;if(ee=X,!isResolvedHandle(X)&&(ee=knownAdapters[(ne=String(X)).toLowerCase()],ee===void 0))throw new AxiosError$1(`Unknown adapter '${ne}'`);if(ee)break;ie[ne||"#"+oe]=ee}if(!ee){const oe=Object.entries(ie).map(([ae,se])=>`adapter ${ae} `+(se===!1?"is not supported by the environment":"is not available in the build"));let ne=Q?oe.length>1?`since :
 `+oe.map(renderReason).join(`
 `):" "+renderReason(oe[0]):"as no adapter specified";throw new AxiosError$1("There is no suitable adapter to dispatch the request "+ne,"ERR_NOT_SUPPORT")}return ee},adapters:knownAdapters};function throwIfCancellationRequested(te){if(te.cancelToken&&te.cancelToken.throwIfRequested(),te.signal&&te.signal.aborted)throw new CanceledError$1(null,te)}function dispatchRequest(te){return throwIfCancellationRequested(te),te.headers=AxiosHeaders$1.from(te.headers),te.data=transformData.call(te,te.transformRequest),["post","put","patch"].indexOf(te.method)!==-1&&te.headers.setContentType("application/x-www-form-urlencoded",!1),adapters$1.getAdapter(te.adapter||defaults$3.adapter)(te).then(function(ee){return throwIfCancellationRequested(te),ee.data=transformData.call(te,te.transformResponse,ee),ee.headers=AxiosHeaders$1.from(ee.headers),ee},function(ee){return isCancel$1(ee)||(throwIfCancellationRequested(te),ee&&ee.response&&(ee.response.data=transformData.call(te,te.transformResponse,ee.response),ee.response.headers=AxiosHeaders$1.from(ee.response.headers))),Promise.reject(ee)})}const VERSION$2="1.11.0",validators$1={};["object","boolean","number","function","string","symbol"].forEach((te,Q)=>{validators$1[te]=function(ee){return typeof ee===te||"a"+(Q<1?"n ":" ")+te}});const deprecatedWarnings={};validators$1.transitional=function(Q,X,ee){function ie(oe,ne){return"[Axios v"+VERSION$2+"] Transitional option '"+oe+"'"+ne+(ee?". "+ee:"")}return(oe,ne,ae)=>{if(Q===!1)throw new AxiosError$1(ie(ne," has been removed"+(X?" in "+X:"")),AxiosError$1.ERR_DEPRECATED);return X&&!deprecatedWarnings[ne]&&(deprecatedWarnings[ne]=!0,console.warn(ie(ne," has been deprecated since v"+X+" and will be removed in the near future"))),Q?Q(oe,ne,ae):!0}};validators$1.spelling=function(Q){return(X,ee)=>(console.warn(`${ee} is likely a misspelling of ${Q}`),!0)};function assertOptions(te,Q,X){if(typeof te!="object")throw new AxiosError$1("options must be an object",AxiosError$1.ERR_BAD_OPTION_VALUE);const ee=Object.keys(te);let ie=ee.length;for(;ie-- >0;){const oe=ee[ie],ne=Q[oe];if(ne){const ae=te[oe],se=ae===void 0||ne(ae,oe,te);if(se!==!0)throw new AxiosError$1("option "+oe+" must be "+se,AxiosError$1.ERR_BAD_OPTION_VALUE);continue}if(X!==!0)throw new AxiosError$1("Unknown option "+oe,AxiosError$1.ERR_BAD_OPTION)}}const validator={assertOptions,validators:validators$1},validators=validator.validators;let Axios$1=class{constructor(Q){this.defaults=Q||{},this.interceptors={request:new InterceptorManager,response:new InterceptorManager}}async request(Q,X){try{return await this._request(Q,X)}catch(ee){if(ee instanceof Error){let ie={};Error.captureStackTrace?Error.captureStackTrace(ie):ie=new Error;const oe=ie.stack?ie.stack.replace(/^.+\n/,""):"";try{ee.stack?oe&&!String(ee.stack).endsWith(oe.replace(/^.+\n.+\n/,""))&&(ee.stack+=`
-`+oe):ee.stack=oe}catch{}}throw ee}}_request(Q,X){typeof Q=="string"?(X=X||{},X.url=Q):X=Q||{},X=mergeConfig$1(this.defaults,X);const{transitional:ee,paramsSerializer:ie,headers:oe}=X;ee!==void 0&&validator.assertOptions(ee,{silentJSONParsing:validators.transitional(validators.boolean),forcedJSONParsing:validators.transitional(validators.boolean),clarifyTimeoutError:validators.transitional(validators.boolean)},!1),ie!=null&&(utils$1.isFunction(ie)?X.paramsSerializer={serialize:ie}:validator.assertOptions(ie,{encode:validators.function,serialize:validators.function},!0)),X.allowAbsoluteUrls!==void 0||(this.defaults.allowAbsoluteUrls!==void 0?X.allowAbsoluteUrls=this.defaults.allowAbsoluteUrls:X.allowAbsoluteUrls=!0),validator.assertOptions(X,{baseUrl:validators.spelling("baseURL"),withXsrfToken:validators.spelling("withXSRFToken")},!0),X.method=(X.method||this.defaults.method||"get").toLowerCase();let ne=oe&&utils$1.merge(oe.common,oe[X.method]);oe&&utils$1.forEach(["delete","get","head","post","put","patch","common"],pe=>{delete oe[pe]}),X.headers=AxiosHeaders$1.concat(ne,oe);const ae=[];let se=!0;this.interceptors.request.forEach(function(fe){typeof fe.runWhen=="function"&&fe.runWhen(X)===!1||(se=se&&fe.synchronous,ae.unshift(fe.fulfilled,fe.rejected))});const le=[];this.interceptors.response.forEach(function(fe){le.push(fe.fulfilled,fe.rejected)});let de,ce=0,he;if(!se){const pe=[dispatchRequest.bind(this),void 0];for(pe.unshift(...ae),pe.push(...le),he=pe.length,de=Promise.resolve(X);ce<he;)de=de.then(pe[ce++],pe[ce++]);return de}he=ae.length;let ue=X;for(ce=0;ce<he;){const pe=ae[ce++],fe=ae[ce++];try{ue=pe(ue)}catch(ve){fe.call(this,ve);break}}try{de=dispatchRequest.call(this,ue)}catch(pe){return Promise.reject(pe)}for(ce=0,he=le.length;ce<he;)de=de.then(le[ce++],le[ce++]);return de}getUri(Q){Q=mergeConfig$1(this.defaults,Q);const X=buildFullPath(Q.baseURL,Q.url,Q.allowAbsoluteUrls);return buildURL(X,Q.params,Q.paramsSerializer)}};utils$1.forEach(["delete","get","head","options"],function(Q){Axios$1.prototype[Q]=function(X,ee){return this.request(mergeConfig$1(ee||{},{method:Q,url:X,data:(ee||{}).data}))}});utils$1.forEach(["post","put","patch"],function(Q){function X(ee){return function(oe,ne,ae){return this.request(mergeConfig$1(ae||{},{method:Q,headers:ee?{"Content-Type":"multipart/form-data"}:{},url:oe,data:ne}))}}Axios$1.prototype[Q]=X(),Axios$1.prototype[Q+"Form"]=X(!0)});let CancelToken$1=class ur{constructor(Q){if(typeof Q!="function")throw new TypeError("executor must be a function.");let X;this.promise=new Promise(function(oe){X=oe});const ee=this;this.promise.then(ie=>{if(!ee._listeners)return;let oe=ee._listeners.length;for(;oe-- >0;)ee._listeners[oe](ie);ee._listeners=null}),this.promise.then=ie=>{let oe;const ne=new Promise(ae=>{ee.subscribe(ae),oe=ae}).then(ie);return ne.cancel=function(){ee.unsubscribe(oe)},ne},Q(function(oe,ne,ae){ee.reason||(ee.reason=new CanceledError$1(oe,ne,ae),X(ee.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(Q){if(this.reason){Q(this.reason);return}this._listeners?this._listeners.push(Q):this._listeners=[Q]}unsubscribe(Q){if(!this._listeners)return;const X=this._listeners.indexOf(Q);X!==-1&&this._listeners.splice(X,1)}toAbortSignal(){const Q=new AbortController,X=ee=>{Q.abort(ee)};return this.subscribe(X),Q.signal.unsubscribe=()=>this.unsubscribe(X),Q.signal}static source(){let Q;return{token:new ur(function(ie){Q=ie}),cancel:Q}}};function spread$1(te){return function(X){return te.apply(null,X)}}function isAxiosError$1(te){return utils$1.isObject(te)&&te.isAxiosError===!0}const HttpStatusCode$1={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511};Object.entries(HttpStatusCode$1).forEach(([te,Q])=>{HttpStatusCode$1[Q]=te});function createInstance(te){const Q=new Axios$1(te),X=bind(Axios$1.prototype.request,Q);return utils$1.extend(X,Axios$1.prototype,Q,{allOwnKeys:!0}),utils$1.extend(X,Q,null,{allOwnKeys:!0}),X.create=function(ie){return createInstance(mergeConfig$1(te,ie))},X}const axios=createInstance(defaults$3);axios.Axios=Axios$1;axios.CanceledError=CanceledError$1;axios.CancelToken=CancelToken$1;axios.isCancel=isCancel$1;axios.VERSION=VERSION$2;axios.toFormData=toFormData$1;axios.AxiosError=AxiosError$1;axios.Cancel=axios.CanceledError;axios.all=function(Q){return Promise.all(Q)};axios.spread=spread$1;axios.isAxiosError=isAxiosError$1;axios.mergeConfig=mergeConfig$1;axios.AxiosHeaders=AxiosHeaders$1;axios.formToJSON=te=>formDataToJSON(utils$1.isHTMLForm(te)?new FormData(te):te);axios.getAdapter=adapters$1.getAdapter;axios.HttpStatusCode=HttpStatusCode$1;axios.default=axios;const{Axios,AxiosError,CanceledError,isCancel,CancelToken,VERSION:VERSION$1,all:all$1,Cancel,isAxiosError,spread,toFormData,AxiosHeaders,HttpStatusCode,formToJSON,getAdapter,mergeConfig}=axios,urlAlphabet="useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";let nanoid=(te=21)=>{let Q="",X=crypto.getRandomValues(new Uint8Array(te|=0));for(;te--;)Q+=urlAlphabet[X[te]&63];return Q},abortControllers=[];class AxiosMateuApiClient{constructor(){this.axiosInstance=axios.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(Q=>(this.addAuthToken(Q),this.addSessionId(Q),Q))}addSessionId(Q){let X=sessionStorage.getItem("__mateu_sesion_id");X||(X=nanoid(),sessionStorage.setItem("__mateu_sesion_id",X)),Q.headers["X-Session-Id"]=X}addAuthToken(Q){const X=localStorage.getItem("__mateu_auth_token");X&&(Q.headers.Authorization="Bearer "+X)}async wrap(Q,X,ee,ie){return ee||X.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),Q.then(oe=>(X.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:ie}})),oe)).catch(oe=>{throw oe.code=="ERR_CANCELED"?X.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):X.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:ie,reason:this.serialize(oe)}})),oe})}serialize(Q){return Q.message?Q:JSON.stringify(Q)}async get(Q){const X=new AbortController;return abortControllers=[...abortControllers,X],this.axiosInstance.get(Q,{signal:X.signal})}async post(Q,X){const ee=new AbortController;return abortControllers=[...abortControllers,ee],this.axiosInstance.post(Q,X,{signal:ee.signal})}async abortAll(){abortControllers.forEach(Q=>Q.abort()),abortControllers=[]}async fetchUi(Q,X,ee,ie){return await this.wrap(this.post(Q+"/mateu/v3/ui",{config:ee,path:X}).then(oe=>oe.data),ie,!1,"ui")}async runAction(Q,X,ee,ie,oe,ne,ae,se,le,de,ce){return X&&X.startsWith("/")&&(X=X.substring(1)),await this.wrap(this.post(Q+"/mateu/v3/sync/"+X+(ie?"/"+ie:""),{serverSideType:ae,appState:ne,componentState:se,parameters:le,initiatorComponentId:oe,consumedRoute:ee,route:"/"+X,actionId:ie}).then(he=>he.data),de,ce,ie)}}const mateuApiClient=new AxiosMateuApiClient,horizontalLayout=i$v`
+`+oe):ee.stack=oe}catch{}}throw ee}}_request(Q,X){typeof Q=="string"?(X=X||{},X.url=Q):X=Q||{},X=mergeConfig$1(this.defaults,X);const{transitional:ee,paramsSerializer:ie,headers:oe}=X;ee!==void 0&&validator.assertOptions(ee,{silentJSONParsing:validators.transitional(validators.boolean),forcedJSONParsing:validators.transitional(validators.boolean),clarifyTimeoutError:validators.transitional(validators.boolean)},!1),ie!=null&&(utils$1.isFunction(ie)?X.paramsSerializer={serialize:ie}:validator.assertOptions(ie,{encode:validators.function,serialize:validators.function},!0)),X.allowAbsoluteUrls!==void 0||(this.defaults.allowAbsoluteUrls!==void 0?X.allowAbsoluteUrls=this.defaults.allowAbsoluteUrls:X.allowAbsoluteUrls=!0),validator.assertOptions(X,{baseUrl:validators.spelling("baseURL"),withXsrfToken:validators.spelling("withXSRFToken")},!0),X.method=(X.method||this.defaults.method||"get").toLowerCase();let ne=oe&&utils$1.merge(oe.common,oe[X.method]);oe&&utils$1.forEach(["delete","get","head","post","put","patch","common"],pe=>{delete oe[pe]}),X.headers=AxiosHeaders$1.concat(ne,oe);const ae=[];let se=!0;this.interceptors.request.forEach(function(fe){typeof fe.runWhen=="function"&&fe.runWhen(X)===!1||(se=se&&fe.synchronous,ae.unshift(fe.fulfilled,fe.rejected))});const le=[];this.interceptors.response.forEach(function(fe){le.push(fe.fulfilled,fe.rejected)});let de,ce=0,he;if(!se){const pe=[dispatchRequest.bind(this),void 0];for(pe.unshift(...ae),pe.push(...le),he=pe.length,de=Promise.resolve(X);ce<he;)de=de.then(pe[ce++],pe[ce++]);return de}he=ae.length;let ue=X;for(ce=0;ce<he;){const pe=ae[ce++],fe=ae[ce++];try{ue=pe(ue)}catch(ve){fe.call(this,ve);break}}try{de=dispatchRequest.call(this,ue)}catch(pe){return Promise.reject(pe)}for(ce=0,he=le.length;ce<he;)de=de.then(le[ce++],le[ce++]);return de}getUri(Q){Q=mergeConfig$1(this.defaults,Q);const X=buildFullPath(Q.baseURL,Q.url,Q.allowAbsoluteUrls);return buildURL(X,Q.params,Q.paramsSerializer)}};utils$1.forEach(["delete","get","head","options"],function(Q){Axios$1.prototype[Q]=function(X,ee){return this.request(mergeConfig$1(ee||{},{method:Q,url:X,data:(ee||{}).data}))}});utils$1.forEach(["post","put","patch"],function(Q){function X(ee){return function(oe,ne,ae){return this.request(mergeConfig$1(ae||{},{method:Q,headers:ee?{"Content-Type":"multipart/form-data"}:{},url:oe,data:ne}))}}Axios$1.prototype[Q]=X(),Axios$1.prototype[Q+"Form"]=X(!0)});let CancelToken$1=class ur{constructor(Q){if(typeof Q!="function")throw new TypeError("executor must be a function.");let X;this.promise=new Promise(function(oe){X=oe});const ee=this;this.promise.then(ie=>{if(!ee._listeners)return;let oe=ee._listeners.length;for(;oe-- >0;)ee._listeners[oe](ie);ee._listeners=null}),this.promise.then=ie=>{let oe;const ne=new Promise(ae=>{ee.subscribe(ae),oe=ae}).then(ie);return ne.cancel=function(){ee.unsubscribe(oe)},ne},Q(function(oe,ne,ae){ee.reason||(ee.reason=new CanceledError$1(oe,ne,ae),X(ee.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(Q){if(this.reason){Q(this.reason);return}this._listeners?this._listeners.push(Q):this._listeners=[Q]}unsubscribe(Q){if(!this._listeners)return;const X=this._listeners.indexOf(Q);X!==-1&&this._listeners.splice(X,1)}toAbortSignal(){const Q=new AbortController,X=ee=>{Q.abort(ee)};return this.subscribe(X),Q.signal.unsubscribe=()=>this.unsubscribe(X),Q.signal}static source(){let Q;return{token:new ur(function(ie){Q=ie}),cancel:Q}}};function spread$1(te){return function(X){return te.apply(null,X)}}function isAxiosError$1(te){return utils$1.isObject(te)&&te.isAxiosError===!0}const HttpStatusCode$1={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511};Object.entries(HttpStatusCode$1).forEach(([te,Q])=>{HttpStatusCode$1[Q]=te});function createInstance(te){const Q=new Axios$1(te),X=bind(Axios$1.prototype.request,Q);return utils$1.extend(X,Axios$1.prototype,Q,{allOwnKeys:!0}),utils$1.extend(X,Q,null,{allOwnKeys:!0}),X.create=function(ie){return createInstance(mergeConfig$1(te,ie))},X}const axios=createInstance(defaults$3);axios.Axios=Axios$1;axios.CanceledError=CanceledError$1;axios.CancelToken=CancelToken$1;axios.isCancel=isCancel$1;axios.VERSION=VERSION$2;axios.toFormData=toFormData$1;axios.AxiosError=AxiosError$1;axios.Cancel=axios.CanceledError;axios.all=function(Q){return Promise.all(Q)};axios.spread=spread$1;axios.isAxiosError=isAxiosError$1;axios.mergeConfig=mergeConfig$1;axios.AxiosHeaders=AxiosHeaders$1;axios.formToJSON=te=>formDataToJSON(utils$1.isHTMLForm(te)?new FormData(te):te);axios.getAdapter=adapters$1.getAdapter;axios.HttpStatusCode=HttpStatusCode$1;axios.default=axios;const{Axios,AxiosError,CanceledError,isCancel,CancelToken,VERSION:VERSION$1,all:all$1,Cancel,isAxiosError,spread,toFormData,AxiosHeaders,HttpStatusCode,formToJSON,getAdapter,mergeConfig}=axios,urlAlphabet="useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";let nanoid=(te=21)=>{let Q="",X=crypto.getRandomValues(new Uint8Array(te|=0));for(;te--;)Q+=urlAlphabet[X[te]&63];return Q},abortControllers=[];class AxiosMateuApiClient{constructor(){this.axiosInstance=axios.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(Q=>(this.addAuthToken(Q),this.addSessionId(Q),Q))}addSessionId(Q){let X=sessionStorage.getItem("__mateu_sesion_id");X||(X=nanoid(),sessionStorage.setItem("__mateu_sesion_id",X)),Q.headers["X-Session-Id"]=X}addAuthToken(Q){const X=localStorage.getItem("__mateu_auth_token");X&&(Q.headers.Authorization="Bearer "+X)}async wrap(Q,X,ee,ie){return ee||X.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),Q.then(oe=>(X.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:ie}})),oe)).catch(oe=>{throw oe.code=="ERR_CANCELED"?X.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):X.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:ie,reason:this.serialize(oe)}})),oe})}serialize(Q){return Q.message?Q:JSON.stringify(Q)}async get(Q){const X=new AbortController;return abortControllers=[...abortControllers,X],this.axiosInstance.get(Q,{signal:X.signal})}async post(Q,X){const ee=new AbortController;return abortControllers=[...abortControllers,ee],this.axiosInstance.post(Q,X,{signal:ee.signal})}async abortAll(){abortControllers.forEach(Q=>Q.abort()),abortControllers=[]}async fetchUi(Q,X,ee,ie){return await this.wrap(this.post(Q+"/mateu/v3/ui",{config:ee,path:X}).then(oe=>oe.data),ie,!1,"ui")}async runAction(Q,X,ee,ie,oe,ne,ae,se,le,de,ce){return X&&X.startsWith("/")&&(X=X.substring(1)),await this.wrap(this.post(Q+"/mateu/v3/sync/"+X+(ie?"/"+ie:""),{serverSideType:ae,appState:ne,componentState:se,parameters:le,initiatorComponentId:oe,consumedRoute:ee,route:"/"+X,actionId:ie}).then(he=>he.data),de,ce,ie)}}const mateuApiClient=new AxiosMateuApiClient,horizontalLayout=i$w`
   :host([theme~='margin']) {
     margin: var(--lumo-space-m);
   }
@@ -5443,7 +5435,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const baseStyles$1=i$v`
+ */const baseStyles$1=i$w`
   :host {
     display: flex;
     box-sizing: border-box;
@@ -5481,7 +5473,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   :host(:not([has-middle])) ::slotted([first-end-child]) {
     margin-inline-start: auto;
   }
-`,enableLayoutImprovements=window.Vaadin.featureFlags.layoutComponentImprovements,layoutImprovementStyles=i$v`
+`,enableLayoutImprovements=window.Vaadin.featureFlags.layoutComponentImprovements,layoutImprovementStyles=i$w`
   ::slotted([data-width-full]) {
     flex: 1;
   }
@@ -5498,7 +5490,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <slot></slot>
       <slot name="middle"></slot>
       <slot name="end"></slot>
-    `}static get is(){return"vaadin-horizontal-layout"}}defineCustomElement(HorizontalLayout);registerStyles("vaadin-form-layout",i$v`
+    `}static get is(){return"vaadin-horizontal-layout"}}defineCustomElement(HorizontalLayout);registerStyles("vaadin-form-layout",i$w`
     :host {
       --vaadin-form-layout-column-spacing: var(--lumo-space-l);
       --vaadin-form-layout-row-spacing: 0;
@@ -5527,7 +5519,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const formLayoutStyles=i$v`
+ */const formLayoutStyles=i$w`
   :host {
     /* Default values */
     --vaadin-form-layout-row-spacing: 1em;
@@ -5679,7 +5671,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /* Allow the layout to take up full available width of the parent element. */
     flex-grow: 1;
   }
-`,formLayoutSlotStyles=i$v`
+`,formLayoutSlotStyles=i$w`
   /* Using :where to ensure user styles always take precedence */
   :where(
       vaadin-form-layout[auto-responsive] > *,
@@ -5697,7 +5689,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ) {
     min-width: 100%;
   }
-`,formRowStyles=i$v`
+`,formRowStyles=i$w`
   :host {
     display: contents;
   }
@@ -5717,7 +5709,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ::slotted(:first-child) {
     grid-column-start: 1;
   }
-`,formItemStyles=i$v`
+`,formItemStyles=i$w`
   :host {
     /* By default, when auto-responsive mode is disabled, labels should be displayed beside the fields. */
     --_form-item-labels-above: ' '; /* false */
@@ -5774,7 +5766,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <div id="layout">
         <slot id="slot"></slot>
       </div>
-    `}}defineCustomElement(FormLayout);registerStyles("vaadin-app-layout",i$v`
+    `}}defineCustomElement(FormLayout);registerStyles("vaadin-app-layout",i$w`
     [part='navbar'],
     [part='drawer'] {
       background-color: var(--lumo-base-color);
@@ -5862,7 +5854,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const appLayoutStyles=i$v`
+ */const appLayoutStyles=i$w`
   :host {
     display: block;
     box-sizing: border-box;
@@ -6041,7 +6033,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <div hidden>
         <slot id="touchSlot" name="navbar touch-optimized" on-slotchange="_updateTouchOptimizedMode"></slot>
       </div>
-    `}static get is(){return"vaadin-app-layout"}}defineCustomElement(AppLayout);const button$1=i$v`
+    `}static get is(){return"vaadin-app-layout"}}defineCustomElement(AppLayout);const button$1=i$w`
   :host {
     /* Sizing */
     --lumo-button-size: var(--lumo-size-m);
@@ -6316,7 +6308,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     margin-left: 0;
     margin-right: 0;
   }
-`;registerStyles("vaadin-button",button$1,{moduleId:"lumo-button"});const drawerToggle$1=i$v`
+`;registerStyles("vaadin-button",button$1,{moduleId:"lumo-button"});const drawerToggle$1=i$w`
   :host {
     width: var(--lumo-size-l);
     height: var(--lumo-size-l);
@@ -6349,7 +6341,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const buttonStyles=i$v`
+ */const buttonStyles=i$w`
   :host {
     display: inline-block;
     position: relative;
@@ -6449,7 +6441,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const drawerToggle=i$v`
+ */const drawerToggle=i$w`
   :host {
     display: inline-flex;
     align-items: center;
@@ -6493,7 +6485,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div part="icon"></div>
       </slot>
       <div part="icon" hidden$="[[!_showFallbackIcon]]"></div>
-    `}static get is(){return"vaadin-drawer-toggle"}static get properties(){return{ariaLabel:{type:String,value:"Toggle navigation panel",reflectToAttribute:!0},_showFallbackIcon:{type:Boolean,value:!1}}}constructor(){super(),this.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("drawer-toggle-click",{bubbles:!0,composed:!0}))})}ready(){super.ready(),this._toggleFallbackIcon(),this.$.slot.addEventListener("slotchange",()=>{this._toggleFallbackIcon()})}_toggleFallbackIcon(){const Q=this.$.slot.assignedNodes();this._showFallbackIcon=Q.length>0&&Q.every(X=>isEmptyTextNode(X))}}defineCustomElement(DrawerToggle);registerStyles("vaadin-tab",i$v`
+    `}static get is(){return"vaadin-drawer-toggle"}static get properties(){return{ariaLabel:{type:String,value:"Toggle navigation panel",reflectToAttribute:!0},_showFallbackIcon:{type:Boolean,value:!1}}}constructor(){super(),this.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("drawer-toggle-click",{bubbles:!0,composed:!0}))})}ready(){super.ready(),this._toggleFallbackIcon(),this.$.slot.addEventListener("slotchange",()=>{this._toggleFallbackIcon()})}_toggleFallbackIcon(){const Q=this.$.slot.assignedNodes();this._showFallbackIcon=Q.length>0&&Q.every(X=>isEmptyTextNode(X))}}defineCustomElement(DrawerToggle);registerStyles("vaadin-tab",i$w`
     :host {
       box-sizing: border-box;
       padding: 0.5rem 0.75rem;
@@ -6749,7 +6741,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const tabStyles=i$v`
+ */const tabStyles=i$w`
   :host {
     display: block;
   }
@@ -6775,7 +6767,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  */registerStyles("vaadin-tab",tabStyles,{moduleId:"vaadin-tab-styles"});class Tab extends ElementMixin(ThemableMixin(TabMixin(ControllerMixin(PolymerElement)))){static get template(){return html$3`
       <slot></slot>
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-tab"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController)}}defineCustomElement(Tab);registerStyles("vaadin-tabs",i$v`
+    `}static get is(){return"vaadin-tab"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController)}}defineCustomElement(Tab);registerStyles("vaadin-tabs",i$w`
     :host {
       -webkit-tap-highlight-color: transparent;
     }
@@ -7037,7 +7029,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const tabsStyles=i$v`
+ */const tabsStyles=i$w`
   :host {
     display: flex;
     align-items: center;
@@ -7125,7 +7117,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
 
       <div on-click="_scrollForward" part="forward-button" aria-hidden="true"></div>
-    `}static get is(){return"vaadin-tabs"}}defineCustomElement(Tabs);const menuBarButton=i$v`
+    `}static get is(){return"vaadin-tabs"}}defineCustomElement(Tabs);const menuBarButton=i$w`
   :host {
     margin: calc(var(--lumo-space-xs) / 2);
     margin-left: 0;
@@ -7266,7 +7258,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2019 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-menu-bar-button",i$v`
+ */registerStyles("vaadin-menu-bar-button",i$w`
     :host {
       flex-shrink: 0;
     }
@@ -7274,7 +7266,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     :host([slot='overflow']) {
       margin-inline-end: 0;
     }
-  `,{moduleId:"vaadin-menu-bar-button-styles"});class MenuBarButton extends Button$1{static get is(){return"vaadin-menu-bar-button"}_onKeyDown(Q){this.__triggeredWithActiveKeys=this._activeKeys.includes(Q.key),super._onKeyDown(Q),this.__triggeredWithActiveKeys=null}__shouldSuppressInteractionEvent(Q){return Q.type==="keydown"&&["ArrowLeft","ArrowRight"].includes(Q.key)?!1:super.__shouldSuppressInteractionEvent(Q)}}defineCustomElement(MenuBarButton);const item=i$v`
+  `,{moduleId:"vaadin-menu-bar-button-styles"});class MenuBarButton extends Button$1{static get is(){return"vaadin-menu-bar-button"}_onKeyDown(Q){this.__triggeredWithActiveKeys=this._activeKeys.includes(Q.key),super._onKeyDown(Q),this.__triggeredWithActiveKeys=null}__shouldSuppressInteractionEvent(Q){return Q.type==="keydown"&&["ArrowLeft","ArrowRight"].includes(Q.key)?!1:super.__shouldSuppressInteractionEvent(Q)}}defineCustomElement(MenuBarButton);const item=i$w`
   :host {
     display: flex;
     align-items: center;
@@ -7358,7 +7350,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     width: var(--lumo-icon-size-m);
     height: var(--lumo-icon-size-m);
   }
-`;registerStyles("vaadin-item",item,{moduleId:"lumo-item"});const contextMenuItem=i$v`
+`;registerStyles("vaadin-item",item,{moduleId:"lumo-item"});const contextMenuItem=i$w`
   /* :hover needed to workaround https://github.com/vaadin/web-components/issues/3133 */
   :host(:hover) {
     user-select: none;
@@ -7391,7 +7383,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     margin-left: calc(var(--lumo-space-m) * -1);
     padding-right: var(--lumo-space-m);
   }
-`;registerStyles("vaadin-context-menu-item",[item,contextMenuItem],{moduleId:"lumo-context-menu-item"});const menuBarItem=i$v`
+`;registerStyles("vaadin-context-menu-item",[item,contextMenuItem],{moduleId:"lumo-context-menu-item"});const menuBarItem=i$w`
   [part='content'] {
     display: flex;
     /* tweak to inherit centering from menu bar button */
@@ -7409,7 +7401,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     padding: var(--lumo-space-xs);
     box-sizing: border-box !important;
   }
-`;registerStyles("vaadin-menu-bar-item",[item,contextMenuItem,menuBarItem],{moduleId:"lumo-menu-bar-item"});const listBox=i$v`
+`;registerStyles("vaadin-menu-bar-item",[item,contextMenuItem,menuBarItem],{moduleId:"lumo-menu-bar-item"});const listBox=i$w`
   :host {
     -webkit-tap-highlight-color: transparent;
     --_lumo-item-selected-icon-display: var(--_lumo-list-box-item-selected-icon-display, block);
@@ -7423,7 +7415,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     margin: var(--lumo-space-s) var(--lumo-border-radius-m);
     background-color: var(--lumo-contrast-10pct);
   }
-`;registerStyles("vaadin-list-box",listBox,{moduleId:"lumo-list-box"});const contextMenuListBox=i$v`
+`;registerStyles("vaadin-list-box",listBox,{moduleId:"lumo-list-box"});const contextMenuListBox=i$w`
   :host {
     --_lumo-list-box-item-selected-icon-display: block;
   }
@@ -7457,7 +7449,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       background-color: transparent;
     }
   }
-`;registerStyles("vaadin-context-menu-list-box",[listBox,contextMenuListBox],{moduleId:"lumo-context-menu-list-box"});registerStyles("vaadin-menu-bar-list-box",[listBox,contextMenuListBox],{moduleId:"lumo-menu-bar-list-box"});const contextMenuOverlay=i$v`
+`;registerStyles("vaadin-context-menu-list-box",[listBox,contextMenuListBox],{moduleId:"lumo-context-menu-list-box"});registerStyles("vaadin-menu-bar-list-box",[listBox,contextMenuListBox],{moduleId:"lumo-menu-bar-list-box"});const contextMenuOverlay=i$w`
   :host([phone]) {
     /* stylelint-disable declaration-block-no-redundant-longhand-properties */
     top: 0 !important;
@@ -7480,11 +7472,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   [part='overlay'] {
     outline: none;
   }
-`;registerStyles("vaadin-context-menu-overlay",[menuOverlay,contextMenuOverlay],{moduleId:"lumo-context-menu-overlay"});const menuBarOverlay=i$v`
+`;registerStyles("vaadin-context-menu-overlay",[menuOverlay,contextMenuOverlay],{moduleId:"lumo-context-menu-overlay"});const menuBarOverlay=i$w`
   :host(:first-of-type) {
     padding-top: var(--lumo-space-xs);
   }
-`;registerStyles("vaadin-menu-bar-overlay",[menuOverlay,contextMenuOverlay,menuBarOverlay],{moduleId:"lumo-menu-bar-overlay"});registerStyles("vaadin-menu-bar",i$v`
+`;registerStyles("vaadin-menu-bar-overlay",[menuOverlay,contextMenuOverlay,menuBarOverlay],{moduleId:"lumo-menu-bar-overlay"});registerStyles("vaadin-menu-bar",i$w`
     :host([has-single-button]) ::slotted(vaadin-menu-bar-button) {
       border-radius: var(--lumo-border-radius-m);
     }
@@ -7559,7 +7551,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const styles=i$v`
+ */const styles=i$w`
   :host {
     align-items: flex-start;
     justify-content: flex-start;
@@ -7591,7 +7583,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const overlayStyles=i$v`
+ */const overlayStyles=i$w`
   :host {
     z-index: 200;
     position: fixed;
@@ -7749,7 +7741,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-form-row",formRowStyles,{moduleId:"vaadin-form-row-styles"});class FormRow extends ThemableMixin(PolymerElement){static get is(){return"vaadin-form-row"}static get template(){return html$3`<slot></slot>`}}defineCustomElement(FormRow);registerStyles("vaadin-form-item",i$v`
+ */registerStyles("vaadin-form-row",formRowStyles,{moduleId:"vaadin-form-row-styles"});class FormRow extends ThemableMixin(PolymerElement){static get is(){return"vaadin-form-row"}static get template(){return html$3`<slot></slot>`}}defineCustomElement(FormRow);registerStyles("vaadin-form-item",i$w`
     /* font-weight, margin-bottom, transition and line-height same as for part label in text-field */
     [part='label'] {
       color: var(--lumo-secondary-text-color);
@@ -7798,7 +7790,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       <div id="content">
         <slot id="contentSlot" on-slotchange="__onContentSlotChange"></slot>
       </div>
-    `}}defineCustomElement(FormItem);registerStyles("vaadin-split-layout",i$v`
+    `}}defineCustomElement(FormItem);registerStyles("vaadin-split-layout",i$w`
     [part='splitter'] {
       min-width: var(--lumo-space-s);
       min-height: var(--lumo-space-s);
@@ -7886,7 +7878,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const splitLayoutStyles=i$v`
+ */const splitLayoutStyles=i$w`
   :host {
     display: flex;
     overflow: hidden !important;
@@ -7953,7 +7945,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         <div part="handle"></div>
       </div>
       <slot id="secondary" name="secondary"></slot>
-    `}static get is(){return"vaadin-split-layout"}}defineCustomElement(SplitLayout);registerStyles("vaadin-master-detail-layout",i$v`
+    `}static get is(){return"vaadin-split-layout"}}defineCustomElement(SplitLayout);registerStyles("vaadin-master-detail-layout",i$w`
     :host(:is([drawer], [stack])) [part='detail'] {
       background-color: var(--lumo-base-color);
       box-shadow:
@@ -7976,11 +7968,11 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const caseMap={},CAMEL_TO_DASH=/([A-Z])/gu;function camelToDash(te){return caseMap[te]||(caseMap[te]=te.replace(CAMEL_TO_DASH,"-$1").toLowerCase()),caseMap[te]}function upper(te){return te[0].toUpperCase()+te.substring(1)}function parseObserver(te){const[Q,X]=te.split("("),ee=X.replace(")","").split(",").map(ie=>ie.trim());return{method:Q,observerProps:ee}}function getOrCreateMap(te,Q){return Object.prototype.hasOwnProperty.call(te,Q)||(te[Q]=new Map(te[Q])),te[Q]}const PolylitMixinImplementation=te=>{class Q extends te{static enabledWarnings=[];static createProperty(ee,ie){[String,Boolean,Number,Array].includes(ie)&&(ie={type:ie}),ie&&ie.reflectToAttribute&&(ie.reflect=!0),super.createProperty(ee,ie)}static getOrCreateMap(ee){return getOrCreateMap(this,ee)}static finalize(){if(window.litIssuedWarnings&&(window.litIssuedWarnings.add("no-override-create-property"),window.litIssuedWarnings.add("no-override-get-property-descriptor")),super.finalize(),Array.isArray(this.observers)){const ee=this.getOrCreateMap("__complexObservers");this.observers.forEach(ie=>{const{method:oe,observerProps:ne}=parseObserver(ie);ee.set(oe,ne)})}}static addCheckedInitializer(ee){super.addInitializer(ie=>{ie instanceof this&&ee(ie)})}static getPropertyDescriptor(ee,ie,oe){const ne=super.getPropertyDescriptor(ee,ie,oe);let ae=ne;if(this.getOrCreateMap("__propKeys").set(ee,ie),oe.sync&&(ae={get:ne.get,set(se){const le=this[ee];f$k(se,le)&&(this[ie]=se,this.requestUpdate(ee,le,oe),this.hasUpdated&&this.performUpdate())},configurable:!0,enumerable:!0}),oe.readOnly){const se=ae.set;this.addCheckedInitializer(le=>{le[`_set${upper(ee)}`]=function(de){se.call(le,de)}}),ae={get:ae.get,set(){},configurable:!0,enumerable:!0}}if("value"in oe&&this.addCheckedInitializer(se=>{const le=typeof oe.value=="function"?oe.value.call(se):oe.value;oe.readOnly?se[`_set${upper(ee)}`](le):se[ee]=le}),oe.observer){const se=oe.observer;this.getOrCreateMap("__observers").set(ee,se),this.addCheckedInitializer(le=>{le[se]||console.warn(`observer method ${se} not defined`)})}if(oe.notify){if(!this.__notifyProps)this.__notifyProps=new Set;else if(!this.hasOwnProperty("__notifyProps")){const se=this.__notifyProps;this.__notifyProps=new Set(se)}this.__notifyProps.add(ee)}if(oe.computed){const se=`__assignComputed${ee}`,le=parseObserver(oe.computed);this.prototype[se]=function(...de){this[ee]=this[le.method](...de)},this.getOrCreateMap("__computedObservers").set(se,le.observerProps)}return oe.attribute||(oe.attribute=camelToDash(ee)),ae}static get polylitConfig(){return{asyncFirstRender:!1}}constructor(){super(),this.__hasPolylitMixin=!0}connectedCallback(){super.connectedCallback();const ee=this.getRootNode().host;ee&&ee.__hasPolylitMixin&&this.id&&(ee.$||={},ee.$[this.id]=this);const{polylitConfig:ie}=this.constructor;!this.hasUpdated&&!ie.asyncFirstRender&&this.performUpdate()}firstUpdated(){super.firstUpdated(),this.$||(this.$={}),[...Object.values(this.$),this.renderRoot].forEach(ee=>{ee.querySelectorAll("[id]").forEach(ie=>{this.$[ie.id]=ie})})}ready(){}willUpdate(ee){this.constructor.__computedObservers&&this.__runComplexObservers(ee,this.constructor.__computedObservers)}updated(ee){const ie=this.__isReadyInvoked;this.__isReadyInvoked=!0,this.constructor.__observers&&this.__runObservers(ee,this.constructor.__observers),this.constructor.__complexObservers&&this.__runComplexObservers(ee,this.constructor.__complexObservers),this.__dynamicPropertyObservers&&this.__runDynamicObservers(ee,this.__dynamicPropertyObservers),this.__dynamicMethodObservers&&this.__runComplexObservers(ee,this.__dynamicMethodObservers),this.constructor.__notifyProps&&this.__runNotifyProps(ee,this.constructor.__notifyProps),ie||this.ready()}setProperties(ee){Object.entries(ee).forEach(([ie,oe])=>{const ne=this.constructor.__propKeys.get(ie),ae=this[ne];this[ne]=oe,this.requestUpdate(ie,ae)}),this.hasUpdated&&this.performUpdate()}_createMethodObserver(ee){const ie=getOrCreateMap(this,"__dynamicMethodObservers"),{method:oe,observerProps:ne}=parseObserver(ee);ie.set(oe,ne)}_createPropertyObserver(ee,ie){getOrCreateMap(this,"__dynamicPropertyObservers").set(ie,ee)}__runComplexObservers(ee,ie){ie.forEach((oe,ne)=>{oe.some(ae=>ee.has(ae))&&(this[ne]?this[ne](...oe.map(ae=>this[ae])):console.warn(`observer method ${ne} not defined`))})}__runDynamicObservers(ee,ie){ie.forEach((oe,ne)=>{ee.has(oe)&&this[ne]&&this[ne](this[oe],ee.get(oe))})}__runObservers(ee,ie){ee.forEach((oe,ne)=>{const ae=ie.get(ne);ae!==void 0&&this[ae]&&this[ae](this[ne],oe)})}__runNotifyProps(ee,ie){ee.forEach((oe,ne)=>{ie.has(ne)&&this.dispatchEvent(new CustomEvent(`${camelToDash(ne)}-changed`,{detail:{value:this[ne]}}))})}_get(ee,ie){return get$4(ee,ie)}_set(ee,ie,oe){set$1(ee,ie,oe)}}return Q},PolylitMixin=dedupeMixin(PolylitMixinImplementation);/**
+ */const caseMap={},CAMEL_TO_DASH=/([A-Z])/gu;function camelToDash(te){return caseMap[te]||(caseMap[te]=te.replace(CAMEL_TO_DASH,"-$1").toLowerCase()),caseMap[te]}function upper(te){return te[0].toUpperCase()+te.substring(1)}function parseObserver(te){const[Q,X]=te.split("("),ee=X.replace(")","").split(",").map(ie=>ie.trim());return{method:Q,observerProps:ee}}function getOrCreateMap(te,Q){return Object.prototype.hasOwnProperty.call(te,Q)||(te[Q]=new Map(te[Q])),te[Q]}const PolylitMixinImplementation=te=>{class Q extends te{static enabledWarnings=[];static createProperty(ee,ie){[String,Boolean,Number,Array].includes(ie)&&(ie={type:ie}),ie&&ie.reflectToAttribute&&(ie.reflect=!0),super.createProperty(ee,ie)}static getOrCreateMap(ee){return getOrCreateMap(this,ee)}static finalize(){if(window.litIssuedWarnings&&(window.litIssuedWarnings.add("no-override-create-property"),window.litIssuedWarnings.add("no-override-get-property-descriptor")),super.finalize(),Array.isArray(this.observers)){const ee=this.getOrCreateMap("__complexObservers");this.observers.forEach(ie=>{const{method:oe,observerProps:ne}=parseObserver(ie);ee.set(oe,ne)})}}static addCheckedInitializer(ee){super.addInitializer(ie=>{ie instanceof this&&ee(ie)})}static getPropertyDescriptor(ee,ie,oe){const ne=super.getPropertyDescriptor(ee,ie,oe);let ae=ne;if(this.getOrCreateMap("__propKeys").set(ee,ie),oe.sync&&(ae={get:ne.get,set(se){const le=this[ee];f$l(se,le)&&(this[ie]=se,this.requestUpdate(ee,le,oe),this.hasUpdated&&this.performUpdate())},configurable:!0,enumerable:!0}),oe.readOnly){const se=ae.set;this.addCheckedInitializer(le=>{le[`_set${upper(ee)}`]=function(de){se.call(le,de)}}),ae={get:ae.get,set(){},configurable:!0,enumerable:!0}}if("value"in oe&&this.addCheckedInitializer(se=>{const le=typeof oe.value=="function"?oe.value.call(se):oe.value;oe.readOnly?se[`_set${upper(ee)}`](le):se[ee]=le}),oe.observer){const se=oe.observer;this.getOrCreateMap("__observers").set(ee,se),this.addCheckedInitializer(le=>{le[se]||console.warn(`observer method ${se} not defined`)})}if(oe.notify){if(!this.__notifyProps)this.__notifyProps=new Set;else if(!this.hasOwnProperty("__notifyProps")){const se=this.__notifyProps;this.__notifyProps=new Set(se)}this.__notifyProps.add(ee)}if(oe.computed){const se=`__assignComputed${ee}`,le=parseObserver(oe.computed);this.prototype[se]=function(...de){this[ee]=this[le.method](...de)},this.getOrCreateMap("__computedObservers").set(se,le.observerProps)}return oe.attribute||(oe.attribute=camelToDash(ee)),ae}static get polylitConfig(){return{asyncFirstRender:!1}}constructor(){super(),this.__hasPolylitMixin=!0}connectedCallback(){super.connectedCallback();const ee=this.getRootNode().host;ee&&ee.__hasPolylitMixin&&this.id&&(ee.$||={},ee.$[this.id]=this);const{polylitConfig:ie}=this.constructor;!this.hasUpdated&&!ie.asyncFirstRender&&this.performUpdate()}firstUpdated(){super.firstUpdated(),this.$||(this.$={}),[...Object.values(this.$),this.renderRoot].forEach(ee=>{ee.querySelectorAll("[id]").forEach(ie=>{this.$[ie.id]=ie})})}ready(){}willUpdate(ee){this.constructor.__computedObservers&&this.__runComplexObservers(ee,this.constructor.__computedObservers)}updated(ee){const ie=this.__isReadyInvoked;this.__isReadyInvoked=!0,this.constructor.__observers&&this.__runObservers(ee,this.constructor.__observers),this.constructor.__complexObservers&&this.__runComplexObservers(ee,this.constructor.__complexObservers),this.__dynamicPropertyObservers&&this.__runDynamicObservers(ee,this.__dynamicPropertyObservers),this.__dynamicMethodObservers&&this.__runComplexObservers(ee,this.__dynamicMethodObservers),this.constructor.__notifyProps&&this.__runNotifyProps(ee,this.constructor.__notifyProps),ie||this.ready()}setProperties(ee){Object.entries(ee).forEach(([ie,oe])=>{const ne=this.constructor.__propKeys.get(ie),ae=this[ne];this[ne]=oe,this.requestUpdate(ie,ae)}),this.hasUpdated&&this.performUpdate()}_createMethodObserver(ee){const ie=getOrCreateMap(this,"__dynamicMethodObservers"),{method:oe,observerProps:ne}=parseObserver(ee);ie.set(oe,ne)}_createPropertyObserver(ee,ie){getOrCreateMap(this,"__dynamicPropertyObservers").set(ie,ee)}__runComplexObservers(ee,ie){ie.forEach((oe,ne)=>{oe.some(ae=>ee.has(ae))&&(this[ne]?this[ne](...oe.map(ae=>this[ae])):console.warn(`observer method ${ne} not defined`))})}__runDynamicObservers(ee,ie){ie.forEach((oe,ne)=>{ee.has(oe)&&this[ne]&&this[ne](this[oe],ee.get(oe))})}__runObservers(ee,ie){ee.forEach((oe,ne)=>{const ae=ie.get(ne);ae!==void 0&&this[ae]&&this[ae](this[ne],oe)})}__runNotifyProps(ee,ie){ee.forEach((oe,ne)=>{ie.has(ne)&&this.dispatchEvent(new CustomEvent(`${camelToDash(ne)}-changed`,{detail:{value:this[ne]}}))})}_get(ee,ie){return get$4(ee,ie)}_set(ee,ie,oe){set$1(ee,ie,oe)}}return Q},PolylitMixin=dedupeMixin(PolylitMixinImplementation);/**
  * @license
  * Copyright (c) 2025 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const transitionStyles=i$v`
+ */const transitionStyles=i$w`
   @media (prefers-reduced-motion: no-preference) {
     html {
       --_vaadin-mdl-dir-multiplier: 1;
@@ -8116,7 +8108,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2025 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class MasterDetailLayout extends SlotStylesMixin(ResizeMixin(ElementMixin(ThemableMixin(PolylitMixin(i$s))))){static get is(){return"vaadin-master-detail-layout"}static get styles(){return i$v`
+ */class MasterDetailLayout extends SlotStylesMixin(ResizeMixin(ElementMixin(ThemableMixin(PolylitMixin(i$s))))){static get is(){return"vaadin-master-detail-layout"}static get styles(){return i$w`
       /* Layout and positioning styles */
 
       :host {
@@ -8287,7 +8279,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
           <slot name="detail" @slotchange="${this.__onDetailSlotChange}"></slot>
         </div>
       </div>
-    `}__onDetailSlotChange(Q){const X=Q.target.assignedNodes();if(this._hasDetail=X.length>0,this.__detectLayoutMode(),(this._drawer||this._stack)&&X.length>0){const ee=getFocusableElements(X[0]);ee.length&&ee[0].focus()}}__onDetailClick(Q){Q.composedPath().includes(this.$.detail)||this.dispatchEvent(new CustomEvent("backdrop-click"))}__onDetailKeydown(Q){Q.key==="Escape"&&(Q.stopPropagation(),this.dispatchEvent(new CustomEvent("detail-escape-press")))}_onResize(){this.__detectLayoutMode()}__detailSizeChanged(Q,X){this.__updateStyleProperty("detail-size",Q,X),this.__detectLayoutMode()}__detailMinSizeChanged(Q,X){this.__updateStyleProperty("detail-min-size",Q,X),this.__detectLayoutMode()}__masterSizeChanged(Q,X){this.__updateStyleProperty("master-size",Q,X),this.__detectLayoutMode()}__masterMinSizeChanged(Q,X){this.__updateStyleProperty("master-min-size",Q,X),this.__detectLayoutMode()}__orientationChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__forceOverlayChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__stackOverlayChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__updateStyleProperty(Q,X,ee){X?this.style.setProperty(`--_${Q}`,X):ee&&this.style.removeProperty(`--_${Q}`),this.toggleAttribute(`has-${Q}`,!!X)}__setOverlayMode(Q){this.stackOverlay?this._stack=Q:this._drawer=Q}__detectLayoutMode(){if(this._drawer=!1,this._stack=!1,this.forceOverlay){this.__setOverlayMode(!0);return}this._hasDetail&&(this.orientation==="vertical"?this.__detectVerticalMode():this.__detectHorizontalMode())}__detectHorizontalMode(){const Q=this.$.detail.offsetWidth;this.$.master.style.maxWidth=this.masterSize||this.masterMinSize||"min-content";const X=this.$.master.offsetWidth;this.$.master.style.maxWidth="",this.__setOverlayMode(this.offsetWidth<X+Q),this.offsetWidth<this.scrollWidth&&this.__setOverlayMode(!0)}__detectVerticalMode(){const Q=this.$.master.clientHeight;this.offsetHeight<Q+this.$.detail.clientHeight&&this.__setOverlayMode(!0)}_setDetail(Q,X){const ee=this.querySelector('[slot="detail"]');if((Q||null)===ee)return Promise.resolve();const ie=()=>{this.querySelectorAll('[slot="detail"]').forEach(ae=>ae.remove()),Q&&(Q.setAttribute("slot","detail"),this.appendChild(Q))};if(X)return ie(),Promise.resolve();const oe=!!ee,ne=oe&&Q?"replace":oe?"remove":"add";return this._startTransition(ne,()=>{ie(),this._finishTransition()})}_startTransition(Q,X){return typeof document.startViewTransition=="function"&&!this.noAnimation?(this.setAttribute("transition",Q),this.__transition=document.startViewTransition(()=>new Promise(ie=>{this.__resolveUpdateCallback=ie,X()})),this.__transition.finished):(X(),Promise.resolve())}async _finishTransition(){if(queueMicrotask(()=>this.__detectLayoutMode()),!this.__transition)return Promise.resolve();this.__resolveUpdateCallback(),await this.__transition.finished,this.removeAttribute("transition"),this.__transition=null,this.__resolveUpdateCallback=null}}defineCustomElement(MasterDetailLayout);const scroller=i$v`
+    `}__onDetailSlotChange(Q){const X=Q.target.assignedNodes();if(this._hasDetail=X.length>0,this.__detectLayoutMode(),(this._drawer||this._stack)&&X.length>0){const ee=getFocusableElements(X[0]);ee.length&&ee[0].focus()}}__onDetailClick(Q){Q.composedPath().includes(this.$.detail)||this.dispatchEvent(new CustomEvent("backdrop-click"))}__onDetailKeydown(Q){Q.key==="Escape"&&(Q.stopPropagation(),this.dispatchEvent(new CustomEvent("detail-escape-press")))}_onResize(){this.__detectLayoutMode()}__detailSizeChanged(Q,X){this.__updateStyleProperty("detail-size",Q,X),this.__detectLayoutMode()}__detailMinSizeChanged(Q,X){this.__updateStyleProperty("detail-min-size",Q,X),this.__detectLayoutMode()}__masterSizeChanged(Q,X){this.__updateStyleProperty("master-size",Q,X),this.__detectLayoutMode()}__masterMinSizeChanged(Q,X){this.__updateStyleProperty("master-min-size",Q,X),this.__detectLayoutMode()}__orientationChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__forceOverlayChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__stackOverlayChanged(Q,X){(Q||X)&&this.__detectLayoutMode()}__updateStyleProperty(Q,X,ee){X?this.style.setProperty(`--_${Q}`,X):ee&&this.style.removeProperty(`--_${Q}`),this.toggleAttribute(`has-${Q}`,!!X)}__setOverlayMode(Q){this.stackOverlay?this._stack=Q:this._drawer=Q}__detectLayoutMode(){if(this._drawer=!1,this._stack=!1,this.forceOverlay){this.__setOverlayMode(!0);return}this._hasDetail&&(this.orientation==="vertical"?this.__detectVerticalMode():this.__detectHorizontalMode())}__detectHorizontalMode(){const Q=this.$.detail.offsetWidth;this.$.master.style.maxWidth=this.masterSize||this.masterMinSize||"min-content";const X=this.$.master.offsetWidth;this.$.master.style.maxWidth="",this.__setOverlayMode(this.offsetWidth<X+Q),this.offsetWidth<this.scrollWidth&&this.__setOverlayMode(!0)}__detectVerticalMode(){const Q=this.$.master.clientHeight;this.offsetHeight<Q+this.$.detail.clientHeight&&this.__setOverlayMode(!0)}_setDetail(Q,X){const ee=this.querySelector('[slot="detail"]');if((Q||null)===ee)return Promise.resolve();const ie=()=>{this.querySelectorAll('[slot="detail"]').forEach(ae=>ae.remove()),Q&&(Q.setAttribute("slot","detail"),this.appendChild(Q))};if(X)return ie(),Promise.resolve();const oe=!!ee,ne=oe&&Q?"replace":oe?"remove":"add";return this._startTransition(ne,()=>{ie(),this._finishTransition()})}_startTransition(Q,X){return typeof document.startViewTransition=="function"&&!this.noAnimation?(this.setAttribute("transition",Q),this.__transition=document.startViewTransition(()=>new Promise(ie=>{this.__resolveUpdateCallback=ie,X()})),this.__transition.finished):(X(),Promise.resolve())}async _finishTransition(){if(queueMicrotask(()=>this.__detectLayoutMode()),!this.__transition)return Promise.resolve();this.__resolveUpdateCallback(),await this.__transition.finished,this.removeAttribute("transition"),this.__transition=null,this.__resolveUpdateCallback=null}}defineCustomElement(MasterDetailLayout);const scroller=i$w`
   :host {
     outline: none;
     --_focus-ring-color: var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
@@ -8362,7 +8354,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2022 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const loader=i$v`
+ */const loader=i$w`
   [part~='loader'] {
     box-sizing: border-box;
     width: var(--lumo-icon-size-s);
@@ -8404,7 +8396,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       transform: rotate(360deg);
     }
   }
-`,tabsheet=i$v`
+`,tabsheet=i$w`
   :host {
     font-size: var(--lumo-font-size-m);
     line-height: var(--lumo-line-height-m);
@@ -8498,7 +8490,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         <div part="loader"></div>
         <slot id="panel-slot"></slot>
       </vaadin-tabsheet-scroller>
-    `}static get is(){return"vaadin-tabsheet"}}defineCustomElement(TabSheet);const cardProps=i$v`
+    `}static get is(){return"vaadin-tabsheet"}}defineCustomElement(TabSheet);const cardProps=i$w`
   html {
     --vaadin-card-background: var(--lumo-contrast-5pct);
     --vaadin-card-border-radius: var(--lumo-border-radius-l);
@@ -8508,7 +8500,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
     --vaadin-card-gap: var(--lumo-space-m);
     --vaadin-card-shadow: none;
   }
-`;addGlobalThemeStyles("card-props",cardProps);const card=i$v`
+`;addGlobalThemeStyles("card-props",cardProps);const card=i$w`
   :host {
     background: var(--vaadin-card-background);
     border-radius: var(--vaadin-card-border-radius);
@@ -8563,7 +8555,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2024 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class Card extends ElementMixin(ThemableMixin(PolylitMixin(i$s))){static get is(){return"vaadin-card"}static get styles(){return i$v`
+ */class Card extends ElementMixin(ThemableMixin(PolylitMixin(i$s))){static get is(){return"vaadin-card"}static get styles(){return i$w`
       :host {
         display: flex;
         flex-direction: column;
@@ -8804,7 +8796,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       <div part="footer">
         <slot name="footer"></slot>
       </div>
-    `}_onSlotChange(){this.toggleAttribute("_m",this.querySelector(':scope > [slot="media"]')),this.toggleAttribute("_h",this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_t",this.querySelector(':scope > [slot="title"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_st",this.querySelector(':scope > [slot="subtitle"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_hp",this.querySelector(':scope > [slot="header-prefix"]')),this.toggleAttribute("_hs",this.querySelector(':scope > [slot="header-suffix"]')),this.toggleAttribute("_c",this.querySelector(":scope > :not([slot])")),this.toggleAttribute("_f",this.querySelector(':scope > [slot="footer"]')),this.__getCustomTitleElement()&&this.__clearStringTitle()}__clearStringTitle(){const Q=this.__getStringTitleElement();Q&&this.removeChild(Q);const X=this.getAttribute("aria-labelledby");X&&X.startsWith("card-title-")&&this.removeAttribute("aria-labelledby"),this.cardTitle&&(this.cardTitle="")}__getCustomTitleElement(){return Array.from(this.querySelectorAll('[slot="title"]')).find(Q=>!Q.hasAttribute("card-string-title"))}__cardTitleChanged(Q){if(!Q){this.__clearStringTitle();return}const X=this.__getCustomTitleElement();X&&this.removeChild(X);let ee=this.__getStringTitleElement();ee||(ee=this.__createStringTitleElement(),this.appendChild(ee),this.setAttribute("aria-labelledby",ee.id)),ee.textContent=Q}__createStringTitleElement(){const Q=document.createElement("div");return Q.setAttribute("slot","title"),Q.setAttribute("role","heading"),this.__setTitleHeadingLevel(Q,this.titleHeadingLevel),Q.setAttribute("card-string-title",""),Q.id=`card-title-${generateUniqueId()}`,Q}__titleHeadingLevelChanged(Q){const X=this.__getStringTitleElement();X&&this.__setTitleHeadingLevel(X,Q)}__setTitleHeadingLevel(Q,X){Q.setAttribute("aria-level",X||2)}__getStringTitleElement(){return this.querySelector('[slot="title"][card-string-title]')}createRenderRoot(){const Q=super.createRenderRoot();return Q.addEventListener("slotchange",()=>this._onSlotChange()),Q}}defineCustomElement(Card);registerStyles("vaadin-progress-bar",i$v`
+    `}_onSlotChange(){this.toggleAttribute("_m",this.querySelector(':scope > [slot="media"]')),this.toggleAttribute("_h",this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_t",this.querySelector(':scope > [slot="title"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_st",this.querySelector(':scope > [slot="subtitle"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_hp",this.querySelector(':scope > [slot="header-prefix"]')),this.toggleAttribute("_hs",this.querySelector(':scope > [slot="header-suffix"]')),this.toggleAttribute("_c",this.querySelector(":scope > :not([slot])")),this.toggleAttribute("_f",this.querySelector(':scope > [slot="footer"]')),this.__getCustomTitleElement()&&this.__clearStringTitle()}__clearStringTitle(){const Q=this.__getStringTitleElement();Q&&this.removeChild(Q);const X=this.getAttribute("aria-labelledby");X&&X.startsWith("card-title-")&&this.removeAttribute("aria-labelledby"),this.cardTitle&&(this.cardTitle="")}__getCustomTitleElement(){return Array.from(this.querySelectorAll('[slot="title"]')).find(Q=>!Q.hasAttribute("card-string-title"))}__cardTitleChanged(Q){if(!Q){this.__clearStringTitle();return}const X=this.__getCustomTitleElement();X&&this.removeChild(X);let ee=this.__getStringTitleElement();ee||(ee=this.__createStringTitleElement(),this.appendChild(ee),this.setAttribute("aria-labelledby",ee.id)),ee.textContent=Q}__createStringTitleElement(){const Q=document.createElement("div");return Q.setAttribute("slot","title"),Q.setAttribute("role","heading"),this.__setTitleHeadingLevel(Q,this.titleHeadingLevel),Q.setAttribute("card-string-title",""),Q.id=`card-title-${generateUniqueId()}`,Q}__titleHeadingLevelChanged(Q){const X=this.__getStringTitleElement();X&&this.__setTitleHeadingLevel(X,Q)}__setTitleHeadingLevel(Q,X){Q.setAttribute("aria-level",X||2)}__getStringTitleElement(){return this.querySelector('[slot="title"][card-string-title]')}createRenderRoot(){const Q=super.createRenderRoot();return Q.addEventListener("slotchange",()=>this._onSlotChange()),Q}}defineCustomElement(Card);registerStyles("vaadin-progress-bar",i$w`
     :host {
       height: calc(var(--lumo-size-l) / 10);
       margin: var(--lumo-space-s) 0;
@@ -9073,7 +9065,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const progressBarStyles=i$v`
+ */const progressBarStyles=i$w`
   :host {
     display: block;
     width: 100%; /* prevent collapsing inside non-stretching column flex */
@@ -9120,7 +9112,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       <div part="bar">
         <div part="value"></div>
       </div>
-    `}}defineCustomElement(ProgressBar);const detailsSummary$1=i$v`
+    `}}defineCustomElement(ProgressBar);const detailsSummary$1=i$w`
   :host {
     display: flex;
     align-items: center;
@@ -9234,7 +9226,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   :host([theme~='reverse'][theme~='filled'][dir='rtl']) {
     padding-right: var(--lumo-space-m);
   }
-`;registerStyles("vaadin-details-summary",detailsSummary$1,{moduleId:"lumo-details-summary"});const accordionHeading$1=i$v`
+`;registerStyles("vaadin-details-summary",detailsSummary$1,{moduleId:"lumo-details-summary"});const accordionHeading$1=i$w`
   :host {
     padding: 0;
   }
@@ -9251,7 +9243,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2019 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const accordionHeading=i$v`
+ */const accordionHeading=i$w`
   :host {
     display: block;
     outline: none;
@@ -9286,7 +9278,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         <span part="toggle" aria-hidden="true"></span>
         <slot></slot>
       </button>
-    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0,value:!1}}}_attachDom(Q){const X=this.attachShadow({mode:"open",delegatesFocus:!0});return X.appendChild(Q),X}ready(){super.ready(),this.hasAttribute("role")||this.setAttribute("role","heading")}__updateAriaExpanded(Q){return Q?"true":"false"}}defineCustomElement(AccordionHeading);const details=i$v`
+    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0,value:!1}}}_attachDom(Q){const X=this.attachShadow({mode:"open",delegatesFocus:!0});return X.appendChild(Q),X}ready(){super.ready(),this.hasAttribute("role")||this.setAttribute("role","heading")}__updateAriaExpanded(Q){return Q?"true":"false"}}defineCustomElement(AccordionHeading);const details=i$w`
   :host {
     margin: var(--lumo-space-xs) 0;
     outline: none;
@@ -9317,7 +9309,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   :host([theme~='small']) [part$='content'] {
     font-size: var(--lumo-font-size-s);
   }
-`;registerStyles("vaadin-details",details,{moduleId:"lumo-details"});const accordionPanel$1=i$v`
+`;registerStyles("vaadin-details",details,{moduleId:"lumo-details"});const accordionPanel$1=i$w`
   :host {
     margin: 0;
     border-bottom: solid 1px var(--lumo-contrast-10pct);
@@ -9338,7 +9330,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2019 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const accordionPanel=i$v`
+ */const accordionPanel=i$w`
   :host {
     display: block;
   }
@@ -9411,7 +9403,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         }
       </style>
       <slot></slot>
-    `}static get is(){return"vaadin-accordion"}}defineCustomElement(Accordion);const tooltipOverlay=i$v`
+    `}static get is(){return"vaadin-accordion"}}defineCustomElement(Accordion);const tooltipOverlay=i$w`
   :host {
     --vaadin-tooltip-offset-top: var(--lumo-space-xs);
     --vaadin-tooltip-offset-bottom: var(--lumo-space-xs);
@@ -9437,7 +9429,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2022 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const tooltipOverlayStyles=i$v`
+ */const tooltipOverlayStyles=i$w`
   [part='overlay'] {
     max-width: 40ch;
   }
@@ -9520,7 +9512,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       ></vaadin-tooltip-overlay>
 
       <slot name="sr-label"></slot>
-    `}static get properties(){return{__overlayOwner:{value(){return this}}}}};defineCustomElement(Tooltip$2);const globalStyle=document.createElement("style");globalStyle.textContent="html { --vaadin-avatar-size: var(--lumo-size-m); }";document.head.appendChild(globalStyle);registerStyles("vaadin-avatar",i$v`
+    `}static get properties(){return{__overlayOwner:{value(){return this}}}}};defineCustomElement(Tooltip$2);const globalStyle=document.createElement("style");globalStyle.textContent="html { --vaadin-avatar-size: var(--lumo-size-m); }";document.head.appendChild(globalStyle);registerStyles("vaadin-avatar",i$w`
     :host {
       color: var(--lumo-secondary-text-color);
       background-color: var(--lumo-contrast-10pct);
@@ -9604,7 +9596,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const avatarStyles=i$v`
+ */const avatarStyles=i$w`
   :host {
     display: inline-block;
     flex: none;
@@ -9690,7 +9682,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       </svg>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-avatar"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController)}}defineCustomElement(Avatar);registerStyles("vaadin-avatar-group",i$v`
+    `}static get is(){return"vaadin-avatar"}ready(){super.ready(),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController)}}defineCustomElement(Avatar);registerStyles("vaadin-avatar-group",i$w`
     :host {
       --vaadin-avatar-size: var(--lumo-size-m);
     }
@@ -9718,7 +9710,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       --vaadin-avatar-group-overlap-border: 2px;
       --vaadin-avatar-size: var(--lumo-size-xs);
     }
-  `,{moduleId:"lumo-avatar-group"});const avatarGroupOverlay=i$v`
+  `,{moduleId:"lumo-avatar-group"});const avatarGroupOverlay=i$w`
   :host {
     --_lumo-list-box-item-selected-icon-display: none;
     --_lumo-list-box-item-padding-left: calc(var(--lumo-space-m) + var(--lumo-border-radius-m) / 4);
@@ -9727,7 +9719,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   [part='overlay'] {
     outline: none;
   }
-`;registerStyles("vaadin-avatar-group-overlay",[overlay,menuOverlayCore,avatarGroupOverlay],{moduleId:"lumo-avatar-group-overlay"});registerStyles("vaadin-avatar-group-menu",listBox,{moduleId:"lumo-avatar-group-menu"});registerStyles("vaadin-avatar-group-menu-item",[item,i$v`
+`;registerStyles("vaadin-avatar-group-overlay",[overlay,menuOverlayCore,avatarGroupOverlay],{moduleId:"lumo-avatar-group-overlay"});registerStyles("vaadin-avatar-group-menu",listBox,{moduleId:"lumo-avatar-group-menu"});registerStyles("vaadin-avatar-group-menu-item",[item,i$w`
       :host {
         padding: var(--lumo-space-xs);
         padding-inline-end: var(--lumo-space-m);
@@ -9821,7 +9813,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2020 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const avatarGroupStyles=i$v`
+ */const avatarGroupStyles=i$w`
   :host {
     display: block;
     width: 100%; /* prevent collapsing inside non-stretching column flex */
@@ -9890,7 +9882,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const chartBaseTheme=i$v`
+ */const chartBaseTheme=i$w`
   :host {
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif,
       'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -10925,7 +10917,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   ul[aria-hidden='false'] {
     margin: 0px;
   }
-`;registerStyles("vaadin-chart",chartBaseTheme,{moduleId:"vaadin-chart-base-theme"});const chartColors=i$v`
+`;registerStyles("vaadin-chart",chartBaseTheme,{moduleId:"vaadin-chart-base-theme"});const chartColors=i$w`
   :host {
     --vaadin-charts-color-0: #5ac2f7;
     --vaadin-charts-color-1: #1676f3;
@@ -10983,7 +10975,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
     --vaadin-charts-color-8: #f45b5b;
     --vaadin-charts-color-9: #91e8e1;
   }
-`,chartTheme=i$v`
+`,chartTheme=i$w`
   :host {
     --vaadin-charts-background: var(--lumo-base-color);
     --vaadin-charts-title-label: var(--lumo-header-text-color);
@@ -11154,7 +11146,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       </style>
       <div id="chart"></div>
       <slot id="slot"></slot>
-    `}static get is(){return"vaadin-chart"}static get cvdlName(){return"vaadin-chart"}};defineCustomElement(Chart$1);const comboBoxItem=i$v`
+    `}static get is(){return"vaadin-chart"}static get cvdlName(){return"vaadin-chart"}};defineCustomElement(Chart$1);const comboBoxItem=i$w`
   :host {
     transition: background-color 100ms;
     overflow: hidden;
@@ -11166,7 +11158,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   :host([focused]:not([disabled])) {
     box-shadow: inset 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color);
   }
-`;registerStyles("vaadin-combo-box-item",[item,comboBoxItem],{moduleId:"lumo-combo-box-item"});const comboBoxOverlay=i$v`
+`;registerStyles("vaadin-combo-box-item",[item,comboBoxItem],{moduleId:"lumo-combo-box-item"});const comboBoxOverlay=i$w`
   [part='content'] {
     padding: 0;
   }
@@ -11187,7 +11179,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   :host([bottom-aligned]) [part~='overlay'] {
     margin-bottom: var(--lumo-space-xs);
   }
-`,comboBoxLoader=i$v`
+`,comboBoxLoader=i$w`
   [part~='loader'] {
     position: absolute;
     z-index: 1;
@@ -11195,12 +11187,12 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
     top: var(--lumo-space-s);
     margin-inline: auto 0;
   }
-`;registerStyles("vaadin-combo-box-overlay",[overlay,menuOverlayCore,comboBoxOverlay,loader,comboBoxLoader,i$v`
+`;registerStyles("vaadin-combo-box-overlay",[overlay,menuOverlayCore,comboBoxOverlay,loader,comboBoxLoader,i$w`
       :host {
         --_vaadin-combo-box-items-container-border-width: var(--lumo-space-xs);
         --_vaadin-combo-box-items-container-border-style: solid;
       }
-    `],{moduleId:"lumo-combo-box-overlay"});registerStyles("vaadin-input-container",i$v`
+    `],{moduleId:"lumo-combo-box-overlay"});registerStyles("vaadin-input-container",i$w`
     :host {
       background: var(--_background);
       padding: 0 calc(0.375em + var(--_input-container-radius) / 4 - 1px);
@@ -11382,7 +11374,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const helper=i$v`
+ */const helper=i$w`
   :host {
     --_helper-spacing: var(--vaadin-input-field-helper-spacing, 0.4em);
   }
@@ -11442,7 +11434,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const inputField=i$v`
+ */const inputField=i$w`
   :host {
     --lumo-text-field-size: var(--lumo-size-m);
     color: var(--vaadin-input-field-value-color, var(--lumo-body-text-color));
@@ -11590,7 +11582,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   [part='clear-button']::before {
     content: var(--lumo-icons-cross);
   }
-`,inputFieldShared$1=[requiredField,fieldButton,helper,inputField];registerStyles("",inputFieldShared$1,{moduleId:"lumo-input-field-shared-styles"});const comboBox=i$v`
+`,inputFieldShared$1=[requiredField,fieldButton,helper,inputField];registerStyles("",inputFieldShared$1,{moduleId:"lumo-input-field-shared-styles"});const comboBox=i$w`
   [part='toggle-button']::before {
     content: var(--lumo-icons-dropdown);
   }
@@ -11598,7 +11590,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const inputContainerStyles=i$v`
+ */const inputContainerStyles=i$w`
   :host {
     display: flex;
     align-items: center;
@@ -11706,7 +11698,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2015 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const comboBoxOverlayStyles=i$v`
+ */const comboBoxOverlayStyles=i$w`
   #overlay {
     width: var(--vaadin-combo-box-overlay-width, var(--_vaadin-combo-box-overlay-default-width, auto));
   }
@@ -11842,7 +11834,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const button=i$v`
+ */const button=i$w`
   [part='clear-button'] {
     display: none;
     cursor: default;
@@ -11859,7 +11851,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const container=i$v`
+ */const container=i$w`
   [class$='container'] {
     display: flex;
     flex-direction: column;
@@ -11871,7 +11863,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const field=i$v`
+ */const field=i$w`
   :host {
     display: inline-flex;
     outline: none;
@@ -11982,7 +11974,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       ></vaadin-combo-box-overlay>
 
       <slot name="tooltip"></slot>
-    `}static get properties(){return{_positionTarget:{type:Object}}}get clearElement(){return this.$.clearButton}ready(){super.ready(),this.addController(new InputController(this,Q=>{this._setInputElement(Q),this._setFocusElement(Q),this.stateTarget=Q,this.ariaTarget=Q})),this.addController(new LabelledInputController(this.inputElement,this._labelController)),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(Q=>!Q.opened),this._positionTarget=this.shadowRoot.querySelector('[part="input-field"]'),this._toggleElement=this.$.toggleButton}_onClearButtonClick(Q){Q.stopPropagation(),super._onClearButtonClick(Q)}_onHostClick(Q){const X=Q.composedPath();(X.includes(this._labelNode)||X.includes(this._positionTarget))&&super._onHostClick(Q)}}defineCustomElement(ComboBox);registerStyles("vaadin-radio-button",i$v`
+    `}static get properties(){return{_positionTarget:{type:Object}}}get clearElement(){return this.$.clearButton}ready(){super.ready(),this.addController(new InputController(this,Q=>{this._setInputElement(Q),this._setFocusElement(Q),this.stateTarget=Q,this.ariaTarget=Q})),this.addController(new LabelledInputController(this.inputElement,this._labelController)),this._tooltipController=new TooltipController(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(Q=>!Q.opened),this._positionTarget=this.shadowRoot.querySelector('[part="input-field"]'),this._toggleElement=this.$.toggleButton}_onClearButtonClick(Q){Q.stopPropagation(),super._onClearButtonClick(Q)}_onHostClick(Q){const X=Q.composedPath();(X.includes(this._labelNode)||X.includes(this._positionTarget))&&super._onHostClick(Q)}}defineCustomElement(ComboBox);registerStyles("vaadin-radio-button",i$w`
     :host {
       color: var(--vaadin-radio-button-label-color, var(--lumo-body-text-color));
       font-size: var(--vaadin-radio-button-label-font-size, var(--lumo-font-size-m));
@@ -12135,7 +12127,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const radioButtonStyles=i$v`
+ */const radioButtonStyles=i$w`
   :host {
     display: inline-block;
   }
@@ -12214,7 +12206,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         <slot name="input"></slot>
         <slot name="label"></slot>
       </div>
-    `}}defineCustomElement(RadioButton);const radioGroup=i$v`
+    `}}defineCustomElement(RadioButton);const radioGroup=i$w`
   :host {
     color: var(--lumo-body-text-color);
     font-size: var(--lumo-font-size-m);
@@ -12265,7 +12257,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const radioGroupStyles=i$v`
+ */const radioGroupStyles=i$w`
   :host {
     display: inline-flex;
   }
@@ -12319,7 +12311,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       </div>
 
       <slot name="tooltip"></slot>
-    `}}defineCustomElement(RadioGroup);registerStyles("vaadin-checkbox",i$v`
+    `}}defineCustomElement(RadioGroup);registerStyles("vaadin-checkbox",i$w`
     :host {
       color: var(--vaadin-checkbox-label-color, var(--lumo-body-text-color));
       font-size: var(--vaadin-checkbox-label-font-size, var(--lumo-font-size-m));
@@ -12634,7 +12626,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const checkboxStyles=i$v`
+ */const checkboxStyles=i$w`
   :host {
     display: inline-block;
   }
@@ -12741,7 +12733,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
         </div>
       </div>
       <slot name="tooltip"></slot>
-    `}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setAriaTarget(this.inputElement),this.addController(this._tooltipController)}}defineCustomElement(Checkbox);const checkboxGroup=i$v`
+    `}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setAriaTarget(this.inputElement),this.addController(this._tooltipController)}}defineCustomElement(Checkbox);const checkboxGroup=i$w`
   :host {
     color: var(--lumo-body-text-color);
     font-size: var(--lumo-font-size-m);
@@ -12792,7 +12784,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const checkboxGroupStyles=i$v`
+ */const checkboxGroupStyles=i$w`
   :host {
     display: inline-flex;
   }
@@ -12850,7 +12842,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-select-item",item,{moduleId:"lumo-select-item"});registerStyles("vaadin-select-list-box",listBox,{moduleId:"lumo-select-list-box"});const select=i$v`
+ */registerStyles("vaadin-select-item",item,{moduleId:"lumo-select-item"});registerStyles("vaadin-select-list-box",listBox,{moduleId:"lumo-select-list-box"});const select=i$w`
   :host {
     /* Disable pointer focus-ring for select, not supported yet */
     --lumo-input-field-pointer-focus-visible: 0;
@@ -12898,7 +12890,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
     --_lumo-selected-item-height: var(--lumo-size-s);
     --_lumo-selected-item-padding: 0;
   }
-`;registerStyles("vaadin-select",[inputFieldShared$1,select],{moduleId:"lumo-select"});registerStyles("vaadin-select-value-button",i$v`
+`;registerStyles("vaadin-select",[inputFieldShared$1,select],{moduleId:"lumo-select"});registerStyles("vaadin-select-value-button",i$w`
     :host {
       font-family: var(--lumo-font-family);
       font-size: var(--vaadin-input-field-value-font-size, var(--lumo-font-size-m));
@@ -12917,7 +12909,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
     ::slotted(*:hover) {
       background-color: transparent;
     }
-  `,{moduleId:"lumo-select-value-button"});const selectOverlay=i$v`
+  `,{moduleId:"lumo-select-value-button"});const selectOverlay=i$w`
   :host {
     --_lumo-item-selected-icon-display: block;
   }
@@ -12957,7 +12949,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const itemStyles=i$v`
+ */const itemStyles=i$w`
   :host {
     display: inline-block;
   }
@@ -12978,7 +12970,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const listBoxStyles=i$v`
+ */const listBoxStyles=i$w`
   :host {
     display: flex;
   }
@@ -13005,7 +12997,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const selectOverlayStyles=i$v`
+ */const selectOverlayStyles=i$w`
   :host {
     align-items: flex-start;
     justify-content: flex-start;
@@ -13039,7 +13031,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const valueButton=i$v`
+ */const valueButton=i$w`
   :host {
     display: inline-block;
     position: relative;
@@ -13094,7 +13086,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const screenReaderOnly=i$v`
+ */const screenReaderOnly=i$w`
   .sr-only {
     border: 0 !important;
     clip: rect(1px, 1px, 1px, 1px) !important;
@@ -13120,7 +13112,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const selectStyles=i$v`
+ */const selectStyles=i$w`
   :host {
     position: relative;
   }
@@ -13181,7 +13173,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const chip=i$v`
+ */const chip=i$w`
   :host {
     font-size: var(--lumo-font-size-xxs);
     line-height: 1;
@@ -13274,23 +13266,23 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const multiSelectComboBoxItem=i$v`
+ */const multiSelectComboBoxItem=i$w`
   @media (any-hover: hover) {
     :host(:hover[readonly]) {
       background-color: transparent;
       cursor: default;
     }
   }
-`;registerStyles("vaadin-multi-select-combo-box-item",[item,comboBoxItem,multiSelectComboBoxItem],{moduleId:"lumo-multi-select-combo-box-item"});registerStyles("vaadin-multi-select-combo-box-overlay",[overlay,menuOverlayCore,comboBoxOverlay,loader,comboBoxLoader,i$v`
+`;registerStyles("vaadin-multi-select-combo-box-item",[item,comboBoxItem,multiSelectComboBoxItem],{moduleId:"lumo-multi-select-combo-box-item"});registerStyles("vaadin-multi-select-combo-box-overlay",[overlay,menuOverlayCore,comboBoxOverlay,loader,comboBoxLoader,i$w`
       :host {
         --_vaadin-multi-select-combo-box-items-container-border-width: var(--lumo-space-xs);
         --_vaadin-multi-select-combo-box-items-container-border-style: solid;
       }
-    `],{moduleId:"lumo-multi-select-combo-box-overlay"});registerStyles("vaadin-multi-select-combo-box-container",i$v`
+    `],{moduleId:"lumo-multi-select-combo-box-overlay"});registerStyles("vaadin-multi-select-combo-box-container",i$w`
     :host([auto-expand-vertically]) {
       padding-block: var(--lumo-space-xs);
     }
-  `,{moduleId:"lumo-multi-select-combo-box-container"});const multiSelectComboBox$1=i$v`
+  `,{moduleId:"lumo-multi-select-combo-box-container"});const multiSelectComboBox$1=i$w`
   :host([has-value]) {
     padding-inline-start: 0;
   }
@@ -13347,7 +13339,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const multiSelectComboBox=i$v`
+ */const multiSelectComboBox=i$w`
   :host {
     max-width: 100%;
     --input-min-width: var(--vaadin-multi-select-combo-box-input-min-width, 4em);
@@ -13386,7 +13378,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
   :host([auto-expand-horizontally]) [class$='container'] {
     width: auto;
   }
-`,multiSelectComboBoxChip=i$v`
+`,multiSelectComboBoxChip=i$w`
   :host {
     display: inline-flex;
     align-items: center;
@@ -13422,7 +13414,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-multi-select-combo-box-container",i$v`
+ */registerStyles("vaadin-multi-select-combo-box-container",i$w`
     #wrapper {
       display: flex;
       width: 100%;
@@ -13454,7 +13446,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const multiSelectComboBoxOverlayStyles=i$v`
+ */const multiSelectComboBoxOverlayStyles=i$w`
   #overlay {
     width: var(
       --vaadin-multi-select-combo-box-overlay-width,
@@ -13614,7 +13606,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       </div>
 
       <slot name="tooltip"></slot>
-    `}}defineCustomElement(MultiSelectComboBox);const dialogOverlay$1=i$v`
+    `}}defineCustomElement(MultiSelectComboBox);const dialogOverlay$1=i$w`
   /* Optical centering */
   :host::before,
   :host::after {
@@ -13714,7 +13706,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       transform: scale(1.02);
     }
   }
-`;registerStyles("vaadin-dialog-overlay",[overlay,dialogOverlay$1],{moduleId:"lumo-dialog"});registerStyles("vaadin-confirm-dialog-overlay",[overlay,dialogOverlay$1,i$v`
+`;registerStyles("vaadin-dialog-overlay",[overlay,dialogOverlay$1],{moduleId:"lumo-dialog"});registerStyles("vaadin-confirm-dialog-overlay",[overlay,dialogOverlay$1,i$w`
       [part='header'] ::slotted(h3) {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
@@ -13757,7 +13749,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const dialogOverlay=i$v`
+ */const dialogOverlay=i$w`
   [part='header'],
   [part='header-content'],
   [part='footer'] {
@@ -13835,7 +13827,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
       outline: 3px solid !important;
     }
   }
-`,resizableOverlay=i$v`
+`,resizableOverlay=i$w`
   [part='overlay'] {
     position: relative;
     overflow: visible;
@@ -13936,7 +13928,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const confirmDialogOverlay=i$v`
+ */const confirmDialogOverlay=i$w`
   :host {
     --_vaadin-confirm-dialog-content-width: auto;
     --_vaadin-confirm-dialog-content-height: auto;
@@ -14184,7 +14176,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */registerStyles("vaadin-map",i$v`
+ */registerStyles("vaadin-map",i$w`
     :host {
       font-family: var(--lumo-font-family);
       font-size: var(--lumo-font-size-m);
@@ -14374,7 +14366,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const X=Q.find(ee=>ee
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const mapStyles=i$v`
+ */const mapStyles=i$w`
   :host {
     display: block;
     height: 400px;
@@ -14744,7 +14736,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class Markdown extends ElementMixin(ThemableMixin(PolylitMixin(i$s))){static get is(){return"vaadin-markdown"}static get styles(){return i$v`
+ */class Markdown extends ElementMixin(ThemableMixin(PolylitMixin(i$s))){static get is(){return"vaadin-markdown"}static get styles(){return i$w`
       :host {
         display: block;
       }
@@ -14752,7 +14744,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       :host([hidden]) {
         display: none !important;
       }
-    `}static get properties(){return{content:{type:String,sync:!0}}}render(){return x$4`<slot></slot>`}updated(Q){super.updated(Q),Q.has("content")&&renderMarkdownToElement(this,this.content)}}defineCustomElement(Markdown);const vaadinMarkdown=Object.freeze(Object.defineProperty({__proto__:null,Markdown},Symbol.toStringTag,{value:"Module"})),popoverOverlay=i$v`
+    `}static get properties(){return{content:{type:String,sync:!0}}}render(){return x$4`<slot></slot>`}updated(Q){super.updated(Q),Q.has("content")&&renderMarkdownToElement(this,this.content)}}defineCustomElement(Markdown);const vaadinMarkdown=Object.freeze(Object.defineProperty({__proto__:null,Markdown},Symbol.toStringTag,{value:"Module"})),popoverOverlay=i$w`
   :host {
     --vaadin-popover-offset-top: var(--_vaadin-popover-default-offset);
     --vaadin-popover-offset-bottom: var(--_vaadin-popover-default-offset);
@@ -14857,7 +14849,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2024 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */class PopoverOverlay extends PopoverOverlayMixin(DirMixin$1(ThemableMixin(PolylitMixin(i$s)))){static get is(){return"vaadin-popover-overlay"}static get styles(){return[overlayStyles,i$v`
+ */class PopoverOverlay extends PopoverOverlayMixin(DirMixin$1(ThemableMixin(PolylitMixin(i$s)))){static get is(){return"vaadin-popover-overlay"}static get styles(){return[overlayStyles,i$w`
         :host {
           --_vaadin-popover-content-width: auto;
           --_vaadin-popover-content-height: auto;
@@ -14931,7 +14923,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2024 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const DEFAULT_DELAY=500;let defaultFocusDelay=DEFAULT_DELAY,defaultHoverDelay=DEFAULT_DELAY,defaultHideDelay=DEFAULT_DELAY;class PopoverOpenedStateController{constructor(Q){this.host=Q}get isClosing(){return this.__closeTimeout!=null}get __focusDelay(){const Q=this.host;return Q.focusDelay!=null&&Q.focusDelay>=0?Q.focusDelay:defaultFocusDelay}get __hoverDelay(){const Q=this.host;return Q.hoverDelay!=null&&Q.hoverDelay>=0?Q.hoverDelay:defaultHoverDelay}get __hideDelay(){const Q=this.host;return Q.hideDelay!=null&&Q.hideDelay>=0?Q.hideDelay:defaultHideDelay}open(Q={immediate:!1}){if(this.isClosing){this.__abortClose();return}const{immediate:X,trigger:ee}=Q,ie=ee==="hover"&&this.__hoverDelay>0,oe=ee==="focus"&&this.__focusDelay>0;!X&&(ie||oe)?this.__scheduleOpen(ee):this.__showPopover()}close(Q){this.__openTimeout!=null?this.__abortOpen():Q||this.__hideDelay===0?(this.__abortClose(),this.__setOpened(!1)):this.__scheduleClose()}__setOpened(Q){this.host.opened=Q}__showPopover(){this.__abortClose(),this.__setOpened(!0)}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null)}__abortOpen(){this.__openTimeout&&(clearTimeout(this.__openTimeout),this.__openTimeout=null)}__scheduleClose(){this.__closeTimeout=setTimeout(()=>{this.__closeTimeout=null,this.__setOpened(!1)},this.__hideDelay)}__scheduleOpen(Q){this.__abortOpen();const X=Q==="focus"?this.__focusDelay:this.__hoverDelay;this.__openTimeout=setTimeout(()=>{this.__openTimeout=null,this.__showPopover()},X)}}const isLastOverlay=te=>isLastOverlay$1(te,X=>X.localName!=="vaadin-tooltip-overlay");let Popover$2=class extends PopoverPositionMixin(PopoverTargetMixin(OverlayClassMixin(ThemePropertyMixin(ElementMixin(PolylitMixin(i$s)))))){static get is(){return"vaadin-popover"}static get styles(){return i$v`
+ */const DEFAULT_DELAY=500;let defaultFocusDelay=DEFAULT_DELAY,defaultHoverDelay=DEFAULT_DELAY,defaultHideDelay=DEFAULT_DELAY;class PopoverOpenedStateController{constructor(Q){this.host=Q}get isClosing(){return this.__closeTimeout!=null}get __focusDelay(){const Q=this.host;return Q.focusDelay!=null&&Q.focusDelay>=0?Q.focusDelay:defaultFocusDelay}get __hoverDelay(){const Q=this.host;return Q.hoverDelay!=null&&Q.hoverDelay>=0?Q.hoverDelay:defaultHoverDelay}get __hideDelay(){const Q=this.host;return Q.hideDelay!=null&&Q.hideDelay>=0?Q.hideDelay:defaultHideDelay}open(Q={immediate:!1}){if(this.isClosing){this.__abortClose();return}const{immediate:X,trigger:ee}=Q,ie=ee==="hover"&&this.__hoverDelay>0,oe=ee==="focus"&&this.__focusDelay>0;!X&&(ie||oe)?this.__scheduleOpen(ee):this.__showPopover()}close(Q){this.__openTimeout!=null?this.__abortOpen():Q||this.__hideDelay===0?(this.__abortClose(),this.__setOpened(!1)):this.__scheduleClose()}__setOpened(Q){this.host.opened=Q}__showPopover(){this.__abortClose(),this.__setOpened(!0)}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null)}__abortOpen(){this.__openTimeout&&(clearTimeout(this.__openTimeout),this.__openTimeout=null)}__scheduleClose(){this.__closeTimeout=setTimeout(()=>{this.__closeTimeout=null,this.__setOpened(!1)},this.__hideDelay)}__scheduleOpen(Q){this.__abortOpen();const X=Q==="focus"?this.__focusDelay:this.__hoverDelay;this.__openTimeout=setTimeout(()=>{this.__openTimeout=null,this.__showPopover()},X)}}const isLastOverlay=te=>isLastOverlay$1(te,X=>X.localName!=="vaadin-tooltip-overlay");let Popover$2=class extends PopoverPositionMixin(PopoverTargetMixin(OverlayClassMixin(ThemePropertyMixin(ElementMixin(PolylitMixin(i$s)))))){static get is(){return"vaadin-popover"}static get styles(){return i$w`
       :host {
         display: none !important;
       }
@@ -14971,7 +14963,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const textArea=i$v`
+ */const textArea=i$w`
   [part='input-field'],
   [part='input-field'] ::slotted(textarea) {
     height: auto;
@@ -15050,7 +15042,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const textAreaStyles=i$v`
+ */const textAreaStyles=i$w`
   .vaadin-text-area-container {
     flex: auto;
   }
@@ -15141,7 +15133,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       </div>
 
       <slot name="tooltip"></slot>
-    `}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this.addController(this._tooltipController)}}defineCustomElement(TextArea);registerStyles("vaadin-message-input",i$v`
+    `}ready(){super.ready(),this._tooltipController=new TooltipController(this),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this.addController(this._tooltipController)}}defineCustomElement(TextArea);registerStyles("vaadin-message-input",i$w`
     :host {
       padding: var(--lumo-space-s) var(--lumo-space-m);
     }
@@ -15186,7 +15178,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       <slot name="button"></slot>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-message-input"}}defineCustomElement(MessageInput);registerStyles("vaadin-message",i$v`
+    `}static get is(){return"vaadin-message-input"}}defineCustomElement(MessageInput);registerStyles("vaadin-message",i$w`
     :host {
       color: var(--lumo-body-text-color);
       font-family: var(--lumo-font-family);
@@ -15235,7 +15227,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       margin-top: calc(var(--lumo-space-s));
       margin-inline-end: calc(var(--lumo-space-m));
     }
-  `,{moduleId:"lumo-message"});registerStyles("vaadin-message-list",i$v``,{moduleId:"lumo-message-list"});/**
+  `,{moduleId:"lumo-message"});registerStyles("vaadin-message-list",i$w``,{moduleId:"lumo-message-list"});/**
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -15243,7 +15235,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const messageStyles=i$v`
+ */const messageStyles=i$w`
   :host {
     display: flex;
     flex-direction: row;
@@ -15341,7 +15333,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2019 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const customField=i$v`
+ */const customField=i$w`
   :host {
     --lumo-text-field-size: var(--lumo-size-m);
     color: var(--lumo-body-text-color);
@@ -15426,7 +15418,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2019 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const customFieldStyles=i$v`
+ */const customFieldStyles=i$w`
   :host {
     display: inline-flex;
   }
@@ -15477,7 +15469,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       </div>
 
       <slot name="tooltip"></slot>
-    `}}defineCustomElement(CustomField);registerStyles("vaadin-grid",i$v`
+    `}}defineCustomElement(CustomField);registerStyles("vaadin-grid",i$w`
     :host {
       font-family: var(--lumo-font-family);
       font-size: var(--lumo-font-size-m);
@@ -15958,7 +15950,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const gridStyles=i$v`
+ */const gridStyles=i$w`
   @keyframes vaadin-grid-appear {
     to {
       opacity: 1;
@@ -16372,7 +16364,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       <slot name="tooltip"></slot>
 
       <div id="focusexit" tabindex="0"></div>
-    `}static get is(){return"vaadin-grid"}}defineCustomElement(Grid);registerStyles("vaadin-grid-tree-toggle",i$v`
+    `}static get is(){return"vaadin-grid"}}defineCustomElement(Grid);registerStyles("vaadin-grid-tree-toggle",i$w`
     :host {
       --vaadin-grid-tree-toggle-level-offset: 2em;
       align-items: center;
@@ -16456,7 +16448,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
       font-style: normal;
     }
   </style>
-`;document.head.appendChild(template$a.content);registerStyles("vaadin-grid-tree-toggle",i$v`
+`;document.head.appendChild(template$a.content);registerStyles("vaadin-grid-tree-toggle",i$w`
     :host {
       display: inline-flex;
       align-items: baseline;
@@ -16535,7 +16527,7 @@ Please report this to https://github.com/markedjs/marked.`,te){const ee="<p>An e
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const virtualListStyles=i$v`
+ */const virtualListStyles=i$w`
   :host {
     display: block;
     height: 400px;
@@ -18565,7 +18557,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const numberField=i$v`
+ */const numberField=i$w`
   :host([step-buttons-visible]:not([theme~='align-right'])) ::slotted(input) {
     text-align: center;
   }
@@ -18606,7 +18598,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const numberFieldStyles=i$v`
+ */const numberFieldStyles=i$w`
   :host([readonly]) [part$='button'] {
     pointer-events: none;
   }
@@ -18710,7 +18702,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const passwordFieldButton$1=i$v`
+ */const passwordFieldButton$1=i$w`
   :host {
     position: absolute;
     right: 0;
@@ -18727,7 +18719,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const passwordField=i$v`
+ */const passwordField=i$w`
   [part='reveal-button']::before {
     content: var(--lumo-icons-eye);
   }
@@ -18757,7 +18749,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const passwordFieldStyles=i$v``;/**
+ */const passwordFieldStyles=i$w``;/**
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
@@ -18773,7 +18765,7 @@ found at http://polymer.github.io/PATENTS.txt
   <div part="reveal-button" slot="suffix">
     <slot name="reveal"></slot>
   </div>
-`;let memoizedTemplate;class PasswordField extends PasswordFieldMixin(TextField){static get is(){return"vaadin-password-field"}static get template(){if(!memoizedTemplate){memoizedTemplate=super.template.cloneNode(!0);const Q=ownTemplate.content.querySelector('[part="reveal-button"]');memoizedTemplate.content.querySelector('[part="input-field"]').appendChild(Q)}return memoizedTemplate}}defineCustomElement(PasswordField);const datePickerOverlay=i$v`
+`;let memoizedTemplate;class PasswordField extends PasswordFieldMixin(TextField){static get is(){return"vaadin-password-field"}static get template(){if(!memoizedTemplate){memoizedTemplate=super.template.cloneNode(!0);const Q=ownTemplate.content.querySelector('[part="reveal-button"]');memoizedTemplate.content.querySelector('[part="input-field"]').appendChild(Q)}return memoizedTemplate}}defineCustomElement(PasswordField);const datePickerOverlay=i$w`
   [part='overlay'] {
     /*
   Width:
@@ -18818,7 +18810,7 @@ found at http://polymer.github.io/PATENTS.txt
       max-height: 70vh;
     }
   }
-`;registerStyles("vaadin-date-picker-overlay",[menuOverlay,datePickerOverlay],{moduleId:"lumo-date-picker-overlay"});registerStyles("vaadin-date-picker-year",i$v`
+`;registerStyles("vaadin-date-picker-overlay",[menuOverlay,datePickerOverlay],{moduleId:"lumo-date-picker-overlay"});registerStyles("vaadin-date-picker-year",i$w`
     :host([current]) [part='year-number'] {
       color: var(--lumo-primary-text-color);
     }
@@ -18842,7 +18834,7 @@ found at http://polymer.github.io/PATENTS.txt
       color: var(--lumo-disabled-text-color);
       content: '\\2022';
     }
-  `,{moduleId:"lumo-date-picker-year"});registerStyles("vaadin-date-picker-overlay-content",i$v`
+  `,{moduleId:"lumo-date-picker-year"});registerStyles("vaadin-date-picker-overlay-content",i$w`
     :host {
       position: relative;
       /* Background for the year scroller, placed here as we are using a mask image on the actual years part */
@@ -18992,7 +18984,7 @@ found at http://polymer.github.io/PATENTS.txt
         padding-left: 50px;
       }
     }
-  `,{moduleId:"lumo-date-picker-overlay-content"});registerStyles("vaadin-month-calendar",i$v`
+  `,{moduleId:"lumo-date-picker-overlay-content"});registerStyles("vaadin-month-calendar",i$w`
     :host {
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -19138,7 +19130,7 @@ found at http://polymer.github.io/PATENTS.txt
     :host([disabled]) * {
       color: var(--lumo-disabled-text-color) !important;
     }
-  `,{moduleId:"lumo-month-calendar"});const datePicker=i$v`
+  `,{moduleId:"lumo-month-calendar"});const datePicker=i$w`
   [part='toggle-button']::before {
     content: var(--lumo-icons-calendar);
   }
@@ -19168,7 +19160,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const datePickerOverlayStyles=i$v`
+ */const datePickerOverlayStyles=i$w`
   [part='overlay'] {
     display: flex;
     flex: auto;
@@ -19320,7 +19312,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const monthCalendarStyles=i$v`
+ */const monthCalendarStyles=i$w`
   :host {
     display: block;
   }
@@ -19434,7 +19426,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const overlayContentStyles=i$v`
+ */const overlayContentStyles=i$w`
   :host {
     display: flex;
     flex-direction: column;
@@ -19526,7 +19518,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const datePickerStyles=i$v`
+ */const datePickerStyles=i$w`
   :host([opened]) {
     pointer-events: auto;
   }
@@ -19589,12 +19581,12 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-time-picker-item",[item,comboBoxItem],{moduleId:"lumo-time-picker-item"});registerStyles("vaadin-time-picker-overlay",[overlay,menuOverlayCore,comboBoxOverlay,i$v`
+ */registerStyles("vaadin-time-picker-item",[item,comboBoxItem],{moduleId:"lumo-time-picker-item"});registerStyles("vaadin-time-picker-overlay",[overlay,menuOverlayCore,comboBoxOverlay,i$w`
       :host {
         --_vaadin-time-picker-items-container-border-width: var(--lumo-space-xs);
         --_vaadin-time-picker-items-container-border-style: solid;
       }
-    `],{moduleId:"lumo-time-picker-overlay"});const timePicker=i$v`
+    `],{moduleId:"lumo-time-picker-overlay"});const timePicker=i$w`
   [part~='toggle-button']::before {
     content: var(--lumo-icons-clock);
   }
@@ -19628,7 +19620,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2018 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const timePickerOverlayStyles=i$v`
+ */const timePickerOverlayStyles=i$w`
   #overlay {
     width: var(--vaadin-time-picker-overlay-width, var(--_vaadin-time-picker-overlay-default-width, auto));
   }
@@ -19770,7 +19762,7 @@ found at http://polymer.github.io/PATENTS.txt
         </div>
       </div>
       <slot name="tooltip"></slot>
-    `}}defineCustomElement(TimePicker);const dateTimePicker=i$v`
+    `}}defineCustomElement(TimePicker);const dateTimePicker=i$w`
   ::slotted([slot='date-picker']) {
     margin-inline-end: 2px;
     --vaadin-input-field-top-end-radius: 0;
@@ -19832,7 +19824,7 @@ found at http://polymer.github.io/PATENTS.txt
       </div>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-date-time-picker"}}defineCustomElement(DateTimePicker);const popupOverlay=i$v`
+    `}static get is(){return"vaadin-date-time-picker"}}defineCustomElement(DateTimePicker);const popupOverlay=i$w`
   [part='overlay'] {
     margin: var(--lumo-space-xs) 0;
   }
@@ -19853,7 +19845,7 @@ found at http://polymer.github.io/PATENTS.txt
     height: var(--_button-size);
     margin: var(--_button-margin);
   }
-`;registerStyles("vaadin-rich-text-editor-popup-overlay",[overlay,popupOverlay],{moduleId:"lumo-rich-text-editor-popup-overlay"});const richTextEditor=i$v`
+`;registerStyles("vaadin-rich-text-editor-popup-overlay",[overlay,popupOverlay],{moduleId:"lumo-rich-text-editor-popup-overlay"});const richTextEditor=i$w`
   :host {
     min-height: calc(var(--lumo-size-m) * 8);
     --_focus-ring-color: var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
@@ -20082,7 +20074,7 @@ found at http://polymer.github.io/PATENTS.txt
   :host([dir='rtl']) [part~='toolbar-button-undo']::before {
     content: var(--lumo-icons-redo);
   }
-`,contentStyles$1=i$v`
+`,contentStyles$1=i$w`
   :where(h1, h2, h3, h4, h5, h6) {
     margin-top: 1.25em;
   }
@@ -20176,7 +20168,7 @@ found at http://polymer.github.io/PATENTS.txt
       --vaadin-rte-icons-undo: "\\ea0a";
     }
   </style>
-`;document.head.appendChild(template$4.content);const iconsStyles=i$v`
+`;document.head.appendChild(template$4.content);const iconsStyles=i$w`
   [part~='toolbar-button-align-center']::before {
     content: var(--vaadin-rte-icons-align-center);
   }
@@ -20234,7 +20226,7 @@ found at http://polymer.github.io/PATENTS.txt
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const buttonsStyles=i$v`
+ */const buttonsStyles=i$w`
   [part='toolbar'] {
     display: flex;
     flex-wrap: wrap;
@@ -20453,7 +20445,7 @@ found at http://polymer.github.io/PATENTS.txt
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const contentStyles=i$v`
+ */const contentStyles=i$w`
   [part='content'] {
     box-sizing: border-box;
     position: relative;
@@ -20564,7 +20556,7 @@ found at http://polymer.github.io/PATENTS.txt
  *
  * See https://vaadin.com/commercial-license-and-service-terms for the full
  * license.
- */const baseStyles=i$v`
+ */const baseStyles=i$w`
   :host {
     display: flex;
     flex-direction: column;
@@ -20591,7 +20583,7 @@ found at http://polymer.github.io/PATENTS.txt
     max-height: inherit;
     flex: auto;
   }
-`,statesStyles=i$v`
+`,statesStyles=i$w`
   :host([readonly]) [part='toolbar'] {
     display: none;
   }
@@ -20858,7 +20850,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const emailField=i$v`
+ */const emailField=i$w`
   :host([dir='rtl']) [part='input-field'] ::slotted(input) {
     --_lumo-text-field-overflow-mask-image: linear-gradient(to left, transparent, #000 1.25em);
   }
@@ -20870,7 +20862,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const emailFieldStyles=i$v`
+ */const emailFieldStyles=i$w`
   :host([dir='rtl']) [part='input-field'] {
     direction: ltr;
   }
@@ -20883,7 +20875,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-email-field",emailFieldStyles,{moduleId:"vaadin-email-field-styles"});class EmailField extends TextField{static get is(){return"vaadin-email-field"}constructor(){super(),this._setType("email"),this.pattern="^[a-zA-Z0-9_\\-+]+(?:\\.[a-zA-Z0-9_\\-+]+)*@[a-zA-Z0-9\\-.]+\\.[a-zA-Z0-9\\-]{2,}$"}ready(){super.ready(),this.inputElement&&(this.inputElement.autocapitalize="off")}}defineCustomElement(EmailField);registerStyles("vaadin-upload",i$v`
+ */registerStyles("vaadin-email-field",emailFieldStyles,{moduleId:"vaadin-email-field-styles"});class EmailField extends TextField{static get is(){return"vaadin-email-field"}constructor(){super(),this._setType("email"),this.pattern="^[a-zA-Z0-9_\\-+]+(?:\\.[a-zA-Z0-9_\\-+]+)*@[a-zA-Z0-9\\-.]+\\.[a-zA-Z0-9\\-]{2,}$"}ready(){super.ready(),this.inputElement&&(this.inputElement.autocapitalize="off")}}defineCustomElement(EmailField);registerStyles("vaadin-upload",i$w`
     :host {
       line-height: var(--lumo-line-height-m);
     }
@@ -20922,7 +20914,7 @@ found at http://polymer.github.io/PATENTS.txt
     :host([max-files-reached]) [part='drop-label'] {
       color: var(--lumo-disabled-text-color);
     }
-  `,{moduleId:"lumo-upload"});registerStyles("vaadin-upload-icon",i$v`
+  `,{moduleId:"lumo-upload"});registerStyles("vaadin-upload-icon",i$w`
     :host::before {
       content: var(--lumo-icons-upload);
       font-family: lumo-icons;
@@ -20930,11 +20922,11 @@ found at http://polymer.github.io/PATENTS.txt
       line-height: 1;
       vertical-align: -0.25em;
     }
-  `,{moduleId:"lumo-upload-icon"});registerStyles("vaadin-upload-file-list",i$v`
+  `,{moduleId:"lumo-upload-icon"});registerStyles("vaadin-upload-file-list",i$w`
     ::slotted(li:not(:first-of-type)) {
       border-top: 1px solid var(--lumo-contrast-10pct);
     }
-  `,{moduleId:"lumo-upload-file-list"});const uploadFile=i$v`
+  `,{moduleId:"lumo-upload-file-list"});const uploadFile=i$w`
   :host {
     padding: var(--lumo-space-s) 0;
     outline: none;
@@ -21078,7 +21070,7 @@ found at http://polymer.github.io/PATENTS.txt
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const uploadFileStyles=i$v`
+ */const uploadFileStyles=i$w`
   :host {
     display: block;
   }
@@ -21692,7 +21684,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                     </vaadin-horizontal-layout>
                 `}
             </vaadin-vertical-layout>
-       `}};MateuGrid.styles=i$v`
+       `}};MateuGrid.styles=i$w`
         ${badge}
     `;__decorateClass$i([n$t()],MateuGrid.prototype,"field",2);__decorateClass$i([n$t()],MateuGrid.prototype,"state",2);__decorateClass$i([n$t()],MateuGrid.prototype,"data",2);__decorateClass$i([n$t()],MateuGrid.prototype,"selectedItems",2);MateuGrid=__decorateClass$i([t$o("mateu-grid")],MateuGrid);var __defProp$h=Object.defineProperty,__getOwnPropDesc$g=Object.getOwnPropertyDescriptor,__decorateClass$h=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$g(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$h(Q,X,ie),ie};let MateuChoice=class extends i$s{constructor(){super(...arguments),this.getNewValue=te=>this.field?.dataType=="array"?this.value?this.value.indexOf(te)>=0?this.value.filter(Q=>Q!==te):[...this.value,te]:[te]:te}render(){let te=this.field?.options;if(this.field?.remoteCoordinates){const Q=this.field.remoteCoordinates;this.data[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?te=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:Q.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}return x$4`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap;">
@@ -21700,12 +21692,25 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             <div 
                                     class="choice ${this.value==Q.value||this.value&&this.value.indexOf&&this.value.indexOf(Q.value)>=0?"selected":""}"
                                     @click="${()=>this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.getNewValue(Q.value),fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}"
-                            ><h5>${Q.label}</h5>
-                            <p>${Q.description}</p></div>
+                            >${Q.description||Q.image?x$4`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${Q.image?x$4`
+                                            <img src="${Q.image}" alt="${Q.label}" style="width: 2rem;" />
+                                        `:E$5}
+                                    <vaadin-vertical-layout>
+                                        <span> ${Q.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${Q.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:Q.label}</div>
                         `)}
                                 </div>
 
-       `}};MateuChoice.styles=i$v`
+       `}};MateuChoice.styles=i$w`
         .choice {
             min-width: 10rem;
             min-height: 5rem;
@@ -21755,6 +21760,29 @@ To prevent other runtimes from defining tags that you use, consider using scopin
       </div>
     </div>
   </div>
+`,this.comboRenderer=te=>x$4`
+        ${te.description||te.image?x$4`
+            <vaadin-horizontal-layout theme="spacing">
+                ${te.image?x$4`
+                    <div>
+                    <img
+                            style="width: var(--lumo-size-m); margin-right: var(--lumo-space-s);"
+                            src="${te.image}"
+                            alt="${te.label}"
+                    />
+                    </div>
+                                        `:E$5}
+                <div>
+                    ${te.label}
+                    ${te.description?x$4`
+            <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
+                ${te.description}
+            </div>
+        `:E$5}
+                </div>
+
+            </vaadin-horizontal-layout>
+                            `:te.label}
 `,this.filteredIcons=[],this.iconFilterChanged=te=>{this.filteredIcons=allIcons.filter(Q=>!te.detail.value||Q.indexOf(te.detail.value)>=0)}}render(){const te=this.field?.fieldId??"";return x$4`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.data.errors&&this.data.errors[te]&&this.data.errors[te].length>0?x$4`
@@ -21820,6 +21848,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?required="${this.field.required||E$5}"
                             .selectedItem="${ne}"
                             data-colspan="${this.field.colspan}"
+                            ${comboBoxRenderer(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}return x$4`
                     <vaadin-combo-box
@@ -21834,6 +21863,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required||E$5}"
                             data-colspan="${this.field.colspan}"
+                            ${comboBoxRenderer(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}if(this.field?.stereotype=="listBox"){if(this.field?.remoteCoordinates){const ie=this.field.remoteCoordinates,oe="";return this.data[this.id]&&(this.data[this.id].searchSignature||oe)&&this.data[this.id].searchSignature!=oe&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements||this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ie.action,parameters:{searchText:oe,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0})),x$4`
                         <vaadin-custom-field
@@ -21847,7 +21877,21 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.data[this.id]?.content?.map(ne=>x$4`
-                            <vaadin-item>${ne.label}</vaadin-item>
+                            <vaadin-item>${ne.description||ne.image?x$4`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${ne.image?x$4`
+                                            <img src="${ne.image}" alt="${ne.label}" style="width: 2rem;" />
+                                        `:E$5}
+                                    <vaadin-vertical-layout>
+                                        <span> ${ne.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${ne.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:ne.label}</vaadin-item>
                         `)}
                     </vaadin-list-box>
                         </vaadin-custom-field>
@@ -21863,7 +21907,21 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(ie=>x$4`
-                            <vaadin-item>${ie.label}</vaadin-item>
+                            <vaadin-item>${ie.description||ie.image?x$4`
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${ie.image?x$4`
+                                            <img src="${ie.image}" alt="${ie.label}" style="width: 2rem;" />
+                                        `:E$5}
+                                    <vaadin-vertical-layout>
+                                        <span> ${ie.label} </span>
+                                        <span
+                                                style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
+                                        >
+              ${ie.description}
+            </span>
+                                    </vaadin-vertical-layout>
+                                </vaadin-horizontal-layout>
+                            `:ie.label}</vaadin-item>
                         `)}
                     </vaadin-list-box>
                     </vaadin-custom-field>
@@ -21879,7 +21937,21 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             data-colspan="${this.field.colspan}"
                     >
                         ${this.data[this.id]?.content?.map(ne=>x$4`
-                            <vaadin-radio-button value="${ne.value}" label="${ne.label}"></vaadin-radio-button>
+                            <vaadin-radio-button value="${ne.value}" label="${ne.label}">
+                                ${ne.description||ne.image?x$4`
+                                    <label slot="label">
+                                        <vaadin-horizontal-layout theme="spacing">
+                                            ${ne.image?x$4`
+                                                <img src="${ne.image}" alt="${ne.label}" style="height: 1rem;" />
+                                            `:E$5}
+                                            <span>${ne.label}</span>
+                                        </vaadin-horizontal-layout>
+                                        ${ne.description?x$4`
+                                            <div>${ne.description}</div>
+                                        `:E$5}
+                                    </label>
+                                `:E$5}
+                            </vaadin-radio-button>
                         `)}
 </vaadin-radio-group>
                     `}return x$4`
@@ -21893,7 +21965,21 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             data-colspan="${this.field.colspan}"
                     >
                         ${this.field.options?.map(ie=>x$4`
-                            <vaadin-radio-button value="${ie.value}" label="${ie.label}"></vaadin-radio-button>
+                            <vaadin-radio-button value="${ie.value}" label="${ie.label}">
+                                ${ie.description||ie.image?x$4`
+                                    <label slot="label">
+                                        <vaadin-horizontal-layout theme="spacing">
+                                            ${ie.image?x$4`
+                                                <img src="${ie.image}" alt="${ie.label}" style="height: 1rem;" />
+                                            `:E$5}
+                                            <span>${ie.label}</span>
+                                        </vaadin-horizontal-layout>
+                                        ${ie.description?x$4`
+                                            <div>${ie.description}</div>
+                                        `:E$5}
+                                    </label>
+                                `:E$5}
+                            </vaadin-radio-button>
                         `)}
 </vaadin-radio-group>
                     `}return this.field.stereotype=="popover"?x$4`<vaadin-custom-field
@@ -22334,7 +22420,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                                    @change="${oe=>{const ne=oe.target;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{from:ne.startValue,to:ne.endValue},fieldId:this.field.fieldId},bubbles:!0,composed:!0}))}}"
                                    style="min-width: 10rem;"
                 ></ui5-range-slider></vaadin-custom-field>
-            `}return x$4`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}};MateuField.styles=i$v`
+            `}return x$4`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}};MateuField.styles=i$w`
         ${badge}
         
   `;__decorateClass$g([n$t()],MateuField.prototype,"field",2);__decorateClass$g([n$t()],MateuField.prototype,"baseUrl",2);__decorateClass$g([n$t()],MateuField.prototype,"state",2);__decorateClass$g([n$t()],MateuField.prototype,"data",2);__decorateClass$g([n$t()],MateuField.prototype,"labelAlreadyRendered",2);__decorateClass$g([r$o()],MateuField.prototype,"colorPickerOpened",2);__decorateClass$g([r$o()],MateuField.prototype,"colorPickerValue",2);__decorateClass$g([r$o()],MateuField.prototype,"filteredIcons",2);MateuField=__decorateClass$g([t$o("mateu-field")],MateuField);var __defProp$f=Object.defineProperty,__getOwnPropDesc$e=Object.getOwnPropertyDescriptor,__decorateClass$f=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$e(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$f(Q,X,ie),ie};const possiblyHtml=(text,state,data)=>{if(text&&text.indexOf("${")>=0)try{return eval("`"+text+"`")}catch(te){return te.message}return text};let MateuForm=class extends MetadataDrivenElement{constructor(){super(...arguments),this.handleButtonClick=te=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:te},bubbles:!0,composed:!0}))}}render(){const te=this.component?.metadata;return document.title=te.title,x$4`
@@ -22377,7 +22463,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                     </vaadin-horizontal-layout>
                 </div>
             </vaadin-vertical-layout>    
-       `}};MateuForm.styles=i$v`
+       `}};MateuForm.styles=i$w`
         :host {
             width: 100%;
         }
@@ -22394,7 +22480,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
             padding-bottom: 3rem;
         }
 
-    `;__decorateClass$f([n$t()],MateuForm.prototype,"state",2);__decorateClass$f([n$t()],MateuForm.prototype,"data",2);MateuForm=__decorateClass$f([t$o("mateu-form")],MateuForm);registerStyles("vaadin-grid-sorter",i$v`
+    `;__decorateClass$f([n$t()],MateuForm.prototype,"state",2);__decorateClass$f([n$t()],MateuForm.prototype,"data",2);MateuForm=__decorateClass$f([t$o("mateu-form")],MateuForm);registerStyles("vaadin-grid-sorter",i$w`
     :host {
       justify-content: flex-start;
       align-items: baseline;
@@ -22449,7 +22535,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
       font-style: normal;
     }
   </style>
-`;document.head.appendChild(template.content);registerStyles("vaadin-grid-sorter",i$v`
+`;document.head.appendChild(template.content);registerStyles("vaadin-grid-sorter",i$w`
     :host {
       display: inline-flex;
       cursor: pointer;
@@ -22510,7 +22596,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
  * @license
  * Copyright (c) 2016 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */registerStyles("vaadin-grid-filter",i$v`
+ */registerStyles("vaadin-grid-filter",i$w`
     :host {
       display: inline-flex;
       max-width: 100%;
@@ -22586,7 +22672,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                 ${this.metadata?.columns?.find(X=>X.metadata.tooltipPath)?x$4`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:E$5}
             </vaadin-grid>
             <slot></slot>
-       `}};MateuTable.styles=i$v`
+       `}};MateuTable.styles=i$w`
         ${badge}
   `;__decorateClass$e([n$t()],MateuTable.prototype,"id",2);__decorateClass$e([n$t()],MateuTable.prototype,"metadata",2);__decorateClass$e([n$t()],MateuTable.prototype,"baseUrl",2);__decorateClass$e([n$t()],MateuTable.prototype,"state",2);__decorateClass$e([n$t()],MateuTable.prototype,"data",2);__decorateClass$e([n$t()],MateuTable.prototype,"emptyStateMessage",2);__decorateClass$e([r$o()],MateuTable.prototype,"detailsOpenedItems",2);__decorateClass$e([e$m("vaadin-grid")],MateuTable.prototype,"grid",2);MateuTable=__decorateClass$e([t$o("mateu-table")],MateuTable);var __defProp$d=Object.defineProperty,__getOwnPropDesc$c=Object.getOwnPropertyDescriptor,__decorateClass$d=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$c(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$d(Q,X,ie),ie};let MateuFilterBar=class extends i$s{constructor(){super(...arguments),this.baseUrl="",this.state={},this.data={},this.filtersOpened=!1,this.clickedOnClearFilters=()=>{this.metadata?.filters.forEach(te=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:void 0,fieldId:te.fieldId},bubbles:!0,composed:!0}))}),this.handleButtonClick()},this.clickedOnFilters=()=>{this.filtersOpened=!0},this.clickedOnSearch=()=>{this.filtersOpened=!1,this.handleButtonClick()},this.valueChanged=te=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:te.detail.value,fieldId:te.target.id},bubbles:!0,composed:!0}))},this.handleButtonClick=()=>{this.dispatchEvent(new CustomEvent("search-requested",{detail:{},bubbles:!0,composed:!0}))},this.handleToolbarButtonClick=te=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:te},bubbles:!0,composed:!0}))}}handleKey(te){te.code=="Enter"&&(this.filtersOpened=!1,this.handleButtonClick())}connectedCallback(){super.connectedCallback(),this.metadata?.searchOnEnter&&this.addEventListener("keydown",this.handleKey)}disconnectedCallback(){super.disconnectedCallback(),this.metadata?.searchOnEnter&&this.removeEventListener("keydown",this.handleKey)}render(){return x$4`
             <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
@@ -22641,7 +22727,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
               `,[])}
             ></vaadin-dialog>
 
-       `}};MateuFilterBar.styles=i$v`
+       `}};MateuFilterBar.styles=i$w`
   `;__decorateClass$d([n$t()],MateuFilterBar.prototype,"metadata",2);__decorateClass$d([n$t()],MateuFilterBar.prototype,"baseUrl",2);__decorateClass$d([r$o()],MateuFilterBar.prototype,"state",2);__decorateClass$d([r$o()],MateuFilterBar.prototype,"data",2);__decorateClass$d([r$o()],MateuFilterBar.prototype,"filtersOpened",2);MateuFilterBar=__decorateClass$d([t$o("mateu-filter-bar")],MateuFilterBar);var __defProp$c=Object.defineProperty,__getOwnPropDesc$b=Object.getOwnPropertyDescriptor,__decorateClass$c=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$b(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$c(Q,X,ie),ie};let MateuPagination=class extends i$s{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.pages=[]}updated(te){if(super.updated(te),te.has("totalElements")||te.has("pageNumber")){const Q=[],ee=Math.ceil(this.totalElements/this.pageSize)-1;if(this.totalElements>0){if(this.pageNumber>0&&Q.push({pageNumber:0,text:"first",clickable:!0}),this.pageNumber>1&&Q.push({pageNumber:this.pageNumber-1,text:"prev",clickable:!0}),Q.push({pageNumber:this.pageNumber,text:`${this.pageNumber}`,clickable:!1}),this.pageNumber<ee-1){const ie=+this.pageNumber+1;Q.push({pageNumber:ie,text:"next",clickable:!0})}this.pageNumber<ee&&Q.push({pageNumber:ee,text:"last",clickable:!0})}this.pages=Q}}clickOnPage(te){const Q=te.target.getAttribute("page");this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:Q}}))}render(){return this.totalElements?x$4`
             <div class="paginator">
                 ${this.pages.length<2||this.totalElements<=this.pageSize?x$4``:x$4`
@@ -22652,7 +22738,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
         `}
             <slot></slot>
             </div>
-       `:E$5}};MateuPagination.styles=i$v`
+       `:E$5}};MateuPagination.styles=i$w`
   `;__decorateClass$c([n$t()],MateuPagination.prototype,"totalElements",2);__decorateClass$c([n$t()],MateuPagination.prototype,"pageSize",2);__decorateClass$c([n$t()],MateuPagination.prototype,"pageNumber",2);__decorateClass$c([r$o()],MateuPagination.prototype,"pages",2);MateuPagination=__decorateClass$c([t$o("mateu-pagination")],MateuPagination);const renderFormLayout=(te,Q,X,ee,ie)=>{const oe=Q.metadata;let ne=Q.style;return ne==null&&(ne=""),oe.columnSpacing&&(ne+="--vaadin-form-layout-column-spacing: "+oe.columnSpacing+";"),oe.itemRowSpacing&&(ne+="--vaadin-form-layout-row-spacing: "+oe.itemRowSpacing+";"),oe.itemLabelSpacing&&(ne+="--vaadin-form-layout-label-spacing: "+oe.itemLabelSpacing+";"),oe.labelsAside&&(ne+="--vaadin-form-item-label-width: 92px;"),oe.fullWidth&&(ne+="width: 100%;"),x$4`
                <vaadin-form-layout 
                        .responsiveSteps="${oe.responsiveSteps||E$5}"  
@@ -23210,7 +23296,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             </div>
 
             <slot></slot>
-       `}};MateuCardList.styles=i$v`
+       `}};MateuCardList.styles=i$w`
         ${badge}
         
         .card-container {
@@ -23260,12 +23346,12 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                     ${te.footer?.map(Q=>renderComponent(this,Q,this.baseUrl,this.state,this.data))}
                 </mateu-pagination>
 `}
-       `}};MateuTableCrud.styles=i$v`
+       `}};MateuTableCrud.styles=i$w`
   `;__decorateClass$a([n$t()],MateuTableCrud.prototype,"component",2);__decorateClass$a([n$t()],MateuTableCrud.prototype,"baseUrl",2);__decorateClass$a([n$t()],MateuTableCrud.prototype,"state",2);__decorateClass$a([n$t()],MateuTableCrud.prototype,"data",2);MateuTableCrud=__decorateClass$a([t$o("mateu-table-crud")],MateuTableCrud);/**
  * @license
  * Copyright (c) 2025 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const detailsSummary=()=>i$v`
+ */const detailsSummary=()=>i$w`
   :host {
     display: block;
     outline: none;
@@ -23322,7 +23408,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
       </div>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-details"}}defineCustomElement(Details);const sideNavItemStyles=i$v`
+    `}static get is(){return"vaadin-details"}}defineCustomElement(Details);const sideNavItemStyles=i$w`
   :host {
     --_focus-ring-color: var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
     --_focus-ring-width: var(--vaadin-focus-ring-width, 2px);
@@ -23447,7 +23533,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
  * @license
  * Copyright (c) 2023 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const sideNavItemBaseStyles=i$v`
+ */const sideNavItemBaseStyles=i$w`
   :host {
     display: block;
   }
@@ -23510,7 +23596,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-`,sideNavBaseStyles=i$v`
+`,sideNavBaseStyles=i$w`
   :host {
     display: block;
   }
@@ -23576,7 +23662,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         <slot name="children"></slot>
       </ul>
       <div hidden id="i18n">${this.__effectiveI18n.toggle}</div>
-    `}_onButtonClick(Q){Q.stopPropagation(),this.__toggleExpanded()}_onContentClick(){this.path==null&&this.hasAttribute("has-children")&&this.__toggleExpanded()}__toggleExpanded(){this.expanded=!this.expanded}__updateCurrent(){this._setCurrent(this.__isCurrent()),this.current&&(this.__expandParentItems(),this.expanded=this._items.length>0)}__expandParentItems(){const Q=this.__getParentItem();Q&&Q.__expandParentItems(),this.expanded=!0}__getParentItem(){return this.parentElement instanceof SideNavItem?this.parentElement:null}__isCurrent(){if(this.path==null)return!1;const Q=`${location$1.pathname}${location$1.search}`,X={matchNested:this.matchNested};return matchPaths(Q,this.path,X)||this.pathAliases.some(ee=>matchPaths(Q,ee,X))}}defineCustomElement(SideNavItem);const sideNavStyles=i$v`
+    `}_onButtonClick(Q){Q.stopPropagation(),this.__toggleExpanded()}_onContentClick(){this.path==null&&this.hasAttribute("has-children")&&this.__toggleExpanded()}__toggleExpanded(){this.expanded=!this.expanded}__updateCurrent(){this._setCurrent(this.__isCurrent()),this.current&&(this.__expandParentItems(),this.expanded=this._items.length>0)}__expandParentItems(){const Q=this.__getParentItem();Q&&Q.__expandParentItems(),this.expanded=!0}__getParentItem(){return this.parentElement instanceof SideNavItem?this.parentElement:null}__isCurrent(){if(this.path==null)return!1;const Q=`${location$1.pathname}${location$1.search}`,X={matchNested:this.matchNested};return matchPaths(Q,this.path,X)||this.pathAliases.some(ee=>matchPaths(Q,ee,X))}}defineCustomElement(SideNavItem);const sideNavStyles=i$w`
   :host {
     font-family: var(--lumo-font-family);
     font-size: var(--lumo-font-size-m);
@@ -23675,7 +23761,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
       >
         <slot></slot>
       </ul>
-    `}_shouldSetFocus(Q){return Q.composedPath()[0]===this.focusElement}_onLabelClick(){this.collapsible&&this.__toggleCollapsed()}_onLabelSlotChange(){const Q=this.querySelector('[slot="label"]');Q?(Q.id||(Q.id=this._labelId),this.setAttribute("aria-labelledby",Q.id)):this.removeAttribute("aria-labelledby")}__locationChanged(){window.dispatchEvent(new CustomEvent("side-nav-location-changed"))}__toggleCollapsed(){this.collapsed=!this.collapsed}__onClick(Q){if(!this.onNavigate||Q.metaKey||Q.shiftKey)return;const ee=Q.composedPath(),ie=ee.find(se=>se.localName&&se.localName.includes("side-nav-item")),oe=ee.find(se=>se instanceof HTMLAnchorElement);if(!ie||!ie.shadowRoot.contains(oe)||!(oe.href&&oe.href.startsWith(location.origin))||ie.target==="_blank"||ie.routerIgnore)return;this.onNavigate({path:ie.path,target:ie.target,current:ie.current,expanded:ie.expanded,pathAliases:ie.pathAliases,originalEvent:Q})!==!1&&Q.preventDefault()}}defineCustomElement(SideNav);var UIFragmentAction=(te=>(te.Add="Add",te.Replace="Replace",te))(UIFragmentAction||{}),__defProp$9=Object.defineProperty,__decorateClass$9=(te,Q,X,ee)=>{for(var ie=void 0,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=ne(Q,X,ie)||ie);return ie&&__defProp$9(Q,X,ie),ie};class ComponentElement extends MetadataDrivenElement{constructor(){super(...arguments),this.state={},this.data={}}applyFragment(Q){if(this.id==Q.targetComponentId){if(Q.component)if(UIFragmentAction.Add==Q.action)this.component&&this.component.children?.push(Q.component);else{const X=Q.component?.type==ComponentType.ServerSide?Q.component?.children:[Q.component];this.component&&(this.component.children=X),this.state={},this.data={}}if(Q.state&&(this.state={...this.state,...Q.state}),Q.data){for(const X in Q.data){const ee=Q.data[X].page;ee?.pageNumber>0&&this.data[X]&&this.data[X].page.content&&(ee.content?ee.content=[...this.data[X].page.content,...ee.content]:ee.content=[...this.data[X].page.content])}this.data={...this.data,...Q.data}}this.requestUpdate()}}}__decorateClass$9([n$t()],ComponentElement.prototype,"state");__decorateClass$9([n$t()],ComponentElement.prototype,"data");registerStyles("vaadin-icon",i$v`
+    `}_shouldSetFocus(Q){return Q.composedPath()[0]===this.focusElement}_onLabelClick(){this.collapsible&&this.__toggleCollapsed()}_onLabelSlotChange(){const Q=this.querySelector('[slot="label"]');Q?(Q.id||(Q.id=this._labelId),this.setAttribute("aria-labelledby",Q.id)):this.removeAttribute("aria-labelledby")}__locationChanged(){window.dispatchEvent(new CustomEvent("side-nav-location-changed"))}__toggleCollapsed(){this.collapsed=!this.collapsed}__onClick(Q){if(!this.onNavigate||Q.metaKey||Q.shiftKey)return;const ee=Q.composedPath(),ie=ee.find(se=>se.localName&&se.localName.includes("side-nav-item")),oe=ee.find(se=>se instanceof HTMLAnchorElement);if(!ie||!ie.shadowRoot.contains(oe)||!(oe.href&&oe.href.startsWith(location.origin))||ie.target==="_blank"||ie.routerIgnore)return;this.onNavigate({path:ie.path,target:ie.target,current:ie.current,expanded:ie.expanded,pathAliases:ie.pathAliases,originalEvent:Q})!==!1&&Q.preventDefault()}}defineCustomElement(SideNav);var UIFragmentAction=(te=>(te.Add="Add",te.Replace="Replace",te))(UIFragmentAction||{}),__defProp$9=Object.defineProperty,__decorateClass$9=(te,Q,X,ee)=>{for(var ie=void 0,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=ne(Q,X,ie)||ie);return ie&&__defProp$9(Q,X,ie),ie};class ComponentElement extends MetadataDrivenElement{constructor(){super(...arguments),this.state={},this.data={}}applyFragment(Q){if(this.id==Q.targetComponentId){if(Q.component)if(UIFragmentAction.Add==Q.action)this.component&&this.component.children?.push(Q.component);else{const X=Q.component?.type==ComponentType.ServerSide?Q.component?.children:[Q.component];this.component&&(this.component.children=X),this.state={},this.data={}}if(Q.state&&(this.state={...this.state,...Q.state}),Q.data){for(const X in Q.data){const ee=Q.data[X].page;ee?.pageNumber>0&&this.data[X]&&this.data[X].page.content&&(ee.content?ee.content=[...this.data[X].page.content,...ee.content]:ee.content=[...this.data[X].page.content])}this.data={...this.data,...Q.data}}this.requestUpdate()}}}__decorateClass$9([n$t()],ComponentElement.prototype,"state");__decorateClass$9([n$t()],ComponentElement.prototype,"data");registerStyles("vaadin-icon",i$w`
     :host {
       width: var(--lumo-icon-size-m);
       height: var(--lumo-icon-size-m);
@@ -23700,7 +23786,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
  * @license
  * Copyright (c) 2021 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const usesFontIconSizingFallback=needsFontIconSizingFallback();usesFontIconSizingFallback&&registerStyles("vaadin-icon",i$v`
+ */const usesFontIconSizingFallback=needsFontIconSizingFallback();usesFontIconSizingFallback&&registerStyles("vaadin-icon",i$w`
       :host::after,
       :host::before {
         font-size: var(--_vaadin-font-icon-size);
@@ -23719,7 +23805,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
  * @license
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const iconStyles=i$v`
+ */const iconStyles=i$w`
   :host {
     display: inline-flex;
     justify-content: center;
@@ -23803,7 +23889,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 .opened="${this.notificationOpened}"
                 @opened-changed="${te=>{this.notificationOpened=te.detail.value}}"
                 ${notificationRenderer(this.notificationRenderer,[])}
-        ></vaadin-notification>`}};MateuApiCaller.styles=i$v`
+        ></vaadin-notification>`}};MateuApiCaller.styles=i$w`
         :host {
             /* width: 100%; */
             display: inline-block;
@@ -23834,7 +23920,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                                 </vaadin-side-nav-item>
                         `}
 
-                            `)}`:E$5,this.updateRoute=te=>{te.preventDefault(),te.stopPropagation(),this.selectRoute(te.detail.route)}}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.addEventListener("update-route",this.updateRoute)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("update-route",this.updateRoute)}render(){return componentRenderer.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data)}};MateuApp.styles=i$v`
+                            `)}`:E$5,this.updateRoute=te=>{te.preventDefault(),te.stopPropagation(),this.selectRoute(te.detail.route)}}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.addEventListener("update-route",this.updateRoute)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("update-route",this.updateRoute)}render(){return componentRenderer.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data)}};MateuApp.styles=i$w`
         --_vaadin-app-layout-navbar-offset-size: 20px;
         :host {
             width: 100%;
@@ -23911,8 +23997,8 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
  * (c) 2022 chartjs-adapter-date-fns Contributors
  * Released under the MIT license
  */const FORMATS={datetime:"MMM d, yyyy, h:mm:ss aaaa",millisecond:"h:mm:ss.SSS aaaa",second:"h:mm:ss aaaa",minute:"h:mm aaaa",hour:"ha",day:"MMM d",week:"PP",month:"MMM yyyy",quarter:"qqq - yyyy",year:"yyyy"};adapters._date.override({_id:"date-fns",formats:function(){return FORMATS},parse:function(te,Q){if(te===null||typeof te>"u")return null;const X=typeof te;return X==="number"||te instanceof Date?te=toDate(te):X==="string"&&(typeof Q=="string"?te=parse(te,Q,new Date,this.options):te=parseISO(te,this.options)),isValid(te)?te.getTime():null},format:function(te,Q){return format(te,Q,this.options)},add:function(te,Q,X){switch(X){case"millisecond":return addMilliseconds(te,Q);case"second":return addSeconds(te,Q);case"minute":return addMinutes(te,Q);case"hour":return addHours(te,Q);case"day":return addDays(te,Q);case"week":return addWeeks(te,Q);case"month":return addMonths(te,Q);case"quarter":return addQuarters(te,Q);case"year":return addYears(te,Q);default:return te}},diff:function(te,Q,X){switch(X){case"millisecond":return differenceInMilliseconds(te,Q);case"second":return differenceInSeconds(te,Q);case"minute":return differenceInMinutes(te,Q);case"hour":return differenceInHours(te,Q);case"day":return differenceInDays(te,Q);case"week":return differenceInWeeks(te,Q);case"month":return differenceInMonths(te,Q);case"quarter":return differenceInQuarters(te,Q);case"year":return differenceInYears(te,Q);default:return 0}},startOf:function(te,Q,X){switch(Q){case"second":return startOfSecond(te);case"minute":return startOfMinute(te);case"hour":return startOfHour(te);case"day":return startOfDay(te);case"week":return startOfWeek(te);case"isoWeek":return startOfWeek(te,{weekStartsOn:+X});case"month":return startOfMonth(te);case"quarter":return startOfQuarter(te);case"year":return startOfYear(te);default:return te}},endOf:function(te,Q){switch(Q){case"second":return endOfSecond(te);case"minute":return endOfMinute(te);case"hour":return endOfHour(te);case"day":return endOfDay(te);case"week":return endOfWeek(te);case"month":return endOfMonth(te);case"quarter":return endOfQuarter(te);case"year":return endOfYear(te);default:return te}}});var cookieconsent_min={},hasRequiredCookieconsent_min;function requireCookieconsent_min(){return hasRequiredCookieconsent_min||(hasRequiredCookieconsent_min=1,(function(te){if(!te.hasInitialised){var Q={escapeRegExp:function(ee){return ee.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,"\\$&")},hasClass:function(ee,ie){var oe=" ";return ee.nodeType===1&&(oe+ee.className+oe).replace(/[\n\t]/g,oe).indexOf(oe+ie+oe)>=0},addClass:function(ee,ie){ee.className+=" "+ie},removeClass:function(ee,ie){var oe=new RegExp("\\b"+this.escapeRegExp(ie)+"\\b");ee.className=ee.className.replace(oe,"")},interpolateString:function(ee,ie){return ee.replace(/{{([a-z][a-z0-9\-_]*)}}/gi,function(oe){return ie(arguments[1])||""})},getCookie:function(ee){var ie=("; "+document.cookie).split("; "+ee+"=");return ie.length<2?void 0:ie.pop().split(";").shift()},setCookie:function(ee,ie,oe,ne,ae,se){var le=new Date;le.setHours(le.getHours()+24*(oe||365));var de=[ee+"="+ie,"expires="+le.toUTCString(),"path="+(ae||"/")];ne&&de.push("domain="+ne),se&&de.push("secure"),document.cookie=de.join(";")},deepExtend:function(ee,ie){for(var oe in ie)ie.hasOwnProperty(oe)&&(oe in ee&&this.isPlainObject(ee[oe])&&this.isPlainObject(ie[oe])?this.deepExtend(ee[oe],ie[oe]):ee[oe]=ie[oe]);return ee},throttle:function(ee,ie){var oe=!1;return function(){oe||(ee.apply(this,arguments),oe=!0,setTimeout(function(){oe=!1},ie))}},hash:function(ee){var ie,oe,ne=0;if(ee.length===0)return ne;for(ie=0,oe=ee.length;ie<oe;++ie)ne=(ne<<5)-ne+ee.charCodeAt(ie),ne|=0;return ne},normaliseHex:function(ee){return ee[0]=="#"&&(ee=ee.substr(1)),ee.length==3&&(ee=ee[0]+ee[0]+ee[1]+ee[1]+ee[2]+ee[2]),ee},getContrast:function(ee){return ee=this.normaliseHex(ee),(299*parseInt(ee.substr(0,2),16)+587*parseInt(ee.substr(2,2),16)+114*parseInt(ee.substr(4,2),16))/1e3>=128?"#000":"#fff"},getLuminance:function(ee){var ie=parseInt(this.normaliseHex(ee),16),oe=38+(ie>>16),ne=38+(ie>>8&255),ae=38+(255&ie);return"#"+(16777216+65536*(oe<255?oe<1?0:oe:255)+256*(ne<255?ne<1?0:ne:255)+(ae<255?ae<1?0:ae:255)).toString(16).slice(1)},isMobile:function(){return/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)},isPlainObject:function(ee){return typeof ee=="object"&&ee!==null&&ee.constructor==Object},traverseDOMPath:function(ee,ie){return ee&&ee.parentNode?Q.hasClass(ee,ie)?ee:this.traverseDOMPath(ee.parentNode,ie):null}};te.status={deny:"deny",allow:"allow",dismiss:"dismiss"},te.transitionEnd=(function(){var ee=document.createElement("div"),ie={t:"transitionend",OT:"oTransitionEnd",msT:"MSTransitionEnd",MozT:"transitionend",WebkitT:"webkitTransitionEnd"};for(var oe in ie)if(ie.hasOwnProperty(oe)&&ee.style[oe+"ransition"]!==void 0)return ie[oe];return""})(),te.hasTransition=!!te.transitionEnd;var X=Object.keys(te.status).map(Q.escapeRegExp);te.customStyles={},te.Popup=(function(){var ee={enabled:!0,container:null,cookie:{name:"cookieconsent_status",path:"/",domain:"",expiryDays:365,secure:!1},onPopupOpen:function(){},onPopupClose:function(){},onInitialise:function(ce){},onStatusChange:function(ce,he){},onRevokeChoice:function(){},onNoCookieLaw:function(ce,he){},content:{header:"Cookies used on the website!",message:"This website uses cookies to ensure you get the best experience on our website.",dismiss:"Got it!",allow:"Allow cookies",deny:"Decline",link:"Learn more",href:"https://www.cookiesandyou.com",close:"&#x274c;",target:"_blank",policy:"Cookie Policy"},elements:{header:'<span class="cc-header">{{header}}</span>&nbsp;',message:'<span id="cookieconsent:desc" class="cc-message">{{message}}</span>',messagelink:'<span id="cookieconsent:desc" class="cc-message">{{message}} <a aria-label="learn more about cookies" role=button tabindex="0" class="cc-link" href="{{href}}" rel="noopener noreferrer nofollow" target="{{target}}">{{link}}</a></span>',dismiss:'<a aria-label="dismiss cookie message" role=button tabindex="0" class="cc-btn cc-dismiss">{{dismiss}}</a>',allow:'<a aria-label="allow cookies" role=button tabindex="0"  class="cc-btn cc-allow">{{allow}}</a>',deny:'<a aria-label="deny cookies" role=button tabindex="0" class="cc-btn cc-deny">{{deny}}</a>',link:'<a aria-label="learn more about cookies" role=button tabindex="0" class="cc-link" href="{{href}}" rel="noopener noreferrer nofollow" target="{{target}}">{{link}}</a>',close:'<span aria-label="dismiss cookie message" role=button tabindex="0" class="cc-close">{{close}}</span>'},window:'<div role="dialog" aria-live="polite" aria-label="cookieconsent" aria-describedby="cookieconsent:desc" class="cc-window {{classes}}"><!--googleoff: all-->{{children}}<!--googleon: all--></div>',revokeBtn:'<div class="cc-revoke {{classes}}">{{policy}}</div>',compliance:{info:'<div class="cc-compliance">{{dismiss}}</div>',"opt-in":'<div class="cc-compliance cc-highlight">{{deny}}{{allow}}</div>',"opt-out":'<div class="cc-compliance cc-highlight">{{deny}}{{allow}}</div>'},type:"info",layouts:{basic:"{{messagelink}}{{compliance}}","basic-close":"{{messagelink}}{{compliance}}{{close}}","basic-header":"{{header}}{{message}}{{link}}{{compliance}}"},layout:"basic",position:"bottom",theme:"block",static:!1,palette:null,revokable:!1,animateRevokable:!0,showLink:!0,dismissOnScroll:!1,dismissOnTimeout:!1,dismissOnWindowClick:!1,ignoreClicksFrom:["cc-revoke","cc-btn"],autoOpen:!0,autoAttach:!0,whitelistPage:[],blacklistPage:[],overrideHTML:null};function ie(){this.initialise.apply(this,arguments)}function oe(ce){this.openingTimeout=null,Q.removeClass(ce,"cc-invisible")}function ne(ce){ce.style.display="none",ce.removeEventListener(te.transitionEnd,this.afterTransition),this.afterTransition=null}function ae(){var ce=this.options.position.split("-"),he=[];return ce.forEach(function(ue){he.push("cc-"+ue)}),he}function se(ce){var he=this.options,ue=document.createElement("div"),pe=he.container&&he.container.nodeType===1?he.container:document.body;ue.innerHTML=ce;var fe=ue.children[0];return fe.style.display="none",Q.hasClass(fe,"cc-window")&&te.hasTransition&&Q.addClass(fe,"cc-invisible"),this.onButtonClick=(function(ve){var me=Q.traverseDOMPath(ve.target,"cc-btn")||ve.target;if(Q.hasClass(me,"cc-btn")){var ge=me.className.match(new RegExp("\\bcc-("+X.join("|")+")\\b")),_e=ge&&ge[1]||!1;_e&&(this.setStatus(_e),this.close(!0))}Q.hasClass(me,"cc-close")&&(this.setStatus(te.status.dismiss),this.close(!0)),Q.hasClass(me,"cc-revoke")&&this.revokeChoice()}).bind(this),fe.addEventListener("click",this.onButtonClick),he.autoAttach&&(pe.firstChild?pe.insertBefore(fe,pe.firstChild):pe.appendChild(fe)),fe}function le(ce){return(ce=Q.normaliseHex(ce))=="000000"?"#222":Q.getLuminance(ce)}function de(ce,he){for(var ue=0,pe=ce.length;ue<pe;++ue){var fe=ce[ue];if(fe instanceof RegExp&&fe.test(he)||typeof fe=="string"&&fe.length&&fe===he)return!0}return!1}return ie.prototype.initialise=function(ce){this.options&&this.destroy(),Q.deepExtend(this.options={},ee),Q.isPlainObject(ce)&&Q.deepExtend(this.options,ce),(function(){var fe=this.options.onInitialise.bind(this);if(!window.navigator.cookieEnabled)return fe(te.status.deny),!0;if(window.CookiesOK||window.navigator.CookiesOK)return fe(te.status.allow),!0;var ve=Object.keys(te.status),me=this.getStatus(),ge=ve.indexOf(me)>=0;return ge&&fe(me),ge}).call(this)&&(this.options.enabled=!1),de(this.options.blacklistPage,location.pathname)&&(this.options.enabled=!1),de(this.options.whitelistPage,location.pathname)&&(this.options.enabled=!0);var he=this.options.window.replace("{{classes}}",(function(){var fe=this.options,ve=fe.position=="top"||fe.position=="bottom"?"banner":"floating";Q.isMobile()&&(ve="floating");var me=["cc-"+ve,"cc-type-"+fe.type,"cc-theme-"+fe.theme];return fe.static&&me.push("cc-static"),me.push.apply(me,ae.call(this)),(function(ge){var _e=Q.hash(JSON.stringify(ge)),be="cc-color-override-"+_e,ye=Q.isPlainObject(ge);return this.customStyleSelector=ye?be:null,ye&&(function(xe,we,$e){if(te.customStyles[xe])return void++te.customStyles[xe].references;var Ae={},Me=we.popup,Ee=we.button,Te=we.highlight;Me&&(Me.text=Me.text?Me.text:Q.getContrast(Me.background),Me.link=Me.link?Me.link:Me.text,Ae[$e+".cc-window"]=["color: "+Me.text,"background-color: "+Me.background],Ae[$e+".cc-revoke"]=["color: "+Me.text,"background-color: "+Me.background],Ae[$e+" .cc-link,"+$e+" .cc-link:active,"+$e+" .cc-link:visited"]=["color: "+Me.link],Ee&&(Ee.text=Ee.text?Ee.text:Q.getContrast(Ee.background),Ee.border=Ee.border?Ee.border:"transparent",Ae[$e+" .cc-btn"]=["color: "+Ee.text,"border-color: "+Ee.border,"background-color: "+Ee.background],Ee.padding&&Ae[$e+" .cc-btn"].push("padding: "+Ee.padding),Ee.background!="transparent"&&(Ae[$e+" .cc-btn:hover, "+$e+" .cc-btn:focus"]=["background-color: "+(Ee.hover||le(Ee.background))]),Te?(Te.text=Te.text?Te.text:Q.getContrast(Te.background),Te.border=Te.border?Te.border:"transparent",Ae[$e+" .cc-highlight .cc-btn:first-child"]=["color: "+Te.text,"border-color: "+Te.border,"background-color: "+Te.background]):Ae[$e+" .cc-highlight .cc-btn:first-child"]=["color: "+Me.text]));var ke=document.createElement("style");document.head.appendChild(ke),te.customStyles[xe]={references:1,element:ke.sheet};var De=-1;for(var Ie in Ae)Ae.hasOwnProperty(Ie)&&ke.sheet.insertRule(Ie+"{"+Ae[Ie].join(";")+"}",++De)})(_e,ge,"."+be),ye}).call(this,this.options.palette),this.customStyleSelector&&me.push(this.customStyleSelector),me}).call(this).join(" ")).replace("{{children}}",(function(){var fe={},ve=this.options;ve.showLink||(ve.elements.link="",ve.elements.messagelink=ve.elements.message),Object.keys(ve.elements).forEach(function(_e){fe[_e]=Q.interpolateString(ve.elements[_e],function(be){var ye=ve.content[be];return be&&typeof ye=="string"&&ye.length?ye:""})});var me=ve.compliance[ve.type];me||(me=ve.compliance.info),fe.compliance=Q.interpolateString(me,function(_e){return fe[_e]});var ge=ve.layouts[ve.layout];return ge||(ge=ve.layouts.basic),Q.interpolateString(ge,function(_e){return fe[_e]})}).call(this)),ue=this.options.overrideHTML;if(typeof ue=="string"&&ue.length&&(he=ue),this.options.static){var pe=se.call(this,'<div class="cc-grower">'+he+"</div>");pe.style.display="",this.element=pe.firstChild,this.element.style.display="none",Q.addClass(this.element,"cc-invisible")}else this.element=se.call(this,he);(function(){var fe=this.setStatus.bind(this),ve=this.close.bind(this),me=this.options.dismissOnTimeout;typeof me=="number"&&me>=0&&(this.dismissTimeout=window.setTimeout(function(){fe(te.status.dismiss),ve(!0)},Math.floor(me)));var ge=this.options.dismissOnScroll;if(typeof ge=="number"&&ge>=0){var _e=function(we){window.pageYOffset>Math.floor(ge)&&(fe(te.status.dismiss),ve(!0),window.removeEventListener("scroll",_e),this.onWindowScroll=null)};this.options.enabled&&(this.onWindowScroll=_e,window.addEventListener("scroll",_e))}var be=this.options.dismissOnWindowClick,ye=this.options.ignoreClicksFrom;if(be){var xe=(function(we){for(var $e=!1,Ae=we.path.length,Me=ye.length,Ee=0;Ee<Ae;Ee++)if(!$e)for(var Te=0;Te<Me;Te++)$e||($e=Q.hasClass(we.path[Ee],ye[Te]));$e||(fe(te.status.dismiss),ve(!0),window.removeEventListener("click",xe),window.removeEventListener("touchend",xe),this.onWindowClick=null)}).bind(this);this.options.enabled&&(this.onWindowClick=xe,window.addEventListener("click",xe),window.addEventListener("touchend",xe))}}).call(this),(function(){if(this.options.type!="info"&&(this.options.revokable=!0),Q.isMobile()&&(this.options.animateRevokable=!1),this.options.revokable){var fe=ae.call(this);this.options.animateRevokable&&fe.push("cc-animate"),this.customStyleSelector&&fe.push(this.customStyleSelector);var ve=this.options.revokeBtn.replace("{{classes}}",fe.join(" ")).replace("{{policy}}",this.options.content.policy);this.revokeBtn=se.call(this,ve);var me=this.revokeBtn;if(this.options.animateRevokable){var ge=Q.throttle(function(_e){var be=!1,ye=window.innerHeight-20;Q.hasClass(me,"cc-top")&&_e.clientY<20&&(be=!0),Q.hasClass(me,"cc-bottom")&&_e.clientY>ye&&(be=!0),be?Q.hasClass(me,"cc-active")||Q.addClass(me,"cc-active"):Q.hasClass(me,"cc-active")&&Q.removeClass(me,"cc-active")},200);this.onMouseMove=ge,window.addEventListener("mousemove",ge)}}}).call(this),this.options.autoOpen&&this.autoOpen()},ie.prototype.destroy=function(){this.onButtonClick&&this.element&&(this.element.removeEventListener("click",this.onButtonClick),this.onButtonClick=null),this.dismissTimeout&&(clearTimeout(this.dismissTimeout),this.dismissTimeout=null),this.onWindowScroll&&(window.removeEventListener("scroll",this.onWindowScroll),this.onWindowScroll=null),this.onWindowClick&&(window.removeEventListener("click",this.onWindowClick),this.onWindowClick=null),this.onMouseMove&&(window.removeEventListener("mousemove",this.onMouseMove),this.onMouseMove=null),this.element&&this.element.parentNode&&this.element.parentNode.removeChild(this.element),this.element=null,this.revokeBtn&&this.revokeBtn.parentNode&&this.revokeBtn.parentNode.removeChild(this.revokeBtn),this.revokeBtn=null,(function(ce){if(Q.isPlainObject(ce)){var he=Q.hash(JSON.stringify(ce)),ue=te.customStyles[he];if(ue&&!--ue.references){var pe=ue.element.ownerNode;pe&&pe.parentNode&&pe.parentNode.removeChild(pe),te.customStyles[he]=null}}})(this.options.palette),this.options=null},ie.prototype.open=function(ce){if(this.element)return this.isOpen()||(te.hasTransition?this.fadeIn():this.element.style.display="",this.options.revokable&&this.toggleRevokeButton(),this.options.onPopupOpen.call(this)),this},ie.prototype.close=function(ce){if(this.element)return this.isOpen()&&(te.hasTransition?this.fadeOut():this.element.style.display="none",ce&&this.options.revokable&&this.toggleRevokeButton(!0),this.options.onPopupClose.call(this)),this},ie.prototype.fadeIn=function(){var ce=this.element;if(te.hasTransition&&ce&&(this.afterTransition&&ne.call(this,ce),Q.hasClass(ce,"cc-invisible"))){if(ce.style.display="",this.options.static){var he=this.element.clientHeight;this.element.parentNode.style.maxHeight=he+"px"}this.openingTimeout=setTimeout(oe.bind(this,ce),20)}},ie.prototype.fadeOut=function(){var ce=this.element;te.hasTransition&&ce&&(this.openingTimeout&&(clearTimeout(this.openingTimeout),oe.bind(this,ce)),Q.hasClass(ce,"cc-invisible")||(this.options.static&&(this.element.parentNode.style.maxHeight=""),this.afterTransition=ne.bind(this,ce),ce.addEventListener(te.transitionEnd,this.afterTransition),Q.addClass(ce,"cc-invisible")))},ie.prototype.isOpen=function(){return this.element&&this.element.style.display==""&&(!te.hasTransition||!Q.hasClass(this.element,"cc-invisible"))},ie.prototype.toggleRevokeButton=function(ce){this.revokeBtn&&(this.revokeBtn.style.display=ce?"":"none")},ie.prototype.revokeChoice=function(ce){this.options.enabled=!0,this.clearStatus(),this.options.onRevokeChoice.call(this),ce||this.autoOpen()},ie.prototype.hasAnswered=function(ce){return Object.keys(te.status).indexOf(this.getStatus())>=0},ie.prototype.hasConsented=function(ce){var he=this.getStatus();return he==te.status.allow||he==te.status.dismiss},ie.prototype.autoOpen=function(ce){!this.hasAnswered()&&this.options.enabled?this.open():this.hasAnswered()&&this.options.revokable&&this.toggleRevokeButton(!0)},ie.prototype.setStatus=function(ce){var he=this.options.cookie,ue=Q.getCookie(he.name),pe=Object.keys(te.status).indexOf(ue)>=0;Object.keys(te.status).indexOf(ce)>=0?(Q.setCookie(he.name,ce,he.expiryDays,he.domain,he.path,he.secure),this.options.onStatusChange.call(this,ce,pe)):this.clearStatus()},ie.prototype.getStatus=function(){return Q.getCookie(this.options.cookie.name)},ie.prototype.clearStatus=function(){var ce=this.options.cookie;Q.setCookie(ce.name,"",-1,ce.domain,ce.path)},ie})(),te.Location=(function(){var ee={timeout:5e3,services:["ipinfo"],serviceDefinitions:{ipinfo:function(){return{url:"//ipinfo.io",headers:["Accept: application/json"],callback:function(se,le){try{var de=JSON.parse(le);return de.error?ae(de):{code:de.country}}catch(ce){return ae({error:"Invalid response ("+ce+")"})}}}},ipinfodb:function(se){return{url:"//api.ipinfodb.com/v3/ip-country/?key={api_key}&format=json&callback={callback}",isScript:!0,callback:function(le,de){try{var ce=JSON.parse(de);return ce.statusCode=="ERROR"?ae({error:ce.statusMessage}):{code:ce.countryCode}}catch(he){return ae({error:"Invalid response ("+he+")"})}}}},maxmind:function(){return{url:"//js.maxmind.com/js/apis/geoip2/v2.1/geoip2.js",isScript:!0,callback:function(se){window.geoip2?geoip2.country(function(le){try{se({code:le.country.iso_code})}catch(de){se(ae(de))}},function(le){se(ae(le))}):se(new Error("Unexpected response format. The downloaded script should have exported `geoip2` to the global scope"))}}}}};function ie(se){Q.deepExtend(this.options={},ee),Q.isPlainObject(se)&&Q.deepExtend(this.options,se),this.currentServiceIndex=-1}function oe(se,le,de){var ce,he=document.createElement("script");he.type="text/"+(se.type||"javascript"),he.src=se.src||se,he.async=!1,he.onreadystatechange=he.onload=function(){var ue=he.readyState;clearTimeout(ce),le.done||ue&&!/loaded|complete/.test(ue)||(le.done=!0,le(),he.onreadystatechange=he.onload=null)},document.body.appendChild(he),ce=setTimeout(function(){le.done=!0,le(),he.onreadystatechange=he.onload=null},de)}function ne(se,le,de,ce,he){var ue=new(window.XMLHttpRequest||window.ActiveXObject)("MSXML2.XMLHTTP.3.0");if(ue.open(ce?"POST":"GET",se,1),ue.setRequestHeader("Content-type","application/x-www-form-urlencoded"),Array.isArray(he))for(var pe=0,fe=he.length;pe<fe;++pe){var ve=he[pe].split(":",2);ue.setRequestHeader(ve[0].replace(/^\s+|\s+$/g,""),ve[1].replace(/^\s+|\s+$/g,""))}typeof le=="function"&&(ue.onreadystatechange=function(){ue.readyState>3&&le(ue)}),ue.send(ce)}function ae(se){return new Error("Error ["+(se.code||"UNKNOWN")+"]: "+se.error)}return ie.prototype.getNextService=function(){var se;do se=this.getServiceByIdx(++this.currentServiceIndex);while(this.currentServiceIndex<this.options.services.length&&!se);return se},ie.prototype.getServiceByIdx=function(se){var le=this.options.services[se];if(typeof le=="function"){var de=le();return de.name&&Q.deepExtend(de,this.options.serviceDefinitions[de.name](de)),de}return typeof le=="string"?this.options.serviceDefinitions[le]():Q.isPlainObject(le)?this.options.serviceDefinitions[le.name](le):null},ie.prototype.locate=function(se,le){var de=this.getNextService();de?(this.callbackComplete=se,this.callbackError=le,this.runService(de,this.runNextServiceOnError.bind(this))):le(new Error("No services to run"))},ie.prototype.setupUrl=function(se){var le=this.getCurrentServiceOpts();return se.url.replace(/\{(.*?)\}/g,function(de,ce){if(ce==="callback"){var he="callback"+Date.now();return window[he]=function(ue){se.__JSONP_DATA=JSON.stringify(ue)},he}if(ce in le.interpolateUrl)return le.interpolateUrl[ce]})},ie.prototype.runService=function(se,le){var de=this;se&&se.url&&se.callback&&(se.isScript?oe:ne)(this.setupUrl(se),function(ce){var he=ce?ce.responseText:"";se.__JSONP_DATA&&(he=se.__JSONP_DATA,delete se.__JSONP_DATA),de.runServiceCallback.call(de,le,se,he)},this.options.timeout,se.data,se.headers)},ie.prototype.runServiceCallback=function(se,le,de){var ce=this,he=le.callback(function(ue){he||ce.onServiceResult.call(ce,se,ue)},de);he&&this.onServiceResult.call(this,se,he)},ie.prototype.onServiceResult=function(se,le){le instanceof Error||le&&le.error?se.call(this,le,null):se.call(this,null,le)},ie.prototype.runNextServiceOnError=function(se,le){if(se){this.logError(se);var de=this.getNextService();de?this.runService(de,this.runNextServiceOnError.bind(this)):this.completeService.call(this,this.callbackError,new Error("All services failed"))}else this.completeService.call(this,this.callbackComplete,le)},ie.prototype.getCurrentServiceOpts=function(){var se=this.options.services[this.currentServiceIndex];return typeof se=="string"?{name:se}:typeof se=="function"?se():Q.isPlainObject(se)?se:{}},ie.prototype.completeService=function(se,le){this.currentServiceIndex=-1,se&&se(le)},ie.prototype.logError=function(se){var le=this.currentServiceIndex,de=this.getServiceByIdx(le);console.warn("The service["+le+"] ("+de.url+") responded with the following error",se)},ie})(),te.Law=(function(){var ee={regionalLaw:!0,hasLaw:["AT","BE","BG","HR","CZ","CY","DK","EE","FI","FR","DE","EL","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","SK","ES","SE","GB","UK","GR","EU"],revokable:["HR","CY","DK","EE","FR","DE","LV","LT","NL","PT","ES"],explicitAction:["HR","IT","ES"]};function ie(oe){this.initialise.apply(this,arguments)}return ie.prototype.initialise=function(oe){Q.deepExtend(this.options={},ee),Q.isPlainObject(oe)&&Q.deepExtend(this.options,oe)},ie.prototype.get=function(oe){var ne=this.options;return{hasLaw:ne.hasLaw.indexOf(oe)>=0,revokable:ne.revokable.indexOf(oe)>=0,explicitAction:ne.explicitAction.indexOf(oe)>=0}},ie.prototype.applyLaw=function(oe,ne){var ae=this.get(ne);return ae.hasLaw||(oe.enabled=!1,typeof oe.onNoCookieLaw=="function"&&oe.onNoCookieLaw(ne,ae)),this.options.regionalLaw&&(ae.revokable&&(oe.revokable=!0),ae.explicitAction&&(oe.dismissOnScroll=!1,oe.dismissOnTimeout=!1)),oe},ie})(),te.initialise=function(ee,ie,oe){var ne=new te.Law(ee.law);ie||(ie=function(){}),oe||(oe=function(){});var ae=Object.keys(te.status),se=Q.getCookie("cookieconsent_status");ae.indexOf(se)>=0?ie(new te.Popup(ee)):te.getCountryCode(ee,function(le){delete ee.law,delete ee.location,le.code&&(ee=ne.applyLaw(ee,le.code)),ie(new te.Popup(ee))},function(le){delete ee.law,delete ee.location,oe(le,new te.Popup(ee))})},te.getCountryCode=function(ee,ie,oe){ee.law&&ee.law.countryCode?ie({code:ee.law.countryCode}):ee.location?new te.Location(ee.location).locate(function(ne){ie(ne||{})},oe):ie({})},te.utils=Q,te.hasInitialised=!0,window.cookieconsent=te}})(window.cookieconsent||{})),cookieconsent_min}requireCookieconsent_min();var __defProp$6=Object.defineProperty,__getOwnPropDesc$6=Object.getOwnPropertyDescriptor,__decorateClass$6=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$6(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$6(Q,X,ie),ie};let MateuCookieConsent=class extends i$s{constructor(){super(...arguments),this.message="This website uses cookies.",this.dismiss="Ok. Thanks :).",this.learnMore="Learn more",this.learnMoreLink="https://cookiesandyou.com/",this.showLearnMore=!0,this.position="top",this.cookieName="mateu-cookieconsent"}updated(te){super.updated(te)}connectedCallback(){super.connectedCallback(),this._css=document.createElement("style"),this._css.innerText=".cc-window{opacity:1;transition:opacity 1s ease}.cc-window.cc-invisible{opacity:0}.cc-animate.cc-revoke{transition:transform 1s ease}.cc-animate.cc-revoke.cc-top{transform:translateY(-2em)}.cc-animate.cc-revoke.cc-bottom{transform:translateY(2em)}.cc-animate.cc-revoke.cc-active.cc-bottom,.cc-animate.cc-revoke.cc-active.cc-top,.cc-revoke:hover{transform:translateY(0)}.cc-grower{max-height:0;overflow:hidden;transition:max-height 1s}.cc-link,.cc-revoke:hover{text-decoration:underline}.cc-revoke,.cc-window{position:fixed;overflow:hidden;box-sizing:border-box;font-family:Helvetica,Calibri,Arial,sans-serif;font-size:16px;line-height:1.5em;display:flex;flex-wrap:nowrap;z-index:9999}.cc-window.cc-static{position:static}.cc-window.cc-floating{padding:2em;max-width:24em;flex-direction:column}.cc-window.cc-banner{padding:1em 1.8em;width:100%;flex-direction:row}.cc-revoke{padding:.5em}.cc-header{font-size:18px;font-weight:700}.cc-btn,.cc-close,.cc-link,.cc-revoke{cursor:pointer}.cc-link{opacity:.8;display:inline-block;padding:.2em}.cc-link:hover{opacity:1}.cc-link:active,.cc-link:visited{color:initial}.cc-btn{display:block;padding:.4em .8em;font-size:.9em;font-weight:700;border-width:2px;border-style:solid;text-align:center;white-space:nowrap}.cc-banner .cc-btn:last-child{min-width:140px}.cc-highlight .cc-btn:first-child{background-color:transparent;border-color:transparent}.cc-highlight .cc-btn:first-child:focus,.cc-highlight .cc-btn:first-child:hover{background-color:transparent;text-decoration:underline}.cc-close{display:block;position:absolute;top:.5em;right:.5em;font-size:1.6em;opacity:.9;line-height:.75}.cc-close:focus,.cc-close:hover{opacity:1}.cc-revoke.cc-top{top:0;left:3em;border-bottom-left-radius:.5em;border-bottom-right-radius:.5em}.cc-revoke.cc-bottom{bottom:0;left:3em;border-top-left-radius:.5em;border-top-right-radius:.5em}.cc-revoke.cc-left{left:3em;right:unset}.cc-revoke.cc-right{right:3em;left:unset}.cc-top{top:1em}.cc-left{left:1em}.cc-right{right:1em}.cc-bottom{bottom:1em}.cc-floating>.cc-link{margin-bottom:1em}.cc-floating .cc-message{display:block;margin-bottom:1em}.cc-window.cc-floating .cc-compliance{flex:1 0 auto}.cc-window.cc-banner{align-items:center}.cc-banner.cc-top{left:0;right:0;top:0}.cc-banner.cc-bottom{left:0;right:0;bottom:0}.cc-banner .cc-message{flex:1}.cc-compliance{display:flex;align-items:center;align-content:space-between}.cc-compliance>.cc-btn{flex:1}.cc-btn+.cc-btn{margin-left:.5em}@media print{.cc-revoke,.cc-window{display:none}}@media screen and (max-width:900px){.cc-btn{white-space:normal}}@media screen and (max-width:414px) and (orientation:portrait),screen and (max-width:736px) and (orientation:landscape){.cc-window.cc-top{top:0}.cc-window.cc-bottom{bottom:0}.cc-window.cc-banner,.cc-window.cc-left,.cc-window.cc-right{left:0;right:0}.cc-window.cc-banner{flex-direction:column}.cc-window.cc-banner .cc-compliance{flex:1}.cc-window.cc-floating{max-width:none}.cc-window .cc-message{margin-bottom:1em}.cc-window.cc-banner{align-items:unset}}.cc-floating.cc-theme-classic{padding:1.2em;border-radius:5px}.cc-floating.cc-type-info.cc-theme-classic .cc-compliance{text-align:center;display:inline;flex:none}.cc-theme-classic .cc-btn{border-radius:5px}.cc-theme-classic .cc-btn:last-child{min-width:140px}.cc-floating.cc-type-info.cc-theme-classic .cc-btn{display:inline-block}.cc-theme-edgeless.cc-window{padding:0}.cc-floating.cc-theme-edgeless .cc-message{margin:2em 2em 1.5em}.cc-banner.cc-theme-edgeless .cc-btn{margin:0;padding:.8em 1.8em;height:100%}.cc-banner.cc-theme-edgeless .cc-message{margin-left:1em}.cc-floating.cc-theme-edgeless .cc-btn+.cc-btn{margin-left:0}",document.head.appendChild(this._css),this.__updatePopup()}disconnectedCallback(){super.disconnectedCallback(),this.__closePopup(),this._css.isConnected&&this._css.remove()}__closePopup(){const te=this.popup;te&&te.parentNode?.removeChild(te)}_show(){const te=this.popup;te&&(te.classList.remove("cc-invisible"),te.style.display="")}__updatePopup(){this.__closePopup(),window.cookieconsent.initialise({palette:{popup:{background:"#000"},button:{background:"rgba(22, 118, 243, 0.95)",hover:"rgba(22, 118, 243, 1)"}},showLink:this.showLearnMore,content:{message:this.message,dismiss:this.dismiss,link:this.learnMore,href:this.learnMoreLink},cookie:{name:this.cookieName},position:this.position,elements:{messagelink:`<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,dismiss:`<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`}});const te=this.popup;if(te){te.setAttribute("role","alert");const Q=te.querySelector("a.cc-btn");Q?.addEventListener("keydown",X=>{const oe=X.keyCode||X.which;(oe===32||oe===13)&&Q.click()})}}render(){return x$4`
-       `}};MateuCookieConsent.styles=i$v`
-  `;__decorateClass$6([n$t()],MateuCookieConsent.prototype,"message",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"dismiss",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"learnMore",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"learnMoreLink",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"showLearnMore",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"position",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"cookieName",2);__decorateClass$6([r$o()],MateuCookieConsent.prototype,"_css",2);__decorateClass$6([e$m('[aria-label="cookieconsent"]')],MateuCookieConsent.prototype,"popup",2);MateuCookieConsent=__decorateClass$6([t$o("mateu-cookie-consent")],MateuCookieConsent);var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$5(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$5(Q,X,ie),ie};let MateuEventInterceptor=class extends i$s{constructor(){super(...arguments),this.redispatchEvent=te=>{te instanceof CustomEvent&&(te.stopPropagation(),te.preventDefault(),this.target?.dispatchEvent(new CustomEvent(te.type,{detail:te.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent)}render(){return x$4`<slot></slot>`}};MateuEventInterceptor.styles=i$v`
+       `}};MateuCookieConsent.styles=i$w`
+  `;__decorateClass$6([n$t()],MateuCookieConsent.prototype,"message",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"dismiss",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"learnMore",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"learnMoreLink",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"showLearnMore",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"position",2);__decorateClass$6([n$t()],MateuCookieConsent.prototype,"cookieName",2);__decorateClass$6([r$o()],MateuCookieConsent.prototype,"_css",2);__decorateClass$6([e$m('[aria-label="cookieconsent"]')],MateuCookieConsent.prototype,"popup",2);MateuCookieConsent=__decorateClass$6([t$o("mateu-cookie-consent")],MateuCookieConsent);var __defProp$5=Object.defineProperty,__getOwnPropDesc$5=Object.getOwnPropertyDescriptor,__decorateClass$5=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$5(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$5(Q,X,ie),ie};let MateuEventInterceptor=class extends i$s{constructor(){super(...arguments),this.redispatchEvent=te=>{te instanceof CustomEvent&&(te.stopPropagation(),te.preventDefault(),this.target?.dispatchEvent(new CustomEvent(te.type,{detail:te.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent)}render(){return x$4`<slot></slot>`}};MateuEventInterceptor.styles=i$w`
         :host {
             /* width: 100%; */
             display: inline-block;
@@ -23943,7 +24029,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         >
         </vaadin-dialog>
 
-       `}};MateuDialog.styles=i$v`
+       `}};MateuDialog.styles=i$w`
   `;__decorateClass$4([n$t()],MateuDialog.prototype,"component",2);__decorateClass$4([n$t()],MateuDialog.prototype,"baseUrl",2);__decorateClass$4([n$t()],MateuDialog.prototype,"state",2);__decorateClass$4([n$t()],MateuDialog.prototype,"data",2);__decorateClass$4([r$o()],MateuDialog.prototype,"opened",2);MateuDialog=__decorateClass$4([t$o("mateu-dialog")],MateuDialog);var TriggerType=(te=>(te.OnLoad="OnLoad",te.OnSuccess="OnSuccess",te.OnError="OnError",te.OnValueChange="OnValueChange",te.OnCustomEvent="OnCustomEvent",te))(TriggerType||{});Chart.register(...registerables);var __defProp$3=Object.defineProperty,__getOwnPropDesc$3=Object.getOwnPropertyDescriptor,__decorateClass$3=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$3(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$3(Q,X,ie),ie};let MateuChart=class extends i$s{updated(te){if(super.updated(te),this.chart&&(this.chart.destroy(),this.chart=void 0),this.data){const Q={type:this.type,data:this.data,options:this.options};this.chart=new Chart(this.chartElement,Q)}}handleSlotChange(){}render(){return x$4`
             <div class="container">
                 <canvas id="chart"></canvas>
@@ -23951,7 +24037,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
-       `}};MateuChart.styles=i$v`
+       `}};MateuChart.styles=i$w`
   `;__decorateClass$3([n$t()],MateuChart.prototype,"type",2);__decorateClass$3([n$t()],MateuChart.prototype,"data",2);__decorateClass$3([n$t()],MateuChart.prototype,"options",2);__decorateClass$3([e$m("#chart")],MateuChart.prototype,"chartElement",2);__decorateClass$3([o$r({slot:""})],MateuChart.prototype,"scriptElements",2);MateuChart=__decorateClass$3([t$o("mateu-chart")],MateuChart);var RuleAction=(te=>(te.UpdateData="UpdateData",te.UpdateState="UpdateState",te))(RuleAction||{}),RuleFieldAttribute=(te=>(te.required="required",te.disabled="disabled",te.hidden="hidden",te.pattern="pattern",te.minValue="minValue",te.maxValue="maxValue",te.minLength="minLength",te.maxLength="maxLength",te.css="css",te.style="style",te.theme="theme",te.errorMessage="errorMessage",te.description="description",te.none="none",te))(RuleFieldAttribute||{}),RuleResult=(te=>(te.Continue="Continue",te.Stop="Stop",te))(RuleResult||{}),__defProp$2=Object.defineProperty,__getOwnPropDesc$2=Object.getOwnPropertyDescriptor,__decorateClass$2=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$2(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$2(Q,X,ie),ie};let MateuComponent=class extends ComponentElement{constructor(){super(...arguments),this.customEventManager=event=>{if(event.stopPropagation(),event.preventDefault(),event instanceof CustomEvent){const customEvent=event,serverSideComponent=this.component;serverSideComponent.triggers?.filter(te=>te.type==TriggerType.OnCustomEvent).filter(te=>te.eventName==customEvent.type).forEach(trigger=>{(!trigger.condition||eval(trigger.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:trigger.actionId,parameters:customEvent.detail},bubbles:!0,composed:!0}))})}},this.baseUrl="",this.applyRules=()=>{const rules=this.component.rules;if(rules){this.state,this.state;const newState={...this.state},newData={...this.data};let stateUpdated=!1,dataUpdated=!1;for(let ruleIndex=0;ruleIndex<rules.length;ruleIndex++){const rule=rules[ruleIndex];try{if(eval(rule.filter)){const target=RuleAction.UpdateState==rule.action?newState:newData,fieldNames=rule.fieldName.split(",");for(let fieldIndex=0;fieldIndex<fieldNames.length;fieldIndex++){const fieldName=fieldNames[fieldIndex];if(!target[fieldName]||target[fieldName]!=rule.value){const value=rule.expression?eval(eval("`"+rule.expression+"`")):rule.value,propertyName=RuleFieldAttribute.none==rule.fieldAttribute?fieldName:fieldName+"."+rule.fieldAttribute;value!=target[propertyName]&&(target[propertyName]=value,RuleAction.UpdateState==rule.action&&(stateUpdated=!0),RuleAction.UpdateData==rule.action&&(dataUpdated=!0))}}if(RuleResult.Stop==rule.result)break}}catch(te){console.log("rule failed",rule,te)}}stateUpdated&&(this.state=newState),dataUpdated&&(this.data=newData)}},this.checkValidations=()=>{const validatons=this.component.validations;let valid=!0,dataUpdated=!1;const data=this.data??{},newData={...this.data??{},errors:{}};if(validatons){const state=this.state;for(let te=0;te<validatons.length;te++){const X=(validatons[te].fieldId??"_component").split(",");for(let ee=0;ee<X.length;ee++){const ie=X[ee];newData.errors[ie]=[]}}for(let validationIndex=0;validationIndex<validatons.length;validationIndex++){const validation=validatons[validationIndex];try{const failed=validation.condition&&!eval(validation.condition);if(console.log("validating",validation,!eval(validation.condition),state),failed){valid=!1;const fieldNames=(validation.fieldId??"_component").split(",");for(let fieldIndex=0;fieldIndex<fieldNames.length;fieldIndex++){const fieldName=fieldNames[fieldIndex];let errors=newData.errors[fieldName];if(errors||(newData.errors[fieldName]=[]),errors=newData.errors[fieldName],!data[fieldName]){let message=validation.message;try{message=eval(validation.message)}catch(te){}errors.push(message)}}}}catch(te){console.error("validation failed",validation,te)}}for(let te=0;te<validatons.length;te++){const X=(validatons[te].fieldId??"_component").split(",");for(let ee=0;ee<X.length;ee++){const ie=X[ee];if(data.errors?[ie].join(","):newData.errors==""&&[ie].join(",")){dataUpdated=!0;break}}}(data.errors?["_component"].join(","):newData.errors==""&&["_component"].join(","))&&(dataUpdated=!0)}newData._valid=valid,newData._valid!=data._valid&&(dataUpdated=!0),dataUpdated&&(this.data=newData)},this.onChange=()=>{this.applyRules(),this.checkValidations()},this.triggerOnLoad=()=>{this.state,this.data;const serverSideComponent=this.component;serverSideComponent.triggers?.filter(te=>te.type==TriggerType.OnLoad).forEach(trigger=>{(!trigger.condition||eval(trigger.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:trigger.actionId},bubbles:!0,composed:!0}))})},this.valueChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const detail=e.detail;if(e.type=="value-changed"){const newState={...this.state};newState[detail.fieldId]=detail.value,this.state=newState;const serverSideComponent=this.component;serverSideComponent.triggers?.filter(te=>te.type==TriggerType.OnValueChange).filter(te=>!te.propertyName||detail.fieldId==te.propertyName).forEach(trigger=>{(!trigger.condition||eval(trigger.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:trigger.actionId},bubbles:!0,composed:!0}))}),this.onChange()}}},this.actionRequestedListener=te=>{te.preventDefault(),te.stopPropagation(),te instanceof CustomEvent&&this.manageActionRequestedEvent(te)},this.manageActionRequestedEvent=te=>{const Q=te.detail;if(te.type=="action-requested"){te.preventDefault(),te.stopPropagation();const X=this.component,ee=X.actions?.find(ie=>ie.id==Q.actionId);if(ee&&ee.rowsSelectedRequired&&(!this.state.crud_selected_items||this.state.crud_selected_items.length==0)){this.notify("You first need to select some rows");return}if(ee&&ee.validationRequired&&(this.checkValidations(),!this.data._valid)){console.log("data",this.data),this.notify("There are validation errors");return}ee&&ee.confirmationRequired?this.callAfterConfirmation(ee,()=>this.requestActionCallToServer(Q,X,ee)):this.requestActionCallToServer(Q,X,ee)}},this.notify=te=>{Notification.show(te,{position:"bottom-end",theme:"error",duration:3e3})},this.callAfterConfirmation=(te,Q)=>{let X="One moment, please",ee="Are you sure?",ie="Yes",oe="No";te.confirmationTexts&&(X=te.confirmationTexts.title,ee=te.confirmationTexts.message,ie=te.confirmationTexts.confirmationText,oe=te.confirmationTexts.denialText);const ne=document.createElement("vaadin-confirm-dialog");ne.setAttribute("header",X),ne.setAttribute("cancel-button-visible","cancel-button-visible"),ne.setAttribute("confirm-text",ie),ne.setAttribute("cancel-text",oe),ne.append(ee),ne.opened=!0,ne.addEventListener("confirm",()=>Q()),ne.addEventListener("close",()=>document.body.removeChild(ne)),ne.addEventListener("confirm",()=>document.body.removeChild(ne)),ne.addEventListener("cancel",()=>document.body.removeChild(ne)),ne.addEventListener("reject",()=>document.body.removeChild(ne)),document.body.append(ne)},this.requestActionCallToServer=(detail,serverSideComponent,action)=>{if(action&&action.href){window.location.href=action.href;return}if(action&&action.js){const data=this.data,state=this.state,component=this.component;try{eval(action.js),this.state={...this.state},this.data={...this.data}}catch(te){console.error("when evaluating "+action.js,te,component,state,data)}return}if(action&&action.customEvent){this.dispatchEvent(new CustomEvent(action.customEvent.name,{detail:action.customEvent.detail,bubbles:!0,composed:!0}));return}detail.actionId=="search"&&(this.state.size||(this.state.size=10,this.state.page=0,this.state.sort=[]),this.state.page==0&&(this.data={...this.data,crud:{}})),this.dispatchEvent(new CustomEvent("server-side-action-requested",{detail:{componentState:{...this.state},parameters:detail.parameters,actionId:detail.actionId,serverSideType:serverSideComponent.serverSideType,initiatorComponentId:serverSideComponent.id,initiator:this,background:action?.background,sse:action?.sse,callback:detail.callback},bubbles:!0,composed:!0}))},this.handleBackendSucceeded=e=>{const customEvent=e;if(customEvent.detail.actionId){const serverSideComponent=this.component;serverSideComponent.triggers?.filter(te=>te.type==TriggerType.OnSuccess).filter(te=>e.detail.actionId==te.calledActionId).forEach(trigger=>{(!trigger.condition||eval(trigger.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:trigger.actionId},bubbles:!0,composed:!0})))})}},this.handleBackendFailed=e=>{const customEvent=e;if(customEvent.detail.actionId){const serverSideComponent=this.component;serverSideComponent.triggers?.filter(te=>te.type==TriggerType.OnError).filter(te=>e.detail.actionId==te.calledActionId).forEach(trigger=>{(!trigger.condition||eval(trigger.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:trigger.actionId},bubbles:!0,composed:!0})))})}}}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}updated(te){if(super.updated(te),te.has("state")&&this.onChange(),te.has("component")){const Q=this.component;this.state,this.data,setTimeout(()=>this.triggerOnLoad()),Q.triggers?.filter(X=>X.type==TriggerType.OnCustomEvent).forEach(X=>{this.addEventListener(X.eventName,this.customEventManager)}),componentRenderer.getAfterRenderHook()&&setTimeout(componentRenderer.getAfterRenderHook()(this))}}connectedCallback(){super.connectedCallback(),this.addEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.addEventListener("backend-call-failed",this.handleBackendFailed)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.removeEventListener("backend-call-failed",this.handleBackendFailed)}render(){return x$4`<div><div>${this._render()}</div>
             ${this.data&&this.data.errors&&this.data.errors._component&&this.data.errors._component.length>0?x$4`
                 <div><ul>${this.data.errors._component.map(te=>x$4`<li>${te}</li>`)}</ul></div>
@@ -23959,13 +24045,13 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}" style="display: block;width: 100%;">
             ${this.component?.children?.map(te=>renderComponent(this,te,this.baseUrl,this.state,this.data))}
             </mateu-api-caller>
-        `}};MateuComponent.styles=i$v`
+        `}};MateuComponent.styles=i$w`
         :host {
             width: 100%;
             display: inline-block;
         }
 
-        ${r$s(badge.cssText)}
+        ${r$t(badge.cssText)}
         
         vaadin-card.image-on-right::part(media) {
             grid-column: 3;
@@ -23973,7 +24059,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         
   `;__decorateClass$2([n$t()],MateuComponent.prototype,"baseUrl",2);MateuComponent=__decorateClass$2([t$o("mateu-component")],MateuComponent);const parseOverrides=te=>{if(te)try{return JSON.parse(te)}catch{return{value:te}}else return{}};class SSEService{constructor(){this.mapPosition=Q=>{switch(Q){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=Q=>{console.log("increment",Q),Q?.messages?.forEach(X=>{Notification.show(X.text,{position:X.position?this.mapPosition(X.position):"bottom-end",theme:X.variant,duration:X.duration})}),Q?.commands?.forEach(X=>{upstream.next({command:X,fragment:void 0,ui:void 0,error:void 0})}),Q?.fragments?.forEach(X=>{upstream.next({command:void 0,fragment:X,ui:void 0,error:void 0})}),Q?.appState&&(appState.value=Q.appState)}}async loadUi(Q,X,ee,ie,oe){await httpService.loadUi(Q,X,ee,ie,oe)}async runAction(Q,X,ee,ie,oe,ne,ae,se,le,de,ce,he,ue){if(!ee){console.log("no route");return}{ee=ee||"_no_route",ee&&ee.startsWith("/")&&(ee=ee.substring(1));const pe={serverSideType:se,appState:ae,componentState:le,parameters:de,initiatorComponentId:ne,consumedRoute:ie,route:"/"+ee,actionId:oe};he||ce.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),fetch(X+"/mateu/v3/sse/"+ee+(oe?"/"+oe:""),{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json"},body:JSON.stringify(pe)}).then(async fe=>{const ve=fe.body?.pipeThrough(new TextDecoderStream).getReader();if(ve)for(;;){const{value:me,done:ge}=await ve.read();if(ge)break;if(me.startsWith("data:")){const _e=JSON.parse(me.substring(5));this.handleUIIncrement(_e)}else{let _e=me;try{const be=JSON.parse(me);_e=be.message,be._embedded?.errors?.length>0&&be._embedded.errors[0].message&&(_e=be._embedded.errors[0].message)}catch{}throw new Error(_e)}}he||ce.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:oe}})),ce.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:oe},bubbles:!0,composed:!0}))}).catch(fe=>{ce.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:oe,reason:this.serialize(fe)}})),ce.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:oe},bubbles:!0,composed:!0}))}),ue&&ue()}}serialize(Q){return Q.message?Q:JSON.stringify(Q)}}const sseService=new SSEService;var __defProp$1=Object.defineProperty,__getOwnPropDesc$1=Object.getOwnPropertyDescriptor,__decorateClass$1=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$1(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$1(Q,X,ie),ie};let MateuUx=class extends ConnectedElement{constructor(){super(...arguments),this.consumedRoute="",this.overrides=void 0,this.route=void 0,this.top=void 0,this.overridesParsed={},this.fragment=void 0,this.actionRequestedListener=te=>{te instanceof CustomEvent&&(te.preventDefault(),te.stopPropagation(),this.manageActionEvent(te))},this.navigateToRequestedListener=te=>{te instanceof CustomEvent&&(te.preventDefault(),te.stopPropagation(),this.route=te.detail.route,this.setAttribute("route",this.route??""),this.dispatchEvent(new CustomEvent("update-route",{detail:{route:te.detail.route},bubbles:!0,composed:!0})))},this.backendFailedListener=te=>{te.preventDefault(),te.stopPropagation(),te instanceof CustomEvent&&te.detail.actionId==""&&(this.fragment={targetComponentId:this.id,data:{},state:{},component:{type:ComponentType.ClientSide,metadata:{type:ComponentMetadataType.Element,name:"div",content:"Not found"},id:"fieldId"},action:UIFragmentAction.Replace})},this.detail1=void 0,this.manageActionEvent=te=>{te.preventDefault(),te.stopPropagation(),this.detail1=te.detail;const Q=this.detail1;if(te.type=="server-side-action-requested")if(this.route!=null){let X=service;Q.sse&&(X=sseService),X.runAction(mateuApiClient,this.baseUrl,this.route,this.consumedRoute,Q.actionId,Q.initiatorComponentId,this.getCustomisedAppState(),Q.serverSideType,Q.componentState,Q.parameters,Q.initiator,Q.background,Q.callback)}else console.log("no route",te)},this.getCustomisedAppState=()=>{let te={...appState.value};if(this.overrides){const Q=parseOverrides(this.overrides);te={...te,...Q}}return te}}manageActionRequestedEvent(te){throw console.log("manageActionRequestedEvent",te),new Error("Method not implemented.")}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.overridesParsed=parseOverrides(this.overrides),this.addEventListener("server-side-action-requested",this.actionRequestedListener),this.addEventListener("backend-call-failed",this.backendFailedListener),this.addEventListener("navigate-to-requested",this.navigateToRequestedListener),window.Vaadin.featureFlags.masterDetailLayoutComponent=!0}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.actionRequestedListener),this.removeEventListener("backend-call-failed",this.backendFailedListener),this.removeEventListener("navigate-to-requested",this.navigateToRequestedListener)}updated(te){(te.has("id")||te.has("baseurl")||te.has("route")||te.has("consumedRoute")||te.has("instant"))&&this.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{userData:void 0,actionId:"",serverSideType:void 0,initiatorComponentId:this.id,initiator:this},bubbles:!0,composed:!0})),te.has("route")&&this.top&&this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:this.route},bubbles:!0,composed:!0}))}applyFragment(te){this.fragment=te}render(){return x$4`
            ${this.fragment?.component?renderComponent(this,this.fragment?.component,this.baseUrl,this.fragment?.state??{},this.fragment?.data??{}):E$5}
-       `}};MateuUx.styles=i$v`
+       `}};MateuUx.styles=i$w`
         :host {
             width: 100%;
         }
@@ -23994,7 +24080,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                           style="display: block;width: 100%;"
                 ></mateu-ux>
            </mateu-api-caller>
-       `}};MateuUi.styles=i$v`
+       `}};MateuUi.styles=i$w`
         :host {
             width: 100%;
         }

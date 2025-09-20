@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIELTITULODELAPAGINA</title>
+
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_Rg.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_SBd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_Rg.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_Bd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSans_W_SBd.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSansCd_W_Bd.woff2">
+
+
+    <script type="module" crossorigin src="/assets/mateu-redwood.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index.css">
+  </head>
+  <body>
+  <!-- AQUIUI -->
+  <mateu-ui baseUrl="/fluent"
+            config='{"tenantId": "1111","profile": "dev"}'
+  >
+  </mateu-ui>
+  <!-- HASTAAQUIUI -->
+
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
+  </body>
+</html>

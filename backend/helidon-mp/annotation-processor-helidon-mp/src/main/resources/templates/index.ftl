@@ -76,7 +76,9 @@ String keycloakStuff = """
     html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
     html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl=\"${path}\"></mateu-ui>");
+    html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
+    + "<mateu-ui baseUrl=\"${path}\"></mateu-ui>"
+    + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;
     }

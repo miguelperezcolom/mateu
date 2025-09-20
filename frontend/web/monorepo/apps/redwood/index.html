@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Lit + TS</title>
+    <title>AQUIELTITULODELAPAGINA</title>
 
     <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_Rg.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/ojuxIconFont_SBd.woff2">
@@ -14,14 +14,29 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/fonts/OracleSansCd_W_Bd.woff2">
 
 
-
     <link rel="stylesheet" href="./src/index.css" />
     <script type="module" src="/src/index.ts"></script>
   </head>
   <body>
-  <mateu-ui baseUrl="https://demo.mateu.io/fluent"
+  <!-- AQUIUI -->
+  <mateu-ui baseUrl="/fluent"
             config='{"tenantId": "1111","profile": "dev"}'
   >
   </mateu-ui>
+  <!-- HASTAAQUIUI -->
+
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
   </body>
 </html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIELTITULODELAPAGINA</title>
+    <script type="module" crossorigin src="/assets/mateu-sapui5.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index.css">
+  </head>
+  <body>
+  <!-- AQUIUI -->
+  <mateu-ui baseUrl="/fluent"
+            config='{"tenantId": "1111","profile": "dev"}'
+  >
+  </mateu-ui>
+  <!-- HASTAAQUIUI -->
+
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
+
+  </body>
+</html>

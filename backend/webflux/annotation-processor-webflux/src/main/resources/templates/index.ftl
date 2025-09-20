@@ -83,11 +83,9 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
-    //html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='https://unpkg.com/mateu-ui/dist/assets/mateu.js'></script>");
-    html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
-                            + (liveReloadEnabled?
-                                    "<script src='http://localhost:35729/livereload.js'></script>":""));
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}'></mateu-ui>");
+        html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
+        + "<mateu-ui baseUrl=\"${path}\"></mateu-ui>"
+        + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;
     }

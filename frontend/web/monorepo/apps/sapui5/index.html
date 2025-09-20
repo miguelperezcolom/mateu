@@ -4,14 +4,31 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Lit + TS</title>
+    <title>AQUIELTITULODELAPAGINA</title>
     <link rel="stylesheet" href="./src/index.css" />
     <script type="module" src="/src/index.ts"></script>
   </head>
   <body>
+  <!-- AQUIUI -->
   <mateu-ui baseUrl="/fluent"
             config='{"tenantId": "1111","profile": "dev"}'
   >
   </mateu-ui>
+  <!-- HASTAAQUIUI -->
+
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
+
   </body>
 </html>
