@@ -7,7 +7,7 @@ weight: 50
 ---
 
 
-<p align="center"><img src="../../../images/Red_Hat_Logo_2019.svg?raw=true"/></p>
+<p align="center"><img src="../../../images/Red_Hat_Logo_2019.svg?raw=true" width="200"/></p>
 
 <p align="center"><img src="../../../images/basic-form-redhat.png?raw=true" width="600"/></p>
 
