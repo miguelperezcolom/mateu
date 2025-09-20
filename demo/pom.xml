@@ -24,6 +24,7 @@
     <module>demo-vaadin-quarkus</module>
     <module>demo-vaadin-micronaut</module>
     <module>demo-vaadin-helidon-mp</module>
+    <module>demo-vaadin-kotlin-mvc</module>
   </modules>
 
 </project>

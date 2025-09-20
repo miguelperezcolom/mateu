@@ -49,8 +49,7 @@
     <module>micronaut</module>
     <module>quarkus</module>
     <module>mvc</module>
-      <module>helidon-mp/annotation-processor-helidon-mp</module>
-    <module>helidon-mp/helidon-mp-core</module>
+    <module>helidon-mp</module>
   </modules>
 
   <dependencyManagement>
