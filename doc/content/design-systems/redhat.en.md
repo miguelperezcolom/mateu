@@ -1,5 +1,5 @@
 ---
-title: "RedHat"
+title: "Red Hat"
 #icon: "/images/icons/start.svg" # https://fonts.google.com/icons
 #icon_bg: ""
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
@@ -13,5 +13,5 @@ weight: 50
 
 > DEMO: https://redhat.mateu.io/
 
-RedHat's design system is great. It has a good balance between simplicity, clarity and nice looking.
+Red Hat's design system is great. It has a good balance between simplicity, clarity and nice looking.
 

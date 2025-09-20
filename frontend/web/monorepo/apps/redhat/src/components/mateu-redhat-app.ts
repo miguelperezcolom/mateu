@@ -1,4 +1,4 @@
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, query } from "lit/decorators.js";
 import { css, html, LitElement, nothing } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -28,8 +28,12 @@ export class MateuRedhatApp extends MetadataDrivenElement {
     @property()
     consumedRoute = ''
 
-    selected = (event: CustomEvent, container: LitElement, _baseUrl: string) => {
-        this.route = event.detail.item.dataset.route
+    @query('rh-navigation-primary')
+    rhNavigationPrimary: any
+
+    selected = (_event: CustomEvent, container: LitElement, _route: string, _baseUrl: string) => {
+        this.route = _route
+        this.rhNavigationPrimary.close()
         const route = this.route
         let baseUrl = this.baseUrl??''
         if (baseUrl.indexOf('://') < 0) {
@@ -84,7 +88,10 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                     <ul>
                         ${menu.submenus.map(sub => html `
                                 <li>
-                                    <a href="${this.baseUrl}${sub.destination?.route}">${sub.label}</a>
+                                    <a 
+                                            href="javascript: void(0);"
+                                            @click="${(e: any) => this.selected(e, this, sub.destination?.route, this.baseUrl??'')}"
+                                    >${sub.label}</a>
                                 </li>
                             `)}
                     </ul>
@@ -92,7 +99,10 @@ export class MateuRedhatApp extends MetadataDrivenElement {
             </div>
             </div>
         `:html`
-                <a href="${this.baseUrl}${menu.destination?.route}" style="margin-right: 2rem;">${menu.label}</a>
+                <a
+                        href="javascript: void(0);"
+                        @click="${(e: any) => this.selected(e, this, menu.destination?.route, this.baseUrl??'')}"
+                        style="margin-right: 2rem;">${menu.label}</a>
         `}
     `
 
@@ -111,7 +121,10 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                                 <div class="column">
                                     <ul>
                                         <li>
-                                <a href="${this.baseUrl}${menu.destination?.route}">${menu.label}</a>
+                                <a
+                                        href="javascript: void(0);"
+                                        @click="${(e: any) => this.selected(e, this, menu.destination?.route, this.baseUrl??'')}"
+                                >${menu.label}</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -119,82 +132,6 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                         </div>
                     </rh-navigation-primary-item>
                 `)}
-
-                <!--
-                <rh-navigation-primary-item variant="dropdown">
-                    <span slot="summary">Products</span>
-                    <h2>Products Content</h2>
-                    <div class="grid">
-                        <div class="column">
-                            <ul>
-                                <li>
-                                    <a href="#">Link 1</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 2</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 3</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 4</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 5</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="column">
-                            <ul>
-                                <li>
-                                    <a href="#">Link 1a</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 2a</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 3a</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 4a</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 5a</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="column">
-                            <ul>
-                                <li>
-                                    <a href="#">Link 1b</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 2b</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 3b</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 4b</a>
-                                </li>
-                                <li>
-                                    <a href="#">Link 5b</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </rh-navigation-primary-item>
-
-                <rh-navigation-primary-item variant="dropdown">
-                    <span slot="summary">Learn</span>
-                    Learn Content
-                </rh-navigation-primary-item>
-
-                <rh-navigation-primary-item variant="dropdown">
-                    <span slot="summary">Partners</span>
-                    Partners Content
-                </rh-navigation-primary-item>
-                -->
 
                 <rh-navigation-primary-item slot="event">
                     <a href="#summit">
@@ -327,7 +264,7 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                 <div class="content" style="">
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
-                                route="${metadata.homeRoute}"
+                                route="${this.route != this.consumedRoute?this.route:metadata.homeRoute}"
                                 id="ux_${this.id}"
                                 baseUrl="${this.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -369,39 +306,7 @@ export class MateuRedhatApp extends MetadataDrivenElement {
 `
         }
         return html`
-                    <vaadin-horizontal-layout style="width: 100%;">
-            <ui5-side-navigation id="snx" @selection-change="${(e: any) => this.selected(e, this, this.baseUrl??'')}" style="flex-grow: 0;">
-                <!-- Items -->
-                ${metadata.menu.map(menu => html`
-                ${menu.submenus?html`
-
-                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
-                            ${menu.submenus.map(sub => html `
-                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
-                            `)}
-                        </ui5-side-navigation-item>
-
-                    `:html`
-
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}" icon="home"></ui5-side-navigation-item>
-
-                    `}
-            `)}
-
-            </ui5-side-navigation>
-
-        <div class="content" id="mock" style="flex-grow: 1; width: 100%; height: 100%;">
-            <mateu-api-caller style="width: 100%;">
-                <mateu-ux
-                        route="${this.route != this.consumedRoute?this.route:metadata.homeRoute}"
-                        id="${this.id}_ux"
-                        baseUrl="${this.baseUrl}"
-                        consumedRoute="${metadata.route}"
-                ></mateu-ux>
-            </mateu-api-caller>
-        </div>
-            
-        </vaadin-horizontal-layout>
+                    <h1>tabs</h1>
        `
     }
 

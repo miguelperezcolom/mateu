@@ -5,7 +5,7 @@ weight: 90
 
 Here you have some figma libraries that designers can use, for designing Mateu UIs:
 
-## RedHat
+## Red Hat
 
 - https://ux.redhat.com/get-started/designers/figma-library
 
