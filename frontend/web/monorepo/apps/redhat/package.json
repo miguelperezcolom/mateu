@@ -10,6 +10,7 @@
     "copy": "tsc && vite build && cp -rf dist/assets/* ../../../../../demo/sites/redhat/assets"
   },
   "dependencies": {
+    "@rhds/elements": "^3.1.1",
     "lit": "^3.3.1",
     "mateu": "*",
     "minimatch": "10.0.3"

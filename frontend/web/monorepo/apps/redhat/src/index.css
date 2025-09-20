@@ -1,16 +1,36 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+
+  --lumo-font-family: "Red Hat Text", -apple-system, "system-ui", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --lumo-font-size-m: 16px;
+  --lumo-line-height-s: 20px;
+  --lumo-body-text-color: rgb(22, 21, 19);
+  --lumo-base-color: rgb(251, 249, 248);
+  --lumo-contrast-5pct: rgb(251, 249, 248);
+  --lumo-primary-text-color: rgb(22, 21, 19);
+  --vaadin-button-border: 1px solid rgb(22, 21, 19);
+  --vaadin-button-border-radius: 4px;
+  --lumo-button-size: 44px;
+  --lumo-clickable-cursor: pointer;
+  --lumo-size-m: 3.25rem;
+
+  --vaadin-input-field-border-color: rgb(22, 21, 19);
+  --vaadin-input-field-border-width: 1px;
+  --vaadin-input-field-background: #fff;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+
+
+  font-family: "Red Hat Text", -apple-system, "system-ui", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: rgb(22, 21, 19);
+  font-variant-numeric: tabular-nums;
+  line-height: 20px;
+  text-size-adjust: 100%;
+  unicode-bidi: isolate;
+
 }
 
 a {
@@ -35,3 +55,6 @@ body {
     background-color: #ffffff;
   }
 }
+
+
+

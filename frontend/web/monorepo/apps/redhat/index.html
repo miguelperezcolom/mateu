@@ -5,16 +5,27 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vite + Lit + TS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Red+Hat+Mono:ital,wght@0,300..700;1,300..700&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+
+  <!--
   <link rel="stylesheet" href="./src/index.css" />
+  -->
+  <link rel="stylesheet" href="./src/styles.css" />
+  <!--
   <script type="module" src="./src/lumo.js"></script>
+  -->
   <script type="module" src="./src/index.ts"></script>
 </head>
 <body>
+<main>
 <mateu-ui baseUrl="/fluent"
           config='{"tenantId": "1111","profile": "dev"}'
 >
 </mateu-ui>
-
+</main>
 <script>
   if (window.matchMedia) {
     if(window.matchMedia('(prefers-color-scheme: dark)').matches){

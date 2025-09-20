@@ -1,0 +1,21 @@
+@layer
+reset,
+fonts,
+tokens,
+color-scheme,
+typography;
+
+@import url('../../../node_modules/@rhds/tokens/css/global.css') layer(tokens);
+@import url('../../../node_modules/@rhds/tokens/css/default-theme.css') layer(tokens);
+@import url('./assets/styles/reset.css') layer(reset);
+@import url('./assets/styles/fonts.css') layer(fonts);
+@import url('./assets/styles/typography.css') layer(typography);
+
+@import url('../../../node_modules/@rhds/elements/elements/rh-navigation-primary/rh-navigation-primary-lightdom.css');
+
+html,
+body,
+main {
+    color-scheme: light dark;
+    height: 100%;
+}
