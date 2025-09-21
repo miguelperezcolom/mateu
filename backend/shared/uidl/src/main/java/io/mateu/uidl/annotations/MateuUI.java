@@ -12,7 +12,7 @@ public @interface MateuUI {
 
   String value();
 
-  String indexHtmlPath() default "/static/index.html";
+  String indexHtmlPath() default "/static/_index.html";
 
   String frontendComponentPath() default "/assets/mateu.js";
 }

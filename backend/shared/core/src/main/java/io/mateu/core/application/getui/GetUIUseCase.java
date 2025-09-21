@@ -4,9 +4,8 @@ import io.mateu.core.domain.InstanceFactoryProvider;
 import io.mateu.core.domain.UiMapperProvider;
 import io.mateu.dtos.UIDto;
 import jakarta.inject.Named;
-import java.util.Map;
-
 import jakarta.inject.Singleton;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

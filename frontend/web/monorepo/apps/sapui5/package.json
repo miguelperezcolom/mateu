@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "copy": "tsc && vite build && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/sapui5/assets"
+    "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/sapui5/assets"
   },
   "dependencies": {
     "@ui5/webcomponents": "^2.13.2",

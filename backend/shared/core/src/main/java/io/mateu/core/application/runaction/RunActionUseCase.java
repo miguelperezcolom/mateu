@@ -19,12 +19,11 @@ import io.mateu.uidl.interfaces.HandlesRoute;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

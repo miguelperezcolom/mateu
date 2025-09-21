@@ -62,8 +62,7 @@ public class JsonSchemaBased implements ComponentTreeSupplier, HandlesRoute {
                                         .options(getOptions(property))
                                         .build()
                                 ).toList()
-                )
-                .columns(1).build()))
+                ).build()))
                 .build();
     }
 
