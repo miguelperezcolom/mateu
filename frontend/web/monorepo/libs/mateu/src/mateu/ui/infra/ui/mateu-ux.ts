@@ -145,6 +145,7 @@ export class MateuUx extends ConnectedElement {
             callback: any
         };
         const detail = this.detail1
+        console.log(detail)
         if (e.type == 'server-side-action-requested') {
             if (this.route != undefined) {
                 let selectedService = service

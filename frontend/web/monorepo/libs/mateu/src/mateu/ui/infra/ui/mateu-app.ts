@@ -132,7 +132,7 @@ export class MateuApp extends ComponentElement {
     }
 
     renderOptionOnLeftMenu = (option: MenuOption): any => {
-        if (option.submenus) {
+        if (option.submenus && option.submenus.length > 0) {
             return html`
                 <vaadin-details summary="${option.label}" theme="reverse" style="width: 100%;">
                     <vaadin-vertical-layout>

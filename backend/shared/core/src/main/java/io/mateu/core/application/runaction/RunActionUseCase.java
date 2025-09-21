@@ -70,7 +70,8 @@ public class RunActionUseCase {
                         command.baseUrl(),
                         command.route(),
                         command.initiatorComponentId(),
-                        command.httpRequest()));
+                        command.httpRequest()))
+        .switchIfEmpty(Mono.just(UIIncrementDto.builder().build()));
   }
 
   @SneakyThrows
@@ -244,7 +245,12 @@ public class RunActionUseCase {
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
       return command.serverSiteType();
     }
-    return getInstanceNameUsingResolvers(
-        command.route(), command.consumedRoute(), command.httpRequest());
+    var fromRoute =
+        getInstanceNameUsingResolvers(
+            command.route(), command.consumedRoute(), command.httpRequest());
+    if (fromRoute == null && "".equals(command.route())) {
+      return command.uiId();
+    }
+    return fromRoute;
   }
 }
