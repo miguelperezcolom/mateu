@@ -34,13 +34,13 @@ jobs:
           node-version: 24
 
       - name: Build Vaadin front
-        run: cd frontend/web/monorepo/vaadin && rm -f package-lock.json && npm i && npm run copy
+        run: cd frontend/web/monorepo/apps/vaadin && rm -f package-lock.json && npm i && npm run copy
       - name: Build SAPUI5 front
-        run: cd frontend/web/monorepo/sapui5 && rm -f package-lock.json && npm i && npm run copy
+        run: cd frontend/web/monorepo/apps/sapui5 && rm -f package-lock.json && npm i && npm run copy
       - name: Build Redwood front
-        run: cd frontend/web/monorepo/redwood && rm -f package-lock.json && npm i && npm run copy
+        run: cd frontend/web/monorepo/apps/redwood && rm -f package-lock.json && npm i && npm run copy
       - name: Build Red Hat front
-        run: cd frontend/web/monorepo/redhat && rm -f package-lock.json && npm i && npm run copy
+        run: cd frontend/web/monorepo/apps/redhat && rm -f package-lock.json && npm i && npm run copy
 
       - name: fix version
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
