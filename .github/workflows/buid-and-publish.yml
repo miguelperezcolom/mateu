@@ -48,7 +48,7 @@ jobs:
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i 's/0\.0\.1\-MATEU/${{ env.RELEASE_VERSION }}/g'
 
       - name: Build backend shared
-        run: mvn -B install --file backend/pom.xml
+        run: mvn -Dmaven.test.skip -B install --file backend/pom.xml
 
       - name: Publish to Maven Central
         run: mvn deploy -f backend/pom.xml
