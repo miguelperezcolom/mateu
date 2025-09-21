@@ -11,6 +11,10 @@
     </parent>
 
     <artifactId>redwood-lit</artifactId>
+    <packaging>jar</packaging>
+
+    <name>redwood-lit</name>
+    <url>http://maven.apache.org</url>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
