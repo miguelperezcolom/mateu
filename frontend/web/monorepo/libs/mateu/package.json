@@ -77,7 +77,10 @@
     "minimatch": "10.0.3",
     "nanoid": "^5.0.7",
     "rxjs": "^7.8.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "@ui5/webcomponents": "^2.13.2",
+    "@ui5/webcomponents-ai": "^2.13.2",
+    "@ui5/webcomponents-fiori": "^2.13.2"
   },
   "devDependencies": {
     "lit": "^3.3.1",
