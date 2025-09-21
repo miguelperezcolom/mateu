@@ -22,11 +22,16 @@ In case you are using maven:
     <artifactId>annotation-processor-quarkus</artifactId>
     <version>{{< java-artifact-version >}}</version>
 </dependency>
+  <!-- you need the one below if you want to also serve the static content -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
+<!--
+available artifacts are: redhat-lit, sapui5-lit, redwood-lit and  vaadin-lit 
+-->
     <version>{{< java-artifact-version >}}</version>
 </dependency>
+
 ```
 
 Or, in case you are using Gradle:
