@@ -66,6 +66,24 @@
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
         </dependency>
+
+
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-helidon-mp</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>helidon-mp-core</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
     </dependencies>
 
     <build>

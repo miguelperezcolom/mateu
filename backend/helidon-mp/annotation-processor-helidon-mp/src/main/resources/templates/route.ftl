@@ -3,6 +3,7 @@ package ${pkgName};
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;

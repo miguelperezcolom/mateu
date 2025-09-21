@@ -5,12 +5,15 @@ import io.mateu.core.domain.UiMapperProvider;
 import io.mateu.dtos.UIDto;
 import jakarta.inject.Named;
 import java.util.Map;
+
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Named
+@Singleton
 @RequiredArgsConstructor
 public class GetUIUseCase {
 

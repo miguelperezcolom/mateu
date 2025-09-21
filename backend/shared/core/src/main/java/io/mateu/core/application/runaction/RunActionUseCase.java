@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Named
+@Singleton
 @RequiredArgsConstructor
 public class RunActionUseCase {
 

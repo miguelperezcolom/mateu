@@ -1,30 +1,41 @@
 package ${pkgName};
 
 import io.mateu.core.infra.InputStreamReader;
-import io.micronaut.http.MediaType;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
+import io.mateu.core.infra.JsonSerializer;
+import io.vertx.core.http.HttpServerRequest;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.resteasy.reactive.RestResponse;
 
-@Controller("${path}")
+import java.util.HashMap;
+import java.util.Map;
+
+@Path("${path}")
 @Slf4j
 public class ${simpleClassName}Controller {
 
-    @Get(value = "/{+path:[\\-a-zA-Z0-9/]+}", produces = MediaType.TEXT_HTML)
+    @Path("/{path}")
+    @GET
+    @Produces(MediaType.TEXT_HTML)
     public String getIndexAlways(String path) {
         return getIndex();
     }
 
-    @Get(produces = MediaType.TEXT_HTML)
+    @GET
+    @Produces(MediaType.TEXT_HTML)
     public String getIndex() {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
-<#list externalScripts as x>
+        <#list externalScripts as x>
         html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
-</#list>
-        html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
-        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${pageTitle}");
+        </#list>
+        html = html.replaceAll("<!-- AQUIFAVICON -->", "");
+        html = html.replaceAll("AQUIELTITULODELAPAGINA", "Hello world");
 <#if keycloak??>
-String keycloakStuff = """
+        String keycloakStuff = """
 <script src='${keycloak.jsUrl}'></script>
 <script>
     function initKeycloak() {
@@ -73,14 +84,15 @@ String keycloakStuff = """
     }
 </script>
 """;
-    html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
-    html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
+        html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
+        html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
-    html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-    + "<mateu-ui baseUrl=\"${path}\"></mateu-ui>"
-    + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
+        html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
+                + "<mateu-ui baseUrl=\"${path}\"></mateu-ui>"
+                + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;
     }
 
 }
+

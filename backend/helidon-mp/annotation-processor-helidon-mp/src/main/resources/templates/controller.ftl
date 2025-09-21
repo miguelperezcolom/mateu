@@ -1,57 +1,51 @@
+
 package ${pkgName};
 
-import io.mateu.MicronautHttpRequest;
+import io.mateu.QuarkusHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
-import io.mateu.core.domain.reflection.DefaultInstanceFactory;
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.PathVariable;
-import io.micronaut.http.annotation.Post;
-import io.micronaut.http.server.cors.CrossOrigin;
-import jakarta.annotation.Nullable;
+import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
-
-@CrossOrigin
-@Controller("${path}/mateu")
+@Path("${path}/mateu")
 @Slf4j
 public class ${simpleClassName}MateuController {
 
     private final MateuService service;
-    private final DefaultInstanceFactory defaultInstanceFactory;
 
     @Inject
-    public ${simpleClassName}MateuController(MateuService service, DefaultInstanceFactory defaultInstanceFactory) {
+    public ${simpleClassName}MateuController(MateuService service) {
         this.service = service;
-        this.defaultInstanceFactory = defaultInstanceFactory;
     }
 
     private String uiId = "${className}";
 
     private String baseUrl = "${path}";
 
-    @Post(value = "v3/ui")
-    public Mono<UIDto> getUI(
-        @Body GetUIRqDto rq,
-        HttpRequest serverHttpRequest) throws Exception {
+    @Path("v3/ui")
+    @POST
+    public UIDto getUI(
+        GetUIRqDto rq,
+    HttpServerRequest serverHttpRequest) throws Exception {
       return service.getUI(uiId, baseUrl, rq,
-        new MicronautHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
+        new QuarkusHttpRequest(serverHttpRequest).storeGetUIRqDto(rq)).block();
     }
 
-    @Post("v3/{/ignored:.*}")
-    public Mono<UIIncrementDto> runStep(
-        @PathVariable("ignored") @Nullable String ignored,
-        @Body RunActionRqDto rq,
-        HttpRequest serverHttpRequest) throws Throwable {
+    @Path("v3/{ignored:.*}")
+    @POST
+    public UIIncrementDto runStep(
+        String ignored,
+        RunActionRqDto rq,
+        HttpServerRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,
-        new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
+        new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).block();
     }
 
 }
+
