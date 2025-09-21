@@ -7,7 +7,10 @@ You can easily extend Mateu to fit your needs.
 
 On the **server side** you can:
 
-- Provide your own beans to overwrite the default logic of Mateu
+- Provide your own beans to overwrite the default logic of Mateu. Specifically, you can provide your own beans for the following interfaces:
+  - InstanceFactory
+  - ActionRunner
+  - UIIncrementMapper
 - Provide your own Mateu API server, for supporting a new language or for providing a different implementation than the ones Mateu provides.
 
 On the **client side** you can:
