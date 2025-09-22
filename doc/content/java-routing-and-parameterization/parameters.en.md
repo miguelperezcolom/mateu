@@ -22,7 +22,7 @@ public class Home implements HasPostHydrationMethod {
 
 ```
 
-So you can pass an **id** parameter in the url, like this: **http://localhgost:8080/myui/home?id=23**
+For the example above you can pass an **id** parameter in the url, like this: **http://localhgost:8080/myui/home?id=23**
 
 
 When implementing the **HasPostHydrationMethod** interface, the **onHydrated** method is called after instantiating and 
