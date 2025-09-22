@@ -40,7 +40,8 @@ It's just that you provide the ViewModel objects on the server.
 
 <p align="center"><img src="../../../images/arch-overall-10.svg" width="500"/></p>
 
-So, the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
+So, the frontend is backed by an ephemeral java object in the server side and **Mateu** provides all the necessary 
+plumbing, like illustrated in the following diagram:
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
 
