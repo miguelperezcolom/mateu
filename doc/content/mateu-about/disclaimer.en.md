@@ -11,4 +11,4 @@ This [video](https://youtu.be/h_MSTvnN55o) shows an app built a long time ago us
 
 This [video](https://youtu.be/L7bKeijIqjY) contains a version 3 preview.
 
-THis [video](https://youtu.be/E1rc4-mpaEk) contains a POC I did using Mateu for building a frontend for Camunda based user flows.
+This [video](https://youtu.be/E1rc4-mpaEk) contains a POC I did using Mateu for building a frontend for Camunda based user flows.
