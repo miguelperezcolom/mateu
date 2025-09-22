@@ -35,7 +35,8 @@ Please notice that the urls anatomy is intended for making it easy to route them
 
 ## Backend-driven frontend
 
-In essence **Mateu** implements the Model-View-ViewModel (**MVVM**) pattern. It's just that you provide the ViewModel objects on the server.
+In essence **Mateu** implements the [Model-View-ViewModel (**MVVM**) pattern](https://martinfowler.com/eaaDev/PresentationModel.html). 
+It's just that you provide the ViewModel objects on the server.
 
 <p align="center"><img src="../../../images/arch-overall-10.svg" width="500"/></p>
 
