@@ -13,6 +13,9 @@ In **Mateu** the frontend is backed by an ephemeral java object in the server si
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
 
+The component at the bottom right of the diagram above is what you write when using **Mateu**. It's the ViewModel in 
+the [Model-View-ViewModel (**MVVM**) pattern](https://martinfowler.com/eaaDev/PresentationModel.html).
+
 Please notice that, unless you defined your java class as a singleton bean, the java object is instantiated and hydrated 
 on every api request. It does not survive between api calls. Mateu server side is stateless.
 
