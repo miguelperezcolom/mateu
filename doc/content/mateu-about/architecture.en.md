@@ -112,6 +112,7 @@ You can extend the frontend by providing your own web components.
 **Mateu**.
 
 Also, **Mateu** is intended to be polyglot, so you can have different micro services written in different languages 
-(e.g. Java, C#, Python, ...) and all of them contributing to the same UI. 
+(e.g. Java, C#, Python, ...), or using different frameworks and models (e.g. Springboot MVC, Springboot Webflux, 
+Micronaut, Quarkus, ...), and all of them contributing to the same UI. 
 
 
