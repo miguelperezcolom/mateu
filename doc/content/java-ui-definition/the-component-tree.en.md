@@ -41,14 +41,14 @@ Which, in the end, becomes this:
 ## The state
 
 Please notice that, in the example above, the Counter object is serialized and sent to the frontend as the state for 
-that component. Later, on each request, the state is sent back to the backend in the request payload so the Counter object can be 
+that component. Later, on each request (e.g. when the user clicks the "Increment" button), the state is sent back to the backend in the request payload so the Counter object can be 
 initialized and hydrated in order to restore its state. 
 
 ## Inheritance, dependency injection and packaging
 
-Please notice you can also leverage java inheritance and maven dependencies for building your UIs with Mateu, so you can
-create components which extend other components, create libraries with sets of components, and even use dependency injection 
-inside your components.
+Please notice that, as it's just plain java, you can also leverage java inheritance and maven dependencies for building 
+your UIs with Mateu, so you can create components which extend other components, create libraries with sets of components, 
+and even use dependency injection inside your components.
 
 ## Reusing components
 
@@ -58,7 +58,7 @@ used.
 This means that you can extend existing UIs, forms or cruds, or create artifacts which contain component libraries
 which can be used in another UI built with Mateu.
 
-You can also integrate components from other microservices, as micro frontends in your own UI.
+You can also integrate components from other microservices as micro frontends in your own UI.
 
 ## Bring your own components
 

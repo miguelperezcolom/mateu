@@ -9,7 +9,7 @@ for each UI.
 That app state travels to the backend for each request, so components can use it to share data and to keep a kind of 
 session store.
 
-E.g. this is the payload for a sample http request to the server, from Mateu:
+E.g. this is the **payload** for a sample http request to the server, from Mateu:
 
 ```json
 {
@@ -73,10 +73,13 @@ You can also overwrite the default app state initial value supplier by providing
 **AppStateProvider** interface.  
 
 You can also set it when embedding a mateu-ui or mateu-ux component in your html,
-using the xxxx attribute like below:
+using the **config** attribute like below:
 
 ```html
-tbd
+<mateu-ui baseUrl="https://demo.mateu.io/fluent"
+          config='{"tenantId": "1111","profile": "dev"}'
+>
+</mateu-ui>
 ```
 
 

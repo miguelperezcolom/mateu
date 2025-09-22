@@ -94,7 +94,7 @@ public class Home implements HasActions, HandlesActions {
 ## Explicitly handling actions
 
 As said, you usually create actions transparently when providing callbacks or lambdas, but you can also provide an
-action manager for your component. You just need to implement the **HandlesActions** interface, like below:
+action handler for your component. You just need to implement the **HandlesActions** interface, like below:
 
 ```java
 public class Home implements HandlesActions {
@@ -105,8 +105,8 @@ public class Home implements HandlesActions {
     }
 
     @Override
-    public Mono<?> handleAction(String actionId, HttpRequest httpRequest) {
-        return Mono.just(this);
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        return this;
     }
 
 }

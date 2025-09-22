@@ -77,3 +77,6 @@ You can declare your java class as a singleton according to the java framework y
 
 If you do that your java class will be shared among all your requests, but please notice that it could lead to undesired
 effects, e.g. all users seeing the same values in the input fields.
+
+If you do not want a singleton but create a new instance for each request just use **@Named** only or, if you are using 
+Spring, just add the appropriate scope annotation, e.g. **@Scope("prototype")** (or **@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)**). 

@@ -19,7 +19,7 @@ And the following diagram explains the diferent artifacts that Mateu provides:
 
 <p align="center"><img src="../../../images/arch-overall-2.svg" width="300"/></p>
 
-The artifacts in green are the one I'm currently working on.
+The artifacts in green are the ones I'm currently working on.
 
 ## The API
 
@@ -35,7 +35,11 @@ Please notice that the urls anatomy is intended for making it easy to route them
 
 ## Backend-driven frontend
 
-In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
+In essence **Mateu** implements the Model-View-ViewModel (MVVM) pattern. It's just that you provide the ViewModel objects on the server.
+
+<p align="center"><img src="../../../images/arch-overall-10.svg" width="500"/></p>
+
+So, the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
 
@@ -66,6 +70,8 @@ Components can have children, and the communication between components is done t
 
 <p align="center"><img src="../../../images/arch-client-2.svg" width="500"/></p>
 
+The provided Mateu frontend libraries do an extensive use of events, indeed, which allows to decouple the components on the browser.
+
 ### Flux pattern
 
 As per today, I'm using a rx stream for async UI updates, as shown below:
@@ -74,8 +80,10 @@ As per today, I'm using a rx stream for async UI updates, as shown below:
 
 ### Bring your own design system
 
-For using our own design system, we could just provide a different implementation of the mateu-component web component 
-and tell the UI to load the javascript, instead of the default one.
+For using your own design system, you could just provide a different implementation of the mateu-component web component 
+and tell the UI to load the javascript, instead of the default one. 
+
+You can use any of the provided frontends as a starting point for building yours. 
 
 ## Hexagonal everywhere
 
@@ -87,7 +95,7 @@ If tomorrow I need to add something (e.g. a new design system) I know I will eas
 
 ## Extension points
 
-With time I realised that, if I wanted Mateu to be really useful to people, I needed to provide extension points so 
+As time passed I realised that, if I wanted Mateu to be really useful to people, I needed to provide extension points so 
 anyone can easily introduce support for their particularities. You know, open for extension but closed for modification :)
 
 You can extend the backend by providing your own beans for changing the behaviour in the backend, or by using aspects
