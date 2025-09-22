@@ -106,9 +106,9 @@ or templates to generate a different code, for the controllers.
 
 You can extend the frontend by providing your own web components.
 
-## Distributed nature
+## Distributed first
 
-**Mateu** is architected thinking in distributed UIs, so micro frontends and micro services are first class citizens in 
+**Mateu** is architected thinking in complex distributed UIs, so micro frontends and micro services are first class citizens in 
 **Mateu**.
 
 Also, **Mateu** is intended to be polyglot, so you can have different micro services written in different languages 
