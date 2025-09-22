@@ -3,13 +3,15 @@ title: "Architecture"
 weight: 16
 ---
 
-Mateu's architecture is exceedingly simple: just a static frontend component which talks to the backend using an exceedingly simple API.
+Mateu's architecture is exceedingly simple: just a static frontend component which talks to the backend using an 
+exceedingly simple API.
 
 The following diagram gives the architecture overall view:
 
 <p align="center"><img src="../../../images/arch-overall-1.svg" width="500"/></p>
 
-The good point about being so simple is that you can easily build your own frontend and backend artifacts in order to, e.g. use your own design system while leveraging the existing Mateu's backend libraries.
+The good point about being so simple is that you can easily build your own frontend and backend artifacts in order to, 
+e.g., use your own design system while leveraging the existing Mateu's backend libraries.
 
 ## Artifacts
 
