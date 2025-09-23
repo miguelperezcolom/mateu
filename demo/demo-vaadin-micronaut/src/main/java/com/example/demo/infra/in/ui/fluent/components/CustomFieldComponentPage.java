@@ -4,7 +4,6 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;

@@ -14,7 +14,6 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -30,8 +29,6 @@ public class BasicForm implements ComponentTreeSupplier, HandlesActions, HasActi
                 .id("form_id")
                 .title(name + " " + age)
                 .subtitle("subtitle")
-                .pageTitle("page_title")
-                .favicon("favicon")
                 .toolbar(
                         List.of(
                                 Button.builder()

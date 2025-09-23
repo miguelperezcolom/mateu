@@ -3,7 +3,7 @@ package com.example.demo.infra.in.ui.antonia;
 import io.mateu.uidl.annotations.Details;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.VerticalLayout;
-import io.mateu.uidl.interfaces.Form;
+import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 import io.mateu.uidl.interfaces.HorizontalLayout;
@@ -20,7 +20,7 @@ class Content implements HorizontalLayout {
 
 @Route("/app/page3")
 @VerticalLayout
-public class Page3 implements HasTitle, HasSubtitle, Form {
+public class Page3 implements HasTitle, HasSubtitle, Page {
 
     Content content;
 

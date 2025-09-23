@@ -1,21 +1,13 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
-import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Badge;
-import io.mateu.uidl.data.BadgeColor;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Div;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Image;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
@@ -25,6 +17,7 @@ import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
@@ -64,17 +57,15 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title("Product Inventory")
-                .content(List.of(
+        return Page.builder()
+                .mainContent(
                         Crudl.builder()
+                                .title("Product Inventory")
                                 .crudlType(CrudlType.card)
                                 .searchable(true)
-                        .style("width: 100%;")
                                 .infiniteScrolling(true)
                                 .onRowSelectionChangedActionId("go-to-selected-product")
-                        .build()))
-                .style("width: 100%;")
+                        .build())
                 .build();
     }
 
@@ -90,7 +81,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
 
     @Override
     public CrudlData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
-        return new CrudlData<>(new Page<>(
+        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),

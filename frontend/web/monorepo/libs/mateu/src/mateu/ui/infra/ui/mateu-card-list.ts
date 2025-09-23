@@ -60,12 +60,14 @@ export class MateuCardList extends LitElement {
     }
 
     respondToVisibility = (element: HTMLElement, callback: any) => {
+        console.log('respondToVisibility', element, document.documentElement)
         var options = {
             root: document.documentElement,
         };
 
         var observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
+                console.log('observed', entry, entry.intersectionRatio, entry.isIntersecting)
                 callback(entry.intersectionRatio > 0);
             });
         }, options);

@@ -519,7 +519,7 @@ export class MateuComponent extends ComponentElement {
             return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, false) as TemplateResult
         }
         return html`
-            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}" style="display: block;width: 100%;">
+            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
             ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data))}
             </mateu-api-caller>
         `
@@ -527,8 +527,6 @@ export class MateuComponent extends ComponentElement {
 
     static styles = css`
         :host {
-            width: 100%;
-            display: inline-block;
         }
 
         ${unsafeCSS(badge.cssText)}

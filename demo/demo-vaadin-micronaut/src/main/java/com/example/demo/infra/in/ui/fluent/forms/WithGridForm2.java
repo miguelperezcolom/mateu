@@ -40,8 +40,6 @@ public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions, Has
                 .id("form_id")
                 .title(name + " " + age)
                 .subtitle("subtitle")
-                .pageTitle("page_title")
-                .favicon("favicon")
                 .toolbar(
                         List.of(
                                 Button.builder()

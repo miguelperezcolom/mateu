@@ -19,7 +19,6 @@ import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
@@ -28,6 +27,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
@@ -95,27 +95,28 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title(getTitle())
-                .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
-                .toolbar(List.of(
-                        Button.builder()
-                                .label("Cancel")
-                                .actionId("cancel")
-                                .build(),
-                        Button.builder()
-                                .label("Save")
-                                .actionId("save")
-                                .build(),
-                        Button.builder()
-                                .label("Submit")
-                                .actionId("submit")
-                                .build()
-                ))
-                .content(List.of(
-                        FormSection.builder()
-                                .title("Customer information")
-                                .content(List.of(FormLayout.builder()
+        return Page.builder()
+                .mainContent(Form.builder()
+                        .title(getTitle())
+                        .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
+                        .toolbar(List.of(
+                                Button.builder()
+                                        .label("Cancel")
+                                        .actionId("cancel")
+                                        .build(),
+                                Button.builder()
+                                        .label("Save")
+                                        .actionId("save")
+                                        .build(),
+                                Button.builder()
+                                        .label("Submit")
+                                        .actionId("submit")
+                                        .build()
+                        ))
+                        .content(List.of(
+                                FormSection.builder()
+                                        .title("Customer information")
+                                        .content(List.of(FormLayout.builder()
                                                 .maxColumns(3)
                                                 .content(
                                                         List.of(
@@ -156,172 +157,173 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                                                         .build()
                                                         )
                                                 )
-                                        .build()))
-                                .build(),
-                        FormSection.builder()
-                                .title("Lines")
-                                .style("width: 100%;")
-                                .content(List.of(
-                                                        FormField.builder()
-                                                                .id("lines")
-                                                                .dataType(FieldDataType.array)
-                                                                .stereotype(FieldStereotype.grid)
-                                                                .label("")
-                                                                .columns(List.of(
-                                                                        GridColumn.builder()
+                                                .build()))
+                                        .build(),
+                                FormSection.builder()
+                                        .title("Lines")
+                                        .style("width: 100%;")
+                                        .content(List.of(
+                                                FormField.builder()
+                                                        .id("lines")
+                                                        .dataType(FieldDataType.array)
+                                                        .stereotype(FieldStereotype.grid)
+                                                        .label("")
+                                                        .columns(List.of(
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .id("productName")
+                                                                        .label("Product")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.link)
+                                                                        .id("productId")
+                                                                        .label("Product Number")
+                                                                        .actionId("view-product")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.image)
+                                                                        .id("image")
+                                                                        .label("Image")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.money)
+                                                                        .id("listPrice")
+                                                                        .label("List Price")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.number)
+                                                                        .id("quantity")
+                                                                        .label("Quantity")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.money)
+                                                                        .id("amount")
+                                                                        .label("Amount")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .id("actions")
+                                                                        .label("Actions")
+                                                                        .build()
+                                                        ))
+                                                        .createForm(Form.builder()
+                                                                .title("New line")
+                                                                .content(List.of(
+                                                                        FormField.builder()
+                                                                                .id("new_product")
                                                                                 .dataType(FieldDataType.string)
-                                                                                .id("productName")
-                                                                                .label("Product")
+                                                                                .stereotype(FieldStereotype.combobox)
+                                                                                .label("Product Name")
+                                                                                .remoteCoordinates(RemoteCoordinates.builder()
+                                                                                        .action("search-products")
+                                                                                        .build())
                                                                                 .build(),
-                                                                        GridColumn.builder()
+                                                                        FormField.builder()
+                                                                                .id("new_image")
                                                                                 .dataType(FieldDataType.string)
-                                                                                .stereotype(FieldStereotype.link)
-                                                                                .id("productId")
-                                                                                .label("Product Number")
-                                                                                .actionId("view-product")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.string)
-                                                                                .stereotype(FieldStereotype.image)
-                                                                                .id("image")
+                                                                                .stereotype(FieldStereotype.html)
                                                                                 .label("Image")
                                                                                 .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.money)
-                                                                                .id("listPrice")
-                                                                                .label("List Price")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.number)
-                                                                                .id("quantity")
-                                                                                .label("Quantity")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.money)
-                                                                                .id("amount")
-                                                                                .label("Amount")
-                                                                                .build(),
-                                                                        GridColumn.builder()
+                                                                        FormField.builder()
+                                                                                .id("new_brand")
                                                                                 .dataType(FieldDataType.string)
-                                                                                .id("actions")
-                                                                                .label("Actions")
+                                                                                .stereotype(FieldStereotype.html)
+                                                                                .label("Brand")
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("new_price")
+                                                                                .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.html)
+                                                                                .label("Price")
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("new_quantity")
+                                                                                .dataType(FieldDataType.integer)
+                                                                                .label("Quantity")
                                                                                 .build()
                                                                 ))
-                                                                .createForm(Form.builder()
-                                                                        .title("New line")
-                                                                        .content(List.of(
-                                                                                FormField.builder()
-                                                                                        .id("new_product")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.combobox)
-                                                                                        .label("Product Name")
-                                                                                        .remoteCoordinates(RemoteCoordinates.builder()
-                                                                                                .action("search-products")
-                                                                                                .build())
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("new_image")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Image")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("new_brand")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Brand")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("new_price")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Price")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("new_quantity")
-                                                                                        .dataType(FieldDataType.integer)
-                                                                                        .label("Quantity")
-                                                                                        .build()
-                                                                        ))
-                                                                        .buttons(List.of(
-                                                                                Button.builder()
-                                                                                        .label("Cancel")
-                                                                                        .actionId("cancel_line")
-                                                                                        .build(),
-                                                                                Button.builder()
-                                                                                        .label("Save")
-                                                                                        .actionId("add_line")
-                                                                                        .build()
-                                                                        ))
-                                                                        .build())
-                                                                .editor(Form.builder()
-                                                                        .title("Update line")
-                                                                        .content(List.of(
-                                                                                FormField.builder()
-                                                                                        .id("edit_product")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.combobox)
-                                                                                        .label("Product Name")
-                                                                                        .remoteCoordinates(RemoteCoordinates.builder()
-                                                                                                .action("search-products")
-                                                                                                .build())
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("edit_image")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Image")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("edit_brand")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Brand")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("edit_price")
-                                                                                        .dataType(FieldDataType.string)
-                                                                                        .stereotype(FieldStereotype.html)
-                                                                                        .label("Price")
-                                                                                        .build(),
-                                                                                FormField.builder()
-                                                                                        .id("edit_quantity")
-                                                                                        .label("Quantity")
-                                                                                        .dataType(FieldDataType.integer)
-                                                                                        .build()
-                                                                        ))
-                                                                        .buttons(List.of(
-                                                                                Button.builder()
-                                                                                        .label("Cancel")
-                                                                                        .actionId("cancel_line")
-                                                                                        .build(),
-                                                                                Button.builder()
-                                                                                        .label("Save")
-                                                                                        .actionId("save_line")
-                                                                                        .build()
-                                                                        ))
-                                                                        .build())
-                                                                .onItemSelectionActionId("line_selected")
-                                                                .style("width: 100%;")
-                                                                .build()))
-                                .build(),
-                        FormSubSection.builder()
-                                .title("Attachments")
-                                .content(List.of(
-                                        FormField.builder()
-                                                .id("attachments")
-                                                .dataType(FieldDataType.file)
-                                                .label("Attachments")
-                                                .build(),
-                                        FormField.builder()
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.textarea)
-                                                .id("comments")
-                                                .label("Comments")
-                                                .build()
-                                ))
-                                .build()
-                ))
+                                                                .buttons(List.of(
+                                                                        Button.builder()
+                                                                                .label("Cancel")
+                                                                                .actionId("cancel_line")
+                                                                                .build(),
+                                                                        Button.builder()
+                                                                                .label("Save")
+                                                                                .actionId("add_line")
+                                                                                .build()
+                                                                ))
+                                                                .build())
+                                                        .editor(Form.builder()
+                                                                .title("Update line")
+                                                                .content(List.of(
+                                                                        FormField.builder()
+                                                                                .id("edit_product")
+                                                                                .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.combobox)
+                                                                                .label("Product Name")
+                                                                                .remoteCoordinates(RemoteCoordinates.builder()
+                                                                                        .action("search-products")
+                                                                                        .build())
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("edit_image")
+                                                                                .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.html)
+                                                                                .label("Image")
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("edit_brand")
+                                                                                .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.html)
+                                                                                .label("Brand")
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("edit_price")
+                                                                                .dataType(FieldDataType.string)
+                                                                                .stereotype(FieldStereotype.html)
+                                                                                .label("Price")
+                                                                                .build(),
+                                                                        FormField.builder()
+                                                                                .id("edit_quantity")
+                                                                                .label("Quantity")
+                                                                                .dataType(FieldDataType.integer)
+                                                                                .build()
+                                                                ))
+                                                                .buttons(List.of(
+                                                                        Button.builder()
+                                                                                .label("Cancel")
+                                                                                .actionId("cancel_line")
+                                                                                .build(),
+                                                                        Button.builder()
+                                                                                .label("Save")
+                                                                                .actionId("save_line")
+                                                                                .build()
+                                                                ))
+                                                                .build())
+                                                        .onItemSelectionActionId("line_selected")
+                                                        .style("width: 100%;")
+                                                        .build()))
+                                        .build(),
+                                FormSubSection.builder()
+                                        .title("Attachments")
+                                        .content(List.of(
+                                                FormField.builder()
+                                                        .id("attachments")
+                                                        .dataType(FieldDataType.file)
+                                                        .label("Attachments")
+                                                        .build(),
+                                                FormField.builder()
+                                                        .dataType(FieldDataType.string)
+                                                        .stereotype(FieldStereotype.textarea)
+                                                        .id("comments")
+                                                        .label("Comments")
+                                                        .build()
+                                        ))
+                                        .build()
+                        ))
+                        .build())
                 .build();
     }
 
@@ -343,7 +345,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),
@@ -363,7 +365,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),
@@ -416,7 +418,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
             });
             var product = productRepository.findById(edit_product).get();
             return List.of(new State(this), new Data(Map.of("edit_product",
-                    new Page<>("xxxx", 1, 0, 1,
+                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                             List.of(new Option(product.id(), product.name()))))));
         }
         if ("view-product".equals(actionId)) {
@@ -571,7 +573,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                 var customer = order.customer();
 
                 data.put("customer",
-                        new Page<>("xxxx", 1, 0, 1,
+                        new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                                 List.of(new Option(customer.id(), customer.name()))));
 
                 phoneNumber = customer.phoneNumber();
@@ -597,13 +599,13 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
         if (edit_product != null && !edit_product.isEmpty()) {
             var product = productRepository.findById(edit_product).get();
             data.put("edit_product",
-                    new Page<>("xxxx", 1, 0, 1,
+                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                             List.of(new Option(product.id(), product.name()))));
         }
         if (new_product != null && !new_product.isEmpty()) {
             var product = productRepository.findById(new_product).get();
             data.put("new_product",
-                    new Page<>("xxxx", 1, 0, 1,
+                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                             List.of(new Option(product.id(), product.name()))));
         }
         if (customer != null && !customer.isEmpty()) {
@@ -611,7 +613,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
             if (found.isPresent()) {
                 var customer = found.get();
                 data.put("customer",
-                        new Page<>("xxxx", 1, 0, 1,
+                        new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                                 List.of(new Option(customer.id(), customer.name()))));
             }
         }

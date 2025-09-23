@@ -1,7 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
-import com.example.demo.domain.Amount;
-import com.example.demo.domain.Contact;
 import com.example.demo.domain.Order;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
@@ -18,7 +16,6 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
@@ -26,8 +23,6 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;

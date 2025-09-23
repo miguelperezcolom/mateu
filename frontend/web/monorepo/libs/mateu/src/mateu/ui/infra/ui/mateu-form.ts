@@ -56,7 +56,7 @@ export class MateuForm extends MetadataDrivenElement {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         document.title = metadata.title
         return html`
-            <vaadin-vertical-layout theme="spacing" style="width: 100%;" class="${this.component?.cssClasses}">
+            <vaadin-vertical-layout theme="spacing" class="${this.component?.cssClasses}">
                 ${metadata.noHeader?html`
                     <vaadin-horizontal-layout theme="spacing" slot="end">
                         ${metadata?.header.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
@@ -100,7 +100,6 @@ export class MateuForm extends MetadataDrivenElement {
 
     static styles = css`
         :host {
-            width: 100%;
         }
 
         .redwood .form-header  {
@@ -111,7 +110,6 @@ export class MateuForm extends MetadataDrivenElement {
         }
 
         .form-content {
-            width: 100%;
             padding-bottom: 3rem;
         }
 

@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.routes;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;

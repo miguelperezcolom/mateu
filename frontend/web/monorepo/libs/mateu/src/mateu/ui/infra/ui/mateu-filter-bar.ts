@@ -117,7 +117,7 @@ export class MateuFilterBar extends LitElement {
 
     render() {
         return html`
-            <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
+            <vaadin-horizontal-layout theme="spacing">
                 ${this.metadata?.searchable
                         || this.metadata?.filters?html`
                 `:nothing}

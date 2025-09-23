@@ -16,7 +16,7 @@ public record App(
     boolean drawerClosed,
     String style,
     String cssClasses)
-    implements Component {
+    implements Component, PageMainContent {
 
   public App {
     variant = variant != null ? variant : AppVariant.TABS;

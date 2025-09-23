@@ -12,7 +12,10 @@ import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
@@ -47,13 +50,14 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title("Order " + orderId)
-                .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
-                .content(List.of(
-                        FormSection.builder()
-                                .title("Customer information")
-                                .content(List.of(FormLayout.builder()
+        return Page.builder()
+                .mainContent(Form.builder()
+                        .title("Order " + orderId)
+                        .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
+                        .content(List.of(
+                                FormSection.builder()
+                                        .title("Customer information")
+                                        .content(List.of(FormLayout.builder()
                                                 .maxColumns(3)
                                                 .content(
                                                         List.of(
@@ -91,75 +95,76 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                                                         .build()
                                                         )
                                                 )
-                                        .build()))
-                                .build(),
-                        FormSection.builder()
-                                .title("Lines")
-                                .style("width: 100%;")
-                                .content(List.of(
-                                                        FormField.builder()
-                                                                .id("lines")
-                                                                .dataType(FieldDataType.array)
-                                                                .stereotype(FieldStereotype.grid)
-                                                                .readOnly(true)
-                                                                .label("")
-                                                                .columns(List.of(
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.string)
-                                                                                .id("productName")
-                                                                                .label("Product")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.string)
-                                                                                .stereotype(FieldStereotype.link)
-                                                                                .id("productId")
-                                                                                .label("Product Number")
-                                                                                .actionId("view-product")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.string)
-                                                                                .stereotype(FieldStereotype.image)
-                                                                                .id("image")
-                                                                                .label("Image")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.money)
-                                                                                .id("listPrice")
-                                                                                .label("List Price")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.number)
-                                                                                .id("quantity")
-                                                                                .label("Quantity")
-                                                                                .build(),
-                                                                        GridColumn.builder()
-                                                                                .dataType(FieldDataType.money)
-                                                                                .id("amount")
-                                                                                .label("Amount")
-                                                                                .build()
-                                                                ))
-                                                                .style("width: 100%;")
-                                                                .build())
-                                                )
-                                .build(),
-                        FormSubSection.builder()
-                                .title("Attachments")
-                                .content(List.of(
-                                        FormField.builder()
-                                                .id("attachments")
-                                                .dataType(FieldDataType.file)
-                                                .stereotype(FieldStereotype.html)
-                                                .label("Attachments")
-                                                .build(),
-                                        FormField.builder()
-                                                .dataType(FieldDataType.string)
-                                                .stereotype(FieldStereotype.html)
-                                                .id("comments")
-                                                .label("Comments")
-                                                .build()
-                                ))
-                                .build()
-                ))
+                                                .build()))
+                                        .build(),
+                                FormSection.builder()
+                                        .title("Lines")
+                                        .style("width: 100%;")
+                                        .content(List.of(
+                                                FormField.builder()
+                                                        .id("lines")
+                                                        .dataType(FieldDataType.array)
+                                                        .stereotype(FieldStereotype.grid)
+                                                        .readOnly(true)
+                                                        .label("")
+                                                        .columns(List.of(
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .id("productName")
+                                                                        .label("Product")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.link)
+                                                                        .id("productId")
+                                                                        .label("Product Number")
+                                                                        .actionId("view-product")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.string)
+                                                                        .stereotype(FieldStereotype.image)
+                                                                        .id("image")
+                                                                        .label("Image")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.money)
+                                                                        .id("listPrice")
+                                                                        .label("List Price")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.number)
+                                                                        .id("quantity")
+                                                                        .label("Quantity")
+                                                                        .build(),
+                                                                GridColumn.builder()
+                                                                        .dataType(FieldDataType.money)
+                                                                        .id("amount")
+                                                                        .label("Amount")
+                                                                        .build()
+                                                        ))
+                                                        .style("width: 100%;")
+                                                        .build())
+                                        )
+                                        .build(),
+                                FormSubSection.builder()
+                                        .title("Attachments")
+                                        .content(List.of(
+                                                FormField.builder()
+                                                        .id("attachments")
+                                                        .dataType(FieldDataType.file)
+                                                        .stereotype(FieldStereotype.html)
+                                                        .label("Attachments")
+                                                        .build(),
+                                                FormField.builder()
+                                                        .dataType(FieldDataType.string)
+                                                        .stereotype(FieldStereotype.html)
+                                                        .id("comments")
+                                                        .label("Comments")
+                                                        .build()
+                                        ))
+                                        .build()
+                        ))
+                        .build())
                 .build();
     }
 

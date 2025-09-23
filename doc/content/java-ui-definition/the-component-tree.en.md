@@ -38,11 +38,35 @@ Which, in the end, becomes this:
 
 <p align="center"><img src="../../../images/counter.png" width="500"/></p>
 
+## The declarative way
+
+If your java class (the ViewModel of the MVVM pattern) does not implement the ComponentTreeSupplier interface then **Mateu**
+will try to infer it using java reflection.
+
+So, the code below generate the same component tree as the aforementioned code:
+
+```java
+@MateuUI("")
+public class Counter {
+
+    @Output
+    int count = 0;
+
+    @Button
+    Runnable increment = () -> count++;
+
+}
+```
+
 ## The state
 
-Please notice that, in the example above, the Counter object is serialized and sent to the frontend as the state for 
-that component. Later, on each request (e.g. when the user clicks the "Increment" button), the state is sent back to the backend in the request payload so the Counter object can be 
-initialized and hydrated in order to restore its state. 
+Please notice that, in the example above, the Counter object (the ViewModel of the MVVM pattern) is serialized and sent 
+to the frontend as the state for that component. Later, on each request (e.g. when the user clicks the "Increment" button), 
+the state is sent back to the backend in the request payload so the Counter object can be initialized and hydrated in 
+order to restore its state. 
+
+Please notice that for Java you can use the Jackson annotations (e.g. @JsonIgnore) for controlling how the state is 
+serialized and deserialized. 
 
 ## Inheritance, dependency injection and packaging
 

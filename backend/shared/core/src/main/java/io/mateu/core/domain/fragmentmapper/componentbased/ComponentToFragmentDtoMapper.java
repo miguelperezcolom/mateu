@@ -50,6 +50,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.Message
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MessageListComponentToDtoMapper.mapMessageListToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.MicroFrontendComponentToDtoMapper.mapMicroFrontendToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.NotificationComponentToDtoMapper.mapNotificationToDto;
+import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.PageComponentToDtoMapper.mapPageToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.PopoverComponentToDtoMapper.mapPopoverToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ProgressBarComponentToDtoMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ScrollerComponentToDtoMapper.mapScrollerToDto;
@@ -127,6 +128,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.MenuBar;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -182,6 +184,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentTreeSupplierToDto(componentTreeSupplier, baseUrl, route, httpRequest);
+    }
+    if (component instanceof Page page) {
+      return mapPageToDto(page, componentSupplier, baseUrl, route, httpRequest);
     }
     if (component instanceof App app) {
       return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);

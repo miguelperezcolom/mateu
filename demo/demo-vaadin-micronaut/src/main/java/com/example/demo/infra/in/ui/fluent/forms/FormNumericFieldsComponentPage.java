@@ -7,7 +7,6 @@ import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;

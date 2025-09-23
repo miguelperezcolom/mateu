@@ -7,8 +7,8 @@ import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionObje
 import io.mateu.core.domain.FragmentMapper;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.interfaces.App;
-import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Page;
 import jakarta.inject.Named;
 
 @Named
@@ -24,7 +24,7 @@ public class ReflectionFragmentMapper implements FragmentMapper {
     if (instance instanceof UIFragmentDto uiFragmentDto) {
       return uiFragmentDto;
     }
-    if (instance instanceof Form form) {
+    if (instance instanceof Page form) {
       return mapFormToFragment(form, baseUrl, initiatorComponentId, httpRequest);
     }
     if (instance instanceof App app) {

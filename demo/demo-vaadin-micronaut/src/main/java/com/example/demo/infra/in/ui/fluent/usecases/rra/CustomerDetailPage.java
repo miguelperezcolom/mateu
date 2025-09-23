@@ -6,20 +6,15 @@ import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Avatar;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.UICommand;
@@ -34,7 +29,6 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
@@ -43,7 +37,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
 
-import java.net.URI;
 import java.util.List;
 
 @Serdeable
@@ -72,7 +65,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
     public CrudlData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         var orders = orderRepository.findAll().stream()
                 .filter(order -> order.customer().id().equals(customerId)).toList();
-        return new CrudlData<>(new Page<>(
+        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),

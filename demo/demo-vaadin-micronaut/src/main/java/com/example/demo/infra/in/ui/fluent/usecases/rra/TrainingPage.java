@@ -1,19 +1,9 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
-import com.example.demo.domain.ProductRepository;
 import com.example.demo.domain.TrainingRepository;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.CardRow;
-import io.mateu.uidl.data.ColumnAction;
-import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CrudlData;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -24,18 +14,15 @@ import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import lombok.SneakyThrows;
 
-import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
@@ -64,14 +51,16 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title("Training and Development")
-                .content(List.of(Crudl.builder()
-                        .crudlType(CrudlType.card)
-                        .onRowSelectionChangedActionId("go-to-selected-training")
+        return Page.builder()
+                .mainContent(Form.builder()
+                        .title("Training and Development")
+                        .content(List.of(Crudl.builder()
+                                .crudlType(CrudlType.card)
+                                .onRowSelectionChangedActionId("go-to-selected-training")
+                                .style("width: 100%;")
+                                .build()))
                         .style("width: 100%;")
-                        .build()))
-                .style("width: 100%;")
+                        .build())
                 .build();
     }
 
@@ -92,7 +81,7 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
                         training.completedSteps() < training.totalSteps()?"Pending":"Completed"
                         ))
         ).toList();
-        return new CrudlData<>(new Page<>(
+        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 0,

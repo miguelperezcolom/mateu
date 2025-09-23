@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+
+    <div style="max-height: 100vh; background-color: #999999; overflow: auto; margin-top: 5rem;">
+        <div style="position:sticky; top: 0; padding: 1rem; background-color: #ae81ff;">
+            hola
+        </div>
+
+        <div>
+            <div class="item">0</div>
+            <div class="item">1</div>
+            <div class="item">2</div>
+            <div class="item">3</div>
+            <div class="item">4</div>
+            <div class="item">5</div>
+            <div class="item">6</div>
+            <div class="item">7</div>
+            <div class="item">8</div>
+            <div class="item">9</div>
+            <div class="item">10</div>
+            <div class="item" id="last">11</div>
+        </div>
+    </div>
+
+    <style>
+        .item {
+            border: 1px solid grey;
+            margin: 1rem;
+            padding: 4rem;
+            background-color: whitesmoke;
+        }
+    </style>
+
+    <script>
+        var options = {
+            root: document.documentElement,
+        };
+
+        var observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                console.log('observed', entry, entry.intersectionRatio, entry.isIntersecting)
+            });
+        }, options);
+
+        observer.observe(document.getElementById('last'));
+    </script>
+
+</body>
+</html>

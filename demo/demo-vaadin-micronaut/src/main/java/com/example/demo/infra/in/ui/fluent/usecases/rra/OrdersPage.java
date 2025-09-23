@@ -12,7 +12,6 @@ import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -25,6 +24,7 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
@@ -70,11 +70,10 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title("Orders")
-                .toolbar(List.of(new Button("Create", "create")))
-                .content(List.of(
-                        Crudl.builder()
+        return Page.builder()
+                .mainContent(Crudl.builder()
+                                .title("Orders")
+                                .toolbar(List.of(new Button("Create", "create")))
                                 .infiniteScrolling(true)
                                 .columns(List.of(
                                         GridColumn.builder()
@@ -105,7 +104,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
                                 .searchable(true)
                                 .gridStyle("height: calc(100vh - 240px);")
                         .style("width: 100%;")
-                        .build()))
+                        .build())
                 .style("width: 100%;")
                 .build();
     }
@@ -123,7 +122,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
     @Override
     public CrudlData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         var found = orderRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
-        return new CrudlData<>(new Page<>(
+        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),

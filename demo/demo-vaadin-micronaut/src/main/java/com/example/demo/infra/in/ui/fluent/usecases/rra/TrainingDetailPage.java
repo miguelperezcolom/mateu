@@ -8,17 +8,12 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HasPostHydrationMethod;
@@ -47,36 +42,38 @@ public class TrainingDetailPage implements ComponentTreeSupplier, HasPostHydrati
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Form.builder()
-                .title(training.name())
-                .header(List.of(ProgressBar.builder()
+        return Page.builder()
+                .mainContent(Form.builder()
+                        .title(training.name())
+                        .header(List.of(ProgressBar.builder()
                                 .min(0)
                                 .max(training.totalSteps())
                                 .value(training.completedSteps())
                                 .text(training.completedSteps() + " of " + training.totalSteps() + " tasks completed")
                                 .style("width: 100%;")
-                        .build()))
-                .content(List.of(
-                        AccordionLayout.builder()
-                                .panels(training.steps().stream().map(step ->
-                                                AccordionPanel.builder()
-                                                .label(step.name())
-                                                .content(VerticalLayout.builder()
-                                                        .content(List.of(
-                                                                new Text(step.text()),
-                                                                Button.builder()
-                                                                        .label("Mark as Complete")
-                                                                        .parameters(Map.of("stepId", step.id()))
-                                                                        .disabled(step.completed())
-                                                                        .build()
-                                                        ))
-                                                        .build())
-                                                        .active(!step.completed())
-                                                .build()
-                                        ).toList()
-                                )
-                                .build()
-                ))
+                                .build()))
+                        .content(List.of(
+                                AccordionLayout.builder()
+                                        .panels(training.steps().stream().map(step ->
+                                                        AccordionPanel.builder()
+                                                                .label(step.name())
+                                                                .content(VerticalLayout.builder()
+                                                                        .content(List.of(
+                                                                                new Text(step.text()),
+                                                                                Button.builder()
+                                                                                        .label("Mark as Complete")
+                                                                                        .parameters(Map.of("stepId", step.id()))
+                                                                                        .disabled(step.completed())
+                                                                                        .build()
+                                                                        ))
+                                                                        .build())
+                                                                .active(!step.completed())
+                                                                .build()
+                                                ).toList()
+                                        )
+                                        .build()
+                        ))
+                        .build())
                 .build();
     }
 

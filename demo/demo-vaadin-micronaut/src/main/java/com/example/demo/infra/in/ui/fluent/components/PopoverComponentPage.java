@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Popover;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;

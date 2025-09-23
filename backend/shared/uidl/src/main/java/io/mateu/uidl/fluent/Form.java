@@ -7,8 +7,6 @@ import lombok.Builder;
 @Builder
 public record Form(
     String id,
-    String favicon,
-    String pageTitle,
     String title,
     String subtitle,
     boolean noHeader,
@@ -20,7 +18,7 @@ public record Form(
     List<UserTrigger> buttons,
     String style,
     String cssClasses)
-    implements Component, HasContent {
+    implements Component, HasContent, PageMainContent {
 
   public Form {
     content = content != null ? content : Collections.emptyList();

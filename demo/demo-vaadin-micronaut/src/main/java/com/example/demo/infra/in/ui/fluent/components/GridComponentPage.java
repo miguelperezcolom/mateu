@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.components;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -24,7 +23,7 @@ public class GridComponentPage implements ComponentTreeSupplier {
                                         GridColumn.builder().id("name").label("Name").build(),
                                         GridColumn.builder().id("age").label("Age").build()
                                 ))
-                                .page(new Page<>("", 10, 1, 3, List.of(
+                                .page(new io.mateu.uidl.data.Page<>("", 10, 1, 3, List.of(
                                         Map.of("id", "1", "name", "Mateu", "age", "17"),
                                         Map.of("id", "2", "name", "Antònia", "age", "49"),
                                         Map.of("id", "3", "name", "Miguel", "age", "56")

@@ -44,7 +44,7 @@ public class RRA implements AppSupplier {
 
     @Override
     public String style() {
-        return "width: 100%; height: calc(100vh - 58px);";
+        return "width: 100%;";
     }
 
     @Override

@@ -9,8 +9,6 @@ import lombok.Builder;
 public record Crudl(
     CrudlType crudlType,
     String id,
-    String favicon,
-    String pageTitle,
     String title,
     String subtitle,
     List<Trigger> triggers,
@@ -45,7 +43,7 @@ public record Crudl(
     String gridStyle,
     String detailPath,
     String onRowSelectionChangedActionId)
-    implements Component {
+    implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {
     return autoFocusOnSearchText != null ? autoFocusOnSearchText : true;

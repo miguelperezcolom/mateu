@@ -7,7 +7,6 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
@@ -45,8 +44,6 @@ public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, Has
                 .id("form_id")
                 .title(name + " " + age)
                 .subtitle("subtitle")
-                .pageTitle("page_title")
-                .favicon("favicon")
                 .toolbar(
                         List.of(
                                 Button.builder()
@@ -91,7 +88,7 @@ public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, Has
                                                                         GridColumn.builder().id("name").label("Name").build(),
                                                                         GridColumn.builder().id("age").label("Age").build()
                                                                 ))
-                                                                .page(new Page<Object>("", 10, 1, people.size(), Arrays.asList(people.toArray())))
+                                                                .page(new io.mateu.uidl.data.Page<Object>("", 10, 1, people.size(), Arrays.asList(people.toArray())))
                                                                 .build()))
                                         .build()))
                 .footer(List.of()) // will be placed in footer, between left and right side buttons

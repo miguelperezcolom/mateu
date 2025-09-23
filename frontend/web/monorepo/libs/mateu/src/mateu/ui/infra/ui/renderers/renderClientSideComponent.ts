@@ -57,6 +57,7 @@ import { nanoid } from "nanoid";
 import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -101,6 +102,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
 
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
 
+        if (type == ComponentMetadataType.Page) {
+            return renderPage(container, component, baseUrl, state, data)
+        }
         if (type == ComponentMetadataType.Div) {
             return renderDiv(container, component, baseUrl, state, data)
         }

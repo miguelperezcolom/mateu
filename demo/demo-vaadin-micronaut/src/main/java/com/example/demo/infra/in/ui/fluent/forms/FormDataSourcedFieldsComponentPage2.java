@@ -14,7 +14,6 @@ import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Text;
@@ -153,7 +152,7 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),
@@ -168,7 +167,7 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     "",
                     pageable.size(),
                     pageable.page(),
@@ -191,7 +190,7 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
             )).toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     "",
                     pageable.size(),
                     pageable.page(),

@@ -15,7 +15,6 @@ import io.mateu.uidl.data.FormPosition;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
@@ -285,7 +284,7 @@ public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplie
             });
             var product = productRepository.findById(edit_product).get();
             return List.of(new State(this), new Data(Map.of("edit_product",
-                    new Page<>("xxxx", 1, 0, 1,
+                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                             List.of(new Option(product.id(), product.name()))))));
         }
         if ("lines_add".equals(actionId)) {
@@ -358,7 +357,7 @@ public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplie
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),

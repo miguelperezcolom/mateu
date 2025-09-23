@@ -1,5 +1,6 @@
 export enum ComponentMetadataType {
 
+    Page = "Page",
     Div = "Div",
     Element = "Element",
     MicroFrontend = "MicroFrontend",

@@ -13,11 +13,6 @@ public class SampleFormProvider implements ComponentTreeSupplier {
 
   @Override
   public Form component(HttpRequest httpRequest) {
-    return Form.builder()
-        .favicon("fav_icon")
-        .pageTitle("page_title")
-        .title("title")
-        .subtitle("subtitle")
-        .build();
+    return Form.builder().title("title").subtitle("subtitle").build();
   }
 }

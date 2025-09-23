@@ -17,8 +17,8 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Page;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +26,7 @@ import java.util.UUID;
 public final class ReflectionFormMapper {
 
   public static UIFragmentDto mapFormToFragment(
-      Form form, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
+      Page form, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     var formDto =
         FormDto.builder()
             .icon("icon")
@@ -51,12 +51,12 @@ public final class ReflectionFormMapper {
         initiatorComponentId, component, form, null, UIFragmentActionDto.Replace);
   }
 
-  private static List<ComponentDto> createFormContent(Form form) {
+  private static List<ComponentDto> createFormContent(Page form) {
     var formLayout = FormLayoutDto.builder().build();
     return List.of(new ClientSideComponentDto(formLayout, "", createFields(form), "", "", null));
   }
 
-  private static List<ComponentDto> createFields(Form form) {
+  private static List<ComponentDto> createFields(Page form) {
     return getAllEditableFields(form.getClass()).stream()
         .map(
             field ->
@@ -100,7 +100,7 @@ public final class ReflectionFormMapper {
         .toList();
   }
 
-  private static List<ActionDto> createActions(Form form) {
+  private static List<ActionDto> createActions(Page form) {
     List<ActionDto> actions = new ArrayList<>();
     actions.addAll(
         getAllMethods(form.getClass()).stream()

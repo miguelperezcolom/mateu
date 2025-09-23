@@ -4,7 +4,6 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
-import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;

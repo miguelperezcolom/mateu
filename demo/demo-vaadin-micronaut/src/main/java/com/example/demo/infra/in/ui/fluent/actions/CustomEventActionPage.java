@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.fluent.actions;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;

@@ -2,15 +2,12 @@ package com.example.demo.infra.in.ui.fluent.triggers;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.HasActions;
 import io.mateu.uidl.fluent.HasTriggers;
 import io.mateu.uidl.fluent.OnSuccessTrigger;
-import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;

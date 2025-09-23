@@ -144,13 +144,12 @@ export class MateuUi extends LitElement {
 
     render() {
        return html`
-           <mateu-api-caller style="display: block;width: 100%;">
+           <mateu-api-caller style="height: 100%; overflow: auto; display: block;">
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.ui?.homeRoute}"
                           instant="${this.instant}"
                           top="true"
-                          style="display: block;width: 100%;"
                 ></mateu-ux>
            </mateu-api-caller>
        `
@@ -159,6 +158,7 @@ export class MateuUi extends LitElement {
     static styles = css`
         :host {
             width: 100%;
+            height: 100vh;
         }
   `
 }

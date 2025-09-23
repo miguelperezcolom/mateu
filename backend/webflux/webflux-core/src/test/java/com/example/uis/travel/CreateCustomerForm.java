@@ -6,14 +6,13 @@ import io.mateu.uidl.annotations.Intent;
 import io.mateu.uidl.annotations.UseRadioButtons;
 import io.mateu.uidl.data.Destination;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.OptionsProvider;
+import io.mateu.uidl.interfaces.Page;
 import reactor.core.publisher.Mono;
 
 @Intent
-public class CreateCustomerForm implements Form, OptionsProvider {
+public class CreateCustomerForm implements Page, OptionsProvider {
 
   String name;
 
@@ -27,8 +26,8 @@ public class CreateCustomerForm implements Form, OptionsProvider {
   }
 
   @Override
-  public Mono<Page<Option>> fetchOptions(String listKey, String searchText, Pageable pageable)
-      throws Throwable {
+  public Mono<io.mateu.uidl.data.Page<Option>> fetchOptions(
+      String listKey, String searchText, Pageable pageable) throws Throwable {
     return null;
   }
 }

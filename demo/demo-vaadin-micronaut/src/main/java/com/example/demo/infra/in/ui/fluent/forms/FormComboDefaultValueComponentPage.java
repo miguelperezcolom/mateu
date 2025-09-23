@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import com.example.demo.domain.CustomerRepository;
-import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
@@ -10,7 +9,6 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Text;
@@ -102,7 +100,7 @@ public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),
@@ -121,7 +119,7 @@ public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier
             if (found.isPresent()) {
                 var customer = found.get();
                 data.put("string",
-                        new Page<>("xxxx", 1, 0, 1,
+                        new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                                 List.of(new Option(customer.id(), customer.name()))));
             }
         }
@@ -135,7 +133,7 @@ public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier
                 }
             }
             data.put("array",
-                    new Page<>("xxxx", 1, 0, 1,
+                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                             options));
         }
         httpRequest.setAttribute("data", data);

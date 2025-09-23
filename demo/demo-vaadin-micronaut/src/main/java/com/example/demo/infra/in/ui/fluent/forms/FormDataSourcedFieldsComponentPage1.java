@@ -3,18 +3,14 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
-import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Text;
@@ -125,7 +121,7 @@ public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplie
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     searchText,
                     pageable.size(),
                     pageable.page(),
@@ -140,7 +136,7 @@ public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplie
                     .toList();
             String fieldId = (String) httpRequest.runActionRq().parameters().get("fieldId");
 
-            return new Data(Map.of(fieldId, new Page<>(
+            return new Data(Map.of(fieldId, new io.mateu.uidl.data.Page<>(
                     "",
                     pageable.size(),
                     pageable.page(),

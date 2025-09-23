@@ -9,7 +9,7 @@ import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
-import io.mateu.uidl.interfaces.Form;
+import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.HasMenu;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Submenu;
@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-class SampleContent implements Form {
+class SampleContent implements Page {
     String name;
     int age;
 }

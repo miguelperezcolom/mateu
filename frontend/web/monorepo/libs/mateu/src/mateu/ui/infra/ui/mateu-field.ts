@@ -41,6 +41,11 @@ import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 
+interface FileLike {
+    id: string
+    name: string
+}
+
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
@@ -361,15 +366,14 @@ export class MateuField extends LitElement {
         this.filteredIcons = allIcons.filter(icon => !event.detail.value || icon.indexOf(event.detail.value) >= 0)
     }
 
+
     renderField(): TemplateResult {
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[fieldId]:this.field?.initialValue
         const labelText = this.field?.label + '' + (this.field?.required?' (*)':'')
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
         if (this.field?.dataType == 'file') {
-            const files = value.map((file: { id: string,
-                name: string
-            }) => {
+            const files = value?.map((file: FileLike) => {
                 return {
                     id: file.id,
                     name: file.name,
@@ -377,7 +381,7 @@ export class MateuField extends LitElement {
                     uploadTarget: '',
                     complete: true
                 }
-            })
+            })??[]
             return html`
                 <vaadin-upload
                         target="/upload"

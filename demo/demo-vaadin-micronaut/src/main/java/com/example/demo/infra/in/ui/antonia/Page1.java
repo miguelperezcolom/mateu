@@ -4,7 +4,7 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.ActionType;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.interfaces.Form;
+import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.HasSubtitle;
 import io.mateu.uidl.interfaces.HasTitle;
 
@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.HasTitle;
 @Route("/fluent-app/nested-apps/left/page1")
 @Route("/fluent-app/nested-apps/top/page1")
 @Route("/fluent-app/nested-apps/tabs/page1")
-public class Page1 implements HasTitle, HasSubtitle, Form {
+public class Page1 implements HasTitle, HasSubtitle, Page {
 
     String name;
 

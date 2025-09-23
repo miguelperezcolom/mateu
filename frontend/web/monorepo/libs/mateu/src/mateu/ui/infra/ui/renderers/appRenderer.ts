@@ -31,7 +31,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-side-nav>
                     </vaadin-scroller>
                     <div class="app-content">
-                        <mateu-api-caller style="width: 100%;">
+                        <mateu-api-caller>
                             <mateu-ux
                                     route="${metadata.homeRoute}"
                                     id="ux_${container.id}"
@@ -46,13 +46,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
-                <vaadin-vertical-layout style="width: 100%;">
+                <vaadin-vertical-layout>
                     <vaadin-menu-bar
                             .items="${items}"
                             @item-selected="${container.itemSelected}"
                             theme="dropdown-indicators"
                     >
                     </vaadin-menu-bar>
+                    <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux 
                                 route="${metadata.homeRoute}" 
@@ -61,18 +62,20 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 consumedRoute="${metadata.route}"
                         ></mateu-ux>
                     </mateu-api-caller>
+                    </div>
                 </vaadin-vertical-layout>
                 
             `:nothing}
 
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
-                <vaadin-horizontal-layout style="width: 100%;">
+                <vaadin-horizontal-layout>
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout>
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
+                    <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${metadata.homeRoute}"
@@ -82,6 +85,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="padding: 1em;"
                         ></mateu-ux>
                     </mateu-api-caller>
+                    </div>
                 </vaadin-horizontal-layout>
 
                 
@@ -89,8 +93,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
             ${metadata.variant == AppVariant.TABS?html`
                 
-                <vaadin-vertical-layout class="vl"  style="width: 100%;">
-                    <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}" class="${container.component?.cssClasses}">
+                <vaadin-vertical-layout class="vl">
+                    <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}" 
+                                 class="${container.component?.cssClasses}">
                         ${metadata.menu.map(option => {
         return html`
                                 <vaadin-tab 
@@ -99,7 +104,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             `
     })}
                     </vaadin-tabs>
-                    <mateu-api-caller style="width: 100%;">
+                    <div class="app-content">
+                    <mateu-api-caller>
                         <mateu-ux
                                 route="${metadata.homeRoute}"
                                 id="ux_${container.id}"
@@ -107,6 +113,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 consumedRoute="${metadata.route}"
                         ></mateu-ux>
                     </mateu-api-caller>
+                    </div>
                 </vaadin-vertical-layout>
             
             `:nothing}

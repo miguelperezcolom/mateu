@@ -1,7 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.dtos.UIFragmentDto;
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;

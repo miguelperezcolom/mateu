@@ -134,7 +134,7 @@ export class MateuApp extends ComponentElement {
     renderOptionOnLeftMenu = (option: MenuOption): any => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
-                <vaadin-details summary="${option.label}" theme="reverse" style="width: 100%;">
+                <vaadin-details summary="${option.label}" theme="reverse">
                     <vaadin-vertical-layout>
                         ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
                     </vaadin-vertical-layout>
@@ -207,59 +207,12 @@ export class MateuApp extends ComponentElement {
     }
 
     static styles = css`
-        --_vaadin-app-layout-navbar-offset-size: 20px;
-        :host {
-            width: 100%;
-        }
-        vaadin-app-layout {
-            width: 100%;
-        }
-        vaadin-tabs {
-            width: 100%;
-        }
-        .redwood::part(navbar) {
-            background-color: var(--lumo-contrast);
-            color: var(--lumo-base-color);
-        }
-
-        .redwood vaadin-drawer-toggle  {
-            color: var(--lumo-base-color);
-        }
 
         .app-content {
-            padding-left: 2em; padding-right: 2em;
-        }
-
-        .redwood {
-            //background-color: var(--lumo-contrast-20pct);
-            background-color: var(--lumo-contrast-20pct);
+            padding-left: 2rem;
+            padding-right: 2rem;
         }
         
-        .redwood .app-content {
-            background-color: var(--lumo-base-color);
-            padding-left: 0; padding-right: 0;
-            width:100%;
-            max-width: 1392px;
-            margin: 0 auto;
-        }
-
-        vaadin-vertical-layout.vl {
-            height: 100%;
-        }
-        :host(.tabs-at-bottom) {
-            //background-color: #646cff;
-        }
-        vaadin-tabs.tabs-at-bottom {
-            bottom: 0px;
-            position: absolute;
-            box-shadow: inset 0 0 2px 0 var(--lumo-contrast-10pct);
-            z-index: 1;
-            background-color: var(--lumo-base-color);
-        }
-        vaadin-tabs.tabs-at-bottom vaadin-tab::before {
-            bottom: unset;
-            top: 2px;
-        }
   `
 }
 
