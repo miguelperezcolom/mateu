@@ -53,7 +53,8 @@ public record CrudlDto(
     String vaadinGridCellPadding,
     String gridStyle,
     String detailPath,
-    String onRowSelectionChangedActionId)
+    String onRowSelectionChangedActionId,
+    String contentHeight)
     implements ComponentMetadataDto {
 
   public CrudlDto {

@@ -42,7 +42,8 @@ public record Crudl(
     String vaadinGridCellPadding,
     String gridStyle,
     String detailPath,
-    String onRowSelectionChangedActionId)
+    String onRowSelectionChangedActionId,
+    String contentHeight)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

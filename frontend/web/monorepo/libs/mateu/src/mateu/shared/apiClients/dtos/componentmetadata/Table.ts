@@ -27,5 +27,6 @@ export default interface Table extends ComponentMetadata {
     gridStyle: string
     detailPath: string
     pageSize: number
+    contentHeight: string
 
 }

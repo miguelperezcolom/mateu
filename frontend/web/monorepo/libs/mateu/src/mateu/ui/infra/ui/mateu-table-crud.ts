@@ -136,6 +136,21 @@ export class MateuTableCrud extends LitElement {
             `:nothing}
             ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
             :html`
+                        
+                        ${metadata.contentHeight?html`
+                        <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
+                                            <mateu-card-list id="${this.id}"
+                            .metadata="${metadata}"
+                            .data="${this.data}"
+                            .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
+                            @sort-direction-changed="${this.directionChanged}"
+                                 @fetch-more-elements="${this.fetchMoreElements}"
+                            .state="${this.state}"
+                            baseUrl="${this.baseUrl}"
+                ></mateu-card-list>
+
+                        </vaadin-scroller>
+                        `:html `
                 <mateu-card-list id="${this.id}"
                             .metadata="${metadata}"
                             .data="${this.data}"
@@ -145,6 +160,8 @@ export class MateuTableCrud extends LitElement {
                             .state="${this.state}"
                             baseUrl="${this.baseUrl}"
                 ></mateu-card-list>
+                        `}
+                        
             `}
             <slot></slot>
             ${metadata.infiniteScrolling?nothing:html`
