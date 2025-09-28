@@ -144,7 +144,7 @@ export class MateuUi extends LitElement {
 
     render() {
        return html`
-           <mateu-api-caller style="height: 100%; overflow: auto; display: block;">
+           <mateu-api-caller>
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.ui?.homeRoute}"

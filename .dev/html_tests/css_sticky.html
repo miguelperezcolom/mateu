@@ -9,28 +9,131 @@
 </head>
 <body>
 
-    <div style="max-height: 100vh; background-color: #999999; overflow: auto; margin-top: 5rem;">
-        <div style="position:sticky; top: 0; padding: 1rem; background-color: #ae81ff;">
-            hola
-        </div>
+    <div style="
+    height: 100vh;
+    background-color: #999999;
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+">
+        <div style="
+        flex: 0 1 auto;
+        background-color: #ae81ff;
+"> app header</div>
+        <div style="
+        flex: 1 1 auto;
+        background-color: #d88200;
+        overflow: auto;
+        width: 100%;
+">
 
-        <div>
-            <div class="item">0</div>
-            <div class="item">1</div>
-            <div class="item">2</div>
-            <div class="item">3</div>
-            <div class="item">4</div>
-            <div class="item">5</div>
-            <div class="item">6</div>
-            <div class="item">7</div>
-            <div class="item">8</div>
-            <div class="item">9</div>
-            <div class="item">10</div>
-            <div class="item" id="last">11</div>
+
+            <div style="
+    height: 100%;
+    background-color: #999999;
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+">
+                <div style="
+        flex: 0 1 auto;
+        background-color: #ae81ff;
+">nested app header</div>
+                <div style="
+        flex: 1 1 auto;
+        background-color: #d88200;
+        overflow: auto;
+        width: 100%;
+">
+
+
+                    <div style="
+    height: 100%;
+    background-color: #999999;
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+">
+                        <div style="
+        flex: 0 1 auto;
+        background-color: #ae81ff;
+">page header</div>
+                        <div style="
+        flex: 1 1 auto;
+        background-color: #d88200;
+        overflow: auto;
+        width: 100%;
+">
+
+                            <div style="
+                            height: 10rem;
+                            z-index: 1;
+                            width: 100%;
+">
+                                <div style="
+                            background-color: coral;
+                            position: sticky;
+                            top: 0;
+">
+                                    page header extension
+                                </div>
+
+                            </div>
+
+
+<div style="
+margin-top: -10rem;
+"
+>
+
+
+
+
+                                <div class="item">0</div>
+                                <div class="item">1</div>
+                                <div class="item">2</div>
+                                <div class="item">3</div>
+                                <div class="item">4</div>
+                                <div class="item">5</div>
+                                <div class="item">6</div>
+                                <div class="item">7</div>
+                                <div class="item">8</div>
+                                <div class="item">9</div>
+                                <div class="item">10</div>
+                                <div class="item" id="last">11</div>
+</div>
+
+                        </div>
+                        <div style="
+        flex: 0 1 auto;
+                background-color: #0f3d81;
+">page footer</div>
+
+                    </div>
+
+                </div>
+                <div style="
+        flex: 0 1 auto;
+                background-color: #0f3d81;
+"> nested footer</div>
+
+            </div>
+
+
         </div>
+        <div style="
+        flex: 0 1 auto;
+                background-color: #0f3d81;
+"> footer</div>
+
     </div>
 
     <style>
+
+        .html, body {
+            margin: 0;
+        }
+
         .item {
             border: 1px solid grey;
             margin: 1rem;

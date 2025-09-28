@@ -93,28 +93,32 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
             ${metadata.variant == AppVariant.TABS?html`
                 
-                <vaadin-vertical-layout class="vl">
-                    <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}" 
-                                 class="${container.component?.cssClasses}">
-                        ${metadata.menu.map(option => {
-        return html`
+                <div>
+                    <div>
+                        <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
+                                     class="${container.component?.cssClasses}">
+                            ${metadata.menu.map(option => {
+                                return html`
                                 <vaadin-tab 
                                         @click="${() => container.selectRoute(option.destination.route)}"
                                 >${option.label}</vaadin-tab>
                             `
-    })}
-                    </vaadin-tabs>
-                    <div class="app-content">
-                    <mateu-api-caller>
-                        <mateu-ux
-                                route="${metadata.homeRoute}"
-                                id="ux_${container.id}"
-                                baseUrl="${container.baseUrl}"
-                                consumedRoute="${metadata.route}"
-                        ></mateu-ux>
-                    </mateu-api-caller>
+                            })}
+                        </vaadin-tabs>
                     </div>
-                </vaadin-vertical-layout>
+                    <div class="app-content">
+                        <vaadin-scroller style="height: 40rem;">
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${metadata.homeRoute}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${container.baseUrl}"
+                                        consumedRoute="${metadata.route}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                        </vaadin-scroller>
+                    </div>
+                </div>
             
             `:nothing}
 
