@@ -11,6 +11,7 @@ inside **resources**.
 
 Please notice that serving that static content from your java code is something you only want to do in some simple use cases,
 where you are serving both static content and api from your micro service, e.g. by adding one of the frontend dependencies to your project. 
+
 Usually you will prefer to serve the static content from a CDN and only the apis from your micro services. 
 You have an example of that on the demos of Mateu, where all the static content is served from Netlify and the backend 
 is only serving the api. See https://mateu.io/mateu-about/see-it-in-action/ 
