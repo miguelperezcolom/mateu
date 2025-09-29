@@ -7,7 +7,6 @@ export const renderText = (component: ClientSideComponent, state: any, data: any
     const metadata = component.metadata as Text
     let content = metadata.text;
     if (content) {
-        console.log('renderText', appState, appData)
         try {
             content = eval('`' + metadata.text + '`')
         } catch (e) {

@@ -93,8 +93,6 @@ export class MateuUi extends LitElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
-        console.log('mateu-ui', appState, appData)
-
         if (_changedProperties.has('baseUrl')
             || _changedProperties.has('config')
         ) {
@@ -145,7 +143,6 @@ export class MateuUi extends LitElement {
 
 
     render() {
-        console.log('mateu-ui.render', appState.value, appData.value)
        return html`
            <mateu-api-caller>
                 <mateu-ux id="_ux" 

@@ -204,7 +204,6 @@ export class MateuUx extends ConnectedElement {
     protected updated(_changedProperties: PropertyValues) {
         //super.updated(_changedProperties);
         if (_changedProperties.has('homeRoute')) {
-            console.log('mateu-ux needs route updatemateu-ux needs route update home')
             this.route = this.homeRoute
         }
         if (_changedProperties.has('id') ||
@@ -212,7 +211,6 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('route')  ||
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
-            console.log('mateu-ux needs route update(last, route(new), old, keys)', this.route, _changedProperties.get('route'), _changedProperties.keys())
             if (true) {
                 this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
@@ -244,7 +242,6 @@ export class MateuUx extends ConnectedElement {
     }
 
     render(): TemplateResult {
-        console.log('mateu-ux.render', this.appState, this.appData)
         return html`
            ${this.fragment?.component?renderComponent(
                this,

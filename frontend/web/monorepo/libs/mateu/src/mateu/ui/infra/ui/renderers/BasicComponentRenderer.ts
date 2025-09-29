@@ -24,7 +24,6 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
     }
     // @ts-ignore
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
-        console.log('renderClientSideComponent-0', appState, appData)
         return renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 

@@ -10,7 +10,6 @@ export const renderComponentInSlot = (container: LitElement, component: Componen
 }
 
 export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered?: boolean | undefined): TemplateResult => {
-    console.log('renderComponent', appState, appData)
     if (!component) {
         return html``;
     }

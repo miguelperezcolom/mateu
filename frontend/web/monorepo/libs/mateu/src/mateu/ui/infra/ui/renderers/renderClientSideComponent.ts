@@ -98,8 +98,6 @@ export const updateMedata = (component: ClientSideComponent, data: any): Compone
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     if (component?.metadata) {
 
-        console.log('renderClientSideComponent', appState, appData)
-
         const type = component.metadata.type
 
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
