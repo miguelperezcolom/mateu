@@ -363,7 +363,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapVirtualListToDto(virtualList, baseUrl, route, httpRequest);
     }
     return new ClientSideComponentDto(
-        new ElementDto("div", Map.of(), component.toString()),
+        new ElementDto("div", Map.of(), Map.of(), component.toString()),
         UUID.randomUUID().toString(),
         List.of(),
         component.style(),

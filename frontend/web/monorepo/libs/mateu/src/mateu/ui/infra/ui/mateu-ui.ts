@@ -150,6 +150,7 @@ export class MateuUi extends LitElement {
                           route="${this.ui?.homeRoute}"
                           instant="${this.instant}"
                           top="true"
+                          style="width: 100%;"
                 ></mateu-ux>
            </mateu-api-caller>
        `

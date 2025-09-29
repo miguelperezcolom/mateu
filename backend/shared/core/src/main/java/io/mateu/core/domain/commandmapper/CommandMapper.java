@@ -4,6 +4,7 @@ import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UICommandTypeDto;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
+import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
 import java.net.URL;
@@ -16,6 +17,11 @@ public class CommandMapper {
       Object instance, String baseUrl, HttpRequest httpRequest) {
     String targetComponentId = httpRequest.runActionRq().initiatorComponentId();
 
+    if (instance instanceof CommandSupplier commandSupplier) {
+      return commandSupplier.commands(httpRequest).stream()
+          .map(command -> mapCommand(targetComponentId, (UICommand) command))
+          .toList();
+    }
     if (instance instanceof URI uri) {
       return List.of(mapCommand(targetComponentId, UICommand.navigateTo(uri.toString())));
     }

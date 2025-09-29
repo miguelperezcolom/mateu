@@ -14,7 +14,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { appState } from "@domain/state";
+import { appData, appState } from "@domain/state";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
@@ -47,7 +47,6 @@ export class MateuUx extends ConnectedElement {
     top: boolean | undefined = undefined;
     @property()
     instant: any
-
 
     // state
 
@@ -224,6 +223,15 @@ export class MateuUx extends ConnectedElement {
                 composed: true
             }))
         }
+        if (_changedProperties.has('route')) {
+            this.dispatchEvent(new CustomEvent('route-updated', {
+                detail: {
+                    route: this.route
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
     }
 
     // write state to reactive properties
@@ -233,6 +241,7 @@ export class MateuUx extends ConnectedElement {
 
     render(): TemplateResult {
         return html`
+            <div @app-data-updated="${() => this.requestUpdate()}">
            ${this.fragment?.component?renderComponent(
                this,
                this.fragment?.component, 
@@ -240,6 +249,7 @@ export class MateuUx extends ConnectedElement {
                    this.fragment?.state??{}, 
                    this.fragment?.data??{}
            ):nothing}
+            </div>
        `
     }
 

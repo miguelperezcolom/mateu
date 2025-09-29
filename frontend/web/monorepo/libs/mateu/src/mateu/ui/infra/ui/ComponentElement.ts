@@ -14,6 +14,12 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     @property()
     data: Record<string, any> = {}
 
+    @property()
+    appData: Record<string, any> = {}
+
+    @property()
+    appState: Record<string, any> = {}
+
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {

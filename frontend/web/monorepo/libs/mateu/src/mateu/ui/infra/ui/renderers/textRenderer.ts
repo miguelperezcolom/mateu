@@ -2,12 +2,15 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
 import { html, nothing } from "lit";
+import { appData, appState } from "@domain/state.ts";
 
 export const renderText = (component: ClientSideComponent, state: any, data: any) => {
     const metadata = component.metadata as Text
     let content = metadata.text;
     if (content) {
         try {
+            appState
+            appData
             content = eval('`' + metadata.text + '`')
         } catch (e) {
             content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data

@@ -6,10 +6,15 @@ import lombok.Builder;
 
 @Builder
 public record Element(
-    String name, Map<String, String> attributes, String content, String style, String cssClasses)
+    String name,
+    Map<String, String> attributes,
+    Map<String, String> on,
+    String content,
+    String style,
+    String cssClasses)
     implements Component {
 
   public Element(String name, Map<String, String> attributes, String content) {
-    this(name, attributes, content, "", "");
+    this(name, attributes, Map.of(), content, "", "");
   }
 }

@@ -51,9 +51,9 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Form.builder()
-                        .title("Order " + orderId)
-                        .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
+                .title("Order " + orderId)
+                .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
+                .content(List.of(Form.builder()
                         .content(List.of(
                                 FormSection.builder()
                                         .title("Customer information")
@@ -164,7 +164,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationM
                                         ))
                                         .build()
                         ))
-                        .build())
+                        .build()))
                 .build();
     }
 

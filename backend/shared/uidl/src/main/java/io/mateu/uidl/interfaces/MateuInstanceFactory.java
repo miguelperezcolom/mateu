@@ -12,6 +12,9 @@ public class MateuInstanceFactory {
 
   public static <T> T newInstance(
       Class<T> type, Map<String, Object> data, HttpRequest httpRequest) {
+    if (Map.class.isAssignableFrom(type)) {
+      return (T) data;
+    }
     return _instanceFactory.newInstance(type, data, httpRequest);
   }
 }

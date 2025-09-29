@@ -13,7 +13,8 @@ public final class ReflectionObjectMapper {
 
   public static UIFragmentDto mapObjectToFragment(
       Object object, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
-    var elementDto = new ElementDto("p", Map.of(), object != null ? object.toString() : "-");
+    var elementDto =
+        new ElementDto("p", Map.of(), Map.of(), object != null ? object.toString() : "-");
     var component =
         new ClientSideComponentDto(
             elementDto, UUID.randomUUID().toString(), List.of(), "", "", null);

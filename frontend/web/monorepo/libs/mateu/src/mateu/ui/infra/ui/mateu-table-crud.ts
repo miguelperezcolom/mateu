@@ -123,17 +123,20 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
         return html`
-            <mateu-filter-bar 
-                    .metadata="${metadata}"
-                    @search-requested="${this.search}"
-                    .state="${this.state}"
-                    .data="${this.data}"
-            >
-                ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
-            </mateu-filter-bar>
-            ${metadata.infiniteScrolling?html`
+            <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
+                ${metadata.infiniteScrolling?html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             `:nothing}
+                <mateu-filter-bar 
+                        .metadata="${metadata}"
+                        @search-requested="${this.search}"
+                        .state="${this.state}"
+                        .data="${this.data}"
+                        slot="end"
+                >
+                    ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
+                </mateu-filter-bar>
+            </vaadin-horizontal-layout>
             ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
             :html`
                         

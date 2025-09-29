@@ -38,29 +38,10 @@ export class MateuDialog extends LitElement {
     @state()
     opened = true
 
-    connectedCallback() {
-        super.connectedCallback();
-        this.addEventListener('action-requested', this.redispatchEvent)
+    close = () => {
+        this.opened = false
+        setTimeout(() => this.parentElement?.removeChild(this), 500)
     }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        this.removeEventListener('action-requested', this.redispatchEvent)
-    }
-
-    redispatchEvent: EventListenerOrEventListenerObject = (e: Event) => {
-        if (e instanceof CustomEvent) {
-            e.stopPropagation()
-            e.preventDefault()
-            this.opened = false
-            this.dispatchEvent(new CustomEvent(e.type, {
-                detail: e.detail,
-                bubbles: true,
-                composed: true
-            }))
-        }
-    }
-
 
     render(): TemplateResult {
 
@@ -93,7 +74,7 @@ export class MateuDialog extends LitElement {
                 height="${metadata.height??nothing}"
                 ${metadata.header || metadata.closeButtonOnHeader?dialogHeaderRenderer(
             () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state, this.data):nothing}${metadata.closeButtonOnHeader?html`
-                            <vaadin-button theme="tertiary" @click="${() => this.opened = false}">
+                            <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
                         `:nothing}</mateu-event-interceptor>`,

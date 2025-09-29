@@ -91,7 +91,7 @@ public class CrudlComponentToDtoMapper {
             .gridStyle(crudl.gridStyle())
             .detailPath(crudl.detailPath())
             .onRowSelectionChangedActionId(crudl.onRowSelectionChangedActionId())
-                .contentHeight(crudl.contentHeight())
+            .contentHeight(crudl.contentHeight())
             .build();
     return new ClientSideComponentDto(
         crudlDto,

@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Replaces;
 import io.micronaut.core.annotation.NonNull;
@@ -22,7 +23,7 @@ import java.io.OutputStream;
 @Primary
 public class MyObjectMapper implements JacksonObjectMapper {
 
-    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     @Override
     public @NonNull JacksonObjectMapper cloneWithConfiguration(@NonNull SerdeJacksonConfiguration jacksonConfiguration) {

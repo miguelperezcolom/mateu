@@ -216,7 +216,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
 
         if (type == ComponentMetadataType.Element) {
-            return renderElement(component.metadata as Element, component.slot)
+            return renderElement(container, component.metadata as Element, component)
         }
 
         if (type == ComponentMetadataType.FormField) {

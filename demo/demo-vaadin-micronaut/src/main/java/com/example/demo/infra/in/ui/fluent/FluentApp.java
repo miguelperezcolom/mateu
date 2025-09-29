@@ -136,7 +136,8 @@ public class FluentApp implements AppSupplier {
                                 new RouteLink("/fluent-app/components/train", "Train"),
                                 new RouteLink("/fluent-app/components/tree-grid", "Tree Grid"),
                                 new RouteLink("/fluent-app/components/upload", "Upload"),
-                                new RouteLink("/fluent-app/components/virtual-list", "Virtual List")
+                                new RouteLink("/fluent-app/components/virtual-list", "Virtual List"),
+                                new RouteLink("/fluent-app/components/web-component", "Web component")
                         )),
                         new Menu("Logic", List.of(
                                 new Menu("Actions", List.of(
@@ -182,7 +183,8 @@ public class FluentApp implements AppSupplier {
                                 new Menu("Commands and messages", List.of(
                                         new RouteLink("/fluent-app/commands-and-messages/run-action", "Run action"),
                                         new RouteLink("/fluent-app/commands-and-messages/close-dialog", "Close dialog"),
-                                        new RouteLink("/fluent-app/commands-and-messages/update-favicon", "Update favicon"),
+                                        new RouteLink("/fluent-app/commands-and-messages/set-favicon", "Set favicon"),
+                                        new RouteLink("/fluent-app/commands-and-messages/set-window-title", "Set window title"),
                                         new RouteLink("/fluent-app/commands-and-messages/message", "Message")
                                 ))
                         )),

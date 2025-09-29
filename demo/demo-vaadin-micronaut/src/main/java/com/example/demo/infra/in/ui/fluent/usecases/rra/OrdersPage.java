@@ -71,9 +71,9 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Crudl.builder()
-                                .title("Orders")
-                                .toolbar(List.of(new Button("Create", "create")))
+                .title("Orders")
+                .toolbar(List.of(new Button("Create", "create")))
+                .content(List.of(Crudl.builder()
                                 .infiniteScrolling(true)
                                 .columns(List.of(
                                         GridColumn.builder()
@@ -104,8 +104,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
                                 .searchable(true)
                                 .gridStyle("height: calc(100vh - 240px);")
                         .style("width: 100%;")
-                        .build())
-                .style("width: 100%;")
+                        .build()))
                 .build();
     }
 

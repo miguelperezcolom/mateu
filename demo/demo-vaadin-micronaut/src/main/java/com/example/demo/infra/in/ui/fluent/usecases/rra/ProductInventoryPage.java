@@ -1,5 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
+import com.example.demo.domain.Order;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
@@ -58,14 +59,15 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(
+                .title("Product Inventory")
+                .content(List.of(
                         Crudl.builder()
-                                .title("Product Inventory")
                                 .crudlType(CrudlType.card)
                                 .searchable(true)
                                 .infiniteScrolling(true)
                                 .onRowSelectionChangedActionId("go-to-selected-product")
                         .build())
+                )
                 .build();
     }
 
@@ -81,12 +83,13 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
 
     @Override
     public CrudlData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+        var found = productRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
         return new CrudlData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
-                productRepository.findAll().size(),
-                productRepository.findAll().stream()
+                found.size(),
+                found.stream()
                         .skip((long) pageable.page() * pageable.size())
                         .limit(pageable.size())
                         .map(product -> new ProductInventoryRow(
@@ -124,5 +127,19 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
                 .style("width: fit-content;")
                 .cssClasses("image-on-right")
                 .build();
+    }
+
+    private boolean matches(Product product, String searchText, ProductInventoryFilters ordersFilters) {
+        if (searchText == null || searchText.isEmpty()) {
+            return true;
+        }
+        boolean match = true;
+        for (String token : searchText.split(" ")) {
+            token = token.toLowerCase();
+            match &= (product.name().toLowerCase().contains(token)
+                    || product.brand().toLowerCase().contains(token)
+            );
+        }
+        return match;
     }
 }

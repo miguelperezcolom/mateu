@@ -2,16 +2,12 @@ package io.mateu.core.domain.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.PageDto;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Page;
-import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.List;
 
 public class PageComponentToDtoMapper {
 
@@ -25,23 +21,46 @@ public class PageComponentToDtoMapper {
         PageDto.builder()
             .pageTitle(page.pageTitle())
             .favicon(page.favicon())
-            .mainContent(mapComponentToDto(null, page.mainContent(), baseUrl, route, httpRequest))
+            .title(page.title())
+            .subtitle(page.subtitle())
+            .avatar(
+                page.avatar() != null
+                    ? mapComponentToDto(null, page.avatar(), baseUrl, route, httpRequest)
+                        .addStyle("width: 4rem;height: 4rem;")
+                    : null)
+            .header(
+                page.header() != null
+                    ? page.header().stream()
+                        .map(
+                            component ->
+                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                        .toList()
+                    : null)
+            .footer(
+                page.footer() != null
+                    ? page.footer().stream()
+                        .map(
+                            component ->
+                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                        .toList()
+                    : null)
+            .toolbar(
+                page.toolbar() != null
+                    ? page.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList()
+                    : null)
+            .buttons(
+                page.buttons() != null
+                    ? page.buttons().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList()
+                    : null)
             .build();
     return new ClientSideComponentDto(
-        formMetadataDto, page.id(), List.of(), page.style(), page.cssClasses(), null);
-  }
-
-  static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
-    if (userTrigger == null) return null;
-    if (userTrigger instanceof Button button) {
-      return ButtonDto.builder()
-          .actionId(button.getActionId())
-          .label(button.label())
-          .iconOnLeft(button.iconOnLeft())
-          .iconOnRight(button.iconOnRight())
-          .disabled(button.disabled())
-          .build();
-    }
-    return null;
+        formMetadataDto,
+        page.id(),
+        page.content().stream()
+            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
+            .toList(),
+        page.style(),
+        page.cssClasses(),
+        null);
   }
 }

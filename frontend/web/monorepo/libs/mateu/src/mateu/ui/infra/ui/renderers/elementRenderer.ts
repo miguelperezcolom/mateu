@@ -1,18 +1,74 @@
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
-import { html, TemplateResult } from "lit";
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import { html, LitElement, TemplateResult } from "lit";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import { MateuComponent } from "@infra/ui/mateu-component.ts";
 
-export const renderElement = (element: Element, slot: string | undefined): TemplateResult => {
-    let attributes = ''
-    if (element.attributes) {
-        for (let key in element.attributes) {
-            // @ts-ignore
-            attributes += ` ${key}="${element.attributes[key]}"`
+const serialize = (e: any) => {
+    if (e instanceof CustomEvent) {
+        return e.detail
+    }
+    const result: Record<string, any> = {}
+    for (const k in e) {
+        const v = e[k]
+        if (['number', 'string', 'boolean'].indexOf(typeof v) >= 0) {
+            result[k] = e[k]
         }
     }
-    if (slot) {
-        attributes += ` slot="${slot}"`
+    return result
+}
+
+export const renderElement = (container: LitElement, element: Element, component: ClientSideComponent): TemplateResult => {
+    let selector = element.name
+    if (element.attributes && element.attributes['id']) {
+        selector = '#' + element.attributes['id']
     }
-    const h = `<${element.name}${attributes}>${element.content?element.content:''}<slot></slot></${element.name}>`
-    return html`${unsafeHTML(h)}`
+    setTimeout(() => {
+        const htmlElement = container.shadowRoot?.querySelector('.element-container')?.querySelector(selector)
+        if (!htmlElement) {
+            const htmlElement = document.createElement(element.name);
+            for (let k in element.attributes) {
+                htmlElement.setAttribute(k, element.attributes[k])
+            }
+            if (component.style) {
+                htmlElement.setAttribute('style', component.style)
+            }
+            if (component.cssClasses) {
+                htmlElement.setAttribute('class', component.cssClasses)
+            }
+            if (component.slot) {
+                htmlElement.setAttribute('slot', component.slot)
+            }
+            for (let k in element.on) {
+                htmlElement.addEventListener(k, (e: Event) => {
+                    const parameter = serialize(e)
+                    const mateuComponent = container as MateuComponent
+                    mateuComponent.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: element.on[k],
+                            parameters: {
+                                event: parameter
+                            }
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                })
+            }
+            container.shadowRoot?.querySelector('.element-container')?.appendChild(htmlElement)
+        } else {
+            for (let k in element.attributes) {
+                htmlElement.setAttribute(k, element.attributes[k])
+            }
+            if (component.style) {
+                htmlElement.setAttribute('style', component.style)
+            }
+            if (component.cssClasses) {
+                htmlElement.setAttribute('class', component.cssClasses)
+            }
+            if (component.slot) {
+                htmlElement.setAttribute('slot', component.slot)
+            }
+        }
+    })
+    return html`<div class="element-container"></div>`
 }

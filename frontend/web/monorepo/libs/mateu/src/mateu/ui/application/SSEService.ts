@@ -2,8 +2,9 @@ import { Service } from "@application/service.ts";
 import { AxiosMateuApiClient } from "../infra/http/AxiosMateuApiClient";
 import { httpService } from "@application/HttpService.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
-import { appState, upstream } from "@domain/state.ts";
+import { appData, appState, upstream } from "@domain/state.ts";
 import { Notification, NotificationPosition } from "@vaadin/notification";
+import { LitElement } from "lit";
 
 export class SSEService implements Service {
 
@@ -11,7 +12,7 @@ export class SSEService implements Service {
         await httpService.loadUi(mateuApiClient, baseUrl, path, config, initiator)
     }
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -37,7 +38,7 @@ export class SSEService implements Service {
 
             const payload = {
                 serverSideType,
-                appState,
+                appState: appState.value,
                 componentState,
                 parameters,
                 initiatorComponentId,
@@ -70,7 +71,7 @@ export class SSEService implements Service {
                         if (done) break;
                         if (value.startsWith('data:')) {
                             const increment = JSON.parse(value.substring('data:'.length));
-                            this.handleUIIncrement(increment)
+                            this.handleUIIncrement(increment, initiator)
                         } else {
                             let message = value;
                             try {
@@ -158,7 +159,7 @@ export class SSEService implements Service {
         return 'bottom-end'
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
         console.log('increment', uiIncrement)
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
@@ -185,7 +186,21 @@ export class SSEService implements Service {
             })
         })
         if (uiIncrement?.appState) {
-            appState.value = uiIncrement.appState
+            appState.value = {...uiIncrement.appState}
+            const litElement = initiator as LitElement
+            litElement.dispatchEvent(new CustomEvent('app-data-updated', {
+                bubbles: true,
+                composed: true
+            }))
+        }
+        if (uiIncrement?.appData) {
+            const newAppData = uiIncrement?.appData
+            appData.value = {...uiIncrement.appData, ...newAppData}
+            const litElement = initiator as LitElement
+            litElement.dispatchEvent(new CustomEvent('app-data-updated', {
+                bubbles: true,
+                composed: true
+            }))
         }
     }
 

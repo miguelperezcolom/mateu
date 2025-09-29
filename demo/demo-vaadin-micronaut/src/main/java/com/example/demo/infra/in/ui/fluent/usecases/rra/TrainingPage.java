@@ -52,15 +52,15 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Form.builder()
-                        .title("Training and Development")
+                .title("Training and Development")
+                .content(List.of(Form.builder()
                         .content(List.of(Crudl.builder()
                                 .crudlType(CrudlType.card)
                                 .onRowSelectionChangedActionId("go-to-selected-training")
                                 .style("width: 100%;")
                                 .build()))
                         .style("width: 100%;")
-                        .build())
+                        .build()))
                 .build();
     }
 

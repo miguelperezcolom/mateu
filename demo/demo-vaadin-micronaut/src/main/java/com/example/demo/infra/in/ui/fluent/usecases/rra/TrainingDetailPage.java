@@ -43,8 +43,8 @@ public class TrainingDetailPage implements ComponentTreeSupplier, HasPostHydrati
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Form.builder()
-                        .title(training.name())
+                .title(training.name())
+                .content(List.of(Form.builder()
                         .header(List.of(ProgressBar.builder()
                                 .min(0)
                                 .max(training.totalSteps())
@@ -73,7 +73,7 @@ public class TrainingDetailPage implements ComponentTreeSupplier, HasPostHydrati
                                         )
                                         .build()
                         ))
-                        .build())
+                        .build()))
                 .build();
     }
 

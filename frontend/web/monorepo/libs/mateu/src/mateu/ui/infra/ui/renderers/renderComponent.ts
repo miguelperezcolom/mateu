@@ -3,6 +3,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { appData } from "@domain/state.ts";
 
 export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, slot: string, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     component.slot = slot
@@ -25,6 +26,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          class="${component.cssClasses}"
                          .state="${state}"
                          .data="${data}"
+                         .appData="${appData.value}"
         >
        </mateu-component>`
 }

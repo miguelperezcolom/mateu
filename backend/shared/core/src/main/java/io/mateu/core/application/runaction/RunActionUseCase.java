@@ -44,23 +44,23 @@ public class RunActionUseCase {
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {} for {}", command.actionId(), command);
     // todo: use path somehow
-    return Mono.just(command)
-        .flatMap(ignored -> createInstance(command))
-        .flatMap(instance -> resolveMenuIfApp(instance, command))
-        .flatMapMany(
-            instance ->
-                actionRunnerProvider
-                    .get(
-                        instance,
-                        command.actionId(),
-                        command.consumedRoute(),
-                        command.route(),
-                        command.httpRequest())
-                    .run(
-                        instance,
-                        command.actionId(),
-                        command.componentState(),
-                        command.httpRequest()))
+    return (Mono.just(command)
+            .flatMap(ignored -> createInstance(command))
+            .flatMap(instance -> resolveMenuIfApp(instance, command))
+            .flatMapMany(
+                instance ->
+                    actionRunnerProvider
+                        .get(
+                            instance,
+                            command.actionId(),
+                            command.consumedRoute(),
+                            command.route(),
+                            command.httpRequest())
+                        .run(
+                            instance,
+                            command.actionId(),
+                            command.componentState(),
+                            command.httpRequest())))
         .flatMap(
             result ->
                 uiIncrementMapperProvider
@@ -71,7 +71,18 @@ public class RunActionUseCase {
                         command.route(),
                         command.initiatorComponentId(),
                         command.httpRequest()))
-        .switchIfEmpty(Mono.just(UIIncrementDto.builder().build()));
+        .switchIfEmpty(
+            Mono.just(Text.builder().text("Not found.").style("color: red;").build())
+                .flatMap(
+                    result ->
+                        uiIncrementMapperProvider
+                            .get(result)
+                            .map(
+                                result,
+                                command.baseUrl(),
+                                command.route(),
+                                command.initiatorComponentId(),
+                                command.httpRequest())));
   }
 
   @SneakyThrows

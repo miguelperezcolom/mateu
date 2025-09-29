@@ -80,7 +80,6 @@ export class MateuApp extends ComponentElement {
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
                 }
-                console.log('pushing state from app', pathname)
                 window.history.pushState({},"", pathname);
             }
             //window.history.pushState({},"", this.baseUrl + app.homeRoute);
@@ -189,6 +188,7 @@ export class MateuApp extends ComponentElement {
     updateRoute: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
+        console.log('updateRoute en mateu-app', e)
         this.selectRoute((e as CustomEvent).detail.route)
     }
 

@@ -96,9 +96,9 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Form.builder()
-                        .title(getTitle())
-                        .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
+                .title(getTitle())
+                .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
+                .content(List.of(Form.builder()
                         .toolbar(List.of(
                                 Button.builder()
                                         .label("Cancel")
@@ -323,7 +323,7 @@ public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, Has
                                         ))
                                         .build()
                         ))
-                        .build())
+                        .build()))
                 .build();
     }
 

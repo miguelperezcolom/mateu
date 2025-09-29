@@ -29,3 +29,11 @@ interface AppState {
 export const appState: AppState = {
     value: {}
 }
+
+interface AppData {
+    value: any
+}
+
+export const appData: AppData = {
+    value: {}
+}

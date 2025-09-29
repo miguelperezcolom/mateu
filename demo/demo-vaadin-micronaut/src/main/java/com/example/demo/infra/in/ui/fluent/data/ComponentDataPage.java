@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,6 +15,9 @@ public class ComponentDataPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Component data")
                 .content(List.of(
+                        Text.builder()
+                                .text("${JSON.stringify(data)}")
+                                .build()
                 ))
                 .build();
     }

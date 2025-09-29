@@ -15,6 +15,8 @@ import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.data.AppData;
+import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -66,8 +68,22 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
             mapToFragments(instance, baseUrl, route, initiatorComponentId, httpRequest),
-            Map.of(),
-            Map.of()));
+            mapToAppData(instance, baseUrl, httpRequest),
+            mapToAppState(instance, baseUrl, httpRequest)));
+  }
+
+  private Object mapToAppData(Object instance, String baseUrl, HttpRequest httpRequest) {
+    if (instance instanceof AppData appData) {
+      return appData.data();
+    }
+    return null;
+  }
+
+  private Object mapToAppState(Object instance, String baseUrl, HttpRequest httpRequest) {
+    if (instance instanceof AppState appState) {
+      return appState.state();
+    }
+    return null;
   }
 
   private List<UICommandDto> mapToCommands(
@@ -85,6 +101,12 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (instance instanceof AppState) {
+      return List.of();
+    }
+    if (instance instanceof AppData) {
+      return List.of();
+    }
     if (instance instanceof Message) {
       return List.of();
     }

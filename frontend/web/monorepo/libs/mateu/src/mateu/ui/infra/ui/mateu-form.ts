@@ -1,5 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, nothing } from "lit";
+import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -52,7 +52,7 @@ export class MateuForm extends MetadataDrivenElement {
         }))
     }
 
-    render() {
+    render(): TemplateResult {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         document.title = metadata.title
         return html`

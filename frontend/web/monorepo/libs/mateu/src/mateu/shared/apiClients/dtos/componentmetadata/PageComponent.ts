@@ -1,10 +1,8 @@
-import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
-import Component from "@mateu/shared/apiClients/dtos/Component.ts";
+import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 
-export default interface PageComponent extends ComponentMetadata {
+export default interface PageComponent extends Form {
 
     pageTitle: string
     favicon: string
-    mainContent: Component
 
 }

@@ -48,15 +48,16 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
     @Override
     public Component component(HttpRequest httpRequest) {
         return Page.builder()
-                .mainContent(Crudl.builder()
+                .title("Welcome to the Redwood Reference App")
+                .subtitle("Create and submit orders and review information about inventory.")
+                .content(List.of(Crudl.builder()
                         .crudlType(CrudlType.card)
-                        .title("Welcome to the Redwood Reference App")
-                        .subtitle("Create and submit orders and review information about inventory.")
                         .searchable(false)
                         .style("width: 100%; height: 100%;")
                         .infiniteScrolling(true)
                         .onRowSelectionChangedActionId("go-to-selected-order")
                         .build())
+                )
                 .build();
     }
 

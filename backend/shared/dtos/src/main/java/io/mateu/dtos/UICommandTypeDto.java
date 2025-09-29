@@ -3,6 +3,9 @@ package io.mateu.dtos;
 public enum UICommandTypeDto {
   CloseModal,
   SetWindowTitle,
+  SetFavicon,
   NavigateTo,
-  RunAction
+  RunAction,
+  AddContentToHead,
+  AddContentToBody
 }
