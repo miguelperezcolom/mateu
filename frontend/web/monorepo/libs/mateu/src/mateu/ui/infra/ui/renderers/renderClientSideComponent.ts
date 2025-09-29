@@ -95,8 +95,10 @@ export const updateMedata = (component: ClientSideComponent, data: any): Compone
     return metadata
 }
 
-export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult => {
+export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     if (component?.metadata) {
+
+        console.log('renderClientSideComponent', appState, appData)
 
         const type = component.metadata.type
 
@@ -163,13 +165,13 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
                 >
-                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                 ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
                     metadata: button,
                     type: ComponentType.ClientSide,
                        slot: 'buttons'
-                } as unknown as ClientSideComponent, undefined, undefined, undefined)}
+                } as unknown as ClientSideComponent, undefined, undefined, appState, appData, undefined)}
 `)}
 
                 </mateu-form>`
@@ -183,7 +185,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                 </mateu-table>`
         }
         if (type == ComponentMetadataType.Crud) {
@@ -197,7 +199,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
              </mateu-table-crud>`
         }
 
@@ -210,8 +212,10 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             .data="${state}"
                             style="${component.style}" 
                           class="${component.cssClasses}"
+                            .appState="${appState}"
+                            .appData="${appData}"
                 >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
              </mateu-app>`
         }
 
@@ -232,12 +236,12 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                        data-colspan="${field.colspan}"
                        .labelAlreadyRendered="${labelAlreadyRendered}"
                 >
-                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, labelAlreadyRendered))}
+                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, labelAlreadyRendered))}
                     </mateu-field>
             `
         }
         if (type == ComponentMetadataType.Text) {
-            return renderText(component, state, data)
+            return renderText(component, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Avatar) {
             return renderAvatar(component)
@@ -341,7 +345,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             id: nanoid(),
             metadata: component,
             type: ComponentType.ClientSide
-        } as ClientSideComponent, baseUrl, state, data, labelAlreadyRendered)
+        } as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
 
     }
     console.log('No metadata for component', component)

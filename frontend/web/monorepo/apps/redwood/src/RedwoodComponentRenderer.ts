@@ -5,8 +5,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 
 export class RedwoodComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
-        return super.renderClientSideComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
+        return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
 }

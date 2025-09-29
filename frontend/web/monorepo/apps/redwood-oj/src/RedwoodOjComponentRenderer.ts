@@ -36,7 +36,7 @@ export const handleButtonClick = (event: Event) => {
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
-    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any): TemplateResult {
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any, _appState: any, _appData: any): TemplateResult {
         return html`
         <mateu-redwood-table id="${container.id}"
                      .metadata="${component?.metadata}"
@@ -50,7 +50,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         `
     }
 
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         if (ComponentMetadataType.Form == component?.metadata?.type) {
             return renderForm(container, component, baseUrl, state, data)
         }
@@ -60,7 +60,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
             return renderField(component, baseUrl, state, data)
         }
-        return super.renderClientSideComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
+        return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
     renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {

@@ -37,7 +37,7 @@ export const handleButtonClick = (event: Event) => {
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
     // @ts-ignore
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         if (ComponentMetadataType.App == component?.metadata?.type) {
             return renderApp(container as MateuComponent, component, baseUrl, state, data)
         }
@@ -50,7 +50,7 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
             return renderField(component, baseUrl, state, data)
         }
-        return super.renderClientSideComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
+        return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
 }

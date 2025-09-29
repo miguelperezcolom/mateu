@@ -41,6 +41,10 @@ export class MateuApp extends ComponentElement {
     @state()
     instant: string | undefined = undefined
 
+    @state()
+    selectedRoute: string | undefined = undefined
+
+
     getSelectedOption = (options: MenuOption[]): MenuOption | null => {
         if (options) {
             for (let i = 0; i < options.length; i++) {
@@ -64,8 +68,7 @@ export class MateuApp extends ComponentElement {
 
     selectRoute = (route: string | undefined) => {
         if (route) {
-            const app = ((this.component as ClientSideComponent).metadata as App)
-            app.homeRoute = route
+            this.selectedRoute = route
             this.instant = nanoid()
             let baseUrl = this.baseUrl??''
             if (baseUrl.indexOf('://') < 0) {
@@ -203,7 +206,8 @@ export class MateuApp extends ComponentElement {
     }
 
     render() {
-        return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+        console.log('mateu-app.render', this.appState, this.appData)
+        return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
     }
 
     static styles = css`

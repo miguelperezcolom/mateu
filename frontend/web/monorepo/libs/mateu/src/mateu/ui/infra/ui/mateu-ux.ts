@@ -14,7 +14,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { appData, appState } from "@domain/state";
+import { appState } from "@domain/state";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
@@ -42,11 +42,17 @@ export class MateuUx extends ConnectedElement {
     @property()
     overrides: string | undefined = undefined;
     @property()
+    homeRoute: string | undefined = undefined;
+    @property()
     route: string | undefined = undefined;
     @property()
     top: boolean | undefined = undefined;
     @property()
     instant: any
+    @property()
+    appState: any
+    @property()
+    appData: any
 
     // state
 
@@ -197,34 +203,32 @@ export class MateuUx extends ConnectedElement {
 
     protected updated(_changedProperties: PropertyValues) {
         //super.updated(_changedProperties);
+        if (_changedProperties.has('homeRoute')) {
+            console.log('mateu-ux needs route updatemateu-ux needs route update home')
+            this.route = this.homeRoute
+        }
         if (_changedProperties.has('id') ||
             _changedProperties.has('baseurl') ||
             _changedProperties.has('route')  ||
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
-            this.manageActionEvent(new CustomEvent('server-side-action-requested', {
-                detail: {
-                    userData: undefined,
-                    actionId: '',
-                    serverSideType: undefined,
-                    initiatorComponentId: this.id,
-                    initiator: this,
-                },
-                bubbles: true,
-                composed: true
-            }))
+            console.log('mateu-ux needs route update(last, route(new), old, keys)', this.route, _changedProperties.get('route'), _changedProperties.keys())
+            if (true) {
+                this.manageActionEvent(new CustomEvent('server-side-action-requested', {
+                    detail: {
+                        userData: undefined,
+                        actionId: '',
+                        serverSideType: undefined,
+                        initiatorComponentId: this.id,
+                        initiator: this,
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
         }
         if (_changedProperties.has('route') && !!this.top) {
             this.dispatchEvent(new CustomEvent('route-changed', {
-                detail: {
-                    route: this.route
-                },
-                bubbles: true,
-                composed: true
-            }))
-        }
-        if (_changedProperties.has('route')) {
-            this.dispatchEvent(new CustomEvent('route-updated', {
                 detail: {
                     route: this.route
                 },
@@ -240,16 +244,17 @@ export class MateuUx extends ConnectedElement {
     }
 
     render(): TemplateResult {
+        console.log('mateu-ux.render', this.appState, this.appData)
         return html`
-            <div @app-data-updated="${() => this.requestUpdate()}">
            ${this.fragment?.component?renderComponent(
                this,
                this.fragment?.component, 
                    this.baseUrl, 
                    this.fragment?.state??{}, 
-                   this.fragment?.data??{}
+                   this.fragment?.data??{},
+                   this.appState,
+                   this.appData
            ):nothing}
-            </div>
        `
     }
 

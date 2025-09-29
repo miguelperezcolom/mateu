@@ -517,11 +517,11 @@ export class MateuComponent extends ComponentElement {
 
     _render(): TemplateResult {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, false) as TemplateResult
+            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData, false) as TemplateResult
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data))}
+            ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data, this.appState, this.appData))}
             </mateu-api-caller>
         `
     }

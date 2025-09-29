@@ -2,19 +2,17 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
 import { html, nothing } from "lit";
-import { appData, appState } from "@domain/state.ts";
 
-export const renderText = (component: ClientSideComponent, state: any, data: any) => {
+export const renderText = (component: ClientSideComponent, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as Text
     let content = metadata.text;
     if (content) {
+        console.log('renderText', appState, appData)
         try {
-            appState
-            appData
             content = eval('`' + metadata.text + '`')
         } catch (e) {
             content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data
-                + ' and state is ' + state
+                + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
         }
     }
     if (TextContainer.h1 == metadata.container) {

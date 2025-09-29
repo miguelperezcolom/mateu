@@ -2,7 +2,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, PropertyValues } from "lit";
 import UI from "@mateu/shared/apiClients/dtos/UI"
 import '@vaadin/vertical-layout'
-import { upstream } from "@domain/state";
+import { appData, appState, upstream } from "@domain/state";
 import { service } from "@application/service";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import './mateu-ux'
@@ -93,6 +93,8 @@ export class MateuUi extends LitElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
 
+        console.log('mateu-ui', appState, appData)
+
         if (_changedProperties.has('baseUrl')
             || _changedProperties.has('config')
         ) {
@@ -143,14 +145,18 @@ export class MateuUi extends LitElement {
 
 
     render() {
+        console.log('mateu-ui.render', appState.value, appData.value)
        return html`
            <mateu-api-caller>
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
-                          route="${this.ui?.homeRoute}"
+                          homeRoute="${this.ui?.homeRoute}"
                           instant="${this.instant}"
                           top="true"
                           style="width: 100%;"
+                          @app-data-updated="${() => this.requestUpdate()}"
+                          .appData="${appData.value}"
+                          .appState="${appState.value}"
                 ></mateu-ux>
            </mateu-api-caller>
        `

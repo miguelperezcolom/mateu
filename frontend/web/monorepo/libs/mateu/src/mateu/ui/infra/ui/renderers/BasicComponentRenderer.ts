@@ -23,12 +23,13 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         `
     }
     // @ts-ignore
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
-        return renderClientSideComponent(container, component, baseUrl, state, data, labelAlreadyRendered)
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
+        console.log('renderClientSideComponent-0', appState, appData)
+        return renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
-    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any): TemplateResult {
-        return renderApp(container, component?.metadata as App, _baseUrl, _state, _data)
+    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any, appState: any, appData: any): TemplateResult {
+        return renderApp(container, component?.metadata as App, _baseUrl, _state, _data, appState, appData)
     }
 
 }

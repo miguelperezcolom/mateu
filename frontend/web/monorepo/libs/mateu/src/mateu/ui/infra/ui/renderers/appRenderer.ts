@@ -10,7 +10,7 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
 }
 
 
-export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: any, _data: any) => {
+export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: any, _data: any, appState: any, appData: any) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
@@ -33,11 +33,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-content">
                         <mateu-api-caller>
                             <mateu-ux
-                                    route="${metadata.homeRoute}"
+                                    homeRoute="${container.selectedRoute??metadata.homeRoute}"
                                     id="ux_${container.id}"
                                     baseUrl="${container.baseUrl}"
                                     consumedRoute="${metadata.route}"
                                     style="width: 100%;"
+                                    .appState="${appState}"
+                                    .appData="${appData}"
                             ></mateu-ux>
                         </mateu-api-caller>
                     </div>
@@ -56,12 +58,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     </vaadin-menu-bar>
                     <div class="app-content">
                     <mateu-api-caller>
-                        <mateu-ux 
-                                route="${metadata.homeRoute}" 
+                        <mateu-ux
+                                homeRoute="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}" 
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
                                 style="width: 100%;"
+                                .appState="${appState}"
+                                .appData="${appData}"
                         ></mateu-ux>
                     </mateu-api-caller>
                     </div>
@@ -80,11 +84,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${metadata.homeRoute}"
+                                homeRoute="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
                                 style="width: 100%; padding: 1em;"
+                                .appState="${appState}"
+                                .appData="${appData}"
                         ></mateu-ux>
                     </mateu-api-caller>
                     </div>
@@ -112,11 +118,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-scroller style="height: 40rem;">
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${metadata.homeRoute}"
+                                        homeRoute="${container.selectedRoute??metadata.homeRoute}"
                                         id="ux_${container.id}"
                                         baseUrl="${container.baseUrl}"
                                         consumedRoute="${metadata.route}"
                                         style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
                                 ></mateu-ux>
                             </mateu-api-caller>
                         </vaadin-scroller>
