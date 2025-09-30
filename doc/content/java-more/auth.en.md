@@ -11,6 +11,9 @@ Mateu UIs are web applications, so all of the authentication mechanisms already 
 
 So, if you want to protect your UI in an authenticated or not mode (without roles), you only need to configure your http server or do it using Spring Security, whatever you prefer.
 
+In case you want to add a **Bearer** token to all the requests to Mateu's api, then you need to leave the token in the browser local storage, in **__mateu_auth_token**. In 
+the next chapter we will see how to use Keycloak's client library to manage that and refresh the token as needed.
+
 # If you are using Keycloak
 If you are using keycloak you can just follow these steps...
 
@@ -21,7 +24,7 @@ If you are using the default frontend from Mateu you just need to use the `@Keyc
 ```java
 
   @MateuUI("")
-  @KeycloakSecured(url = "https://lemur-18.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
+  @KeycloakSecured(url = "https://lemur-11.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
   public class Home {
 
   }
@@ -55,7 +58,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://lemur-18.cloud-iam.com/auth/realms/mateu
+          issuer-uri: https://lemur-11.cloud-iam.com/auth/realms/mateu
 
 ```
 

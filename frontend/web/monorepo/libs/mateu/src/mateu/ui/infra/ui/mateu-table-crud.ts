@@ -44,6 +44,12 @@ export class MateuTableCrud extends LitElement {
     @property()
     data: Record<string, any> = {}
 
+    @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state.size = metadata.pageSize
@@ -132,12 +138,14 @@ export class MateuTableCrud extends LitElement {
                         @search-requested="${this.search}"
                         .state="${this.state}"
                         .data="${this.data}"
+                        .appState="${this.appState}"
+                        .appdata="${this.appData}"
                         slot="end"
                 >
-                    ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
+                    ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </mateu-filter-bar>
             </vaadin-horizontal-layout>
-            ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data)
+            ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
             :html`
                         
                         ${metadata.contentHeight?html`
@@ -149,6 +157,8 @@ export class MateuTableCrud extends LitElement {
                             @sort-direction-changed="${this.directionChanged}"
                                  @fetch-more-elements="${this.fetchMoreElements}"
                             .state="${this.state}"
+                                                             .appState="${this.appState}"
+                                                             .appdata="${this.appData}"
                             baseUrl="${this.baseUrl}"
                 ></mateu-card-list>
 
@@ -161,6 +171,8 @@ export class MateuTableCrud extends LitElement {
                             @sort-direction-changed="${this.directionChanged}"
                                  @fetch-more-elements="${this.fetchMoreElements}"
                             .state="${this.state}"
+                                 .appState="${this.appState}"
+                                 .appdata="${this.appData}"
                             baseUrl="${this.baseUrl}"
                 ></mateu-card-list>
                         `}
@@ -176,7 +188,7 @@ export class MateuTableCrud extends LitElement {
                         data-testid="pagination"
                         pageNumber=${this.data[this.component?.id!]?.page?.pageNumber}
                 >
-                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
+                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </mateu-pagination>
 `}
        `

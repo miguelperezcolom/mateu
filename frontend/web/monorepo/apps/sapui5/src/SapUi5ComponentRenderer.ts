@@ -42,7 +42,7 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
             return renderApp(container as MateuComponent, component, baseUrl, state, data)
         }
         if (ComponentMetadataType.Form == component?.metadata?.type) {
-            return renderForm(container, component, baseUrl, state, data)
+            return renderForm(container, component, baseUrl, state, data, appState, appData)
         }
         if (ComponentMetadataType.Button == component?.metadata?.type) {
             return renderButton(component, baseUrl, state, data)

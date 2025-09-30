@@ -9,8 +9,8 @@ export const renderComponentCell = (item: any,
                                     container: LitElement,
                                     baseUrl: string | undefined,
                                     state: any,
-                                    data: any
+                                    data: any, appState: any, appData: any
 ) => {
     const component = item[column.path!]
-    return renderComponent(container, component, baseUrl, state, data)
+    return renderComponent(container, component, baseUrl, state, data, appState, appData)
 }

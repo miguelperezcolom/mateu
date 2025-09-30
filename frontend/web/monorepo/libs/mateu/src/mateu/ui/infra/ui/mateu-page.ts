@@ -37,6 +37,12 @@ export class MateuPage extends LitElement {
     data?: any
 
     @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
+    @property()
     value?: any
 
     handleButtonClick = (actionId: string) => {
@@ -55,13 +61,13 @@ export class MateuPage extends LitElement {
         return html`
             <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                        ${metadata.avatar?renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data):nothing}
+                        ${metadata.avatar?renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}
                         <vaadin-vertical-layout>
                             <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
                             <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                         </vaadin-vertical-layout>
                         <vaadin-horizontal-layout theme="spacing" slot="end">
-                            ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data))}
+                            ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                             ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"

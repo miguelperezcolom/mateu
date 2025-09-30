@@ -63,6 +63,12 @@ export class MateuField extends LitElement {
     data: any | undefined = undefined
 
     @property()
+    appState: any | undefined = undefined
+
+    @property()
+    appData: any | undefined = undefined
+
+    @property()
     labelAlreadyRendered: boolean | undefined
 
     @state()
@@ -784,6 +790,8 @@ export class MateuField extends LitElement {
                                 .value="${value}"
                                 .state="${this.state}"
                                 .data="${this.data}"
+                                .appState="${this.appState}"
+                                .appdata="${this.appData}"
                         ></mateu-choice>
                         
                     </vaadin-custom-field>
@@ -1139,6 +1147,8 @@ export class MateuField extends LitElement {
                                 .value="${value}"
                                 .state="${this.state}"
                                 .data="${this.data}"
+                                .appState="${this.appState}"
+                                .appdata="${this.appData}"
                         ></mateu-choice>
                         
                     </vaadin-custom-field>
@@ -1154,6 +1164,8 @@ export class MateuField extends LitElement {
                         .field="${this.field}"
                         .state="${this.state}"
                         .data="${this.data}"
+                            .appState="${this.appState}"
+                            .appdata="${this.appData}"
                             data-colspan="${this.field.colspan}"
                     ></mateu-grid>
                     </vaadin-custom-field>

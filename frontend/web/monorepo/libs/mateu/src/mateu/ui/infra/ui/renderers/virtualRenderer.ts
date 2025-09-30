@@ -4,11 +4,11 @@ import { html, LitElement, nothing } from "lit";
 import { virtualListRenderer } from "@vaadin/virtual-list/lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderVirtualList = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderVirtualList = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as VirtualList
 
     const renderer = (item: any) => html`
-            ${renderComponent(container, item, baseUrl, state, data)}
+            ${renderComponent(container, item, baseUrl, state, data, appState, appData)}
 `
 
     return html`

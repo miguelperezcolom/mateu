@@ -30,6 +30,12 @@ export class MateuGrid extends MetadataDrivenElement {
     data: any
 
     @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
+    @property()
     selectedItems: any[] | undefined
 
     handleButtonClick = (actionId: string) => {
@@ -114,11 +120,11 @@ export class MateuGrid extends MetadataDrivenElement {
                         all-rows-visible
                 >
                     ${this.field?.columns?.map(column =>
-                            renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data))}
+                            renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </vaadin-grid>
                 <div slot="${showDetail?'detail':'detail-hidden'}" style="display: contents;">
                     <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
-                    ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data)}
+                    ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data, this.appState, this.appData)}
                     </div>
                 </div>
                 

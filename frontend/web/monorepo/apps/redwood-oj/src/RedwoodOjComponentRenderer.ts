@@ -52,7 +52,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         if (ComponentMetadataType.Form == component?.metadata?.type) {
-            return renderForm(container, component, baseUrl, state, data)
+            return renderForm(container, component, baseUrl, state, data, appState, appData)
         }
         if (ComponentMetadataType.Button == component?.metadata?.type) {
             return renderButton(component, baseUrl, state, data)

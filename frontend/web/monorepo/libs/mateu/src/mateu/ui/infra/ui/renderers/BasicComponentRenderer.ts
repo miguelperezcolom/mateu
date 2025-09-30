@@ -9,15 +9,17 @@ import { MateuTableCrud } from "../mateu-table-crud.ts";
 
 export abstract class BasicComponentRenderer implements ComponentRenderer {
 
-    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any): TemplateResult {
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any, appState: any, appData: any): TemplateResult {
         return html`
         <mateu-table id="${container.id}"
                      .metadata="${component?.metadata}"
                      .data="${container.data}"
+                     .state="${state}"
+                     .appState="${appState}"
+                     .appData="${appData}"
                      .emptyStateMessage="${state[component?.id!]?.emptyStateMessage}"
                      @sort-direction-changed="${container.directionChanged}"
                      @fetch-more-elements="${container.fetchMoreElements}"
-                     .state="${state}"
                      baseUrl="${baseUrl}"
         ></mateu-table>
         `

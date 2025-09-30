@@ -103,52 +103,52 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
 
         if (type == ComponentMetadataType.Page) {
-            return renderPage(container, component, baseUrl, state, data)
+            return renderPage(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Div) {
-            return renderDiv(container, component, baseUrl, state, data)
+            return renderDiv(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Directory) {
             return renderDirectory(component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(container, component, baseUrl, state, data)
+            return renderFormLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(container, component, baseUrl, state, data)
+            return renderHorizontalLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(container, component, baseUrl, state, data)
+            return renderVerticalLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.SplitLayout) {
-            return renderSplitLayout(container, component, baseUrl, state, data)
+            return renderSplitLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.MasterDetailLayout) {
-            return renderMasterDetailLayout(container, component, baseUrl, state, data)
+            return renderMasterDetailLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.TabLayout) {
-            return renderTabLayout(container, component, baseUrl, state, data)
+            return renderTabLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.AccordionLayout) {
-            return renderAccordionLayout(container, component, baseUrl, state, data)
+            return renderAccordionLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.BoardLayout) {
-            return renderBoardLayout(container, component, baseUrl, state, data)
+            return renderBoardLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.BoardLayoutRow) {
-            return renderBoardLayoutRow(container, component, baseUrl, state, data)
+            return renderBoardLayoutRow(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.BoardLayoutItem) {
-            return renderBoardLayoutItem(container, component, baseUrl, state, data)
+            return renderBoardLayoutItem(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Scroller) {
-            return renderScroller(container, component, baseUrl, state, data)
+            return renderScroller(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.FullWidth) {
-            return renderFullWidth(container, component, baseUrl, state, data)
+            return renderFullWidth(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Container) {
-            return renderContainer(container, component, baseUrl, state, data)
+            return renderContainer(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Form) {
             const metadata = component.metadata as Form
@@ -159,6 +159,8 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                 .values="${state}"
                 .state="${state}"
                 .data="${data}"
+                .appState="${appState}"
+                .appdata="${appData}"
                 style="${component.style}" 
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
@@ -179,7 +181,10 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             id="${component.id}"
             baseUrl="${baseUrl}"
                 .metadata="${component.metadata}"
-                .data="${state}"
+                .state="${state}"
+                            .data="${data}"
+                            .appState="${appState}"
+                            .appDate="${appData}"
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
@@ -194,6 +199,8 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             .metadata="${component.metadata}"
                             .state="${state}"
                             .data="${data}"
+                            .appState="${appState}"
+                            .appdata="${appData}"
                             style="${component.style}" class="${component.cssClasses}"
                             slot="${component.slot??nothing}"
                 >
@@ -229,6 +236,8 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                 .field="${component.metadata}"
                        .state="${state}"
                        .data="${data}"
+                       .appState="${appState}"
+                       .appdata="${appData}"
                        style="${component.style}" class="${component.cssClasses}"
                        slot="${component.slot??nothing}"
                        data-colspan="${field.colspan}"
@@ -261,7 +270,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         // @ts-ignore
         if (type == ComponentMetadataType.Card) {
-            return renderCard(container, component, baseUrl, state, data)
+            return renderCard(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Chart) {
             return renderChart(component)
@@ -270,19 +279,19 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderIcon(component)
         }
         if (type == ComponentMetadataType.ConfirmDialog) {
-            return renderConfirmDialog(container, component, baseUrl, state, data)
+            return renderConfirmDialog(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.ContextMenu) {
-            return renderContextMenu(container, component, baseUrl, state, data)
+            return renderContextMenu(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.CookieConsent) {
             return renderCookieConsent(component)
         }
         if (type == ComponentMetadataType.Details) {
-            return renderDetails(container, component, baseUrl, state, data)
+            return renderDetails(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Dialog) {
-            return renderDialog(component, baseUrl, state, data)
+            return renderDialog(component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Image) {
             return renderImage(component)
@@ -303,13 +312,13 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderProgressBar(component)
         }
         if (type == ComponentMetadataType.Popover) {
-            return renderPopover(container, component, baseUrl, state, data)
+            return renderPopover(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.CarouselLayout) {
-            return renderCarouselLayout(container, component, baseUrl, state, data)
+            return renderCarouselLayout(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Tooltip) {
-            return renderTooltip(container, component, baseUrl, state, data)
+            return renderTooltip(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.MessageInput) {
             return renderMessageInput(component)
@@ -318,22 +327,22 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderMessageList(component)
         }
         if (type == ComponentMetadataType.CustomField) {
-            return customFieldRenderer(container, component, baseUrl, state, data)
+            return customFieldRenderer(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.MenuBar) {
             return renderMenuBar(container, component, baseUrl, state, data)
         }
         if (type == ComponentMetadataType.Grid) {
-            return renderGrid(container, component, baseUrl, state, data)
+            return renderGrid(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.VirtualList) {
-            return renderVirtualList(container, component, baseUrl, state, data)
+            return renderVirtualList(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.FormSection) {
-            return renderFormSection(container, component, baseUrl, state, data)
+            return renderFormSection(container, component, baseUrl, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.FormSubSection) {
-            return renderFormSubSection(container, component, baseUrl, state, data)
+            return renderFormSubSection(container, component, baseUrl, state, data, appState, appData)
         }
         //console.log('Unknown metadata type for component', type, component)
         return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`

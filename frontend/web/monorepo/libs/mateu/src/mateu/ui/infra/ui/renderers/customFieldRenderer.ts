@@ -3,7 +3,7 @@ import CustomField from "@mateu/shared/apiClients/dtos/componentmetadata/CustomF
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const customFieldRenderer = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const customFieldRenderer = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as CustomField
 
     return html`
@@ -13,7 +13,7 @@ export const customFieldRenderer = (container: LitElement, component: ClientSide
                              slot="${component.slot??nothing}"
                              data-colspan="${metadata.colspan || nothing}"
         >
-            ${renderComponent(container, metadata.content, baseUrl, state, data)}
+            ${renderComponent(container, metadata.content, baseUrl, state, data, appState, appData)}
         </vaadin-custom-field>
             `
 }

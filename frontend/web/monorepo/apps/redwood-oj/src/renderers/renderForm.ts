@@ -4,7 +4,7 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 
-export const renderForm = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderForm = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const metadata = component.metadata as Form
 
     return html`
@@ -24,16 +24,16 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
                     metadata: button,
                     type: ComponentType.ClientSide,
                     slot: 'header'
-                } as unknown as ClientSideComponent, undefined, undefined, undefined)}
+                } as unknown as ClientSideComponent, undefined, undefined, undefined, appState, appData)}
             `)}
             
-                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                 ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
         metadata: button,
         type: ComponentType.ClientSide,
         slot: 'buttons'
-    } as unknown as ClientSideComponent, undefined, undefined, undefined)}
+    } as unknown as ClientSideComponent, undefined, undefined, undefined, appState, appData)}
 `)}
 
                 </mateu-redwood-form>

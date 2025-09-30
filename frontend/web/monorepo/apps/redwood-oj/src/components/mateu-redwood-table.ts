@@ -52,6 +52,12 @@ export class MateuRedwoodTable extends LitElement {
     data: Record<string, any> = {}
 
     @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
+    @property()
     emptyStateMessage?: string
 
     @state()
@@ -190,7 +196,9 @@ export class MateuRedwoodTable extends LitElement {
             item[this.metadata?.detailPath!],
             this.baseUrl,
             this.state,
-            this.data
+            this.data,
+                            this.appState,
+                            this.appData
         )}`):undefined)}
                     theme="${theme}"
                     style="${this.metadata?.gridStyle}"
@@ -198,7 +206,7 @@ export class MateuRedwoodTable extends LitElement {
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
-                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data))}
+                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
                             width="80px"

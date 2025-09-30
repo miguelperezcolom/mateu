@@ -17,7 +17,7 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
-export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as FormLayout
 
     let style = component.style;
@@ -53,41 +53,41 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                        labels-aside="${metadata.labelsAside || nothing}"
                        slot="${component.slot || nothing}"
                >
-                   ${component.children?.map(child => renderFormComponent(metadata, container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderFormComponent(metadata, container, child, baseUrl, state, data, appState, appData))}
                </vaadin-form-layout>
             `
 }
 
-export const renderFormComponent = (form: FormLayout, container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderFormComponent = (form: FormLayout, container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormRow) {
-        return renderFormRow(form, container, component as ClientSideComponent, baseUrl, state, data)
+        return renderFormRow(form, container, component as ClientSideComponent, baseUrl, state, data, appState, appData)
     }
-    return form.labelsAside?wrapWithFormItem(container, component, baseUrl, state, data):renderComponent(container, component, baseUrl, state, data)
+    return form.labelsAside?wrapWithFormItem(container, component, baseUrl, state, data, appState, appData):renderComponent(container, component, baseUrl, state, data, appState, appData)
 }
 
-export const wrapWithFormItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const wrapWithFormItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField && ((component as ClientSideComponent).metadata as FormField).label) {
         const field =  (component as ClientSideComponent).metadata as FormField
         return html`
                        <vaadin-form-item data-colspan="${field.colspan}">
                            <label slot="label">${field.label}</label>
-                           ${renderComponent(container, component, baseUrl, state, data, true)}
+                           ${renderComponent(container, component, baseUrl, state, data, appState, appData, true)}
                        </vaadin-form-item>
                    `
     }
-    return renderComponent(container, component, baseUrl, state, data)
+    return renderComponent(container, component, baseUrl, state, data, appState, appData)
 }
 
 
-export const renderFormRow = (form: FormLayout, container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderFormRow = (form: FormLayout, container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
         <vaadin-form-row>
-            ${tab.children?.map(child => renderFormComponent(form, container, child, baseUrl, state, data))}
+            ${tab.children?.map(child => renderFormComponent(form, container, child, baseUrl, state, data, appState, appData))}
         </vaadin-form-row>
             `
 }
 
-export const renderHorizontalLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderHorizontalLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = (component as ClientSideComponent).metadata as HorizontalLayout
     const theme = ''
         + (metadata.padding?' padding':'')
@@ -111,12 +111,12 @@ export const renderHorizontalLayout = (container: LitElement, component: Compone
                        theme="${theme}"
                        slot="${component.slot??nothing}"
                >
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </vaadin-horizontal-layout>
             `
 }
 
-export const renderVerticalLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderVerticalLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = (component as ClientSideComponent).metadata as VerticalLayout
     const theme = ''
         + (metadata.padding?' padding':'')
@@ -141,7 +141,7 @@ export const renderVerticalLayout = (container: LitElement, component: Component
                 theme="${theme}"
                 slot="${component.slot??nothing}"
         >
-            ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+            ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </vaadin-vertical-layout>
     `
 }
@@ -152,7 +152,7 @@ export const renderVerticalLayout = (container: LitElement, component: Component
   <detail-content></detail-content>
 </vaadin-split-layout>
  */
-export const renderSplitLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderSplitLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = (component as ClientSideComponent).metadata as SplitLayout
     let style = component.style;
     if (metadata.fullWidth) {
@@ -166,20 +166,20 @@ export const renderSplitLayout = (container: LitElement, component: Component, b
                        theme="${metadata.variant??nothing}"
                        slot="${component.slot??nothing}"
                >
-                   <master-content>${renderComponent(container, component.children![0], baseUrl, state, data)}</master-content>
-                   <detail-content>${renderComponent(container, component.children![1], baseUrl, state, data)}</detail-content>
+                   <master-content>${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</master-content>
+                   <detail-content>${renderComponent(container, component.children![1], baseUrl, state, data, appState, appData)}</detail-content>
                </vaadin-split-layout>
             `
 }
 
-export const renderMasterDetailLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderMasterDetailLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
                <vaadin-master-detail-layout has-detail 
                                             style="${component.style}" 
                                             class="${component.cssClasses}"
                                             slot="${component.slot??nothing}">
-                   <div>${renderComponent(container, component.children![0], baseUrl, state, data)}</div>
-                   <div slot="detail">${renderComponent(container, component.children![1], baseUrl, state, data)}</div>
+                   <div>${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
+                   <div slot="detail">${renderComponent(container, component.children![1], baseUrl, state, data, appState, appData)}</div>
                </vaadin-master-detail-layout>
             `
 }
@@ -192,7 +192,7 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
     <vaadin-tab>Page 4</vaadin-tab>
   </vaadin-tabs>
  */
-export const renderTabLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderTabLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as TabLayout
 
     let style = component.style;
@@ -228,15 +228,15 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 `)}
             </vaadin-tabs>
 
-            ${component.children?.map(child => renderTab(container, child as ClientSideComponent, baseUrl, state, data))}
+            ${component.children?.map(child => renderTab(container, child as ClientSideComponent, baseUrl, state, data, appState, appData))}
         </vaadin-tabsheet>
             `
 }
 
-export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
         <div tab="${(tab.metadata as Tab).label}">
-                   ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
 }
@@ -254,7 +254,7 @@ export const renderTab = (container: LitElement, tab: ClientSideComponent, baseU
   </vaadin-accordion-panel>
 </vaadin-accordion>
  */
-export const renderAccordionLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderAccordionLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = (component as ClientSideComponent).metadata as AccordionLayout
     let style = component.style;
     if (metadata.fullWidth) {
@@ -278,12 +278,12 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
                        opened="${opened}"
                        slot="${component.slot??nothing}"
                >
-                   ${component.children?.map(child => renderAccordionPanel(container, child as ClientSideComponent, baseUrl, state, data, metadata.variant))}
+                   ${component.children?.map(child => renderAccordionPanel(container, child as ClientSideComponent, baseUrl, state, data, appState, appData, metadata.variant))}
                </vaadin-accordion>
             `
 }
 
-export const renderAccordionPanel = (container: LitElement, panel: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, variant: AccordionLayoutVariant | undefined) => {
+export const renderAccordionPanel = (container: LitElement, panel: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, variant: AccordionLayoutVariant | undefined) => {
     const metadata = panel.metadata as AccordionPanel
     return html`
         <vaadin-accordion-panel style="${panel.style}" 
@@ -292,67 +292,67 @@ export const renderAccordionPanel = (container: LitElement, panel: ClientSideCom
                                 ?opened="${metadata.active}"
                                 ?disabled="${metadata.disabled}">
             <vaadin-accordion-heading slot="summary">${metadata.label}</vaadin-accordion-heading>
-            ${panel.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+            ${panel.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </vaadin-accordion-panel>
             `
 }
 
-export const renderScroller = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderScroller = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
                <vaadin-scroller style="${component.style}" 
                                 class="${component.cssClasses}"
                                 slot="${component.slot??nothing}">
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </vaadin-scroller>
             `
 }
 
-export const renderFullWidth = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderFullWidth = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
                <div style="width: 100%; ${component.style}" 
                     class="${component.cssClasses}"
                     slot="${component.slot??nothing}">
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
 }
 
-export const renderContainer = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any) => {
+export const renderContainer = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
                <div style="max-width: 800px; margin: auto; ${component.style}" 
                     class="${component.cssClasses}"
                     slot="${component.slot??nothing}">
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
 }
 
-export const renderBoardLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderBoardLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
         <vaadin-board style="${component.style}" 
                       class="${component.cssClasses}"
                       slot="${component.slot??nothing}">
-            ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+            ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </vaadin-board>
             `
 }
 
-export const renderBoardLayoutRow = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderBoardLayoutRow = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     return html`
         <vaadin-board-row style="${component.style}" class="${component.cssClasses}">
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </vaadin-board-row>
             `
 }
 
-export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as BoardLayoutItem
     return html`
         <div style="${component.style}" 
              class="${component.cssClasses}"
              board-cols="${metadata.boardCols??nothing}"
         >
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
 }

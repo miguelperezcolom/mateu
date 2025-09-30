@@ -173,8 +173,6 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
        */
       model.put("favicon", "");
 
-      /*
-      todo: bring back at some point
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {
         String keycloakUrl = keycloakAnnotation.url();
@@ -182,7 +180,8 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         String keycloakClientId = keycloakAnnotation.clientId();
         String keycloakJsUrl = keycloakAnnotation.jsUrl();
         if (keycloakJsUrl == null || keycloakJsUrl.isEmpty()) {
-          keycloakJsUrl = path + "/dist/assets/keycloak.js";
+          // keycloakJsUrl = path + "/dist/assets/keycloak.js";
+          keycloakJsUrl = "https://cdn.jsdelivr.net/npm/keycloak-js@26.2.0/lib/keycloak.min.js";
         }
 
         model.put(
@@ -197,7 +196,6 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                 "jsUrl",
                 keycloakJsUrl));
       }
-       */
 
       io.mateu.annotationprocessing.Formatter formatter =
           new io.mateu.annotationprocessing.Formatter("index.ftl", model);

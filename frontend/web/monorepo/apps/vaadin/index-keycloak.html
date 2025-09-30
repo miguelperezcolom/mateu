@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIELTITULODELAPAGINA</title>
+    <link rel="stylesheet" href="./src/index.css" />
+    <script type="module" src="./src/lumo.js"></script>
+    <script type="module" src="./src/index.ts"></script>
+  </head>
+  <body>
+
+  <!-- AQUIUI -->
+  <!--
+  <mateu-ui baseUrl="/fluent"
+            config='{"tenantId": "1111","profile": "dev"}'
+  >
+  </mateu-ui>
+  -->
+  <!-- HASTAAQUIUI -->
+
+  <script>
+    if (window.matchMedia) {
+      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('theme', 'dark')
+      } else {
+        document.documentElement.setAttribute('theme', 'light')
+      }
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
+      });
+    }
+  </script>
+
+  <script type="module">
+    import Keycloak from 'keycloak-js';
+
+      const keycloak = new Keycloak({
+        url: 'https://lemur-11.cloud-iam.com/auth',
+        realm: 'mateu',
+        clientId: 'demo'
+      });
+      keycloak.onTokenExpired = function () {
+        console.log('token expired')
+        keycloak.updateToken(30)
+                .then(function (refreshed) {
+                  if (refreshed) {
+                    console.log('token refreshed');
+                    // write any code you required here
+                    localStorage.setItem('__mateu_auth_token', keycloak.token);
+                    localStorage.setItem('__mateu_auth_subject', keycloak.subject);
+                  } else {
+                    console.log('token is still valid now');
+                  }
+                }).catch(function (e) {
+          console.log('failed to refresh the token, or the session has expired', e);
+        });
+      }
+      keycloak.init({
+        onLoad: 'login-required',
+      }).then(function(authenticated) {
+        console.log(authenticated ? 'authenticated' : 'not authenticated');
+        if (authenticated) {
+          localStorage.setItem('__mateu_auth_token', keycloak.token);
+          localStorage.setItem('__mateu_auth_subject', keycloak.subject);
+          /*
+          const s = document.createElement('script');
+          s.setAttribute('type', 'module')
+          //s.setAttribute('src', 'https://unpkg.com/mateu-ui/dist/assets/mateu.js')
+          s.setAttribute('src', '${path}/dist/assets/mateu.js')
+          document.head.appendChild(s);
+           */
+
+          const u = document.createElement('mateu-ui');
+          u.setAttribute('baseUrl', '/fluent')
+          document.body.appendChild(u);
+
+        }
+      }).catch(function(e) {
+        console.log('failed to initialize', e);
+      });
+
+  </script>
+
+  </body>
+</html>

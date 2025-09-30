@@ -35,14 +35,18 @@ export const renderGroup = (group: GridGroupColumn,
                             container: LitElement,
                             baseUrl: string | undefined,
                             state: any,
-                            data: any) => {
+                            data: any,
+                            appState: any,
+                            appData: any) => {
     return html`
 <vaadin-grid-column-group header="${group.label}">
     ${group.columns.map(column => renderColumn(column.metadata as GridColumn,
             container,
     baseUrl,
     state,
-    data))}
+    data,
+    appState,
+    appData))}
 </vaadin-grid-column-group>
 `
 }
@@ -51,19 +55,25 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
                                     container: LitElement,
                                     baseUrl: string | undefined,
                                     state: any,
-                                    data: any) => {
+                                    data: any,
+                                    appState: any,
+                                    appData: any) => {
     if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
         return renderGroup(columnOrGroup.metadata as GridGroupColumn,
             container,
             baseUrl,
             state,
-            data)
+            data,
+        appState,
+        appData)
     } else {
         return renderColumn(columnOrGroup.metadata as GridColumn,
             container,
             baseUrl,
             state,
-            data)
+            data,
+        appState,
+        appData)
     }
 }
 
@@ -71,7 +81,9 @@ export const renderColumn = (mateuColumn: GridColumn,
                              container: LitElement,
                              baseUrl: string | undefined,
                              state: any,
-                             data: any) => {
+                             data: any,
+                             appState: any,
+                             appData: any) => {
     if (mateuColumn.sortable) {
         return html`
                         <vaadin-grid-sort-column
@@ -98,7 +110,9 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
-                                                data),
+                                                data,
+                                        appState,
+                                        appData),
             []
         )}
                         ></vaadin-grid-sort-column>
@@ -128,7 +142,9 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
-                                                data),
+                                                data,
+                                        appState,
+                                        appData),
             []
         )}
                         ></vaadin-grid-filter-column>
@@ -158,7 +174,9 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 container,
                                                 baseUrl,
                                                 state,
-                                                data),
+                                                data,
+                                        appState,
+                                        appData),
             []
         )}
                         ></vaadin-grid-column>
@@ -173,7 +191,9 @@ export const columnRenderer = (item: any,
                                                                 container: LitElement,
                                                                 baseUrl: string | undefined,
                                                                 state: any,
-                                                                data: any) => {
+                                                                data: any,
+                               appState: any,
+                               appData: any) => {
 
     const type = vaadinColumn.dataset.dataType??''
     const stereotype = vaadinColumn.dataset.stereotype??''
@@ -202,7 +222,7 @@ export const columnRenderer = (item: any,
         return renderMenuCell(item, model, vaadinColumn)
     }
     if ('component' == type) {
-        return renderComponentCell(item, model, vaadinColumn, container, baseUrl, state, data)
+        return renderComponentCell(item, model, vaadinColumn, container, baseUrl, state, data, appState, appData)
     }
     return html`${item[vaadinColumn.path!]}`
 }

@@ -43,6 +43,12 @@ export class MateuCardList extends LitElement {
     data: Record<string, any> = {}
 
     @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
+    @property()
     emptyStateMessage?: string
 
 
@@ -109,7 +115,7 @@ export class MateuCardList extends LitElement {
 
     renderItem = (item: any) => {
         if (item.card) {
-            return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data, false)
+            return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data, this.appState, this.appData, false)
         }
         if (item.title) {
             return html`<vaadin-card

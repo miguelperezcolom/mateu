@@ -4,7 +4,7 @@ import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 
-export const renderForm = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderForm = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const metadata = component.metadata as Form
 
     return html`
@@ -15,18 +15,20 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
                 .values="${state}"
                 .state="${state}"
                 .data="${data}"
+            .appState="${appState}"
+            .appData="${appData}"
                 style="${component.style}" 
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
                 >
-                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data))}
+                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
             
                             ${metadata?.toolbar?.map(button => html`
                    ${renderComponent(container, {
         metadata: button,
         type: ComponentType.ClientSide,
         slot: 'toolbar'
-    } as unknown as ClientSideComponent, baseUrl, state, data)}
+    } as unknown as ClientSideComponent, baseUrl, state, data, appState, appData)}
                 `)}
             
             
@@ -35,7 +37,7 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
         metadata: button,
         type: ComponentType.ClientSide,
         slot: 'buttons'
-    } as unknown as ClientSideComponent, baseUrl, state, data)}
+    } as unknown as ClientSideComponent, baseUrl, state, data, appState, appData)}
 
                 `)}
 

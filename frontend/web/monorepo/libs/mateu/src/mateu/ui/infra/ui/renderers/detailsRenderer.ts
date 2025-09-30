@@ -3,7 +3,7 @@ import Details from "@mateu/shared/apiClients/dtos/componentmetadata/Details";
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderDetails = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderDetails = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as Details
 
     return html`
@@ -14,9 +14,9 @@ export const renderDetails = (container: LitElement, component: ClientSideCompon
                 slot="${component.slot??nothing}"
         >
             <vaadin-details-summary slot="summary">
-            ${renderComponent(container, metadata.summary, baseUrl, state, data)}
+            ${renderComponent(container, metadata.summary, baseUrl, state, data, appState, appData)}
             </vaadin-details-summary>
-            ${renderComponent(container, metadata.content, baseUrl, state, data)}
+            ${renderComponent(container, metadata.content, baseUrl, state, data, appState, appData)}
         </vaadin-details>
             `
 }

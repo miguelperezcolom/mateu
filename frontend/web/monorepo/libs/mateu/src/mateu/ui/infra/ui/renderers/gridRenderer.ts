@@ -17,7 +17,9 @@ export const renderGrid = (
 
                            baseUrl: string | undefined,
                            state: any,
-                           data: any) => {
+                           data: any,
+                            appState: any,
+                            appData: any) => {
     const metadata = component.metadata as Grid
 
 
@@ -59,7 +61,9 @@ export const renderGrid = (
                             container,
                             baseUrl,
                             state,
-                            data),
+                            data,
+                    appState,
+                    appData),
                     []
             )}>${index} - ${(mateuColumn.metadata as GridColumn)?.label}</vaadin-grid-column>
 `:html`
@@ -84,7 +88,7 @@ export const renderGrid = (
                 .items="${items}"
                 all-rows-visible
         >
-            ${metadata?.content?.map(column => renderColumnOrGroup(column, container, baseUrl, state, data))}
+            ${metadata?.content?.map(column => renderColumnOrGroup(column, container, baseUrl, state, data, appState, appData))}
         </vaadin-grid>
     `
 

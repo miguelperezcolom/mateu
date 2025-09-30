@@ -3,10 +3,10 @@ import Tooltip from "@mateu/shared/apiClients/dtos/componentmetadata/Tooltip";
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 
-export const renderTooltip = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderTooltip = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as Tooltip
     return html`
-        <div id="show-notifications">${renderComponent(container, metadata.wrapped, baseUrl, state, data)}</div>
+        <div id="show-notifications">${renderComponent(container, metadata.wrapped, baseUrl, state, data, appState, appData)}</div>
         <vaadin-tooltip
                 style="${component.style}" class="${component.cssClasses}"
                 slot="${component.slot??nothing}"

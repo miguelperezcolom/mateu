@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -35,6 +35,12 @@ export class MateuFilterBar extends LitElement {
 
     @state()
     data: Record<string, any> = {}
+
+    @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
 
     @state()
     filtersOpened = false
@@ -115,7 +121,7 @@ export class MateuFilterBar extends LitElement {
         }))
     }
 
-    render() {
+    render(): TemplateResult {
         return html`
             <vaadin-horizontal-layout theme="spacing">
                 ${this.metadata?.searchable
@@ -165,7 +171,7 @@ export class MateuFilterBar extends LitElement {
                             children: [],
                             slot: '',
                             cssClasses: ''
-        } as ClientSideComponent, this.baseUrl, this.state, this.data))}
+        } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                     </vaadin-form-row>
                 </vaadin-form-layout>
                         </mateu-event-interceptor>
