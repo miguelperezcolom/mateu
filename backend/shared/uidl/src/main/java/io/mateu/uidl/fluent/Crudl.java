@@ -4,6 +4,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import java.util.List;
 import lombok.Builder;
+import lombok.Singular;
 
 @Builder
 public record Crudl(
@@ -11,11 +12,11 @@ public record Crudl(
     String id,
     String title,
     String subtitle,
-    List<Trigger> triggers,
-    List<UserTrigger> toolbar,
-    List<GridContent> columns,
+    @Singular List<Trigger> triggers,
+    @Singular("toolbarItem") List<UserTrigger> toolbar,
+    @Singular List<GridContent> columns,
     boolean searchable,
-    List<FormField> filters,
+    @Singular List<FormField> filters,
     String style,
     String cssClasses,
     String emptyStateMessage,
@@ -30,8 +31,8 @@ public record Crudl(
     boolean columnReorderingAllowed,
     int pageSize,
     boolean rowsSelectionEnabled,
-    List<Component> header,
-    List<Component> footer,
+    @Singular("headerItem") List<Component> header,
+    @Singular("footerItem") List<Component> footer,
     boolean wrapCellContent,
     boolean compact,
     boolean noBorder,

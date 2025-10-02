@@ -3,6 +3,7 @@ package io.mateu.uidl.fluent;
 import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
+import lombok.Singular;
 
 @Builder
 public record App(
@@ -10,9 +11,9 @@ public record App(
     String pageTitle,
     String title,
     String subtitle,
-    List<Actionable> menu,
+    @Singular("menuItem") List<Actionable> menu,
     AppVariant variant,
-    List<Component> widgets,
+    @Singular List<Component> widgets,
     boolean drawerClosed,
     String style,
     String cssClasses)
