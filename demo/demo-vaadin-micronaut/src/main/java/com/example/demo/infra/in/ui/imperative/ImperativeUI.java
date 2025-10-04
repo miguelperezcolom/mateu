@@ -1,19 +1,19 @@
 package com.example.demo.infra.in.ui.imperative;
 
 import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.interfaces.HasHomeRoute;
-import io.mateu.uidl.interfaces.HasPageTitle;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
+import io.mateu.uidl.interfaces.PageTitleSupplier;
 
 @MateuUI("/imperative")
-public class ImperativeUI implements HasPageTitle, HasHomeRoute {
+public class ImperativeUI implements PageTitleSupplier, HomeRouteSupplier {
 
     @Override
-    public String getPageTitle() {
+    public String pageTitle() {
         return "Antonia";
     }
 
     @Override
-    public String getHomeRoute() {
+    public String homeRoute() {
         return "/app";
     }
 }

@@ -11,7 +11,6 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
@@ -19,23 +18,18 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
-import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
 import io.micronaut.serde.annotation.Serdeable;
-import lombok.Builder;
 import lombok.With;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 
@@ -56,7 +50,7 @@ record Row(
 @Route("/fluent-app/crudls/basic")
 @Slf4j
 @With
-public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row>, HasTriggers {
+public class BasicCrudl implements ComponentTreeSupplier, CrudlBackend<Filters, Row>, TriggersSupplier {
 
     public BasicCrudl() {
     }

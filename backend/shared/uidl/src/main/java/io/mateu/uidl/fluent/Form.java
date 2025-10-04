@@ -19,7 +19,7 @@ public record Form(
     @Singular List<UserTrigger> buttons,
     String style,
     String cssClasses)
-    implements Component, HasContent, PageMainContent {
+    implements Component, ContentSupplier, PageMainContent {
 
   public Form {
     content = content != null ? content : Collections.emptyList();

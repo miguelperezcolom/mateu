@@ -23,13 +23,13 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HasPostHydrationMethod;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
@@ -51,7 +51,7 @@ record OrderCrudRow(String id,
 }
 
 @Serdeable
-class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTreeSupplier, HasTriggers, HasActions {
+class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTreeSupplier, TriggersSupplier, ActionSupplier {
 
     private final OrderRepository orderRepository;
     private final String customerId;
@@ -167,7 +167,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
 
 @Route("/fluent-app/use-cases/rra/customers/.*")
 @Singleton
-public class CustomerDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
+public class CustomerDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;

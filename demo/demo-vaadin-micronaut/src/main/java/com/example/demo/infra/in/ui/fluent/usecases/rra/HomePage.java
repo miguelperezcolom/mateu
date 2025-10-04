@@ -19,8 +19,7 @@ import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
@@ -36,7 +35,7 @@ import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFrag
 
 @Route("/fluent-app/use-cases/rra/home")
 @Singleton
-public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, CardRow>, HasTriggers {
+public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, CardRow>, TriggersSupplier {
 
     private final OrderRepository orderRepository;
 

@@ -9,7 +9,7 @@ import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Validation;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,7 +18,7 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 import java.util.List;
 
 @Route("/fluent-app/validations/form-wise")
-public class FormWiseValidationPage implements ComponentTreeSupplier, ValidationSupplier, HandlesActions, HasActions {
+public class FormWiseValidationPage implements ComponentTreeSupplier, ValidationSupplier, HandlesActions, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()

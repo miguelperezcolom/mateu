@@ -20,9 +20,8 @@ import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
@@ -57,7 +56,7 @@ record OrderRow(
 
 @Route("/fluent-app/use-cases/rra/orders")
 @Singleton
-public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFilters, OrderRow>, HasTriggers, HandlesActions, HasActions {
+public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFilters, OrderRow>, TriggersSupplier, HandlesActions, ActionSupplier {
 
     private final OrderRepository orderRepository;
 

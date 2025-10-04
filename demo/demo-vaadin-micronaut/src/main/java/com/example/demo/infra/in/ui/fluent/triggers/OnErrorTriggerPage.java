@@ -5,8 +5,8 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnErrorTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -17,7 +17,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 
 @Route("/fluent-app/triggers/on-error")
-public class OnErrorTriggerPage implements ComponentTreeSupplier, HasActions, HasTriggers, HandlesActions {
+public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, HandlesActions {
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()

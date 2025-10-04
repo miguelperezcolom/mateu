@@ -10,8 +10,8 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -27,7 +27,7 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
 @Slf4j
-public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions, HasActions, HasTriggers {
+public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;

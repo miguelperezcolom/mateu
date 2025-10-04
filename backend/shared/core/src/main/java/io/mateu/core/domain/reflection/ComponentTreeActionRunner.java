@@ -6,7 +6,7 @@ import io.mateu.core.domain.ActionRunner;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasContent;
+import io.mateu.uidl.fluent.ContentSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
@@ -82,7 +82,7 @@ public class ComponentTreeActionRunner implements ActionRunner {
         }
       }
     }
-    if (component instanceof HasContent hasContent) {
+    if (component instanceof ContentSupplier hasContent) {
       for (Component child : hasContent.content()) {
         var found = findButton(child, actionId);
         if (found != null) {

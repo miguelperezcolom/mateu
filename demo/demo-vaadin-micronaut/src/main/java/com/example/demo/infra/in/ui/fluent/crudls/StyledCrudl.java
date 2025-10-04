@@ -7,7 +7,7 @@ import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Route("/fluent-app/crudls/styled")
 @Slf4j
-public class StyledCrudl implements ComponentTreeSupplier, HasTriggers, HandlesActions {
+public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, HandlesActions {
 
     boolean wrapCellContent;
     boolean compact;

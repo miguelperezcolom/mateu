@@ -8,8 +8,8 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 @Route("/fluent-app/forms/counter5")
-public class Counter5 implements ComponentTreeSupplier, HasActions, HasTriggers {
+public class Counter5 implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
 
     int count = 0;
 

@@ -1,9 +1,9 @@
 package io.mateu.core.domain.reflection.samples;
 
-import io.mateu.uidl.interfaces.HasPostHydrationMethod;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-public class WithInitMethod implements HasPostHydrationMethod {
+public class WithInitMethod implements PostHydrationHandler {
 
   public String name;
 

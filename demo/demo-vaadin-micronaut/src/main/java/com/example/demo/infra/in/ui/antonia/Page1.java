@@ -5,15 +5,15 @@ import io.mateu.uidl.annotations.ActionType;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.interfaces.Page;
-import io.mateu.uidl.interfaces.HasSubtitle;
-import io.mateu.uidl.interfaces.HasTitle;
+import io.mateu.uidl.interfaces.SubtitleSupplier;
+import io.mateu.uidl.interfaces.TitleSupplier;
 
 @Route("/app/page1")
 @Route("/fluent-app/page1")
 @Route("/fluent-app/nested-apps/left/page1")
 @Route("/fluent-app/nested-apps/top/page1")
 @Route("/fluent-app/nested-apps/tabs/page1")
-public class Page1 implements HasTitle, HasSubtitle, Page {
+public class Page1 implements TitleSupplier, SubtitleSupplier, Page {
 
     String name;
 
@@ -40,12 +40,12 @@ public class Page1 implements HasTitle, HasSubtitle, Page {
     }
 
     @Override
-    public String getTitle() {
+    public String title() {
         return "Page 1";
     }
 
     @Override
-    public String getSubtitle() {
+    public String subtitle() {
         return "This is a simple subtitle";
     }
 }

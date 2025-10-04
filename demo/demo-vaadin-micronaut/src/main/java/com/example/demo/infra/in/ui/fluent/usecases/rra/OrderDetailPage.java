@@ -12,13 +12,11 @@ import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
-import io.mateu.uidl.interfaces.HasPostHydrationMethod;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -26,7 +24,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 
 @Singleton
-public class OrderDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod, HandlesActions {
+public class OrderDetailPage implements ComponentTreeSupplier, PostHydrationHandler, HandlesActions {
 
     String orderId;
     String name;

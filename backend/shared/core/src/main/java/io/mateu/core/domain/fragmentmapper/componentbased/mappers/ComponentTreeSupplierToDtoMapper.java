@@ -21,8 +21,8 @@ import io.mateu.dtos.TriggerDto;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;
@@ -99,7 +99,7 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   private static List<TriggerDto> mapTriggers(Object serverSideObject) {
-    if (serverSideObject instanceof HasTriggers hasTriggers) {
+    if (serverSideObject instanceof TriggersSupplier hasTriggers) {
       return hasTriggers.triggers().stream()
           .map(
               trigger ->
@@ -142,7 +142,7 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   private static List<ActionDto> mapActions(Object serverSideObject) {
-    if (serverSideObject instanceof HasActions hasActions) {
+    if (serverSideObject instanceof ActionSupplier hasActions) {
       return hasActions.actions().stream().map(action -> mapAction(action)).toList();
     }
     return List.of();

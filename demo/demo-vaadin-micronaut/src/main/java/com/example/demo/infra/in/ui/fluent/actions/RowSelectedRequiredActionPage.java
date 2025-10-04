@@ -13,7 +13,7 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
@@ -31,7 +31,7 @@ record Row(String name, int age) {}
 
 @Route("/fluent-app/actions/row-selected-required")
 @Slf4j
-public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row>, HasActions {
+public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row>, ActionSupplier {
 
     @JsonIgnore
     List<Row> allItems = List.of(

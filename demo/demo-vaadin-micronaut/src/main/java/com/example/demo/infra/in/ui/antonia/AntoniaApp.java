@@ -1,19 +1,19 @@
 package com.example.demo.infra.in.ui.antonia;
 
 import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.interfaces.HasHomeRoute;
-import io.mateu.uidl.interfaces.HasPageTitle;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
+import io.mateu.uidl.interfaces.PageTitleSupplier;
 
 @MateuUI("/antonia")
-public class AntoniaApp implements HasPageTitle, HasHomeRoute {
+public class AntoniaApp implements PageTitleSupplier, HomeRouteSupplier {
 
     @Override
-    public String getPageTitle() {
+    public String pageTitle() {
         return "Antonia";
     }
 
     @Override
-    public String getHomeRoute() {
+    public String homeRoute() {
         return "/app";
     }
 }

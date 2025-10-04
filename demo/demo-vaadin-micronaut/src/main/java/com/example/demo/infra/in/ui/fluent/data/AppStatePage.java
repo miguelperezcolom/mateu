@@ -1,17 +1,11 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
-import io.mateu.uidl.fluent.OnSuccessTrigger;
-import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;

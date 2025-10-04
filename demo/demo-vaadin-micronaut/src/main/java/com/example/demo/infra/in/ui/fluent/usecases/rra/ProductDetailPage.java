@@ -25,7 +25,7 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HasPostHydrationMethod;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -37,7 +37,7 @@ import static com.example.demo.infra.in.ui.fluent.usecases.rra.HomePage.color;
 
 @Route("/fluent-app/use-cases/rra/inventory/.*")
 @Singleton
-public class ProductDetailPage implements ComponentTreeSupplier, HasPostHydrationMethod {
+public class ProductDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 
     String productId;
     Product product;

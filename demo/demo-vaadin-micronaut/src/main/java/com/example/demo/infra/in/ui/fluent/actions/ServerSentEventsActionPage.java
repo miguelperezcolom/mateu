@@ -7,7 +7,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HandlesActions;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/actions/server-side-events")
-public class ServerSentEventsActionPage implements ComponentTreeSupplier, HandlesActions, HasActions {
+public class ServerSentEventsActionPage implements ComponentTreeSupplier, HandlesActions, ActionSupplier {
 
     int count = 0;
 

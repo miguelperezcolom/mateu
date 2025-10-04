@@ -9,8 +9,8 @@ import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -31,7 +31,7 @@ record Person(String name, int age) {
 }
 
 @Route("/fluent-app/forms/with-grid1")
-public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, HasActions, HasTriggers {
+public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;

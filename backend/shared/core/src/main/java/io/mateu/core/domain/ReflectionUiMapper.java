@@ -5,9 +5,9 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.fluent.UISupplier;
 import io.mateu.uidl.interfaces.DynamicUI;
-import io.mateu.uidl.interfaces.HasFavicon;
-import io.mateu.uidl.interfaces.HasHomeRoute;
-import io.mateu.uidl.interfaces.HasPageTitle;
+import io.mateu.uidl.interfaces.FaviconSupplier;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
+import io.mateu.uidl.interfaces.PageTitleSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
@@ -45,8 +45,8 @@ public class ReflectionUiMapper implements UiMapper {
   }
 
   private String getFavIcon(Object uiInstance) {
-    if (uiInstance instanceof HasFavicon hasFavicon) {
-      return hasFavicon.getFavicon();
+    if (uiInstance instanceof FaviconSupplier hasFavicon) {
+      return hasFavicon.favicon();
     }
     if (uiInstance.getClass().isAnnotationPresent(FavIcon.class)) {
       return uiInstance.getClass().getAnnotation(FavIcon.class).value();
@@ -55,8 +55,8 @@ public class ReflectionUiMapper implements UiMapper {
   }
 
   private String getTitle(Object uiInstance) {
-    if (uiInstance instanceof HasPageTitle hasPageTitle) {
-      return hasPageTitle.getPageTitle();
+    if (uiInstance instanceof PageTitleSupplier hasPageTitle) {
+      return hasPageTitle.pageTitle();
     }
     return Humanizer.capitalize(uiInstance.getClass().getSimpleName());
   }
@@ -65,8 +65,8 @@ public class ReflectionUiMapper implements UiMapper {
     if (currentRoute != null && !currentRoute.isEmpty() && !"/".equals(currentRoute)) {
       return currentRoute;
     }
-    if (uiInstance instanceof HasHomeRoute hasHomeRoute) {
-      return hasHomeRoute.getHomeRoute();
+    if (uiInstance instanceof HomeRouteSupplier hasHomeRoute) {
+      return hasHomeRoute.homeRoute();
     }
     return "";
   }

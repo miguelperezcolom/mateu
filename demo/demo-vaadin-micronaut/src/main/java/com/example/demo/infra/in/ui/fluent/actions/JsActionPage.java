@@ -6,14 +6,14 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
 @Route("/fluent-app/actions/js")
-public class JsActionPage implements ComponentTreeSupplier, HasActions {
+public class JsActionPage implements ComponentTreeSupplier, ActionSupplier {
 
     @Override
     public Form component(HttpRequest httpRequest) {

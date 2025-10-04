@@ -13,7 +13,6 @@ import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Map;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
@@ -21,7 +20,7 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -57,7 +56,7 @@ record Params(String name, int age) {
 
 @Route("/fluent-app/crudls/with-row-menu")
 @Slf4j
-public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3>, HasTriggers {
+public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3>, TriggersSupplier {
 
     @JsonIgnore
     List<Row3> allItems = List.of(

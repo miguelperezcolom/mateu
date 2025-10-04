@@ -12,7 +12,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
@@ -40,7 +40,7 @@ record TrainingRow(
 
 @Route("/fluent-app/use-cases/rra/training")
 @Singleton
-public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilters, TrainingRow>, HasTriggers {
+public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilters, TrainingRow>, TriggersSupplier {
 
     private final TrainingRepository trainingRepository;
 

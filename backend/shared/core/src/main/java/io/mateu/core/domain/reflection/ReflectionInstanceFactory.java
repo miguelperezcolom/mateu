@@ -7,7 +7,7 @@ import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactory;
-import io.mateu.uidl.interfaces.HasPostHydrationMethod;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
 import jakarta.inject.Named;
@@ -67,7 +67,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   }
 
   private Object initIfNeeded(Object uiInstance, HttpRequest httpRequest) {
-    if (uiInstance instanceof HasPostHydrationMethod hasInitMethod) {
+    if (uiInstance instanceof PostHydrationHandler hasInitMethod) {
       hasInitMethod.onHydrated(httpRequest);
     }
     return uiInstance;

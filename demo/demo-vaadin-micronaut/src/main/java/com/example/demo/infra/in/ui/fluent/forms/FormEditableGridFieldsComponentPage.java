@@ -19,7 +19,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -33,7 +33,7 @@ import java.util.Map;
 
 @Route("/fluent-app/forms/editable-grid-fields")
 @Singleton
-public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplier, HandlesActions, HasTriggers {
+public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplier, HandlesActions, TriggersSupplier {
 
     private final ProductRepository productRepository;
     private final String orderId = "O0000000001";

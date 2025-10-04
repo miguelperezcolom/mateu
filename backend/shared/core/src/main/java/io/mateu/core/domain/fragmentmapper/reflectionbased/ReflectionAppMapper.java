@@ -16,7 +16,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
-import io.mateu.uidl.interfaces.HasMenu;
+import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
@@ -176,8 +176,8 @@ public class ReflectionAppMapper {
 
   public static List<MenuOptionDto> getMenu(
       Object instance, String baseUrl, String route, String appRoute, HttpRequest httpRequest) {
-    if (instance instanceof HasMenu hasMenu) {
-      var menuFromApp = hasMenu.createMenu(httpRequest);
+    if (instance instanceof MenuSupplier hasMenu) {
+      var menuFromApp = hasMenu.menu(httpRequest);
       var selectedRoute =
           appRoute.equals(route)
               ? menuFromApp.stream()

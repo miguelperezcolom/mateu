@@ -14,7 +14,7 @@ import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -41,7 +41,7 @@ record Row2(
 
 @Route("/fluent-app/crudls/more-columns")
 @Slf4j
-public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Filters2, Row2>, HasTriggers {
+public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Filters2, Row2>, TriggersSupplier {
 
     @JsonIgnore
     List<Row2> allItems = List.of(

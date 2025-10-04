@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -11,7 +10,7 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.CommandSupplier;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/components/web-component")
-public class WebComponentComponentPage implements ComponentTreeSupplier, HandlesActions, CommandSupplier, HasTriggers {
+public class WebComponentComponentPage implements ComponentTreeSupplier, HandlesActions, CommandSupplier, TriggersSupplier {
     private static final Logger log = LoggerFactory.getLogger(WebComponentComponentPage.class);
 
     String src = "/images/model-viewer/NeilArmstrong.glb";

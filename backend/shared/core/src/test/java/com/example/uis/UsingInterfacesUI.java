@@ -1,14 +1,14 @@
 package com.example.uis;
 
 import io.mateu.uidl.interfaces.HandlesActions;
-import io.mateu.uidl.interfaces.HasFavicon;
+import io.mateu.uidl.interfaces.FaviconSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Flux;
 
-public class UsingInterfacesUI implements HasFavicon, HandlesActions {
+public class UsingInterfacesUI implements FaviconSupplier, HandlesActions {
 
   @Override
-  public String getFavicon() {
+  public String favicon() {
     return "fav_icon";
   }
 

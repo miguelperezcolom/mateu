@@ -7,8 +7,8 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.CustomEvent;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasActions;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -26,7 +26,7 @@ record Detail(String a, int b) {
 }
 
 @Serdeable
-class CustomEventActionComponent implements ComponentTreeSupplier, HasActions {
+class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplier {
 
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -72,7 +72,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, HasActions {
 
 @Route("/fluent-app/actions/custom-event")
 @Slf4j
-public class CustomEventActionPage implements ComponentTreeSupplier, HasActions, HasTriggers, HandlesActions {
+public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, HandlesActions {
 
     @Override
     public Form component(HttpRequest httpRequest) {

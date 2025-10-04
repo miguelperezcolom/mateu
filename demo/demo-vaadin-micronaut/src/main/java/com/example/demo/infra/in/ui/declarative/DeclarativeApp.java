@@ -10,7 +10,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Page;
-import io.mateu.uidl.interfaces.HasMenu;
+import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Submenu;
 
@@ -65,9 +65,9 @@ public class DeclarativeApp implements App {
     @Menu
     MySubmenu page8;
     @Menu
-    HasMenu page9 = new HasMenu() {
+    MenuSupplier page9 = new MenuSupplier() {
         @Override
-        public List<Actionable> createMenu(HttpRequest httpRequest) {
+        public List<Actionable> menu(HttpRequest httpRequest) {
             return List.of(
                     new ContentLink(rq -> new Text("Hola 1")),
                     new ContentLink(rq -> new Text("Hola 2")),

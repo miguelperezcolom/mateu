@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
-import com.example.demo.domain.Order;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
@@ -15,8 +14,7 @@ import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.CrudlType;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.HasTriggers;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
@@ -45,7 +43,7 @@ record ProductInventoryRow(
 
 @Route("/fluent-app/use-cases/rra/inventory")
 @Singleton
-public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend<ProductInventoryFilters, ProductInventoryRow>, HasTriggers, HandlesActions {
+public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, HandlesActions {
 
     private final ProductRepository productRepository;
 
