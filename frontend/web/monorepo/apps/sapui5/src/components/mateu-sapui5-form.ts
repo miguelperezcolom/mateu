@@ -31,8 +31,7 @@ export class MateuSapUI5Form extends MetadataDrivenElement {
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
-            <ui5-dynamic-page id="page" show-footer style="width: auto; display: block;">
-                
+            <ui5-dynamic-page id="page" show-footer style="width: auto;">
                 ${metadata.noHeader?html`
 
                     ${metadata.toolbar?.length > 0?html`
@@ -251,8 +250,6 @@ export class MateuSapUI5Form extends MetadataDrivenElement {
 
     static styles = css`
         :host {
-            width: 100%;
-            height: calc(100vh - 8.3rem);
         }
 
         ui5-dynamic-page-title {

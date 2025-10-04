@@ -10,4 +10,5 @@ public record Rule(
     RuleFieldAttribute fieldAttribute,
     Object value,
     String expression,
+    String actionId,
     RuleResult result) {}

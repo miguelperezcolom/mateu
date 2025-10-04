@@ -1,4 +1,11 @@
 export enum RuleAction {
-    UpdateData = "UpdateData",
-    UpdateState = "UpdateState"
+    SetAppDataValue = "SetAppDataValue",
+    SetAppStateValue = "SetAppStateValue",
+    SetDataValue = "SetDataValue",
+    RunAction = "RunAction",
+    RunJS = "RunJS",
+    SetAttributeValue = "SetAttributeValue",
+    SetStateValue = "SetStateValue",
+    SetCssClass = "SetCssClass",
+    SetStyle = "SetStyle"
 }

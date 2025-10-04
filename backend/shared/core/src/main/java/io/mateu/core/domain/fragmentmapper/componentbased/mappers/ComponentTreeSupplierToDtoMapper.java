@@ -86,11 +86,12 @@ public class ComponentTreeSupplierToDtoMapper {
                   RuleDto.builder()
                       .filter(rule.filter())
                       .action(RuleActionDto.valueOf(rule.action().name()))
-                      .fieldAttribute(RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name()))
+                      .fieldAttribute(rule.fieldAttribute() != null?RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name()):null)
                       .fieldName(rule.fieldName())
                       .value(rule.value())
                       .expression(rule.expression())
                       .result(RuleResultDto.valueOf(rule.result().name()))
+                          .actionId(rule.actionId())
                       .build())
           .toList();
     }

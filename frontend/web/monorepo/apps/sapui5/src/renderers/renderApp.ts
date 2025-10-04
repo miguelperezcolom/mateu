@@ -5,6 +5,7 @@ import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayou
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import '../components/mateu-sapui5-app'
 import { MateuComponent } from "@infra/ui/mateu-component.ts";
+import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 
 let mode = NavigationLayoutMode.Auto
 
@@ -14,6 +15,7 @@ const toggle = (container: LitElement) => {
 }
 
 const selected = (event: CustomEvent, container: LitElement, _baseUrl: string, metadata: App) => {
+    console.log(event)
     const route = event.detail.item.dataset.route
     let baseUrl = _baseUrl??''
     if (baseUrl.indexOf('://') < 0) {
@@ -36,6 +38,37 @@ const selected = (event: CustomEvent, container: LitElement, _baseUrl: string, m
     }
 }
 
+const renderSubmenu = (menu: MenuOption): TemplateResult => {
+    return html`
+                    ${menu.submenus && menu.submenus.length > 0?html`
+                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
+                            ${menu.submenus.filter(sub => !sub.separator).map(sub => html`
+                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
+                            `)}
+                        </ui5-side-navigation-item>
+                    `:html`
+
+                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}"></ui5-side-navigation-item>
+
+                    `}
+                `
+}
+
+const renderMenu = (menu: MenuOption): TemplateResult => {
+    return html`
+                    ${menu.submenus && menu.submenus.length > 0?html`
+                        <ui5-side-navigation-group text="${menu.label}">
+                            ${menu.submenus.filter(sub => !sub.separator).map(sub => renderSubmenu(sub))}
+                        </ui5-side-navigation-group>
+
+                    `:html`
+
+                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}" icon="home"></ui5-side-navigation-item>
+
+                    `}
+                `
+}
+
 export const renderApp = (container: MateuComponent, component: ClientSideComponent, baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as App
 
@@ -51,21 +84,7 @@ export const renderApp = (container: MateuComponent, component: ClientSideCompon
             </ui5-shellbar>
             <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => selected(e, container, baseUrl??'', metadata)}" collapsed>
                 <!-- Items -->
-                ${metadata.menu.map(menu => html`
-                    ${menu.submenus?html`
-
-                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
-                            ${menu.submenus.map(sub => html `
-                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
-                            `)}
-                        </ui5-side-navigation-item>
-
-                    `:html`
-
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}" icon="home"></ui5-side-navigation-item>
-
-                    `}
-                `)}
+                ${metadata.menu.map(menu => renderMenu(menu))}
                 <!--
                 <ui5-side-navigation-item text="Home" href="#home" icon="home"></ui5-side-navigation-item>
                 <ui5-side-navigation-group text="Group 1" expanded>

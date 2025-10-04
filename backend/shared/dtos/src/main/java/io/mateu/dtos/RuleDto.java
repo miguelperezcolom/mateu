@@ -10,4 +10,5 @@ public record RuleDto(
     RuleFieldAttributeDto fieldAttribute,
     Object value,
     String expression,
-    RuleResultDto result) {}
+    RuleResultDto result,
+    String actionId) {}

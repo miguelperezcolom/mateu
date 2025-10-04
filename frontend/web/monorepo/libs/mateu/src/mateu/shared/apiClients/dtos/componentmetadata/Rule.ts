@@ -11,5 +11,6 @@ export default interface Rule {
     value: unknown
     expression: string | undefined
     result: RuleResult
+    actionId: string
 
 }

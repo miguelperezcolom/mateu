@@ -43,7 +43,7 @@ public class VisibilityRulePage implements ComponentTreeSupplier, RuleSupplier {
         return List.of(
                 Rule.builder()
                         .filter("true")
-                        .action(RuleAction.UpdateData)
+                        .action(RuleAction.SetDataValue)
                         .fieldName("texto")
                         .fieldAttribute(RuleFieldAttribute.hidden)
                         .expression("state.hidden")

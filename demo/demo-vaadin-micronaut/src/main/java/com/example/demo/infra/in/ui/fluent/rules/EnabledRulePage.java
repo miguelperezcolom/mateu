@@ -46,7 +46,7 @@ public class EnabledRulePage implements ComponentTreeSupplier, RuleSupplier {
         return List.of(
                 Rule.builder()
                         .filter("true")
-                        .action(RuleAction.UpdateData)
+                        .action(RuleAction.SetDataValue)
                         .fieldName("aButton,aField")
                         .fieldAttribute(RuleFieldAttribute.disabled)
                         .expression("!state.enable")

@@ -16,6 +16,7 @@ import "@ui5/webcomponents/dist/TextArea.js";
 import "@ui5/webcomponents/dist/Select.js";
 import "@ui5/webcomponents/dist/ComboBox.js";
 import "@ui5/webcomponents/dist/Title.js";
+import "@ui5/webcomponents/dist/Switch.js";
 
 import "@ui5/webcomponents-fiori/dist/NavigationLayout.js";
 import "@ui5/webcomponents-fiori/dist/SideNavigation.js";

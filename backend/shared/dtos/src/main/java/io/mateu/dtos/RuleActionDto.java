@@ -1,6 +1,13 @@
 package io.mateu.dtos;
 
 public enum RuleActionDto {
-  UpdateData,
-  UpdateState
+    SetAppDataValue,
+    SetAppStateValue,
+    SetDataValue,
+    RunAction,
+    RunJS,
+    SetAttributeValue,
+    SetStateValue,
+    SetCssClass,
+    SetStyle
 }

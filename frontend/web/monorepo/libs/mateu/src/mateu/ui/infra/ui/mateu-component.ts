@@ -111,7 +111,11 @@ export class MateuComponent extends ComponentElement {
             // @ts-ignore
             const state = this.state
             // @ts-ignore
-            const data = this.state
+            const data = this.data
+            // @ts-ignore
+            const appState = this.appState
+            // @ts-ignore
+            const appData = this.appData
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
@@ -120,23 +124,46 @@ export class MateuComponent extends ComponentElement {
                 const rule = rules[ruleIndex]
                 try {
                     if (eval(rule.filter)) {
-                        const target = RuleAction.UpdateState == rule.action?newState:newData
-                        const fieldNames = rule.fieldName.split(',')
-                        for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
-                            const fieldName = fieldNames[fieldIndex]
-                            if (!target[fieldName] || target[fieldName] != rule.value) {
-                                const value = rule.expression?eval(eval('`' + rule.expression + '`')):rule.value
-                                const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
-                                if (value != target[propertyName]) {
-                                    target[propertyName] = value
-                                    if (RuleAction.UpdateState == rule.action) {
-                                        stateUpdated = true
-                                    }
-                                    if (RuleAction.UpdateData == rule.action) {
-                                        dataUpdated = true
+                        if (RuleAction.SetStateValue == rule.action || RuleAction.SetDataValue == rule.action) {
+                            const target = RuleAction.SetStateValue == rule.action?newState:newData
+                            const fieldNames = rule.fieldName.split(',')
+                            for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                                const fieldName = fieldNames[fieldIndex]
+                                if (!target[fieldName] || target[fieldName] != rule.value) {
+                                    const value = rule.expression?eval(eval('`' + rule.expression + '`')):rule.value
+                                    const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
+                                    if (value != target[propertyName]) {
+                                        target[propertyName] = value
+                                        if (RuleAction.SetStateValue == rule.action) {
+                                            stateUpdated = true
+                                        }
+                                        if (RuleAction.SetDataValue == rule.action) {
+                                            dataUpdated = true
+                                        }
                                     }
                                 }
                             }
+                        }
+                        if (RuleAction.RunAction == rule.action) {
+                            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: rule.actionId
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }
+                        if (RuleAction.RunJS == rule.action) {
+                            eval(rule.value as string)
+                        }
+                        if (RuleAction.SetAttributeValue == rule.action) {
+                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, rule.value as string)
+                        }
+                        if (RuleAction.SetCssClass == rule.action) {
+                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute('class', rule.value as string)
+                        }
+                        if (RuleAction.SetStyle == rule.action) {
+                            this.shadowRoot?.getElementById(rule.fieldName)?.style.setProperty(rule.expression as string, rule.value as string)
                         }
                         if (RuleResult.Stop == rule.result) {
                             break
@@ -255,7 +282,7 @@ export class MateuComponent extends ComponentElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has('state')) {
+        if (_changedProperties.has('state') && this.state && JSON.stringify(this.state) != JSON.stringify({})) {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
@@ -304,7 +331,10 @@ export class MateuComponent extends ComponentElement {
                         }
                     })
 
+                /*
+                console.log(e)
                 this.onChange()
+                 */
             }
         }
     }
