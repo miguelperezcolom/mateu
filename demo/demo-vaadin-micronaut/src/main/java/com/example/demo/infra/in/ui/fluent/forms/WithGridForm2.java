@@ -15,7 +15,7 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -27,7 +27,7 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/with-grid2")
 @Slf4j
-public class WithGridForm2 implements ComponentTreeSupplier, HandlesActions, ActionSupplier, TriggersSupplier {
+public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;

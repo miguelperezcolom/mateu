@@ -8,7 +8,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
 
-public interface CrudlBackend<Filters, Row> extends HandlesActions {
+public interface CrudlBackend<Filters, Row> extends ActionHandler {
 
   @Override
   default boolean supportsAction(String actionId) {

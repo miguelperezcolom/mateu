@@ -1,11 +1,11 @@
 package com.example.uis;
 
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.FaviconSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Flux;
 
-public class UsingInterfacesUI implements FaviconSupplier, HandlesActions {
+public class UsingInterfacesUI implements FaviconSupplier, ActionHandler {
 
   @Override
   public String favicon() {

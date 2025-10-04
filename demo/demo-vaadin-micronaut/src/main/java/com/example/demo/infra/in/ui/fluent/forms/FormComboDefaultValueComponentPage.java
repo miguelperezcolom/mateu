@@ -14,7 +14,7 @@ import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
@@ -27,7 +27,7 @@ import java.util.Map;
 
 @Route("/fluent-app/forms/combobox-default-value")
 @Singleton
-public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier, HandlesActions, PostHydrationHandler {
+public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier, ActionHandler, PostHydrationHandler {
 
     private final CustomerRepository customerRepository;
 

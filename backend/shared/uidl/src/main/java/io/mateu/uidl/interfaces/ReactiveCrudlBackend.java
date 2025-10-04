@@ -9,7 +9,7 @@ import java.util.Map;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ReactiveCrudlBackend<Filters, Row> extends HandlesActions {
+public interface ReactiveCrudlBackend<Filters, Row> extends ActionHandler {
 
   @Override
   default boolean supportsAction(String actionId) {

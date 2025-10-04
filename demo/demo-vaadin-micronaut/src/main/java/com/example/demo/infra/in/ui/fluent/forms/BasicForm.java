@@ -12,13 +12,13 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
 @Route("/fluent-app/forms/basic")
-public class BasicForm implements ComponentTreeSupplier, HandlesActions, ActionSupplier, TriggersSupplier {
+public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;

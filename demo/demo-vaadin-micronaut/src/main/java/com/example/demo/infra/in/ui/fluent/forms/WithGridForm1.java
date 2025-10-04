@@ -14,7 +14,7 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import reactor.core.publisher.Flux;
@@ -31,7 +31,7 @@ record Person(String name, int age) {
 }
 
 @Route("/fluent-app/forms/with-grid1")
-public class WithGridForm1 implements ComponentTreeSupplier, HandlesActions, ActionSupplier, TriggersSupplier {
+public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;

@@ -27,7 +27,7 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
@@ -56,7 +56,7 @@ record OrderRow(
 
 @Route("/fluent-app/use-cases/rra/orders")
 @Singleton
-public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFilters, OrderRow>, TriggersSupplier, HandlesActions, ActionSupplier {
+public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
 
     private final OrderRepository orderRepository;
 

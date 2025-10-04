@@ -7,7 +7,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-class NestedAppStateForm implements ComponentTreeSupplier, HandlesActions {
+class NestedAppStateForm implements ComponentTreeSupplier, ActionHandler {
 
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {

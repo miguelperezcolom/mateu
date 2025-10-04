@@ -9,7 +9,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import jakarta.inject.Inject;
@@ -18,7 +18,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 
 @Singleton
-public class OrderProductList implements ComponentTreeSupplier, HandlesActions {
+public class OrderProductList implements ComponentTreeSupplier, ActionHandler {
 
     private List<String> productIds;
     private String productId;

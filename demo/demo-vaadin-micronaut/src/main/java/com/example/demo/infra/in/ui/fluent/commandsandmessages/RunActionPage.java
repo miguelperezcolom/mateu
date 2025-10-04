@@ -5,20 +5,18 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
 @Route("/fluent-app/commands-and-messages/run-action")
 @Schema
-public class RunActionPage implements ComponentTreeSupplier, HandlesActions {
+public class RunActionPage implements ComponentTreeSupplier, ActionHandler {
 
     @Override
     public Component component(HttpRequest httpRequest) {

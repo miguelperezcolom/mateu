@@ -12,7 +12,7 @@ import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -20,7 +20,7 @@ import java.util.List;
 
 @Route("/fluent-app/commands-and-messages/set-favicon")
 @Schema
-public class SetFaviconPage implements ComponentTreeSupplier, HandlesActions {
+public class SetFaviconPage implements ComponentTreeSupplier, ActionHandler {
 
     String favIcon = "";
 

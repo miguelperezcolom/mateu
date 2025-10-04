@@ -12,7 +12,7 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +72,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
 
 @Route("/fluent-app/actions/custom-event")
 @Slf4j
-public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, HandlesActions {
+public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
 
     @Override
     public Form component(HttpRequest httpRequest) {

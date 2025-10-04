@@ -1,6 +1,6 @@
 package io.mateu.uidl.interfaces;
 
-public interface HandlesActions {
+public interface ActionHandler {
 
   default boolean supportsAction(String actionId) {
     return !"".equals(actionId);

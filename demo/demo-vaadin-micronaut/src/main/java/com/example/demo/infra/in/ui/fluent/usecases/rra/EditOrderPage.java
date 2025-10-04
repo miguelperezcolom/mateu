@@ -30,7 +30,7 @@ import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
@@ -46,7 +46,7 @@ import java.util.Map;
 
 @Singleton
 @Serdeable
-public class EditOrderPage implements ComponentTreeSupplier, HandlesActions, TriggersSupplier, PostHydrationHandler {
+public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier, PostHydrationHandler {
 
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;

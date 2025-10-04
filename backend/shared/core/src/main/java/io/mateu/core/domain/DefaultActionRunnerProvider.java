@@ -1,6 +1,6 @@
 package io.mateu.core.domain;
 
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.Comparator;
@@ -29,7 +29,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     if (instance == null) {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }
-    if (instance instanceof HandlesActions handlesActions) {
+    if (instance instanceof ActionHandler handlesActions) {
       if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
           @Override

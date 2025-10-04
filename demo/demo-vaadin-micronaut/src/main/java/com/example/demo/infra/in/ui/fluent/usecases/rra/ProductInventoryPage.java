@@ -20,7 +20,7 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CrudlBackend;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
@@ -43,7 +43,7 @@ record ProductInventoryRow(
 
 @Route("/fluent-app/use-cases/rra/inventory")
 @Singleton
-public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, HandlesActions {
+public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
 
     private final ProductRepository productRepository;
 

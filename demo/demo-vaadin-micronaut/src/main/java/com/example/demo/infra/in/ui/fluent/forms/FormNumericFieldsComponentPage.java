@@ -11,7 +11,7 @@ import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 @Route("/fluent-app/forms/numeric-fields")
-public class FormNumericFieldsComponentPage implements ComponentTreeSupplier, HandlesActions {
+public class FormNumericFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     Range range = new Range(10, 30);
 

@@ -16,7 +16,7 @@ import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -26,7 +26,7 @@ import java.util.Map;
 
 @Route("/fluent-app/forms/data-sourced-fields-1")
 @Singleton
-public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, HandlesActions {
+public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, ActionHandler {
 
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;

@@ -8,16 +8,15 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
 @Route("/fluent-app/commands-and-messages/message")
 @Schema
-public class MessagePage implements ComponentTreeSupplier, HandlesActions {
+public class MessagePage implements ComponentTreeSupplier, ActionHandler {
 
     @Override
     public Component component(HttpRequest httpRequest) {

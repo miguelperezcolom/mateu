@@ -12,7 +12,7 @@ import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ValidationSupplier;
 import lombok.SneakyThrows;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/actions/validation-required")
-public class ValidationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, HandlesActions, ValidationSupplier {
+public class ValidationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler, ValidationSupplier {
 
     @Override
     public Form component(HttpRequest httpRequest) {

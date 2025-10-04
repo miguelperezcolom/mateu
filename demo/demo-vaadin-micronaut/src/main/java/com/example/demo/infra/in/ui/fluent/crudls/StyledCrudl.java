@@ -11,7 +11,7 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Route("/fluent-app/crudls/styled")
 @Slf4j
-public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, HandlesActions {
+public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, ActionHandler {
 
     boolean wrapCellContent;
     boolean compact;

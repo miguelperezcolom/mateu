@@ -15,7 +15,7 @@ import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesActions;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route("/fluent-app/components/web-component")
-public class WebComponentComponentPage implements ComponentTreeSupplier, HandlesActions, CommandSupplier, TriggersSupplier {
+public class WebComponentComponentPage implements ComponentTreeSupplier, ActionHandler, CommandSupplier, TriggersSupplier {
     private static final Logger log = LoggerFactory.getLogger(WebComponentComponentPage.class);
 
     String src = "/images/model-viewer/NeilArmstrong.glb";
