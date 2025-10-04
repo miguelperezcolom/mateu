@@ -15,7 +15,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
-import io.mateu.uidl.interfaces.HandlesRoute;
+import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
@@ -156,7 +156,7 @@ public class RunActionUseCase {
         .createInstance(instanceTypeName, data, httpRequest)
         .flatMap(
             instance -> {
-              if (instance instanceof HandlesRoute handlesRoute) {
+              if (instance instanceof RouteHandler handlesRoute) {
                 return handlesRoute.handleRoute(route, httpRequest);
               }
               return Mono.just(instance);

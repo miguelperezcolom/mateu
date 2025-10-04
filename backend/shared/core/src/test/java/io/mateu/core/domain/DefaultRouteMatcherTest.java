@@ -3,7 +3,7 @@ package io.mateu.core.domain;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.uidl.interfaces.HandlesRoute;
+import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -15,7 +15,7 @@ class DefaultRouteMatcherTest {
   @Test
   void returnsSelf() {
     var handlesRoutes =
-        new HandlesRoute() {
+        new RouteHandler() {
 
           @Override
           public Mono<?> handleRoute(String route, HttpRequest httpRequest) {

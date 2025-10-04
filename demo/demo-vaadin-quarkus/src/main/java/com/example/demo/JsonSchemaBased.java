@@ -11,7 +11,7 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HandlesRoute;
+import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
@@ -25,7 +25,7 @@ import static com.example.demo.jsonschemabased.Mapper.getOptions;
 import static com.example.demo.jsonschemabased.Mapper.getStereotype;
 
 @MateuUI("/json-schema")
-public class JsonSchemaBased implements ComponentTreeSupplier, HandlesRoute {
+public class JsonSchemaBased implements ComponentTreeSupplier, RouteHandler {
 
     private String route = "";
 

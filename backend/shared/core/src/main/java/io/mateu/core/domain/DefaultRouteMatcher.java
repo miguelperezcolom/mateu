@@ -1,6 +1,6 @@
 package io.mateu.core.domain;
 
-import io.mateu.uidl.interfaces.HandlesRoute;
+import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import reactor.core.publisher.Mono;
@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public class DefaultRouteMatcher implements RouteMatcher {
   @Override
   public Mono<?> map(Object ui, HttpRequest httpRequest) {
-    if (ui instanceof HandlesRoute handlesRoute) {
+    if (ui instanceof RouteHandler handlesRoute) {
       return Mono.just(handlesRoute);
     }
     return Mono.empty();
