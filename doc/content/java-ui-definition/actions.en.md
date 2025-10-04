@@ -19,7 +19,7 @@ while making the call).
 
 ## Explicitly defining actions
 
-You can explicitly define actions by implementing the **HasActions** interface. 
+You can explicitly define actions by implementing the **ActionSupplier** interface, or by adding **@Action** annotations to your class. 
 
 
 {{< tabs "tab-group-name" >}}
@@ -59,10 +59,10 @@ public class Home {
 ```java
 
 @Slf4j
-public class Home implements HasActions, HandlesActions {
+public class Home implements ActionSupplier, ActionHandler {
 
     @Override
-    public List<Action> getActions(HttpRequest httpRequest) {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
           
           Action.builder()
@@ -94,15 +94,10 @@ public class Home implements HasActions, HandlesActions {
 ## Explicitly handling actions
 
 As said, you usually create actions transparently when providing callbacks or lambdas, but you can also provide an
-action handler for your component. You just need to implement the **HandlesActions** interface, like below:
+action handler for your component. You just need to implement the **ActionHandler** interface, like below:
 
 ```java
-public class Home implements HandlesActions {
-
-    @Override
-    public boolean supportsAction(String actionId) {
-        return true;
-    }
+public class Home implements ActionHandler {
 
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
@@ -112,7 +107,7 @@ public class Home implements HandlesActions {
 }
 ```
 
-The **HandlesActions** interface has a reactive counterpart, which is the **HandlesActionsReactive** interface.
+Please notice you can return a **Mono** or a **Flux** for a reactive approach. Mateu will plug them in the request handling flow.
 
 ## Client side actions
 

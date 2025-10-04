@@ -57,13 +57,13 @@ public class Counter implements ComponentTreeSupplier {
 Please notice that, unless you defined your java class as a singleton bean, the java object is instantiated and hydrated
 on every api request. It does not survive between api calls. Mateu server side is stateless.
 
-## Linking backend and frontend
+## Binding backend and frontend
 
 In **Mateu** any class can be a server side component. You link that class to the frontend by:
 
 - Annotating the class with **@MateuUI**.
 - Annotating the class with **@Route**.
-- Returning an object from a method in a class which is already linked to the frontend, as response to some event in the browser.
+- Fron a class which is already linked to the frontend, return an object as response to some event in the browser.
 
 ## Interact with the frontend
 
