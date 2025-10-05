@@ -10,14 +10,19 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-// @SpringBootTest
-public class IconsetTest {
+@SpringBootTest
+public class IconsetGenerator {
 
-  // @Test
+  @Test
+  @Disabled
   void test() throws IOException, JDOMException {
 
-    File file = new File("/Users/mguel/IdeaProjects/mateu/.dev/vaadin-icons.xml");
+    File file = new File("../../../.dev/vaadin-icons.xml");
+      System.out.println(file.getAbsolutePath());
     String raw = FileUtils.readFileToString(file, "UTF-8");
 
     Document doc = new SAXBuilder().build(new StringReader(raw));

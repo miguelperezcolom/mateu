@@ -16,8 +16,8 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
-import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
 import java.util.List;
@@ -113,7 +113,7 @@ public class ReflectionAppMapper {
       if (option.destination() != null) {
         var matches =
             exact
-                ? option.destination().route().equals(route)
+                ? option.destination().route() != null && option.destination().route().equals(route)
                 : route.startsWith(option.destination().route());
         if (matches) {
           return route;

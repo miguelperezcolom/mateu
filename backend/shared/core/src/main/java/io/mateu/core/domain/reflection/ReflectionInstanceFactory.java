@@ -7,9 +7,9 @@ import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.InstanceFactory;
-import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Array;

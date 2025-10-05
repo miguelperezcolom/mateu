@@ -20,15 +20,15 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.ActionSupplier;
-import io.mateu.uidl.fluent.TriggersSupplier;
+import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
@@ -86,12 +86,15 @@ public class ComponentTreeSupplierToDtoMapper {
                   RuleDto.builder()
                       .filter(rule.filter())
                       .action(RuleActionDto.valueOf(rule.action().name()))
-                      .fieldAttribute(rule.fieldAttribute() != null?RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name()):null)
+                      .fieldAttribute(
+                          rule.fieldAttribute() != null
+                              ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
+                              : null)
                       .fieldName(rule.fieldName())
                       .value(rule.value())
                       .expression(rule.expression())
                       .result(RuleResultDto.valueOf(rule.result().name()))
-                          .actionId(rule.actionId())
+                      .actionId(rule.actionId())
                       .build())
           .toList();
     }

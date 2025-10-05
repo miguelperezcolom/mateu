@@ -1,7 +1,7 @@
 package io.mateu.core.domain.reflection.samples;
 
-import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 
 public class WithInitMethod implements PostHydrationHandler {
 

@@ -9,7 +9,7 @@ public class DeclarativeUI implements PageTitleSupplier, HomeRouteSupplier {
 
     @Override
     public String pageTitle() {
-        return "Antonia";
+        return "Declarative";
     }
 
     @Override
