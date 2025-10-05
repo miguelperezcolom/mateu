@@ -56,9 +56,9 @@ class DefaultMateuServiceTest {
             .runAction(
                 UsingInterfacesUI.class.getName(),
                 new RunActionRqDto(
-                    Map.of(),
-                    Map.of(),
-                    Map.of(),
+                    Map.of(), // component state
+                    Map.of(), // app state
+                    Map.of(), // parameters
                     "initiator_component_id",
                     "consumed_route",
                     "action_id",

@@ -10,4 +10,8 @@ public class SampleComponent implements ComponentTreeSupplier {
   public Component component(HttpRequest httpRequest) {
     return Div.builder().build();
   }
+
+  public String sayHello() {
+      return "Hello World!";
+  }
 }
