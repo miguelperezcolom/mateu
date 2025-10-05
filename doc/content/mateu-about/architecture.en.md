@@ -3,15 +3,21 @@ title: "Architecture"
 weight: 16
 ---
 
-Mateu's architecture is exceedingly simple: just a static frontend component which talks to the backend using an 
+At the highest level **Mateu**'s architecture is exceedingly simple: just a static frontend component which talks to the backend using an 
 exceedingly simple API.
 
 The following diagram gives the architecture overall view:
 
 <p align="center"><img src="../../../images/arch-overall-1.svg" width="500"/></p>
 
-The good point about being so simple is that you can easily build your own frontend and backend artifacts in order to, 
-e.g., use your own design system while leveraging the existing Mateu's backend libraries.
+Please notice that both the frontend and the backend components are interchangeable. You can indeed choose among
+the ones provided by **Mateu** or easily build your own. E.g. you can choose to combine the **Red Hat** frontend with a 
+Java **Micronaut** based backend, or perhaps you prefer to go with the **Oracle's Redwood** frontend and an **Springboot Webflux** 
+backend, or perhaps you want to use a **Vaadin** frontend relying on several micro services using **Quarkus**, **Springboot MVC** 
+and **.Net**.
+
+The good point about being so simple and decoupled is that you can even easily build your own frontend and backend 
+artifacts in order to, e.g., use your own design system while leveraging the existing Mateu's backend libraries.
 
 ## Artifacts
 
@@ -54,7 +60,7 @@ inside the browser like in the diagram below:
 
 ## What happens in the server side
 
-Mateu basically generates controllers for your server side classes annotated with `@MateuUI`, which mainly provide 3 things:
+Mateu basically generates controllers for your server side classes annotated with **@MateuUI**, which mainly provide 3 things:
 
 - Serve the static content (index.html and mateu.js) for instantiating the renderer web component in the browser.
 - Implement the API the frontend consumes, connecting it to your server-side objects which define your UI.
@@ -93,7 +99,7 @@ You can use any of the provided frontends as a starting point for building yours
 
 I have used hexagonal architecture both in the backend and in the frontend. This strategy has definitely brought 
 scalability to the project and has made it easy to support many backend frameworks (Spring MVC, String Webflux, 
-Micronaut, Quarkus, Helidon) and several frontends relying on different design systems (SAPUI5, Oracle Redwood, Vaadin).
+Micronaut, Quarkus, Helidon) and several frontends relying on different design systems (Red Hat, SAPUI5, Oracle Redwood, Vaadin).
 
 If tomorrow I need to add something (e.g. a new design system) I know I will easily do it, maximizing code reuse. 
 
@@ -114,7 +120,7 @@ You can extend the frontend by providing your own web components.
 **Mateu**.
 
 Also, **Mateu** is intended to be polyglot, so you can have different micro services written in different languages 
-(e.g. Java, C#, Python, ...), or using different frameworks and models (e.g. Springboot MVC, Springboot Webflux, 
+(e.g. Java, Kotlin, C#, Python, ...), or using different frameworks and models (e.g. Springboot MVC, Springboot Webflux, 
 Micronaut, Quarkus, ...), and all of them contributing to the same UI. 
 
 
