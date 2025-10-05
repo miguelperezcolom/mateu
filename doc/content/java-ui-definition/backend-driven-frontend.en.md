@@ -9,6 +9,11 @@ You do not write frontend code (javascript, html, css) but just backend code (ja
 With that code, at runtime, you tell the renderer which is running in the browser what to paint, either explicitly when 
 using the fluent interfaces or declaratively when using annotations.
 
+This means that you are empowering the backend team to contribute the UI without any frontend team needed, enabling them to own 
+the features end-to-end. That means a huge saving, indeed.
+
+## How it works
+
 In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
 
 <p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
