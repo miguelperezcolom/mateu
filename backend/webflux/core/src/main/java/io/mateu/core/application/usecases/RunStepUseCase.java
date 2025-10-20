@@ -37,19 +37,6 @@ public class RunStepUseCase {
       RunActionRqDto rq,
       ServerHttpRequest serverHttpRequest)
       throws Throwable {
-    log.info(
-        "running action "
-            + uiId
-            + "/"
-            + journeyTypeId
-            + "/"
-            + journeyId
-            + "/"
-            + stepId
-            + "/"
-            + componentId
-            + "/"
-            + actionId);
     return runStepActionCommandHandler
         .handle(
             new RunStepActionCommand(

@@ -642,17 +642,21 @@ export class MateuCrud extends LitElement {
         ${!this.metadata?.searchable && !((this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0)?html`
             <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
           `:''}
-        <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
-          ${this.metadata.actions.filter(a => a.visible).slice(0, 2).map(a => html`
-            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${a.rowsSelectedRequired}  actionId=${a.id} data-testid="action-${a.id}">${a.caption}</vaadin-button>
-          `)}
-          ${this.metadata.actions.filter(a => a.visible).length > 2?html`
-              <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
-                               @item-selected="${this.actionItemSelected}"
-                               .items="${this.buildItemsForActions(this.metadata.actions
-              .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
-            `:''}
-        </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
+
+          <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
+              ${this.metadata.actions.filter(a => a.visible).slice(0, (this.metadata.actions.filter(a => a.visible).length > 3)?2:3).map(a => html`
+                  <vaadin-button theme="secondary ${this.getActionVariants(a)}" @click=${this.runAction} actionId=${a.id} data-testid="action-${a.id}">${a.icon?html`
+                <vaadin-icon icon="${a.icon}" actionId=${a.id}></vaadin-icon>
+            `:''}${a.caption}</vaadin-button>
+              `)}
+              ${this.metadata.actions.filter(a => a.visible).length > 3?html`
+                  <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
+                                   @item-selected="${this.actionItemSelected}"
+                                   .items="${this.buildItemsForActions(this.metadata.actions
+                                           .filter(a => a.visible).slice(2))}"></vaadin-menu-bar>
+              `:''}
+          </vaadin-horizontal-layout>
+      </vaadin-horizontal-layout>
       ${this.metadata?.searchable || ((this.metadata?.searchForm.metadata as Form).sections && (this.metadata?.searchForm.metadata as Form).sections.length > 0)?html`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing" class="xx">
           ${this.metadata?.searchable?html`
@@ -829,7 +833,14 @@ export class MateuCrud extends LitElement {
     `
   }
 
-  getRowId(row: unknown): unknown {
+    private getActionVariants(action: Action) {
+        if (action.variants) {
+            return action.variants.join(' ').toLowerCase()
+        }
+        return '';
+    }
+
+    getRowId(row: unknown): unknown {
         // @ts-ignore
     return row.id;
     }

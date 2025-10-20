@@ -18210,16 +18210,20 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
         ${!((F=this.metadata)!=null&&F.searchable)&&!(((O=this.metadata)==null?void 0:O.searchForm.metadata).sections&&((w=this.metadata)==null?void 0:w.searchForm.metadata).sections.length>0)?x`
             <vaadin-button theme="icon tertiary small" @click="${this.clickedOnSearch}" data-testid="refresh"><vaadin-icon icon="vaadin:refresh" slot="prefix"></vaadin-icon></vaadin-button>
           `:""}
-        <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
-          ${this.metadata.actions.filter(ee=>ee.visible).slice(0,2).map(ee=>x`
-            <vaadin-button theme="secondary" @click=${this.runAction} ?rowsSelectedRequired=${ee.rowsSelectedRequired}  actionId=${ee.id} data-testid="action-${ee.id}">${ee.caption}</vaadin-button>
-          `)}
-          ${this.metadata.actions.filter(ee=>ee.visible).length>2?x`
-              <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
-                               @item-selected="${this.actionItemSelected}"
-                               .items="${this.buildItemsForActions(this.metadata.actions.filter(ee=>ee.visible).slice(2))}"></vaadin-menu-bar>
-            `:""}
-        </vaadin-horizontal-layout>      </vaadin-horizontal-layout>
+
+          <vaadin-horizontal-layout style="justify-content: end; align-items: center;" theme="spacing">
+              ${this.metadata.actions.filter(ee=>ee.visible).slice(0,this.metadata.actions.filter(ee=>ee.visible).length>3?2:3).map(ee=>x`
+                  <vaadin-button theme="secondary ${this.getActionVariants(ee)}" @click=${this.runAction} actionId=${ee.id} data-testid="action-${ee.id}">${ee.icon?x`
+                <vaadin-icon icon="${ee.icon}" actionId=${ee.id}></vaadin-icon>
+            `:""}${ee.caption}</vaadin-button>
+              `)}
+              ${this.metadata.actions.filter(ee=>ee.visible).length>3?x`
+                  <vaadin-menu-bar theme="icon tertiary small" xopen-on-hover
+                                   @item-selected="${this.actionItemSelected}"
+                                   .items="${this.buildItemsForActions(this.metadata.actions.filter(ee=>ee.visible).slice(2))}"></vaadin-menu-bar>
+              `:""}
+          </vaadin-horizontal-layout>
+      </vaadin-horizontal-layout>
       ${(U=this.metadata)!=null&&U.searchable||((q=this.metadata)==null?void 0:q.searchForm.metadata).sections&&((W=this.metadata)==null?void 0:W.searchForm.metadata).sections.length>0?x`
         <vaadin-horizontal-layout style="align-items: baseline;" theme="spacing" class="xx">
           ${(G=this.metadata)!=null&&G.searchable?x`
@@ -18355,7 +18359,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const w=O.find(U=>!!t
       <vaadin-button theme="${(de=this.confirmationTexts)!=null&&de.action?"tertiary":"primary"}" @click="${this.closeConfirmation}" data-testid="dialog-cancel">${(le=this.confirmationTexts)!=null&&le.action?"Cancel":"Ok. Got it"}</vaadin-button>
     `},[])}
       ></vaadin-dialog>
-    `}getRowId(F){return F.id}};MateuCrud.styles=i$6`
+    `}getActionVariants(F){return F.variants?F.variants.join(" ").toLowerCase():""}getRowId(F){return F.id}};MateuCrud.styles=i$6`
   ${badge}
     
   [theme~='badge'][theme~='warning'] {
