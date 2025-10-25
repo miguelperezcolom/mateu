@@ -7,7 +7,7 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DialogDto;
 import io.mateu.dtos.MessageDto;
@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
 public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private final ComponentFragmentMapper componentFragmentMapper;
-  private final ReflectionFragmentMapper reflectionFragmentMapper;
+  private final ReflectionObjectToComponentMapper reflectionFragmentMapper;
 
   @Override
   public boolean supports(Object instance) {
@@ -121,8 +121,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
           .map(
               object ->
                   serializeData(
-                      reflectionFragmentMapper.mapToFragment(
-                          componentFragmentMapper.mapToFragment(
+                      componentFragmentMapper.mapToFragment(
+                          reflectionFragmentMapper.mapToComponent(
                               object, baseUrl, route, initiatorComponentId, httpRequest),
                           baseUrl,
                           route,
@@ -132,6 +132,16 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     }
     return List.of(
         serializeData(
+            componentFragmentMapper.mapToFragment(
+                reflectionFragmentMapper.mapToComponent(
+                    instance, baseUrl, route, initiatorComponentId, httpRequest),
+                baseUrl,
+                route,
+                initiatorComponentId,
+                httpRequest)));
+    /*
+    return List.of(
+        serializeData(
             reflectionFragmentMapper.mapToFragment(
                 componentFragmentMapper.mapToFragment(
                     instance, baseUrl, route, initiatorComponentId, httpRequest),
@@ -139,6 +149,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
                 route,
                 initiatorComponentId,
                 httpRequest)));
+     */
   }
 
   private UIFragmentDto serializeData(UIFragmentDto fragment) {

@@ -1,8 +1,10 @@
 package io.mateu.core.domain.fragmentmapper;
 
 import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToFragment;
+import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionObjectMapper.mapObjectToFragment;
 
 import io.mateu.core.domain.FragmentMapper;
+import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,12 +19,16 @@ public class ComponentFragmentMapper implements FragmentMapper {
   }
 
   @Override
-  public Object mapToFragment(
+  public UIFragmentDto mapToFragment(
       Object instance,
       String baseUrl,
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+
+      if (instance instanceof UIFragmentDto uiFragmentDto) {
+          return uiFragmentDto;
+      }
 
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(
@@ -34,6 +40,6 @@ public class ComponentFragmentMapper implements FragmentMapper {
           null, component, baseUrl, route, initiatorComponentId, httpRequest);
     }
 
-    return instance;
+    return mapObjectToFragment(instance, baseUrl, initiatorComponentId, httpRequest);
   }
 }

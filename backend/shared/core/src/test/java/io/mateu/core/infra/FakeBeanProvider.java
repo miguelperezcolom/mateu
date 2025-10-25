@@ -9,7 +9,7 @@ import io.mateu.core.domain.ReflectionUiMapper;
 import io.mateu.core.domain.UiIncrementMapper;
 import io.mateu.core.domain.UiMapper;
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
 import jakarta.inject.Named;
@@ -33,7 +33,7 @@ public class FakeBeanProvider implements BeanProvider {
       return (Collection<T>)
           List.of(
               new ReflectionUiIncrementMapper(
-                  new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
+                  new ComponentFragmentMapper(), new ReflectionObjectToComponentMapper()));
     }
     if (UiMapper.class.equals(clazz)) {
       return (Collection<T>) List.of(new ReflectionUiMapper());
@@ -42,7 +42,7 @@ public class FakeBeanProvider implements BeanProvider {
       return (Collection<T>)
           List.of(
               new ReflectionUiIncrementMapper(
-                  new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
+                  new ComponentFragmentMapper(), new ReflectionObjectToComponentMapper()));
     }
     if (ActionRunner.class.equals(clazz)) {
       return (Collection<T>) List.of(new RunMethodActionRunner());

@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.uis.apps.SimpleApp;
 import com.example.uis.forms.ExtendedSimpleForm;
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import org.junit.jupiter.api.Test;
 
@@ -16,23 +16,23 @@ class ReflectionFragmentMapperTest {
 
   @Test
   void formIsMapped() {
-    var mapper = new ReflectionFragmentMapper();
+    var mapper = new ReflectionObjectToComponentMapper();
     var fragment =
-        mapper.mapToFragment(
+        mapper.mapToComponent(
             new ExtendedSimpleForm(),
             "base_url",
             "route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
-    assertInstanceOf(ServerSideComponentDto.class, fragment.component());
+    assertInstanceOf(Component.class, fragment);
   }
 
   @Test
   void appIsMapped() {
-    var mapper = new ReflectionFragmentMapper();
+    var mapper = new ReflectionObjectToComponentMapper();
     var fragment =
-        mapper.mapToFragment(
+        mapper.mapToComponent(
             new SimpleApp(), "base_url", "route", "initiator_component_id", new FakeHttpRequest());
     assertNotNull(fragment);
   }
@@ -50,10 +50,10 @@ class ReflectionFragmentMapperTest {
 
   @Test
   void fragmentPassesThrough() {
-    var mapper = new ReflectionFragmentMapper();
+    var mapper = new ReflectionObjectToComponentMapper();
     var fragment = UIFragmentDto.builder().build();
     var mapped =
-        mapper.mapToFragment(
+        mapper.mapToComponent(
             fragment, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
     assertEquals(fragment, mapped);
   }

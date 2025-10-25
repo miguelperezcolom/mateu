@@ -22,7 +22,7 @@ public class IconsetGenerator {
   void test() throws IOException, JDOMException {
 
     File file = new File("../../../.dev/vaadin-icons.xml");
-      System.out.println(file.getAbsolutePath());
+    System.out.println(file.getAbsolutePath());
     String raw = FileUtils.readFileToString(file, "UTF-8");
 
     Document doc = new SAXBuilder().build(new StringReader(raw));

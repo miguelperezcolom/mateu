@@ -9,7 +9,7 @@ import io.mateu.core.domain.BeanProvider;
 import io.mateu.core.domain.ReflectionUiIncrementMapper;
 import io.mateu.core.domain.UiIncrementMapper;
 import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.fragmentmapper.ReflectionFragmentMapper;
+import io.mateu.core.domain.fragmentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.reflection.ReflectionInstanceFactory;
 import io.mateu.core.domain.reflection.RunMethodActionRunner;
 import io.mateu.core.infra.FakeBeanProvider;
@@ -89,7 +89,7 @@ public class Mocks {
           return (Collection<T>)
               List.of(
                   new ReflectionUiIncrementMapper(
-                      new ComponentFragmentMapper(), new ReflectionFragmentMapper()));
+                      new ComponentFragmentMapper(), new ReflectionObjectToComponentMapper()));
         }
         return (Collection<T>) List.of(new ReflectionInstanceFactory(new FakeBeanProvider()));
       }

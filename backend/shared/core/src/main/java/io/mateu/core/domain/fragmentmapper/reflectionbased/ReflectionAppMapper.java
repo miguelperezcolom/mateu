@@ -28,7 +28,7 @@ public class ReflectionAppMapper {
 
   public static UIFragmentDto mapAppToFragment(
       Object componentSupplier,
-      App app,
+      Object app,
       String baseUrl,
       String route,
       String initiatorComponentId,

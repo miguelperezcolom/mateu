@@ -1,5 +1,6 @@
 package io.mateu.core.domain.fragmentmapper.reflectionbased;
 
+import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
 
@@ -9,7 +10,7 @@ public class ReflectionCommonMapper {
     if (instance instanceof TitleSupplier hasTitle) {
       return hasTitle.title();
     }
-    return null;
+    return Humanizer.capitalize(instance.getClass().getSimpleName());
   }
 
   public static String getSubtitle(Object instance) {
