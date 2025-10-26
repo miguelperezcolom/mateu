@@ -26,9 +26,9 @@ public class ComponentFragmentMapper implements FragmentMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
 
-      if (instance instanceof UIFragmentDto uiFragmentDto) {
-          return uiFragmentDto;
-      }
+    if (instance instanceof UIFragmentDto uiFragmentDto) {
+      return uiFragmentDto;
+    }
 
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(

@@ -20,7 +20,6 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.Page;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +96,7 @@ public final class ReflectionFormMapper {
   }
 
   private static List<ComponentDto> createFormContent(
-          Object form, String baseUrl, String route, HttpRequest httpRequest) {
+      Object form, String baseUrl, String route, HttpRequest httpRequest) {
     var formLayout = FormLayoutDto.builder().build();
     return List.of(
         new ClientSideComponentDto(
@@ -105,7 +104,7 @@ public final class ReflectionFormMapper {
   }
 
   private static List<ComponentDto> createFields(
-          Object form, String baseUrl, String route, HttpRequest httpRequest) {
+      Object form, String baseUrl, String route, HttpRequest httpRequest) {
     return getAllEditableFields(form.getClass()).stream()
         .map(
             field ->
