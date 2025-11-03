@@ -1,4 +1,4 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

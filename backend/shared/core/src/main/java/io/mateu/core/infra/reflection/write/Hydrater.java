@@ -1,6 +1,6 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.write;
 
-import static io.mateu.core.infra.reflection.ActualValueExtractor.getActualValue;
+import static io.mateu.core.infra.reflection.read.ActualValueExtractor.getActualValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;

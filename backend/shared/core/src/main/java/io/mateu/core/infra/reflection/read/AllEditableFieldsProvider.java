@@ -1,8 +1,8 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
-import static io.mateu.core.infra.reflection.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.GetterProvider.getGetter;
-import static io.mateu.core.infra.reflection.MethodProvider.getMethod;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
+import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 
 import io.mateu.uidl.annotations.MenuOption;
 import jakarta.inject.Inject;

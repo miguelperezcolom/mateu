@@ -1,4 +1,4 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.mappers;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.commandmapper.CommandMapper.mapToCommandDtos;

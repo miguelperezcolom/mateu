@@ -1,7 +1,5 @@
-package io.mateu.core.domain.in;
+package io.mateu.core.domain.act;
 
-import io.mateu.core.domain.act.ActionRunner;
-import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;

@@ -6,7 +6,7 @@ import com.example.uis.HelloWorld;
 import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.application.getui.GetUIUseCase;
 import io.mateu.core.application.runaction.RunActionUseCase;
-import io.mateu.core.domain.in.DefaultActionRunnerProvider;
+import io.mateu.core.domain.act.DefaultActionRunnerProvider;
 import io.mateu.core.domain.in.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.out.DefaultUiIncrementMapperProvider;
 import io.mateu.core.domain.out.DefaultUiMapperProvider;

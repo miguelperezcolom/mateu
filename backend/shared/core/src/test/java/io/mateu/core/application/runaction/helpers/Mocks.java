@@ -11,8 +11,8 @@ import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
-import io.mateu.core.infra.reflection.ReflectionUiIncrementMapper;
-import io.mateu.core.infra.reflection.RunMethodActionRunner;
+import io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper;
+import io.mateu.core.infra.reflection.write.RunMethodActionRunner;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Collection;

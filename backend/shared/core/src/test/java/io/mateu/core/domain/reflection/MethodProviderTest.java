@@ -2,7 +2,7 @@ package io.mateu.core.domain.reflection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.mateu.core.infra.reflection.MethodProvider;
+import io.mateu.core.infra.reflection.read.MethodProvider;
 import org.junit.jupiter.api.Test;
 
 class MethodProviderTest {

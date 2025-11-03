@@ -1,4 +1,4 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.mappers;
 
 import io.mateu.core.domain.Humanizer;
 import io.mateu.core.domain.out.UiMapper;

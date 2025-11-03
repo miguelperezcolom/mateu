@@ -1,15 +1,15 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.JsonSerializer.fromMap;
 import static io.mateu.core.infra.JsonSerializer.pojoFromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
-import static io.mateu.core.infra.reflection.AllEditableFieldsProvider.getAllEditableFields;
-import static io.mateu.core.infra.reflection.FieldByNameProvider.getFieldByName;
-import static io.mateu.core.infra.reflection.FileChecker.isFile;
-import static io.mateu.core.infra.reflection.GenericClassProvider.getGenericClass;
-import static io.mateu.core.infra.reflection.ValueProvider.getValue;
-import static io.mateu.core.infra.reflection.ValueWriter.setValue;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
+import static io.mateu.core.infra.reflection.read.FileChecker.isFile;
+import static io.mateu.core.infra.reflection.read.GenericClassProvider.getGenericClass;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;

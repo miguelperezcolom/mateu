@@ -2,7 +2,7 @@ package io.mateu.core.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.mateu.core.domain.in.DefaultActionRunnerProvider;
+import io.mateu.core.domain.act.DefaultActionRunnerProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import org.junit.jupiter.api.Test;

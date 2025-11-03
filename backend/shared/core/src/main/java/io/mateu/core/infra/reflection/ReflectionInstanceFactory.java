@@ -1,7 +1,7 @@
 package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.infra.reflection.Hydrater.hydrate;
+import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
 import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 

@@ -1,6 +1,6 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
-import static io.mateu.core.infra.reflection.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import java.lang.reflect.Method;
 

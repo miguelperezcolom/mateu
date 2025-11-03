@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.uis.AnnotatedUI;
 import com.example.uis.UsingInterfacesUI;
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.core.infra.reflection.ReflectionUiMapper;
+import io.mateu.core.infra.reflection.mappers.ReflectionUiMapper;
 import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.fluent.UI;

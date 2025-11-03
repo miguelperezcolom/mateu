@@ -1,7 +1,7 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
-import static io.mateu.core.infra.reflection.FieldByNameProvider.getFieldByName;
-import static io.mateu.core.infra.reflection.GetterProvider.getGetter;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
+import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;

@@ -9,9 +9,9 @@ import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
-import io.mateu.core.infra.reflection.ReflectionUiIncrementMapper;
-import io.mateu.core.infra.reflection.ReflectionUiMapper;
-import io.mateu.core.infra.reflection.RunMethodActionRunner;
+import io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper;
+import io.mateu.core.infra.reflection.mappers.ReflectionUiMapper;
+import io.mateu.core.infra.reflection.write.RunMethodActionRunner;
 import jakarta.inject.Named;
 import java.util.Collection;
 import java.util.List;

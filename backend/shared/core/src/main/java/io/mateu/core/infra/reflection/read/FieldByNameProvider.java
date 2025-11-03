@@ -1,6 +1,6 @@
-package io.mateu.core.infra.reflection;
+package io.mateu.core.infra.reflection.read;
 
-import static io.mateu.core.infra.reflection.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import java.lang.reflect.Field;
 

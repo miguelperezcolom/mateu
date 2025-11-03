@@ -4,8 +4,8 @@ import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getSubtitle;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
-import static io.mateu.core.infra.reflection.AllEditableFieldsProvider.getAllEditableFields;
-import static io.mateu.core.infra.reflection.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ButtonDto;

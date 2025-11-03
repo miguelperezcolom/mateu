@@ -2,7 +2,7 @@ package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.helpers.Mocks.createBeans;
 
-import io.mateu.core.domain.in.DefaultActionRunnerProvider;
+import io.mateu.core.domain.act.DefaultActionRunnerProvider;
 import io.mateu.core.domain.in.DefaultInstanceFactoryProvider;
 import io.mateu.core.domain.out.DefaultUiIncrementMapperProvider;
 import io.mateu.core.domain.ports.BeanProvider;
