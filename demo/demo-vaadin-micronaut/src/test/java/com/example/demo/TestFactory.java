@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import io.mateu.core.domain.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 

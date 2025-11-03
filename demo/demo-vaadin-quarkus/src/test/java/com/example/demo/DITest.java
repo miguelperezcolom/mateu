@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import io.mateu.core.domain.InstanceFactoryProvider;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;

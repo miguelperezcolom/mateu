@@ -1,9 +1,6 @@
 package com.example.demo;
 
-import io.mateu.core.domain.BeanProvider;
-import io.mateu.core.domain.reflection.DefaultInstanceFactory;
 import io.mateu.dtos.UIIncrementDto;
-import io.mateu.uidl.interfaces.RouteResolver;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -14,10 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 @Controller("/sse")
 @Slf4j

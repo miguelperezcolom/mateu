@@ -1,6 +1,6 @@
 package io.mateu.core.domain.reflection;
 
-import static io.mateu.core.domain.reflection.GetterProvider.getGetter;
+import static io.mateu.core.infra.reflection.GetterProvider.getGetter;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.uis.forms.SimpleForm;

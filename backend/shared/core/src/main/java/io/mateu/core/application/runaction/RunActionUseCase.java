@@ -1,13 +1,13 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.domain.Humanizer.camelcasize;
-import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
+import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 
-import io.mateu.core.domain.ActionRunnerProvider;
-import io.mateu.core.domain.BeanProvider;
-import io.mateu.core.domain.InstanceFactory;
-import io.mateu.core.domain.InstanceFactoryProvider;
-import io.mateu.core.domain.UiIncrementMapperProvider;
+import io.mateu.core.domain.act.ActionRunnerProvider;
+import io.mateu.core.domain.out.UiIncrementMapperProvider;
+import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;

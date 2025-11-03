@@ -28,7 +28,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-import static io.mateu.core.domain.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 record ProductInventoryFilters() {
 

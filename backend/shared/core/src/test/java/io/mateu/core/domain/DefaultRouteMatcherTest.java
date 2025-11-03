@@ -2,6 +2,7 @@ package io.mateu.core.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.mateu.core.domain.in.DefaultRouteMatcher;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteHandler;

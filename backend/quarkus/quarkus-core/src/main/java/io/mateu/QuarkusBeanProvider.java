@@ -1,6 +1,6 @@
 package io.mateu;
 
-import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.ports.BeanProvider;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Singleton;
 import java.util.Collection;

@@ -1,7 +1,7 @@
 package com.example.demo;
 
-import io.mateu.core.domain.BeanProvider;
-import io.mateu.core.domain.reflection.DefaultInstanceFactory;
+import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.core.infra.reflection.DefaultInstanceFactory;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;

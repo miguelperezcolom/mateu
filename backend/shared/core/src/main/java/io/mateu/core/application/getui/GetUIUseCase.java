@@ -1,7 +1,7 @@
 package io.mateu.core.application.getui;
 
-import io.mateu.core.domain.InstanceFactoryProvider;
-import io.mateu.core.domain.UiMapperProvider;
+import io.mateu.core.domain.out.UiMapperProvider;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIDto;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;

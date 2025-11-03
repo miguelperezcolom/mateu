@@ -1,0 +1,185 @@
+package io.mateu.core.infra.reflection;
+
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.out.commandmapper.CommandMapper.mapToCommandDtos;
+import static io.mateu.core.domain.out.messagemapper.MessageMapper.mapToMessageDtos;
+import static io.mateu.core.infra.JsonSerializer.fromJson;
+import static io.mateu.core.infra.JsonSerializer.toJson;
+
+import io.mateu.core.domain.out.UiIncrementMapper;
+import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
+import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.DialogDto;
+import io.mateu.dtos.MessageDto;
+import io.mateu.dtos.UICommandDto;
+import io.mateu.dtos.UIFragmentActionDto;
+import io.mateu.dtos.UIFragmentDto;
+import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.data.AppData;
+import io.mateu.uidl.data.AppState;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.MapsToDto;
+import jakarta.inject.Named;
+import java.net.URI;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import reactor.core.publisher.Mono;
+
+@Named
+@RequiredArgsConstructor
+public class ReflectionUiIncrementMapper implements UiIncrementMapper {
+
+  private final ComponentFragmentMapper componentFragmentMapper;
+  private final ReflectionObjectToComponentMapper reflectionFragmentMapper;
+
+  @Override
+  public boolean supports(Object instance) {
+    return true;
+  }
+
+  @Override
+  // todo: add metadata from the method annotations
+  public Mono<UIIncrementDto> map(
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (instance == null) {
+      return Mono.empty();
+    }
+    if (instance instanceof UIIncrementDto uiIncrementDto) {
+      return Mono.just(uiIncrementDto);
+    }
+    if (instance instanceof MapsToDto mapsToDto) {
+      return Mono.just(mapsToDto.toUIIncrementDto());
+    }
+    if (instance instanceof Mono<?> mono) {
+      return mono.flatMap(object -> map(object, baseUrl, route, initiatorComponentId, httpRequest));
+    }
+    return Mono.just(
+        new UIIncrementDto(
+            mapToCommands(instance, baseUrl, httpRequest),
+            mapToMessages(instance, baseUrl, httpRequest),
+            mapToFragments(instance, baseUrl, route, initiatorComponentId, httpRequest),
+            mapToAppData(instance, baseUrl, httpRequest),
+            mapToAppState(instance, baseUrl, httpRequest)));
+  }
+
+  private Object mapToAppData(Object instance, String baseUrl, HttpRequest httpRequest) {
+    if (instance instanceof AppData appData) {
+      return appData.data();
+    }
+    return null;
+  }
+
+  private Object mapToAppState(Object instance, String baseUrl, HttpRequest httpRequest) {
+    if (instance instanceof AppState appState) {
+      return appState.state();
+    }
+    return null;
+  }
+
+  private List<UICommandDto> mapToCommands(
+      Object instance, String baseUrl, HttpRequest httpRequest) {
+    return mapToCommandDtos(instance, baseUrl, httpRequest);
+  }
+
+  private List<MessageDto> mapToMessages(Object instance, String baseUrl, HttpRequest httpRequest) {
+    return mapToMessageDtos(instance, baseUrl, httpRequest);
+  }
+
+  private List<UIFragmentDto> mapToFragments(
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (instance instanceof AppState) {
+      return List.of();
+    }
+    if (instance instanceof AppData) {
+      return List.of();
+    }
+    if (instance instanceof Message) {
+      return List.of();
+    }
+    if (instance instanceof UICommand) {
+      return List.of();
+    }
+    if (instance instanceof URI || instance instanceof URL) {
+      return List.of();
+    }
+    if (instance instanceof Collection<?> collection) {
+      return collection.stream()
+          .map(
+              object ->
+                  serializeData(
+                      componentFragmentMapper.mapToFragment(
+                          reflectionFragmentMapper.mapToComponent(
+                              object, baseUrl, route, initiatorComponentId, httpRequest),
+                          baseUrl,
+                          route,
+                          initiatorComponentId,
+                          httpRequest)))
+          .toList();
+    }
+    return List.of(
+        serializeData(
+            componentFragmentMapper.mapToFragment(
+                reflectionFragmentMapper.mapToComponent(
+                    instance, baseUrl, route, initiatorComponentId, httpRequest),
+                baseUrl,
+                route,
+                initiatorComponentId,
+                httpRequest)));
+    /*
+    return List.of(
+        serializeData(
+            reflectionFragmentMapper.mapToFragment(
+                componentFragmentMapper.mapToFragment(
+                    instance, baseUrl, route, initiatorComponentId, httpRequest),
+                baseUrl,
+                route,
+                initiatorComponentId,
+                httpRequest)));
+     */
+  }
+
+  private UIFragmentDto serializeData(UIFragmentDto fragment) {
+    return new UIFragmentDto(
+        fragment.targetComponentId(),
+        fragment.component(),
+        toMap(fragment.state()),
+        toMap(fragment.data()),
+        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace);
+  }
+
+  private boolean isDialog(UIFragmentDto fragment) {
+    return fragment.component() != null
+        && fragment.component() instanceof ClientSideComponentDto
+        && ((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto;
+  }
+
+  @SneakyThrows
+  private Object toMap(Object data) {
+    if (data == null) {
+      return null;
+    }
+    if (data instanceof Map) {
+      return data;
+    }
+    if (isBasic(data)) {
+      return data;
+    }
+    return fromJson(toJson(data));
+    // return data;
+  }
+}

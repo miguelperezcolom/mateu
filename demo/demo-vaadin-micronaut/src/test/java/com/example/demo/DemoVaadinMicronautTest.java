@@ -1,9 +1,8 @@
 package com.example.demo;
 
-import io.mateu.MicronautInstanceFactoryProvider;
-import io.mateu.core.domain.DefaultInstanceFactoryProvider;
-import io.mateu.core.domain.InstanceFactory;
-import io.mateu.core.domain.InstanceFactoryProvider;
+import io.mateu.core.domain.in.DefaultInstanceFactoryProvider;
+import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import jakarta.inject.Inject;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

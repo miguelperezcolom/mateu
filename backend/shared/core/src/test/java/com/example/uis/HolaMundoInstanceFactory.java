@@ -1,6 +1,6 @@
 package com.example.uis;
 
-import io.mateu.core.domain.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.Map;

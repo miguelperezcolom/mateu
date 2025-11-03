@@ -1,10 +1,11 @@
 package io.mateu.core.domain.fragmentmapper;
 
-import static io.mateu.core.domain.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
+import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.uis.apps.SimpleApp;
 import com.example.uis.forms.ExtendedSimpleForm;
+import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;

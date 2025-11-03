@@ -2,9 +2,10 @@ package io.mateu.core.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.mateu.core.domain.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.fragmentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
+import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.core.infra.reflection.ReflectionUiIncrementMapper;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.MapsToDto;
 import java.util.List;

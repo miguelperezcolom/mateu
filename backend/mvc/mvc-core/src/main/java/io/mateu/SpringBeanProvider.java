@@ -1,6 +1,6 @@
 package io.mateu;
 
-import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.ports.BeanProvider;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.context.ApplicationContext;

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.mateu.core.domain.out.ComponentUiMapper;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.uidl.fluent.UI;
 import io.mateu.uidl.fluent.UISupplier;

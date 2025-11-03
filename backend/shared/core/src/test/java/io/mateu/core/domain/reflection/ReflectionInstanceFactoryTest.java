@@ -10,6 +10,7 @@ import io.mateu.core.domain.reflection.samples.WithObjectConstructorParameters;
 import io.mateu.core.domain.reflection.samples.WithProtectedConstructors;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

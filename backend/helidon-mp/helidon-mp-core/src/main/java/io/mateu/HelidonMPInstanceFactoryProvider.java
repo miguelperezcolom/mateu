@@ -1,7 +1,7 @@
 package io.mateu;
 
-import io.mateu.core.domain.InstanceFactory;
-import io.mateu.core.domain.InstanceFactoryProvider;
+import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;

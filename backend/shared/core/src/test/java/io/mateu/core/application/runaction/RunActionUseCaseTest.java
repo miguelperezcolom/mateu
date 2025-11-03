@@ -2,10 +2,10 @@ package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.helpers.Mocks.createBeans;
 
-import io.mateu.core.domain.BeanProvider;
-import io.mateu.core.domain.DefaultActionRunnerProvider;
-import io.mateu.core.domain.DefaultInstanceFactoryProvider;
-import io.mateu.core.domain.DefaultUiIncrementMapperProvider;
+import io.mateu.core.domain.in.DefaultActionRunnerProvider;
+import io.mateu.core.domain.in.DefaultInstanceFactoryProvider;
+import io.mateu.core.domain.out.DefaultUiIncrementMapperProvider;
+import io.mateu.core.domain.ports.BeanProvider;
 
 class RunActionUseCaseTest {
 

@@ -1,7 +1,7 @@
 package io.mateu;
 
 import io.helidon.common.context.Contexts;
-import io.mateu.core.domain.BeanProvider;
+import io.mateu.core.domain.ports.BeanProvider;
 import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.List;
