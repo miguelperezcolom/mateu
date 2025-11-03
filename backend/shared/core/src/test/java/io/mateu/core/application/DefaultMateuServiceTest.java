@@ -51,21 +51,23 @@ class DefaultMateuServiceTest {
 
   @Test
   void runStepAndReturn() throws Throwable {
+    var rq =
+        new RunActionRqDto(
+            Map.of(), // component state
+            Map.of(), // app state
+            Map.of(), // parameters
+            "initiator_component_id",
+            "consumed_route",
+            "action_id",
+            "route",
+            UsingInterfacesUI.class.getName());
     assertNotNull(
         defaultMateuService
             .runAction(
                 UsingInterfacesUI.class.getName(),
-                new RunActionRqDto(
-                    Map.of(), // component state
-                    Map.of(), // app state
-                    Map.of(), // parameters
-                    "initiator_component_id",
-                    "consumed_route",
-                    "action_id",
-                    "route",
-                    "server_side_type"),
+                rq,
                 "base_url",
-                new FakeHttpRequest())
+                new FakeHttpRequest().storeRunActionRqDto(rq))
             .blockLast());
   }
 }

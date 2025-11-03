@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.components.AnnotatedComponent;
 import com.example.components.UsingInterfacesComponent;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.dtos.RunActionRqDto;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,8 @@ class RunsActionsTest extends RunActionUseCaseTest {
                       Map.of(),
                       Map.of(),
                       "initiator_component_id",
-                      new FakeHttpRequest(),
-                      "server_side_type"))
+                      new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
+                      componentType.getName()))
               .blockLast();
       assertThat(increment).isNotNull();
     }

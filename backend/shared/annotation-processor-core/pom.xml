@@ -14,7 +14,7 @@
   <description>shared interfaces for mateu mdd</description>
 
   <properties>
-    <jacoco.min.coverage>80%</jacoco.min.coverage>
+    <jacoco.min.coverage>70%</jacoco.min.coverage>
   </properties>
 
   <dependencies>

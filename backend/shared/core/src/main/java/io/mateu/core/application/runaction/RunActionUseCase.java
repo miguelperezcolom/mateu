@@ -45,8 +45,11 @@ public class RunActionUseCase {
     log.info("run action {} for {}", command.actionId(), command);
     // todo: use path somehow
     return (Mono.just(command)
+            // get the target instance
             .flatMap(ignored -> createInstance(command))
+            // if the target instance is an app, resolve the menu to get the real target instance
             .flatMap(instance -> resolveMenuIfApp(instance, command))
+            // here I have the target instance
             .flatMapMany(
                 instance ->
                     actionRunnerProvider
@@ -61,6 +64,7 @@ public class RunActionUseCase {
                             command.actionId(),
                             command.componentState(),
                             command.httpRequest())))
+        // here I have the result / object to be mapped
         .flatMap(
             result ->
                 uiIncrementMapperProvider
@@ -71,6 +75,7 @@ public class RunActionUseCase {
                         command.route(),
                         command.initiatorComponentId(),
                         command.httpRequest()))
+        // in case I was not able to find a target instance
         .switchIfEmpty(
             Mono.just(Text.builder().text("Not found.").style("color: red;").build())
                 .flatMap(

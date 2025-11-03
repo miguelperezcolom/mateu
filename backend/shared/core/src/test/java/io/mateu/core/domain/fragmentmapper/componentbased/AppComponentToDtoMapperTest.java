@@ -89,6 +89,7 @@ class AppComponentToDtoMapperTest {
                         .subtitle("This is the subtitle bla, bla, bla")
                         .title("Antonia")
                         .variant(AppVariantDto.MENU_ON_TOP)
+                        .totalMenuOptions(10)
                         .menu(
                             List.of(
                                 MenuOptionDto.builder()
@@ -185,7 +186,7 @@ class AppComponentToDtoMapperTest {
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
-    assertThat(dto).usingRecursiveComparison().isEqualTo(expected);
+    assertThat(dto).usingRecursiveComparison().ignoringFields("component.id").isEqualTo(expected);
   }
 
   class MyAppSupplier implements AppSupplier, RouteResolver {

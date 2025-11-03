@@ -30,8 +30,8 @@ public class ReflectionObjectToComponentMapper {
   private boolean isApp(Object instance) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
-    // está anotado con @MateuUI o con @Route
-    // implementa Page
+    // tiene anotaciones con @MenuOption o @Submenu?
+    // implementa App
     return instance instanceof App;
   }
 

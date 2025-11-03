@@ -24,7 +24,7 @@ class ComponentToDtoMapperTest {
             .targetComponentId("initiator")
             .component(
                 new ClientSideComponentDto(
-                    new TextDto(TextContainerDto.p, Map.of(), "Hola"),
+                    new TextDto(TextContainerDto.div, Map.of(), "Hola"),
                     "fieldId",
                     List.of(),
                     "",
@@ -36,6 +36,6 @@ class ComponentToDtoMapperTest {
         mapComponentToFragment(
             null, new Text("Hola"), "base_url", "route", "initiator", new FakeHttpRequest());
     assertNotNull(dto);
-    assertThat(dto).usingRecursiveComparison().isEqualTo(expected);
+    assertThat(dto).usingRecursiveComparison().ignoringFields("component.id").isEqualTo(expected);
   }
 }

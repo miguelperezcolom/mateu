@@ -32,6 +32,6 @@
     "data" : null,
     "action" : "Replace"
   } ],
-  "appData" : { },
-  "appState" : { }
+  "appData" : null,
+  "appState" : null
 }

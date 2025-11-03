@@ -16,6 +16,8 @@ import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.SplitLayou
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TabLayoutComponentToDtoMapper;
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.FormLayout;
@@ -50,11 +52,18 @@ class ComponentFragmentMapperTest {
   @Test
   void stringPassesThrough() {
     var mapper = new ComponentFragmentMapper();
-    Object fragment =
+    var fragment =
         mapper.mapToFragment(
             "hola!", "base_url", "route", "initiator_component_id", new FakeHttpRequest());
     assertNotNull(fragment);
-    assertEquals("hola!", fragment);
+    var component = fragment.component();
+    assertNotNull(component);
+    assertInstanceOf(ClientSideComponentDto.class, component);
+    ClientSideComponentDto clientSideComponentDto = (ClientSideComponentDto) component;
+    var metadata = clientSideComponentDto.metadata();
+    assertInstanceOf(ElementDto.class, metadata);
+    var element = (ElementDto) metadata;
+    assertEquals("hola!", element.content());
   }
 
   @Test

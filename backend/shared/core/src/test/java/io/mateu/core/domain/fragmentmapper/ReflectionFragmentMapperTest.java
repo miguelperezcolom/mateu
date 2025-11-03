@@ -9,7 +9,6 @@ import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +25,7 @@ class ReflectionFragmentMapperTest {
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
-    assertInstanceOf(Component.class, fragment);
+    assertInstanceOf(UIFragmentDto.class, fragment);
   }
 
   @Test

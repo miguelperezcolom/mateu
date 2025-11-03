@@ -2,7 +2,9 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.Map;
+import lombok.Builder;
 
+@Builder
 public record RunActionRqDto(
     Map<String, Object> componentState,
     Map<String, Object> appState,

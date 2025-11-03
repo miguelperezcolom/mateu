@@ -8,6 +8,7 @@ import static net.javacrumbs.jsonunit.core.Option.IGNORING_VALUES;
 
 import com.example.components.SampleComponent;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.dtos.RunActionRqDto;
 import java.util.Map;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class ResolvesRouteForAppTest extends RunActionUseCaseTest {
                     Map.of(),
                     Map.of(),
                     "initiator_component_id",
-                    new FakeHttpRequest(),
+                    new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
                     SampleComponent.class.getName()))
             .blockLast();
     // System.out.println(toJson(increment));
