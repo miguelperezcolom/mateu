@@ -1,5 +1,7 @@
-package io.mateu.core.domain.out.fragmentmapper;
+package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToFormComponent;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.mapAppToFragment;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionFormMapper.mapFormToFragment;
 
@@ -18,11 +20,11 @@ public class ReflectionObjectToComponentMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (isPage(instance)) {
-      return mapFormToFragment(instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return mapToFormComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
     if (isApp(instance)) {
-      return mapAppToFragment(
-          instance, instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return mapToAppComponent(
+          instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
     return instance;
   }

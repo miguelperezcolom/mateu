@@ -8,7 +8,7 @@ we define them as singletons, those server-side can are ephimeral and they are c
 nature of Mateu is stateless in the server side. 
 
 That stateless nature is mandatory if we want to live in the micro services world, were pods are created and destroyed 
-at any moment and load is balanced among multiple pods, so we do not know who will handle our requests.   
+at any moment and load is balanced among multiple pods, so we do not know who will handle our requests. Same for serverless.
 
 <p align="center"><img src="../../../images/arch-overall-11.svg" width="800"/></p>
 

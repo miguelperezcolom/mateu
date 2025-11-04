@@ -8,7 +8,7 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DialogDto;
 import io.mateu.dtos.MessageDto;

@@ -7,7 +7,7 @@ import com.example.components.SampleDetail;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;

@@ -5,7 +5,7 @@ import io.mateu.core.domain.out.FragmentMapper;
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.UiMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.core.domain.out.fragmentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
