@@ -8,5 +8,4 @@ import java.lang.annotation.Target;
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface DrawerClosed {
-}
+public @interface DrawerClosed {}

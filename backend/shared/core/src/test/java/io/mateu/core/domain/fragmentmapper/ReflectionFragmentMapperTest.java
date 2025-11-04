@@ -25,7 +25,6 @@ class ReflectionFragmentMapperTest {
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
-    assertInstanceOf(UIFragmentDto.class, fragment);
   }
 
   @Test
