@@ -30,6 +30,6 @@ class ReflectionObjectToComponentMapperTest {
         mapper.mapToComponent(
             new FakePage(), "base_url", "route", "initiator_component_id", new FakeHttpRequest());
     assertNotNull(result);
-    assertInstanceOf(io.mateu.uidl.fluent.Form.class, result);
+    assertInstanceOf(io.mateu.uidl.fluent.Page.class, result);
   }
 }

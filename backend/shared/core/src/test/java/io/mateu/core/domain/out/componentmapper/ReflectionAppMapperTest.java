@@ -75,13 +75,14 @@ class ReflectionAppMapperTest {
 
     assertNotNull(app);
     assertEquals("Fake App", app.pageTitle());
+    assertEquals("title", app.title());
+    assertEquals("favicon", app.favicon());
     assertEquals("subtitle", app.subtitle());
     assertNotNull(app.menu());
     assertEquals(3, app.menu().size());
     assertEquals("style", app.style());
     assertEquals("css", app.cssClasses());
     assertTrue(app.drawerClosed());
-    assertEquals("title", app.title());
     assertNotNull(app.widgets());
     assertEquals(2, app.widgets().size());
   }

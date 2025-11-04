@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToFormComponent;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
 
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,7 +18,7 @@ public class ReflectionObjectToComponentMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (isPage(instance)) {
-      return mapToFormComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return mapToPageComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
     if (isApp(instance)) {
       return mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);

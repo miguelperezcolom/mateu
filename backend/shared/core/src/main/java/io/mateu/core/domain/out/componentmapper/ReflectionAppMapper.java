@@ -5,9 +5,11 @@ import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
+import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.PageTitle;
@@ -45,6 +47,7 @@ public class ReflectionAppMapper {
     return App.builder()
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
+        .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
         .menu(getMenu(instance, httpRequest))
         .style(getStyle(instance))
@@ -52,6 +55,13 @@ public class ReflectionAppMapper {
         .drawerClosed(isDrawerClosed(instance))
         .widgets(getWidgets(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
+  }
+
+  private static String getFavicon(Object instance) {
+    if (instance.getClass().isAnnotationPresent(FavIcon.class)) {
+      return instance.getClass().getAnnotation(FavIcon.class).value();
+    }
+    return null;
   }
 
   private static boolean isDrawerClosed(Object instance) {
@@ -98,7 +108,8 @@ public class ReflectionAppMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return mapToComponent(field.get(instance), baseUrl, route, initiatorComponentId, httpRequest);
+    return mapToComponent(
+        getValue(field, instance), baseUrl, route, initiatorComponentId, httpRequest);
   }
 
   private static Collection<? extends Actionable> getMenu(
