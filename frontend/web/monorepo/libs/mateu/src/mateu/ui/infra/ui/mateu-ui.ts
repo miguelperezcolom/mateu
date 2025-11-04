@@ -105,6 +105,7 @@ export class MateuUi extends LitElement {
 
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
+        console.log('loadurl. route is', this.route)
         this.setAttribute('route', this.route)
         this.instant = nanoid()
         if (w.location.search) {
@@ -126,10 +127,24 @@ export class MateuUi extends LitElement {
 
     extractGrossRouteFromUrl(w: Window) {
         const route = w.location.pathname
-        if (route.startsWith(this.baseUrl)) {
-            return route.substring(this.baseUrl.length)
+        const contextPath = (this.baseUrl && (
+            this.baseUrl.startsWith("http://")
+            || this.baseUrl.startsWith("https://")
+        ))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl
+        if (route.startsWith(contextPath)) {
+            return route.substring(contextPath.length)
         }
         return route
+    }
+
+    getContextPathStartingIndex(baseUrl: string) {
+        if (baseUrl.startsWith('http:')) {
+            return baseUrl.indexOf('/', 7)
+        }
+        if (baseUrl.startsWith('https:')) {
+            return baseUrl.indexOf('/', 8)
+        }
+        return 0
     }
 
 
