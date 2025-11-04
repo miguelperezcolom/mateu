@@ -5,6 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface MenuOption {}
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
+public @interface Style {
+
+  String value();
+}
