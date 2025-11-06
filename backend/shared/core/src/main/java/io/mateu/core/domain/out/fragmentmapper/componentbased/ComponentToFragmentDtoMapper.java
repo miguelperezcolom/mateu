@@ -63,6 +63,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Too
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VirtualListComponentToDtoMapper.mapVirtualListToDto;
 
+import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;

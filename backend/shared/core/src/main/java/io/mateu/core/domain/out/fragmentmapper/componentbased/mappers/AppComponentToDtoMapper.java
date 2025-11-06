@@ -12,6 +12,7 @@ import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContentLink;
+import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
@@ -36,7 +37,7 @@ public final class AppComponentToDtoMapper {
         AppDto.builder()
             .title(app.title())
             .subtitle(app.subtitle())
-            .route(getRoute(componentSupplier, app, httpRequest, route))
+            .route(app.route())
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(menu, route, appRoute))
             .menu(menu)
@@ -46,12 +47,7 @@ public final class AppComponentToDtoMapper {
             .cssClasses(app.cssClasses())
             .build();
     return new ClientSideComponentDto(
-        appDto,
-        UUID.randomUUID().toString(),
-        List.of(),
-        componentSupplier.style(),
-        componentSupplier.cssClasses(),
-        null);
+        appDto, UUID.randomUUID().toString(), List.of(), app.style(), app.cssClasses(), null);
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {
@@ -66,7 +62,7 @@ public final class AppComponentToDtoMapper {
                 MenuOptionDto.builder()
                     .label(option.label())
                     .destination(
-                        option instanceof RouteLink || option instanceof ContentLink
+                        option instanceof RouteLink || option instanceof ContentLink || option instanceof FieldLink
                             ? new GoToRouteDto("", getPath(appRoute, option), null)
                             : null)
                     .selected(isSelected(option, appRoute, route))

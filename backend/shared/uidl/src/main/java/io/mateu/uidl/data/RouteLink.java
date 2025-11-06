@@ -3,8 +3,10 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
+import lombok.With;
 
 @Builder
+@With
 public record RouteLink(
     String route,
     String label,

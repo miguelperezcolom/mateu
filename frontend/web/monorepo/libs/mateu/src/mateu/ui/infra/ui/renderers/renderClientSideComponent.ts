@@ -224,6 +224,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
              </mateu-app>`
         }
 
+
         if (type == ComponentMetadataType.Element) {
             return renderElement(container, component.metadata as Element, component)
         }

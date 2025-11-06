@@ -9,10 +9,23 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ValueProvider {
+
+    @SneakyThrows
+    public static Object getValueOrNewInstance(Field f, Object o) {
+        var value = getValue(f, o);
+        if (value == null) {
+            var constructor = f.getType().getDeclaredConstructor();
+            if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
+            return constructor.newInstance();
+        }
+        return value;
+    }
 
   public static Object getValue(Field f, Object o) {
     if (o == null) return null;

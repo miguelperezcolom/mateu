@@ -25,50 +25,6 @@ import java.util.regex.Pattern;
 
 public class ReflectionAppMapper {
 
-  public static UIFragmentDto mapAppToFragment(
-      Object componentSupplier,
-      Object app,
-      String baseUrl,
-      String route,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    var appRoute = getRoute(componentSupplier, app, httpRequest, route);
-    var menu = getMenu(app, baseUrl, route, appRoute, httpRequest);
-    var appDto =
-        new AppDto(
-            appRoute,
-            AppVariantDto.TABS,
-            "icon",
-            "logo",
-            getTitle(app),
-            getSubtitle(app),
-            menu,
-            totalMenuOptions(menu),
-            getHomeRoute(menu, route, appRoute),
-            "login_url",
-            "welcome_message",
-            "logout_url",
-            List.of(),
-            false,
-            null,
-            null);
-    var component =
-        new ServerSideComponentDto(
-            UUID.randomUUID().toString(),
-            app.getClass().getName(),
-            List.of(new ClientSideComponentDto(appDto, "", List.of(), "", "", null)),
-            app,
-            "",
-            "",
-            List.of(),
-            List.of(),
-            List.of(),
-            List.of(),
-            null);
-    return new UIFragmentDto(
-        initiatorComponentId, component, app, null, UIFragmentActionDto.Replace);
-  }
-
   public static int totalMenuOptions(List<MenuOptionDto> menu) {
     int total = 0;
     if (menu != null) {
@@ -101,7 +57,7 @@ public class ReflectionAppMapper {
         }
       }
       if (!menu.isEmpty()) {
-        return menu.get(0).destination().route();
+        return menu.getFirst().destination().route();
       }
     }
     return "/home";
@@ -132,15 +88,22 @@ public class ReflectionAppMapper {
     if (componentSupplier instanceof RouteResolver routeResolver) {
       pattern = routeResolver.matchingPattern(route).orElse(null);
     }
-    if (pattern == null) {
-      if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
-        for (Route routeAnnotation :
-            componentSupplier.getClass().getAnnotationsByType(Route.class)) {
+    if (pattern == null && app != null) {
+      if (app.getClass().isAnnotationPresent(Route.class)) {
+        for (Route routeAnnotation : app.getClass().getAnnotationsByType(Route.class)) {
           String patternString = routeAnnotation.value();
           pattern = returnPatternIfMatches(patternString, route);
         }
       }
     }
+      if (pattern == null && componentSupplier != null) {
+          if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
+              for (Route routeAnnotation : componentSupplier.getClass().getAnnotationsByType(Route.class)) {
+                  String patternString = routeAnnotation.value();
+                  pattern = returnPatternIfMatches(patternString, route);
+              }
+          }
+      }
     if (pattern != null) {
       Pattern basePattern =
           Pattern.compile(pattern.pattern().substring(0, pattern.pattern().indexOf(".*")));

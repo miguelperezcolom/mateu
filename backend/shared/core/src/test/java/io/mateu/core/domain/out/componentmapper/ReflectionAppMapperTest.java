@@ -7,7 +7,7 @@ import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
-import io.mateu.uidl.annotations.MenuOption;
+import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Subtitle;
@@ -31,16 +31,16 @@ class ReflectionAppMapperTest {
 
     class Option3Menu {
 
-      @MenuOption String option4 = "option4";
+      @Menu String option4 = "option4";
 
-      @MenuOption String option5 = "option5";
+      @Menu String option5 = "option5";
     }
 
-    @MenuOption String option1 = "option1";
+    @Menu String option1 = "option1";
 
-    @MenuOption String option2 = "option2";
+    @Menu String option2 = "option2";
 
-    @MenuOption Option3Menu option3;
+    @Menu Option3Menu option3;
 
     @Widget String widget1 = "widget1";
     @Widget String widget2 = "widget2";
@@ -80,6 +80,7 @@ class ReflectionAppMapperTest {
     assertEquals("subtitle", app.subtitle());
     assertNotNull(app.menu());
     assertEquals(3, app.menu().size());
+    assertEquals("Option 1", app.menu().getFirst().label());
     assertEquals("style", app.style());
     assertEquals("css", app.cssClasses());
     assertTrue(app.drawerClosed());

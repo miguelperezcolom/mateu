@@ -13,7 +13,11 @@ import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Submenu;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -44,6 +48,7 @@ class MyNestedSubmenu implements Submenu {
 @Route("/app")
 @PageTitle("Antonia")
 @HomeRoute("/app/home")
+@Slf4j
 public class DeclarativeApp implements App {
 
     @Menu(selected = true)
@@ -51,37 +56,40 @@ public class DeclarativeApp implements App {
     @Menu
     Actionable page1 = new RouteLink("/app/page1");
     @Menu
-    Actionable page2 = new RouteLink("/app/page2");
+    URI page2 = new URI("/app/page2");
     @Menu
-    Actionable content = new ContentLink(rq -> new Text("Hola"));
+    String page3 = "/app/page3";
     @Menu
-    Supplier<?> page4 = () -> new Text("Hola");
+    Actionable contentLink = new ContentLink(rq -> new Text("Hola"));
     @Menu
-    Callable<?> page5 = () -> new Text("Hola");
+    Mono<?> mono = Mono.just("Hola!");
     @Menu
-    Function<?,?> page6 = (rq) -> new Text("Hola");
+    Runnable runnable = () -> log.info("Runnable has been called");
     @Menu
-    SampleContent page7;
+    Supplier<?> supplier = () -> new Text("Hola");
     @Menu
-    MySubmenu page8;
+    Callable<?> callable = () -> new Text("Hola");
     @Menu
-    MenuSupplier page9 = new MenuSupplier() {
-        @Override
-        public List<Actionable> menu(HttpRequest httpRequest) {
-            return List.of(
-                    new ContentLink(rq -> new Text("Hola 1")),
-                    new ContentLink(rq -> new Text("Hola 2")),
-                    new io.mateu.uidl.data.Menu("Page 3", List.of(
-                            new ContentLink("/app/content1", "Content 1", (rq) -> new Text("Hola 1")),
-                            new ContentLink("/app/content2", "Content 2", (rq) -> new Text("Hola 2")),
-                            new io.mateu.uidl.data.Menu("Page 4", List.of(
-                                    new ContentLink("/app/content3", "Content 3", (rq) -> new Text("Hola 3")),
-                                    new ContentLink("/app/content4", "Content 4", (rq) -> new Text("Hola 4"))
-                            ))
+    Function<?,?> function = (rq) -> new Text("Hola");
+    @Menu
+    SampleContent sampleContent;
+    @Menu
+    MySubmenu mySubmenu;
+    @Menu
+    MenuSupplier menuSupplier = httpRequest -> List.of(
+            new ContentLink("Hola 1", rq -> new Text("Hola 1")),
+            new ContentLink("Hola 2",rq -> new Text("Hola 2")),
+            new io.mateu.uidl.data.Menu("Page 3", List.of(
+                    new ContentLink("/app/content1", "Content 1", (rq) -> new Text("Hola 1")),
+                    new ContentLink("/app/content2", "Content 2", (rq) -> new Text("Hola 2")),
+                    new io.mateu.uidl.data.Menu("Page 4", List.of(
+                            new ContentLink("/app/content3", "Content 3", (rq) -> new Text("Hola 3")),
+                            new ContentLink("/app/content4", "Content 4", (rq) -> new Text("Hola 4"))
                     ))
-            );
-        }
-    };
+            ))
+    );
 
 
+    public DeclarativeApp() throws URISyntaxException {
+    }
 }

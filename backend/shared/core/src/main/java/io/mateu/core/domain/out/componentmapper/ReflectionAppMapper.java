@@ -1,38 +1,48 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.Humanizer.camelcasize;
 import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
+import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.annotations.MenuOption;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Widget;
+import io.mateu.uidl.data.ContentLink;
+import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.PageTitleSupplier;
+import io.mateu.uidl.interfaces.Submenu;
 import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
 import io.mateu.uidl.interfaces.WidgetSupplier;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 
@@ -44,12 +54,16 @@ public class ReflectionAppMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+      var appRoute = getRoute(instance, instance, httpRequest, route);
+      var menu = getMenu(appRoute, instance, route, httpRequest);
     return App.builder()
+            .route(appRoute)
+            .variant(getVariant(instance, menu))
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
-        .menu(getMenu(instance, httpRequest))
+        .menu(menu)
         .style(getStyle(instance))
         .cssClasses(getCssClasses(instance))
         .drawerClosed(isDrawerClosed(instance))
@@ -57,7 +71,16 @@ public class ReflectionAppMapper {
         .build();
   }
 
-  private static String getFavicon(Object instance) {
+    private static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
+        for (Actionable actionable : menu) {
+            if (actionable instanceof Menu) {
+                return AppVariant.MENU_ON_TOP;
+            }
+        }
+      return AppVariant.TABS;
+    }
+
+    private static String getFavicon(Object instance) {
     if (instance.getClass().isAnnotationPresent(FavIcon.class)) {
       return instance.getClass().getAnnotation(FavIcon.class).value();
     }
@@ -113,32 +136,88 @@ public class ReflectionAppMapper {
   }
 
   private static Collection<? extends Actionable> getMenu(
-      Object instance, HttpRequest httpRequest) {
+      String appRoute, Object instance, String route, HttpRequest httpRequest) {
     if (instance instanceof MenuSupplier menuSupplier) {
       return menuSupplier.menu(httpRequest);
     }
-    return getActionables(instance.getClass());
+    return getActionables(appRoute, instance, route, httpRequest);
   }
 
-  private static List<Actionable> getActionables(Class<?> type) {
-    return getAllFields(type).stream()
-        .filter(field -> field.isAnnotationPresent(MenuOption.class))
-        .map(field -> mapToMenu(field, type))
-        .filter(Objects::nonNull)
-        .toList();
-  }
+  private static List<Actionable> getActionables(String appRoute, Object instance, String route, HttpRequest httpRequest) {
+      return getAllFields(instance.getClass()).stream()
+                .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
+                .filter(Objects::nonNull)
+                .toList();
+    }
 
-  private static Actionable mapToMenu(Field field, Class<?> type) {
+    private static Actionable mapToMenu(String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
+      if (Actionable.class.isAssignableFrom(field.getType())) {
+          return completeActionable(appRoute, field, instance);
+      }
     if (String.class.equals(field.getType())) {
-      return new RouteLink("/fluent-app/home", getLabel(field));
+        var uri = (String) getValue(field, instance);
+        if (uri != null) {
+            return new RouteLink(uri, getLabel(field));
+        }
+      return new RouteLink(appRoute + "/" + field.getName(), getLabel(field));
     }
-    if (!isBasic(field.getType())) {
-      return new Menu(getLabel(field), getActionables(field.getType()));
+        if (URI.class.equals(field.getType())) {
+            var uri = (URI) getValue(field, instance);
+            if (uri != null) {
+                return new RouteLink(uri.toString(), getLabel(field));
+            }
+            return new RouteLink(appRoute + "/" + field.getName(), getLabel(field));
+        }
+      if (Submenu.class.isAssignableFrom(field.getType())) {
+          return new Menu(getLabel(field), getActionables(appRoute, getValueOrNewInstance(field, instance), route, httpRequest));
+      }
+    if (MenuSupplier.class.isAssignableFrom(field.getType())) {
+        var menuSupplier = (MenuSupplier) getValue(field, instance);
+        return new Menu(getLabel(field), completeActionables(appRoute, menuSupplier.menu(httpRequest)));
     }
-    return null;
+        return new FieldLink(appRoute + "/" + field.getName(), getLabel(field), instance.getClass(), field.getName());
   }
 
-  private static String getLabel(Field field) {
+    private static List<Actionable> completeActionables(String appRoute, List<Actionable> menu) {
+      if (menu == null) {
+          return null;
+      }
+        return menu.stream().map(actionable -> {
+            if (actionable instanceof ContentLink contentLink) {
+                if (contentLink.path() == null) {
+                    return contentLink.withPath(appRoute + "/" + camelcasize(contentLink.label()));
+                }
+            }
+            return actionable;
+        }).toList();
+    }
+
+    private static Actionable completeActionable(String appRoute, Field field, Object instance) {
+        var actionable = (Actionable) getValue(field, instance);
+        if (actionable.label() == null || actionable.label().isEmpty()) {
+            if (actionable instanceof RouteLink routeLink) {
+                actionable = routeLink.withLabel(getLabel(field));
+            }
+            if (actionable instanceof ContentLink contentLink) {
+                actionable = contentLink.withLabel(getLabel(field));
+            }
+            if (actionable instanceof FieldLink fieldLink) {
+                actionable = fieldLink.withLabel(getLabel(field));
+            }
+        }
+        if (actionable.path() == null || actionable.path().isEmpty()) {
+            if (actionable instanceof ContentLink contentLink) {
+                actionable = contentLink.withPath(appRoute + "/" + field.getName());
+            }
+            if (actionable instanceof FieldLink fieldLink) {
+                actionable = fieldLink.withPath(appRoute + "/" + field.getName());
+            }
+        }
+        return actionable;
+    }
+
+    private static String getLabel(Field field) {
     if (field.isAnnotationPresent(Label.class)) {
       return field.getAnnotation(Label.class).value();
     }

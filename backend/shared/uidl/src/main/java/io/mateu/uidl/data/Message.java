@@ -8,4 +8,9 @@ public record Message(
     NotificationPosition position,
     String title,
     String text,
-    int duration) {}
+    int duration) {
+
+    public Message(String text) {
+        this(NotificationVariant.success, NotificationPosition.middle, "", text, 5000);
+    }
+}

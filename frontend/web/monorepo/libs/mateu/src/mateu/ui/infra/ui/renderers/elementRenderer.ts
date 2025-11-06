@@ -17,6 +17,24 @@ const serialize = (e: any) => {
     return result
 }
 
+const hydrate = (htmlElement: any, element: Element, component: ClientSideComponent) => {
+    for (let k in element.attributes) {
+        htmlElement.setAttribute(k, element.attributes[k])
+    }
+    if (component.style) {
+        htmlElement.setAttribute('style', component.style)
+    }
+    if (component.cssClasses) {
+        htmlElement.setAttribute('class', component.cssClasses)
+    }
+    if (component.slot) {
+        htmlElement.setAttribute('slot', component.slot)
+    }
+    if (element.content) {
+        htmlElement.append(element.content)
+    }
+}
+
 export const renderElement = (container: LitElement, element: Element, component: ClientSideComponent): TemplateResult => {
     let selector = element.name
     if (element.attributes && element.attributes['id']) {
@@ -26,18 +44,7 @@ export const renderElement = (container: LitElement, element: Element, component
         const htmlElement = container.shadowRoot?.querySelector('.element-container')?.querySelector(selector)
         if (!htmlElement) {
             const htmlElement = document.createElement(element.name);
-            for (let k in element.attributes) {
-                htmlElement.setAttribute(k, element.attributes[k])
-            }
-            if (component.style) {
-                htmlElement.setAttribute('style', component.style)
-            }
-            if (component.cssClasses) {
-                htmlElement.setAttribute('class', component.cssClasses)
-            }
-            if (component.slot) {
-                htmlElement.setAttribute('slot', component.slot)
-            }
+            hydrate(htmlElement, element, component)
             for (let k in element.on) {
                 htmlElement.addEventListener(k, (e: Event) => {
                     const parameter = serialize(e)
@@ -56,18 +63,10 @@ export const renderElement = (container: LitElement, element: Element, component
             }
             container.shadowRoot?.querySelector('.element-container')?.appendChild(htmlElement)
         } else {
-            for (let k in element.attributes) {
-                htmlElement.setAttribute(k, element.attributes[k])
+            while (htmlElement.firstChild) {
+                htmlElement.removeChild(htmlElement.lastChild!);
             }
-            if (component.style) {
-                htmlElement.setAttribute('style', component.style)
-            }
-            if (component.cssClasses) {
-                htmlElement.setAttribute('class', component.cssClasses)
-            }
-            if (component.slot) {
-                htmlElement.setAttribute('slot', component.slot)
-            }
+            hydrate(htmlElement, element, component)
         }
     })
     return html`<div class="element-container"></div>`
