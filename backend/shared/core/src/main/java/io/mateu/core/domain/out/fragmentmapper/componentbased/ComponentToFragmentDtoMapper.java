@@ -160,7 +160,7 @@ public final class ComponentToFragmentDtoMapper {
         UIFragmentActionDto.Replace);
   }
 
-  private static Object getData(HttpRequest httpRequest) {
+  public static Object getData(HttpRequest httpRequest) {
     if (httpRequest == null) {
       return null;
     }

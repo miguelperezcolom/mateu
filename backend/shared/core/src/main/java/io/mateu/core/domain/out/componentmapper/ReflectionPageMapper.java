@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
+import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFormField;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -19,7 +20,12 @@ import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.AvatarSupplier;
@@ -35,6 +41,7 @@ import io.mateu.uidl.interfaces.ToolbarSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 import jdk.jfr.Label;
 
@@ -89,6 +96,9 @@ public class ReflectionPageMapper {
     if (instance instanceof ContentSupplier contentSupplier) {
       return contentSupplier.content();
     }
+    if (isForm(instance)) {
+        return getForm(instance, baseUrl, route, initiatorComponentId, httpRequest);
+    }
     return getAllFields(instance.getClass()).stream()
         .filter(
             field ->
@@ -104,7 +114,30 @@ public class ReflectionPageMapper {
         .toList();
   }
 
-  private static Collection<? extends Component> getHeader(
+    private static Collection<? extends Component> getForm(Object instance, String baseUrl, String route, String initiatorComponentId, HttpRequest httpRequest) {
+      return List.of(FormLayout.builder()
+                      .content(getAllFields(instance.getClass()).stream().map(field -> getFormField(field, instance,
+                              baseUrl,
+                              route,
+                              initiatorComponentId,
+                              httpRequest)).toList())
+              .build());
+    }
+
+    private static boolean isForm(Object instance) {
+        return getAllFields(instance.getClass()).stream()
+                .anyMatch(
+                        field ->
+                                field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                                        || field.isAnnotationPresent(Toolbar.class))
+                || getAllMethods(instance.getClass()).stream()
+                .anyMatch(
+                        method ->
+                                method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                                        || method.isAnnotationPresent(Toolbar.class));
+    }
+
+    private static Collection<? extends Component> getHeader(
       Object instance,
       String baseUrl,
       String route,
@@ -152,11 +185,17 @@ public class ReflectionPageMapper {
   }
 
   private static Button getButton(Method method, Object instance) {
-    return Button.builder().label(getLabel(method)).build();
+    return Button.builder()
+            .label(getLabel(method))
+            .actionId(method.getName())
+            .build();
   }
 
   private static Button getButton(Field field, Object instance) {
-    return Button.builder().label(getLabel(field)).build();
+    return Button.builder()
+            .label(getLabel(field))
+            .actionId(field.getName())
+            .build();
   }
 
   private static Component getAvatar(

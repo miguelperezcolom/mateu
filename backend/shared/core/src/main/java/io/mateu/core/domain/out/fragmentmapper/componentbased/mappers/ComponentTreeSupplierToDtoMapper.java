@@ -63,7 +63,7 @@ public class ComponentTreeSupplierToDtoMapper {
         null);
   }
 
-  private static List<ValidationDto> mapValidations(ComponentTreeSupplier serverSideObject) {
+  public static List<ValidationDto> mapValidations(Object serverSideObject) {
     if (serverSideObject instanceof ValidationSupplier validationSupplier) {
       return validationSupplier.validations().stream()
           .map(
@@ -78,7 +78,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return List.of();
   }
 
-  private static List<RuleDto> mapRules(Object serverSideObject) {
+  public static List<RuleDto> mapRules(Object serverSideObject) {
     if (serverSideObject instanceof RuleSupplier ruleSupplier) {
       return ruleSupplier.rules().stream()
           .map(
@@ -101,7 +101,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return List.of();
   }
 
-  private static List<TriggerDto> mapTriggers(Object serverSideObject) {
+  public static List<TriggerDto> mapTriggers(Object serverSideObject) {
     if (serverSideObject instanceof TriggersSupplier hasTriggers) {
       return hasTriggers.triggers().stream()
           .map(
@@ -144,7 +144,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return List.of();
   }
 
-  private static List<ActionDto> mapActions(Object serverSideObject) {
+  public static List<ActionDto> mapActions(Object serverSideObject) {
     if (serverSideObject instanceof ActionSupplier hasActions) {
       return hasActions.actions().stream().map(action -> mapAction(action)).toList();
     }
