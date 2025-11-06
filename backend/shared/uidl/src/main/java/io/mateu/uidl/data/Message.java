@@ -10,7 +10,7 @@ public record Message(
     String text,
     int duration) {
 
-    public Message(String text) {
-        this(NotificationVariant.success, NotificationPosition.middle, "", text, 5000);
-    }
+  public Message(String text) {
+    this(NotificationVariant.success, NotificationPosition.middle, "", text, 5000);
+  }
 }

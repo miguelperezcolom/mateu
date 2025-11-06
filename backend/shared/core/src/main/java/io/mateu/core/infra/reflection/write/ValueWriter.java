@@ -8,6 +8,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -58,6 +60,23 @@ public class ValueWriter {
         f.setAccessible(true);
       }
       try {
+        if (v != null) {
+          if (Integer.class.equals(f.getType())) {
+            v = Integer.valueOf(v.toString());
+          }
+          if (Long.class.equals(f.getType())) {
+            v = Long.valueOf(v.toString());
+          }
+          if (Double.class.equals(f.getType())) {
+            v = Double.valueOf(v.toString());
+          }
+          if (BigInteger.class.equals(f.getType())) {
+            v = new BigInteger(v.toString());
+          }
+          if (BigDecimal.class.equals(f.getType())) {
+            v = new BigDecimal(v.toString());
+          }
+        }
         f.set(o, v);
       } catch (Exception ignoredAgain) {
         f.set(o, null);

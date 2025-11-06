@@ -62,7 +62,9 @@ public final class AppComponentToDtoMapper {
                 MenuOptionDto.builder()
                     .label(option.label())
                     .destination(
-                        option instanceof RouteLink || option instanceof ContentLink || option instanceof FieldLink
+                        option instanceof RouteLink
+                                || option instanceof ContentLink
+                                || option instanceof FieldLink
                             ? new GoToRouteDto("", getPath(appRoute, option), null)
                             : null)
                     .selected(isSelected(option, appRoute, route))

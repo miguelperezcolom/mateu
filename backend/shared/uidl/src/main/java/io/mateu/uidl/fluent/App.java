@@ -7,7 +7,7 @@ import lombok.Singular;
 
 @Builder
 public record App(
-        String route,
+    String route,
     String favicon,
     String pageTitle,
     String title,

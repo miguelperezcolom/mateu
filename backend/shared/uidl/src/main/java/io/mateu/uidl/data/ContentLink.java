@@ -6,7 +6,8 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import lombok.Builder;
 import lombok.With;
 
-@Builder@With
+@Builder
+@With
 public record ContentLink(
     String path,
     String label,
@@ -19,9 +20,9 @@ public record ContentLink(
     Object itemData)
     implements Actionable {
 
-    public ContentLink(ComponentTreeSupplier componentSupplier) {
-        this(null, null, componentSupplier, false, null, null, false, false, null);
-    }
+  public ContentLink(ComponentTreeSupplier componentSupplier) {
+    this(null, null, componentSupplier, false, null, null, false, false, null);
+  }
 
   public ContentLink(String label, ComponentTreeSupplier componentSupplier) {
     this(null, label, componentSupplier, false, null, null, false, false, null);

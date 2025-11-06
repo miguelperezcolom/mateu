@@ -1,18 +1,10 @@
 package io.mateu.core.domain.out.fragmentmapper.reflectionbased;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getSubtitle;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionCommonMapper.getTitle;
 
-import io.mateu.dtos.AppDto;
-import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
-import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.dtos.UIFragmentActionDto;
-import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -20,7 +12,6 @@ import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class ReflectionAppMapper {
@@ -96,14 +87,15 @@ public class ReflectionAppMapper {
         }
       }
     }
-      if (pattern == null && componentSupplier != null) {
-          if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
-              for (Route routeAnnotation : componentSupplier.getClass().getAnnotationsByType(Route.class)) {
-                  String patternString = routeAnnotation.value();
-                  pattern = returnPatternIfMatches(patternString, route);
-              }
-          }
+    if (pattern == null && componentSupplier != null) {
+      if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
+        for (Route routeAnnotation :
+            componentSupplier.getClass().getAnnotationsByType(Route.class)) {
+          String patternString = routeAnnotation.value();
+          pattern = returnPatternIfMatches(patternString, route);
+        }
       }
+    }
     if (pattern != null) {
       Pattern basePattern =
           Pattern.compile(pattern.pattern().substring(0, pattern.pattern().indexOf(".*")));

@@ -4,9 +4,6 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentTo
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionObjectMapper.mapObjectToFragment;
 
 import io.mateu.core.domain.out.FragmentMapper;
-import io.mateu.dtos.ComponentDto;
-import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;

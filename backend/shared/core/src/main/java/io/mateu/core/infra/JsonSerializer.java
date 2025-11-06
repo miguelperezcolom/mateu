@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 
 public final class JsonSerializer {
@@ -18,7 +20,7 @@ public final class JsonSerializer {
 
   static {
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    // mapper.registerModule(new JavaTimeModule());
+    mapper.registerModule(new JavaTimeModule());
     /*
     SimpleModule module = new SimpleModule();
     module.addSerializer(IconChooser.class, new IconChooserSerializer());

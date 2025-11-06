@@ -2,11 +2,11 @@ package io.mateu.uidl.data;
 
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import lombok.Builder;
 import lombok.With;
 
-@Builder@With
+@Builder
+@With
 public record FieldLink(
     String path,
     String label,
@@ -20,9 +20,9 @@ public record FieldLink(
     Object itemData)
     implements Actionable {
 
-    public FieldLink(Class<?> type, String fieldName) {
-        this(null, null, type.getName(), fieldName, false, null, null, false, false, null);
-    }
+  public FieldLink(Class<?> type, String fieldName) {
+    this(null, null, type.getName(), fieldName, false, null, null, false, false, null);
+  }
 
   public FieldLink(String label, Class<?> type, String fieldName) {
     this(null, label, type.getName(), fieldName, false, null, null, false, false, null);
