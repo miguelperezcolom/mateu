@@ -60,6 +60,8 @@ public class DeclarativeApp implements App {
     @Menu
     String page3 = "/app/page3";
     @Menu
+    String crud1 = "/app/crud1";
+    @Menu
     String allFields = "/app/all-fields";
     @Menu
     Actionable contentLink = new ContentLink(rq -> new Text("Hola"));

@@ -49,16 +49,19 @@ public class AllFieldsForm {
 
     LocalDate localDate = LocalDate.now();
 
-    /*
     Date date = new Date();
     java.sql.Date sqlDate = new java.sql.Date(System.currentTimeMillis());
+
     ZonedDateTime zonedDateTime = ZonedDateTime.now();
+
     LocalTime localTime = LocalTime.now();
+
 
     int[] intArray;
     long[] longArray;
     float[] floatArray;
     double[] doubleArray;
+
     Double[] wrappedDoubleArray;
     BigInteger[] bigIntegerArray;
     BigDecimal[] bigDecimalArray;
@@ -86,17 +89,19 @@ public class AllFieldsForm {
 
     List<Row> list;
 
+
     File file;
+
 
     Status status = new Status(StatusType.SUCCESS, "Hola!");
 
     Component component = new Text("Hola!");
 
+
     Menu menu = new Menu("Hola!", List.of(new RouteLink("/app/page1", "Page 1"), new RouteLink("/app/page2", "Page 2")));
 
     Range range = new Range(20, 30);
 
-     */
 
     @Button
     Object sayHello() {
