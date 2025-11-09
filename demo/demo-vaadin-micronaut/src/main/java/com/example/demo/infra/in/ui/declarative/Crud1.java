@@ -20,8 +20,6 @@ record Crud1Row(
 
 }
 
-
-
 @Route("/app/crud1")
 public class Crud1 implements CrudlBackend<Crud1Filters, Crud1Row> {
 
@@ -29,11 +27,6 @@ public class Crud1 implements CrudlBackend<Crud1Filters, Crud1Row> {
     @Override
     public CrudlData<Crud1Row> search(String searchText, Crud1Filters crud1Filters, Pageable pageable, HttpRequest httpRequest) {
         return new CrudlData<>(new Page<>(searchText, 0, 0, 0, List.of()));
-    }
-
-    @Override
-    public Class<Crud1Filters> filtersClass() {
-        return Crud1Filters.class;
     }
 
 }

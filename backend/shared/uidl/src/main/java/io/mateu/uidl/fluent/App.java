@@ -4,8 +4,10 @@ import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
+import lombok.With;
 
 @Builder
+@With
 public record App(
     String route,
     String favicon,

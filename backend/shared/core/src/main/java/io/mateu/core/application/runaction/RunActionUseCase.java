@@ -55,7 +55,7 @@ public class RunActionUseCase {
             // get the target instance
             .flatMap(ignored -> createInstance(command))
             // if the target instance is an app, resolve the menu to get the real target instance
-            .flatMap(instance -> resolveMenuIfApp(instance, command))
+//            .flatMap(instance -> resolveMenuIfApp(instance, command))
             // here I have the target instance
             .flatMapMany(
                 instance ->
@@ -130,7 +130,8 @@ public class RunActionUseCase {
 
   private App getApp(Object instance, RunActionCommand command) {
     if (instance instanceof AppSupplier appSupplier) {
-      return appSupplier.getApp(command.httpRequest());
+        var appRoute = getRoute(instance, instance, command.httpRequest(), command.route());
+      return appSupplier.getApp(command.httpRequest()).withRoute(appRoute);
     }
     if (instance instanceof App app) { // componente
       return app;
@@ -199,7 +200,15 @@ public class RunActionUseCase {
                 return handlesRoute.handleRoute(route, httpRequest);
               }
               return Mono.just(instance);
-            });
+            })
+            .map(instance -> {
+                if (instance instanceof AppSupplier appSupplier) {
+                    var appRoute = getRoute(instance, instance, httpRequest, route);
+                    return appSupplier.getApp(httpRequest).withRoute(appRoute);
+                }
+                return instance;
+            })
+            ;
   }
 
   private Mono<?> tryWithApp(
@@ -221,7 +230,8 @@ public class RunActionUseCase {
               .map(
                   instance -> {
                     if (instance instanceof AppSupplier appSupplier) {
-                      return appSupplier.getApp(httpRequest);
+                        var appRoute = getRoute(instance, instance, httpRequest, route);
+                        return appSupplier.getApp(httpRequest).withRoute(appRoute);
                     }
                     if (instance instanceof io.mateu.uidl.interfaces.App app) {
                       var appRoute = getMinimalAppRoute(resolver, route);
