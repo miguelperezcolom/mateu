@@ -28,6 +28,36 @@ class SampleContent implements Page {
     int age;
 }
 
+class PagesSubmenu implements Submenu {
+    @Menu
+    Actionable page1 = new RouteLink("/app/page1");
+    @Menu
+    URI page2 = new URI("/app/page2");
+    @Menu
+    String page3 = "/app/page3";
+
+    PagesSubmenu() throws URISyntaxException {
+    }
+}
+
+@Slf4j
+class ContentSubmenu implements Submenu {
+    @Menu
+    Actionable contentLink = new ContentLink(rq -> new Text("Hola"));
+    @Menu
+    Mono<?> mono = Mono.just("Hola!");
+    @Menu
+    Runnable runnable = () -> log.info("Runnable has been called");
+    @Menu
+    Supplier<?> supplier = () -> new Text("Hola");
+    @Menu
+    Callable<?> callable = () -> new Text("Hola");
+    @Menu
+    Function<?,?> function = (rq) -> new Text("Hola");
+    @Menu
+    SampleContent sampleContent;
+}
+
 class MySubmenu implements Submenu {
     @Menu
     Actionable page1 = new RouteLink("/app/page1");
@@ -50,33 +80,16 @@ class MyNestedSubmenu implements Submenu {
 @HomeRoute("/app/home")
 @Slf4j
 public class DeclarativeApp implements App {
-
     @Menu(selected = true)
     Actionable home = new RouteLink("/app/home");
     @Menu
-    Actionable page1 = new RouteLink("/app/page1");
+    PagesSubmenu pages;
     @Menu
-    URI page2 = new URI("/app/page2");
-    @Menu
-    String page3 = "/app/page3";
-    @Menu
-    String crud1 = "/app/crud1";
+    ContentSubmenu content;
     @Menu
     String allFields = "/app/all-fields";
     @Menu
-    Actionable contentLink = new ContentLink(rq -> new Text("Hola"));
-    @Menu
-    Mono<?> mono = Mono.just("Hola!");
-    @Menu
-    Runnable runnable = () -> log.info("Runnable has been called");
-    @Menu
-    Supplier<?> supplier = () -> new Text("Hola");
-    @Menu
-    Callable<?> callable = () -> new Text("Hola");
-    @Menu
-    Function<?,?> function = (rq) -> new Text("Hola");
-    @Menu
-    SampleContent sampleContent;
+    String crud1 = "/app/crud1";
     @Menu
     MySubmenu mySubmenu;
     @Menu
