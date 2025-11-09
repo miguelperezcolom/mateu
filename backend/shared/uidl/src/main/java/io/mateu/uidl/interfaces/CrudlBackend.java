@@ -1,9 +1,10 @@
 package io.mateu.uidl.interfaces;
 
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+
 import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Direction;
-import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
@@ -51,7 +52,7 @@ public interface CrudlBackend<Filters, Row> extends ActionHandler {
   }
 
   default Class<Filters> filtersClass() {
-    return (Class<Filters>) NoFilters.class;
+    return getGenericClass(this.getClass(), CrudlBackend.class, "Filters");
   }
 
   CrudlData<Row> search(

@@ -18,6 +18,7 @@ import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Page;
 import jakarta.inject.Named;
@@ -89,6 +90,7 @@ public class ReflectionObjectToComponentMapper {
       return false;
     }
     return instance instanceof Page
+        || instance instanceof CrudlBackend<?, ?>
         || instance.getClass().isAnnotationPresent(MateuUI.class)
         || instance.getClass().isAnnotationPresent(Route.class);
   }

@@ -23,7 +23,7 @@ import java.util.Date;
 
 public class ReflectionFormFieldMapper {
 
-  public static Component getFormField(
+  public static FormField getFormField(
       Field field,
       Object instance,
       String baseUrl,

@@ -7,9 +7,9 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.FileChecker.isFile;
-import static io.mateu.core.infra.reflection.read.GenericClassProvider.getGenericClass;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;

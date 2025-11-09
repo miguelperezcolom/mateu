@@ -1,4 +1,4 @@
-package io.mateu.core.infra.reflection.read;
+package io.mateu.uidl.reflection;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;

@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.CssClasses;
@@ -20,13 +21,18 @@ import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.AvatarSupplier;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
 import io.mateu.uidl.interfaces.ContentSupplier;
+import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.FooterSupplier;
 import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -92,6 +98,9 @@ public class ReflectionPageMapper {
     if (instance instanceof ContentSupplier contentSupplier) {
       return contentSupplier.content();
     }
+    if (instance instanceof CrudlBackend<?, ?> crudlBackend) {
+      return getCrud(instance, baseUrl, route, initiatorComponentId, httpRequest);
+    }
     if (isForm(instance)) {
       return getForm(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
@@ -110,6 +119,71 @@ public class ReflectionPageMapper {
         .toList();
   }
 
+  private static Collection<? extends Component> getCrud(
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return List.of(
+        Crudl.builder()
+            .searchable(true)
+            .filters(
+                getFilters(
+                    getGenericClass(instance.getClass(), CrudlBackend.class, "Filters"),
+                    instance,
+                    baseUrl,
+                    route,
+                    initiatorComponentId,
+                    httpRequest))
+            .columns(
+                getColumns(
+                    getGenericClass(instance.getClass(), CrudlBackend.class, "Row"),
+                    instance,
+                    baseUrl,
+                    route,
+                    initiatorComponentId,
+                    httpRequest))
+            .style("min-width: 30rem; display: block;")
+            .build());
+  }
+
+  private static Collection<? extends GridContent> getColumns(
+      Class rowClass,
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return getAllFields(rowClass).stream()
+        .map(field -> getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+        .toList();
+  }
+
+  private static GridColumn getColumn(
+      Field field,
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return GridColumn.builder().id(field.getName()).label(getLabel(field)).build();
+  }
+
+  private static Collection<FormField> getFilters(
+      Class filtersClass,
+      Object instance,
+      String baseUrl,
+      String route,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return getAllFields(filtersClass).stream()
+        .map(
+            field ->
+                getFormField(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+        .toList();
+  }
+
   private static Collection<? extends Component> getForm(
       Object instance,
       String baseUrl,
@@ -122,8 +196,14 @@ public class ReflectionPageMapper {
                 getAllFields(instance.getClass()).stream()
                     .map(
                         field ->
-                            getFormField(
-                                field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+                            (Component)
+                                getFormField(
+                                    field,
+                                    instance,
+                                    baseUrl,
+                                    route,
+                                    initiatorComponentId,
+                                    httpRequest))
                     .toList())
             .build());
   }

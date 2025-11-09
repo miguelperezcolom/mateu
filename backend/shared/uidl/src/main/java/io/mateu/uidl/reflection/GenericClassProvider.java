@@ -1,6 +1,6 @@
-package io.mateu.core.infra.reflection.read;
+package io.mateu.uidl.reflection;
 
-import static io.mateu.core.infra.reflection.read.TypeProvider.getType;
+import static io.mateu.uidl.reflection.TypeProvider.getType;
 
 import io.mateu.uidl.annotations.GenericClass;
 import java.lang.reflect.AnnotatedElement;
