@@ -2,7 +2,9 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
+import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFormField;
+import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getStereotype;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -167,7 +169,12 @@ public class ReflectionPageMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return GridColumn.builder().id(field.getName()).label(getLabel(field)).build();
+    return GridColumn.builder()
+            .id(field.getName())
+            .label(getLabel(field))
+            .dataType(getDataType(field))
+            .stereotype(getStereotype(field))
+            .build();
   }
 
   private static Collection<FormField> getFilters(

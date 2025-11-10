@@ -11,6 +11,9 @@ import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -36,10 +39,16 @@ public class ReflectionFormFieldMapper {
         .label(getLabel(field))
         .dataType(getDataType(field))
         .stereotype(getStereotype(field))
+            .required(isRequired(field))
+
         .build();
   }
 
-    private static FieldStereotype getStereotype(Field field) {
+    private static boolean isRequired(Field field) {
+      return field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class);
+    }
+
+    public static FieldStereotype getStereotype(Field field) {
         if (field.isAnnotationPresent(Representation.class)) {
             return field.getAnnotation(Representation.class).value();
         }
@@ -50,7 +59,7 @@ public class ReflectionFormFieldMapper {
     return capitalize(field.getName());
   }
 
-  private static FieldDataType getDataType(Field field) {
+  public static FieldDataType getDataType(Field field) {
     /*
     money
            */
