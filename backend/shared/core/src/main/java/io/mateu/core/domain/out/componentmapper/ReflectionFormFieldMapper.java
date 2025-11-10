@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
 
+import io.mateu.uidl.annotations.Representation;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -34,11 +35,18 @@ public class ReflectionFormFieldMapper {
         .id(field.getName())
         .label(getLabel(field))
         .dataType(getDataType(field))
-        .stereotype(FieldStereotype.regular)
+        .stereotype(getStereotype(field))
         .build();
   }
 
-  public static String getLabel(Field field) {
+    private static FieldStereotype getStereotype(Field field) {
+        if (field.isAnnotationPresent(Representation.class)) {
+            return field.getAnnotation(Representation.class).value();
+        }
+      return FieldStereotype.regular;
+    }
+
+    public static String getLabel(Field field) {
     return capitalize(field.getName());
   }
 
