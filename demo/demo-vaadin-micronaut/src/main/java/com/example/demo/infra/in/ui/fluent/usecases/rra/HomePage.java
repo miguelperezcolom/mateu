@@ -9,7 +9,7 @@ import io.mateu.uidl.data.BadgeColor;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardRow;
 import io.mateu.uidl.data.CardVariant;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.NoFilters;
@@ -17,14 +17,14 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.CrudlType;
+import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -35,7 +35,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentTo
 
 @Route("/fluent-app/use-cases/rra/home")
 @Singleton
-public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, CardRow>, TriggersSupplier {
+public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters, CardRow>, TriggersSupplier {
 
     private final OrderRepository orderRepository;
 
@@ -49,8 +49,8 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
         return Page.builder()
                 .title("Welcome to the Redwood Reference App")
                 .subtitle("Create and submit orders and review information about inventory.")
-                .content(List.of(Crudl.builder()
-                        .crudlType(CrudlType.card)
+                .content(List.of(Listing.builder()
+                        .listingType(ListingType.card)
                         .searchable(false)
                         .style("width: 100%; height: 100%;")
                         .infiniteScrolling(true)
@@ -102,10 +102,10 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
     }
 
     @Override
-    public CrudlData<CardRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CardRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         var filteredItems = orderRepository.findAll().stream()
                 .filter(order -> OrderStatus.Draft.equals(order.status())).toList();
-        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
@@ -127,7 +127,7 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
         if ("go-to-selected-order".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getSelectedRows(CardRow.class).get(0).id());
         }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 
     @Override
@@ -135,6 +135,6 @@ public class HomePage implements ComponentTreeSupplier, CrudlBackend<NoFilters, 
         if ("go-to-selected-order".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 }

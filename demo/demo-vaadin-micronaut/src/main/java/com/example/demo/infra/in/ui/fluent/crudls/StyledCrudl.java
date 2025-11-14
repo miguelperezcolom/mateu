@@ -92,7 +92,7 @@ public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, Act
                                 .maxColumns(4)
                                 .autoResponsive(true)
                                 .build(),
-                        new BasicCrudl()
+                        new BasicListing()
                                 .withNoBorder(noBorder)
                                 .withRowStripes(rowStripes)
                                 .withNoRowBorder(noRowBorder)

@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Singular;
 
 @Builder
-public record Crudl(
-    CrudlType crudlType,
+public record Listing(
+    ListingType listingType,
     String id,
     String title,
     String subtitle,

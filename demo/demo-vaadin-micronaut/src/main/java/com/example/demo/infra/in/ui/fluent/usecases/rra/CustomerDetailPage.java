@@ -8,7 +8,7 @@ import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -21,14 +21,14 @@ import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ConfirmationTexts;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
@@ -51,7 +51,7 @@ record OrderCrudRow(String id,
 }
 
 @Serdeable
-class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTreeSupplier, TriggersSupplier, ActionSupplier {
+class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTreeSupplier, TriggersSupplier, ActionSupplier {
 
     private final OrderRepository orderRepository;
     private final String customerId;
@@ -62,10 +62,10 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
     }
 
     @Override
-    public CrudlData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         var orders = orderRepository.findAll().stream()
                 .filter(order -> order.customer().id().equals(customerId)).toList();
-        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
@@ -93,7 +93,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Crudl.builder()
+        return Listing.builder()
                 .infiniteScrolling(true)
                 .columns(List.of(
                         GridColumn.builder()
@@ -134,7 +134,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
         if ("edit-selected-order".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 
     @SneakyThrows
@@ -150,7 +150,7 @@ class OrdersCrud implements CrudlBackend<NoFilters, OrderCrudRow>, ComponentTree
         if ("edit-selected-order".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).customerId() + "/edit");
         }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 
     @Override
@@ -231,7 +231,7 @@ public class CustomerDetailPage implements ComponentTreeSupplier, PostHydrationH
                                 ))
                                 .style("max-width: 30rem;")
                                 .build(),
-                        Crudl.builder()
+                        Listing.builder()
                                 .columns(List.of(
                                         GridColumn.builder()
                                                 .id("data")

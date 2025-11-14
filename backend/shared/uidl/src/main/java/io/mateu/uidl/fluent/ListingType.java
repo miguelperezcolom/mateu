@@ -1,6 +1,6 @@
 package io.mateu.uidl.fluent;
 
-public enum CrudlType {
+public enum ListingType {
   table,
   card
 }

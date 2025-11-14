@@ -2,7 +2,7 @@ package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -13,12 +13,12 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
@@ -41,7 +41,7 @@ record Row2(
 
 @Route("/fluent-app/crudls/more-columns")
 @Slf4j
-public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Filters2, Row2>, TriggersSupplier {
+public class MoreColumnsListing implements ComponentTreeSupplier, ListingBackend<Filters2, Row2>, TriggersSupplier {
 
     @JsonIgnore
     List<Row2> allItems = List.of(
@@ -70,8 +70,8 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
     );
 
     @Override
-    public Crudl component(HttpRequest httpRequest) {
-        return Crudl.builder() // vertical layout as default container for children
+    public Listing component(HttpRequest httpRequest) {
+        return Listing.builder() // vertical layout as default container for children
                 .title("Basic crudl")
                 .id("crud")
                 .filters(List.of(
@@ -122,7 +122,7 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
     }
 
     @Override
-    public CrudlData<Row2> search(String searchText, Filters2 filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row2> search(String searchText, Filters2 filters, Pageable pageable, HttpRequest httpRequest) {
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -146,7 +146,7 @@ public class MoreColumnsCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                     return compare;
                 })
                 .toList();
-        return new CrudlData<>(new Page<>(
+        return new ListingData<>(new Page<>(
                 searchText + "#" + filters.age(),
                 pageable.size(),
                 pageable.page(),

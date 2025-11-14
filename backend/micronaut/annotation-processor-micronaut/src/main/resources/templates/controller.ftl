@@ -4,7 +4,6 @@ import io.mateu.MicronautHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.core.infra.reflection.DefaultInstanceFactory;
 import io.micronaut.http.HttpRequest;
@@ -39,14 +38,6 @@ public class ${simpleClassName}MateuController {
     private String uiId = "${className}";
 
     private String baseUrl = "${path}";
-
-    @Post(value = "v3/ui")
-    public Mono<UIDto> getUI(
-        @Body GetUIRqDto rq,
-        HttpRequest serverHttpRequest) throws Exception {
-      return service.getUI(uiId, baseUrl, rq,
-        new MicronautHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
-    }
 
     @Post("v3/sync/{/ignored:.*}")
     public Mono<UIIncrementDto> runStepSync(

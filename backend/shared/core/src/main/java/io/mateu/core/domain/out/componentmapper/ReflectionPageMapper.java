@@ -28,17 +28,18 @@ import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.AvatarSupplier;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
 import io.mateu.uidl.interfaces.ContentSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
 import io.mateu.uidl.interfaces.FooterSupplier;
 import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.PageTitleSupplier;
+import io.mateu.uidl.interfaces.ReactiveListingBackend;
 import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
 import io.mateu.uidl.interfaces.ToolbarSupplier;
@@ -100,7 +101,8 @@ public class ReflectionPageMapper {
     if (instance instanceof ContentSupplier contentSupplier) {
       return contentSupplier.content();
     }
-    if (instance instanceof CrudlBackend<?, ?> crudlBackend) {
+    if (instance instanceof ListingBackend<?, ?>
+        || instance instanceof ReactiveListingBackend<?, ?>) {
       return getCrud(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
     if (isForm(instance)) {
@@ -128,11 +130,11 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return List.of(
-        Crudl.builder()
+        Listing.builder()
             .searchable(true)
             .filters(
                 getFilters(
-                    getGenericClass(instance.getClass(), CrudlBackend.class, "Filters"),
+                    getFiltersClass(instance),
                     instance,
                     baseUrl,
                     route,
@@ -140,7 +142,7 @@ public class ReflectionPageMapper {
                     httpRequest))
             .columns(
                 getColumns(
-                    getGenericClass(instance.getClass(), CrudlBackend.class, "Row"),
+                    getRowClass(instance),
                     instance,
                     baseUrl,
                     route,
@@ -148,6 +150,20 @@ public class ReflectionPageMapper {
                     httpRequest))
             .style("min-width: 30rem; display: block;")
             .build());
+  }
+
+  private static Class getRowClass(Object instance) {
+    if (instance instanceof ReactiveListingBackend<?, ?>) {
+      getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Row");
+    }
+    return getGenericClass(instance.getClass(), ListingBackend.class, "Row");
+  }
+
+  private static Class getFiltersClass(Object instance) {
+    if (instance instanceof ReactiveListingBackend<?, ?>) {
+      getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Filters");
+    }
+    return getGenericClass(instance.getClass(), ListingBackend.class, "Filters");
   }
 
   private static Collection<? extends GridContent> getColumns(
@@ -170,11 +186,11 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return GridColumn.builder()
-            .id(field.getName())
-            .label(getLabel(field))
-            .dataType(getDataType(field))
-            .stereotype(getStereotype(field))
-            .build();
+        .id(field.getName())
+        .label(getLabel(field))
+        .dataType(getDataType(field))
+        .stereotype(getStereotype(field))
+        .build();
   }
 
   private static Collection<FormField> getFilters(

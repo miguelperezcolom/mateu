@@ -3,7 +3,7 @@ package com.example.demo.infra.in.ui.fluent.actions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -11,12 +11,12 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ReactiveCrudlBackend;
+import io.mateu.uidl.interfaces.ReactiveListingBackend;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -31,7 +31,7 @@ record Row(String name, int age) {}
 
 @Route("/fluent-app/actions/row-selected-required")
 @Slf4j
-public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveCrudlBackend<Filters, Row>, ActionSupplier {
+public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveListingBackend<Filters, Row>, ActionSupplier {
 
     @JsonIgnore
     List<Row> allItems = List.of(
@@ -45,7 +45,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
                 .title("Row selected required")
                 .content(List.of(
 
-                        Crudl.builder() // vertical layout as default container for children
+                        Listing.builder() // vertical layout as default container for children
                                 .title("Basic crudl")
                                 .id("crud")
                                 .filters(List.of(
@@ -88,7 +88,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     }
 
     @Override
-    public Mono<CrudlData<Row>> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    public Mono<ListingData<Row>> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
         log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
@@ -113,7 +113,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
                     return compare;
                 })
                 .toList();
-        return Mono.just(new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return Mono.just(new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText + "#" + filters.age(),
                 pageable.size(),
                 pageable.page(),
@@ -125,7 +125,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
 
     @Override
     public boolean supportsAction(String actionId) {
-        return ReactiveCrudlBackend.super.supportsAction(actionId) || "xx".equals(actionId);
+        return ReactiveListingBackend.super.supportsAction(actionId) || "xx".equals(actionId);
     }
 
     @Override
@@ -134,7 +134,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
             log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
             return Flux.empty();
         }
-        return ReactiveCrudlBackend.super.handleAction(actionId, httpRequest);
+        return ReactiveListingBackend.super.handleAction(actionId, httpRequest);
     }
 
     @Override

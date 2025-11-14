@@ -1,6 +1,5 @@
 package com.example.uis.travel;
 
-import io.mateu.uidl.annotations.Intent;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Subresource;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -9,7 +8,6 @@ import java.time.LocalDate;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
-@Intent
 @NoArgsConstructor
 @Route("/bookings/:bookingId")
 public class BookingDetail implements RouteHandler {

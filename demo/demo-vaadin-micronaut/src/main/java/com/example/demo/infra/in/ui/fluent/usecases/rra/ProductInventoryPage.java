@@ -5,21 +5,21 @@ import com.example.demo.domain.ProductRepository;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.CrudlType;
+import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
@@ -43,7 +43,7 @@ record ProductInventoryRow(
 
 @Route("/fluent-app/use-cases/rra/inventory")
 @Singleton
-public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
+public class ProductInventoryPage implements ComponentTreeSupplier, ListingBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
 
     private final ProductRepository productRepository;
 
@@ -59,8 +59,8 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
         return Page.builder()
                 .title("Product Inventory")
                 .content(List.of(
-                        Crudl.builder()
-                                .crudlType(CrudlType.card)
+                        Listing.builder()
+                                .listingType(ListingType.card)
                                 .searchable(true)
                                 .infiniteScrolling(true)
                                 .onRowSelectionChangedActionId("go-to-selected-product")
@@ -80,9 +80,9 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
     }
 
     @Override
-    public CrudlData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         var found = productRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
-        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
@@ -104,7 +104,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
         if ("go-to-selected-product".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, CrudlBackend
         if ("go-to-selected-product".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/inventory/" + httpRequest.getSelectedRows(ProductInventoryRow.class).get(0).id());
         }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 
     public static Card createCard(Product product) {

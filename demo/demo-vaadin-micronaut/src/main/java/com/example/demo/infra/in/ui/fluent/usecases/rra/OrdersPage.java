@@ -8,7 +8,7 @@ import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
@@ -19,14 +19,14 @@ import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ConfirmationTexts;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
@@ -56,7 +56,7 @@ record OrderRow(
 
 @Route("/fluent-app/use-cases/rra/orders")
 @Singleton
-public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
+public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
 
     private final OrderRepository orderRepository;
 
@@ -72,7 +72,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
         return Page.builder()
                 .title("Orders")
                 .toolbar(List.of(new Button("Create", "create")))
-                .content(List.of(Crudl.builder()
+                .content(List.of(Listing.builder()
                                 .infiniteScrolling(true)
                                 .columns(List.of(
                                         GridColumn.builder()
@@ -118,9 +118,9 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
     }
 
     @Override
-    public CrudlData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         var found = orderRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
-        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 pageable.page(),
@@ -195,7 +195,7 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
         if ("go-to-selected-customer".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 
     @SneakyThrows
@@ -214,6 +214,6 @@ public class OrdersPage implements ComponentTreeSupplier, CrudlBackend<OrdersFil
         if ("go-to-selected-customer".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());
         }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 }

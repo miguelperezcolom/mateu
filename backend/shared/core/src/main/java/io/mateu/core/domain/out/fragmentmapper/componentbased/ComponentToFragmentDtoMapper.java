@@ -125,8 +125,8 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.VirtualList;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -194,7 +194,7 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof Form form) {
       return mapFormToDto(form, componentSupplier, baseUrl, route, httpRequest);
     }
-    if (component instanceof Crudl crudl) {
+    if (component instanceof Listing crudl) {
       return mapCrudlToDto(crudl, componentSupplier, baseUrl, route, httpRequest);
     }
     if (component instanceof HorizontalLayout horizontalLayout) {

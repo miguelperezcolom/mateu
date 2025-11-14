@@ -3,6 +3,8 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.Humanizer.capitalize;
 
 import io.mateu.uidl.annotations.Representation;
+import io.mateu.uidl.annotations.SliderMax;
+import io.mateu.uidl.annotations.SliderMin;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -13,7 +15,6 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -39,23 +40,38 @@ public class ReflectionFormFieldMapper {
         .label(getLabel(field))
         .dataType(getDataType(field))
         .stereotype(getStereotype(field))
-            .required(isRequired(field))
-
+        .required(isRequired(field))
+        .sliderMin(getSliderMin(field))
+        .sliderMax(getSliderMax(field))
         .build();
   }
 
-    private static boolean isRequired(Field field) {
-      return field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class);
+  private static int getSliderMax(Field field) {
+    if (field.isAnnotationPresent(SliderMax.class)) {
+      return field.getAnnotation(SliderMax.class).value();
     }
+    return 100;
+  }
 
-    public static FieldStereotype getStereotype(Field field) {
-        if (field.isAnnotationPresent(Representation.class)) {
-            return field.getAnnotation(Representation.class).value();
-        }
-      return FieldStereotype.regular;
+  private static int getSliderMin(Field field) {
+    if (field.isAnnotationPresent(SliderMin.class)) {
+      return field.getAnnotation(SliderMin.class).value();
     }
+    return 0;
+  }
 
-    public static String getLabel(Field field) {
+  private static boolean isRequired(Field field) {
+    return field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class);
+  }
+
+  public static FieldStereotype getStereotype(Field field) {
+    if (field.isAnnotationPresent(Representation.class)) {
+      return field.getAnnotation(Representation.class).value();
+    }
+    return FieldStereotype.regular;
+  }
+
+  public static String getLabel(Field field) {
     return capitalize(field.getName());
   }
 

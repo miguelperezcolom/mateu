@@ -2,22 +2,22 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.TrainingRepository;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Crudl;
-import io.mateu.uidl.fluent.CrudlType;
+import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
@@ -40,7 +40,7 @@ record TrainingRow(
 
 @Route("/fluent-app/use-cases/rra/training")
 @Singleton
-public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilters, TrainingRow>, TriggersSupplier {
+public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFilters, TrainingRow>, TriggersSupplier {
 
     private final TrainingRepository trainingRepository;
 
@@ -54,8 +54,8 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
         return Page.builder()
                 .title("Training and Development")
                 .content(List.of(Form.builder()
-                        .content(List.of(Crudl.builder()
-                                .crudlType(CrudlType.card)
+                        .content(List.of(Listing.builder()
+                                .listingType(ListingType.card)
                                 .onRowSelectionChangedActionId("go-to-selected-training")
                                 .style("width: 100%;")
                                 .build()))
@@ -70,7 +70,7 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
     }
 
     @Override
-    public CrudlData<TrainingRow> search(String searchText, NoFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<TrainingRow> search(String searchText, NoFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
         List<TrainingRow> allRows = trainingRepository.findAll().stream().map(training -> new TrainingRow(
                 training.id(),
                 training.name(),
@@ -81,7 +81,7 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
                         training.completedSteps() < training.totalSteps()?"Pending":"Completed"
                         ))
         ).toList();
-        return new CrudlData<>(new io.mateu.uidl.data.Page<>(
+        return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
                 pageable.size(),
                 0,
@@ -96,7 +96,7 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
         if ("go-to-selected-training".equals(actionId)) {
             return UICommand.navigateTo("/fluent-app/use-cases/rra/trainings/" + httpRequest.getSelectedRows(TrainingRow.class).get(0).id());
         }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 
     @Override
@@ -104,6 +104,6 @@ public class TrainingPage implements ComponentTreeSupplier, CrudlBackend<NoFilte
         if ("go-to-selected-training".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 }

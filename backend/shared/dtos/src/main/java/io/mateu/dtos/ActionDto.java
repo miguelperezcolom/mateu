@@ -1,6 +1,7 @@
 package io.mateu.dtos;
 
 import lombok.Builder;
+import lombok.With;
 
 /**
  * A button
@@ -16,6 +17,7 @@ import lombok.Builder;
  * @param href The location to go to, in case we want this to act as a link
  */
 @Builder
+@With
 public record ActionDto(
     String id,
     boolean validationRequired,

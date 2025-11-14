@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@MateuUI("/")
+@MateuUI("")
 public class HelloWorld implements RouteHandler, ActionHandler, TitleSupplier, SubtitleSupplier, Page {
     @Override
     public Mono<?> handleRoute(String route, HttpRequest httpRequest) {

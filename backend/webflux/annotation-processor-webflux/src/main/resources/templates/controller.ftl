@@ -4,7 +4,6 @@ import io.mateu.SpringHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +28,6 @@ public class ${simpleClassName}MateuController {
     private String uiId = "${className}";
 
     private String baseUrl = "${path}";
-
-    @PostMapping(value = "v3/ui")
-    public Mono<UIDto> getUI(
-            @RequestBody GetUIRqDto rq,
-            ServerHttpRequest serverHttpRequest) throws Exception {
-      return service.getUI(uiId, baseUrl, rq,
-        new SpringHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
-    }
 
     @PostMapping("v3/{ignored}")
     public Mono<UIIncrementDto> runStep(

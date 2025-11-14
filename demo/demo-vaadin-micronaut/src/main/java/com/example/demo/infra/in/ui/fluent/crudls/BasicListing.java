@@ -5,9 +5,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.ColumnAction;
-import io.mateu.uidl.data.ColumnActionGroup;
-import io.mateu.uidl.data.CrudlData;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -19,24 +17,25 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CrudlBackend;
+import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 
-record Filters3(int age) {}
+record Filters(int age) {}
 @Serdeable
-record Row3(
+record Row(
         String name,
         int age,
         double balance,
@@ -45,22 +44,56 @@ record Row3(
         boolean spanish,
         String icon,
         String link,
-        ColumnActionGroup actions,
-        ComponentDto button
-        ) {}
+        String longText,
+        ComponentDto detail) {}
 
-@Serdeable
-record Params(String name, int age) {
-
-}
-
-@Route("/fluent-app/crudls/with-row-menu")
+@Route("/fluent-app/crudls/basic")
 @Slf4j
-public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Filters3, Row3>, TriggersSupplier {
+@With
+public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filters, Row>, TriggersSupplier {
+
+    public BasicListing() {
+    }
+
+    public BasicListing(boolean wrapCellContent, boolean compact, boolean noBorder, boolean noRowBorder, boolean columnBorders, boolean rowStripes, String vaadinGridCellBackground, String vaadinGridCellPadding, int height, boolean allRowsVisible, List<Row> allItems) {
+        this.wrapCellContent = wrapCellContent;
+        this.compact = compact;
+        this.noBorder = noBorder;
+        this.noRowBorder = noRowBorder;
+        this.columnBorders = columnBorders;
+        this.rowStripes = rowStripes;
+        this.vaadinGridCellBackground = vaadinGridCellBackground;
+        this.vaadinGridCellPadding = vaadinGridCellPadding;
+        this.height = height;
+        this.allRowsVisible = allRowsVisible;
+        this.allItems = allItems;
+    }
 
     @JsonIgnore
-    List<Row3> allItems = List.of(
-            new Row3(
+    boolean wrapCellContent;
+    @JsonIgnore
+    boolean compact;
+    @JsonIgnore
+    boolean noBorder;
+    @JsonIgnore
+    boolean noRowBorder;
+    @JsonIgnore
+    boolean columnBorders;
+    @JsonIgnore
+    boolean rowStripes;
+    @JsonIgnore
+    String vaadinGridCellBackground = "--lumo-base-color";
+    @JsonIgnore
+    String vaadinGridCellPadding = "--lumo-space-xs";
+    @JsonIgnore
+    int height;
+    @JsonIgnore
+    boolean allRowsVisible;
+
+
+    @JsonIgnore
+    List<Row> allItems = List.of(
+            new Row(
                     "Mateu",
                     17,
                     253671.21,
@@ -69,19 +102,14 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                     true,
                     IconKey.Sword.iconName,
                     "htts://mateu.io",
-                    new ColumnActionGroup(
-                                    new ColumnAction[] {
-                                            new ColumnAction("unblockRow", "Unblock", IconKey.Unlock.iconName),
-                                            new ColumnAction("deleteRow", "Delete", IconKey.Trash.iconName)
-                                    }
-                                    ),
+                    "ibiu weoi weih weihd ioweh iofh woiefhiowef hwioefh iewfo fe ioewfh weif eiwofefh ehiwf",
                     mapButtonToDto(Button.builder()
                             .label("Hola")
                             .actionId("action-id-1")
                             .parameters(new Params("Mateu", 17))
                             .build())
-            ),
-            new Row3(
+                    ),
+            new Row(
                     "Antonia",
                     49,
                     10,
@@ -90,11 +118,7 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                     false,
                     IconKey.Newspaper.iconName,
                     "htts://mateu.io",
-                    new ColumnActionGroup(
-                            new ColumnAction[] {
-                                    new ColumnAction("blockRow", "Block", IconKey.Lock.iconName)
-                            }
-                            ),
+                    "ibiu weoi weih weihd wfowejf weofowep fowef ioweh iofh woiefhiowef hwioefh iewfo fe ioewfh weif eiwofefh ehiwf",
                     mapButtonToDto(Button.builder()
                             .label("Adiós")
                             .actionId("action-id-2")
@@ -104,8 +128,8 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
     );
 
     @Override
-    public Crudl component(HttpRequest httpRequest) {
-        return Crudl.builder() // vertical layout as default container for children
+    public Listing component(HttpRequest httpRequest) {
+        return Listing.builder() // vertical layout as default container for children
                 .title("Basic crudl")
                 .id("crud")
                 .filters(List.of(
@@ -127,6 +151,13 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .dataType(FieldDataType.integer)
                                 .label("Age")
                                 .sortable(true)
+                                .tooltipPath("longText")
+                                .build(),
+                        GridColumn.builder()
+                                .id("balance2")
+                                .dataType(FieldDataType.money)
+                                .label("Balance 2")
+                                .sortable(true)
                                 .build(),
                         GridColumn.builder()
                                 .id("spanish")
@@ -146,28 +177,41 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                                 .label("Link")
                                 .build(),
                         GridColumn.builder()
-                                .id("actions")
-                                .dataType(FieldDataType.menu)
-                                .label("Actions")
-                                .build(),
-                        GridColumn.builder()
-                                .id("button")
-                                .dataType(FieldDataType.component)
-                                .label("Button")
+                                .id("longText")
+                                .dataType(FieldDataType.string)
+                                .label("Long text")
                                 .build()
                 ))
                 .emptyStateMessage("Please search.")
+                .wrapCellContent(wrapCellContent)
+                .rowStripes(rowStripes)
+                .columnBorders(columnBorders)
+                .noRowBorder(noRowBorder)
+                .noBorder(noBorder)
+                .compact(compact)
+                .allRowsVisible(allRowsVisible)
+                .gridStyle(height > 0?"height: " + height + "px;":null)
+                .detailPath("detail")
+                .useButtonForDetail(true)
+                .rowsSelectionEnabled(true)
                 .style("width: 100%;")
+                .toolbar(List.of(
+                        Button.builder()
+                                .label("Action 1")
+                                .actionId("xxx")
+                                .build()
+                ))
+                .onRowSelectionChangedActionId("row-selected")
                 .build();
     }
 
     @Override
-    public Class<Filters3> filtersClass() {
-        return Filters3.class;
+    public Class<Filters> filtersClass() {
+        return Filters.class;
     }
 
     @Override
-    public CrudlData<Row3> search(String searchText, Filters3 filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -191,7 +235,7 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
                     return compare;
                 })
                 .toList();
-        return new CrudlData<>(new Page<>(
+        return new ListingData<>(new Page<>(
                 searchText + "#" + filters.age(),
                 pageable.size(),
                 pageable.page(),
@@ -202,34 +246,25 @@ public class WithRowMenuCrudl implements ComponentTreeSupplier, CrudlBackend<Fil
     }
 
     @Override
+    public List<Trigger> triggers() {
+        return List.of(new OnLoadTrigger("search"));
+    }
+
+    @Override
     public boolean supportsAction(String actionId) {
-        if (List.of("unblockRow", "blockRow", "deleteRow", "action-id-1", "action-id-2").contains(actionId)) {
+        if ("row-selected".equals(actionId)) {
             return true;
         }
-        return CrudlBackend.super.supportsAction(actionId);
+        return ListingBackend.super.supportsAction(actionId);
     }
 
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
-        if (List.of("unblockRow", "blockRow", "deleteRow").contains(actionId)) {
-            var row = httpRequest.getClickedRow(Row3.class);
-            log.info(actionId + " row {}", row);
+        if ("row-selected".equals(actionId)) {
             return Message.builder()
-                    .text(actionId + " on " + row.name())
+                    .text("row selected" + httpRequest.getSelectedRows(Row.class))
                     .build();
         }
-        if (List.of("action-id-1", "action-id-2").contains(actionId)) {
-            var params = httpRequest.getParameters(Params.class);
-            log.info(actionId + " on {}", this);
-            return Message.builder()
-                    .text(actionId + " on " + (params != null?params.name():null))
-                    .build();
-        }
-        return CrudlBackend.super.handleAction(actionId, httpRequest);
-    }
-
-    @Override
-    public List<Trigger> triggers() {
-        return List.of(new OnLoadTrigger("search"));
+        return ListingBackend.super.handleAction(actionId, httpRequest);
     }
 }

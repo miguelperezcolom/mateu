@@ -47,13 +47,16 @@ export class MateuUi extends LitElement {
         e.preventDefault()
         e.stopPropagation()
         if (e instanceof CustomEvent) {
-            const route = e.detail.route
+            let route = e.detail.route
             let baseUrl = this.baseUrl??''
             if (baseUrl.indexOf('://') < 0) {
                 if (!baseUrl.startsWith('/')) {
                     baseUrl = '/' + baseUrl
                 }
                 baseUrl = window.location.origin + baseUrl
+            }
+            if (baseUrl.endsWith('/') && route.startsWith('/')) {
+                route = route.substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
             if (window.location.pathname != targetUrl.pathname) {

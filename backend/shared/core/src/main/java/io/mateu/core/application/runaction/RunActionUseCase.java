@@ -15,6 +15,8 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
@@ -55,7 +57,7 @@ public class RunActionUseCase {
             // get the target instance
             .flatMap(ignored -> createInstance(command))
             // if the target instance is an app, resolve the menu to get the real target instance
-//            .flatMap(instance -> resolveMenuIfApp(instance, command))
+            //            .flatMap(instance -> resolveMenuIfApp(instance, command))
             // here I have the target instance
             .flatMapMany(
                 instance ->
@@ -86,7 +88,12 @@ public class RunActionUseCase {
         .doOnError(error -> error.printStackTrace())
         .onErrorResume(
             error ->
-                Mono.just(Text.builder().text(error.getMessage()).style("color: red;").build())
+                Mono.just(
+                        Message.builder()
+                            .variant(NotificationVariant.error)
+                            .title(error.getClass().getSimpleName())
+                            .text(error.getClass().getSimpleName() + ": " + error.getMessage())
+                            .build())
                     .flatMap(
                         result ->
                             uiIncrementMapperProvider
@@ -130,7 +137,7 @@ public class RunActionUseCase {
 
   private App getApp(Object instance, RunActionCommand command) {
     if (instance instanceof AppSupplier appSupplier) {
-        var appRoute = getRoute(instance, instance, command.httpRequest(), command.route());
+      var appRoute = getRoute(instance, instance, command.httpRequest(), command.route());
       return appSupplier.getApp(command.httpRequest()).withRoute(appRoute);
     }
     if (instance instanceof App app) { // componente
@@ -201,14 +208,14 @@ public class RunActionUseCase {
               }
               return Mono.just(instance);
             })
-            .map(instance -> {
-                if (instance instanceof AppSupplier appSupplier) {
-                    var appRoute = getRoute(instance, instance, httpRequest, route);
-                    return appSupplier.getApp(httpRequest).withRoute(appRoute);
-                }
-                return instance;
-            })
-            ;
+        .map(
+            instance -> {
+              if (instance instanceof AppSupplier appSupplier) {
+                var appRoute = getRoute(instance, instance, httpRequest, route);
+                return appSupplier.getApp(httpRequest).withRoute(appRoute);
+              }
+              return instance;
+            });
   }
 
   private Mono<?> tryWithApp(
@@ -230,8 +237,8 @@ public class RunActionUseCase {
               .map(
                   instance -> {
                     if (instance instanceof AppSupplier appSupplier) {
-                        var appRoute = getRoute(instance, instance, httpRequest, route);
-                        return appSupplier.getApp(httpRequest).withRoute(appRoute);
+                      var appRoute = getRoute(instance, instance, httpRequest, route);
+                      return appSupplier.getApp(httpRequest).withRoute(appRoute);
                     }
                     if (instance instanceof io.mateu.uidl.interfaces.App app) {
                       var appRoute = getMinimalAppRoute(resolver, route);

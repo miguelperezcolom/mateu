@@ -77,6 +77,9 @@ export class MateuApp extends ComponentElement {
                 }
                 baseUrl = window.location.origin + baseUrl
             }
+            if (baseUrl.endsWith('/') && route.startsWith('/')) {
+                route = route.substring(1)
+            }
             let targetUrl = new URL(baseUrl + route)
             if (window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname

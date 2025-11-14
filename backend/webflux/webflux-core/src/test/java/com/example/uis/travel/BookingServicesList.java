@@ -1,8 +1,9 @@
 package com.example.uis.travel;
 
-import io.mateu.uidl.data.Page;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ReactiveListingBackend;
 import reactor.core.publisher.Mono;
 
 record BookingServicesListFilters() {}
@@ -10,10 +11,14 @@ record BookingServicesListFilters() {}
 record BookingServicesListRow() {}
 
 public class BookingServicesList
-    implements Listing<BookingServicesListFilters, BookingServicesListRow> {
+    implements ReactiveListingBackend<BookingServicesListFilters, BookingServicesListRow> {
+
   @Override
-  public Mono<Page<BookingServicesListRow>> search(
-      String text, BookingServicesListFilters bookingServicesListFilters, Pageable pageable) {
+  public Mono<ListingData<BookingServicesListRow>> search(
+      String searchText,
+      BookingServicesListFilters bookingServicesListFilters,
+      Pageable pageable,
+      HttpRequest httpRequest) {
     return Mono.empty();
   }
 }

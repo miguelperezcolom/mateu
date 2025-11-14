@@ -7,7 +7,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.CrudlDto;
 import io.mateu.dtos.CrudlTypeDto;
 import io.mateu.dtos.FormFieldDto;
-import io.mateu.uidl.fluent.Crudl;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 public class CrudlComponentToDtoMapper {
 
   public static ComponentDto mapCrudlToDto(
-      Crudl crudl,
+      Listing crudl,
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
@@ -23,8 +23,8 @@ public class CrudlComponentToDtoMapper {
     var crudlDto =
         CrudlDto.builder()
             .crudlType(
-                crudl.crudlType() != null
-                    ? CrudlTypeDto.valueOf(crudl.crudlType().name())
+                crudl.listingType() != null
+                    ? CrudlTypeDto.valueOf(crudl.listingType().name())
                     : CrudlTypeDto.table)
             .title(crudl.title())
             .subtitle(crudl.subtitle())

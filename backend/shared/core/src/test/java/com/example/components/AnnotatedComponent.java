@@ -1,11 +1,10 @@
 package com.example.components;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.ActionType;
+import io.mateu.uidl.annotations.Button;
 
 public class AnnotatedComponent {
 
-  @Action(type = ActionType.Main)
+  @Button
   String sayHello() {
     return "Hola";
   }

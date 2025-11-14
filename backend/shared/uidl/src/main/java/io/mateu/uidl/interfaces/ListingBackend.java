@@ -2,14 +2,16 @@ package io.mateu.uidl.interfaces;
 
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.uidl.data.CrudlData;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Direction;
+import io.mateu.uidl.data.ListingData;
+import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
+import java.util.List;
 import java.util.Map;
 
-public interface CrudlBackend<Filters, Row> extends ActionHandler {
+public interface ListingBackend<Filters, Row> extends ActionHandler {
 
   @Override
   default boolean supportsAction(String actionId) {
@@ -23,24 +25,26 @@ public interface CrudlBackend<Filters, Row> extends ActionHandler {
         MateuInstanceFactory.newInstance(
             filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
 
+    var found =
+        search(
+            searchText != null ? searchText : "",
+            filters,
+            new Pageable(
+                httpRequest.getInt("page"),
+                httpRequest.getInt("size"),
+                httpRequest.getListOfMaps("sort").stream()
+                    .filter(map -> map.containsKey("direction"))
+                    .map(
+                        map ->
+                            new Sort(
+                                (String) map.get("fieldId"),
+                                Direction.valueOf((String) map.get("direction"))))
+                    .toList()),
+            httpRequest);
     return new Data(
         Map.of(
             getCrudId(httpRequest),
-            search(
-                searchText != null ? searchText : "",
-                filters,
-                new Pageable(
-                    httpRequest.getInt("page"),
-                    httpRequest.getInt("size"),
-                    httpRequest.getListOfMaps("sort").stream()
-                        .filter(map -> map.containsKey("direction"))
-                        .map(
-                            map ->
-                                new Sort(
-                                    (String) map.get("fieldId"),
-                                    Direction.valueOf((String) map.get("direction"))))
-                        .toList()),
-                httpRequest)));
+            found != null ? found : new ListingData(new Page("", 0, 0, 0, List.of()))));
   }
 
   default String getCrudId(HttpRequest httpRequest) {
@@ -52,9 +56,9 @@ public interface CrudlBackend<Filters, Row> extends ActionHandler {
   }
 
   default Class<Filters> filtersClass() {
-    return getGenericClass(this.getClass(), CrudlBackend.class, "Filters");
+    return getGenericClass(this.getClass(), ListingBackend.class, "Filters");
   }
 
-  CrudlData<Row> search(
+  ListingData<Row> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
 }

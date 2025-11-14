@@ -4,7 +4,6 @@ import io.mateu.SpringHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,17 +31,8 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-    @PostMapping(value = "v3/ui")
-    public Mono<UIDto> getUI(
-            @RequestBody GetUIRqDto rq,
-            HttpServletRequest serverHttpRequest) throws Exception {
-      return service.getUI(uiId, baseUrl, rq,
-        new SpringHttpRequest(serverHttpRequest).storeGetUIRqDto(rq));
-    }
-
-    @PostMapping("v3/{ignored}")
+    @PostMapping("v3/**")
     public Flux<UIIncrementDto> runStep(
-        @PathVariable("ignored") String ignored,
         @RequestBody RunActionRqDto rq,
         HttpServletRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,

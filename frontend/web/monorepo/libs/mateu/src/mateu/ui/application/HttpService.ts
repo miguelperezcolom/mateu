@@ -116,7 +116,7 @@ export class HttpService implements Service {
                 initiator,
                 background
             } as RunActionCommand)
-            this.handleUIIncrement(changes.uiIncrement, initiator)
+            changes.uiIncrements?.forEach(uiIncrement => this.handleUIIncrement(uiIncrement, initiator))
             if (callback) {
                 callback()
             }

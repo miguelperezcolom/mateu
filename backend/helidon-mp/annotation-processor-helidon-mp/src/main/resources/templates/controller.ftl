@@ -5,7 +5,6 @@ import io.mateu.QuarkusHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.dtos.UIDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
@@ -27,15 +26,6 @@ public class ${simpleClassName}MateuController {
     private String uiId = "${className}";
 
     private String baseUrl = "${path}";
-
-    @Path("v3/ui")
-    @POST
-    public UIDto getUI(
-        GetUIRqDto rq,
-    HttpServerRequest serverHttpRequest) throws Exception {
-      return service.getUI(uiId, baseUrl, rq,
-        new QuarkusHttpRequest(serverHttpRequest).storeGetUIRqDto(rq)).block();
-    }
 
     @Path("v3/{ignored:.*}")
     @POST

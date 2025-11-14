@@ -1,15 +1,17 @@
 package io.mateu.uidl.interfaces;
 
-import io.mateu.uidl.data.CrudlData;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Direction;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import java.util.Map;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ReactiveCrudlBackend<Filters, Row> extends ActionHandler {
+public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
 
   @Override
   default boolean supportsAction(String actionId) {
@@ -42,8 +44,10 @@ public interface ReactiveCrudlBackend<Filters, Row> extends ActionHandler {
         .flux();
   }
 
-  Class<Filters> filtersClass();
+  default Class<Filters> filtersClass() {
+    return getGenericClass(this.getClass(), ListingBackend.class, "Filters");
+  }
 
-  Mono<CrudlData<Row>> search(
+  Mono<ListingData<Row>> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
 }
