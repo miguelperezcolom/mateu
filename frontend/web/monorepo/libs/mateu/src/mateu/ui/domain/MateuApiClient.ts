@@ -1,9 +1,6 @@
-import UI from "../../shared/apiClients/dtos/UI";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 
 export interface MateuApiClient {
-
-    fetchUi(baseUrl: string, path: string | undefined, config: any, initiator: HTMLElement): Promise<UI>
 
     runAction(baseUrl: string, route: string, consumedRoute: string,
               actionId: string,
@@ -13,6 +10,6 @@ export interface MateuApiClient {
               componentState: any,
               parameters: any,
               initiator: HTMLElement,
-              background: boolean): Promise<UIIncrement[]>
+              background: boolean): Promise<UIIncrement>
 
 }

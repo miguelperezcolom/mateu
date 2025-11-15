@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentTo
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
+import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -96,6 +97,14 @@ public class ReflectionAppMapper {
         }
       }
     }
+    if (pattern == null && app != null) {
+      if (app.getClass().isAnnotationPresent(MateuUI.class)) {
+        for (MateuUI routeAnnotation : app.getClass().getAnnotationsByType(MateuUI.class)) {
+          String patternString = "";
+          pattern = returnPatternIfMatches(patternString, route);
+        }
+      }
+    }
     if (pattern != null) {
       Pattern basePattern =
           Pattern.compile(pattern.pattern().substring(0, pattern.pattern().indexOf(".*")));
@@ -103,6 +112,10 @@ public class ReflectionAppMapper {
       var matched = false;
       for (String token :
           Arrays.stream(route.split("/")).filter(token -> !"".equals(token)).toList()) {
+        if ("".equals(basePattern.pattern())) {
+          accumulated.append("/");
+          break;
+        }
         if (!basePattern.matcher(accumulated + "/" + token).matches()) {
           if (matched) {
             break;

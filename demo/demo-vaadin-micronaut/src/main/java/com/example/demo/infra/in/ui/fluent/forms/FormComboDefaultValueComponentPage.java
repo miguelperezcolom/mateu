@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/forms/combobox-default-value")
+@Route("/forms/combobox-default-value")
 @Singleton
 public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier, ActionHandler, PostHydrationHandler {
 

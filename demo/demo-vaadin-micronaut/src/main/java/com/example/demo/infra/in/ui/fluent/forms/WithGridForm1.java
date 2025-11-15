@@ -30,7 +30,7 @@ record Person(String name, int age) {
 
 }
 
-@Route("/fluent-app/forms/with-grid1")
+@Route("/forms/with-grid1")
 public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";

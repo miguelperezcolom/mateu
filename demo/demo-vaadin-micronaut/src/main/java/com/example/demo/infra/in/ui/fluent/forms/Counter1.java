@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/counter1")
+@Route("/forms/counter1")
 @Schema
 public class Counter1 implements ComponentTreeSupplier, ActionHandler {
 

@@ -36,8 +36,8 @@ A Mateu micro frontend. Due to the design of Mateu, everything is consumable as 
 
    MicroFrontend.builder()
                 .baseUrl("/fluent")
-                .route("/fluent-app/components/card")
-                .consumedRoute("/fluent-app")
+                .route("/components/card")
+                .consumedRoute("")
                 .build()
 
 ```

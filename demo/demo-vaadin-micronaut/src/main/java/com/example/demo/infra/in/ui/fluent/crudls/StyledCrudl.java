@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Route("/fluent-app/crudls/styled")
+@Route("/crudls/styled")
 @Slf4j
 public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, ActionHandler {
 

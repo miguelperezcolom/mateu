@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/other-fields")
+@Route("/forms/other-fields")
 public class FormOtherFieldsComponentPage implements ComponentTreeSupplier {
 
     Status status = new Status(StatusType.SUCCESS, "It works!");

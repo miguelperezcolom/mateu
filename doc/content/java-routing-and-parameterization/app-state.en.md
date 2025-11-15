@@ -20,7 +20,7 @@ E.g. this is the **payload** for a sample http request to the server, from Mateu
     }
   },
   "initiatorComponentId":"tZWK0sW3HMUEAuXBBvy-D",
-  "consumedRoute":"/fluent-app"
+  "consumedRoute":""
 }
 ```
 

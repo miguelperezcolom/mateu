@@ -151,13 +151,12 @@ export class MateuUx extends ConnectedElement {
         };
         const detail = this.detail1
         if (e.type == 'server-side-action-requested') {
-            if (this.route != undefined) {
                 let selectedService = service
                 if (detail.sse) {
                     selectedService = sseService
                 }
                 selectedService.runAction(mateuApiClient, this.baseUrl,
-                    this.route,
+                    this.route??'',
                     this.consumedRoute,
                     detail.actionId,
                     detail.initiatorComponentId,
@@ -168,9 +167,6 @@ export class MateuUx extends ConnectedElement {
                     detail.initiator,
                 detail.background,
                 detail.callback);
-            } else {
-                console.log('no route', e)
-            }
         }
     }
 
@@ -192,6 +188,7 @@ export class MateuUx extends ConnectedElement {
 
         // @ts-ignore
         window.Vaadin.featureFlags.masterDetailLayoutComponent = true
+
     }
 
     disconnectedCallback() {
@@ -201,11 +198,13 @@ export class MateuUx extends ConnectedElement {
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
     }
 
+
+
     protected updated(_changedProperties: PropertyValues) {
         //super.updated(_changedProperties);
-        if (_changedProperties.has('homeRoute')) {
-            this.route = this.homeRoute
-        }
+        // if (_changedProperties.has('homeRoute')) {
+        //     this.route = this.homeRoute
+        // }
         if (_changedProperties.has('id') ||
             _changedProperties.has('baseurl') ||
             _changedProperties.has('route')  ||

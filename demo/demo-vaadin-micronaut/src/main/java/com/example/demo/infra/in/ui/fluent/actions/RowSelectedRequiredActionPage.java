@@ -29,7 +29,7 @@ record Filters(int age) {}
 @Serdeable
 record Row(String name, int age) {}
 
-@Route("/fluent-app/actions/row-selected-required")
+@Route("/actions/row-selected-required")
 @Slf4j
 public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveListingBackend<Filters, Row>, ActionSupplier {
 

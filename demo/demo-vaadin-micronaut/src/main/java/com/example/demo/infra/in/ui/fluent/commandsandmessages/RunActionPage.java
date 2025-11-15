@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route("/fluent-app/commands-and-messages/run-action")
+@Route("/commands-and-messages/run-action")
 @Schema
 public class RunActionPage implements ComponentTreeSupplier, ActionHandler {
 

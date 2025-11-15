@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route("/fluent-app/commands-and-messages/set-favicon")
+@Route("/commands-and-messages/set-favicon")
 @Schema
 public class SetFaviconPage implements ComponentTreeSupplier, ActionHandler {
 

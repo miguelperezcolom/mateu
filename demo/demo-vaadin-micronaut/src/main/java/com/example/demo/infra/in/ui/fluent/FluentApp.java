@@ -1,5 +1,6 @@
 package com.example.demo.infra.in.ui.fluent;
 
+import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
@@ -13,7 +14,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app")
+@MateuUI("/fluent")
 public class FluentApp implements AppSupplier {
 
     @Override
@@ -27,190 +28,190 @@ public class FluentApp implements AppSupplier {
                 .style("width: 100%;")
                 //.cssClasses("redwood")
                 .menu(List.of(
-                        new RouteLink("/fluent-app/home", "Home", true),
+                        new RouteLink("/home", "Home", true),
                         new Menu("Layouts", List.of(
-                                new RouteLink("/fluent-app/layouts/horizontal", "Horizontal Layout"),
-                                new RouteLink("/fluent-app/layouts/vertical", "Vertical Layout"),
+                                new RouteLink("/layouts/horizontal", "Horizontal Layout"),
+                                new RouteLink("/layouts/vertical", "Vertical Layout"),
                                 new MenuSeparator(),
-                                new RouteLink("/fluent-app/layouts/split", "Split Layout"),
-                                new RouteLink("/fluent-app/layouts/tab", "Tab Layout"),
-                                new RouteLink("/fluent-app/layouts/form", "Form Layout"),
-                                new RouteLink("/fluent-app/layouts/accordion", "Accordion Layout"),
-                                new RouteLink("/fluent-app/layouts/carousel", "Carousel Layout"),
+                                new RouteLink("/layouts/split", "Split Layout"),
+                                new RouteLink("/layouts/tab", "Tab Layout"),
+                                new RouteLink("/layouts/form", "Form Layout"),
+                                new RouteLink("/layouts/accordion", "Accordion Layout"),
+                                new RouteLink("/layouts/carousel", "Carousel Layout"),
                                 new MenuSeparator(),
-                                new RouteLink("/fluent-app/layouts/board", "Board Layout"),
-                                new RouteLink("/fluent-app/layouts/master-detail", "Master Detail Layout")
+                                new RouteLink("/layouts/board", "Board Layout"),
+                                new RouteLink("/layouts/master-detail", "Master Detail Layout")
                         )),
                         new Menu("Styling", List.of(
-                                new RouteLink("/fluent-app/styling/full-width", "Full Width"),
-                                new RouteLink("/fluent-app/styling/container", "Container")
+                                new RouteLink("/styling/full-width", "Full Width"),
+                                new RouteLink("/styling/container", "Container")
                         )),
                         new Menu("Components", List.of(
                                 new Menu("High level", List.of(
                                         new Menu("Forms", List.of(
-                                                new RouteLink("/fluent-app/forms/basic", "Basic"),
-                                                new RouteLink("/fluent-app/forms/counter1", "Counter 1"),
-                                                new RouteLink("/fluent-app/forms/counter2", "Counter 2"),
-                                                new RouteLink("/fluent-app/forms/counter3", "Counter 3"),
-                                                new RouteLink("/fluent-app/forms/counter4", "Counter 4"),
-                                                new RouteLink("/fluent-app/forms/counter5", "Counter 5"),
-                                                new RouteLink("/fluent-app/forms/counter6", "Counter 6"),
-                                                new RouteLink("/fluent-app/forms/with-grid1", "With Grid 1"),
-                                                new RouteLink("/fluent-app/forms/with-grid2", "With Grid 2"),
-                                                new RouteLink("/fluent-app/forms/string-fields", "String fields"),
-                                                new RouteLink("/fluent-app/forms/boolean-fields", "Boolean fields"),
-                                                new RouteLink("/fluent-app/forms/numeric-fields", "Numeric fields"),
-                                                new RouteLink("/fluent-app/forms/collection-fields", "Collection fields"),
-                                                new RouteLink("/fluent-app/forms/grid-fields", "Grid fields"),
-                                                new RouteLink("/fluent-app/forms/editable-grid-fields", "Editable grid fields"),
-                                                new RouteLink("/fluent-app/forms/data-sourced-fields-1", "Data sourced fields 1"),
-                                                new RouteLink("/fluent-app/forms/data-sourced-fields-2", "Data sourced fields 2"),
-                                                new RouteLink("/fluent-app/forms/date-fields", "Date fields"),
-                                                new RouteLink("/fluent-app/forms/file-fields", "File fields"),
-                                                new RouteLink("/fluent-app/forms/other-fields", "Other fields"),
-                                                new RouteLink("/fluent-app/forms/choice-fields", "Choice field"),
-                                                new RouteLink("/fluent-app/forms/choice-with-images-fields", "Choice with images field"),
-                                                new RouteLink("/fluent-app/forms/combobox-default-value", "Combobox default value")
+                                                new RouteLink("/forms/basic", "Basic"),
+                                                new RouteLink("/forms/counter1", "Counter 1"),
+                                                new RouteLink("/forms/counter2", "Counter 2"),
+                                                new RouteLink("/forms/counter3", "Counter 3"),
+                                                new RouteLink("/forms/counter4", "Counter 4"),
+                                                new RouteLink("/forms/counter5", "Counter 5"),
+                                                new RouteLink("/forms/counter6", "Counter 6"),
+                                                new RouteLink("/forms/with-grid1", "With Grid 1"),
+                                                new RouteLink("/forms/with-grid2", "With Grid 2"),
+                                                new RouteLink("/forms/string-fields", "String fields"),
+                                                new RouteLink("/forms/boolean-fields", "Boolean fields"),
+                                                new RouteLink("/forms/numeric-fields", "Numeric fields"),
+                                                new RouteLink("/forms/collection-fields", "Collection fields"),
+                                                new RouteLink("/forms/grid-fields", "Grid fields"),
+                                                new RouteLink("/forms/editable-grid-fields", "Editable grid fields"),
+                                                new RouteLink("/forms/data-sourced-fields-1", "Data sourced fields 1"),
+                                                new RouteLink("/forms/data-sourced-fields-2", "Data sourced fields 2"),
+                                                new RouteLink("/forms/date-fields", "Date fields"),
+                                                new RouteLink("/forms/file-fields", "File fields"),
+                                                new RouteLink("/forms/other-fields", "Other fields"),
+                                                new RouteLink("/forms/choice-fields", "Choice field"),
+                                                new RouteLink("/forms/choice-with-images-fields", "Choice with images field"),
+                                                new RouteLink("/forms/combobox-default-value", "Combobox default value")
                                         )),
                                         new Menu("Crudls", List.of(
-                                                new RouteLink("/fluent-app/crudls/basic", "Basic"),
-                                                new RouteLink("/fluent-app/crudls/more-columns", "More columns"),
-                                                new RouteLink("/fluent-app/crudls/with-row-menu", "With row menu"),
-                                                new RouteLink("/fluent-app/crudls/styled", "Styled")
+                                                new RouteLink("/crudls/basic", "Basic"),
+                                                new RouteLink("/crudls/more-columns", "More columns"),
+                                                new RouteLink("/crudls/with-row-menu", "With row menu"),
+                                                new RouteLink("/crudls/styled", "Styled")
                                         )),
                                         new Menu("Nested apps", List.of(
-                                                new RouteLink("/fluent-app/nested-apps/left", "Menu On Left"),
-                                                new RouteLink("/fluent-app/nested-apps/top", "Menu On Top"),
-                                                new RouteLink("/fluent-app/nested-apps/tabs", "Menu Using Tabs")
+                                                new RouteLink("/nested-apps/left", "Menu On Left"),
+                                                new RouteLink("/nested-apps/top", "Menu On Top"),
+                                                new RouteLink("/nested-apps/tabs", "Menu Using Tabs")
                                         ))
                                 )),
                                 new Menu("Building blocks", List.of(
-                                        new ContentLink("/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
-                                        new RouteLink("/fluent-app/components/anchor", "Anchor"),
-                                        new RouteLink("/fluent-app/components/avatar", "Avatar"),
-                                        new RouteLink("/fluent-app/components/badge", "Badge"),
-                                        new RouteLink("/fluent-app/components/breadcrumbs", "Breadcrumbs"),
-                                        new RouteLink("/fluent-app/components/button", "Button"),
-                                        new RouteLink("/fluent-app/components/card", "Card"),
-                                        new RouteLink("/fluent-app/components/charts", "Charts"),
-                                        new RouteLink("/fluent-app/components/checkbox", "Checkbox"),
-                                        new RouteLink("/fluent-app/components/choice", "Choice"),
-                                        new RouteLink("/fluent-app/components/combobox", "Combo box"),
-                                        new RouteLink("/fluent-app/components/confirm-dialog", "Confirm Dialog"),
-                                        new RouteLink("/fluent-app/components/context-menu", "Context Menu"),
-                                        new RouteLink("/fluent-app/components/cookie-consent", "Cookie Consent"),
-                                        new RouteLink("/fluent-app/components/custom-field", "Custom Field"),
-                                        new RouteLink("/fluent-app/components/dashboard", "Dashboard"),
-                                        new RouteLink("/fluent-app/components/date-picker", "Date picker"),
-                                        new RouteLink("/fluent-app/components/date-time-picker", "Date Time Picker"),
-                                        new RouteLink("/fluent-app/components/details", "Details"),
-                                        new RouteLink("/fluent-app/components/dialog", "Dialog"),
-                                        new RouteLink("/fluent-app/components/directory", "Directory"),
-                                        new RouteLink("/fluent-app/components/element", "Element"),
-                                        new RouteLink("/fluent-app/components/email-field", "Email Field"),
-                                        new RouteLink("/fluent-app/components/grid", "Grid"),
-                                        new RouteLink("/fluent-app/components/icon", "Icons"),
-                                        new RouteLink("/fluent-app/components/image", "Images"),
-                                        new RouteLink("/fluent-app/components/list-box", "List Box"),
-                                        new RouteLink("/fluent-app/components/map", "Map"),
-                                        new RouteLink("/fluent-app/components/markdown", "Markdown"),
-                                        new RouteLink("/fluent-app/components/menubar", "Menu Bar"),
-                                        new RouteLink("/fluent-app/components/message-input", "Message Input"),
-                                        new RouteLink("/fluent-app/components/message-list", "Message List"),
-                                        new RouteLink("/fluent-app/components/micro-frontend", "Micro frontend"),
-                                        new RouteLink("/fluent-app/components/multi-select-combo-box", "Multi-select Combo Box"),
-                                        new RouteLink("/fluent-app/components/notification", "Notification"),
-                                        new RouteLink("/fluent-app/components/number-field", "Number Field"),
-                                        new RouteLink("/fluent-app/components/password-field", "Password Field"),
-                                        new RouteLink("/fluent-app/components/popover", "Popover"),
-                                        new RouteLink("/fluent-app/components/progress-bar", "Progress bar"),
-                                        new RouteLink("/fluent-app/components/radio-button", "Radio Button"),
-                                        new RouteLink("/fluent-app/components/rich-text-editor", "Rich Text Editor"),
-                                        new RouteLink("/fluent-app/components/scroller", "Scroller"),
-                                        new RouteLink("/fluent-app/components/select", "Select"),
-                                        new RouteLink("/fluent-app/components/side-navigation", "Side Navigation"),
-                                        new RouteLink("/fluent-app/components/text", "Text"),
-                                        new RouteLink("/fluent-app/components/text-area", "Text Area"),
-                                        new RouteLink("/fluent-app/components/text-field", "Text Field"),
-                                        new RouteLink("/fluent-app/components/time-picker", "Time Picker"),
-                                        new RouteLink("/fluent-app/components/tooltip", "Tooltip"),
-                                        new RouteLink("/fluent-app/components/train", "Train"),
-                                        new RouteLink("/fluent-app/components/tree-grid", "Tree Grid"),
-                                        new RouteLink("/fluent-app/components/upload", "Upload"),
-                                        new RouteLink("/fluent-app/components/virtual-list", "Virtual List"),
-                                        new RouteLink("/fluent-app/components/web-component", "Web component")
+                                        new ContentLink("/content0", "Content 0", (rq) -> new Text("Hola 0")),
+                                        new RouteLink("/components/anchor", "Anchor"),
+                                        new RouteLink("/components/avatar", "Avatar"),
+                                        new RouteLink("/components/badge", "Badge"),
+                                        new RouteLink("/components/breadcrumbs", "Breadcrumbs"),
+                                        new RouteLink("/components/button", "Button"),
+                                        new RouteLink("/components/card", "Card"),
+                                        new RouteLink("/components/charts", "Charts"),
+                                        new RouteLink("/components/checkbox", "Checkbox"),
+                                        new RouteLink("/components/choice", "Choice"),
+                                        new RouteLink("/components/combobox", "Combo box"),
+                                        new RouteLink("/components/confirm-dialog", "Confirm Dialog"),
+                                        new RouteLink("/components/context-menu", "Context Menu"),
+                                        new RouteLink("/components/cookie-consent", "Cookie Consent"),
+                                        new RouteLink("/components/custom-field", "Custom Field"),
+                                        new RouteLink("/components/dashboard", "Dashboard"),
+                                        new RouteLink("/components/date-picker", "Date picker"),
+                                        new RouteLink("/components/date-time-picker", "Date Time Picker"),
+                                        new RouteLink("/components/details", "Details"),
+                                        new RouteLink("/components/dialog", "Dialog"),
+                                        new RouteLink("/components/directory", "Directory"),
+                                        new RouteLink("/components/element", "Element"),
+                                        new RouteLink("/components/email-field", "Email Field"),
+                                        new RouteLink("/components/grid", "Grid"),
+                                        new RouteLink("/components/icon", "Icons"),
+                                        new RouteLink("/components/image", "Images"),
+                                        new RouteLink("/components/list-box", "List Box"),
+                                        new RouteLink("/components/map", "Map"),
+                                        new RouteLink("/components/markdown", "Markdown"),
+                                        new RouteLink("/components/menubar", "Menu Bar"),
+                                        new RouteLink("/components/message-input", "Message Input"),
+                                        new RouteLink("/components/message-list", "Message List"),
+                                        new RouteLink("/components/micro-frontend", "Micro frontend"),
+                                        new RouteLink("/components/multi-select-combo-box", "Multi-select Combo Box"),
+                                        new RouteLink("/components/notification", "Notification"),
+                                        new RouteLink("/components/number-field", "Number Field"),
+                                        new RouteLink("/components/password-field", "Password Field"),
+                                        new RouteLink("/components/popover", "Popover"),
+                                        new RouteLink("/components/progress-bar", "Progress bar"),
+                                        new RouteLink("/components/radio-button", "Radio Button"),
+                                        new RouteLink("/components/rich-text-editor", "Rich Text Editor"),
+                                        new RouteLink("/components/scroller", "Scroller"),
+                                        new RouteLink("/components/select", "Select"),
+                                        new RouteLink("/components/side-navigation", "Side Navigation"),
+                                        new RouteLink("/components/text", "Text"),
+                                        new RouteLink("/components/text-area", "Text Area"),
+                                        new RouteLink("/components/text-field", "Text Field"),
+                                        new RouteLink("/components/time-picker", "Time Picker"),
+                                        new RouteLink("/components/tooltip", "Tooltip"),
+                                        new RouteLink("/components/train", "Train"),
+                                        new RouteLink("/components/tree-grid", "Tree Grid"),
+                                        new RouteLink("/components/upload", "Upload"),
+                                        new RouteLink("/components/virtual-list", "Virtual List"),
+                                        new RouteLink("/components/web-component", "Web component")
                                 ))
                         )),
                         new Menu("Logic", List.of(
                                 new Menu("Actions", List.of(
-                                        new RouteLink("/fluent-app/actions/foreground", "Run in foreground"),
-                                        new RouteLink("/fluent-app/actions/background", "Run in background"),
-                                        new RouteLink("/fluent-app/actions/confirmation-required", "Confirmation required"),
-                                        new RouteLink("/fluent-app/actions/validation-required", "Validation required"),
-                                        new RouteLink("/fluent-app/actions/server-side-events", "Server Sent Events (SSE)"),
-                                        new RouteLink("/fluent-app/actions/row-selected-required", "Row selected required"),
-                                        new RouteLink("/fluent-app/actions/custom-event", "Client side event"),
-                                        new RouteLink("/fluent-app/actions/href", "Href"),
-                                        new RouteLink("/fluent-app/actions/js", "Js")
+                                        new RouteLink("/actions/foreground", "Run in foreground"),
+                                        new RouteLink("/actions/background", "Run in background"),
+                                        new RouteLink("/actions/confirmation-required", "Confirmation required"),
+                                        new RouteLink("/actions/validation-required", "Validation required"),
+                                        new RouteLink("/actions/server-side-events", "Server Sent Events (SSE)"),
+                                        new RouteLink("/actions/row-selected-required", "Row selected required"),
+                                        new RouteLink("/actions/custom-event", "Client side event"),
+                                        new RouteLink("/actions/href", "Href"),
+                                        new RouteLink("/actions/js", "Js")
                                 )),
                                 new Menu("Triggers", List.of(
-                                        new RouteLink("/fluent-app/triggers/on-load", "On Load"),
-                                        new RouteLink("/fluent-app/triggers/on-success", "On Success"),
-                                        new RouteLink("/fluent-app/triggers/on-error", "On Error"),
-                                        new RouteLink("/fluent-app/triggers/on-custom-event", "On Custom Event"),
-                                        new RouteLink("/fluent-app/triggers/on-value-change", "On Value Change")
+                                        new RouteLink("/triggers/on-load", "On Load"),
+                                        new RouteLink("/triggers/on-success", "On Success"),
+                                        new RouteLink("/triggers/on-error", "On Error"),
+                                        new RouteLink("/triggers/on-custom-event", "On Custom Event"),
+                                        new RouteLink("/triggers/on-value-change", "On Value Change")
                                 )),
                                 new Menu("Client-Side Logic (Rules)", List.of(
-                                        new RouteLink("/fluent-app/rules/visibility-from-backend", "Visibility from backend"),
-                                        new RouteLink("/fluent-app/rules/enabled-from-backend", "Enabled from backend"),
-                                        new RouteLink("/fluent-app/rules/visibility", "Visibility"),
-                                        new RouteLink("/fluent-app/rules/enabled", "Enabled"),
-                                        new RouteLink("/fluent-app/rules/run-action", "Run Action"),
-                                        new RouteLink("/fluent-app/rules/run-js", "Run JS"),
-                                        new RouteLink("/fluent-app/rules/set-attribute-value", "Set attribute value"),
-                                        new RouteLink("/fluent-app/rules/set-metadata-value", "Set metadata value"),
-                                        new RouteLink("/fluent-app/rules/set-data-value", "Set data value"),
-                                        new RouteLink("/fluent-app/rules/set-css-classes", "Set css classes"),
-                                        new RouteLink("/fluent-app/rules/set-style", "Set style")
+                                        new RouteLink("/rules/visibility-from-backend", "Visibility from backend"),
+                                        new RouteLink("/rules/enabled-from-backend", "Enabled from backend"),
+                                        new RouteLink("/rules/visibility", "Visibility"),
+                                        new RouteLink("/rules/enabled", "Enabled"),
+                                        new RouteLink("/rules/run-action", "Run Action"),
+                                        new RouteLink("/rules/run-js", "Run JS"),
+                                        new RouteLink("/rules/set-attribute-value", "Set attribute value"),
+                                        new RouteLink("/rules/set-metadata-value", "Set metadata value"),
+                                        new RouteLink("/rules/set-data-value", "Set data value"),
+                                        new RouteLink("/rules/set-css-classes", "Set css classes"),
+                                        new RouteLink("/rules/set-style", "Set style")
                                 )),
                                 new Menu("Validations", List.of(
-                                        new RouteLink("/fluent-app/validations/required", "Required"),
-                                        new RouteLink("/fluent-app/validations/min-and-max", "Min and Max"),
-                                        new RouteLink("/fluent-app/validations/min-and-max-length", "Min and Max length"),
-                                        new RouteLink("/fluent-app/validations/pattern", "Pattern"),
-                                        new RouteLink("/fluent-app/validations/conditional", "Conditional"),
-                                        new RouteLink("/fluent-app/validations/form-wise", "Form wise"),
-                                        new RouteLink("/fluent-app/validations/server-side", "Server side")
+                                        new RouteLink("/validations/required", "Required"),
+                                        new RouteLink("/validations/min-and-max", "Min and Max"),
+                                        new RouteLink("/validations/min-and-max-length", "Min and Max length"),
+                                        new RouteLink("/validations/pattern", "Pattern"),
+                                        new RouteLink("/validations/conditional", "Conditional"),
+                                        new RouteLink("/validations/form-wise", "Form wise"),
+                                        new RouteLink("/validations/server-side", "Server side")
                                 )),
                                 new Menu("Commands and messages", List.of(
-                                        new RouteLink("/fluent-app/commands-and-messages/run-action", "Run action"),
-                                        new RouteLink("/fluent-app/commands-and-messages/close-dialog", "Close dialog"),
-                                        new RouteLink("/fluent-app/commands-and-messages/set-favicon", "Set favicon"),
-                                        new RouteLink("/fluent-app/commands-and-messages/set-window-title", "Set window title"),
-                                        new RouteLink("/fluent-app/commands-and-messages/message", "Message")
+                                        new RouteLink("/commands-and-messages/run-action", "Run action"),
+                                        new RouteLink("/commands-and-messages/close-dialog", "Close dialog"),
+                                        new RouteLink("/commands-and-messages/set-favicon", "Set favicon"),
+                                        new RouteLink("/commands-and-messages/set-window-title", "Set window title"),
+                                        new RouteLink("/commands-and-messages/message", "Message")
                                 ))
                         )),
                         new Menu("Patterns", List.of(
-                                new RouteLink("/fluent-app/patterns/async", "Async"),
-                                new RouteLink("/fluent-app/patterns/master-detail", "Master-detail"),
-                                new RouteLink("/fluent-app/patterns/progressive", "Progressive UI"),
-                                new RouteLink("/fluent-app/patterns/micro-frontend", "Micro frontends")
+                                new RouteLink("/patterns/async", "Async"),
+                                new RouteLink("/patterns/master-detail", "Master-detail"),
+                                new RouteLink("/patterns/progressive", "Progressive UI"),
+                                new RouteLink("/patterns/micro-frontend", "Micro frontends")
                         )),
                         new Menu("Data", List.of(
-                                new RouteLink("/fluent-app/data/app-state", "App state"),
-                                new RouteLink("/fluent-app/data/app-data", "App data"),
-                                new RouteLink("/fluent-app/data/component-state", "Component state"),
-                                new RouteLink("/fluent-app/data/component-data", "Component data"),
-                                new RouteLink("/fluent-app/data/component-state-and-data", "Component state and data")
+                                new RouteLink("/data/app-state", "App state"),
+                                new RouteLink("/data/app-data", "App data"),
+                                new RouteLink("/data/component-state", "Component state"),
+                                new RouteLink("/data/component-data", "Component data"),
+                                new RouteLink("/data/component-state-and-data", "Component state and data")
                         )),
                         new Menu("Routes", List.of(
-                                new RouteLink("/fluent-app/routes/404", "404"),
-                                new RouteLink("/fluent-app/routes/custom-route-resolver", "Custom route resolver")
+                                new RouteLink("/routes/404", "404"),
+                                new RouteLink("/routes/custom-route-resolver", "Custom route resolver")
                         )),
                         new Menu("Use cases", List.of(
-                                new RouteLink("/fluent-app/use-cases/bookings", "Bookings list"),
-                                new RouteLink("/fluent-app/use-cases/booking-detail", "Booking detail"),
-                                new RouteLink("/fluent-app/use-cases/rra", "Redwood Reference App")
+                                new RouteLink("/use-cases/bookings", "Bookings list"),
+                                new RouteLink("/use-cases/booking-detail", "Booking detail"),
+                                new RouteLink("/use-cases/rra", "Redwood Reference App")
                         ))
 
                 ))

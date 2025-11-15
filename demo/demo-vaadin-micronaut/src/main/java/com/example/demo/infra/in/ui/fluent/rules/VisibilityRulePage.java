@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/fluent-app/rules/visibility")
+@Route("/rules/visibility")
 public class VisibilityRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     boolean hidden = false;

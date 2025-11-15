@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/fluent-app/rules/run-js")
+@Route("/rules/run-js")
 public class RunJSRulePage implements ComponentTreeSupplier, RuleSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -128,7 +128,7 @@ public class FluentUI implements UISupplier {
   public UI getUI(HttpRequest httpRequest) {
     return UI.builder()
       .pageTitle("Fluent UI")
-      .homeRoute("/fluent-app")
+      .homeRoute("")
       .build();
   }
 }

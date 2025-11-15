@@ -33,7 +33,7 @@ import java.util.List;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-@Route("/fluent-app/use-cases/rra/home")
+@Route("/use-cases/rra/home")
 @Singleton
 public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters, CardRow>, TriggersSupplier {
 
@@ -125,7 +125,7 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("go-to-selected-order".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getSelectedRows(CardRow.class).get(0).id());
+            return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getSelectedRows(CardRow.class).get(0).id());
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

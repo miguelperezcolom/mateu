@@ -61,7 +61,7 @@ class NestedAppStateForm implements ComponentTreeSupplier, ActionHandler {
 
 
 @Slf4j
-@Route("/fluent-app/data/app-state")
+@Route("/data/app-state")
 public class AppStatePage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

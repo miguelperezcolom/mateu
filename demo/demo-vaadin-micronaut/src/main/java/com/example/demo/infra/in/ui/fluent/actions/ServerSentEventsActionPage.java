@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/actions/server-side-events")
+@Route("/actions/server-side-events")
 public class ServerSentEventsActionPage implements ComponentTreeSupplier, ActionHandler, ActionSupplier {
 
     int count = 0;

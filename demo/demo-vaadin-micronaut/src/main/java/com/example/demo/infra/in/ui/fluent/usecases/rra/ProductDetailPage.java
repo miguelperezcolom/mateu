@@ -35,7 +35,7 @@ import java.util.List;
 import static com.example.demo.infra.in.ui.fluent.usecases.rra.HomePage.color;
 
 
-@Route("/fluent-app/use-cases/rra/inventory/.*")
+@Route("/use-cases/rra/inventory/.*")
 @Singleton
 public class ProductDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 

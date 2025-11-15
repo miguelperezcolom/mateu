@@ -1,32 +1,13 @@
-import { loadUiCommandHandler } from "@domain/commands/loadUi/LoadUiCommandHandler";
-import { AxiosMateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { appData, appState, upstream } from "@domain/state";
-import { runActionCommandHandler } from "@domain/commands/runAction/RunActionCommandHandler";
-import { RunActionCommand } from "@domain/commands/runAction/RunActionCommand";
+import {AxiosMateuApiClient} from "@infra/http/AxiosMateuApiClient";
+import {appData, appState, upstream} from "@domain/state";
+import {runActionCommandHandler} from "@domain/commands/runAction/RunActionCommandHandler";
+import {RunActionCommand} from "@domain/commands/runAction/RunActionCommand";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
-import { Service } from "@application/service.ts";
-import { Notification, NotificationPosition } from '@vaadin/notification';
-import { LitElement } from "lit";
+import {Service} from "@application/service.ts";
+import {Notification, NotificationPosition} from '@vaadin/notification';
+import {LitElement} from "lit";
 
 export class HttpService implements Service {
-
-    async loadUi(mateuApiClient: AxiosMateuApiClient, baseUrl: string,
-                 path: string | undefined,
-                 config: any, initiator: HTMLElement) {
-        const changes = await loadUiCommandHandler.handle(mateuApiClient, {
-            baseUrl: baseUrl,
-            initiator: initiator,
-            config,
-            path: path
-        })
-        upstream.next({
-            command: undefined,
-            fragment: undefined,
-            ui: changes.ui,
-            error: undefined
-        })
-        this.handleUIIncrement(changes.ui.home, initiator)
-    }
 
     mapPosition = (position: string): NotificationPosition => {
         switch(position) {
@@ -103,7 +84,7 @@ export class HttpService implements Service {
             return
         }
         try {
-            const changes = await runActionCommandHandler.handle(mateuApiClient, {
+            const uiIncrement = await runActionCommandHandler.handle(mateuApiClient, {
                 baseUrl,
                 route,
                 consumedRoute,
@@ -116,7 +97,7 @@ export class HttpService implements Service {
                 initiator,
                 background
             } as RunActionCommand)
-            changes.uiIncrements?.forEach(uiIncrement => this.handleUIIncrement(uiIncrement, initiator))
+            this.handleUIIncrement(uiIncrement, initiator)
             if (callback) {
                 callback()
             }

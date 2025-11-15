@@ -3,6 +3,7 @@ package io.mateu.core.infra.reflection.read;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 
+import io.mateu.core.domain.ports.BeanProvider;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -14,6 +15,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ValueProvider {
+
+  @SneakyThrows
+  public static Object getValueOrNewInstance(BeanProvider beanProvider, Field f, Object o) {
+    var value = getValue(f, o);
+    if (value == null) {
+      value = beanProvider.getBean(f.getType());
+    }
+    if (value == null) {
+      var constructor = f.getType().getDeclaredConstructor();
+      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
+      return constructor.newInstance();
+    }
+    return value;
+  }
 
   @SneakyThrows
   public static Object getValueOrNewInstance(Field f, Object o) {

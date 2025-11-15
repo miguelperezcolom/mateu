@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route("/fluent-app/components/scroller")
+@Route("/components/scroller")
 public class ScrollerComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -41,7 +41,7 @@ record ProductInventoryRow(
 
 }
 
-@Route("/fluent-app/use-cases/rra/inventory")
+@Route("/use-cases/rra/inventory")
 @Singleton
 public class ProductInventoryPage implements ComponentTreeSupplier, ListingBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
 
@@ -110,7 +110,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("go-to-selected-product".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/inventory/" + httpRequest.getSelectedRows(ProductInventoryRow.class).get(0).id());
+            return UICommand.navigateTo("/use-cases/rra/inventory/" + httpRequest.getSelectedRows(ProductInventoryRow.class).get(0).id());
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

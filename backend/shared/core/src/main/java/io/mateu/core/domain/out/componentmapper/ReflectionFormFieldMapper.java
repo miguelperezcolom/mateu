@@ -2,6 +2,8 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
 
+import io.mateu.dtos.ComponentDto;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Representation;
 import io.mateu.uidl.annotations.SliderMax;
 import io.mateu.uidl.annotations.SliderMin;
@@ -11,7 +13,6 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Status;
-import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -72,6 +73,9 @@ public class ReflectionFormFieldMapper {
   }
 
   public static String getLabel(Field field) {
+    if (field.isAnnotationPresent(Label.class)) {
+      return field.getAnnotation(Label.class).value();
+    }
     return capitalize(field.getName());
   }
 
@@ -120,8 +124,8 @@ public class ReflectionFormFieldMapper {
     if (Status.class.isAssignableFrom(field.getType())) {
       return FieldDataType.status;
     }
-    if (Component.class.isAssignableFrom(field.getType())) {
-      return FieldDataType.status;
+    if (ComponentDto.class.isAssignableFrom(field.getType())) {
+      return FieldDataType.component;
     }
     if (Menu.class.isAssignableFrom(field.getType())) {
       return FieldDataType.menu;

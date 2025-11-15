@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/use-cases/rra/trainings/.*")
+@Route("/use-cases/rra/trainings/.*")
 @Singleton
 public class TrainingDetailPage implements ComponentTreeSupplier, PostHydrationHandler, ActionHandler {
 

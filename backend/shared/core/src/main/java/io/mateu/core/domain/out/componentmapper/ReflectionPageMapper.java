@@ -15,7 +15,9 @@ import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Header;
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
@@ -48,7 +50,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import jdk.jfr.Label;
 
 public class ReflectionPageMapper {
 
@@ -115,7 +116,8 @@ public class ReflectionPageMapper {
                     && !field.isAnnotationPresent(Toolbar.class)
                     && !field.isAnnotationPresent(Header.class)
                     && !field.isAnnotationPresent(Footer.class)
-                    && !field.isAnnotationPresent(Avatar.class))
+                    && !field.isAnnotationPresent(Avatar.class)
+                    && !field.isAnnotationPresent(Menu.class))
         .map(
             field ->
                 mapToComponent(
@@ -217,6 +219,7 @@ public class ReflectionPageMapper {
         FormLayout.builder()
             .content(
                 getAllFields(instance.getClass()).stream()
+                    .filter(field -> !field.isAnnotationPresent(Menu.class))
                     .map(
                         field ->
                             (Component)
@@ -347,10 +350,7 @@ public class ReflectionPageMapper {
   }
 
   private static String getLabel(Field field) {
-    if (field.isAnnotationPresent(Label.class)) {
-      return field.getAnnotation(Label.class).value();
-    }
-    return capitalize(field.getName());
+    return ReflectionFormFieldMapper.getLabel(field);
   }
 
   private static String getSubtitle(Object instance) {

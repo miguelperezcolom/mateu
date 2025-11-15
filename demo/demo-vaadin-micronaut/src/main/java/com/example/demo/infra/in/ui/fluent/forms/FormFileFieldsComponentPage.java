@@ -17,7 +17,7 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route("/fluent-app/forms/file-fields")
+@Route("/forms/file-fields")
 public class FormFileFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     File[] file = {new File("xx", "fichero.png")};

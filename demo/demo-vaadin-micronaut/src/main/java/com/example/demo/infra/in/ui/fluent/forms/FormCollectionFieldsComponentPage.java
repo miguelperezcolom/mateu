@@ -16,7 +16,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/collection-fields")
+@Route("/forms/collection-fields")
 @Singleton
 public class FormCollectionFieldsComponentPage implements ComponentTreeSupplier {
 

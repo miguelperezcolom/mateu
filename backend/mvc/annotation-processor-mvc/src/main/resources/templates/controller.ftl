@@ -32,11 +32,11 @@ public class ${simpleClassName}MateuController {
     private String baseUrl = "${path}";
 
     @PostMapping("v3/**")
-    public Flux<UIIncrementDto> runStep(
+    public Mono<UIIncrementDto> runStep(
         @RequestBody RunActionRqDto rq,
         HttpServletRequest serverHttpRequest) throws Throwable {
       return service.runAction(uiId, rq, baseUrl,
-        new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
+        new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).next();
     }
 
 }

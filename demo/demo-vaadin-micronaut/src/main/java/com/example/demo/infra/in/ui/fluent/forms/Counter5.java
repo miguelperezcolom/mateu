@@ -16,7 +16,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/counter5")
+@Route("/forms/counter5")
 public class Counter5 implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
 
     int count = 0;

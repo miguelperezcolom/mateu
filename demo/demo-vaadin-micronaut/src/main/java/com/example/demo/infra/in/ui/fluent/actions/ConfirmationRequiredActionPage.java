@@ -17,7 +17,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/actions/confirmation-required")
+@Route("/actions/confirmation-required")
 public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

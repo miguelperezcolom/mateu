@@ -11,7 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/components/menubar")
+@Route("/components/menubar")
 public class MenubarComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -20,11 +20,11 @@ public class MenubarComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         MenuBar.builder()
                                 .options(List.of(
-                                        new RouteLink("/fluent-app/nested-apps/left/home", "Home"),
-                                        new RouteLink("/fluent-app/nested-apps/left/page1", "Page 1"),
+                                        new RouteLink("/nested-apps/left/home", "Home"),
+                                        new RouteLink("/nested-apps/left/page1", "Page 1"),
                                         (Actionable) new Menu("Submenu", List.of(
-                                                new RouteLink("/fluent-app/nested-apps/left/home", "Home"),
-                                                new RouteLink("/fluent-app/nested-apps/left/page1", "Page 1")
+                                                new RouteLink("/nested-apps/left/home", "Home"),
+                                                new RouteLink("/nested-apps/left/page1", "Page 1")
                                         ))
                                 ))
                                 .build()

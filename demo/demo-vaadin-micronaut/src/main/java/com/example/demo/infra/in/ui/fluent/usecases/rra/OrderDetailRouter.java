@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class OrderDetailRouter implements RouteResolver {
 
-    private final Pattern pattern = Pattern.compile("/fluent-app/use-cases/rra/orders/.*");
+    private final Pattern pattern = Pattern.compile("/use-cases/rra/orders/.*");
     private final OrderRepository orderRepository;
 
     @Inject

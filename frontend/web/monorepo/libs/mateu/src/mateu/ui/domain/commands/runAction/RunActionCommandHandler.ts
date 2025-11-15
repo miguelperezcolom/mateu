@@ -5,8 +5,8 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 export class RunActionCommandHandler {
 
     public async handle(mateuApiClient: MateuApiClient, command: RunActionCommand):
-        Promise<{uiIncrements: UIIncrement[]}> {
-        const uiIncrements = await mateuApiClient.runAction(
+        Promise<UIIncrement> {
+        return await mateuApiClient.runAction(
             command.baseUrl,
             command.route,
             command.consumedRoute,
@@ -19,9 +19,6 @@ export class RunActionCommandHandler {
             command.initiator,
             command.background
         )
-        return {
-            uiIncrements
-        };
     }
 
 }

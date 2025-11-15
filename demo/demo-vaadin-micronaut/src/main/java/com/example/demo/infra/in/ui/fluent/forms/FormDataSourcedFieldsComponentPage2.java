@@ -27,7 +27,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/forms/data-sourced-fields-2")
+@Route("/forms/data-sourced-fields-2")
 @Singleton
 public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplier, ActionHandler {
 

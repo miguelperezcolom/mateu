@@ -12,6 +12,8 @@ import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
@@ -185,6 +187,7 @@ public class RunActionUseCase {
           command.httpRequest());
     }
     return tryWithApp(
+        command.uiId(),
         command.route(),
         command.baseUrl(),
         command.initiatorComponentId(),
@@ -211,14 +214,17 @@ public class RunActionUseCase {
         .map(
             instance -> {
               if (instance instanceof AppSupplier appSupplier) {
-                var appRoute = getRoute(instance, instance, httpRequest, route);
-                return appSupplier.getApp(httpRequest).withRoute(appRoute);
+                if (!"/_page".equals(route)) {
+                  var appRoute = getRoute(instance, instance, httpRequest, route);
+                  return appSupplier.getApp(httpRequest).withRoute(appRoute);
+                }
               }
               return instance;
             });
   }
 
   private Mono<?> tryWithApp(
+      String uiId,
       String route,
       String baseUrl,
       String initiatorComponentId,
@@ -248,58 +254,89 @@ public class RunActionUseCase {
                     return instance;
                   })
               .filter(instance -> instance instanceof App)
-              .map(instance -> (App) instance)
               .flatMap(
-                  app -> {
-                    var actionable = resolveMenu(app.menu(), route);
-                    if (actionable instanceof ContentLink contentLink) {
-                      return Mono.just(contentLink.componentSupplier().component(httpRequest));
-                    }
-                    if (actionable instanceof FieldLink fieldLink) {
-                      return instanceFactoryProvider
-                          .get(fieldLink.serverSideType())
-                          .createInstance(fieldLink.serverSideType(), data, httpRequest)
-                          .flatMap(
-                              instance -> {
-                                var field =
-                                    getFieldByName(instance.getClass(), fieldLink.fieldName());
-                                return Mono.just(getValueOrNewInstance(field, instance));
-                              })
-                          .map(
-                              object -> {
-                                if (object instanceof Runnable runnable) {
-                                  runnable.run();
-                                  return "Done";
-                                }
-                                if (object instanceof Supplier<?> supplier) {
-                                  return supplier.get();
-                                }
-                                if (object instanceof Callable<?> callable) {
-                                  try {
-                                    return callable.call();
-                                  } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                  }
-                                }
-                                if (object instanceof Function function) {
-                                  try {
-                                    return function.apply(httpRequest);
-                                  } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                  }
-                                }
-                                return object;
-                              });
-                    }
-                    if (actionable instanceof Menu menu) {
-                      return Mono.just(new Text("Es un menu"));
-                    }
-                    return Mono.empty();
-                  });
+                  app ->
+                      resolveInApp(route, data, httpRequest, app, baseUrl, initiatorComponentId));
         }
       }
     }
+    return instanceFactoryProvider
+        .get(uiId)
+        .createInstance(uiId, data, httpRequest)
+        .flatMap(app -> resolveInApp(route, data, httpRequest, app, baseUrl, initiatorComponentId));
+  }
+
+  private Mono<?> resolveInApp(
+      String route,
+      Map<String, Object> data,
+      HttpRequest httpRequest,
+      Object potentialApp,
+      String baseUrl,
+      String initialComponentId) {
+    App app = null;
+    if (potentialApp instanceof App) {
+      app = (App) potentialApp;
+    } else {
+      app =
+          mapToAppComponent(
+              potentialApp, baseUrl, getAppRoute(potentialApp), initialComponentId, httpRequest);
+    }
+
+    if (app != null) {
+      var actionable = resolveMenu(app.menu(), route);
+      if (actionable instanceof ContentLink contentLink) {
+        return Mono.just(contentLink.componentSupplier().component(httpRequest));
+      }
+      if (actionable instanceof FieldLink fieldLink) {
+        return instanceFactoryProvider
+            .get(fieldLink.serverSideType())
+            .createInstance(fieldLink.serverSideType(), data, httpRequest)
+            .flatMap(
+                instance -> {
+                  var field = getFieldByName(instance.getClass(), fieldLink.fieldName());
+                  return Mono.just(getValueOrNewInstance(beanProvider, field, instance));
+                })
+            .map(
+                object -> {
+                  if (object instanceof Runnable runnable) {
+                    runnable.run();
+                    return "Done";
+                  }
+                  if (object instanceof Supplier<?> supplier) {
+                    return supplier.get();
+                  }
+                  if (object instanceof Callable<?> callable) {
+                    try {
+                      return callable.call();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  }
+                  if (object instanceof Function function) {
+                    try {
+                      return function.apply(httpRequest);
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  }
+                  return object;
+                });
+      }
+      if (actionable instanceof Menu menu) {
+        return Mono.just(new Text("Es un menu"));
+      }
+    }
     return Mono.empty();
+  }
+
+  private String getAppRoute(Object potentialApp) {
+    if (potentialApp.getClass().isAnnotationPresent(MateuUI.class)) {
+      return potentialApp.getClass().getAnnotation(MateuUI.class).value();
+    }
+    if (potentialApp.getClass().isAnnotationPresent(Route.class)) {
+      return potentialApp.getClass().getAnnotation(Route.class).value();
+    }
+    return "";
   }
 
   public static String getMinimalAppRoute(RouteResolver appRouteResolver, String route) {
@@ -321,36 +358,37 @@ public class RunActionUseCase {
 
   private String getInstanceNameUsingResolvers(
       String route, String consumedRoute, HttpRequest httpRequest) {
+    var cleanRoute = "/_page".equals(route) ? "" : route;
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
-            .filter(routeResolver -> routeResolver.supportsRoute(route))
+                .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute)))
+            .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute))
             .filter(
                 resolver -> {
-                  var resolved = resolver.resolveRoute(route, httpRequest);
+                  var resolved = resolver.resolveRoute(cleanRoute, httpRequest);
                   return AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
                       || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved);
                 })
-            .sorted(Comparator.comparingInt(a -> a.weight(route)))
             .toList()) {
-      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
+      if (resolver.supportsRoute(route) && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
         return resolver.resolveRoute(route, httpRequest).getName();
       }
     }
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
-            .filter(routeResolver -> routeResolver.supportsRoute(route))
+            .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute))
             .filter(
                 resolver -> {
-                  var resolved = resolver.resolveRoute(route, httpRequest);
+                  var resolved = resolver.resolveRoute(cleanRoute, httpRequest);
                   return !(AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
                       || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved));
                 })
-            .sorted(Comparator.comparingInt(a -> a.weight(route)))
+            .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute)))
             .toList()
             .reversed()) {
-      if (resolver.supportsRoute(route) && !resolver.supportsRoute(consumedRoute)) {
+      if (resolver.supportsRoute(route) && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
         return resolver.resolveRoute(route, httpRequest).getName();
       }
     }
@@ -364,7 +402,7 @@ public class RunActionUseCase {
     var fromRoute =
         getInstanceNameUsingResolvers(
             command.route(), command.consumedRoute(), command.httpRequest());
-    if (fromRoute == null && "".equals(command.route())) {
+    if (fromRoute == null && ("".equals(command.route()) || "/_page".equals(command.route()))) {
       return command.uiId();
     }
     return fromRoute;

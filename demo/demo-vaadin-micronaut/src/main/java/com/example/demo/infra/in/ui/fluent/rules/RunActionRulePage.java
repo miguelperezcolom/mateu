@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/fluent-app/rules/run-action")
+@Route("/rules/run-action")
 public class RunActionRulePage implements ComponentTreeSupplier, RuleSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

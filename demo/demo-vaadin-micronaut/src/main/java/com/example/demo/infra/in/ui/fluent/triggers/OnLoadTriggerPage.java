@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/triggers/on-load")
+@Route("/triggers/on-load")
 public class OnLoadTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

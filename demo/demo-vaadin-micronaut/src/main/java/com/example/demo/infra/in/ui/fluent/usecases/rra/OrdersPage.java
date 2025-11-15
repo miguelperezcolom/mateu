@@ -54,7 +54,7 @@ record OrderRow(
 
 }
 
-@Route("/fluent-app/use-cases/rra/orders")
+@Route("/use-cases/rra/orders")
 @Singleton
 public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
 
@@ -202,17 +202,17 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("create".equals(actionId)) {
-            return new URI("/fluent-app/use-cases/rra/orders/create");
+            return new URI("/use-cases/rra/orders/create");
         }
         if ("go-to-selected-order".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
+            return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
         }
         if ("delete-order".equals(actionId)) {
             orderRepository.remove(orderRepository.findById(httpRequest.getClickedRow(OrderRow.class).id()).get());
             return UICommand.runAction("search");
         }
         if ("go-to-selected-customer".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());
+            return UICommand.navigateTo("/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

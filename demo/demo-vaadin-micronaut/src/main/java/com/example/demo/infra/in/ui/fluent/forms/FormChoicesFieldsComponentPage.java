@@ -14,7 +14,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/choice-fields")
+@Route("/forms/choice-fields")
 public class FormChoicesFieldsComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

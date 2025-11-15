@@ -31,6 +31,6 @@ public class CustomRouteResolverPage implements ComponentTreeSupplier, RouteReso
 
     @Override
     public List<Pattern> supportedRoutesPatterns() {
-        return List.of(Pattern.compile("/fluent-app/routes/custom-route-resolver"));
+        return List.of(Pattern.compile("/routes/custom-route-resolver"));
     }
 }

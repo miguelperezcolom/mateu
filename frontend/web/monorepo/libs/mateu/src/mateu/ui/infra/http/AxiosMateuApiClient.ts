@@ -1,4 +1,3 @@
-import UI from "../../../shared/apiClients/dtos/UI"
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
@@ -103,14 +102,6 @@ export class AxiosMateuApiClient implements MateuApiClient {
         abortControllers = []
     }
 
-    async fetchUi(baseUrl: string, path: string | undefined, config: any, initiator: HTMLElement): Promise<UI> {
-        return await this.wrap<UI>(this.post(baseUrl + '/mateu/v3/ui', {
-            config,
-            path
-        })
-            .then((response) => response.data), initiator, false, 'ui')
-    }
-
     async runAction(baseUrl: string, route: string, consumedRoute: string,
                     actionId: string,
                     initiatorComponentId: string,
@@ -119,11 +110,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,
-                    background: boolean): Promise<UIIncrement[]> {
+                    background: boolean): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
         }
-        return await this.wrap<UIIncrement[]>(this.post(baseUrl + '/mateu/v3/sync/' +
+        return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/sync/' +
             ((route && route != '')?route:'_no_route') + (actionId?'/' + actionId:''), {
             serverSideType,
             appState,

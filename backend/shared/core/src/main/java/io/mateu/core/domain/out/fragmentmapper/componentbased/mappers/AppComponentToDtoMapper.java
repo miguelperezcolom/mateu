@@ -11,6 +11,7 @@ import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
+import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
@@ -19,6 +20,7 @@ import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.UUID;
@@ -39,15 +41,26 @@ public final class AppComponentToDtoMapper {
             .subtitle(app.subtitle())
             .route(app.route())
             .variant(AppVariantDto.valueOf(app.variant().name()))
-            .homeRoute(getHomeRoute(menu, route, appRoute))
+            .homeRoute(getHomeRoute(app, route)) // getHomeRoute(menu, route, appRoute))
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())
             .style(app.style())
             .cssClasses(app.cssClasses())
+            .home(null)
             .build();
     return new ClientSideComponentDto(
         appDto, UUID.randomUUID().toString(), List.of(), app.style(), app.cssClasses(), null);
+  }
+
+  private static String getHomeRoute(Object app, String route) {
+    if (app instanceof HomeRouteSupplier homeRouteSupplier) {
+      return homeRouteSupplier.homeRoute();
+    }
+    if (app.getClass().isAnnotationPresent(HomeRoute.class)) {
+      return app.getClass().getAnnotation(HomeRoute.class).value();
+    }
+    return "".equals(route)?"_page":route;
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

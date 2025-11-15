@@ -11,7 +11,7 @@ import jakarta.inject.Singleton;
 import java.util.UUID;
 
 @Singleton
-@Route("/fluent-app/use-cases/rra/orders/create")
+@Route("/use-cases/rra/orders/create")
 public class CreateOrderPage extends EditOrderPage {
 
     @Inject

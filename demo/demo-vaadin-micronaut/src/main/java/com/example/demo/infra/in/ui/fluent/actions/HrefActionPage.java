@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/actions/href")
+@Route("/actions/href")
 public class HrefActionPage implements ComponentTreeSupplier, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

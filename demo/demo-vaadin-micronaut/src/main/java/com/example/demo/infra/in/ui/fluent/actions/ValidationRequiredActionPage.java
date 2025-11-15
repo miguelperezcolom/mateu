@@ -20,7 +20,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/actions/validation-required")
+@Route("/actions/validation-required")
 public class ValidationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler, ValidationSupplier {
 
     @Override

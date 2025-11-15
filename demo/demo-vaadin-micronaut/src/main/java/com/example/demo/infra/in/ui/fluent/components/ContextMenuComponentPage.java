@@ -14,7 +14,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/components/context-menu")
+@Route("/components/context-menu")
 public class ContextMenuComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -58,14 +58,14 @@ public class ContextMenuComponentPage implements ComponentTreeSupplier {
                         ContextMenu.builder()
                                 .menu(List.of(
                                         RouteLink.builder()
-                                                .route("/fluent-app/nested-apps/left/home")
+                                                .route("/nested-apps/left/home")
                                                 .label("Home")
                                                 .className("red")
                                                 .selected(true)
                                                 .build(),
                                         MenuSeparator.builder().build(),
                                         RouteLink.builder()
-                                                .route("/fluent-app/nested-apps/left/page1")
+                                                .route("/nested-apps/left/page1")
                                                 .label("Page 1")
                                                 .component(Badge.builder()
                                                         .text("Hola hola")
@@ -73,13 +73,13 @@ public class ContextMenuComponentPage implements ComponentTreeSupplier {
                                                 .build(),
                                         new Menu("Submenu", List.of(
                                                 RouteLink.builder()
-                                                        .route("/fluent-app/nested-apps/left/home")
+                                                        .route("/nested-apps/left/home")
                                                         .label("Home again")
                                                         .selected(true)
                                                         .disabledOnClick(true)
                                                         .build(),
                                                 RouteLink.builder()
-                                                        .route("/fluent-app/nested-apps/left/page1")
+                                                        .route("/nested-apps/left/page1")
                                                         .label("Page 1 again")
                                                         .disabled(true)
                                                         .build()

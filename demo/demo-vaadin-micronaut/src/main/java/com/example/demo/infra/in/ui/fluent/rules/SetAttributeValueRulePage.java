@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/fluent-app/rules/set-attribute-value")
+@Route("/rules/set-attribute-value")
 public class SetAttributeValueRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     @Override

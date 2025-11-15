@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Route("/fluent-app/validations/server-side")
+@Route("/validations/server-side")
 public class ServerSideValidationPage implements ComponentTreeSupplier, ActionHandler {
 
     @NotEmpty

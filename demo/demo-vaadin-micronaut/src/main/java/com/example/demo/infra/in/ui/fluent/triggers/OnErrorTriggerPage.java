@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 
 import java.util.List;
 
-@Route("/fluent-app/triggers/on-error")
+@Route("/triggers/on-error")
 public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

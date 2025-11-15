@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route("/fluent-app/commands-and-messages/set-window-title")
+@Route("/commands-and-messages/set-window-title")
 @Schema
 public class SetWindowTitlePage implements ComponentTreeSupplier, ActionHandler {
 

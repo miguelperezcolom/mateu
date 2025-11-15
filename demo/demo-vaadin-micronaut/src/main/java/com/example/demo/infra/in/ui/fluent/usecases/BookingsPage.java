@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route("/fluent-app/use-cases/bookings")
+@Route("/use-cases/bookings")
 @Schema
 public class BookingsPage implements ComponentTreeSupplier, ActionHandler {
 

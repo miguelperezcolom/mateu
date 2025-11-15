@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.Humanizer.camelcasize;
 import static io.mateu.core.domain.Humanizer.capitalize;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
@@ -68,11 +69,15 @@ public class ReflectionAppMapper {
 
   private static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
     for (Actionable actionable : menu) {
-      if (actionable instanceof Menu) {
+      if (isMenu(actionable)) {
         return AppVariant.MENU_ON_TOP;
       }
     }
     return AppVariant.TABS;
+  }
+
+  private static boolean isMenu(Actionable actionable) {
+    return actionable instanceof Menu;
   }
 
   private static String getFavicon(Object instance) {
@@ -175,6 +180,15 @@ public class ReflectionAppMapper {
       var menuSupplier = (MenuSupplier) getValue(field, instance);
       return new Menu(
           getLabel(field), completeActionables(appRoute, menuSupplier.menu(httpRequest)));
+    }
+    if (!isBasic(field.getType())) {
+      if (getAllFields(field.getType()).stream()
+          .anyMatch(
+              childField -> childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))) {
+        return new Menu(
+            getLabel(field),
+            getActionables(appRoute, getValueOrNewInstance(field, instance), route, httpRequest));
+      }
     }
     return new FieldLink(
         appRoute + "/" + field.getName(), getLabel(field), instance.getClass(), field.getName());

@@ -38,7 +38,7 @@ record TrainingRow(
 
 }
 
-@Route("/fluent-app/use-cases/rra/training")
+@Route("/use-cases/rra/training")
 @Singleton
 public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFilters, TrainingRow>, TriggersSupplier {
 
@@ -94,7 +94,7 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("go-to-selected-training".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/trainings/" + httpRequest.getSelectedRows(TrainingRow.class).get(0).id());
+            return UICommand.navigateTo("/use-cases/rra/trainings/" + httpRequest.getSelectedRows(TrainingRow.class).get(0).id());
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

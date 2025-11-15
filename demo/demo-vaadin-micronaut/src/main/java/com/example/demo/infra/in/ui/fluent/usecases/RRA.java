@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/use-cases/rra")
+@Route("/use-cases/rra")
 public class RRA implements AppSupplier {
 
     @Override
@@ -23,19 +23,19 @@ public class RRA implements AppSupplier {
                 .cssClasses("tabs-at-bottom")
                 .menu(List.of(
                         RouteLink.builder()
-                                .route("/fluent-app/use-cases/rra/home")
+                                .route("/use-cases/rra/home")
                                 .label("Home")
                                 .build(),
                         RouteLink.builder()
-                                .route("/fluent-app/use-cases/rra/orders")
+                                .route("/use-cases/rra/orders")
                                 .label("Orders")
                                 .build(),
                         RouteLink.builder()
-                                .route("/fluent-app/use-cases/rra/inventory")
+                                .route("/use-cases/rra/inventory")
                                 .label("Inventory")
                                 .build(),
                         RouteLink.builder()
-                                .route("/fluent-app/use-cases/rra/training")
+                                .route("/use-cases/rra/training")
                                 .label("Training")
                                 .build()
                 ))

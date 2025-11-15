@@ -3,10 +3,6 @@ import { httpService } from "@application/HttpService.ts";
 
 export interface Service {
 
-    loadUi(mateuApiClient: AxiosMateuApiClient, baseUrl: string,
-                 path: string | undefined,
-                 config: any, initiator: HTMLElement): void
-
     runAction(mateuApiClient: AxiosMateuApiClient,
                     baseUrl: string,
                     route: string,

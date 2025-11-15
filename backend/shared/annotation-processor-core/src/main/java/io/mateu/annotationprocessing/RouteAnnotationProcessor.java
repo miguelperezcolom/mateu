@@ -56,7 +56,8 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
               e,
               generatedClassName,
               caption,
-              routes);
+              routes,
+              getFiler());
         } catch (IOException ex) {
           ex.printStackTrace();
         }
@@ -93,7 +94,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
     return processingEnv.getFiler();
   }
 
-  private void createRouteHandler(
+  public static void createRouteHandler(
       String generatedFullClassName,
       String pkgName,
       String className,
@@ -101,9 +102,10 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
       Element e,
       String generatedClassName,
       String caption,
-      List<String> paths)
+      List<String> paths,
+      Filer filer)
       throws IOException {
-    JavaFileObject builderFile = getFiler().createSourceFile(generatedFullClassName);
+    JavaFileObject builderFile = filer.createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       // writing generated file to out …
 

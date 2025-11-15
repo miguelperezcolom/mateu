@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.IconKey;
 
 import java.util.List;
 
-@Route("/fluent-app/components/icon")
+@Route("/components/icon")
 public class IconComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

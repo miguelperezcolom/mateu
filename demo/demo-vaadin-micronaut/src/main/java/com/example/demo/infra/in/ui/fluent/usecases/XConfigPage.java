@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route("/fluent-app/use-cases/x-config")
+@Route("/use-cases/x-config")
 @Schema
 public class XConfigPage implements ComponentTreeSupplier, ActionHandler {
 

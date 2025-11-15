@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/actions/js")
+@Route("/actions/js")
 public class JsActionPage implements ComponentTreeSupplier, ActionSupplier {
 
     @Override

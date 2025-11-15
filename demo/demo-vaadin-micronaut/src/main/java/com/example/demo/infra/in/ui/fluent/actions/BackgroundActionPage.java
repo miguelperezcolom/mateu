@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/actions/background")
+@Route("/actions/background")
 public class BackgroundActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

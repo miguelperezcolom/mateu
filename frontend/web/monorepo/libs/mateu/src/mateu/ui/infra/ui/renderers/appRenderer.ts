@@ -33,7 +33,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-content">
                         <mateu-api-caller>
                             <mateu-ux
-                                    homeRoute="${container.selectedRoute??metadata.homeRoute}"
+                                    route="${container.selectedRoute??metadata.homeRoute}"
                                     id="ux_${container.id}"
                                     baseUrl="${container.baseUrl}"
                                     consumedRoute="${metadata.route}"
@@ -59,7 +59,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux
-                                homeRoute="${container.selectedRoute??metadata.homeRoute}"
+                                route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}" 
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -84,7 +84,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux
-                                homeRoute="${container.selectedRoute??metadata.homeRoute}"
+                                route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.baseUrl}"
                                 consumedRoute="${metadata.route}"
@@ -118,7 +118,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-scroller style="height: 40rem;">
                             <mateu-api-caller>
                                 <mateu-ux
-                                        homeRoute="${container.selectedRoute??metadata.homeRoute}"
+                                        route="${container.selectedRoute??metadata.homeRoute}"
                                         id="ux_${container.id}"
                                         baseUrl="${container.baseUrl}"
                                         consumedRoute="${metadata.route}"

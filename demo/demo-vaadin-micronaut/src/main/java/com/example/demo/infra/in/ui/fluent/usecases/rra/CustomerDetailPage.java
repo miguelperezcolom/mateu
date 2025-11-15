@@ -145,10 +145,10 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
             return UICommand.runAction("search");
         }
         if ("go-to-selected-order".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
+            return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).id());
         }
         if ("edit-selected-order".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).customerId() + "/edit");
+            return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).customerId() + "/edit");
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }
@@ -165,7 +165,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
     }
 }
 
-@Route("/fluent-app/use-cases/rra/customers/.*")
+@Route("/use-cases/rra/customers/.*")
 @Singleton
 public class CustomerDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 

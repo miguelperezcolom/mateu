@@ -39,7 +39,7 @@ record Row2(
         String link,
         String image) {}
 
-@Route("/fluent-app/crudls/more-columns")
+@Route("/crudls/more-columns")
 @Slf4j
 public class MoreColumnsListing implements ComponentTreeSupplier, ListingBackend<Filters2, Row2>, TriggersSupplier {
 

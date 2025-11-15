@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/fluent-app/rules/enabled")
+@Route("/rules/enabled")
 public class EnabledRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     boolean buttonDisabled = false;

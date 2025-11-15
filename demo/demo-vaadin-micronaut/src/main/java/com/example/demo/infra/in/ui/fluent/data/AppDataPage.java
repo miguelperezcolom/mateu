@@ -53,7 +53,7 @@ class NestedForm implements ComponentTreeSupplier, ActionHandler {
 }
 
 @Slf4j
-@Route("/fluent-app/data/app-data")
+@Route("/data/app-data")
 public class AppDataPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

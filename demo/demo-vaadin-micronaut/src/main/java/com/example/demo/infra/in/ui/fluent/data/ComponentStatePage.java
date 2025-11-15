@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/data/component-state")
+@Route("/data/component-state")
 public class ComponentStatePage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.getData;
@@ -10,12 +11,14 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Com
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
+import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -34,10 +37,10 @@ public class ReflectionObjectToComponentMapper {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    if (isApp(instance)) {
+    if (isApp(instance, route)) {
       return mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
-    if (isPage(instance)) {
+    if (isPage(instance, route)) {
       return new UIFragmentDto(
           initiatorComponentId,
           new ServerSideComponentDto(
@@ -66,11 +69,14 @@ public class ReflectionObjectToComponentMapper {
     return instance;
   }
 
-  private boolean isApp(Object instance) {
+  private boolean isApp(Object instance, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
     // tiene anotaciones con @MenuOption o @Submenu?
     // implementa App
+    if ("/_page".equals(route)) {
+      return false;
+    }
     if (instance instanceof ComponentTreeSupplier) {
       return false;
     }
@@ -81,17 +87,23 @@ public class ReflectionObjectToComponentMapper {
     return instance instanceof App;
   }
 
-  private boolean isPage(Object instance) {
+  private boolean isPage(Object instance, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
     // está anotado con @MateuUI o con @Route
     // implementa Page
-    if (instance instanceof ComponentTreeSupplier) {
+    if ("/_page".equals(route)) {
+      return true;
+    }
+    if (instance instanceof ComponentTreeSupplier
+        || instance instanceof Component
+        || instance instanceof ComponentDto) {
       return false;
     }
     return instance instanceof Page
         || instance instanceof ListingBackend<?, ?>
         || instance.getClass().isAnnotationPresent(MateuUI.class)
-        || instance.getClass().isAnnotationPresent(Route.class);
+        || instance.getClass().isAnnotationPresent(Route.class)
+        || !isBasic(instance);
   }
 }

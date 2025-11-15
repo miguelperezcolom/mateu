@@ -20,7 +20,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route("/fluent-app/forms/grid-fields")
+@Route("/forms/grid-fields")
 @Singleton
 public class FormGridFieldsComponentPage implements ComponentTreeSupplier {
 

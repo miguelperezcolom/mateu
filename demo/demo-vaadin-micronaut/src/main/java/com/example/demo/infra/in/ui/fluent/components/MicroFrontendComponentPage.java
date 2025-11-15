@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/components/micro-frontend")
+@Route("/components/micro-frontend")
 public class MicroFrontendComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -17,8 +17,8 @@ public class MicroFrontendComponentPage implements ComponentTreeSupplier {
                 .content(List.of(
                         MicroFrontend.builder()
                                 .baseUrl("/fluent")
-                                .route("/fluent-app/components/card")
-                                .consumedRoute("/fluent-app")
+                                .route("/components/card")
+                                .consumedRoute("")
                                 .build()
                 ))
                 .build();

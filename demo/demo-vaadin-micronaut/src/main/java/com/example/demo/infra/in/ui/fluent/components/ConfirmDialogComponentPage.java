@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/fluent-app/components/confirm-dialog")
+@Route("/components/confirm-dialog")
 public class ConfirmDialogComponentPage implements ComponentTreeSupplier {
 
     boolean opened = true;

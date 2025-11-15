@@ -70,7 +70,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
 }
 
 
-@Route("/fluent-app/actions/custom-event")
+@Route("/actions/custom-event")
 @Slf4j
 public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
 

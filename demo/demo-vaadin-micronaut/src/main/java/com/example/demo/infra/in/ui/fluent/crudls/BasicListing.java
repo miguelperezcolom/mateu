@@ -47,7 +47,7 @@ record Row(
         String longText,
         ComponentDto detail) {}
 
-@Route("/fluent-app/crudls/basic")
+@Route("/crudls/basic")
 @Slf4j
 @With
 public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filters, Row>, TriggersSupplier {

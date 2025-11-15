@@ -57,7 +57,7 @@ An `App` is a high level convenience component which allows the user to navigate
 
 ```java
 
-@Route("/fluent-app")
+@Route("")
 @Serdeable
 public class FluentApp implements AppSupplier {
 
@@ -69,9 +69,9 @@ public class FluentApp implements AppSupplier {
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.MENU_ON_LEFT)
                 .menuBar(List.of(
-                        new Menu("Home", new RouteLink("/fluent-app/home"), true),
-                        new Menu("Page 1", new RouteLink("/fluent-app/page1")),
-                        new Menu("Page 2", new RouteLink("/fluent-app/page2"))
+                        new Menu("Home", new RouteLink("/home"), true),
+                        new Menu("Page 1", new RouteLink("/page1")),
+                        new Menu("Page 2", new RouteLink("/page2"))
                 ))
                 .build();
     }
@@ -93,7 +93,7 @@ TBD
 Please notice that in the example above we need to have some java classes related to the mentioned routes, like in the example below:
 
 ```java
-@Route("/fluent-app/home")
+@Route("/home")
 public class Home {
 
 }

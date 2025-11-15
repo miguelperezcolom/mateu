@@ -501,10 +501,10 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
                         return new OrderLine(line.lineId(), product, line.quantity());
                     }).toList()
             ));
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders");
+            return UICommand.navigateTo("/use-cases/rra/orders");
         }
         if ("cancel".equals(actionId)) {
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders");
+            return UICommand.navigateTo("/use-cases/rra/orders");
         }
         if ("submit".equals(actionId)) {
             orderRepository.save(new Order(
@@ -520,7 +520,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
                         return new OrderLine(line.lineId(), product, line.quantity());
                     }).toList()
             ));
-            return UICommand.navigateTo("/fluent-app/use-cases/rra/orders");
+            return UICommand.navigateTo("/use-cases/rra/orders");
         }
         System.out.println("unknown action: " + actionId);
         return new State(this);

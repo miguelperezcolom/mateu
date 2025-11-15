@@ -20,7 +20,7 @@ The typical menu bar.
       {
         "label": "Home",
         "destination": {
-          "route": "/fluent-app/nested-apps/left/home"
+          "route": "/nested-apps/left/home"
         },
         "visible": true,
         "selected": false,
@@ -31,7 +31,7 @@ The typical menu bar.
       {
         "label": "Page 1",
         "destination": {
-          "route": "/fluent-app/nested-apps/left/page1"
+          "route": "/nested-apps/left/page1"
         },
         "visible": true,
         "selected": false,
@@ -44,7 +44,7 @@ The typical menu bar.
           {
             "label": "Home",
             "destination": {
-              "route": "/fluent-app/nested-apps/left/home"
+              "route": "/nested-apps/left/home"
             },
             "visible": true,
             "selected": false,
@@ -55,7 +55,7 @@ The typical menu bar.
           {
             "label": "Page 1",
             "destination": {
-              "route": "/fluent-app/nested-apps/left/page1"
+              "route": "/nested-apps/left/page1"
             },
             "visible": true,
             "selected": false,
@@ -88,11 +88,11 @@ The typical menu bar.
 
    MenuBar.builder()
           .options(List.of(
-                  new RouteLink("/fluent-app/nested-apps/left/home", "Home"),
-                  new RouteLink("/fluent-app/nested-apps/left/page1", "Page 1"),
+                  new RouteLink("/nested-apps/left/home", "Home"),
+                  new RouteLink("/nested-apps/left/page1", "Page 1"),
                   (Actionable) new Menu("Submenu", List.of(
-                          new RouteLink("/fluent-app/nested-apps/left/home", "Home"),
-                          new RouteLink("/fluent-app/nested-apps/left/page1", "Page 1")
+                          new RouteLink("/nested-apps/left/home", "Home"),
+                          new RouteLink("/nested-apps/left/page1", "Page 1")
                   ))
           ))
           .build()

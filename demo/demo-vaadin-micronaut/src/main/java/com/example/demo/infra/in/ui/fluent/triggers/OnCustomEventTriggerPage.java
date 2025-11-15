@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
-@Route("/fluent-app/triggers/on-custom-event")
+@Route("/triggers/on-custom-event")
 public class OnCustomEventTriggerPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

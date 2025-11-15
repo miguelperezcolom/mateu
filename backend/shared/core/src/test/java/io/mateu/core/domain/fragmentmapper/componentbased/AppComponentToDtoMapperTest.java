@@ -47,31 +47,24 @@ class AppComponentToDtoMapperTest {
                 .variant(AppVariant.MENU_ON_TOP)
                 .menu(
                     List.of(
-                        new RouteLink("/fluent-app/home", "Home"),
-                        new RouteLink("/fluent-app/page1", "Page 1"),
-                        new RouteLink("/fluent-app/page2", "Page 2", true),
-                        new ContentLink(
-                            "/fluent-app/content0", "Content 0", (rq) -> new Text("Hola 0")),
+                        new RouteLink("/home", "Home"),
+                        new RouteLink("/page1", "Page 1"),
+                        new RouteLink("/page2", "Page 2", true),
+                        new ContentLink("/content0", "Content 0", (rq) -> new Text("Hola 0")),
                         new Menu(
                             "Page 3",
                             List.of(
                                 new ContentLink(
-                                    "/fluent-app/content1",
-                                    "Content 1",
-                                    (rq) -> new Text("Hola 1")),
+                                    "/content1", "Content 1", (rq) -> new Text("Hola 1")),
                                 new ContentLink(
-                                    "/fluent-app/content2",
-                                    "Content 2",
-                                    (rq) -> new Text("Hola 2")),
+                                    "/content2", "Content 2", (rq) -> new Text("Hola 2")),
                                 new Menu(
                                     "Page 4",
                                     List.of(
                                         new ContentLink(
-                                            "/fluent-app/content3",
-                                            "Content 3",
-                                            (rq) -> new Text("Hola 3")),
+                                            "/content3", "Content 3", (rq) -> new Text("Hola 3")),
                                         new ContentLink(
-                                            "/fluent-app/content4",
+                                            "/content4",
                                             "Content 4",
                                             (rq) -> new Text("Hola 4"))))))))
                 .build();
@@ -84,7 +77,7 @@ class AppComponentToDtoMapperTest {
             .component(
                 new ClientSideComponentDto(
                     AppDto.builder()
-                        .homeRoute("/fluent-app/page2")
+                        .homeRoute("/page2")
                         .route("route")
                         .subtitle("This is the subtitle bla, bla, bla")
                         .title("Antonia")
@@ -94,25 +87,25 @@ class AppComponentToDtoMapperTest {
                             List.of(
                                 MenuOptionDto.builder()
                                     .label("Home")
-                                    .destination(new GoToRouteDto("", "/fluent-app/home", null))
+                                    .destination(new GoToRouteDto("", "/home", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Page 1")
-                                    .destination(new GoToRouteDto("", "/fluent-app/page1", null))
+                                    .destination(new GoToRouteDto("", "/page1", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Page 2")
-                                    .destination(new GoToRouteDto("", "/fluent-app/page2", null))
+                                    .destination(new GoToRouteDto("", "/page2", null))
                                     .visible(true)
                                     .selected(true)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Content 0")
-                                    .destination(new GoToRouteDto("", "/fluent-app/content0", null))
+                                    .destination(new GoToRouteDto("", "/content0", null))
                                     .visible(true)
                                     .selected(false)
                                     .build(),
@@ -126,16 +119,14 @@ class AppComponentToDtoMapperTest {
                                             MenuOptionDto.builder()
                                                 .label("Content 1")
                                                 .destination(
-                                                    new GoToRouteDto(
-                                                        "", "/fluent-app/content1", null))
+                                                    new GoToRouteDto("", "/content1", null))
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
                                             MenuOptionDto.builder()
                                                 .label("Content 2")
                                                 .destination(
-                                                    new GoToRouteDto(
-                                                        "", "/fluent-app/content2", null))
+                                                    new GoToRouteDto("", "/content2", null))
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
@@ -150,9 +141,7 @@ class AppComponentToDtoMapperTest {
                                                             .label("Content 3")
                                                             .destination(
                                                                 new GoToRouteDto(
-                                                                    "",
-                                                                    "/fluent-app/content3",
-                                                                    null))
+                                                                    "", "/content3", null))
                                                             .visible(true)
                                                             .selected(false)
                                                             .build(),
@@ -160,9 +149,7 @@ class AppComponentToDtoMapperTest {
                                                             .label("Content 4")
                                                             .destination(
                                                                 new GoToRouteDto(
-                                                                    "",
-                                                                    "/fluent-app/content4",
-                                                                    null))
+                                                                    "", "/content4", null))
                                                             .visible(true)
                                                             .selected(false)
                                                             .build()))
@@ -195,9 +182,9 @@ class AppComponentToDtoMapperTest {
       return App.builder()
           .menu(
               List.of(
-                  new RouteLink("/fluent-app/home", "Home"),
-                  new RouteLink("/fluent-app/page1", "Page 1"),
-                  new RouteLink("/fluent-app/nested-app", "Nested app")))
+                  new RouteLink("/home", "Home"),
+                  new RouteLink("/page1", "Page 1"),
+                  new RouteLink("/nested-app", "Nested app")))
           .build();
     }
 
@@ -208,7 +195,7 @@ class AppComponentToDtoMapperTest {
 
     @Override
     public List<Pattern> supportedRoutesPatterns() {
-      return List.of(Pattern.compile("/fluent-app.*"));
+      return List.of(Pattern.compile(".*"));
     }
 
     @Override
@@ -225,13 +212,13 @@ class AppComponentToDtoMapperTest {
             supplier,
             supplier.getApp(new FakeHttpRequest()),
             "base_url",
-            "/fluent-app/nested-app/page2",
+            "/nested-app/page2",
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
     assertInstanceOf(ClientSideComponentDto.class, dto.component());
     var appDto = (AppDto) ((ClientSideComponentDto) dto.component()).metadata();
-    assertEquals("/fluent-app/nested-app/page2", appDto.homeRoute());
-    assertEquals("/fluent-app", appDto.route());
+    assertEquals("/nested-app/page2", appDto.homeRoute());
+    assertEquals("", appDto.route());
   }
 }

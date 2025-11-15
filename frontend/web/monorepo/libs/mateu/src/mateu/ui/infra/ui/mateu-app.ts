@@ -1,5 +1,5 @@
 import { customElement, query, state } from "lit/decorators.js";
-import { css, html, nothing } from "lit";
+import {css, html, nothing, PropertyValues} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -195,6 +195,13 @@ export class MateuApp extends ComponentElement {
         e.preventDefault()
         e.stopPropagation()
         this.selectRoute((e as CustomEvent).detail.route)
+    }
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties);
+        if (_changedProperties.has('component')) {
+            this.selectedRoute = undefined;
+        }
     }
 
     connectedCallback() {

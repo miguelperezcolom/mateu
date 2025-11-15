@@ -21,7 +21,8 @@ public record AppDto(
     List<AppDescriptorDto> apps,
     boolean drawerClosed,
     String style,
-    String cssClasses)
+    String cssClasses,
+    ComponentDto home)
     implements ComponentMetadataDto {
 
   public AppDto {

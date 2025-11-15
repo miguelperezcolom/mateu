@@ -1,17 +1,12 @@
-import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, PropertyValues } from "lit";
-import UI from "@mateu/shared/apiClients/dtos/UI"
+import {customElement, property, state} from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
 import '@vaadin/vertical-layout'
-import { appData, appState, upstream } from "@domain/state";
-import { service } from "@application/service";
-import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
+import {appData, appState} from "@domain/state";
 import './mateu-ux'
 import './mateu-api-caller'
-import { parseOverrides } from "@infra/ui/common";
-import Message from "@domain/Message";
-import { Subscription } from "rxjs";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
-import { nanoid } from "nanoid";
+import {Subscription} from "rxjs";
+import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import {nanoid} from "nanoid";
 
 
 @customElement('mateu-ui')
@@ -35,8 +30,6 @@ export class MateuUi extends LitElement {
     config: string | undefined = undefined;
 
     // state
-    @state()
-    ui: UI | undefined = undefined;
 
     @state()
     instant: any
@@ -71,11 +64,6 @@ export class MateuUi extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.upstreamSubscription = upstream.subscribe((message: Message) => {
-            if (message.ui) {
-                this.apply(message.ui)
-            }
-        })
 
         window.onpopstate = (e) => {
             const w = e.target as Window
@@ -93,22 +81,9 @@ export class MateuUi extends LitElement {
         this.removeEventListener('route-changed', this.routeChangedListener)
     }
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-
-        if (_changedProperties.has('baseUrl')
-            || _changedProperties.has('config')
-        ) {
-
-            service.loadUi(mateuApiClient, this.baseUrl, this.route, parseOverrides(this.config), this);
-
-        }
-
-    }
-
     loadUrl(w: Window) {
         this.route = this.extractRouteFromUrl(w)
-        console.log('loadurl. route is', this.route)
+        console.log('route', this.route)
         this.setAttribute('route', this.route)
         this.instant = nanoid()
         if (w.location.search) {
@@ -150,22 +125,12 @@ export class MateuUi extends LitElement {
         return 0
     }
 
-
-    // write state to reactive properties
-    apply(ui: UI) {
-        this.ui = ui
-        if (this.ui?.title) {
-            document.title = this.ui.title
-        }
-    }
-
-
     render() {
        return html`
            <mateu-api-caller>
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
-                          homeRoute="${this.ui?.homeRoute}"
+                          route="${this.route}"
                           instant="${this.instant}"
                           top="true"
                           style="width: 100%;"
