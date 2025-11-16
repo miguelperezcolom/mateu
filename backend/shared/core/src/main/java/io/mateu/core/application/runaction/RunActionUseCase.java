@@ -357,7 +357,7 @@ public class RunActionUseCase {
   }
 
   private String getInstanceNameUsingResolvers(
-      String route, String consumedRoute, HttpRequest httpRequest) {
+      String baseUrl, String route, String consumedRoute, HttpRequest httpRequest) {
     var cleanRoute = "/_page".equals(route) ? "" : route;
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
@@ -369,7 +369,7 @@ public class RunActionUseCase {
                   return AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
                       || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
-                      || resolved.isAnnotationPresent(MateuUI.class);
+                      || (resolved.isAnnotationPresent(MateuUI.class) && resolved.getAnnotation(MateuUI.class).value().equals(baseUrl));
                 })
             .toList()) {
       if (resolver.supportsRoute(route)
@@ -405,7 +405,7 @@ public class RunActionUseCase {
     }
     var fromRoute =
         getInstanceNameUsingResolvers(
-            command.route(), command.consumedRoute(), command.httpRequest());
+            command.baseUrl(), command.route(), command.consumedRoute(), command.httpRequest());
     if (fromRoute == null && ("".equals(command.route()) || "/_page".equals(command.route()))) {
       return command.uiId();
     }
