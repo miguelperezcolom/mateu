@@ -60,7 +60,7 @@ public final class AppComponentToDtoMapper {
     if (app.getClass().isAnnotationPresent(HomeRoute.class)) {
       return app.getClass().getAnnotation(HomeRoute.class).value();
     }
-    return "".equals(route)?"_page":route;
+    return "".equals(route) ? "_page" : route;
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

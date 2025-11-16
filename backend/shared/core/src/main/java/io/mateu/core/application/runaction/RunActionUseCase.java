@@ -360,18 +360,20 @@ public class RunActionUseCase {
       String route, String consumedRoute, HttpRequest httpRequest) {
     var cleanRoute = "/_page".equals(route) ? "" : route;
     for (RouteResolver resolver :
-        beanProvider.getBeans(RouteResolver.class).stream()
-                .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute)))
-            .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute))
-            .filter(
-                resolver -> {
-                  var resolved = resolver.resolveRoute(cleanRoute, httpRequest);
-                  return AppSupplier.class.isAssignableFrom(resolved)
-                      || App.class.isAssignableFrom(resolved)
-                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved);
-                })
-            .toList()) {
-      if (resolver.supportsRoute(route) && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
+            beanProvider.getBeans(RouteResolver.class).stream()
+                    .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute)))
+                    .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute))
+                    .filter(
+                            resolver -> {
+                              var resolved = resolver.resolveRoute(cleanRoute, httpRequest);
+                              return AppSupplier.class.isAssignableFrom(resolved)
+                                      || App.class.isAssignableFrom(resolved)
+                                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
+                                      || resolved.isAnnotationPresent(MateuUI.class);
+                            })
+                    .toList()) {
+      if (resolver.supportsRoute(route)
+              && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
         return resolver.resolveRoute(route, httpRequest).getName();
       }
     }
@@ -383,12 +385,14 @@ public class RunActionUseCase {
                   var resolved = resolver.resolveRoute(cleanRoute, httpRequest);
                   return !(AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
-                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved));
+                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
+                      || resolved.isAnnotationPresent(MateuUI.class));
                 })
             .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute)))
             .toList()
             .reversed()) {
-      if (resolver.supportsRoute(route) && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
+      if (resolver.supportsRoute(route)
+          && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute))) {
         return resolver.resolveRoute(route, httpRequest).getName();
       }
     }
