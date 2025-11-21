@@ -54,6 +54,7 @@ public class ReflectionAppMapper {
     var menu = getMenu(appRoute, instance, route, httpRequest);
     return App.builder()
         .route(appRoute)
+        .serverSideType(instance.getClass().getName())
         .variant(getVariant(instance, menu))
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
@@ -154,6 +155,9 @@ public class ReflectionAppMapper {
 
   private static Actionable mapToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
+    if ("/".equals(appRoute)) {
+      appRoute = "";
+    }
     if (Actionable.class.isAssignableFrom(field.getType())) {
       return completeActionable(appRoute, field, instance);
     }

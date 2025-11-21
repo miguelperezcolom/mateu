@@ -31,6 +31,7 @@ public class DefaultMateuService implements MateuService {
             rq.appState(),
             rq.initiatorComponentId(),
             httpRequest,
-            rq.serverSideType()));
+            rq.serverSideType(),
+            rq.appServerSideType()));
   }
 }

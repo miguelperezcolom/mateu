@@ -107,6 +107,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     initiatorComponentId: string,
                     appState: any,
                     serverSideType: string,
+                    appServerSideType: string,
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,
@@ -117,6 +118,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
         return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/sync/' +
             ((route && route != '')?route:'_no_route') + (actionId?'/' + actionId:''), {
             serverSideType,
+            appServerSideType,
             appState,
             componentState,
             parameters,

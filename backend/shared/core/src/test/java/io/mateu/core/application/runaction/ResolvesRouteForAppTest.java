@@ -30,7 +30,8 @@ class ResolvesRouteForAppTest extends RunActionUseCaseTest {
                     Map.of(),
                     "initiator_component_id",
                     new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
-                    SampleComponent.class.getName()))
+                    SampleComponent.class.getName(),
+                    ""))
             .blockLast();
     // System.out.println(toJson(increment));
 

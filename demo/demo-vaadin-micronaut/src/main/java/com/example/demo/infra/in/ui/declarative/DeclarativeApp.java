@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.declarative;
 
 import io.mateu.uidl.annotations.HomeRoute;
+import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
@@ -30,11 +31,11 @@ class SampleContent implements Page {
 
 class PagesSubmenu implements Submenu {
     @Menu
-    Actionable page1 = new RouteLink("/app/page1");
+    Actionable page1 = new RouteLink("/page1");
     @Menu
-    URI page2 = new URI("/app/page2");
+    URI page2 = new URI("/page2");
     @Menu
-    String page3 = "/app/page3";
+    String page3 = "/page3";
 
     PagesSubmenu() throws URISyntaxException {
     }
@@ -60,36 +61,36 @@ class ContentSubmenu implements Submenu {
 
 class MySubmenu implements Submenu {
     @Menu
-    Actionable page1 = new RouteLink("/app/page1");
+    Actionable page1 = new RouteLink("/page1");
     @Menu
-    Actionable page2 = new RouteLink("/app/page2");
+    Actionable page2 = new RouteLink("/page2");
     @Menu
     MyNestedSubmenu myNestedSUbmenu;
 }
 
 class MyNestedSubmenu implements Submenu {
     @Menu
-    Actionable page1 = new RouteLink("/app/page1");
+    Actionable page1 = new RouteLink("/page1");
     @Menu
-    Actionable page2 = new RouteLink("/app/page2");
+    Actionable page2 = new RouteLink("/page2");
 }
 
 
-@Route("/app")
+@MateuUI("/declarative")
 @PageTitle("Antonia")
-@HomeRoute("/app/home")
+@HomeRoute("/home")
 @Slf4j
 public class DeclarativeApp implements App {
     @Menu(selected = true)
-    Actionable home = new RouteLink("/app/home");
+    Actionable home = new RouteLink("/home");
     @Menu
     PagesSubmenu pages;
     @Menu
     ContentSubmenu content;
     @Menu
-    String allFields = "/app/all-fields";
+    String allFields = "/all-fields";
     @Menu
-    String crud1 = "/app/crud1";
+    String crud1 = "/crud1";
     @Menu
     MySubmenu mySubmenu;
     @Menu
@@ -97,11 +98,11 @@ public class DeclarativeApp implements App {
             new ContentLink("Hola 1", rq -> new Text("Hola 1")),
             new ContentLink("Hola 2",rq -> new Text("Hola 2")),
             new io.mateu.uidl.data.Menu("Page 3", List.of(
-                    new ContentLink("/app/content1", "Content 1", (rq) -> new Text("Hola 1")),
-                    new ContentLink("/app/content2", "Content 2", (rq) -> new Text("Hola 2")),
+                    new ContentLink("/content1", "Content 1", (rq) -> new Text("Hola 1")),
+                    new ContentLink("/content2", "Content 2", (rq) -> new Text("Hola 2")),
                     new io.mateu.uidl.data.Menu("Page 4", List.of(
-                            new ContentLink("/app/content3", "Content 3", (rq) -> new Text("Hola 3")),
-                            new ContentLink("/app/content4", "Content 4", (rq) -> new Text("Hola 4"))
+                            new ContentLink("/content3", "Content 3", (rq) -> new Text("Hola 3")),
+                            new ContentLink("/content4", "Content 4", (rq) -> new Text("Hola 4"))
                     ))
             ))
     );

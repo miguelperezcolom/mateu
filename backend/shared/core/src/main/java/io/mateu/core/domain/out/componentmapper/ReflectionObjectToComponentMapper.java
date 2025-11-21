@@ -69,7 +69,7 @@ public class ReflectionObjectToComponentMapper {
     return instance;
   }
 
-  private boolean isApp(Object instance, String route) {
+  public static boolean isApp(Object instance, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
     // tiene anotaciones con @MenuOption o @Submenu?

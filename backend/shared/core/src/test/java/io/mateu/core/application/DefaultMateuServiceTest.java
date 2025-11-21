@@ -11,6 +11,7 @@ import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.dtos.RunActionRqDto;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,9 @@ class DefaultMateuServiceTest {
           new RunActionUseCase(
               new FakeBeanProvider(),
               instanceFactoryProvider,
-              new DefaultActionRunnerProvider(new FakeBeanProvider()),
+              new DefaultActionRunnerProvider(
+                  new FakeBeanProvider(),
+                  (InstanceFactoryProvider) new ReflectionInstanceFactory(new FakeBeanProvider())),
               uiIncrementMapperProvider));
 
   @Test
@@ -41,7 +44,8 @@ class DefaultMateuServiceTest {
             "consumed_route",
             "action_id",
             "route",
-            UsingInterfacesUI.class.getName());
+            UsingInterfacesUI.class.getName(),
+            "");
     assertNotNull(
         defaultMateuService
             .runAction(

@@ -2,6 +2,7 @@ package io.mateu.core.domain.act;
 
 import static io.mateu.core.domain.act.DefaultActionRunnerProvider.asFlux;
 
+import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ContentSupplier;
@@ -9,7 +10,6 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
-import java.util.Map;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
@@ -38,9 +38,9 @@ public class ComponentTreeActionRunner implements ActionRunner {
 
   @SneakyThrows
   @Override
-  public Flux<?> run(
-      Object instance, String actionId, Map<String, Object> data, HttpRequest httpRequest) {
-    Button button = findButton((ComponentTreeSupplier) instance, actionId, httpRequest);
+  public Flux<?> run(Object instance, RunActionCommand command) {
+    Button button =
+        findButton((ComponentTreeSupplier) instance, command.actionId(), command.httpRequest());
     Object result = null;
     if (button != null) {
       if (button.runnable() != null) {

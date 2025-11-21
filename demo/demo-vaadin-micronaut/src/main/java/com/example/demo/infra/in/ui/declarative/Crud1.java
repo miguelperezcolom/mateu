@@ -20,7 +20,7 @@ record Crud1Row(
 
 }
 
-@Route("/app/crud1")
+@Route("/crud1")
 public class Crud1 implements ListingBackend<Crud1Filters, Crud1Row> {
 
 

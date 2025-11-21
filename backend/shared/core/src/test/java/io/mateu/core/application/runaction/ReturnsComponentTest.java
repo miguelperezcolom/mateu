@@ -25,7 +25,8 @@ class ReturnsComponentTest extends RunActionUseCaseTest {
                     Map.of(),
                     "initiator_component_id",
                     new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
-                    AnnotatedComponent.class.getName()))
+                    AnnotatedComponent.class.getName(),
+                    ""))
             .blockLast();
     assertThat(increment).isNotNull();
   }

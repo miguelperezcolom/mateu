@@ -7,6 +7,7 @@ export interface RunActionCommand {
     componentState: any
     parameters: any
     serverSideType: string
+    appServerSideType: string
     initiatorComponentId: string
     initiator: HTMLElement
     background: boolean

@@ -7,6 +7,7 @@ export interface MateuApiClient {
               initiatorComponentId: string,
               appState: any,
               serverSideType: string,
+              appServerSideType: string,
               componentState: any,
               parameters: any,
               initiator: HTMLElement,

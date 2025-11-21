@@ -4,7 +4,7 @@ import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Message;
 
-@Route("/app/page3")
+@Route("/page3")
 public class Page3 {
     
     String name = "Mateu";

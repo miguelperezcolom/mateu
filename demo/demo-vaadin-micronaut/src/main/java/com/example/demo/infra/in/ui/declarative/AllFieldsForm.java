@@ -26,7 +26,7 @@ record Row(String name, int age) {
 
 }
 
-@Route("/app/all-fields")
+@Route("/all-fields")
 public class AllFieldsForm {
 
     /*

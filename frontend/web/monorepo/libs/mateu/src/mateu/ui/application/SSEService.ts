@@ -8,7 +8,7 @@ import { LitElement } from "lit";
 
 export class SSEService implements Service {
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, appServerSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -129,7 +129,7 @@ export class SSEService implements Service {
             }
 
         } else {
-            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, componentState, parameters, initiator, background, callback)
+            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback)
         }
     }
 

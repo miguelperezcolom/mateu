@@ -22,6 +22,8 @@ import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import lombok.SneakyThrows;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +44,10 @@ public final class AppComponentToDtoMapper {
             .route(app.route())
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(app, route)) // getHomeRoute(menu, route, appRoute))
+            .appServerSideType(
+                componentSupplier != null
+                    ? componentSupplier.getClass().getName()
+                    : app.serverSideType())
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())
@@ -53,12 +59,24 @@ public final class AppComponentToDtoMapper {
         appDto, UUID.randomUUID().toString(), List.of(), app.style(), app.cssClasses(), null);
   }
 
-  private static String getHomeRoute(Object app, String route) {
-    if (app instanceof HomeRouteSupplier homeRouteSupplier) {
+  @SneakyThrows
+  private static String getHomeRoute(Object instance, String route) {
+    if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
       return homeRouteSupplier.homeRoute();
     }
-    if (app.getClass().isAnnotationPresent(HomeRoute.class)) {
-      return app.getClass().getAnnotation(HomeRoute.class).value();
+    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
+      return instance.getClass().getAnnotation(HomeRoute.class).value();
+    }
+    if (instance instanceof App app) {
+      if (app.homeRoute() != null) {
+        return app.homeRoute();
+      }
+      if (app.serverSideType() != null && !app.serverSideType().isEmpty()) {
+        Class<?> appClass = Class.forName(app.serverSideType());
+        if (appClass.isAnnotationPresent(HomeRoute.class)) {
+          return appClass.getAnnotation(HomeRoute.class).value();
+        }
+      }
     }
     return "".equals(route) ? "_page" : route;
   }

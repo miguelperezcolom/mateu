@@ -75,6 +75,7 @@ export class HttpService implements Service {
                     initiatorComponentId: string,
                     _appState: any,
                     serverSideType: string,
+                    appServerSideType: string,
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,
@@ -94,6 +95,7 @@ export class HttpService implements Service {
                 componentState,
                 parameters,
                 serverSideType,
+                appServerSideType,
                 initiator,
                 background
             } as RunActionCommand)

@@ -27,6 +27,7 @@ public class FluentApp implements AppSupplier {
                 .drawerClosed(true)
                 .style("width: 100%;")
                 //.cssClasses("redwood")
+                .homeRoute("/home")
                 .menu(List.of(
                         new RouteLink("/home", "Home", true),
                         new Menu("Layouts", List.of(

@@ -15,6 +15,7 @@ public record AppDto(
     List<MenuOptionDto> menu,
     int totalMenuOptions,
     String homeRoute,
+    String appServerSideType,
     String loginUrl,
     String welcomeMessage,
     String logoutUrl,

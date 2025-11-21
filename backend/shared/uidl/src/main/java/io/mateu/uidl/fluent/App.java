@@ -10,6 +10,8 @@ import lombok.With;
 @With
 public record App(
     String route,
+    String homeRoute,
+    String serverSideType,
     String favicon,
     String pageTitle,
     String title,
