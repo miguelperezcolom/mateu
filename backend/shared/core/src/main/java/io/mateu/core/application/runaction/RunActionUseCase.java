@@ -158,12 +158,20 @@ public class RunActionUseCase {
             .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
             .toList()) {
       if (resolver.supportsRoute(command.route())
-          && ("/".equals(command.consumedRoute()) || !resolver.supportsRoute(command.consumedRoute()))) {
+          && ("".equals(command.consumedRoute()) || !resolver.supportsRoute(command.consumedRoute()))) {
         var instanceTypeName =
             resolver.resolveRoute(command.route(), command.httpRequest()).getName();
+        if (command.appServerSideType() != null && !command.appServerSideType().isEmpty() && command.appServerSideType().equals(instanceTypeName)) {
+          continue;
+        }
         var ok = !appsOnly;
         if (appsOnly) {
           var type = Class.forName(instanceTypeName);
+          if (type.isAnnotationPresent(MateuUI.class)) {
+            if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
+              continue;
+            }
+          }
           if (App.class.isAssignableFrom(type)
               || AppSupplier.class.isAssignableFrom(type)
               || getAllFields(type).stream()
@@ -219,16 +227,6 @@ public class RunActionUseCase {
                 return handlesRoute.handleRoute(route, httpRequest);
               }
               return Mono.just(instance);
-            })
-        .map(
-            instance -> {
-              if (instance instanceof AppSupplier appSupplier) {
-                if (!"/_page".equals(route)) {
-                  var appRoute = getRoute(instance, instance, httpRequest, route);
-                  return appSupplier.getApp(httpRequest).withRoute(appRoute);
-                }
-              }
-              return instance;
             });
   }
 

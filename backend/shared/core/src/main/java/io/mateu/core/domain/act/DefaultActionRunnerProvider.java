@@ -15,6 +15,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
@@ -79,6 +80,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
           if (instance instanceof App app) {
             return resolveInApp(
                     command.route(),
+                    command.consumedRoute(),
                     command.componentState(),
                     command.httpRequest(),
                     app,
@@ -87,9 +89,16 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
                 .flux();
           }
           if (instance instanceof AppSupplier appSupplier) {
-            var app = appSupplier.getApp(command.httpRequest());
+            var app = appSupplier.getApp(command.httpRequest()).withServerSideType(instance.getClass().getName());
+            if ("".equals(command.consumedRoute()) ||
+                    ("/".equals(command.consumedRoute())
+                            && command.appServerSideType() != null
+                            && !command.appServerSideType().equals(appSupplier.getClass().getName()))) {
+              return Flux.just(appSupplier);
+            }
             return resolveInApp(
                     command.route(),
+                    command.consumedRoute(),
                     command.componentState(),
                     command.httpRequest(),
                     app,
@@ -107,6 +116,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
                     command.httpRequest());
             return resolveInApp(
                     command.route(),
+                    command.consumedRoute(),
                     command.componentState(),
                     command.httpRequest(),
                     app,
@@ -144,11 +154,15 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
   public Mono<?> resolveInApp(
       String route,
+      String consumedRoute,
       Map<String, Object> data,
       HttpRequest httpRequest,
       Object potentialApp,
       String baseUrl,
       String initialComponentId) {
+    if ("".equals(consumedRoute)) {
+      return Mono.just(potentialApp);
+    }
     App app = null;
     if (potentialApp instanceof App) {
       app = (App) potentialApp;
@@ -162,6 +176,9 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
       var actionable = resolveMenu(app.menu(), route);
       if (actionable == null) {
         return Mono.just(app);
+      }
+      if (actionable instanceof RouteLink routeLink) {
+        return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));
       }
       if (actionable instanceof ContentLink contentLink) {
         return Mono.just(contentLink.componentSupplier().component(httpRequest));
