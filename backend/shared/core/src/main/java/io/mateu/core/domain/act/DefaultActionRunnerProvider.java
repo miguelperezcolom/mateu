@@ -175,7 +175,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     if (app != null) {
       var actionable = resolveMenu(app.menu(), route);
       if (actionable == null) {
-        return Mono.just(app);
+        return Mono.empty();
       }
       if (actionable instanceof RouteLink routeLink) {
         return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));

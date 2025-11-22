@@ -164,14 +164,14 @@ public class RunActionUseCase {
         if (command.appServerSideType() != null && !command.appServerSideType().isEmpty() && command.appServerSideType().equals(instanceTypeName)) {
           continue;
         }
+        var type = Class.forName(instanceTypeName);
+        if (type.isAnnotationPresent(MateuUI.class)) {
+          if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
+            continue;
+          }
+        }
         var ok = !appsOnly;
         if (appsOnly) {
-          var type = Class.forName(instanceTypeName);
-          if (type.isAnnotationPresent(MateuUI.class)) {
-            if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
-              continue;
-            }
-          }
           if (App.class.isAssignableFrom(type)
               || AppSupplier.class.isAssignableFrom(type)
               || getAllFields(type).stream()

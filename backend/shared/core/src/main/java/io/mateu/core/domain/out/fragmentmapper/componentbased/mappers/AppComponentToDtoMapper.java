@@ -35,6 +35,9 @@ public final class AppComponentToDtoMapper {
       String baseUrl,
       String route,
       HttpRequest httpRequest) {
+    if (componentSupplier != null && app.serverSideType() == null) {
+      app = app.withServerSideType(componentSupplier.getClass().getName());
+    }
     var appRoute = getRoute(componentSupplier, app, httpRequest, route);
     var menu = getMenu(app, route, appRoute);
     var appDto =
