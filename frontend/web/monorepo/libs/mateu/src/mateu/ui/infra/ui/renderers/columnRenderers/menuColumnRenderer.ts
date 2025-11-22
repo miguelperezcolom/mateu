@@ -17,6 +17,28 @@ const itemSelected = (e: CustomEvent) => {
     }))
 }
 
+const clicked = (e: CustomEvent) => {
+    const obj = {
+        // @ts-ignore
+        _clickedRow: e.target.row
+    };
+    const action : {
+        methodNameInCrud: string
+        label: string
+        icon: string
+        disabled: boolean
+    } = e.target.action
+    console.log(e)
+    e.target?.dispatchEvent(new CustomEvent('action-requested', {
+        detail: {
+            actionId: action.methodNameInCrud,
+            parameters: obj
+        },
+        bubbles: true,
+        composed: true
+    }))
+}
+
 export const createItem = (a: any) => {
     const item = document.createElement('vaadin-context-menu-item');
     const icon = document.createElement('vaadin-icon');
@@ -62,4 +84,22 @@ export const renderMenuCell = (item: any,
                                          @item-selected="${itemSelected}"
                                      ></vaadin-menu-bar>
                                    `
+}
+
+export const renderActionCell = (item: any,
+                               _model: GridItemModel<any>,
+                               column: VaadinGridColumn
+) => {
+    // @ts-ignore
+    const action: {
+        methodNameInCrud: string
+        label: string
+        icon: string
+        disabled: boolean
+    } = item.action
+    return html`
+         <vaadin-button theme="tertiary" @click="${clicked}" .row="${item}" .action="${action}">
+             ${action.label}
+         </vaadin-button>
+    `
 }

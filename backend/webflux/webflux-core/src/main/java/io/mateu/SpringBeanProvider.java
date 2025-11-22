@@ -2,6 +2,8 @@ package io.mateu;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import java.util.Collection;
+
+import io.mateu.uidl.di.MateuBeanProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ public class SpringBeanProvider implements BeanProvider {
 
   public SpringBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
+    MateuBeanProvider.setBeanProvider(this);
   }
 
   @Override

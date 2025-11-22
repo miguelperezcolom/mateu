@@ -59,6 +59,7 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>5.14.2</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>net.bytebuddy</groupId>

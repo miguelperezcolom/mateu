@@ -22,10 +22,13 @@ import reactor.core.publisher.Flux;
 @RestController("${pkgName}.${simpleClassName}MateuController")
 @RequestMapping("${path}/mateu")
 @Slf4j
-@RequiredArgsConstructor
 public class ${simpleClassName}MateuController {
 
     private final MateuService service;
+
+    public ${simpleClassName}MateuController(MateuService service) {
+        this.service = service;
+    }
 
     private String uiId = "${className}";
 

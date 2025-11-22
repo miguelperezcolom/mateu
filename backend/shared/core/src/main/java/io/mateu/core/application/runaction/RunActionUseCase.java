@@ -1,7 +1,5 @@
 package io.mateu.core.application.runaction;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.domain.act.ActionRunnerProvider;
@@ -11,7 +9,6 @@ import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
@@ -24,7 +21,6 @@ import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +105,6 @@ public class RunActionUseCase {
                                 command.httpRequest())));
   }
 
-
   public static Actionable resolveMenu(List<Actionable> actionables, String route) {
     if ("/_page".equals(route) || "".equals(route)) {
       return null;
@@ -158,10 +153,13 @@ public class RunActionUseCase {
             .sorted(Comparator.comparingInt(a -> a.weight(command.route())))
             .toList()) {
       if (resolver.supportsRoute(command.route())
-          && ("".equals(command.consumedRoute()) || !resolver.supportsRoute(command.consumedRoute()))) {
+          && ("".equals(command.consumedRoute())
+              || !resolver.supportsRoute(command.consumedRoute()))) {
         var instanceTypeName =
             resolver.resolveRoute(command.route(), command.httpRequest()).getName();
-        if (command.appServerSideType() != null && !command.appServerSideType().isEmpty() && command.appServerSideType().equals(instanceTypeName)) {
+        if (command.appServerSideType() != null
+            && !command.appServerSideType().isEmpty()
+            && command.appServerSideType().equals(instanceTypeName)) {
           continue;
         }
         var type = Class.forName(instanceTypeName);

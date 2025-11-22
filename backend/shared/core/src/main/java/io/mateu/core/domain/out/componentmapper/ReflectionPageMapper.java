@@ -1,10 +1,13 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
+import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFormField;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getStereotype;
+import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -37,6 +40,7 @@ import io.mateu.uidl.interfaces.AvatarSupplier;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
 import io.mateu.uidl.interfaces.ContentSupplier;
 import io.mateu.uidl.interfaces.FooterSupplier;
+import io.mateu.uidl.interfaces.Form;
 import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ListingBackend;
@@ -93,7 +97,7 @@ public class ReflectionPageMapper {
         .toList();
   }
 
-  private static Collection<? extends Component> getContent(
+  public static Collection<? extends Component> getContent(
       Object instance,
       String baseUrl,
       String route,
@@ -105,6 +109,9 @@ public class ReflectionPageMapper {
     if (instance instanceof ListingBackend<?, ?>
         || instance instanceof ReactiveListingBackend<?, ?>) {
       return getCrud(instance, baseUrl, route, initiatorComponentId, httpRequest);
+    }
+    if (isApp(instance, route)) {
+      return List.of(mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest));
     }
     if (isForm(instance)) {
       return getForm(instance, baseUrl, route, initiatorComponentId, httpRequest);
@@ -205,7 +212,7 @@ public class ReflectionPageMapper {
     return getAllFields(filtersClass).stream()
         .map(
             field ->
-                getFormField(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+                    (FormField) getFormField(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toList();
   }
 
@@ -218,7 +225,7 @@ public class ReflectionPageMapper {
     return List.of(
         FormLayout.builder()
             .content(
-                getAllFields(instance.getClass()).stream()
+                getAllEditableFields(instance.getClass()).stream()
                     .filter(field -> !field.isAnnotationPresent(Menu.class))
                     .map(
                         field ->
@@ -235,6 +242,9 @@ public class ReflectionPageMapper {
   }
 
   private static boolean isForm(Object instance) {
+    if (instance instanceof Form) {
+      return true;
+    }
     return getAllFields(instance.getClass()).stream()
             .anyMatch(
                 field ->

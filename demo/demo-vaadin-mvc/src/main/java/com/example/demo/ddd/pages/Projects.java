@@ -4,6 +4,8 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.annotations.Trigger;
+import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ListingData;
@@ -35,13 +37,15 @@ record ProjectRow2(String id, String name, ColumnAction action) {
 
     public ProjectRow2(String id, String name) {
         this(id, name, ColumnAction.builder()
-                .methodNameInCrud("viewProject")
+                .label("View")
+                .methodNameInCrud("view")
                 .build());
     }
 }
 
 @Service
 @RequiredArgsConstructor
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
 public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
 
     final ProjectCreationForm creationForm;
@@ -49,13 +53,7 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
 
     @Override
     public ListingData<ProjectRow2> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
-        return new ListingData<>(new Page<>(
-                searchText,
-                1,
-                0,
-                1,
-                List.of(new ProjectRow2("1", "Proyecto"))
-        ));
+        return ListingData.of(new ProjectRow2("1", "Proyecto"));
     }
 
     @Toolbar
@@ -79,7 +77,7 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("view".equals(actionId)) {
-            return detail.load((String) httpRequest.getParameters(Map.class).get("id"));
+            return detail.load((String) ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

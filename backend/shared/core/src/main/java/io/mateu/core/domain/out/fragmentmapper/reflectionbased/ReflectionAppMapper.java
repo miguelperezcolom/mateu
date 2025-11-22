@@ -125,7 +125,7 @@ public class ReflectionAppMapper {
         }
         accumulated.append("/").append(token);
       }
-      return matched?accumulated.toString():"/";
+      return matched ? accumulated.toString() : "/";
     }
     return route;
   }

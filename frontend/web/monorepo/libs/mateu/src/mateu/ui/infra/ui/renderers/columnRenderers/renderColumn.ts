@@ -13,7 +13,7 @@ import { renderLinkCell } from "@infra/ui/renderers/columnRenderers/linkColumnRe
 import { renderIconCell } from "@infra/ui/renderers/columnRenderers/iconColumnRenderer.ts";
 import { renderHtmlCell } from "@infra/ui/renderers/columnRenderers/htmlColumnRenderer.ts";
 import { renderImageCell } from "@infra/ui/renderers/columnRenderers/imageColumnRenderer.ts";
-import { renderMenuCell } from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
+import {renderActionCell, renderMenuCell} from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";
@@ -223,6 +223,9 @@ export const columnRenderer = (item: any,
     }
     if ('component' == type) {
         return renderComponentCell(item, model, vaadinColumn, container, baseUrl, state, data, appState, appData)
+    }
+    if ('action' == type) {
+        return renderActionCell(item, model, vaadinColumn)
     }
     return html`${item[vaadinColumn.path!]}`
 }

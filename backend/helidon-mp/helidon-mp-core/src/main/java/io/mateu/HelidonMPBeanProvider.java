@@ -1,13 +1,21 @@
 package io.mateu;
 
 import io.helidon.common.context.Contexts;
+import io.helidon.service.registry.Service;
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.uidl.di.MateuBeanProvider;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.List;
 
 @Singleton
 public class HelidonMPBeanProvider implements BeanProvider {
+
+  @PostConstruct
+  public void init() {
+    MateuBeanProvider.setBeanProvider(this);
+  }
 
   @Override
   public <T> T getBean(Class<T> clazz) {

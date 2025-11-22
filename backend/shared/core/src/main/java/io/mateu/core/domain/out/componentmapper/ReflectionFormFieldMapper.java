@@ -1,18 +1,24 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Humanizer.capitalize;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Representation;
 import io.mateu.uidl.annotations.SliderMax;
 import io.mateu.uidl.annotations.SliderMin;
+import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
+import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Status;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -29,13 +35,19 @@ import java.util.Date;
 
 public class ReflectionFormFieldMapper {
 
-  public static FormField getFormField(
+  public static Component getFormField(
       Field field,
       Object instance,
       String baseUrl,
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (Component.class.isAssignableFrom(field.getType())) {
+      return CustomField.builder()
+              .label(getLabel(field))
+              .content((Component) getValue(field, instance))
+              .build();
+    }
     return FormField.builder()
         .id(field.getName())
         .label(getLabel(field))
@@ -44,7 +56,12 @@ public class ReflectionFormFieldMapper {
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
+            .readOnly(isReadOnly(field, instance))
         .build();
+  }
+
+  private static boolean isReadOnly(Field field, Object instance) {
+    return instance.getClass().isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(ReadOnly.class);
   }
 
   private static int getSliderMax(Field field) {
@@ -127,11 +144,20 @@ public class ReflectionFormFieldMapper {
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return FieldDataType.component;
     }
+    if (Component.class.isAssignableFrom(field.getType())) {
+      return FieldDataType.component;
+    }
     if (Menu.class.isAssignableFrom(field.getType())) {
       return FieldDataType.menu;
     }
     if (Range.class.isAssignableFrom(field.getType())) {
       return FieldDataType.range;
+    }
+    if (ColumnActionGroup.class.isAssignableFrom(field.getType())) {
+      return FieldDataType.actionGroup;
+    }
+    if (ColumnAction.class.isAssignableFrom(field.getType())) {
+      return FieldDataType.action;
     }
     return FieldDataType.string;
   }

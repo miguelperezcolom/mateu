@@ -378,6 +378,19 @@ export class MateuField extends LitElement {
         const value = this.state && fieldId in this.state?this.state[fieldId]:this.field?.initialValue
         const labelText = this.field?.label + '' + (this.field?.required?' (*)':'')
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
+
+        if (this.field?.readOnly) {
+            return html`
+                <vaadin-text-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        value="${value}"
+                        readonly
+                        style="${this.field.style}"
+                ></vaadin-text-field>
+`
+        }
+
         if (this.field?.dataType == 'file') {
             const files = value?.map((file: FileLike) => {
                 return {

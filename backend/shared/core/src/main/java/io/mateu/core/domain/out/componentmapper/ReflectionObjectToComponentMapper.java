@@ -15,6 +15,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
@@ -79,6 +80,9 @@ public class ReflectionObjectToComponentMapper {
     }
     if (instance instanceof ComponentTreeSupplier) {
       return false;
+    }
+    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
+      return true;
     }
     if (getAllFields(instance.getClass()).stream()
         .anyMatch(field -> field.isAnnotationPresent(Menu.class))) {

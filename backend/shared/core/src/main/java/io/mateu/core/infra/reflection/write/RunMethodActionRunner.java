@@ -1,6 +1,7 @@
 package io.mateu.core.infra.reflection.write;
 
 import static io.mateu.core.domain.act.DefaultActionRunnerProvider.asFlux;
+import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
@@ -18,13 +19,13 @@ public class RunMethodActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return methodProvider.getMethod(instance.getClass(), actionId) != null;
+    return getMethod(instance.getClass(), actionId) != null;
   }
 
   @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
-    Method m = methodProvider.getMethod(instance.getClass(), command.actionId());
+    Method m = getMethod(instance.getClass(), command.actionId());
     if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
     Object result = m.invoke(instance);
     return asFlux(result, instance);

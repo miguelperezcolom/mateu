@@ -1,6 +1,7 @@
 package io.mateu;
 
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.uidl.di.MateuBeanProvider;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Singleton;
 import java.util.Collection;
@@ -13,6 +14,7 @@ public class QuarkusBeanProvider implements BeanProvider {
 
   public QuarkusBeanProvider(BeanManager beanManager) {
     this.beanManager = beanManager;
+    MateuBeanProvider.setBeanProvider(this);
   }
 
   @Override

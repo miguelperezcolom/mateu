@@ -11,17 +11,7 @@ public class Home {
     @Menu
     Projects projects;
 
-    @Menu
-    TypesSubmenu types;
 
-    @Menu
-    Projects aggregates;
-
-    @Menu
-    Projects decisions;
-
-    @Menu
-    Projects workflows;
 
     String content = "Hola!";
 

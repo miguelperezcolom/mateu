@@ -22,10 +22,9 @@ import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
-import lombok.SneakyThrows;
-
 import java.util.List;
 import java.util.UUID;
+import lombok.SneakyThrows;
 
 public final class AppComponentToDtoMapper {
 
@@ -44,7 +43,7 @@ public final class AppComponentToDtoMapper {
         AppDto.builder()
             .title(app.title())
             .subtitle(app.subtitle())
-            .route(app.route() != null?app.route():"/")
+            .route(app.route() != null ? app.route() : "/")
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(getHomeRoute(app, route)) // getHomeRoute(menu, route, appRoute))
             .appServerSideType(

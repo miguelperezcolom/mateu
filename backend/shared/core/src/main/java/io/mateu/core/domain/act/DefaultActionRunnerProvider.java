@@ -89,11 +89,14 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
                 .flux();
           }
           if (instance instanceof AppSupplier appSupplier) {
-            var app = appSupplier.getApp(command.httpRequest()).withServerSideType(instance.getClass().getName());
-            if ("".equals(command.consumedRoute()) ||
-                    ("/".equals(command.consumedRoute())
-                            && command.appServerSideType() != null
-                            && !command.appServerSideType().equals(appSupplier.getClass().getName()))) {
+            var app =
+                appSupplier
+                    .getApp(command.httpRequest())
+                    .withServerSideType(instance.getClass().getName());
+            if ("".equals(command.consumedRoute())
+                || ("/".equals(command.consumedRoute())
+                    && command.appServerSideType() != null
+                    && !command.appServerSideType().equals(appSupplier.getClass().getName()))) {
               return Flux.just(appSupplier);
             }
             return resolveInApp(

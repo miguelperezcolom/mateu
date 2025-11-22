@@ -12,15 +12,15 @@ public @interface Trigger {
 
   String actionId();
 
-  int timeoutMillis();
+  int timeoutMillis() default 0;
 
-  int times();
+  int times() default 1;
 
-  String condition();
+  String condition() default "";
 
-  String calledActionId();
+  String calledActionId() default "";
 
-  String propertyName();
+  String propertyName() default "";
 
-  String eventName();
+  String eventName() default "";
 }
