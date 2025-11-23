@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Named
-public class ${simpleClassName}RouteResolver implements RouteResolver {
+public class ${generatedClassName} implements RouteResolver {
 
     private final List<Pattern> patterns = List.of(
     <#list routes>

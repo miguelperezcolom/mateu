@@ -38,14 +38,18 @@ public final class AppComponentToDtoMapper {
       app = app.withServerSideType(componentSupplier.getClass().getName());
     }
     var appRoute = getRoute(componentSupplier, app, httpRequest, route);
+    if ("/".equals(appRoute) && app.route() != null && !"".equals(app.route())) {
+      appRoute = app.route();
+    }
     var menu = getMenu(app, route, appRoute);
     var appDto =
         AppDto.builder()
             .title(app.title())
             .subtitle(app.subtitle())
-            .route(app.route() != null ? app.route() : "/")
+            .route(appRoute)
             .variant(AppVariantDto.valueOf(app.variant().name()))
-            .homeRoute(getHomeRoute(app, route)) // getHomeRoute(menu, route, appRoute))
+            .homeRoute(
+                getHomeRoute(app, route, httpRequest)) // getHomeRoute(menu, route, appRoute))
             .appServerSideType(
                 componentSupplier != null
                     ? componentSupplier.getClass().getName()
@@ -62,9 +66,19 @@ public final class AppComponentToDtoMapper {
   }
 
   @SneakyThrows
-  private static String getHomeRoute(Object instance, String route) {
+  private static String getHomeRoute(Object instance, String route, HttpRequest httpRequest) {
     String homeRoute = getHomeRouteInternal(instance, route);
-    if (route != null && !route.isEmpty() && !homeRoute.startsWith(route)) {
+    if (instance instanceof App app) {
+      if ("xxx".equals(app.homeRoute())) {
+        return homeRoute;
+      }
+    }
+    if (("".equals(httpRequest.runActionRq().consumedRoute())
+            || "/".equals(httpRequest.runActionRq().consumedRoute())
+            || httpRequest.runActionRq().appServerSideType() != null)
+        && route != null
+        && !route.isEmpty()
+        && !homeRoute.startsWith(route)) {
       return route;
     }
     return homeRoute;
@@ -80,7 +94,7 @@ public final class AppComponentToDtoMapper {
       return instance.getClass().getAnnotation(HomeRoute.class).value();
     }
     if (instance instanceof App app) {
-      if (app.homeRoute() != null) {
+      if (app.homeRoute() != null && !"xxx".equals(app.homeRoute())) {
         return app.homeRoute();
       }
       if (app.serverSideType() != null && !app.serverSideType().isEmpty()) {

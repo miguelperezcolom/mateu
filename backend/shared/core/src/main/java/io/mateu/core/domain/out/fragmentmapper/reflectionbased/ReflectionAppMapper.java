@@ -7,6 +7,7 @@ import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.MenuTypeDto;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MenuSupplier;
@@ -14,6 +15,7 @@ import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import lombok.SneakyThrows;
 
 public class ReflectionAppMapper {
 
@@ -74,15 +76,24 @@ public class ReflectionAppMapper {
     return null;
   }
 
+  @SneakyThrows
   public static String getRoute(
-      Object componentSupplier, Object app, HttpRequest httpRequest, String route) {
+      Object componentSupplier, Object instance, HttpRequest httpRequest, String route) {
+    Class<?> instanceClass = instance.getClass();
+    if (componentSupplier == null) {
+      if (instance instanceof App app) {
+        if (app.serverSideType() != null && !"".equals(app.serverSideType())) {
+          instanceClass = Class.forName(app.serverSideType());
+        }
+      }
+    }
     Pattern pattern = null;
     if (componentSupplier instanceof RouteResolver routeResolver) {
       pattern = routeResolver.matchingPattern(route).orElse(null);
     }
-    if (pattern == null && app != null) {
-      if (app.getClass().isAnnotationPresent(Route.class)) {
-        for (Route routeAnnotation : app.getClass().getAnnotationsByType(Route.class)) {
+    if (pattern == null && instance != null) {
+      if (instanceClass.isAnnotationPresent(Route.class)) {
+        for (Route routeAnnotation : instanceClass.getAnnotationsByType(Route.class)) {
           String patternString = routeAnnotation.value();
           pattern = returnPatternIfMatches(patternString, route);
         }
@@ -97,9 +108,9 @@ public class ReflectionAppMapper {
         }
       }
     }
-    if (pattern == null && app != null) {
-      if (app.getClass().isAnnotationPresent(MateuUI.class)) {
-        for (MateuUI routeAnnotation : app.getClass().getAnnotationsByType(MateuUI.class)) {
+    if (pattern == null && instance != null) {
+      if (instance.getClass().isAnnotationPresent(MateuUI.class)) {
+        for (MateuUI routeAnnotation : instance.getClass().getAnnotationsByType(MateuUI.class)) {
           String patternString = "";
           pattern = returnPatternIfMatches(patternString, route);
         }

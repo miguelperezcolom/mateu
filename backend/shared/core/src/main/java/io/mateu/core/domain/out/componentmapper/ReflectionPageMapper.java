@@ -111,7 +111,8 @@ public class ReflectionPageMapper {
       return getCrud(instance, baseUrl, route, initiatorComponentId, httpRequest);
     }
     if (isApp(instance, route)) {
-      return List.of(mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest));
+      return List.of(
+          mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest));
     }
     if (isForm(instance)) {
       return getForm(instance, baseUrl, route, initiatorComponentId, httpRequest);
@@ -212,7 +213,9 @@ public class ReflectionPageMapper {
     return getAllFields(filtersClass).stream()
         .map(
             field ->
-                    (FormField) getFormField(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+                (FormField)
+                    getFormField(
+                        field, instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toList();
   }
 

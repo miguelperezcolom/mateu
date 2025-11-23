@@ -1,10 +1,9 @@
 package io.mateu;
 
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.uidl.di.MateuBeanProvider;
 import java.util.Collection;
 import java.util.List;
-
-import io.mateu.uidl.di.MateuBeanProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 

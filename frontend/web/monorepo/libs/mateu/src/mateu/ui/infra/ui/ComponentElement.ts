@@ -36,6 +36,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     if (fragment.component?.type == ComponentType.ServerSide) {
                         const c0 = this.component as ServerSideComponent
                         const c1 = fragment.component as ServerSideComponent
+
+                        if (c0.serverSideType != c1.serverSideType) {
+                            setTimeout(() => this.triggerOnLoad())
+                        }
+
                         c0.actions = c1.actions
                         c0.type = c1.type
                         c0.rules = c1.rules
@@ -47,6 +52,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         c0.slot = c1.slot
                         c0.style = c1.style
                         c0.children = c1.children
+
                     } else {
                         const children = [fragment.component]
                         if (this.component) {
@@ -56,7 +62,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     this.state = { }
                     this.data = { }
                 }
-                setTimeout(() => this.triggerOnLoad())
             }
 
             if (fragment.state) {

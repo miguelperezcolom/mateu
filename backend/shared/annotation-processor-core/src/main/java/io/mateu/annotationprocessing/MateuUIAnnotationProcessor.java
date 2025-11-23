@@ -72,12 +72,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
           List<String> routes = List.of("");
 
           createRouteHandler(
-              className + "RouteResolver",
+              className + "UIRouteResolver",
               pkgName,
               className,
               simpleClassName,
               e,
-              generatedClassName,
+              simpleClassName + "UIRouteResolver",
               caption,
               routes,
               getFiler());

@@ -3,13 +3,10 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ContentSupplier;
-
-import java.util.ArrayList;
+import io.mateu.uidl.reflection.ComponentMapper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import io.mateu.uidl.reflection.ComponentMapper;
 import lombok.Builder;
 
 @Builder
@@ -54,9 +51,10 @@ public record VerticalLayout(
         "");
   }
 
-  public static VerticalLayout of(Object ...content) {
+  public static VerticalLayout of(Object... content) {
     ComponentMapper componentMapper = MateuBeanProvider.getBean(ComponentMapper.class);
-    List<Component> components = Arrays.stream(content)
+    List<Component> components =
+        Arrays.stream(content)
             .map(componentMapper::mapToComponents)
             .flatMap(Collection::stream)
             .map(component -> (Component) component)

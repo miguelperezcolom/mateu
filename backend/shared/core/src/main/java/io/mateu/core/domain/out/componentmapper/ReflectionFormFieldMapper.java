@@ -44,9 +44,9 @@ public class ReflectionFormFieldMapper {
       HttpRequest httpRequest) {
     if (Component.class.isAssignableFrom(field.getType())) {
       return CustomField.builder()
-              .label(getLabel(field))
-              .content((Component) getValue(field, instance))
-              .build();
+          .label(getLabel(field))
+          .content((Component) getValue(field, instance))
+          .build();
     }
     return FormField.builder()
         .id(field.getName())
@@ -56,12 +56,13 @@ public class ReflectionFormFieldMapper {
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
-            .readOnly(isReadOnly(field, instance))
+        .readOnly(isReadOnly(field, instance))
         .build();
   }
 
   private static boolean isReadOnly(Field field, Object instance) {
-    return instance.getClass().isAnnotationPresent(ReadOnly.class) || field.isAnnotationPresent(ReadOnly.class);
+    return instance.getClass().isAnnotationPresent(ReadOnly.class)
+        || field.isAnnotationPresent(ReadOnly.class);
   }
 
   private static int getSliderMax(Field field) {

@@ -16,5 +16,4 @@ public record UICommand(UICommandType type, Object data) {
   public static UICommand pushStateToHistory(String url) {
     return new UICommand(UICommandType.PushStateToHistory, url);
   }
-
 }

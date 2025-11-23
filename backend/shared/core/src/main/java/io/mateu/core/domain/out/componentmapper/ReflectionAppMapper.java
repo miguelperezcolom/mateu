@@ -54,6 +54,7 @@ public class ReflectionAppMapper {
     var menu = getMenu(appRoute, instance, route, httpRequest);
     return App.builder()
         .route(appRoute)
+        .homeRoute("xxx")
         .serverSideType(instance.getClass().getName())
         .variant(getVariant(instance, menu))
         .pageTitle(getPageTitle(instance))

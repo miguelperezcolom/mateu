@@ -120,7 +120,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
               o = (T) con.newInstance(buildConstructorParams(con, data, httpRequest));
             } else {
               o = (T) con.newInstance();
-              o = hydrate(o, data, this, httpRequest);
+              hydrate(o, data, this, httpRequest);
             }
           }
         }

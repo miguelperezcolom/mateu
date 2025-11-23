@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -134,50 +133,44 @@ public class RunActionUseCase {
   private Mono<?> resolveMenuIfApp(RunActionCommand command, Object instance) {
     if (instance instanceof App app) {
       return resolveInApp(
-              command.route(),
-              command.consumedRoute(),
-              command.componentState(),
-              command.httpRequest(),
-              app,
-              command.baseUrl(),
-              command.initiatorComponentId());
+          command.route(),
+          command.consumedRoute(),
+          command.componentState(),
+          command.httpRequest(),
+          app,
+          command.baseUrl(),
+          command.initiatorComponentId());
     }
     if (instance instanceof AppSupplier appSupplier) {
       var app =
-              appSupplier
-                      .getApp(command.httpRequest())
-                      .withServerSideType(instance.getClass().getName());
-      if ("".equals(command.consumedRoute())
-              || ("/".equals(command.consumedRoute())
-              && command.appServerSideType() != null
-              && !command.appServerSideType().equals(appSupplier.getClass().getName()))) {
-        return Mono.just(appSupplier);
-      }
+          appSupplier
+              .getApp(command.httpRequest())
+              .withServerSideType(instance.getClass().getName());
       return resolveInApp(
-              command.route(),
-              command.consumedRoute(),
-              command.componentState(),
-              command.httpRequest(),
-              app,
-              command.baseUrl(),
-              command.initiatorComponentId());
+          command.route(),
+          command.consumedRoute(),
+          command.componentState(),
+          command.httpRequest(),
+          app,
+          command.baseUrl(),
+          command.initiatorComponentId());
     }
     if (isApp(instance, command.route())) {
       var app =
-              mapToAppComponent(
-                      instance,
-                      command.baseUrl(),
-                      command.route(),
-                      command.initiatorComponentId(),
-                      command.httpRequest());
-      return resolveInApp(
-              command.route(),
-              command.consumedRoute(),
-              command.componentState(),
-              command.httpRequest(),
-              app,
+          mapToAppComponent(
+              instance,
               command.baseUrl(),
-              command.initiatorComponentId());
+              command.route(),
+              command.initiatorComponentId(),
+              command.httpRequest());
+      return resolveInApp(
+          command.route(),
+          command.consumedRoute(),
+          command.componentState(),
+          command.httpRequest(),
+          app,
+          command.baseUrl(),
+          command.initiatorComponentId());
     }
     return Mono.just(instance);
   }
@@ -199,7 +192,10 @@ public class RunActionUseCase {
           }
         }
       }
-      searchableRoute = searchableRoute.contains("/")?searchableRoute.substring(0, searchableRoute.lastIndexOf("/")):"";
+      searchableRoute =
+          searchableRoute.contains("/")
+              ? searchableRoute.substring(0, searchableRoute.lastIndexOf("/"))
+              : "";
     }
     return null;
   }
@@ -235,7 +231,23 @@ public class RunActionUseCase {
             .toList()) {
       if (resolver.supportsRoute(command.route())
           && ("".equals(command.consumedRoute())
-              || !resolver.supportsRoute(command.consumedRoute()))) {
+              || ("/".equals(command.consumedRoute())
+                  && !""
+                      .equals(
+                          resolver
+                              .matchingPattern(command.route())
+                              .get()
+                              .pattern()
+                              .replaceAll("\\.\\*", "")))
+              || command.consumedRoute().length()
+                  < resolver
+                      .matchingPattern(command.route())
+                      .get()
+                      .pattern()
+                      .replaceAll("\\.\\*", "")
+                      .length())
+      // || !resolver.supportsRoute(command.consumedRoute()))
+      ) {
         var instanceTypeName =
             resolver.resolveRoute(command.route(), command.httpRequest()).getName();
         if (command.appServerSideType() != null
@@ -244,7 +256,7 @@ public class RunActionUseCase {
           continue;
         }
         var type = Class.forName(instanceTypeName);
-        if (type.isAnnotationPresent(MateuUI.class)) {
+        if (resolver.getClass().getSimpleName().endsWith("UIRouteResolver")) {
           if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
             continue;
           }
@@ -298,8 +310,7 @@ public class RunActionUseCase {
       String consumedRoute,
       Map<String, Object> data,
       HttpRequest httpRequest) {
-    return instanceFactory
-        .createInstance(instanceTypeName, data, httpRequest);
+    return instanceFactory.createInstance(instanceTypeName, data, httpRequest);
   }
 
   private String getInstanceNameUsingResolvers(
@@ -368,13 +379,13 @@ public class RunActionUseCase {
   }
 
   public Mono<?> resolveInApp(
-          String route,
-          String consumedRoute,
-          Map<String, Object> data,
-          HttpRequest httpRequest,
-          Object potentialApp,
-          String baseUrl,
-          String initialComponentId) {
+      String route,
+      String consumedRoute,
+      Map<String, Object> data,
+      HttpRequest httpRequest,
+      Object potentialApp,
+      String baseUrl,
+      String initialComponentId) {
     if ("".equals(consumedRoute)) {
       return Mono.just(potentialApp);
     }
@@ -383,16 +394,22 @@ public class RunActionUseCase {
       app = (App) potentialApp;
     } else {
       app =
-              mapToAppComponent(
-                      potentialApp, baseUrl, getAppRoute(potentialApp), initialComponentId, httpRequest);
+          mapToAppComponent(
+              potentialApp, baseUrl, getAppRoute(potentialApp), initialComponentId, httpRequest);
     }
 
     if (app != null) {
       var actionable = resolveMenu(app.menu(), route);
       if (actionable == null) {
+        if (!consumedRoute.equals(route)) {
+          return Mono.just(app.withRoute(route));
+        }
         return Mono.empty();
       }
       if (actionable instanceof RouteLink routeLink) {
+        if (route.equals(consumedRoute)) {
+          return Mono.empty();
+        }
         return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));
       }
       if (actionable instanceof ContentLink contentLink) {
@@ -400,42 +417,44 @@ public class RunActionUseCase {
       }
       if (actionable instanceof FieldLink fieldLink) {
         return instanceFactoryProvider
-                .get(fieldLink.serverSideType())
-                .createInstance(fieldLink.serverSideType(), data, httpRequest)
-                .flatMap(
-                        instance -> {
-                          var field = getFieldByName(instance.getClass(), fieldLink.fieldName());
-                          return Mono.just(getValueOrNewInstance(beanProvider, field, instance));
-                        })
-                .map(
-                        object -> {
-                          if (object instanceof Runnable runnable) {
-                            runnable.run();
-                            return "Done";
-                          }
-                          if (object instanceof Supplier<?> supplier) {
-                            return supplier.get();
-                          }
-                          if (object instanceof Callable<?> callable) {
-                            try {
-                              return callable.call();
-                            } catch (Exception e) {
-                              throw new RuntimeException(e);
-                            }
-                          }
-                          if (object instanceof Function function) {
-                            try {
-                              return function.apply(httpRequest);
-                            } catch (Exception e) {
-                              throw new RuntimeException(e);
-                            }
-                          }
-                          return object;
-                        }).map(object -> {
-                          if (object instanceof PostHydrationHandler postHydrationHandler) {
-                            postHydrationHandler.onHydrated(httpRequest);
-                          }
-                          return object;
+            .get(fieldLink.serverSideType())
+            .createInstance(fieldLink.serverSideType(), data, httpRequest)
+            .flatMap(
+                instance -> {
+                  var field = getFieldByName(instance.getClass(), fieldLink.fieldName());
+                  return Mono.just(getValueOrNewInstance(beanProvider, field, instance));
+                })
+            .map(
+                object -> {
+                  if (object instanceof Runnable runnable) {
+                    runnable.run();
+                    return "Done";
+                  }
+                  if (object instanceof Supplier<?> supplier) {
+                    return supplier.get();
+                  }
+                  if (object instanceof Callable<?> callable) {
+                    try {
+                      return callable.call();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  }
+                  if (object instanceof Function function) {
+                    try {
+                      return function.apply(httpRequest);
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  }
+                  return object;
+                })
+            .map(
+                object -> {
+                  if (object instanceof PostHydrationHandler postHydrationHandler) {
+                    postHydrationHandler.onHydrated(httpRequest);
+                  }
+                  return object;
                 });
       }
       if (actionable instanceof Menu menu) {
@@ -454,5 +473,4 @@ public class RunActionUseCase {
     }
     return "";
   }
-
 }

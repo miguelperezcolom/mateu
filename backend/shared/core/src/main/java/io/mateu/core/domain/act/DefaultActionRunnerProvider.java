@@ -1,34 +1,16 @@
 package io.mateu.core.domain.act;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.resolveMenu;
 import static io.mateu.core.domain.Humanizer.camelcasize;
-import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
-import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.ContentLink;
-import io.mateu.uidl.data.FieldLink;
-import io.mateu.uidl.data.Menu;
-import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
@@ -104,7 +86,6 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     }
     return Flux.just(result);
   }
-
 
   public static String getMinimalAppRoute(RouteResolver appRouteResolver, String route) {
     var minimalRoute = route;
