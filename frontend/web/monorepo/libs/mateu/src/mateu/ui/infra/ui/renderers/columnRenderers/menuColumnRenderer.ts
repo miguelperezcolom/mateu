@@ -27,6 +27,7 @@ const clicked = (e: CustomEvent) => {
         label: string
         icon: string
         disabled: boolean
+        //@ts-ignore
     } = e.target.action
     console.log(e)
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
@@ -88,7 +89,7 @@ export const renderMenuCell = (item: any,
 
 export const renderActionCell = (item: any,
                                _model: GridItemModel<any>,
-                               column: VaadinGridColumn
+                               _column: VaadinGridColumn
 ) => {
     // @ts-ignore
     const action: {

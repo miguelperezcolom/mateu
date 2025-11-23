@@ -249,7 +249,6 @@ export class MateuComponent extends ComponentElement {
         if (_changedProperties.has('state') && this.state && JSON.stringify(this.state) != JSON.stringify({})) {
             this.onChange()
         }
-        console.log('updated', _changedProperties)
         if (_changedProperties.has('component')) {
             setTimeout(() => this.triggerOnLoad())
         }

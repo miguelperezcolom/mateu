@@ -84,7 +84,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 this.data = { ...this.data, ...fragment.data }
             }
 
-            console.log('component has changed')
             const serverSideComponent = this.component as ServerSideComponent
             // @ts-ignore
             const state = this.state
@@ -112,7 +111,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
                 if (!trigger.condition || eval(trigger.condition)) {
-                    console.log('trigger', this, this.component)
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
                             actionId: trigger.actionId

@@ -82,9 +82,7 @@ export class MateuUi extends LitElement {
     }
 
     loadUrl(w: Window) {
-        console.log('loadUrl')
         this.route = this.extractRouteFromUrl(w)
-        console.log('route', this.route)
         this.setAttribute('route', this.route)
         this.instant = nanoid()
         if (w.location.search) {

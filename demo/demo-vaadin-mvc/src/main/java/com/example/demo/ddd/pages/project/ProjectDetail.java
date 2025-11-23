@@ -2,11 +2,13 @@ package com.example.demo.ddd.pages.project;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ProjectDetail implements CommandSupplier {
+@Route("/projects/.*")
+public class ProjectDetail implements CommandSupplier, PostHydrationHandler {
 
     final BeanProvider beanProvider;
     final ProjectEditor editor;
@@ -54,4 +57,8 @@ public class ProjectDetail implements CommandSupplier {
         return List.of();
     }
 
+    @Override
+    public void onHydrated(HttpRequest httpRequest) {
+        id = httpRequest.runActionRq().route().split("/")[2];
+    }
 }

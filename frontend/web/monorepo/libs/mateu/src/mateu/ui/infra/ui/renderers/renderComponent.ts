@@ -16,11 +16,15 @@ export const renderComponent = (container: LitElement, component: Component, bas
     if (component.type == ComponentType.ClientSide ) {
         return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
+    //@ts-ignore
+    const route = container.route
+    //@ts-ignore
+    const consumedRoute = container.consumedRoute
     return html`
         <mateu-component id="${component.id}" 
                          .component="${component}"
-                        route="${container.route}"
-                         consumedRoute="${container.consumedRoute}"
+                        route="${route}"
+                         consumedRoute="${consumedRoute}"
                          baseUrl="${baseUrl}"
                          slot="${component.slot??nothing}"
                          style="${component.style}" 

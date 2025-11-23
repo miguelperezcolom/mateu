@@ -2,6 +2,7 @@ package com.example.demo.ddd.pages.project;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
