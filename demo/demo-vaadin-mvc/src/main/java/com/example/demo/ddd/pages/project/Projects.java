@@ -1,8 +1,7 @@
-package com.example.demo.ddd.pages;
+package com.example.demo.ddd.pages.project;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -10,14 +9,16 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
+import io.mateu.uidl.interfaces.RouteHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
@@ -46,7 +47,7 @@ record ProjectRow2(String id, String name, ColumnAction action) {
 @Service
 @RequiredArgsConstructor
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
+public class Projects implements ListingBackend<NoFilters, ProjectRow2>, RouteHandler {
 
     final ProjectCreationForm creationForm;
     final ProjectDetail detail;
@@ -77,6 +78,7 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("view".equals(actionId)) {
+            //return UICommand.navigateTo("projects/" + ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
             return detail.load((String) ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
@@ -84,5 +86,14 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2> {
 
     public Object viewProject(ProjectRow2 row) {
         return detail;
+    }
+
+    @Override
+    public Object handleRoute(String route, HttpRequest httpRequest) {
+        if (!route.endsWith("projects")) {
+            var id = route.substring(route.indexOf("projects") + "projects".length() + 1).split("/")[0];
+            return detail.load(id);
+        }
+        return this;
     }
 }

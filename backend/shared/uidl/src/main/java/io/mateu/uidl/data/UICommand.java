@@ -9,7 +9,12 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.NavigateTo, route);
   }
 
-  public static Object runAction(String actionId) {
+  public static UICommand runAction(String actionId) {
     return new UICommand(UICommandType.RunAction, Map.of("actionId", actionId));
   }
+
+  public static UICommand pushStateToHistory(String url) {
+    return new UICommand(UICommandType.PushStateToHistory, url);
+  }
+
 }

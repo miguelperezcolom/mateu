@@ -48,7 +48,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return Mono.just(loadClass(className))
         .map(uiClass -> newInstance(uiClass, data, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
-        .map(uiInstance -> initIfNeeded(uiInstance, httpRequest));
+        .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }
 
   private Class<?> loadClass(String className) throws ClassNotFoundException {
@@ -66,7 +66,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return uiInstance;
   }
 
-  private Object initIfNeeded(Object uiInstance, HttpRequest httpRequest) {
+  private Object postHydrateIfNeeded(Object uiInstance, HttpRequest httpRequest) {
     if (uiInstance instanceof PostHydrationHandler hasInitMethod) {
       hasInitMethod.onHydrated(httpRequest);
     }

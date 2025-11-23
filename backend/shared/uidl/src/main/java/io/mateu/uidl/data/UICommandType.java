@@ -7,5 +7,6 @@ public enum UICommandType {
   NavigateTo,
   RunAction,
   AddContentToHead,
-  AddContentToBody
+  AddContentToBody,
+  PushStateToHistory
 }

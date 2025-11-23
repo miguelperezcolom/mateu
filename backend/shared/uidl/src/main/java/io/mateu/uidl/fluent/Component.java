@@ -12,7 +12,11 @@ public interface Component {
     return Map.of();
   }
 
-  String style();
+  default String style() {
+    return "";
+  }
 
-  String cssClasses();
+  default String cssClasses() {
+    return "";
+  }
 }

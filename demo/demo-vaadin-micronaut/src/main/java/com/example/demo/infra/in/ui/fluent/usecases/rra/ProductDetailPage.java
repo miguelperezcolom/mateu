@@ -302,6 +302,5 @@ public class ProductDetailPage implements ComponentTreeSupplier, PostHydrationHa
     public void onHydrated(HttpRequest httpRequest) {
         productId = httpRequest.lastPathItem();
         product = productRepository.findById(productId).get();
-
     }
 }

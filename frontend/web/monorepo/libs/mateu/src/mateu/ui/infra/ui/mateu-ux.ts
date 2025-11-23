@@ -56,6 +56,8 @@ export class MateuUx extends ConnectedElement {
     @property()
     appData: any
 
+    preventNavigation = false
+
     // state
 
     overridesParsed: Object = {};
@@ -78,6 +80,17 @@ export class MateuUx extends ConnectedElement {
             e.preventDefault()
             e.stopPropagation()
             this.manageActionEvent(e)
+        }
+    }
+
+    historyPushed: EventListenerOrEventListenerObject = (e: Event) => {
+        if (e instanceof CustomEvent) {
+            e.preventDefault()
+            e.stopPropagation()
+            console.log('history pushed', this.route, e.detail.route, this)
+            this.preventNavigation = true
+            this.route = e.detail.route
+            this.setAttribute('route', this.route??'')
         }
     }
 
@@ -126,6 +139,8 @@ export class MateuUx extends ConnectedElement {
     }
 
     private detail1: {
+        route: string
+        consumedRoute: string
         parameters: any
         componentState: any
         actionId: string
@@ -142,6 +157,8 @@ export class MateuUx extends ConnectedElement {
         e.preventDefault()
         e.stopPropagation()
         this.detail1 = e.detail as {
+            route: string
+            consumedRoute: string
             parameters: any
             componentState: any
             actionId: string
@@ -160,8 +177,8 @@ export class MateuUx extends ConnectedElement {
                     selectedService = sseService
                 }
                 selectedService.runAction(mateuApiClient, this.baseUrl,
-                    this.route??'',
-                    this.consumedRoute,
+                    detail.route??'',
+                    detail.consumedRoute,
                     detail.actionId,
                     detail.initiatorComponentId,
                     this.getCustomisedAppState(),
@@ -190,6 +207,7 @@ export class MateuUx extends ConnectedElement {
         this.addEventListener('server-side-action-requested', this.actionRequestedListener)
         this.addEventListener('backend-call-failed', this.backendFailedListener)
         this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
+        this.addEventListener('history-pushed', this.historyPushed)
 
         // @ts-ignore
         window.Vaadin.featureFlags.masterDetailLayoutComponent = true
@@ -201,6 +219,7 @@ export class MateuUx extends ConnectedElement {
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
         this.removeEventListener('backend-call-failed', this.backendFailedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
+        this.removeEventListener('history-pushed', this.historyPushed)
     }
 
 
@@ -215,9 +234,11 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('route')  ||
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
-            if (true) {
+            if (!this.preventNavigation) {
                 this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
+                        route: this.route,
+                        consumedRoute: this.consumedRoute,
                         userData: undefined,
                         actionId: '',
                         serverSideType: undefined,
@@ -231,13 +252,18 @@ export class MateuUx extends ConnectedElement {
             }
         }
         if (_changedProperties.has('route') && !!this.top) {
-            this.dispatchEvent(new CustomEvent('route-changed', {
-                detail: {
-                    route: this.route
-                },
-                bubbles: true,
-                composed: true
-            }))
+            if (!this.preventNavigation) {
+                this.dispatchEvent(new CustomEvent('route-changed', {
+                    detail: {
+                        route: this.route
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
+        if (this.preventNavigation) {
+            this.preventNavigation = false
         }
     }
 

@@ -19,6 +19,8 @@ export const renderComponent = (container: LitElement, component: Component, bas
     return html`
         <mateu-component id="${component.id}" 
                          .component="${component}"
+                        route="${container.route}"
+                         consumedRoute="${container.consumedRoute}"
                          baseUrl="${baseUrl}"
                          slot="${component.slot??nothing}"
                          style="${component.style}" 

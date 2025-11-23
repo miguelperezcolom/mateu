@@ -25,7 +25,6 @@ export default abstract class ConnectedElement extends LitElement {
                 if (this.id == command.targetComponentId) {
                     this.applyCommand(command)
                 }
-
             }
             if (message.fragment) {
                 const fragment = message.fragment
@@ -67,6 +66,19 @@ export default abstract class ConnectedElement extends LitElement {
                         composed: true
                     }))
                 }
+            }
+        }
+        if ('PushStateToHistory' == command.type) {
+            const destination = command.data as string
+            if (destination) {
+                window.history.pushState({}, '', destination)
+                this.dispatchEvent(new CustomEvent('history-pushed', {
+                    detail: {
+                        route: destination
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
             }
         }
         if ('RunAction' == command.type) {

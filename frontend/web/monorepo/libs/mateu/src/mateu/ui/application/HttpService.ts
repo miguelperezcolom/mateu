@@ -25,21 +25,6 @@ export class HttpService implements Service {
     }
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
-        uiIncrement?.messages?.forEach(message => {
-            Notification.show(message.text, {
-                position: message.position?this.mapPosition(message.position):undefined,
-                theme: message.variant,
-                duration: message.duration
-            });
-        })
-        uiIncrement?.commands?.forEach(command => {
-            upstream.next({
-                command,
-                fragment: undefined,
-                ui: undefined,
-                error: undefined
-            })
-        })
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 command: undefined,
@@ -65,6 +50,21 @@ export class HttpService implements Service {
                 composed: true
             }))
         }
+        uiIncrement?.messages?.forEach(message => {
+            Notification.show(message.text, {
+                position: message.position?this.mapPosition(message.position):undefined,
+                theme: message.variant,
+                duration: message.duration
+            });
+        })
+        uiIncrement?.commands?.forEach(command => {
+            upstream.next({
+                command,
+                fragment: undefined,
+                ui: undefined,
+                error: undefined
+            })
+        })
     }
 
     async runAction(mateuApiClient: AxiosMateuApiClient,

@@ -14,4 +14,5 @@ public class ReflectionComponentMapper {
       HttpRequest httpRequest) {
     return Text.builder().text("" + instance).build();
   }
+
 }

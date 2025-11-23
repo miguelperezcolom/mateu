@@ -71,28 +71,7 @@ import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/Rule
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
-    customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
-        event.stopPropagation()
-        event.preventDefault()
-        if (event instanceof CustomEvent) {
-            const customEvent = event as CustomEvent
-            const serverSideComponent = this.component as ServerSideComponent
-            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
-                .filter(trigger => trigger.eventName == customEvent.type)
-                .forEach(trigger => {
-                    if (!trigger.condition || eval(trigger.condition)) {
-                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: trigger.actionId,
-                                parameters: customEvent.detail
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
-                })
-        }
-    }
+
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
         if (componentRenderer.mustUseShadowRoot()) {
@@ -103,6 +82,11 @@ export class MateuComponent extends ComponentElement {
 
     @property()
     baseUrl = ''
+    @property()
+    route = ''
+    @property()
+    consumedRoute = ''
+
 
 
     applyRules = () => {
@@ -259,46 +243,15 @@ export class MateuComponent extends ComponentElement {
         this.checkValidations()
     }
 
-    triggerOnLoad = () => {
-        // @ts-ignore
-        const state = this.state
-        // @ts-ignore
-        const data = this.data
-        const serverSideComponent = this.component as ServerSideComponent
-        serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
-            .forEach(trigger => {
-                if (!trigger.condition || eval(trigger.condition)) {
-                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: trigger.actionId
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                }
-            })
-
-    }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has('state') && this.state && JSON.stringify(this.state) != JSON.stringify({})) {
             this.onChange()
         }
+        console.log('updated', _changedProperties)
         if (_changedProperties.has('component')) {
-            const serverSideComponent = this.component as ServerSideComponent
-            // @ts-ignore
-            const state = this.state
-            // @ts-ignore
-            const data = this.data
             setTimeout(() => this.triggerOnLoad())
-            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
-                .forEach(trigger => {
-                    this.addEventListener(trigger.eventName, this.customEventManager)
-                })
-            if (componentRenderer.getAfterRenderHook()) {
-                setTimeout(componentRenderer.getAfterRenderHook()(this))
-            }
         }
     }
 
@@ -466,6 +419,8 @@ export class MateuComponent extends ComponentElement {
 
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
+                route: this.route,
+                consumedRoute: this.consumedRoute,
                 componentState: {...this.state},
                 parameters: detail.parameters,
                 actionId: detail.actionId,

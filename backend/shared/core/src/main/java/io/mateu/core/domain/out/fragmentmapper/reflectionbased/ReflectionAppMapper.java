@@ -127,7 +127,7 @@ public class ReflectionAppMapper {
       }
       return matched ? accumulated.toString() : "/";
     }
-    return route;
+    return "/";
   }
 
   private static Pattern returnPatternIfMatches(String patternString, String route) {

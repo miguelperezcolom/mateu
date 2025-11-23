@@ -1,25 +1,32 @@
-package com.example.demo.ddd.pages;
+package com.example.demo.ddd.pages.project;
 
 import io.mateu.core.domain.ports.BeanProvider;
-import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.interfaces.CommandSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
-public class ProjectDetail {
+public class ProjectDetail implements CommandSupplier {
 
     final BeanProvider beanProvider;
     final ProjectEditor editor;
     final ProjectInfo info;
     final ProjectApp app;
 
+    String id;
+
     @Toolbar
     Object list() {
-        return beanProvider.getBean(Projects.class);
+        return UICommand.navigateTo("projects");
+        //return beanProvider.getBean(Projects.class);
     }
 
     @Toolbar
@@ -31,10 +38,20 @@ public class ProjectDetail {
     VerticalLayout content;
 
     public Object load(String id) {
+        this.id = id;
         content = VerticalLayout.of(
                 info.load(id),
                 app.load(id)
         );
         return this;
     }
+
+    @Override
+    public List<UICommand> commands(HttpRequest httpRequest) {
+        if (httpRequest.runActionRq().route().endsWith("projects")) {
+            return List.of(UICommand.pushStateToHistory(httpRequest.runActionRq().route() + "/" + id));
+        }
+        return List.of();
+    }
+
 }
