@@ -283,16 +283,16 @@ public class RunActionUseCase {
     // si hay una ruta --> esa clase
     Mono<?> instanceCreationPipe = resolveRoute(command);
     if (instanceCreationPipe != null) return instanceCreationPipe;
-//    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-//      return createInstance(command.appServerSideType(), command)
-//          .map(
-//              object -> {
-//                if (object instanceof PostHydrationHandler postHydrationHandler) {
-//                  postHydrationHandler.onHydrated(command.httpRequest());
-//                }
-//                return object;
-//              });
-//    }
+    //    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
+    //      return createInstance(command.appServerSideType(), command)
+    //          .map(
+    //              object -> {
+    //                if (object instanceof PostHydrationHandler postHydrationHandler) {
+    //                  postHydrationHandler.onHydrated(command.httpRequest());
+    //                }
+    //                return object;
+    //              });
+    //    }
     return Mono.empty();
   }
 

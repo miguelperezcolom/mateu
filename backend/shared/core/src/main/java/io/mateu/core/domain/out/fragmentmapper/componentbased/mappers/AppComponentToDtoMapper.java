@@ -48,7 +48,8 @@ public final class AppComponentToDtoMapper {
             .route(appRoute)
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(
-                getHomeRoute(app, route, appRoute, httpRequest)) // getHomeRoute(menu, route, appRoute))
+                getHomeRoute(
+                    app, route, appRoute, httpRequest)) // getHomeRoute(menu, route, appRoute))
             .appServerSideType(
                 componentSupplier != null
                     ? componentSupplier.getClass().getName()
@@ -65,7 +66,8 @@ public final class AppComponentToDtoMapper {
   }
 
   @SneakyThrows
-  private static String getHomeRoute(Object instance, String route, String appRoute, HttpRequest httpRequest) {
+  private static String getHomeRoute(
+      Object instance, String route, String appRoute, HttpRequest httpRequest) {
     if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
       return route;
     }
