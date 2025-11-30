@@ -1,6 +1,5 @@
 package ${pkgName};
 
-import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -10,8 +9,6 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 @Named
 public class ${generatedClassName} implements RouteResolver {
