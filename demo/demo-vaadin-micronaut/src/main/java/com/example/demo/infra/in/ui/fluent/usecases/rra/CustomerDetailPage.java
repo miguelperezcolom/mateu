@@ -165,7 +165,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
     }
 }
 
-@Route("/use-cases/rra/customers/.*")
+@Route(value="/use-cases/rra/customers/.*", parentRoute="/use-cases/rra")
 @Singleton
 public class CustomerDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 

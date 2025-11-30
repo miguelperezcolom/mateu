@@ -11,7 +11,7 @@ import jakarta.inject.Singleton;
 import java.util.UUID;
 
 @Singleton
-@Route("/use-cases/rra/orders/create")
+@Route(value="/use-cases/rra/orders/create", parentRoute="/use-cases/rra")
 public class CreateOrderPage extends EditOrderPage {
 
     @Inject

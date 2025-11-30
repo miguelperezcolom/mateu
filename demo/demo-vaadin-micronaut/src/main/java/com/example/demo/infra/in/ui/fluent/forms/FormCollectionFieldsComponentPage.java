@@ -16,7 +16,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route("/forms/collection-fields")
+@Route(value="/forms/collection-fields", parentRoute="^$")
 @Singleton
 public class FormCollectionFieldsComponentPage implements ComponentTreeSupplier {
 

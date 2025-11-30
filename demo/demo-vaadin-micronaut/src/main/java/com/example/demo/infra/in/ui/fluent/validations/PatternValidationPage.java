@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 
 import java.util.List;
 
-@Route("/validations/pattern")
+@Route(value="/validations/pattern", parentRoute="^$")
 public class PatternValidationPage  implements ComponentTreeSupplier, ValidationSupplier, ActionHandler, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

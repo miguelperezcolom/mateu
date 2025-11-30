@@ -14,7 +14,7 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route("/layouts/horizontal")
+@Route(value="/layouts/horizontal", parentRoute="^$")
 public class HorizontalLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

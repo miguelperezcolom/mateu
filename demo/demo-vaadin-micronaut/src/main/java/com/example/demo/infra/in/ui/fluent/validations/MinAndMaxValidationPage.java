@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 
 import java.util.List;
 
-@Route("/validations/min-and-max")
+@Route(value="/validations/min-and-max", parentRoute="^$")
 public class MinAndMaxValidationPage implements ComponentTreeSupplier, ValidationSupplier, ActionHandler, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

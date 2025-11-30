@@ -12,5 +12,5 @@ public @interface Route {
 
   String[] uis() default {};
 
-  String parentRoute() default "";
+  String parentRoute() default "_empty";
 }

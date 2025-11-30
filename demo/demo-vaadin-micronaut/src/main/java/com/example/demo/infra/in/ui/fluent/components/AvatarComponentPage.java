@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/avatar")
+@Route(value="/components/avatar", parentRoute="^$")
 public class AvatarComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

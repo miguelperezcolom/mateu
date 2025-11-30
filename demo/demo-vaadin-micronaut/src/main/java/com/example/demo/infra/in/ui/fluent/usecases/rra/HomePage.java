@@ -33,7 +33,7 @@ import java.util.List;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-@Route("/use-cases/rra/home")
+@Route(value="/use-cases/rra/home", parentRoute="/use-cases/rra")
 @Singleton
 public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters, CardRow>, TriggersSupplier {
 
@@ -115,7 +115,7 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
                         .limit(pageable.size())
                         .map(order -> new CardRow(
                                 order.id(),
-                                mapComponentToDto(null, createCard(order), "", "", null)
+                                mapComponentToDto(null, createCard(order), "", "", "", "", null)
                         ))
                         .toList()
         ),

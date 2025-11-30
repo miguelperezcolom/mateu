@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/time-picker")
+@Route(value="/components/time-picker", parentRoute="^$")
 public class TimePickerComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

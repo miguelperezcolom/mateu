@@ -39,7 +39,7 @@ record Row2(
         String link,
         String image) {}
 
-@Route("/crudls/more-columns")
+@Route(value="/crudls/more-columns", parentRoute="^$")
 @Slf4j
 public class MoreColumnsListing implements ComponentTreeSupplier, ListingBackend<Filters2, Row2>, TriggersSupplier {
 

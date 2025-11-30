@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/image")
+@Route(value="/components/image", parentRoute="^$")
 public class ImageComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

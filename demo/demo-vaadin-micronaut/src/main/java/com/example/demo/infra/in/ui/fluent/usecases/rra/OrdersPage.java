@@ -54,7 +54,7 @@ record OrderRow(
 
 }
 
-@Route("/use-cases/rra/orders")
+@Route(value="/use-cases/rra/orders", parentRoute="/use-cases/rra")
 @Singleton
 public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
 

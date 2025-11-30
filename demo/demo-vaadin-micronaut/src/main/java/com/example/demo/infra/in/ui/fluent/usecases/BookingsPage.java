@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route("/use-cases/bookings")
+@Route(value="/use-cases/bookings", parentRoute="^$")
 @Schema
 public class BookingsPage implements ComponentTreeSupplier, ActionHandler {
 

@@ -23,7 +23,7 @@ public class MicronautHttpRequest implements HttpRequest {
 
   @Override
   public Object getAttribute(String key) {
-    return delegate.getAttribute(key);
+    return delegate.getAttribute(key).orElse(null);
   }
 
   @Override

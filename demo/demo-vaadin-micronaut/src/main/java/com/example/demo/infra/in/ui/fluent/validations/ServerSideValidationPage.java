@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Route("/validations/server-side")
+@Route(value="/validations/server-side", parentRoute="^$")
 public class ServerSideValidationPage implements ComponentTreeSupplier, ActionHandler {
 
     @NotEmpty

@@ -14,7 +14,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/forms/choice-with-images-fields")
+@Route(value="/forms/choice-with-images-fields", parentRoute="^$")
 public class FormChoicesWithImagesFieldsComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

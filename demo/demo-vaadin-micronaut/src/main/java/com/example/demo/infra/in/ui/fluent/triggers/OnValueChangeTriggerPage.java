@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/triggers/on-value-change")
+@Route(value="/triggers/on-value-change", parentRoute="^$")
 public class OnValueChangeTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

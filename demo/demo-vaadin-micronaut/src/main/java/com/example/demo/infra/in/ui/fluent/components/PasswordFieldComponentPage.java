@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/password-field")
+@Route(value="/components/password-field", parentRoute="^$")
 public class PasswordFieldComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

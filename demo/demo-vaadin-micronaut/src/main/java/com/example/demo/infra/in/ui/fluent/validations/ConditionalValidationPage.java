@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 
 import java.util.List;
 
-@Route("/validations/conditional")
+@Route(value="/validations/conditional", parentRoute="^$")
 public class ConditionalValidationPage implements ComponentTreeSupplier, ValidationSupplier, ActionHandler, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

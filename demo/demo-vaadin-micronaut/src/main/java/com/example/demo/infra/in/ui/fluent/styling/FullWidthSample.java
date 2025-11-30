@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/styling/full-width")
+@Route(value="/styling/full-width", parentRoute="^$")
 public class FullWidthSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

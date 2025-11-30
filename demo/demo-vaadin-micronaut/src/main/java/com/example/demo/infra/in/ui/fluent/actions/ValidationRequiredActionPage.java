@@ -20,7 +20,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/actions/validation-required")
+@Route(value="/actions/validation-required", parentRoute="^$")
 public class ValidationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler, ValidationSupplier {
 
     @Override

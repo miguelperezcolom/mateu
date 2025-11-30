@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/layouts/split")
+@Route(value="/layouts/split", parentRoute="^$")
 public class SplitLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -34,7 +34,13 @@ class ComponentToDtoMapperTest {
             .build();
     var dto =
         mapComponentToFragment(
-            null, new Text("Hola"), "base_url", "route", "consumed_route", "initiator", new FakeHttpRequest());
+            null,
+            new Text("Hola"),
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator",
+            new FakeHttpRequest());
     assertNotNull(dto);
     assertThat(dto).usingRecursiveComparison().ignoringFields("component.id").isEqualTo(expected);
   }

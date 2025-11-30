@@ -1,6 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;

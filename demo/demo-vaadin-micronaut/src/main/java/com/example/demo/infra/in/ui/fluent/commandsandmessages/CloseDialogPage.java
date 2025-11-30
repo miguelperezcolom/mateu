@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Route("/commands-and-messages/close-dialog")
+@Route(value="/commands-and-messages/close-dialog", parentRoute="^$")
 @Schema
 @Slf4j
 public class CloseDialogPage implements ComponentTreeSupplier, ActionHandler {

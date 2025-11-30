@@ -38,7 +38,7 @@ record TrainingRow(
 
 }
 
-@Route("/use-cases/rra/training")
+@Route(value="/use-cases/rra/training", parentRoute="/use-cases/rra")
 @Singleton
 public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFilters, TrainingRow>, TriggersSupplier {
 

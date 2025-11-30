@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
-@Route("/rules/enabled-from-backend")
+@Route(value="/rules/enabled-from-backend", parentRoute="^$")
 public class EnableFromBackendPage implements ComponentTreeSupplier {
 
     boolean buttonDisabled = false;

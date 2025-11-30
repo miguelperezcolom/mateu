@@ -70,7 +70,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
 }
 
 
-@Route("/actions/custom-event")
+@Route(value="/actions/custom-event", parentRoute="^$")
 @Slf4j
 public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
 

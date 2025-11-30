@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/data/component-state-and-data")
+@Route(value="/data/component-state-and-data", parentRoute="^$")
 public class ComponentStateAndDataPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

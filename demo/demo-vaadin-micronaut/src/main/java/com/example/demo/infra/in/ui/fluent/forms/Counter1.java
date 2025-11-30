@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route("/forms/counter1")
+@Route(value="/forms/counter1", parentRoute="^$")
 @Schema
 public class Counter1 implements ComponentTreeSupplier, ActionHandler {
 

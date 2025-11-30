@@ -70,7 +70,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               generatedClassName,
               caption,
               path);
-          List<Pair<String, String>> routes = List.of(new Pair("", ""));
+          List<Pair<String, String>> routes = List.of(new Pair("^$", "_empty"));
 
           createRouteHandler(
               className + "UIRouteResolver",

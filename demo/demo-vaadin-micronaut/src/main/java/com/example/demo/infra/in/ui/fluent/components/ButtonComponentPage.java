@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.IconKey;
 
 import java.util.List;
 
-@Route("/components/button")
+@Route(value="/components/button", parentRoute="^$")
 public class ButtonComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -11,7 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/nested-apps/tabs")
+@Route(value = "/nested-apps/tabs", parentRoute = "^$")
 @HomeRoute("/nested-apps/tabs/home")
 public class NestedAppTabs implements AppSupplier {
 

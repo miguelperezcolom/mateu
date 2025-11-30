@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/multi-select-combo-box")
+@Route(value="/components/multi-select-combo-box", parentRoute="^$")
 public class MultiSelectComboBoxComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

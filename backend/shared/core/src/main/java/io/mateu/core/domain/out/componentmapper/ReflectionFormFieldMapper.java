@@ -1,6 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.domain.Humanizer;

@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/layouts/board")
+@Route(value="/layouts/board", parentRoute="^$")
 public class BoardLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

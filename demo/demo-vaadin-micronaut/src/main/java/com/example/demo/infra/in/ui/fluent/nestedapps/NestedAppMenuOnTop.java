@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/nested-apps/top")
+@Route(value = "/nested-apps/top", parentRoute = "^$")
 @HomeRoute("/nested-apps/top/home")
 public class NestedAppMenuOnTop implements AppSupplier {
 

@@ -17,7 +17,7 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route("/forms/file-fields")
+@Route(value="/forms/file-fields", parentRoute="^$")
 public class FormFileFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     File[] file = {new File("xx", "fichero.png")};

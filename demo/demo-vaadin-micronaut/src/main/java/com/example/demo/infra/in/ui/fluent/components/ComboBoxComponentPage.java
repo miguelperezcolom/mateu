@@ -11,7 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/combobox")
+@Route(value="/components/combobox", parentRoute="^$")
 public class ComboBoxComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

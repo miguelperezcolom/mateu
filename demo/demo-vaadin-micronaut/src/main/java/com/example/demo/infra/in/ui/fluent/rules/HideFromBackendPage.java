@@ -11,7 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
-@Route("/rules/visibility-from-backend")
+@Route(value="/rules/visibility-from-backend", parentRoute="^$")
 public class HideFromBackendPage implements ComponentTreeSupplier {
 
     boolean hidden = false;

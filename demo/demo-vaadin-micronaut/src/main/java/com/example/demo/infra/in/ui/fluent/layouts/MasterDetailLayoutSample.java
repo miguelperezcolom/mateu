@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/layouts/master-detail")
+@Route(value="/layouts/master-detail", parentRoute="^$")
 public class MasterDetailLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

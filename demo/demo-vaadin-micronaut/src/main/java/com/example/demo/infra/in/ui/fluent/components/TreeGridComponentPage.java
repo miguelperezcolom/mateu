@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
-@Route("/components/tree-grid")
+@Route(value="/components/tree-grid", parentRoute="^$")
 public class TreeGridComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

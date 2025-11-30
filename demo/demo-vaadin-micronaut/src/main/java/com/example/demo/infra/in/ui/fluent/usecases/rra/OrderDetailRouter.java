@@ -3,6 +3,7 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Inject;
 
@@ -21,7 +22,7 @@ public class OrderDetailRouter implements RouteResolver {
 
 
     @Override
-    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+    public Class<?> resolveRoute(String route, String consumedRoute, HttpRequest httpRequest) {
         if (pattern.matcher(route).matches()) {
             var orderId = httpRequest.lastPathItem();
             if (!"create".equals(orderId)) {
@@ -36,7 +37,7 @@ public class OrderDetailRouter implements RouteResolver {
     }
 
     @Override
-    public List<Pattern> supportedRoutesPatterns() {
-        return List.of(pattern);
+    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+        return List.of(new Pair(pattern, Pattern.compile("/use-cases/rra")));
     }
 }

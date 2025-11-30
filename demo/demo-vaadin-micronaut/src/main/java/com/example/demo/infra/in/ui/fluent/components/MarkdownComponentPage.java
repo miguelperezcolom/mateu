@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/markdown")
+@Route(value="/components/markdown", parentRoute="^$")
 public class MarkdownComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -61,7 +61,7 @@ class NestedAppStateForm implements ComponentTreeSupplier, ActionHandler {
 
 
 @Slf4j
-@Route("/data/app-state")
+@Route(value="/data/app-state", parentRoute="^$")
 public class AppStatePage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -41,7 +41,7 @@ record ProductInventoryRow(
 
 }
 
-@Route("/use-cases/rra/inventory")
+@Route(value="/use-cases/rra/inventory", parentRoute="/use-cases/rra")
 @Singleton
 public class ProductInventoryPage implements ComponentTreeSupplier, ListingBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
 
@@ -92,7 +92,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
                         .limit(pageable.size())
                         .map(product -> new ProductInventoryRow(
                                 product.id(),
-                                mapComponentToDto(null, createCard(product), "", "", null)
+                                mapComponentToDto(null, createCard(product), "", "", "", "", null)
                         ))
                         .toList()
         ),

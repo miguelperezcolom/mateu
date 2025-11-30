@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Route("/actions/server-side-events")
+@Route(value="/actions/server-side-events", parentRoute="^$")
 public class ServerSentEventsActionPage implements ComponentTreeSupplier, ActionHandler, ActionSupplier {
 
     int count = 0;

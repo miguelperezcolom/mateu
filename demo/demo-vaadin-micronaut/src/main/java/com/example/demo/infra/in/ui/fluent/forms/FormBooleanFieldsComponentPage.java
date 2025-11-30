@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/forms/boolean-fields")
+@Route(value="/forms/boolean-fields", parentRoute="^$")
 public class FormBooleanFieldsComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -24,7 +24,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route("/forms/data-sourced-fields-1")
+@Route(value="/forms/data-sourced-fields-1", parentRoute="^$")
 @Singleton
 public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, ActionHandler {
 

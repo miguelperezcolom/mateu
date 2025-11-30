@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/rules/visibility")
+@Route(value="/rules/visibility", parentRoute="^$")
 public class VisibilityRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     boolean hidden = false;

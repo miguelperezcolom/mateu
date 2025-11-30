@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>DreamTrip Travel Agency</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Travel agency: hotels, flights, transfers and excursions." />
+    <style>
+        :root {
+            --primary: #0f74ff;
+            --primary-dark: #0a4ea5;
+            --accent: #ffb300;
+            --bg: #f5f7fb;
+            --text: #222;
+            --muted: #666;
+            --radius: 8px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        /* Layout base */
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.03em;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .nav a:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.55rem 1.2rem;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: rgba(15,116,255,0.05);
+        }
+
+        /* Burger (mobile) */
+
+        .burger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .burger span {
+            width: 20px;
+            height: 2px;
+            background: #111827;
+            border-radius: 999px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .burger {
+                display: flex;
+            }
+        }
+
+        /* Hero */
+
+        .hero {
+            padding: 48px 0 32px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #0369a1;
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 3vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .hero-title span {
+            color: var(--primary);
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+            max-width: 480px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .hero-meta span strong {
+            color: var(--text);
+        }
+
+        .hero-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card h3 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 999px;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .hero-note {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding-top: 32px;
+            }
+            .hero-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        /* Booking form */
+
+        .booking-section {
+            padding: 16px 0 40px;
+        }
+
+        .booking-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 960px) {
+            .form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.8rem;
+        }
+
+        .field label {
+            font-weight: 500;
+        }
+
+        .field input,
+        .field select {
+            padding: 8px 10px;
+            border-radius: var(--radius);
+            border: 1px solid #d1d5db;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border 0.15s, box-shadow 0.15s;
+            background: #f9fafb;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+            background: #fff;
+        }
+
+        /* Sections comunes */
+
+        section {
+            padding: 32px 0;
+        }
+
+        .section-header {
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .section-header p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            max-width: 520px;
+        }
+
+        /* Grids de cards */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        @media (max-width: 960px) {
+            .card-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .card-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-body {
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            font-size: 0.85rem;
+        }
+
+        .price {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .pill {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #ecfdf3;
+            color: #166534;
+        }
+
+        /* Footer */
+
+        footer {
+            margin-top: 32px;
+            padding: 20px 0 24px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container nav">
+        <div class="logo">Dream<span>Trip</span></div>
+        <nav class="nav-links">
+            <a href="#booking">Book</a>
+            <a href="#hotels">Hotels</a>
+            <a href="#flights">Flights</a>
+            <a href="#transfers">Transfers</a>
+            <a href="#tours">Tours</a>
+            <a href="#contact">Contact</a>
+            <a href="#booking" class="btn btn-outline">Get a quote</a>
+        </nav>
+        <button class="burger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<main>
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container hero-grid">
+            <div>
+                <div class="hero-badge">
+                    <span>✈️ Tailor-made trips worldwide</span>
+                </div>
+                <h1 class="hero-title">
+                    Your next <span>hotel, flight, transfer</span> and tour in one place.
+                </h1>
+                <p class="hero-subtitle">
+                    We design complete travel experiences: flights, hand-picked hotels,
+                    private transfers and unforgettable excursions, fully adapted to your needs.
+                </p>
+                <div class="hero-actions">
+                    <a href="#booking" class="btn btn-primary">Plan your trip</a>
+                    <a href="#tours" class="btn btn-outline">Browse tours</a>
+                </div>
+                <div class="hero-meta">
+                    <span><strong>10k+</strong> happy travellers</span>
+                    <span><strong>150+</strong> destinations</span>
+                    <span><strong>24/7</strong> local support</span>
+                </div>
+            </div>
+
+            <aside class="hero-card">
+                <h3>Popular this week</h3>
+                <div class="hero-tags">
+                    <span class="tag">⛰ City + nature combo</span>
+                    <span class="tag">☀ All-inclusive</span>
+                    <span class="tag">👨‍👩‍👧‍👦 Family friendly</span>
+                </div>
+                <div class="hero-stats">
+                    <div>
+                        <strong>Barcelona getaway</strong><br>
+                        Hotel + flight + transfer + 2 excursions
+                    </div>
+                    <div style="text-align:right;">
+                        from <span class="price">€499</span><br>
+                        <span style="font-size:0.8rem;color:var(--muted);">per person</span>
+                    </div>
+                </div>
+                <p class="hero-note">
+                    Tell us your dates and preferences — we’ll send you a custom itinerary
+                    within 24 hours, no obligation.
+                </p>
+            </aside>
+        </div>
+    </section>
+
+    <!-- BOOKING / QUOTE FORM -->
+    <section id="booking" class="booking-section">
+        <div class="container">
+            <div class="booking-card">
+                <h2 class="section-title">Request your trip</h2>
+                <p class="section-subtitle">
+                    One form, all services: hotel, flight, transfers and excursions.
+                    We’ll get back to you with a personalised proposal.
+                </p>
+
+                <form class="form-grid" action="#" method="post">
+                    <div class="field">
+                        <label for="serviceType">Service type</label>
+                        <select id="serviceType" name="serviceType" required>
+                            <option value="package" selected>Complete package (hotel + flight + transfer + tours)</option>
+                            <option value="hotel">Hotel only</option>
+                            <option value="flight">Flight only</option>
+                            <option value="transfer">Transfer only</option>
+                            <option value="tour">Excursions / tours</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="destination">Destination</label>
+                        <input id="destination" name="destination" type="text" placeholder="E.g. Rome, Paris, Bali" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="dates">Travel dates</label>
+                        <input id="dates" name="dates" type="text" placeholder="E.g. 10–17 June" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="people">Travellers</label>
+                        <input id="people" name="people" type="number" min="1" value="2" />
+                    </div>
+
+                    <div class="field">
+                        <label for="budget">Budget (per person)</label>
+                        <input id="budget" name="budget" type="text" placeholder="E.g. €600–€900" />
+                    </div>
+
+                    <div class="field">
+                        <label for="email">E-mail</label>
+                        <input id="email" name="email" type="email" placeholder="you@example.com" required />
+                    </div>
+
+                    <div class="field" style="grid-column: 1 / -2;">
+                        <label for="notes">Preferences</label>
+                        <input id="notes" name="notes" type="text"
+                               placeholder="Preferred hotel type, excursions, departure city…" />
+                    </div>
+
+                    <div class="field">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Send request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOTELS -->
+    <section id="hotels">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured hotels</h2>
+                <p>
+                    Hand-picked hotels and boutique stays in the best locations, always with flexible cancellation options.
+                </p>
+            </div>
+            <div class="card-grid">
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=Beach+Resort" alt="Beach resort">
+                    <div class="card-body">
+                        <h3 class="card-title">Mediterranean Beach Resort</h3>
+                        <p class="card-meta">7 nights · Half board · Sea view room</p>
+                        <div class="card-footer">
+                            <span class="price">€699</span>
+                            <span class="pill">Hotel + transfer</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=City+Hotel" alt="City hotel">
+                    <div class="card-body">
+                        <h3 class="card-title">Urban Chic City Hotel</h3>
+                        <p class="card-meta">3 nights · Breakfast included · Historic centre</p>
+                        <div class="card-footer">
+                            <span class="price">€249</span>
+                            <span class="pill">City escape</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=Mountain+Lodge" alt="Mountain lodge">
+                    <div class="card-body">
+                        <h3 class="card-title">Alpine Mountain Lodge</h3>
+                        <p class="card-meta">5 nights · Chalet · Activities included</p>
+                        <div class="card-footer">
+                            <span class="price">€540</span>
+                            <span class="pill">Nature & adventure</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- FLIGHTS -->
+    <section id="flights">
+        <div class="container">
+            <div class="section-header">
+                <h2>Flights</h2>
+                <p>
+                    We compare multiple airlines to find the best schedules and fares for your trip, including hand luggage,
+                    checked baggage and seat selection when needed.
+                </p>
+            </div>
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">City breaks in Europe</h3>
+                        <p class="card-meta">Direct flights from major European cities · Weekend and mid-week departures.</p>
+                        <div class="card-footer">
+                            <span class="price">from €79</span>
+                            <span class="pill">Return flights</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Long-haul getaways</h3>
+                        <p class="card-meta">Asia, America and Africa with trusted airlines and smart connections.</p>
+                        <div class="card-footer">
+                            <span class="price">from €499</span>
+                            <span class="pill">Economy & Premium</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Flexible flights for business</h3>
+                        <p class="card-meta">Flexible fares, changes included, priority services at the airport.</p>
+                        <div class="card-footer">
+                            <span class="price">Ask for a quote</span>
+                            <span class="pill">Business travel</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRANSFERS -->
+    <section id="transfers">
+        <div class="container">
+            <div class="section-header">
+                <h2>Transfers</h2>
+                <p>
+                    Private or shared transfers from airports, stations and ports to your hotel, with local drivers and
+                    24/7 assistance in case of delays.
+                </p>
+            </div>
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Airport ↔ Hotel</h3>
+                        <p class="card-meta">Private transfers for couples, families and small groups.</p>
+                        <div class="card-footer">
+                            <span class="price">from €35</span>
+                            <span class="pill">Private</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Shared shuttle</h3>
+                        <p class="card-meta">Budget-friendly option, shared with other travellers.</p>
+                        <div class="card-footer">
+                            <span class="price">from €15</span>
+                            <span class="pill">Shared</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Custom transfers</h3>
+                        <p class="card-meta">Point-to-point transfers, events, meetings and more.</p>
+                        <div class="card-footer">
+                            <span class="price">On request</span>
+                            <span class="pill">Tailor-made</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOURS / EXCURSIONS -->
+    <section id="tours">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tours & excursions</h2>
+                <p>
+                    From skip-the-line museum tickets to full-day guided tours, we carefully select the best experiences so
+                    you can enjoy your destination without worrying about logistics.
+                </p>
+            </div>
+            <div class="card-grid">
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=City+Tour" alt="City tour">
+                    <div class="card-body">
+                        <h3 class="card-title">Historic city walking tour</h3>
+                        <p class="card-meta">3 hours · Small group · Local guide</p>
+                        <div class="card-footer">
+                            <span class="price">€39</span>
+                            <span class="pill">Culture</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=Boat+Excursion" alt="Boat excursion">
+                    <div class="card-body">
+                        <h3 class="card-title">Sunset boat excursion</h3>
+                        <p class="card-meta">Evening · Drinks included · Max. 12 people</p>
+                        <div class="card-footer">
+                            <span class="price">€59</span>
+                            <span class="pill">Relax</span>
+                        </div>
+                    </div>
+                </article>
+                <article class="card">
+                    <img src="https://via.placeholder.com/640x360?text=Nature+Tour" alt="Nature tour">
+                    <div class="card-body">
+                        <h3 class="card-title">Nature & hiking day trip</h3>
+                        <p class="card-meta">Full day · Transport + guide · Picnic lunch</p>
+                        <div class="card-footer">
+                            <span class="price">€89</span>
+                            <span class="pill">Adventure</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Contact us</h2>
+                <p>
+                    Prefer to talk to a human? Send us an e-mail or give us a call and we’ll help you design your perfect trip.
+                </p>
+            </div>
+            <p style="font-size:0.9rem;margin-bottom:6px;"><strong>E-mail:</strong> hello@dreamtrip.example</p>
+            <p style="font-size:0.9rem;margin-bottom:6px;"><strong>Phone:</strong> +34 600 000 000</p>
+            <p style="font-size:0.9rem;">Opening hours: Mon–Fri, 09:00–18:00 (CET)</p>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container footer-content">
+        <div>© <span id="year"></span> DreamTrip Travel Agency. All rights reserved.</div>
+        <div class="footer-links">
+            <a href="#">Legal notice</a>
+            <a href="#">Privacy</a>
+            <a href="#">Cookies</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Solo para el año del footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 
 import java.util.List;
 
-@Route("/validations/form-wise")
+@Route(value="/validations/form-wise", parentRoute="^$")
 public class FormWiseValidationPage implements ComponentTreeSupplier, ValidationSupplier, ActionHandler, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

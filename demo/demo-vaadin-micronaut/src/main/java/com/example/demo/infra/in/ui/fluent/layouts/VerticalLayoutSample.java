@@ -14,7 +14,7 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route("/layouts/vertical")
+@Route(value="/layouts/vertical", parentRoute="^$")
 public class VerticalLayoutSample implements ComponentTreeSupplier {
 
     @Override

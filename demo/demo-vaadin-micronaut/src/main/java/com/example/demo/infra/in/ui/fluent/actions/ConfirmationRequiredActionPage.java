@@ -17,7 +17,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route("/actions/confirmation-required")
+@Route(value="/actions/confirmation-required", parentRoute="^$")
 public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route("/commands-and-messages/message")
+@Route(value="/commands-and-messages/message", parentRoute="^$")
 @Schema
 public class MessagePage implements ComponentTreeSupplier, ActionHandler {
 

@@ -54,7 +54,12 @@ class ComponentFragmentMapperTest {
     var mapper = new ComponentFragmentMapper();
     var fragment =
         mapper.mapToFragment(
-            "hola!", "base_url", "route", "consumed_route", "initiator_component_id", new FakeHttpRequest());
+            "hola!",
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
     assertNotNull(fragment);
     var component = fragment.component();
     assertNotNull(component);
@@ -74,7 +79,8 @@ class ComponentFragmentMapperTest {
             mapper.mapToFragment(
                 new SampleFormProvider(),
                 "base_url",
-                "route", "consumed_route",
+                "route",
+                "consumed_route",
                 "initiator_component_id",
                 new FakeHttpRequest());
     assertNotNull(fragment);
@@ -88,7 +94,8 @@ class ComponentFragmentMapperTest {
         mapper.mapToFragment(
             new SampleAppProvider(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -113,7 +120,8 @@ class ComponentFragmentMapperTest {
                 .verticalAlignment(VerticalAlignment.BASELINE)
                 .build(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -137,7 +145,8 @@ class ComponentFragmentMapperTest {
                 .spacingVariant(SpacingVariant.l)
                 .build(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -158,7 +167,8 @@ class ComponentFragmentMapperTest {
                 .labelsAside(true)
                 .build(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -177,7 +187,8 @@ class ComponentFragmentMapperTest {
                         new Tab("Tab 2", new Text("Hola 2!"))))
                 .build(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -196,7 +207,8 @@ class ComponentFragmentMapperTest {
                 .variant(SplitLayoutVariant.minimal)
                 .build(),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -209,7 +221,8 @@ class ComponentFragmentMapperTest {
         mapper.mapToFragment(
             new Text("hola!"),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);

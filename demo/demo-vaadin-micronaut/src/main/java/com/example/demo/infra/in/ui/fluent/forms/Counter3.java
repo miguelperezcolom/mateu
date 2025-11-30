@@ -9,7 +9,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-@Route("/forms/counter3")
+@Route(value="/forms/counter3", parentRoute="^$")
 public class Counter3 implements ComponentTreeSupplier {
 
     int count = 0;

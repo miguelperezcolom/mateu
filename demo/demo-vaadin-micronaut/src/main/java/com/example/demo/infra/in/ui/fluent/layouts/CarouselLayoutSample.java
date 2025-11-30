@@ -11,7 +11,7 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route("/layouts/carousel")
+@Route(value="/layouts/carousel", parentRoute="^$")
 public class CarouselLayoutSample implements ComponentTreeSupplier {
 
     @Override

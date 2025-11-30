@@ -31,7 +31,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route("/forms/editable-grid-fields")
+@Route(value="/forms/editable-grid-fields", parentRoute="^$")
 @Singleton
 public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 

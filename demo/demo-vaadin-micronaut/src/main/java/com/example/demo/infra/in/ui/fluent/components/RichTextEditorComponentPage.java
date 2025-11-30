@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/components/rich-text-editor")
+@Route(value="/components/rich-text-editor", parentRoute="^$")
 public class RichTextEditorComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

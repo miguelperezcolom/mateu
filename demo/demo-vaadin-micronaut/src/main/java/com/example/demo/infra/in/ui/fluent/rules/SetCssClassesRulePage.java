@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/rules/set-css-classes")
+@Route(value="/rules/set-css-classes", parentRoute="^$")
 public class SetCssClassesRulePage implements ComponentTreeSupplier, RuleSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

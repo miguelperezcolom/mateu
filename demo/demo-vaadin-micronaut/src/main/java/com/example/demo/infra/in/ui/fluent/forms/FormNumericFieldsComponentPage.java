@@ -18,7 +18,7 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route("/forms/numeric-fields")
+@Route(value="/forms/numeric-fields", parentRoute="^$")
 public class FormNumericFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     Range range = new Range(10, 30);

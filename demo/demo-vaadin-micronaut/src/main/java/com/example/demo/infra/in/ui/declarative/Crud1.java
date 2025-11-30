@@ -20,7 +20,7 @@ record Crud1Row(
 
 }
 
-@Route("/crud1")
+@Route(value="/crud1", parentRoute="^$")
 public class Crud1 implements ListingBackend<Crud1Filters, Crud1Row> {
 
 

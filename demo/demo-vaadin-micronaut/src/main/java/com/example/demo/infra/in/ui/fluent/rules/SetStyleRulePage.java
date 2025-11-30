@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/rules/set-style")
+@Route(value="/rules/set-style", parentRoute="^$")
 public class SetStyleRulePage implements ComponentTreeSupplier, RuleSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

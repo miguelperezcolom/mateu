@@ -2,6 +2,7 @@ package com.example.demo;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.infra.reflection.DefaultInstanceFactory;
+import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -33,6 +34,7 @@ public class MateuInfoController {
     return beanProvider
             .getBeans(RouteResolver.class).stream()
             .flatMap(resolver -> resolver.supportedRoutesPatterns().stream())
+            .map(Pair::first)
             .map(Pattern::pattern).sorted(String::compareTo).toList();
   }
 }

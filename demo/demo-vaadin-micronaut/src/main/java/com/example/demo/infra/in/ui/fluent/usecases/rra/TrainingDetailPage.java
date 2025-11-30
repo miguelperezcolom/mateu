@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Route("/use-cases/rra/trainings/.*")
+@Route(value="/use-cases/rra/trainings/.*", parentRoute="/use-cases/rra")
 @Singleton
 public class TrainingDetailPage implements ComponentTreeSupplier, PostHydrationHandler, ActionHandler {
 

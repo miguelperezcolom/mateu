@@ -17,7 +17,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/forms/basic")
+@Route(value="/forms/basic", parentRoute="^$")
 public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";

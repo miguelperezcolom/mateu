@@ -16,7 +16,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route("/rules/set-data-value")
+@Route(value="/rules/set-data-value", parentRoute="^$")
 public class SetDataValueRulePage implements ComponentTreeSupplier, RuleSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/styling/container")
+@Route(value="/styling/container", parentRoute="^$")
 public class ContainerSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

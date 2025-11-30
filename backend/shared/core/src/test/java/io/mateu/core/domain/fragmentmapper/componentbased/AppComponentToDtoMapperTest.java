@@ -170,7 +170,8 @@ class AppComponentToDtoMapperTest {
             supplier,
             supplier.getApp(new FakeHttpRequest()),
             "base_url",
-            "route", "consumed_route",
+            "route",
+            "consumed_route",
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
@@ -213,7 +214,8 @@ class AppComponentToDtoMapperTest {
             supplier,
             supplier.getApp(new FakeHttpRequest()),
             "base_url",
-            "/nested-app/page2", "consumed_route",
+            "/nested-app/page2",
+            "consumed_route",
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
