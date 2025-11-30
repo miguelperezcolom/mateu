@@ -51,7 +51,12 @@ class ReflectionAppMapperTest {
     var instance = new FakeSimpleApp();
     var app =
         mapToAppComponent(
-            instance, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            instance,
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
 
     assertNotNull(app);
     assertNull(app.pageTitle());
@@ -71,7 +76,12 @@ class ReflectionAppMapperTest {
     var instance = new FakeCompleteApp();
     var app =
         mapToAppComponent(
-            instance, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            instance,
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
 
     assertNotNull(app);
     assertEquals("Fake App", app.pageTitle());

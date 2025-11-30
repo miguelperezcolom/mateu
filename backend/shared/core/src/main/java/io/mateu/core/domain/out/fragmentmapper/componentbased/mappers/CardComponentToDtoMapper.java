@@ -12,17 +12,86 @@ import java.util.List;
 public class CardComponentToDtoMapper {
 
   public static ClientSideComponentDto mapCardToDto(
-      Card card, String baseUrl, String route, HttpRequest httpRequest) {
+      Card card,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         CardDto.builder()
-            .title(mapComponentToDto(null, card.title(), baseUrl, route, httpRequest))
-            .subtitle(mapComponentToDto(null, card.subtitle(), baseUrl, route, httpRequest))
-            .footer(mapComponentToDto(null, card.footer(), baseUrl, route, httpRequest))
-            .content(mapComponentToDto(null, card.content(), baseUrl, route, httpRequest))
-            .header(mapComponentToDto(null, card.header(), baseUrl, route, httpRequest))
-            .media(mapComponentToDto(null, card.media(), baseUrl, route, httpRequest))
-            .headerPrefix(mapComponentToDto(null, card.headerPrefix(), baseUrl, route, httpRequest))
-            .headerSuffix(mapComponentToDto(null, card.headerSuffix(), baseUrl, route, httpRequest))
+            .title(
+                mapComponentToDto(
+                    null,
+                    card.title(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .subtitle(
+                mapComponentToDto(
+                    null,
+                    card.subtitle(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .footer(
+                mapComponentToDto(
+                    null,
+                    card.footer(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .content(
+                mapComponentToDto(
+                    null,
+                    card.content(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .header(
+                mapComponentToDto(
+                    null,
+                    card.header(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .media(
+                mapComponentToDto(
+                    null,
+                    card.media(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .headerPrefix(
+                mapComponentToDto(
+                    null,
+                    card.headerPrefix(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .headerSuffix(
+                mapComponentToDto(
+                    null,
+                    card.headerSuffix(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
             .variants(
                 card.variants() != null
                     ? card.variants().stream()

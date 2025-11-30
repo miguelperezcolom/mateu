@@ -18,7 +18,12 @@ class ReflectionObjectToComponentMapperTest {
     ReflectionObjectToComponentMapper mapper = new ReflectionObjectToComponentMapper();
     var result =
         mapper.mapToComponent(
-            new FakeApp(), "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            new FakeApp(),
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
     assertNotNull(result);
     assertInstanceOf(io.mateu.uidl.fluent.App.class, result);
   }
@@ -28,7 +33,12 @@ class ReflectionObjectToComponentMapperTest {
     ReflectionObjectToComponentMapper mapper = new ReflectionObjectToComponentMapper();
     var result =
         mapper.mapToComponent(
-            new FakePage(), "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            new FakePage(),
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
     assertNotNull(result);
     assertInstanceOf(io.mateu.uidl.fluent.Page.class, result);
   }

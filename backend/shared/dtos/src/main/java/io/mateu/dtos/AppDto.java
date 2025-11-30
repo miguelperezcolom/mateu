@@ -3,8 +3,10 @@ package io.mateu.dtos;
 import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
+import lombok.With;
 
 @Builder
+@With
 public record AppDto(
     String route,
     AppVariantDto variant,

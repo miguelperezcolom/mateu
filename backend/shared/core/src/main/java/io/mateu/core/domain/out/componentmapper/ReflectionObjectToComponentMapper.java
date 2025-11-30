@@ -36,10 +36,12 @@ public class ReflectionObjectToComponentMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (isApp(instance, route)) {
-      return mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return mapToAppComponent(
+          instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (isPage(instance, route)) {
       return new UIFragmentDto(
@@ -51,9 +53,16 @@ public class ReflectionObjectToComponentMapper {
                   mapComponentToDto(
                       null,
                       mapToPageComponent(
-                          instance, baseUrl, route, initiatorComponentId, httpRequest),
+                          instance,
+                          baseUrl,
+                          route,
+                          consumedRoute,
+                          initiatorComponentId,
+                          httpRequest),
                       baseUrl,
                       route,
+                      consumedRoute,
+                      initiatorComponentId,
                       httpRequest)),
               instance,
               "",

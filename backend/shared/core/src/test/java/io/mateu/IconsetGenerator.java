@@ -1,6 +1,6 @@
 package io.mateu;
 
-import static io.mateu.core.domain.Humanizer.camelcasize;
+import static io.mateu.core.domain.Humanizer.toCamelCase;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class IconsetGenerator {
               String id = g.getAttributeValue("id");
               String name = id.substring(id.indexOf(":") + 1);
               String name2 = name.replaceAll("-", " ");
-              String camelCase = camelcasize(name2);
+              String camelCase = toCamelCase(name2);
               String CamelCase = camelCase.substring(0, 1).toUpperCase() + camelCase.substring(1);
               System.out.println(CamelCase + "(\"" + id + "\"),");
             });

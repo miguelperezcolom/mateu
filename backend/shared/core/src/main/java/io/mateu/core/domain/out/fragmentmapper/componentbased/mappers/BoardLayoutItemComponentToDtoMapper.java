@@ -12,7 +12,12 @@ import java.util.Optional;
 public class BoardLayoutItemComponentToDtoMapper {
 
   public static ClientSideComponentDto mapBoardLayoutItemToDto(
-      BoardLayoutItem boardLayoutItem, String baseUrl, String route, HttpRequest httpRequest) {
+      BoardLayoutItem boardLayoutItem,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto = BoardLayoutItemDto.builder().boardCols(boardLayoutItem.boardCols()).build();
     return new ClientSideComponentDto(
         metadataDto,
@@ -22,7 +27,13 @@ public class BoardLayoutItemComponentToDtoMapper {
                 component ->
                     List.of(
                         mapComponentToDto(
-                            null, boardLayoutItem.content(), baseUrl, route, httpRequest)))
+                            null,
+                            boardLayoutItem.content(),
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest)))
             .orElse(List.of()),
         boardLayoutItem.style(),
         boardLayoutItem.cssClasses(),

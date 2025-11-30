@@ -7,7 +7,7 @@ import io.mateu.uidl.interfaces.PostHydrationHandler;
 import jakarta.inject.Named;
 
 @Title("Aggregates")
-@Route("/projects/.*/aggregates")
+@Route(value = "/projects/[^/]+/aggregates", parentRoute = "/projects/[^/]+$")
 @Named
 public class Aggregates implements PostHydrationHandler {
 

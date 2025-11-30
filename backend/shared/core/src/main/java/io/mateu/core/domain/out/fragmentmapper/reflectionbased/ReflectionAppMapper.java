@@ -78,7 +78,14 @@ public class ReflectionAppMapper {
 
   @SneakyThrows
   public static String getRoute(
-      Object componentSupplier, Object instance, HttpRequest httpRequest, String route) {
+      Object componentSupplier,
+      Object instance,
+      HttpRequest httpRequest,
+      String route,
+      String consumedRoute) {
+    if (httpRequest.getAttribute("resolvedRoute") != null) {
+      return (String) httpRequest.getAttribute("resolvedRoute");
+    }
     Class<?> instanceClass = instance.getClass();
     if (componentSupplier == null) {
       if (instance instanceof App app) {
@@ -89,7 +96,7 @@ public class ReflectionAppMapper {
     }
     Pattern pattern = null;
     if (componentSupplier instanceof RouteResolver routeResolver) {
-      pattern = routeResolver.matchingPattern(route).orElse(null);
+      pattern = routeResolver.matchingPattern(route, consumedRoute).orElse(null);
     }
     if (pattern == null && instance != null) {
       if (instanceClass.isAnnotationPresent(Route.class)) {
@@ -153,7 +160,13 @@ public class ReflectionAppMapper {
   }
 
   public static List<MenuOptionDto> getMenu(
-      Object instance, String baseUrl, String route, String appRoute, HttpRequest httpRequest) {
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      String appRoute,
+      HttpRequest httpRequest) {
     if (instance instanceof MenuSupplier hasMenu) {
       var menuFromApp = hasMenu.menu(httpRequest);
       var selectedRoute =
@@ -174,7 +187,13 @@ public class ReflectionAppMapper {
                           option.label(),
                           option.component() != null
                               ? mapComponentToDto(
-                                  null, option.component(), baseUrl, route, httpRequest)
+                                  null,
+                                  option.component(),
+                                  baseUrl,
+                                  route,
+                                  consumedRoute,
+                                  initiatorComponentId,
+                                  httpRequest)
                               : null,
                           new GoToRouteDto("", option.path(), ""),
                           List.of(),

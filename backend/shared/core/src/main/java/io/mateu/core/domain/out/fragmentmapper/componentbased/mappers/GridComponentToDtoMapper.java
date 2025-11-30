@@ -12,11 +12,25 @@ import java.util.List;
 public class GridComponentToDtoMapper {
 
   public static ClientSideComponentDto mapGridToDto(
-      Grid grid, String baseUrl, String route, HttpRequest httpRequest) {
+      Grid grid,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new GridDto(
             grid.content().stream()
-                .map(column -> mapComponentToDto(null, column, baseUrl, route, httpRequest))
+                .map(
+                    column ->
+                        mapComponentToDto(
+                            null,
+                            column,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest))
                 .toList(),
             gatePage(grid),
             grid.tree(),

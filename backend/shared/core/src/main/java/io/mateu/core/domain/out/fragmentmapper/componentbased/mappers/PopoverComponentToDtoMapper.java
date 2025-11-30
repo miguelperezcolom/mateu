@@ -11,11 +11,30 @@ import java.util.List;
 public class PopoverComponentToDtoMapper {
 
   public static ClientSideComponentDto mapPopoverToDto(
-      Popover popover, String baseUrl, String route, HttpRequest httpRequest) {
+      Popover popover,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new PopoverDto(
-            mapComponentToDto(null, popover.content(), baseUrl, route, httpRequest),
-            mapComponentToDto(null, popover.wrapped(), baseUrl, route, httpRequest)),
+            mapComponentToDto(
+                null,
+                popover.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                popover.wrapped(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         "fieldId",
         List.of(),
         popover.style(),

@@ -1,6 +1,7 @@
 package io.mateu.dtos;
 
 import lombok.Builder;
+import lombok.With;
 
 /**
  * UI update
@@ -10,6 +11,7 @@ import lombok.Builder;
  * @param data data
  */
 @Builder
+@With
 public record UIFragmentDto(
     String targetComponentId,
     ComponentDto component,

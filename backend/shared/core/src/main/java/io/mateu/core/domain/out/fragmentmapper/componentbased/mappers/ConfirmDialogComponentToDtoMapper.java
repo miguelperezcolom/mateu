@@ -11,7 +11,12 @@ import java.util.List;
 public class ConfirmDialogComponentToDtoMapper {
 
   public static ClientSideComponentDto mapConfirmDialogToDto(
-      ConfirmDialog confirmDialog, String baseUrl, String route, HttpRequest httpRequest) {
+      ConfirmDialog confirmDialog,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         ConfirmDialogDto.builder()
             .confirmActionId(confirmDialog.confirmActionId())
@@ -26,7 +31,15 @@ public class ConfirmDialogComponentToDtoMapper {
             .rejectText(confirmDialog.rejectText())
             .build(),
         "fieldId",
-        List.of(mapComponentToDto(null, confirmDialog.content(), baseUrl, route, httpRequest)),
+        List.of(
+            mapComponentToDto(
+                null,
+                confirmDialog.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         confirmDialog.style(),
         confirmDialog.cssClasses(),
         null);

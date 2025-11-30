@@ -11,12 +11,25 @@ import java.util.List;
 public class ContainerComponentToDtoMapper {
 
   public static ClientSideComponentDto mapContainerToDto(
-      Container container, String baseUrl, String route, HttpRequest httpRequest) {
+      Container container,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto = ContainerDto.builder().build();
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, container.content(), baseUrl, route, httpRequest)),
+        List.of(
+            mapComponentToDto(
+                null,
+                container.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         container.style(),
         container.cssClasses(),
         null);

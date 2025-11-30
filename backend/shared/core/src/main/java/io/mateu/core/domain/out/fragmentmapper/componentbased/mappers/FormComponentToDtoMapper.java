@@ -19,6 +19,8 @@ public class FormComponentToDtoMapper {
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     var formMetadataDto =
         FormDto.builder()
@@ -27,7 +29,14 @@ public class FormComponentToDtoMapper {
             .noHeader(form.noHeader())
             .avatar(
                 form.avatar() != null
-                    ? mapComponentToDto(null, form.avatar(), baseUrl, route, httpRequest)
+                    ? mapComponentToDto(
+                            null,
+                            form.avatar(),
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest)
                         .addStyle("width: 4rem;height: 4rem;")
                     : null)
             .header(
@@ -35,7 +44,14 @@ public class FormComponentToDtoMapper {
                     ? form.header().stream()
                         .map(
                             component ->
-                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                                mapComponentToDto(
+                                    null,
+                                    component,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
                         .toList()
                     : null)
             .footer(
@@ -43,7 +59,14 @@ public class FormComponentToDtoMapper {
                     ? form.footer().stream()
                         .map(
                             component ->
-                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                                mapComponentToDto(
+                                    null,
+                                    component,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
                         .toList()
                     : null)
             .toolbar(form.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
@@ -53,7 +76,16 @@ public class FormComponentToDtoMapper {
         formMetadataDto,
         form.id(),
         form.content().stream()
-            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
+            .map(
+                component ->
+                    mapComponentToDto(
+                        null,
+                        component,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         form.style(),
         form.cssClasses(),

@@ -23,6 +23,7 @@ public class ComponentFragmentMapper implements FragmentMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
 
@@ -32,12 +33,18 @@ public class ComponentFragmentMapper implements FragmentMapper {
 
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(
-          componentTreeSupplier, null, baseUrl, route, initiatorComponentId, httpRequest);
+          componentTreeSupplier,
+          null,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
 
     if (instance instanceof Component component) {
       return mapComponentToFragment(
-          null, component, baseUrl, route, initiatorComponentId, httpRequest);
+          null, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
 
     return mapObjectToFragment(instance, baseUrl, initiatorComponentId, httpRequest);

@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -7,25 +8,34 @@ import java.util.regex.Pattern;
 
 public interface RouteResolver {
 
-  default boolean supportsRoute(String route) {
-    return matchingPattern(route).isPresent();
+  default boolean supportsRoute(String route, String consumedRoute) {
+    return matchingPattern(route, consumedRoute).isPresent();
   }
 
-  default Optional<Pattern> matchingPattern(String route) {
-    for (Pattern pattern :
+  default Optional<Pattern> matchingPattern(String route, String consumedRoute) {
+    // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ", consumedRoute:
+    // " + consumedRoute);
+    for (Pair<Pattern, Pattern> pattern :
         supportedRoutesPatterns().stream()
-            .sorted(Comparator.comparingInt(pattern -> pattern.pattern().length()))
+            .sorted(Comparator.comparingInt(pattern -> pattern.first().pattern().length()))
             .toList()) {
-      if (pattern.matcher(route).matches()) {
-        return Optional.of(pattern);
+      if (pattern.first().matcher(route).matches()
+          && ("_empty".equals(consumedRoute)
+              || pattern.second() == null
+              || pattern.second().matcher(consumedRoute).matches())) {
+        // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ",
+        // consumedRoute: " + consumedRoute + " MATCHED");
+        return Optional.of(pattern.first());
       }
     }
+    // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ", consumedRoute:
+    // " + consumedRoute + " FAILED");
     return Optional.empty();
   }
 
-  default int weight(String route) {
+  default int weight(String route, String consumedRoute) {
     if (route != null) {
-      var matchingPattern = matchingPattern(route);
+      var matchingPattern = matchingPattern(route, consumedRoute);
       if (matchingPattern.isPresent()) {
         return matchingPattern.get().pattern().length();
       }
@@ -33,7 +43,7 @@ public interface RouteResolver {
     return Integer.MAX_VALUE;
   }
 
-  Class<?> resolveRoute(String route, HttpRequest httpRequest);
+  Class<?> resolveRoute(String route, String consumedRoute, HttpRequest httpRequest);
 
-  List<Pattern> supportedRoutesPatterns();
+  List<Pair<Pattern, Pattern>> supportedRoutesPatterns();
 }

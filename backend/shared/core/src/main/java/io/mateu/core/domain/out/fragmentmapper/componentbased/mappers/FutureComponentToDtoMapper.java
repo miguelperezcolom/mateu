@@ -23,8 +23,12 @@ import io.mateu.dtos.TriggerDto;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.annotations.Validation;
+import io.mateu.uidl.data.FutureComponent;
+import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
@@ -34,10 +38,10 @@ import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.TriggersSupplier;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
+import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -50,10 +54,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class ComponentTreeSupplierToDtoMapper {
+public class FutureComponentToDtoMapper {
 
-  public static ComponentDto mapComponentTreeSupplierToDto(
-      ComponentTreeSupplier componentTreeSupplier,
+  public static ComponentDto mapFutureComponentToDto(
+      FutureComponent futureComponent,
       String baseUrl,
       String route,
       String consumedRoute,
@@ -61,24 +65,47 @@ public class ComponentTreeSupplierToDtoMapper {
       HttpRequest httpRequest) {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
-        componentTreeSupplier.getClass().getName(),
+        futureComponent.instance().getClass().getName(),
         List.of(
             mapComponentToDto(
-                componentTreeSupplier,
-                componentTreeSupplier.component(httpRequest),
+                null,
+                createComponent(
+                    futureComponent.instance(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest),
                 baseUrl,
                 route,
                 consumedRoute,
                 initiatorComponentId,
                 httpRequest)),
-        componentTreeSupplier,
-        componentTreeSupplier.style(),
-        componentTreeSupplier.cssClasses(),
-        mapActions(componentTreeSupplier),
-        mapTriggers(componentTreeSupplier),
-        mapRules(componentTreeSupplier),
-        mapValidations(componentTreeSupplier),
+        futureComponent.instance(),
+        "",
+        "",
+        mapActions(futureComponent.instance()),
+        mapTriggers(futureComponent.instance()),
+        mapRules(futureComponent.instance()),
+        mapValidations(futureComponent.instance()),
         null);
+  }
+
+  private static Component createComponent(
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    ComponentMapper componentMapper = MateuBeanProvider.getBean(ComponentMapper.class);
+    var resolvedComponents =
+        componentMapper.mapToComponents(
+            instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    if (resolvedComponents.size() == 1) {
+      return resolvedComponents.iterator().next();
+    }
+    return new VerticalLayout((List<Component>) resolvedComponents.stream().toList());
   }
 
   public static List<ValidationDto> mapValidations(Object serverSideObject) {
@@ -103,7 +130,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return Stream.concat(
             fieldLevelValidations.stream(),
             Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Validation.class))
-                .map(ComponentTreeSupplierToDtoMapper::mapToValidation))
+                .map(FutureComponentToDtoMapper::mapToValidation))
         .toList();
   }
 
@@ -274,7 +301,7 @@ public class ComponentTreeSupplierToDtoMapper {
             serverSideObject
                 .getClass()
                 .getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class))
-        .map(ComponentTreeSupplierToDtoMapper::mapToTrigger)
+        .map(FutureComponentToDtoMapper::mapToTrigger)
         .toList();
   }
 
@@ -322,9 +349,7 @@ public class ComponentTreeSupplierToDtoMapper {
 
   public static List<ActionDto> mapActions(Object serverSideObject) {
     if (serverSideObject instanceof ActionSupplier hasActions) {
-      return hasActions.actions().stream()
-          .map(ComponentTreeSupplierToDtoMapper::mapAction)
-          .toList();
+      return hasActions.actions().stream().map(FutureComponentToDtoMapper::mapAction).toList();
     }
     List<ActionDto> fieldActions = new ArrayList<>();
     getAllFields(serverSideObject.getClass()).stream()
@@ -348,7 +373,7 @@ public class ComponentTreeSupplierToDtoMapper {
                     serverSideObject
                         .getClass()
                         .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
-                .map(ComponentTreeSupplierToDtoMapper::mapToAction))
+                .map(FutureComponentToDtoMapper::mapToAction))
         .toList();
   }
 

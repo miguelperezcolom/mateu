@@ -26,4 +26,6 @@ public interface ComponentDto {
   ComponentDto addStyle(String s);
 
   ComponentDto setSlot(String s);
+
+  ComponentDto withChildren(List<ComponentDto> children);
 }

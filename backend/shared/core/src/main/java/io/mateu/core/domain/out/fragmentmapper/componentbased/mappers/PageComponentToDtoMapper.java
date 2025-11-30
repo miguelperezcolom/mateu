@@ -16,6 +16,8 @@ public class PageComponentToDtoMapper {
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     var formMetadataDto =
         PageDto.builder()
@@ -25,7 +27,14 @@ public class PageComponentToDtoMapper {
             .subtitle(page.subtitle())
             .avatar(
                 page.avatar() != null
-                    ? mapComponentToDto(null, page.avatar(), baseUrl, route, httpRequest)
+                    ? mapComponentToDto(
+                            null,
+                            page.avatar(),
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest)
                         .addStyle("width: 4rem;height: 4rem;")
                     : null)
             .header(
@@ -33,7 +42,14 @@ public class PageComponentToDtoMapper {
                     ? page.header().stream()
                         .map(
                             component ->
-                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                                mapComponentToDto(
+                                    null,
+                                    component,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
                         .toList()
                     : null)
             .footer(
@@ -41,7 +57,14 @@ public class PageComponentToDtoMapper {
                     ? page.footer().stream()
                         .map(
                             component ->
-                                mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                                mapComponentToDto(
+                                    null,
+                                    component,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
                         .toList()
                     : null)
             .toolbar(
@@ -57,7 +80,16 @@ public class PageComponentToDtoMapper {
         formMetadataDto,
         page.id(),
         page.content().stream()
-            .map(component -> mapComponentToDto(null, component, baseUrl, route, httpRequest))
+            .map(
+                component ->
+                    mapComponentToDto(
+                        null,
+                        component,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         page.style(),
         page.cssClasses(),

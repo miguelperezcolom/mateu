@@ -11,11 +11,23 @@ import java.util.List;
 public class TooltipComponentToDtoMapper {
 
   public static ClientSideComponentDto mapTooltipToDto(
-      Tooltip tooltip, String baseUrl, String route, HttpRequest httpRequest) {
+      Tooltip tooltip,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new TooltipDto(
             tooltip.text(),
-            mapComponentToDto(null, tooltip.wrapped(), baseUrl, route, httpRequest)),
+            mapComponentToDto(
+                null,
+                tooltip.wrapped(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         "fieldId",
         List.of(),
         tooltip.style(),

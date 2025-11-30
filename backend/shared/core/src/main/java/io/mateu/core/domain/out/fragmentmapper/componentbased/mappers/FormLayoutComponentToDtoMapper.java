@@ -10,7 +10,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class FormLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapFormLayoutToDto(
-      FormLayout formLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      FormLayout formLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         FormLayoutDto.builder()
             .maxColumns(formLayout.maxColumns())
@@ -30,7 +35,16 @@ public class FormLayoutComponentToDtoMapper {
         metadataDto,
         formLayout.id(),
         formLayout.content().stream()
-            .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+            .map(
+                content ->
+                    mapComponentToDto(
+                        null,
+                        content,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         formLayout.style(),
         formLayout.cssClasses(),

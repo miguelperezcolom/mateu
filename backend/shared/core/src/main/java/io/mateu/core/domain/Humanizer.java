@@ -5,11 +5,30 @@ import jakarta.inject.Named;
 @Named
 public class Humanizer {
 
-  public static String capitalize(String s) {
-    return capitalize(s, true);
+  public static String toKebabCase(String s) {
+    return toSnakeCase(s).replace("_", "-");
   }
 
-  public static String capitalize(String s, boolean startWithUppercase) {
+  public static String toSnakeCase(String s) {
+    var result = new StringBuilder();
+    var source = toCamelCase(s);
+    for (var i = 0; i < source.length(); i++) {
+      var c = source.charAt(i);
+      if (Character.isUpperCase(c)) {
+        result.append('_');
+        result.append(Character.toLowerCase(c));
+      } else {
+        result.append(c);
+      }
+    }
+    return result.toString();
+  }
+
+  public static String toUpperCaseFirst(String s) {
+    return toUpperCaseFirst(s, true);
+  }
+
+  public static String toUpperCaseFirst(String s, boolean startWithUppercase) {
     if (s == null || "".equals(s)) return s;
     s = s.replaceAll("\\.", " ").replaceAll("_", " ").replaceAll("-", " ");
     String c =
@@ -27,7 +46,7 @@ public class Humanizer {
     return c;
   }
 
-  public static String camelcasize(String s) {
+  public static String toCamelCase(String s) {
     if (s == null || "".equals(s)) return s;
     s = s.replaceAll("\\.", " ");
     String c =
@@ -59,7 +78,7 @@ public class Humanizer {
     return z.trim().isEmpty();
   }
 
-  public static String pluralize(String s) {
+  public static String toPlural(String s) {
     if (s == null || "".equals(s)) return s;
     if (s.endsWith("s")) s += "es";
     else s += "s";

@@ -11,7 +11,12 @@ import java.util.List;
 public class AccordionPanelComponentToDtoMapper {
 
   public static ClientSideComponentDto mapAccordionPanelToDto(
-      AccordionPanel panel, String baseUrl, String route, HttpRequest httpRequest) {
+      AccordionPanel panel,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         AccordionPanelDto.builder()
             .label(panel.label())
@@ -21,7 +26,15 @@ public class AccordionPanelComponentToDtoMapper {
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, panel.content(), baseUrl, route, httpRequest)),
+        List.of(
+            mapComponentToDto(
+                null,
+                panel.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         panel.style(),
         panel.cssClasses(),
         null);

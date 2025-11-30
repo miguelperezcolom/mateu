@@ -8,67 +8,67 @@ class HumanizerTest {
 
   @Test
   void returnsCapitalized() {
-    var capitalised = Humanizer.capitalize("hello    world");
+    var capitalised = Humanizer.toUpperCaseFirst("hello    world");
     assertEquals("Hello world", capitalised);
 
-    capitalised = Humanizer.capitalize("");
+    capitalised = Humanizer.toUpperCaseFirst("");
     assertEquals("", capitalised);
 
-    capitalised = Humanizer.capitalize("", true);
+    capitalised = Humanizer.toUpperCaseFirst("", true);
     assertEquals("", capitalised);
 
-    capitalised = Humanizer.capitalize("", false);
+    capitalised = Humanizer.toUpperCaseFirst("", false);
     assertEquals("", capitalised);
 
-    capitalised = Humanizer.capitalize("hola", true);
+    capitalised = Humanizer.toUpperCaseFirst("hola", true);
     assertEquals("Hola", capitalised);
 
-    capitalised = Humanizer.capitalize("hola", false);
+    capitalised = Humanizer.toUpperCaseFirst("hola", false);
     assertEquals("hola", capitalised);
 
-    capitalised = Humanizer.capitalize(null);
+    capitalised = Humanizer.toUpperCaseFirst(null);
     assertNull(capitalised);
   }
 
   @Test
   void returnsCapitalizedNotStartingWithUppercase() {
-    var capitalised = Humanizer.capitalize("hello   WORLD", false);
+    var capitalised = Humanizer.toUpperCaseFirst("hello   WORLD", false);
     assertEquals("hello world", capitalised);
   }
 
   @Test
   void returnsCamelcase() {
-    var camelcasized = Humanizer.camelcasize("hello   WORLD");
+    var camelcasized = Humanizer.toCamelCase("hello   WORLD");
     assertEquals("helloWorld", camelcasized);
 
-    camelcasized = Humanizer.camelcasize("hola palma de mallorcs");
+    camelcasized = Humanizer.toCamelCase("hola palma de mallorcs");
     assertEquals("holaPalmaDeMallorcs", camelcasized);
 
-    camelcasized = Humanizer.camelcasize("a");
+    camelcasized = Humanizer.toCamelCase("a");
     assertEquals("a", camelcasized);
 
-    camelcasized = Humanizer.camelcasize("");
+    camelcasized = Humanizer.toCamelCase("");
     assertEquals("", camelcasized);
 
-    camelcasized = Humanizer.camelcasize(null);
+    camelcasized = Humanizer.toCamelCase(null);
     assertNull(camelcasized);
   }
 
   @Test
   void returnsPlural() {
-    var plural = Humanizer.pluralize("hello world");
+    var plural = Humanizer.toPlural("hello world");
     assertEquals("hello worlds", plural);
 
-    plural = Humanizer.pluralize("hello class");
+    plural = Humanizer.toPlural("hello class");
     assertEquals("hello classes", plural);
 
-    plural = Humanizer.pluralize("hello spy");
+    plural = Humanizer.toPlural("hello spy");
     assertEquals("hello spies", plural);
 
-    plural = Humanizer.pluralize("");
+    plural = Humanizer.toPlural("");
     assertEquals("", plural);
 
-    plural = Humanizer.pluralize(null);
+    plural = Humanizer.toPlural(null);
     assertNull(plural);
   }
 }

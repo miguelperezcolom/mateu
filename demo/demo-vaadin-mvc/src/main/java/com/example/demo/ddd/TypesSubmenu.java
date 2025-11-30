@@ -8,10 +8,10 @@ import io.mateu.uidl.annotations.Menu;
 public class TypesSubmenu {
 
     @Menu
-    ValueObjects valueObjects;
+    String valueObjects;
 
     @Menu
-    Enums enums;
+    String enums;
 
 
 }

@@ -16,7 +16,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class VerticalLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapVerticalLayoutToDto(
-      VerticalLayout verticalLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      VerticalLayout verticalLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         VerticalLayoutDto.builder()
             .padding(verticalLayout.padding())
@@ -43,7 +48,16 @@ public class VerticalLayoutComponentToDtoMapper {
         verticalLayout.id(),
         applyFlowGrows(
             verticalLayout.content().stream()
-                .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+                .map(
+                    content ->
+                        mapComponentToDto(
+                            null,
+                            content,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest))
                 .toList(),
             verticalLayout.flexGrows()),
         verticalLayout.style(),

@@ -14,6 +14,7 @@ import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper;
 import io.mateu.core.infra.reflection.write.RunMethodActionRunner;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Collection;
 import java.util.List;
@@ -36,49 +37,53 @@ public class Mocks {
                   new RouteResolver() {
 
                     @Override
-                    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+                    public Class<?> resolveRoute(
+                        String route, String consumedRoute, HttpRequest httpRequest) {
                       return AnnotatedComponent.class;
                     }
 
                     @Override
-                    public List<Pattern> supportedRoutesPatterns() {
-                      return List.of(Pattern.compile("xx"));
+                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+                      return List.of(new Pair(Pattern.compile("xx"), null));
                     }
                   },
                   new RouteResolver() {
 
                     @Override
-                    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+                    public Class<?> resolveRoute(
+                        String route, String consumedRoute, HttpRequest httpRequest) {
                       return SampleApp.class;
                     }
 
                     @Override
-                    public List<Pattern> supportedRoutesPatterns() {
-                      return List.of(Pattern.compile("/app"));
+                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+                      return List.of(new Pair(Pattern.compile("/app"), null));
                     }
                   },
                   new RouteResolver() {
 
                     @Override
-                    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+                    public Class<?> resolveRoute(
+                        String route, String consumedRoute, HttpRequest httpRequest) {
                       return SampleCrud.class;
                     }
 
                     @Override
-                    public List<Pattern> supportedRoutesPatterns() {
-                      return List.of(Pattern.compile("/app/crud"));
+                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+                      return List.of(new Pair(Pattern.compile("/app/crud"), null));
                     }
                   },
                   new RouteResolver() {
 
                     @Override
-                    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+                    public Class<?> resolveRoute(
+                        String route, String consumedRoute, HttpRequest httpRequest) {
                       return SampleDetail.class;
                     }
 
                     @Override
-                    public List<Pattern> supportedRoutesPatterns() {
-                      return List.of(Pattern.compile("/app/crud/.*"));
+                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+                      return List.of(new Pair(Pattern.compile("/app/crud/.*"), null));
                     }
                   });
         }

@@ -11,12 +11,25 @@ import java.util.List;
 public class ScrollerComponentToDtoMapper {
 
   public static ClientSideComponentDto mapScrollerToDto(
-      Scroller scroller, String baseUrl, String route, HttpRequest httpRequest) {
+      Scroller scroller,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto = ScrollerDto.builder().build();
     return new ClientSideComponentDto(
         metadataDto,
         null,
-        List.of(mapComponentToDto(null, scroller.content(), baseUrl, route, httpRequest)),
+        List.of(
+            mapComponentToDto(
+                null,
+                scroller.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         scroller.style(),
         scroller.cssClasses(),
         null);

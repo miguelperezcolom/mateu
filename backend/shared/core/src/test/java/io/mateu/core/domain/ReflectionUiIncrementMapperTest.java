@@ -21,7 +21,13 @@ class ReflectionUiIncrementMapperTest {
             new ComponentFragmentMapper(), new ReflectionObjectToComponentMapper());
     var result =
         mapper
-            .map(null, "base_url", "route", "initiator_component_id", new FakeHttpRequest())
+            .map(
+                null,
+                "base_url",
+                "route",
+                "consumed_route",
+                "initiator_component_id",
+                new FakeHttpRequest())
             .block();
     assertNull(result);
   }
@@ -34,7 +40,13 @@ class ReflectionUiIncrementMapperTest {
     var dto = new UIIncrementDto(List.of(), List.of(), List.of(), Map.of(), Map.of());
     var result =
         mapper
-            .map(dto, "base_url", "route", "initiator_component_id", new FakeHttpRequest())
+            .map(
+                dto,
+                "base_url",
+                "route",
+                "consumed_route",
+                "initiator_component_id",
+                new FakeHttpRequest())
             .block();
     assertEquals(dto, result);
   }
@@ -55,7 +67,13 @@ class ReflectionUiIncrementMapperTest {
         };
     var result =
         mapper
-            .map(instance, "base_url", "route", "initiator_component_id", new FakeHttpRequest())
+            .map(
+                instance,
+                "base_url",
+                "route",
+                "consumed_route",
+                "initiator_component_id",
+                new FakeHttpRequest())
             .block();
     assertEquals(dto, result);
   }

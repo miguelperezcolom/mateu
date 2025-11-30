@@ -14,14 +14,30 @@ public class MasterDetailLayoutComponentToDtoMapper {
       MasterDetailLayout masterDetailLayout,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     var metadataDto = MasterDetailLayoutDto.builder().build();
     return new ClientSideComponentDto(
         metadataDto,
         masterDetailLayout.id(),
         List.of(
-            mapComponentToDto(null, masterDetailLayout.master(), baseUrl, route, httpRequest),
-            mapComponentToDto(null, masterDetailLayout.detail(), baseUrl, route, httpRequest)),
+            mapComponentToDto(
+                null,
+                masterDetailLayout.master(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                masterDetailLayout.detail(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         masterDetailLayout.style(),
         masterDetailLayout.cssClasses(),
         null);

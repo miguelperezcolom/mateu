@@ -10,12 +10,26 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class FormSubSectionComponentToDtoMapper {
 
   public static ClientSideComponentDto mapFormSubSectionToDto(
-      FormSubSection formSection, String baseUrl, String route, HttpRequest httpRequest) {
+      FormSubSection formSection,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new FormSubSectionDto(formSection.title()),
         "fieldId",
         formSection.content().stream()
-            .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+            .map(
+                content ->
+                    mapComponentToDto(
+                        null,
+                        content,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         formSection.style(),
         formSection.cssClasses(),

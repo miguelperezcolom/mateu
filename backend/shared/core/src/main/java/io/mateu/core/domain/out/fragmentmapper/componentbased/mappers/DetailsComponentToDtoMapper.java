@@ -11,11 +11,30 @@ import java.util.List;
 public class DetailsComponentToDtoMapper {
 
   public static ClientSideComponentDto mapDetailsToDto(
-      Details details, String baseUrl, String route, HttpRequest httpRequest) {
+      Details details,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new DetailsDto(
-            mapComponentToDto(null, details.summary(), baseUrl, route, httpRequest),
-            mapComponentToDto(null, details.content(), baseUrl, route, httpRequest),
+            mapComponentToDto(
+                null,
+                details.summary(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                details.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
             details.opened()),
         "fieldId",
         List.of(),

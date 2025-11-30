@@ -10,13 +10,27 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class DivComponentToDtoMapper {
 
   public static ClientSideComponentDto mapDivToDto(
-      Div div, String baseUrl, String route, HttpRequest httpRequest) {
+      Div div,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new DivDto(div.content()),
         "fieldId",
         div.children() != null
             ? div.children().stream()
-                .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+                .map(
+                    content ->
+                        mapComponentToDto(
+                            null,
+                            content,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest))
                 .toList()
             : null,
         div.style(),

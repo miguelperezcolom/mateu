@@ -1,14 +1,10 @@
 package io.mateu.core.domain.act;
 
-import static io.mateu.core.domain.Humanizer.camelcasize;
-
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.interfaces.ActionHandler;
-import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
@@ -85,22 +81,5 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
       return Flux.just(instance);
     }
     return Flux.just(result);
-  }
-
-  public static String getMinimalAppRoute(RouteResolver appRouteResolver, String route) {
-    var minimalRoute = route;
-    var nextRoute = minimalRoute;
-    while (!nextRoute.isEmpty() && appRouteResolver.supportsRoute(nextRoute)) {
-      minimalRoute = nextRoute;
-      nextRoute = nextRoute.contains("/") ? nextRoute.substring(0, nextRoute.lastIndexOf("/")) : "";
-    }
-    return minimalRoute;
-  }
-
-  private static String getPathInApp(String appRoute, Actionable option) {
-    if (option.path() == null) {
-      return appRoute + "/" + camelcasize(option.label());
-    }
-    return option.path();
   }
 }

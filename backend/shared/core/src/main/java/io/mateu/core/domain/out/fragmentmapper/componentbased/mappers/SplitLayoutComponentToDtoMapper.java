@@ -13,7 +13,12 @@ import java.util.List;
 public class SplitLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapSplitLayoutToDto(
-      SplitLayout splitLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      SplitLayout splitLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         SplitLayoutDto.builder()
             .orientation(
@@ -30,8 +35,22 @@ public class SplitLayoutComponentToDtoMapper {
         metadataDto,
         splitLayout.id(),
         List.of(
-            mapComponentToDto(null, splitLayout.master(), baseUrl, route, httpRequest),
-            mapComponentToDto(null, splitLayout.detail(), baseUrl, route, httpRequest)),
+            mapComponentToDto(
+                null,
+                splitLayout.master(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                splitLayout.detail(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         splitLayout.style(),
         splitLayout.cssClasses(),
         null);

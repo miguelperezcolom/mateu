@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import static io.mateu.core.domain.Humanizer.camelcasize;
+import static io.mateu.core.domain.Humanizer.toCamelCase;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 import io.mateu.dtos.ClientSideComponentDto;
@@ -19,9 +19,21 @@ import java.util.List;
 public class DirectoryComponentToDtoMapper {
 
   public static ClientSideComponentDto mapDirectoryToDto(
-      Directory directory, String baseUrl, String route, HttpRequest httpRequest) {
+      Directory directory,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
-        new DirectoryDto(buildMenu(directory.menu(), baseUrl, route, httpRequest)),
+        new DirectoryDto(
+            buildMenu(
+                directory.menu(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
         "fieldId",
         List.of(),
         directory.style(),
@@ -30,7 +42,12 @@ public class DirectoryComponentToDtoMapper {
   }
 
   protected static List<MenuOptionDto> buildMenu(
-      List<Actionable> menu, String baseUrl, String route, HttpRequest httpRequest) {
+      List<Actionable> menu,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return menu.stream()
         .map(
             option ->
@@ -39,7 +56,13 @@ public class DirectoryComponentToDtoMapper {
                     .component(
                         option.component() != null
                             ? mapComponentToDto(
-                                null, option.component(), baseUrl, route, httpRequest)
+                                null,
+                                option.component(),
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest)
                             : null)
                     .destination(
                         option instanceof RouteLink || option instanceof ContentLink
@@ -53,7 +76,13 @@ public class DirectoryComponentToDtoMapper {
                     .itemData(option.itemData())
                     .submenus(
                         option instanceof Menu asMenu
-                            ? buildMenu(asMenu.submenu(), baseUrl, route, httpRequest)
+                            ? buildMenu(
+                                asMenu.submenu(),
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest)
                             : List.of())
                     .separator(option instanceof MenuSeparator)
                     .build())
@@ -62,7 +91,7 @@ public class DirectoryComponentToDtoMapper {
 
   private static String getPath(Actionable option) {
     if (option.path() == null) {
-      return camelcasize(option.label());
+      return toCamelCase(option.label());
     }
     return option.path();
   }

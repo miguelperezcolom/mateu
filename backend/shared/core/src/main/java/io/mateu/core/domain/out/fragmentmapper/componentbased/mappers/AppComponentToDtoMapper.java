@@ -1,8 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import static io.mateu.core.domain.Humanizer.camelcasize;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getHomeRoute;
-import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
+import static io.mateu.core.domain.Humanizer.toCamelCase;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
 
@@ -37,9 +35,10 @@ public final class AppComponentToDtoMapper {
     if (componentSupplier != null && app.serverSideType() == null) {
       app = app.withServerSideType(componentSupplier.getClass().getName());
     }
-    var appRoute = getRoute(componentSupplier, app, httpRequest, route);
-    if ("/".equals(appRoute) && app.route() != null && !"".equals(app.route())) {
-      appRoute = app.route();
+    String appRoute = (String) httpRequest.getAttribute("resolvedRoute");
+    System.out.println("" + app.serverSideType() + " --> appRoute: " + appRoute);
+    if (appRoute == null) {
+      appRoute = route;
     }
     var menu = getMenu(app, route, appRoute);
     var appDto =
@@ -99,6 +98,9 @@ public final class AppComponentToDtoMapper {
       }
       if (app.serverSideType() != null && !app.serverSideType().isEmpty()) {
         Class<?> appClass = Class.forName(app.serverSideType());
+        if (HomeRouteSupplier.class.isAssignableFrom(appClass)) {
+          return app.homeRoute();
+        }
         if (appClass.isAnnotationPresent(HomeRoute.class)) {
           return appClass.getAnnotation(HomeRoute.class).value();
         }
@@ -137,8 +139,20 @@ public final class AppComponentToDtoMapper {
 
   private static String getPath(String appRoute, Actionable option) {
     if (option.path() == null) {
-      return appRoute + "/" + camelcasize(option.label());
+      return prepend(appRoute, toCamelCase(option.label()));
+    }
+    if (option instanceof ContentLink contentLink) {
+      option = contentLink.withPath(prepend(appRoute, contentLink.path()));
+    }
+    if (option instanceof FieldLink fieldLink) {
+      option = fieldLink.withPath(prepend(appRoute, fieldLink.path()));
     }
     return option.path();
+  }
+
+  private static String prepend(String appRoute, String path) {
+    var prefix = appRoute.endsWith("/") ? appRoute.substring(0, appRoute.length() - 1) : appRoute;
+    var suffix = path.startsWith("/") ? path.substring(1) : path;
+    return prefix + "/" + suffix;
   }
 }

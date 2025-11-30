@@ -2,7 +2,9 @@ package io.mateu.dtos;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.With;
 
+@With
 public record ClientSideComponentDto(
     ComponentMetadataDto metadata,
     String id,

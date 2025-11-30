@@ -1,8 +1,9 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.Humanizer.capitalize;
+import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.domain.Humanizer;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ReadOnly;
@@ -15,11 +16,16 @@ import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.FutureComponent;
+import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
@@ -32,6 +38,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 public class ReflectionFormFieldMapper {
 
@@ -40,12 +47,21 @@ public class ReflectionFormFieldMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (Component.class.isAssignableFrom(field.getType())) {
       return CustomField.builder()
           .label(getLabel(field))
           .content((Component) getValue(field, instance))
+          //          .content(
+          //              resolveFutureComponents(
+          //                  (Component) getValue(field, instance),
+          //                  baseUrl,
+          //                  route,
+          //                  consumedRoute,
+          //                  initiatorComponentId,
+          //                  httpRequest))
           .build();
     }
     return FormField.builder()
@@ -58,6 +74,50 @@ public class ReflectionFormFieldMapper {
         .sliderMax(getSliderMax(field))
         .readOnly(isReadOnly(field, instance))
         .build();
+  }
+
+  private static Component resolveFutureComponents(
+      Component component,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (component instanceof FutureComponent futureComponent) {
+      ComponentMapper componentMapper = MateuBeanProvider.getBean(ComponentMapper.class);
+      var resolvedComponents =
+          componentMapper.mapToComponents(
+              futureComponent.instance(),
+              baseUrl,
+              route,
+              consumedRoute,
+              initiatorComponentId,
+              httpRequest);
+      if (resolvedComponents.size() == 1) {
+        return resolvedComponents.iterator().next();
+      }
+      return new VerticalLayout((List<Component>) resolvedComponents.stream().toList());
+    }
+    if (component instanceof VerticalLayout verticalLayout) {
+      return new VerticalLayout(
+          verticalLayout.content().stream()
+              .map(
+                  child ->
+                      resolveFutureComponents(
+                          child, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
+              .toList());
+    }
+    if (component instanceof HorizontalLayout horizontalLayout) {
+      return new HorizontalLayout(
+          horizontalLayout.content().stream()
+              .map(
+                  child ->
+                      resolveFutureComponents(
+                          child, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
+              .toList());
+    }
+    // todo: hacer con todas las layouts
+    return component;
   }
 
   private static boolean isReadOnly(Field field, Object instance) {
@@ -94,7 +154,7 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(Label.class)) {
       return field.getAnnotation(Label.class).value();
     }
-    return capitalize(field.getName());
+    return Humanizer.toUpperCaseFirst(field.getName());
   }
 
   public static FieldDataType getDataType(Field field) {

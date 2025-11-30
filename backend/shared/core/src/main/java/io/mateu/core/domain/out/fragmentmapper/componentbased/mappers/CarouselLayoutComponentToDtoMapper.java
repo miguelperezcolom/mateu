@@ -11,7 +11,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class CarouselLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapCarouselLayoutToDto(
-      CarouselLayout carouselLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      CarouselLayout carouselLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         CarouselLayoutDto.builder()
             .alt(carouselLayout.alt())
@@ -36,7 +41,16 @@ public class CarouselLayoutComponentToDtoMapper {
         metadataDto,
         carouselLayout.id(),
         carouselLayout.content().stream()
-            .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+            .map(
+                content ->
+                    mapComponentToDto(
+                        null,
+                        content,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         carouselLayout.style(),
         carouselLayout.cssClasses(),

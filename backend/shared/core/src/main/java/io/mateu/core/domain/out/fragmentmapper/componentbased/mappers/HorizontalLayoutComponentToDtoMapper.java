@@ -16,7 +16,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HorizontalLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapHorizontalLayoutToDto(
-      HorizontalLayout horizontalLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      HorizontalLayout horizontalLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         HorizontalLayoutDto.builder()
             .padding(horizontalLayout.padding())
@@ -43,7 +48,16 @@ public class HorizontalLayoutComponentToDtoMapper {
         horizontalLayout.id(),
         applyFlowGrows(
             horizontalLayout.content().stream()
-                .map(content -> mapComponentToDto(null, content, baseUrl, route, httpRequest))
+                .map(
+                    content ->
+                        mapComponentToDto(
+                            null,
+                            content,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest))
                 .toList(),
             horizontalLayout.flexGrows()),
         horizontalLayout.style(),

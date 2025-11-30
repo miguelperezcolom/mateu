@@ -1,17 +1,18 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.Humanizer.camelcasize;
-import static io.mateu.core.domain.Humanizer.capitalize;
+import static io.mateu.core.domain.Humanizer.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
+import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
+import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
@@ -27,6 +28,7 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.PageTitleSupplier;
@@ -48,13 +50,14 @@ public class ReflectionAppMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    var appRoute = getRoute(instance, instance, httpRequest, route);
+    var appRoute = getRoute(instance, instance, httpRequest, route, consumedRoute);
     var menu = getMenu(appRoute, instance, route, httpRequest);
     return App.builder()
         .route(appRoute)
-        .homeRoute("xxx")
+        .homeRoute(getHomeRoute(instance))
         .serverSideType(instance.getClass().getName())
         .variant(getVariant(instance, menu))
         .pageTitle(getPageTitle(instance))
@@ -67,6 +70,16 @@ public class ReflectionAppMapper {
         .drawerClosed(isDrawerClosed(instance))
         .widgets(getWidgets(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
+  }
+
+  private static String getHomeRoute(Object instance) {
+    if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
+      return homeRouteSupplier.homeRoute();
+    }
+    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
+      return instance.getClass().getAnnotation(HomeRoute.class).value();
+    }
+    return "xxx";
   }
 
   private static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
@@ -167,14 +180,14 @@ public class ReflectionAppMapper {
       if (uri != null) {
         return new RouteLink(uri, getLabel(field));
       }
-      return new RouteLink(appRoute + "/" + field.getName(), getLabel(field));
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field));
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);
       if (uri != null) {
         return new RouteLink(uri.toString(), getLabel(field));
       }
-      return new RouteLink(appRoute + "/" + field.getName(), getLabel(field));
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field));
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
@@ -208,7 +221,7 @@ public class ReflectionAppMapper {
             actionable -> {
               if (actionable instanceof ContentLink contentLink) {
                 if (contentLink.path() == null) {
-                  return contentLink.withPath(appRoute + "/" + camelcasize(contentLink.label()));
+                  return contentLink.withPath(appRoute + "/" + toCamelCase(contentLink.label()));
                 }
               }
               return actionable;
@@ -244,7 +257,7 @@ public class ReflectionAppMapper {
     if (field.isAnnotationPresent(Label.class)) {
       return field.getAnnotation(Label.class).value();
     }
-    return capitalize(field.getName());
+    return Humanizer.toUpperCaseFirst(field.getName());
   }
 
   private static String getSubtitle(Object instance) {
@@ -276,7 +289,7 @@ public class ReflectionAppMapper {
     }
     if (instance.getClass().isAnnotationPresent(MateuUI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
-      return capitalize(instance.getClass().getSimpleName());
+      return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
     }
     return null;
   }

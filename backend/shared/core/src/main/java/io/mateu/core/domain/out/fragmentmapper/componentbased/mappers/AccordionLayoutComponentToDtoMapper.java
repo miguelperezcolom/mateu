@@ -11,7 +11,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class AccordionLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapAccordionLayoutToDto(
-      AccordionLayout accordionLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      AccordionLayout accordionLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         AccordionLayoutDto.builder()
             .variant(
@@ -23,7 +28,16 @@ public class AccordionLayoutComponentToDtoMapper {
         metadataDto,
         accordionLayout.id(),
         accordionLayout.panels().stream()
-            .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
+            .map(
+                tab ->
+                    mapComponentToDto(
+                        null,
+                        tab,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         accordionLayout.style(),
         accordionLayout.cssClasses(),

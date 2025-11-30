@@ -36,6 +36,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.For
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormSectionComponentToDtoMapper.mapFormSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormSubSectionComponentToDtoMapper.mapFormSubSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FullWidthComponentToDtoMapper.mapFullWidthToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FutureComponentToDtoMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.GridColumnComponentToDtoMapper.mapGridColumnToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.GridComponentToDtoMapper.mapGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.GridGroupColumnComponentToDtoMapper.mapGridGroupColumnToDto;
@@ -100,6 +101,7 @@ import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.FormSection;
 import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.FullWidth;
+import io.mateu.uidl.data.FutureComponent;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.GridGroupColumn;
@@ -143,6 +145,7 @@ public final class ComponentToFragmentDtoMapper {
       Component component,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (component instanceof State state) {
@@ -153,7 +156,14 @@ public final class ComponentToFragmentDtoMapper {
     }
     return new UIFragmentDto(
         initiatorComponentId,
-        mapComponentToDto(componentSupplier, component, baseUrl, route, httpRequest),
+        mapComponentToDto(
+            componentSupplier,
+            component,
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest),
         componentSupplier,
         getData(httpRequest),
         UIFragmentActionDto.Replace);
@@ -175,84 +185,130 @@ public final class ComponentToFragmentDtoMapper {
       Component component,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     if (component == null && componentSupplier != null) {
-      return mapComponentTreeSupplierToDto(componentSupplier, baseUrl, route, httpRequest);
+      return mapComponentTreeSupplierToDto(
+          componentSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component == null) {
       return null;
     }
+    if (component instanceof FutureComponent futureComponent) {
+      return mapFutureComponentToDto(
+          futureComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
     if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
-      return mapComponentTreeSupplierToDto(componentTreeSupplier, baseUrl, route, httpRequest);
+      return mapComponentTreeSupplierToDto(
+          componentTreeSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Page page) {
-      return mapPageToDto(page, componentSupplier, baseUrl, route, httpRequest);
+      return mapPageToDto(
+          page,
+          componentSupplier,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof App app) {
       return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
     }
     if (component instanceof Form form) {
-      return mapFormToDto(form, componentSupplier, baseUrl, route, httpRequest);
+      return mapFormToDto(
+          form,
+          componentSupplier,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof Listing crudl) {
-      return mapCrudlToDto(crudl, componentSupplier, baseUrl, route, httpRequest);
+      return mapCrudlToDto(
+          crudl,
+          componentSupplier,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     if (component instanceof HorizontalLayout horizontalLayout) {
-      return mapHorizontalLayoutToDto(horizontalLayout, baseUrl, route, httpRequest);
+      return mapHorizontalLayoutToDto(
+          horizontalLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof VerticalLayout verticalLayout) {
-      return mapVerticalLayoutToDto(verticalLayout, baseUrl, route, httpRequest);
+      return mapVerticalLayoutToDto(
+          verticalLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FormLayout formLayout) {
-      return mapFormLayoutToDto(formLayout, baseUrl, route, httpRequest);
+      return mapFormLayoutToDto(
+          formLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FormRow formRow) {
-      return mapFormRowToDto(formRow, baseUrl, route, httpRequest);
+      return mapFormRowToDto(
+          formRow, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FormItem formItem) {
-      return mapFormItemToDto(formItem, baseUrl, route, httpRequest);
+      return mapFormItemToDto(
+          formItem, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof SplitLayout splitLayout) {
-      return mapSplitLayoutToDto(splitLayout, baseUrl, route, httpRequest);
+      return mapSplitLayoutToDto(
+          splitLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof MasterDetailLayout masterDetailLayout) {
-      return mapMasterDetailLayoutToDto(masterDetailLayout, baseUrl, route, httpRequest);
+      return mapMasterDetailLayoutToDto(
+          masterDetailLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof CarouselLayout carouselLayout) {
-      return mapCarouselLayoutToDto(carouselLayout, baseUrl, route, httpRequest);
+      return mapCarouselLayoutToDto(
+          carouselLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof AccordionLayout accordionLayout) {
-      return mapAccordionLayoutToDto(accordionLayout, baseUrl, route, httpRequest);
+      return mapAccordionLayoutToDto(
+          accordionLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof AccordionPanel accordionPanel) {
-      return mapAccordionPanelToDto(accordionPanel, baseUrl, route, httpRequest);
+      return mapAccordionPanelToDto(
+          accordionPanel, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof TabLayout tabLayout) {
-      return mapTabLayoutToDto(tabLayout, baseUrl, route, httpRequest);
+      return mapTabLayoutToDto(
+          tabLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Tab tab) {
-      return mapTabToDto(tab, baseUrl, route, httpRequest);
+      return mapTabToDto(tab, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Breadcrumbs breadcrumbs) {
       return mapBreadcrumbsToDto(breadcrumbs);
     }
     if (component instanceof BoardLayout boardLayout) {
-      return mapBoardLayoutToDto(boardLayout, baseUrl, route, httpRequest);
+      return mapBoardLayoutToDto(
+          boardLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof BoardLayoutRow boardLayoutRow) {
-      return mapBoardLayoutRowToDto(boardLayoutRow, baseUrl, route, httpRequest);
+      return mapBoardLayoutRowToDto(
+          boardLayoutRow, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof BoardLayoutItem boardLayoutItem) {
-      return mapBoardLayoutItemToDto(boardLayoutItem, baseUrl, route, httpRequest);
+      return mapBoardLayoutItemToDto(
+          boardLayoutItem, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Scroller scroller) {
-      return mapScrollerToDto(scroller, baseUrl, route, httpRequest);
+      return mapScrollerToDto(
+          scroller, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FullWidth fullWidth) {
-      return mapFullWidthToDto(fullWidth, baseUrl, route, httpRequest);
+      return mapFullWidthToDto(
+          fullWidth, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Container container) {
-      return mapContainerToDto(container, baseUrl, route, httpRequest);
+      return mapContainerToDto(
+          container, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Element element) {
       return mapElementToDto(element);
@@ -261,7 +317,8 @@ public final class ComponentToFragmentDtoMapper {
       return mapTextToDto(text);
     }
     if (component instanceof FormField formField) {
-      return mapFormFieldToDto(formField, baseUrl, route, httpRequest);
+      return mapFormFieldToDto(
+          formField, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Avatar avatar) {
       return mapAvatarToDto(avatar);
@@ -279,7 +336,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapButtonToDto(button);
     }
     if (component instanceof Card card) {
-      return mapCardToDto(card, baseUrl, route, httpRequest);
+      return mapCardToDto(card, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Chart chart) {
       return mapChartToDto(chart);
@@ -288,19 +345,23 @@ public final class ComponentToFragmentDtoMapper {
       return mapIconToDto(icon);
     }
     if (component instanceof ConfirmDialog confirmDialog) {
-      return mapConfirmDialogToDto(confirmDialog, baseUrl, route, httpRequest);
+      return mapConfirmDialogToDto(
+          confirmDialog, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof ContextMenu contextMenu) {
-      return mapContextMenuToDto(contextMenu, baseUrl, route, httpRequest);
+      return mapContextMenuToDto(
+          contextMenu, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof CookieConsent cookieConsent) {
       return mapCookieConsentToDto(cookieConsent);
     }
     if (component instanceof Details details) {
-      return mapDetailsToDto(details, baseUrl, route, httpRequest);
+      return mapDetailsToDto(
+          details, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Dialog dialog) {
-      return mapDialogToDto(dialog, baseUrl, route, httpRequest);
+      return mapDialogToDto(
+          dialog, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Image image) {
       return mapImageToDto(image);
@@ -321,19 +382,23 @@ public final class ComponentToFragmentDtoMapper {
       return mapProgressBarToDto(progressBar);
     }
     if (component instanceof Popover popover) {
-      return mapPopoverToDto(popover, baseUrl, route, httpRequest);
+      return mapPopoverToDto(
+          popover, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Div div) {
-      return mapDivToDto(div, baseUrl, route, httpRequest);
+      return mapDivToDto(div, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FormSection formSection) {
-      return mapFormSectionToDto(formSection, baseUrl, route, httpRequest);
+      return mapFormSectionToDto(
+          formSection, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof FormSubSection formSubSection) {
-      return mapFormSubSectionToDto(formSubSection, baseUrl, route, httpRequest);
+      return mapFormSubSectionToDto(
+          formSubSection, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Tooltip tooltip) {
-      return mapTooltipToDto(tooltip, baseUrl, route, httpRequest);
+      return mapTooltipToDto(
+          tooltip, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof MessageInput messageInput) {
       return mapMessageInputToDto(messageInput);
@@ -342,13 +407,15 @@ public final class ComponentToFragmentDtoMapper {
       return mapMessageListToDto(messageList);
     }
     if (component instanceof CustomField customField) {
-      return mapCustomFieldToDto(customField, baseUrl, route, httpRequest);
+      return mapCustomFieldToDto(
+          customField, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof MenuBar menuBar) {
-      return mapMenuBarToDto(menuBar, baseUrl, route, httpRequest);
+      return mapMenuBarToDto(
+          menuBar, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Grid grid) {
-      return mapGridToDto(grid, baseUrl, route, httpRequest);
+      return mapGridToDto(grid, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof GridColumn gridColumn) {
       return mapGridColumnToDto(gridColumn, baseUrl, route, httpRequest);
@@ -357,10 +424,12 @@ public final class ComponentToFragmentDtoMapper {
       return mapGridGroupColumnToDto(gridGroupColumn, baseUrl, route, httpRequest);
     }
     if (component instanceof Directory directory) {
-      return mapDirectoryToDto(directory, baseUrl, route, httpRequest);
+      return mapDirectoryToDto(
+          directory, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof VirtualList virtualList) {
-      return mapVirtualListToDto(virtualList, baseUrl, route, httpRequest);
+      return mapVirtualListToDto(
+          virtualList, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     return new ClientSideComponentDto(
         new ElementDto("div", Map.of(), Map.of(), component.toString()),

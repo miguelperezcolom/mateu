@@ -10,13 +10,27 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class BoardLayoutRowComponentToDtoMapper {
 
   public static ClientSideComponentDto mapBoardLayoutRowToDto(
-      BoardLayoutRow boardLayoutRow, String baseUrl, String route, HttpRequest httpRequest) {
+      BoardLayoutRow boardLayoutRow,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto = BoardLayoutRowDto.builder().build();
     return new ClientSideComponentDto(
         metadataDto,
         null,
         boardLayoutRow.content().stream()
-            .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
+            .map(
+                tab ->
+                    mapComponentToDto(
+                        null,
+                        tab,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         boardLayoutRow.style(),
         boardLayoutRow.cssClasses(),

@@ -57,7 +57,7 @@ public class JsonSchemaBased implements ComponentTreeSupplier, RouteHandler {
                                         .dataType(getDataType(property))
                                         .stereotype(getStereotype(property))
                                         .id(property.getKey())
-                                        .label(Humanizer.capitalize(property.getKey()))
+                                        .label(Humanizer.toUpperCaseFirst(property.getKey()))
                                         .initialValue(getInitialValue(property))
                                         .options(getOptions(property))
                                         .build()

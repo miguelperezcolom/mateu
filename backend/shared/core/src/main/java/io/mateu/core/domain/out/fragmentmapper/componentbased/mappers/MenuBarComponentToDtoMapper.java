@@ -12,10 +12,22 @@ import java.util.UUID;
 public final class MenuBarComponentToDtoMapper {
 
   public static ClientSideComponentDto mapMenuBarToDto(
-      MenuBar menuBar, String baseUrl, String route, HttpRequest httpRequest) {
+      MenuBar menuBar,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var menuDto =
         MenuBarDto.builder()
-            .options(buildMenu(menuBar.options(), baseUrl, route, httpRequest))
+            .options(
+                buildMenu(
+                    menuBar.options(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
             .build();
     return new ClientSideComponentDto(
         menuDto,

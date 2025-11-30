@@ -16,6 +16,7 @@ public interface UiIncrementMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest);
 }

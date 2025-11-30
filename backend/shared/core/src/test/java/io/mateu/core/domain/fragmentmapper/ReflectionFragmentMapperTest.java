@@ -22,6 +22,7 @@ class ReflectionFragmentMapperTest {
             new ExtendedSimpleForm(),
             "base_url",
             "route",
+            "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(fragment);
@@ -32,7 +33,12 @@ class ReflectionFragmentMapperTest {
     var mapper = new ReflectionObjectToComponentMapper();
     var fragment =
         mapper.mapToComponent(
-            new SimpleApp(), "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            new SimpleApp(),
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
     assertNotNull(fragment);
   }
 
@@ -42,7 +48,7 @@ class ReflectionFragmentMapperTest {
   @Test
   void minimalMatchingRouteIsReturned() {
     var app = new MyApp();
-    var appRoute = getRoute(app, app, new FakeHttpRequest(), "/app/home");
+    var appRoute = getRoute(app, app, new FakeHttpRequest(), "/app/home", "/");
     assertNotNull(appRoute);
     assertEquals("/app", appRoute);
   }
@@ -53,7 +59,12 @@ class ReflectionFragmentMapperTest {
     var fragment = UIFragmentDto.builder().build();
     var mapped =
         mapper.mapToComponent(
-            fragment, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            fragment,
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
     assertEquals(fragment, mapped);
   }
 }

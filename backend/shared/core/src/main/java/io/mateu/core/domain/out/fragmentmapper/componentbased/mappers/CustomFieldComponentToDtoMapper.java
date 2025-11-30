@@ -11,11 +11,23 @@ import java.util.List;
 public class CustomFieldComponentToDtoMapper {
 
   public static ClientSideComponentDto mapCustomFieldToDto(
-      CustomField customField, String baseUrl, String route, HttpRequest httpRequest) {
+      CustomField customField,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         new CustomFieldDto(
             customField.label(),
-            mapComponentToDto(null, customField.content(), baseUrl, route, httpRequest),
+            mapComponentToDto(
+                null,
+                customField.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
             customField.colspan() > 0 ? customField.colspan() : 1),
         "fieldId",
         List.of(),

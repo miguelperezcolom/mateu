@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.Humanizer.capitalize;
+import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
@@ -13,6 +13,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.FavIcon;
@@ -61,6 +62,7 @@ public class ReflectionPageMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return Page.builder()
@@ -74,7 +76,8 @@ public class ReflectionPageMapper {
         .toolbar(getToolbar(instance))
         .buttons(getButtons(instance))
         .header(getHeader(instance, baseUrl, route, initiatorComponentId, httpRequest))
-        .content(getContent(instance, baseUrl, route, initiatorComponentId, httpRequest))
+        .content(
+            getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
         .footer(getFooter(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
   }
@@ -101,6 +104,7 @@ public class ReflectionPageMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (instance instanceof ContentSupplier contentSupplier) {
@@ -108,14 +112,15 @@ public class ReflectionPageMapper {
     }
     if (instance instanceof ListingBackend<?, ?>
         || instance instanceof ReactiveListingBackend<?, ?>) {
-      return getCrud(instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return getCrud(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (isApp(instance, route)) {
       return List.of(
-          mapToAppComponent(instance, baseUrl, route, initiatorComponentId, httpRequest));
+          mapToAppComponent(
+              instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
     if (isForm(instance)) {
-      return getForm(instance, baseUrl, route, initiatorComponentId, httpRequest);
+      return getForm(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     return getAllFields(instance.getClass()).stream()
         .filter(
@@ -137,6 +142,7 @@ public class ReflectionPageMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return List.of(
@@ -148,6 +154,7 @@ public class ReflectionPageMapper {
                     instance,
                     baseUrl,
                     route,
+                    consumedRoute,
                     initiatorComponentId,
                     httpRequest))
             .columns(
@@ -208,6 +215,7 @@ public class ReflectionPageMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
@@ -215,7 +223,13 @@ public class ReflectionPageMapper {
             field ->
                 (FormField)
                     getFormField(
-                        field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+                        field,
+                        instance,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
         .toList();
   }
 
@@ -223,6 +237,7 @@ public class ReflectionPageMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return List.of(
@@ -238,6 +253,7 @@ public class ReflectionPageMapper {
                                     instance,
                                     baseUrl,
                                     route,
+                                    consumedRoute,
                                     initiatorComponentId,
                                     httpRequest))
                     .toList())
@@ -359,7 +375,7 @@ public class ReflectionPageMapper {
     if (method.isAnnotationPresent(Label.class)) {
       return method.getAnnotation(Label.class).value();
     }
-    return capitalize(method.getName());
+    return Humanizer.toUpperCaseFirst(method.getName());
   }
 
   private static String getLabel(Field field) {
@@ -395,7 +411,7 @@ public class ReflectionPageMapper {
     }
     if (instance.getClass().isAnnotationPresent(MateuUI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
-      return capitalize(instance.getClass().getSimpleName());
+      return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
     }
     return null;
   }

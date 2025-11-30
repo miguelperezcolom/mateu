@@ -50,6 +50,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (instance == null) {
@@ -62,13 +63,15 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return Mono.just(mapsToDto.toUIIncrementDto());
     }
     if (instance instanceof Mono<?> mono) {
-      return mono.flatMap(object -> map(object, baseUrl, route, initiatorComponentId, httpRequest));
+      return mono.flatMap(
+          object -> map(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
     return Mono.just(
         new UIIncrementDto(
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
-            mapToFragments(instance, baseUrl, route, initiatorComponentId, httpRequest),
+            mapToFragments(
+                instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
             mapToAppData(instance, baseUrl, httpRequest),
             mapToAppState(instance, baseUrl, httpRequest)));
   }
@@ -100,6 +103,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       Object instance,
       String baseUrl,
       String route,
+      String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (instance instanceof AppState) {
@@ -124,9 +128,15 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
                   serializeData(
                       componentFragmentMapper.mapToFragment(
                           reflectionFragmentMapper.mapToComponent(
-                              object, baseUrl, route, initiatorComponentId, httpRequest),
+                              object,
+                              baseUrl,
+                              route,
+                              consumedRoute,
+                              initiatorComponentId,
+                              httpRequest),
                           baseUrl,
                           route,
+                          consumedRoute,
                           initiatorComponentId,
                           httpRequest)))
           .toList();
@@ -135,9 +145,10 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         serializeData(
             componentFragmentMapper.mapToFragment(
                 reflectionFragmentMapper.mapToComponent(
-                    instance, baseUrl, route, initiatorComponentId, httpRequest),
+                    instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
                 baseUrl,
                 route,
+                consumedRoute,
                 initiatorComponentId,
                 httpRequest)));
     /*

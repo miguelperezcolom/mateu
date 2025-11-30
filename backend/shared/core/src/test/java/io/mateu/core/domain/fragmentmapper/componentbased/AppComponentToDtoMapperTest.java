@@ -22,6 +22,7 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -169,7 +170,7 @@ class AppComponentToDtoMapperTest {
             supplier,
             supplier.getApp(new FakeHttpRequest()),
             "base_url",
-            "route",
+            "route", "consumed_route",
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
@@ -189,13 +190,13 @@ class AppComponentToDtoMapperTest {
     }
 
     @Override
-    public Class<?> resolveRoute(String route, HttpRequest httpRequest) {
+    public Class<?> resolveRoute(String route, String consumedRoute, HttpRequest httpRequest) {
       return MyAppSupplier.class;
     }
 
     @Override
-    public List<Pattern> supportedRoutesPatterns() {
-      return List.of(Pattern.compile(".*"));
+    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+      return List.of(new Pair(Pattern.compile(".*"), null));
     }
 
     @Override
@@ -212,7 +213,7 @@ class AppComponentToDtoMapperTest {
             supplier,
             supplier.getApp(new FakeHttpRequest()),
             "base_url",
-            "/nested-app/page2",
+            "/nested-app/page2", "consumed_route",
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);

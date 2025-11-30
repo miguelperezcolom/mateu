@@ -19,6 +19,8 @@ public class CrudlComponentToDtoMapper {
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     var crudlDto =
         CrudlDto.builder()
@@ -33,7 +35,16 @@ public class CrudlComponentToDtoMapper {
                 crudl.toolbar().stream().map(FormComponentToDtoMapper::mapToButtonDto).toList())
             .columns(
                 crudl.columns().stream()
-                    .map(column -> mapComponentToDto(null, column, baseUrl, route, httpRequest))
+                    .map(
+                        column ->
+                            mapComponentToDto(
+                                null,
+                                column,
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest))
                     .toList())
             .filters(
                 crudl.filters() != null
@@ -72,13 +83,27 @@ public class CrudlComponentToDtoMapper {
                 crudl.header().stream()
                     .map(
                         component ->
-                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                            mapComponentToDto(
+                                null,
+                                component,
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest))
                     .toList())
             .footer(
                 crudl.footer().stream()
                     .map(
                         component ->
-                            mapComponentToDto(null, component, baseUrl, route, httpRequest))
+                            mapComponentToDto(
+                                null,
+                                component,
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest))
                     .toList())
             .wrapCellContent(crudl.wrapCellContent())
             .compact(crudl.compact())

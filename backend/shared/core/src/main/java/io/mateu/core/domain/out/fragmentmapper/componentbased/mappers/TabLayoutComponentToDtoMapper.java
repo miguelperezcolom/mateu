@@ -12,7 +12,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class TabLayoutComponentToDtoMapper {
 
   public static ClientSideComponentDto mapTabLayoutToDto(
-      TabLayout tabLayout, String baseUrl, String route, HttpRequest httpRequest) {
+      TabLayout tabLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     var metadataDto =
         TabLayoutDto.builder()
             .variant(
@@ -28,7 +33,16 @@ public class TabLayoutComponentToDtoMapper {
         metadataDto,
         tabLayout.id(),
         tabLayout.tabs().stream()
-            .map(tab -> mapComponentToDto(null, tab, baseUrl, route, httpRequest))
+            .map(
+                tab ->
+                    mapComponentToDto(
+                        null,
+                        tab,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
             .toList(),
         tabLayout.style(),
         tabLayout.cssClasses(),

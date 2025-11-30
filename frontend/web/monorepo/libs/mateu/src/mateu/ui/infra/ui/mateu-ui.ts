@@ -130,6 +130,7 @@ export class MateuUi extends LitElement {
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.route}"
+                          consumedRoute="_empty"
                           instant="${this.instant}"
                           top="true"
                           style="width: 100%;"

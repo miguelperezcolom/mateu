@@ -54,7 +54,12 @@ class ReflectionPageMapperTest {
     var instance = new FakeSimplePage();
     var page =
         mapToPageComponent(
-            instance, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            instance,
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
 
     assertNotNull(page);
     assertNull(page.pageTitle());
@@ -80,7 +85,12 @@ class ReflectionPageMapperTest {
     var instance = new FakeCompletePage();
     var page =
         mapToPageComponent(
-            instance, "base_url", "route", "initiator_component_id", new FakeHttpRequest());
+            instance,
+            "base_url",
+            "route",
+            "consumed_route",
+            "initiator_component_id",
+            new FakeHttpRequest());
 
     assertNotNull(page);
     assertEquals("Fake Page", page.pageTitle());

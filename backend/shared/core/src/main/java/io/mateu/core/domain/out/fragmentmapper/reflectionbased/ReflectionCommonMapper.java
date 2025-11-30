@@ -10,7 +10,7 @@ public class ReflectionCommonMapper {
     if (instance instanceof TitleSupplier hasTitle) {
       return hasTitle.title();
     }
-    return Humanizer.capitalize(instance.getClass().getSimpleName());
+    return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
   }
 
   public static String getSubtitle(Object instance) {
