@@ -64,8 +64,19 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
             .filter(factory -> factory.supports(instance, actionId, httpRequest))
             .min(Comparator.comparingInt(ActionRunner::priority));
     if (runner.isEmpty()) {
-      throw new NoSuchMethodException(
-          "No method with name " + actionId + " on " + instance.getClass().getName());
+      return new ActionRunner() {
+        @Override
+        public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
+          return false;
+        }
+
+        @Override
+        public Flux<?> run(Object instance, RunActionCommand command) {
+          return Flux.just(instance);
+        }
+      };
+//      throw new NoSuchMethodException(
+//          "No method with name " + actionId + " on " + instance.getClass().getName());
     }
     return runner.get();
   }

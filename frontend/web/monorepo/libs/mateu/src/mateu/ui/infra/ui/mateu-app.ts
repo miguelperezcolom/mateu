@@ -63,10 +63,21 @@ export class MateuApp extends ComponentElement {
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
-        this.selectRoute(e.detail.value.route)
+        this.selectRoute(e.detail.value.route, e.detail.value.actionId)
     }
 
-    selectRoute = (route: string | undefined) => {
+    selectRoute = (route: string | undefined, actionId: string | undefined) => {
+        if (actionId) {
+            console.log('dispatching action', actionId)
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId
+                },
+                bubbles: true,
+                composed: true
+            }))
+            return
+        }
         if (route) {
             this.selectedRoute = route
             this.instant = nanoid()
@@ -89,8 +100,6 @@ export class MateuApp extends ComponentElement {
                 window.history.pushState({},"", pathname);
             }
             //window.history.pushState({},"", this.baseUrl + app.homeRoute);
-        } else {
-
         }
     }
 
@@ -105,6 +114,7 @@ export class MateuApp extends ComponentElement {
                     return {
                         text: option.label,
                         route: option.destination?.route,
+                        actionId: option.actonId,
                         selected: filter || option.selected,
                         children
                     }
@@ -120,6 +130,7 @@ export class MateuApp extends ComponentElement {
                 return {
                     text: option.label,
                     route: option.destination?.route,
+                    actionId: option.actonId,
                     selected: filter || option.selected,
                 }
             } else return undefined
@@ -147,7 +158,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectRoute(option.destination.route)}"
+                @click="${() => this.selectRoute(option.destination.route, option.actonId)}"
         >${option.label}</vaadin-button>`
     }
 
@@ -156,8 +167,10 @@ export class MateuApp extends ComponentElement {
 
     navItemSelected = (e: Event & {
         path: string | undefined
+        actionId: string | undefined
     }) => {
-        this.selectRoute(e.path)
+        debugger
+        this.selectRoute(e.path, e.actionId)
         if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
             if (this.vaadinAppLayout) {
                 this.vaadinAppLayout.drawerOpened = false
@@ -194,7 +207,7 @@ export class MateuApp extends ComponentElement {
     updateRoute: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
-        this.selectRoute((e as CustomEvent).detail.route)
+        this.selectRoute((e as CustomEvent).detail.route, (e as CustomEvent).detail.actionId)
     }
 
     protected updated(_changedProperties: PropertyValues) {

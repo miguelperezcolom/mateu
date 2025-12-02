@@ -76,6 +76,14 @@ public class ReflectionObjectToComponentMapper {
           getData(httpRequest),
           UIFragmentActionDto.Replace);
     }
+    if (instance instanceof ServerSideComponentDto serverSideComponentDto) {
+      return new UIFragmentDto(
+              initiatorComponentId,
+              serverSideComponentDto,
+              serverSideComponentDto.initialData(),
+              getData(httpRequest),
+              UIFragmentActionDto.Replace);
+    }
     return instance;
   }
 

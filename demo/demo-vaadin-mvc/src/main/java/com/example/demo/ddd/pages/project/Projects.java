@@ -91,7 +91,7 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2>, RouteHa
 
     @Override
     public Object handleRoute(String route, HttpRequest httpRequest) {
-        if (!route.endsWith("projects")) {
+        if (!"".equals(route) && !route.endsWith("projects")) {
             var id = route.substring(route.indexOf("projects") + "projects".length() + 1).split("/")[0];
             return detail.load(id);
         }

@@ -111,7 +111,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${metadata.menu.map(option => {
                                 return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.destination.route)}"
+                                        @click="${() => container.selectRoute(option.destination.route, option.actionId)}"
                                 >${option.label}</vaadin-tab>
                             `
                             })}

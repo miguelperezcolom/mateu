@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.reflectionbased;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.getActionId;
 
 import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
@@ -196,6 +197,7 @@ public class ReflectionAppMapper {
                                   httpRequest)
                               : null,
                           new GoToRouteDto("", option.path(), ""),
+                          getActionId(option),
                           List.of(),
                           0,
                           true,

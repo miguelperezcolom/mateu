@@ -4,6 +4,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 export default interface MenuOption {
     label: string
     destination: GoToRoute
+    actionId: string | undefined
     selected: boolean
     submenus: MenuOption[]
     separator: boolean

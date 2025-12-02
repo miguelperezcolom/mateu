@@ -5,6 +5,7 @@ import static io.mateu.core.domain.Humanizer.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
@@ -23,6 +24,7 @@ import io.mateu.uidl.annotations.Widget;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
@@ -37,10 +39,13 @@ import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
 import io.mateu.uidl.interfaces.WidgetSupplier;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
+
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 
@@ -160,12 +165,27 @@ public class ReflectionAppMapper {
 
   private static List<Actionable> getActionables(
       String appRoute, Object instance, String route, HttpRequest httpRequest) {
-    return getAllFields(instance.getClass()).stream()
+    return Stream.concat(getAllFields(instance.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
         .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
-        .filter(Objects::nonNull)
+        .filter(Objects::nonNull),
+                    getAllMethods(instance.getClass()).stream()
+                            .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                            .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
+                            .filter(Objects::nonNull)
+                    )
         .toList();
   }
+
+  private static Actionable mapToMenu(
+          String appRoute, Method method, Object instance, String route, HttpRequest httpRequest) {
+    if ("/".equals(appRoute)) {
+      appRoute = "";
+    }
+    return new MethodLink(
+            appRoute + "/" + method.getName(), getLabel(method), instance.getClass(), method.getName());
+  }
+
 
   private static Actionable mapToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
@@ -241,6 +261,9 @@ public class ReflectionAppMapper {
       if (actionable instanceof FieldLink fieldLink) {
         actionable = fieldLink.withLabel(getLabel(field));
       }
+      if (actionable instanceof MethodLink methodLink) {
+        actionable = methodLink.withLabel(getLabel(field));
+      }
     }
     if (actionable.path() == null || actionable.path().isEmpty()) {
       if (actionable instanceof ContentLink contentLink) {
@@ -249,8 +272,18 @@ public class ReflectionAppMapper {
       if (actionable instanceof FieldLink fieldLink) {
         actionable = fieldLink.withPath(appRoute + "/" + field.getName());
       }
+      if (actionable instanceof MethodLink methodLink) {
+        actionable = methodLink.withPath(appRoute + "/" + field.getName());
+      }
     }
     return actionable;
+  }
+
+  private static String getLabel(Method method) {
+    if (method.isAnnotationPresent(Label.class)) {
+      return method.getAnnotation(Label.class).value();
+    }
+    return Humanizer.toUpperCaseFirst(method.getName());
   }
 
   private static String getLabel(Field field) {

@@ -14,6 +14,7 @@ import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
+import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
@@ -129,10 +130,13 @@ public final class AppComponentToDtoMapper {
                         option instanceof RouteLink
                                 || option instanceof ContentLink
                                 || option instanceof FieldLink
+                                || option instanceof MethodLink
                             ? new GoToRouteDto("", getPath(appRoute, option), null)
                             : null)
+                        .actionId(getActionId(option))
                     .selected(isSelected(option, appRoute, route))
                     .visible(true)
+                        .itemData(option.itemData())
                     .submenus(
                         option instanceof Menu asMenu
                             ? buildMenu(asMenu.submenu(), route, appRoute)
@@ -140,6 +144,19 @@ public final class AppComponentToDtoMapper {
                     .separator(option instanceof MenuSeparator)
                     .build())
         .toList();
+  }
+
+  public static String getActionId(Actionable option) {
+    if (option instanceof ContentLink contentLink) {
+      return contentLink.path();
+    }
+    if (option instanceof FieldLink fieldLink) {
+      return fieldLink.fieldName();
+    }
+    if (option instanceof MethodLink methodLink) {
+      return methodLink.methodName();
+    }
+    return null;
   }
 
   private static String getPath(String appRoute, Actionable option) {
@@ -151,6 +168,9 @@ public final class AppComponentToDtoMapper {
     }
     if (option instanceof FieldLink fieldLink) {
       option = fieldLink.withPath(prepend(appRoute, fieldLink.path()));
+    }
+    if (option instanceof MethodLink methodLink) {
+      option = methodLink.withPath(prepend(appRoute, methodLink.path()));
     }
     return option.path();
   }

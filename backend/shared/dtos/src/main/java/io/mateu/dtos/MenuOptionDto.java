@@ -12,6 +12,7 @@ public record MenuOptionDto(
     String label,
     ComponentDto component,
     GoToRouteDto destination,
+    String actionId,
     List<MenuOptionDto> submenus,
     @JsonIgnore int order,
     boolean visible,
