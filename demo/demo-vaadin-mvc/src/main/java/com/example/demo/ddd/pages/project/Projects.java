@@ -17,9 +17,11 @@ import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.Map;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
@@ -76,11 +78,13 @@ public class Projects implements ListingBackend<NoFilters, ProjectRow2>, RouteHa
         return ListingBackend.super.supportsAction(actionId);
     }
 
+    @SneakyThrows
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("view".equals(actionId)) {
             //return UICommand.navigateTo("projects/" + ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
-            return detail.load((String) ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
+            //return detail.load((String) ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
+            return new URI( "projects/" + ((Map)httpRequest.getParameters(Map.class).get("_clickedRow")).get("id"));
         }
         return ListingBackend.super.handleAction(actionId, httpRequest);
     }

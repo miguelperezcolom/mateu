@@ -198,11 +198,13 @@ public class RunActionUseCase {
   }
 
   private static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
-    if (instance instanceof RouteHandler handlesRoute) {
-      return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
-    }
-    if (instance instanceof ReactiveRouteHandler handlesRoute) {
-      return handlesRoute.handleRoute(command.route(), command.httpRequest());
+    if ("".equals(command.actionId()) && !"/_page".equals(command.route())) {
+      if (instance instanceof RouteHandler handlesRoute) {
+        return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
+      }
+      if (instance instanceof ReactiveRouteHandler handlesRoute) {
+        return handlesRoute.handleRoute(command.route(), command.httpRequest());
+      }
     }
     return Mono.just(instance);
   }
@@ -322,6 +324,17 @@ public class RunActionUseCase {
     //                return object;
     //              });
     //    }
+    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
+      return createInstance(command.appServerSideType(), command)
+              .map(
+                      object -> {
+                        if (object instanceof PostHydrationHandler postHydrationHandler) {
+                          postHydrationHandler.onHydrated(command.httpRequest());
+                        }
+                        return object;
+                      });
+    }
+
     return Mono.empty();
   }
 

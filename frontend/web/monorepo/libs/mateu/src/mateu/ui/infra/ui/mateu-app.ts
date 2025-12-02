@@ -71,7 +71,8 @@ export class MateuApp extends ComponentElement {
             console.log('dispatching action', actionId)
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
-                    actionId
+                    actionId,
+                    initiatorComponentId: `ux_${this.id}`
                 },
                 bubbles: true,
                 composed: true

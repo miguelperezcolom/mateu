@@ -21,7 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Route("/projects/[^/]+$")
+@Route(value = "/projects/[^/]+$", parentRoute = "")
 public class ProjectDetail implements CommandSupplier, PostHydrationHandler, RouteSupplier, ContentSupplier {
 
     final BeanProvider beanProvider;

@@ -19,6 +19,10 @@ import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.data.AppData;
+import io.mateu.uidl.data.AppState;
+import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -113,6 +117,18 @@ public class ReflectionObjectToComponentMapper {
     // no implementa appsupplier
     // está anotado con @MateuUI o con @Route
     // implementa Page
+    if (instance instanceof Data) {
+      return false;
+    }
+    if (instance instanceof State) {
+      return false;
+    }
+    if (instance instanceof AppData) {
+      return false;
+    }
+    if (instance instanceof AppState) {
+      return false;
+    }
     if ("/_page".equals(route)) {
       return true;
     }

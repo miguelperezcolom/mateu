@@ -303,7 +303,8 @@ export class MateuComponent extends ComponentElement {
         const detail = e.detail as {
             actionId: string,
             parameters: any,
-            callback: any
+            callback: any,
+            initiatorComponentId: any
         }
         if (e.type == 'action-requested') {
             e.preventDefault()
@@ -374,7 +375,8 @@ export class MateuComponent extends ComponentElement {
     requestActionCallToServer = (detail: {
         actionId: string,
         parameters: any,
-        callback: any
+        callback: any,
+        initiatorComponentId: any
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
         if (action && action.href) {
@@ -416,6 +418,20 @@ export class MateuComponent extends ComponentElement {
             }
         }
 
+        console.log('dispath', {
+            route: this.route,
+            consumedRoute: this.consumedRoute,
+            componentState: {...this.state},
+            parameters: detail.parameters,
+            actionId: detail.actionId,
+            serverSideType: serverSideComponent.serverSideType,
+            initiatorComponentId: detail.initiatorComponentId??serverSideComponent.id,
+            initiator: this,
+            background: action?.background,
+            sse: action?.sse,
+            callback: detail.callback
+        })
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 route: this.route,
@@ -424,7 +440,7 @@ export class MateuComponent extends ComponentElement {
                 parameters: detail.parameters,
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
-                initiatorComponentId: serverSideComponent.id,
+                initiatorComponentId: detail.initiatorComponentId??serverSideComponent.id,
                 initiator: this,
                 background: action?.background,
                 sse: action?.sse,
