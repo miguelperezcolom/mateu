@@ -29,7 +29,6 @@ const clicked = (e: CustomEvent) => {
         disabled: boolean
         //@ts-ignore
     } = e.target.action
-    console.log(e)
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
             actionId: action.methodNameInCrud,

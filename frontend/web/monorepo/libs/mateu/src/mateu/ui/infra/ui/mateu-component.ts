@@ -418,20 +418,6 @@ export class MateuComponent extends ComponentElement {
             }
         }
 
-        console.log('dispath', {
-            route: this.route,
-            consumedRoute: this.consumedRoute,
-            componentState: {...this.state},
-            parameters: detail.parameters,
-            actionId: detail.actionId,
-            serverSideType: serverSideComponent.serverSideType,
-            initiatorComponentId: detail.initiatorComponentId??serverSideComponent.id,
-            initiator: this,
-            background: action?.background,
-            sse: action?.sse,
-            callback: detail.callback
-        })
-
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 route: this.route,

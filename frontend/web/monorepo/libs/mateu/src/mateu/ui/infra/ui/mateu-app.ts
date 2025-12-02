@@ -68,7 +68,6 @@ export class MateuApp extends ComponentElement {
 
     selectRoute = (route: string | undefined, actionId: string | undefined) => {
         if (actionId) {
-            console.log('dispatching action', actionId)
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId,
@@ -115,7 +114,7 @@ export class MateuApp extends ComponentElement {
                     return {
                         text: option.label,
                         route: option.destination?.route,
-                        actionId: option.actonId,
+                        actionId: option.actionId,
                         selected: filter || option.selected,
                         children
                     }
@@ -131,7 +130,7 @@ export class MateuApp extends ComponentElement {
                 return {
                     text: option.label,
                     route: option.destination?.route,
-                    actionId: option.actonId,
+                    actionId: option.actionId,
                     selected: filter || option.selected,
                 }
             } else return undefined
@@ -159,7 +158,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectRoute(option.destination.route, option.actonId)}"
+                @click="${() => this.selectRoute(option.destination.route, option.actionId)}"
         >${option.label}</vaadin-button>`
     }
 
