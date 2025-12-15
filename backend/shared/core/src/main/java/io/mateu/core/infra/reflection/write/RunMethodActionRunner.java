@@ -8,13 +8,11 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.core.infra.reflection.read.MethodProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.lang.reflect.*;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
@@ -28,7 +26,8 @@ public class RunMethodActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return getMethod(instance.getClass(), actionId) != null || getFieldByName(instance.getClass(), actionId) != null;
+    return getMethod(instance.getClass(), actionId) != null
+        || getFieldByName(instance.getClass(), actionId) != null;
   }
 
   @SneakyThrows
@@ -45,7 +44,10 @@ public class RunMethodActionRunner implements ActionRunner {
       if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
       Object result = getValue(f, instance);
       if (result == null) {
-        result = instanceFactoryProvider.get(f.getType().getName()).createInstance(f.getType().getName(), Map.of(), command.httpRequest());
+        result =
+            instanceFactoryProvider
+                .get(f.getType().getName())
+                .createInstance(f.getType().getName(), Map.of(), command.httpRequest());
       }
       if (result instanceof Callable<?> callable) {
         result = callable.call();

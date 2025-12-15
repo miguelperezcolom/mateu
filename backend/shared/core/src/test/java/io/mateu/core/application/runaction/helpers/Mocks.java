@@ -9,6 +9,8 @@ import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper;
@@ -88,7 +90,15 @@ public class Mocks {
                   });
         }
         if (ActionRunner.class.equals(clazz)) {
-          return (Collection<T>) List.of(new RunMethodActionRunner());
+          return (Collection<T>)
+              List.of(
+                  new RunMethodActionRunner(
+                      new InstanceFactoryProvider() {
+                        @Override
+                        public InstanceFactory get(String className) {
+                          return null;
+                        }
+                      }));
         }
         if (UiIncrementMapper.class.equals(clazz)) {
           return (Collection<T>)

@@ -82,11 +82,11 @@ public class ReflectionObjectToComponentMapper {
     }
     if (instance instanceof ServerSideComponentDto serverSideComponentDto) {
       return new UIFragmentDto(
-              initiatorComponentId,
-              serverSideComponentDto,
-              serverSideComponentDto.initialData(),
-              getData(httpRequest),
-              UIFragmentActionDto.Replace);
+          initiatorComponentId,
+          serverSideComponentDto,
+          serverSideComponentDto.initialData(),
+          getData(httpRequest),
+          UIFragmentActionDto.Replace);
     }
     return instance;
   }

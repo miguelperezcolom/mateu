@@ -1,7 +1,6 @@
-package com.example.demo.ddd.pages.project;
+package com.example.demo.ddd.infra.in.ui.pages.project;
 
 import io.mateu.core.domain.ports.BeanProvider;
-import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.UICommand;
@@ -9,7 +8,6 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.ContentSupplier;
-import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.RouteSupplier;

@@ -2,7 +2,6 @@ package io.mateu.core.application.runaction;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
@@ -41,7 +40,6 @@ import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RouteSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -220,8 +218,8 @@ public class RunActionUseCase {
           instance,
           command.baseUrl(),
           command.initiatorComponentId(),
-              command.actionId(),
-              command);
+          command.actionId(),
+          command);
     }
     if (instance instanceof AppSupplier appSupplier) {
       var app =
@@ -237,11 +235,12 @@ public class RunActionUseCase {
           instance,
           command.baseUrl(),
           command.initiatorComponentId(),
-              command.actionId(),
-              command);
+          command.actionId(),
+          command);
     }
     if (isApp(instance, command.route())) {
-      var app = mapToAppComponent(
+      var app =
+          mapToAppComponent(
               instance,
               command.baseUrl(),
               command.route(),
@@ -257,8 +256,8 @@ public class RunActionUseCase {
           instance,
           command.baseUrl(),
           command.initiatorComponentId(),
-              command.actionId(),
-              command);
+          command.actionId(),
+          command);
     }
     return Flux.just(instance);
   }
@@ -301,15 +300,17 @@ public class RunActionUseCase {
                 return object;
               });
     }
-    if ("/_page".equals(command.route()) && command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
+    if ("/_page".equals(command.route())
+        && command.appServerSideType() != null
+        && !command.appServerSideType().isEmpty()) {
       return createInstance(command.appServerSideType(), command)
-              .map(
-                      object -> {
-                        if (object instanceof PostHydrationHandler postHydrationHandler) {
-                          postHydrationHandler.onHydrated(command.httpRequest());
-                        }
-                        return object;
-                      });
+          .map(
+              object -> {
+                if (object instanceof PostHydrationHandler postHydrationHandler) {
+                  postHydrationHandler.onHydrated(command.httpRequest());
+                }
+                return object;
+              });
     }
     // si hay una ruta --> esa clase
     Mono<?> instanceCreationPipe = resolveRoute(command);
@@ -326,13 +327,13 @@ public class RunActionUseCase {
     //    }
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
       return createInstance(command.appServerSideType(), command)
-              .map(
-                      object -> {
-                        if (object instanceof PostHydrationHandler postHydrationHandler) {
-                          postHydrationHandler.onHydrated(command.httpRequest());
-                        }
-                        return object;
-                      });
+          .map(
+              object -> {
+                if (object instanceof PostHydrationHandler postHydrationHandler) {
+                  postHydrationHandler.onHydrated(command.httpRequest());
+                }
+                return object;
+              });
     }
 
     return Mono.empty();
@@ -611,23 +612,30 @@ public class RunActionUseCase {
     if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
       if (potentialApp instanceof App app) {
         if ("".equals(actionId)) {
-          return Flux.just(wrap(app, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
+          return Flux.just(
+              wrap(app, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
         }
-        return Mono.just(app).flatMapMany(
-              appinstance ->
-                      actionRunnerProvider
-                              .get(
-                                      instance,
-                                      actionId,
-                                      consumedRoute,
-                                      route,
-                                      httpRequest)
-                              .run(instance, command)).flatMap(result -> {
-          if (result instanceof App resultAsApp) {
-            return Mono.just(wrap(resultAsApp, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
-          }
-          return Mono.just(result);
-        });
+        return Mono.just(app)
+            .flatMapMany(
+                appinstance ->
+                    actionRunnerProvider
+                        .get(instance, actionId, consumedRoute, route, httpRequest)
+                        .run(instance, command))
+            .flatMap(
+                result -> {
+                  if (result instanceof App resultAsApp) {
+                    return Mono.just(
+                        wrap(
+                            resultAsApp,
+                            instance,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initialComponentId,
+                            httpRequest));
+                  }
+                  return Mono.just(result);
+                });
       }
       return Flux.just(potentialApp);
     }
@@ -702,24 +710,26 @@ public class RunActionUseCase {
                     postHydrationHandler.onHydrated(httpRequest);
                   }
                   return object;
-                }).flux();
+                })
+            .flux();
       }
       if (actionable instanceof MethodLink methodLink) {
         return instanceFactoryProvider
-                .get(methodLink.serverSideType())
-                .createInstance(methodLink.serverSideType(), data, httpRequest)
-                .flatMap(
-                        object -> {
-                          var method = getMethod(object.getClass(), methodLink.methodName());
-                          return Mono.fromCallable(() -> invoke(method, object));
-                        })
-                .map(
-                        object -> {
-                          if (object instanceof PostHydrationHandler postHydrationHandler) {
-                            postHydrationHandler.onHydrated(httpRequest);
-                          }
-                          return object;
-                        }).flux();
+            .get(methodLink.serverSideType())
+            .createInstance(methodLink.serverSideType(), data, httpRequest)
+            .flatMap(
+                object -> {
+                  var method = getMethod(object.getClass(), methodLink.methodName());
+                  return Mono.fromCallable(() -> invoke(method, object));
+                })
+            .map(
+                object -> {
+                  if (object instanceof PostHydrationHandler postHydrationHandler) {
+                    postHydrationHandler.onHydrated(httpRequest);
+                  }
+                  return object;
+                })
+            .flux();
       }
       if (actionable instanceof Menu menu) {
         return Flux.just(new Text("Es un menu"));
@@ -728,31 +738,28 @@ public class RunActionUseCase {
     return Flux.empty();
   }
 
-  private Object wrap(Component component, Object modelView, String baseUrl,
-                      String route,
-                      String consumedRoute,
-                      String initiatorComponentId,
-                      HttpRequest httpRequest) {
+  private Object wrap(
+      Component component,
+      Object modelView,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     return new ServerSideComponentDto(
-            UUID.randomUUID().toString(),
-            modelView.getClass().getName(),
-            List.of(
-                    mapComponentToDto(
-                            null,
-                            component,
-                            baseUrl,
-                            route,
-                            consumedRoute,
-                            initiatorComponentId,
-                            httpRequest)),
-            modelView,
-            "",
-            "",
-            mapActions(modelView),
-            mapTriggers(modelView),
-            mapRules(modelView),
-            mapValidations(modelView),
-            null);
+        UUID.randomUUID().toString(),
+        modelView.getClass().getName(),
+        List.of(
+            mapComponentToDto(
+                null, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest)),
+        modelView,
+        "",
+        "",
+        mapActions(modelView),
+        mapTriggers(modelView),
+        mapRules(modelView),
+        mapValidations(modelView),
+        null);
   }
 
   @SneakyThrows

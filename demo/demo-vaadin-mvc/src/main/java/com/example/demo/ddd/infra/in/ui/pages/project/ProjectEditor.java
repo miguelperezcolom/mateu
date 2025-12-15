@@ -1,4 +1,4 @@
-package com.example.demo.ddd.pages.project;
+package com.example.demo.ddd.infra.in.ui.pages.project;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.annotations.Button;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ProjectCreationForm {
+public class ProjectEditor {
 
     final BeanProvider beanProvider;
 
@@ -15,7 +15,7 @@ public class ProjectCreationForm {
 
     @Button
     Object save() {
-        return beanProvider.getBean(Projects.class);
+        return beanProvider.getBean(ProjectDetail.class);
     }
 
 }

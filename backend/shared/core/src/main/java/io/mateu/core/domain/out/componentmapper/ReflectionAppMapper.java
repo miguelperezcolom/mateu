@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
 
@@ -165,27 +164,26 @@ public class ReflectionAppMapper {
 
   private static List<Actionable> getActionables(
       String appRoute, Object instance, String route, HttpRequest httpRequest) {
-    return Stream.concat(getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
-        .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
-        .filter(Objects::nonNull),
-                    getAllMethods(instance.getClass()).stream()
-                            .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
-                            .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
-                            .filter(Objects::nonNull)
-                    )
+    return Stream.concat(
+            getAllFields(instance.getClass()).stream()
+                .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
+                .filter(Objects::nonNull),
+            getAllMethods(instance.getClass()).stream()
+                .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
+                .filter(Objects::nonNull))
         .toList();
   }
 
   private static Actionable mapToMenu(
-          String appRoute, Method method, Object instance, String route, HttpRequest httpRequest) {
+      String appRoute, Method method, Object instance, String route, HttpRequest httpRequest) {
     if ("/".equals(appRoute)) {
       appRoute = "";
     }
     return new MethodLink(
-            appRoute + "/" + method.getName(), getLabel(method), instance.getClass(), method.getName());
+        appRoute + "/" + method.getName(), getLabel(method), instance.getClass(), method.getName());
   }
-
 
   private static Actionable mapToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {

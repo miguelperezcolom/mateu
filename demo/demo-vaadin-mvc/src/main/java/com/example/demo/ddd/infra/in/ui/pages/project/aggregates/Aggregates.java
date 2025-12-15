@@ -1,4 +1,4 @@
-package com.example.demo.ddd.pages.project.aggregates;
+package com.example.demo.ddd.infra.in.ui.pages.project.aggregates;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;

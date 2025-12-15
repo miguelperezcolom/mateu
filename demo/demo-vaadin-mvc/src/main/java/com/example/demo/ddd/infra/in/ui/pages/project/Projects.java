@@ -1,4 +1,4 @@
-package com.example.demo.ddd.pages.project;
+package com.example.demo.ddd.infra.in.ui.pages.project;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.Label;

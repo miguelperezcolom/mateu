@@ -133,10 +133,10 @@ public final class AppComponentToDtoMapper {
                                 || option instanceof MethodLink
                             ? new GoToRouteDto("", getPath(appRoute, option), null)
                             : null)
-                        .actionId(getActionId(option))
+                    .actionId(getActionId(option))
                     .selected(isSelected(option, appRoute, route))
                     .visible(true)
-                        .itemData(option.itemData())
+                    .itemData(option.itemData())
                     .submenus(
                         option instanceof Menu asMenu
                             ? buildMenu(asMenu.submenu(), route, appRoute)
