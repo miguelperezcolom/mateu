@@ -23970,7 +23970,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                 </vaadin-details>
 `:x$4`<vaadin-button theme="tertiary" 
                 @click="${()=>this.selectRoute(te.destination.route,te.actionId)}"
-        >${te.label}</vaadin-button>`,this.navItemSelected=te=>{debugger;this.selectRoute(te.path,te.actionId),this.component.metadata.drawerClosed&&this.vaadinAppLayout&&(this.vaadinAppLayout.drawerOpened=!1)},this.renderSideNav=(te,Q)=>te?x$4`
+        >${te.label}</vaadin-button>`,this.navItemSelected=te=>{this.selectRoute(te.path,te.actionId),this.component.metadata.drawerClosed&&this.vaadinAppLayout&&(this.vaadinAppLayout.drawerOpened=!1)},this.renderSideNav=(te,Q)=>te?x$4`
             ${te.map(X=>x$4`
 
                         ${X.component=="hr"?x$4`<hr slot="children"/>`:x$4`

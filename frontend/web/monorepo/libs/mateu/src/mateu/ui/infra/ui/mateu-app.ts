@@ -169,7 +169,6 @@ export class MateuApp extends ComponentElement {
         path: string | undefined
         actionId: string | undefined
     }) => {
-        debugger
         this.selectRoute(e.path, e.actionId)
         if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
             if (this.vaadinAppLayout) {
