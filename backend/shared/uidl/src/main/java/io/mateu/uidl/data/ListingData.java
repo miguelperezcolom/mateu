@@ -20,4 +20,9 @@ public record ListingData<Row>(Page<Row> page, String emptyStateMessage) {
     return new ListingData<>(
         new Page("", rows.length, 0, rows.length, Arrays.stream(rows).toList()));
   }
+
+  public static <Row> ListingData<Row> of(List<Row> rows) {
+    return new ListingData<>(
+            new Page("", rows.size(), 0, rows.size(), rows));
+  }
 }

@@ -59,7 +59,7 @@ public class Writer {
                         hotel.codigo(),
                         hotel.nombre(),
                         "image",
-                        "id_destino",
+                        hotel.idDestino(),
                         List.of(),
                         List.of(),
                         List.of(),

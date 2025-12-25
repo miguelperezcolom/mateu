@@ -19,7 +19,7 @@ class PopulatorTest {
     @Test
     void works() {
 
-        populator.populate();
+        //populator.populate();
 
         assertFalse(agencyRepository.findAll().isEmpty());
 

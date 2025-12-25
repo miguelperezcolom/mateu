@@ -9,6 +9,7 @@ import com.example.demo.ddd.infra.in.populator.dtos.DestinoDto;
 import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;
 import com.example.demo.ddd.infra.in.populator.dtos.RegimenDto;
 import com.example.demo.ddd.infra.in.populator.dtos.TipoHabitacionDto;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,7 @@ public class Populator {
         return new DataSet(tiposHabitacion, regimenes, agencias, destinos, hoteles);
     }
 
+    @PostConstruct
     public void populate() {
         var dataSet = create();
         write(dataSet,

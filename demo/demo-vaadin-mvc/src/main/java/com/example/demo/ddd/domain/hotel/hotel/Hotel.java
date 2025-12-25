@@ -2,6 +2,7 @@ package com.example.demo.ddd.domain.hotel.hotel;
 
 import com.example.demo.ddd.domain.hotel.hotel.stopsales.StopSalesLine;
 import com.example.demo.ddd.domain.hotel.hotel.tariff.BoardType;
+import com.example.demo.ddd.infra.in.ui.pages.hotel.GenericEntity;
 import com.example.demo.ddd.infra.out.persistence.Entity;
 
 import java.util.List;
@@ -17,5 +18,5 @@ public record Hotel(
         List<Tariff> tariffs,
         List<Inventory> inventories,
         List<StopSalesLine> stopSales
-        ) implements Entity<String> {
+        ) implements GenericEntity {
 }
