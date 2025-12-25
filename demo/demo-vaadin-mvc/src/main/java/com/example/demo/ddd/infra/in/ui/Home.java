@@ -17,7 +17,7 @@ public class Home {
     Agencies agencies;
 
     @Menu
-    Countries countries;
+    MasterDataMenu masterData;
 
     @Menu
     Hotels hotels;
