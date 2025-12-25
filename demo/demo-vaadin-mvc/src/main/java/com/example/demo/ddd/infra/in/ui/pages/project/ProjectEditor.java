@@ -5,6 +5,8 @@ import io.mateu.uidl.annotations.Button;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectEditor {
@@ -12,6 +14,16 @@ public class ProjectEditor {
     final BeanProvider beanProvider;
 
     String name;
+
+    ProjectType type;
+
+    Framework framework;
+
+    int version;
+
+    LocalDate expectedDelivery;
+
+    boolean hlaReady;
 
     @Button
     Object save() {

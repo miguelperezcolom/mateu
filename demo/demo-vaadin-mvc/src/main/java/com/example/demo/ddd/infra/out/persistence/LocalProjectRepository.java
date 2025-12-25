@@ -3,9 +3,11 @@ package com.example.demo.ddd.infra.out.persistence;
 import com.example.demo.ddd.application.out.ProjectRepository;
 import com.example.demo.ddd.domain.aggregates.project.Project;
 import com.example.demo.ddd.domain.aggregates.project.valueobjects.ProjectId;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class LocalProjectRepository implements ProjectRepository {
     @Override
     public Project findById(ProjectId id) {
