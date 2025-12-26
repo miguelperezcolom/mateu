@@ -1,8 +1,6 @@
 package com.example.demo.ddd.domain.hotel.world;
 
-import com.example.demo.ddd.domain.hotel.hotel.Hotel;
-import com.example.demo.ddd.infra.in.ui.pages.hotel.GenericEntity;
-import com.example.demo.ddd.infra.out.persistence.Entity;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 
 import java.util.List;
 

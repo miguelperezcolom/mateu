@@ -1,6 +1,6 @@
 package com.example.demo.ddd.domain.hotel.codes;
 
-import com.example.demo.ddd.infra.in.ui.pages.hotel.GenericEntity;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 
 public record BoardTypeCode(
         String code,

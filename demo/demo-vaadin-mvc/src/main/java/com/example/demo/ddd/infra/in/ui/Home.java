@@ -6,6 +6,7 @@ import com.example.demo.ddd.infra.in.ui.pages.hotel.Hotels;
 import com.example.demo.ddd.infra.in.ui.pages.project.Projects;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
+import org.springframework.stereotype.Service;
 
 @MateuUI("")
 public class Home {
@@ -20,7 +21,7 @@ public class Home {
     MasterDataMenu masterData;
 
     @Menu
-    Hotels hotels;
+    ProductSubmenu product;
 
     String content = "Hola!";
 

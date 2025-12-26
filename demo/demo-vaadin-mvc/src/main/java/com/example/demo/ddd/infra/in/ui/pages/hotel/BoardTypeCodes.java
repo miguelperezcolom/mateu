@@ -3,6 +3,8 @@ package com.example.demo.ddd.infra.in.ui.pages.hotel;
 import com.example.demo.ddd.domain.hotel.codes.BoardTypeCode;
 import com.example.demo.ddd.domain.hotel.codes.BoardTypeCodeRepository;
 import com.example.demo.ddd.domain.hotel.shared.Repository;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericListingBackend;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,7 @@ public class BoardTypeCodes extends GenericListingBackend<BoardTypeCode> {
 
 
     @Override
-    public Repository<? extends GenericEntity, String> repository() {
+    public Repository<BoardTypeCode, String> repository() {
         return boardTypeCodeRepository;
     }
 }

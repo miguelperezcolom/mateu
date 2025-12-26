@@ -2,7 +2,7 @@ package com.example.demo.ddd.domain.hotel.hotel;
 
 import com.example.demo.ddd.domain.hotel.hotel.stopsales.StopSalesLine;
 import com.example.demo.ddd.domain.hotel.codes.BoardType;
-import com.example.demo.ddd.infra.in.ui.pages.hotel.GenericEntity;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
 package com.example.demo.ddd.infra.in.ui.pages.hotel;
 
+import com.example.demo.ddd.domain.hotel.hotel.Contract;
+import com.example.demo.ddd.domain.hotel.hotel.ContractRepository;
 import com.example.demo.ddd.domain.hotel.shared.Repository;
-import com.example.demo.ddd.domain.hotel.world.Destination;
-import com.example.demo.ddd.domain.hotel.world.DestinationRepository;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericListingBackend;
 import io.mateu.uidl.annotations.Trigger;
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class Destinations extends GenericListingBackend<Destination> {
+public class Contracts extends GenericListingBackend<Contract> {
 
-    final DestinationRepository destinationRepository;
+    final ContractRepository contractRepository;
 
 
     @Override
-    public Repository<Destination, String> repository() {
-        return destinationRepository;
+    public Repository<Contract, String> repository() {
+        return contractRepository;
     }
 }

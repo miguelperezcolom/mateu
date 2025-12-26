@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+
+import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,9 @@ public class ValueProvider {
   @SneakyThrows
   public static Object getValueOrNewInstance(Field f, Object o) {
     var value = getValue(f, o);
+    if (value == null) {
+      value = MateuInstanceFactory.newInstance(f.getType(), Map.of(), null);
+    }
     if (value == null) {
       var constructor = f.getType().getDeclaredConstructor();
       if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);

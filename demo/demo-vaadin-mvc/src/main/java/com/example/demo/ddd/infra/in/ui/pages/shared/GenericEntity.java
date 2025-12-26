@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.pages.hotel;
+package com.example.demo.ddd.infra.in.ui.pages.shared;
 
 import com.example.demo.ddd.infra.out.persistence.Entity;
 

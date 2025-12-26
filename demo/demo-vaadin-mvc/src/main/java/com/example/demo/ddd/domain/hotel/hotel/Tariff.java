@@ -15,6 +15,7 @@ import com.example.demo.ddd.domain.hotel.hotel.tariff.periods.Price;
 import com.example.demo.ddd.domain.hotel.hotel.tariff.periods.RoomSupplement;
 import com.example.demo.ddd.domain.hotel.hotel.tariff.supplements.Supplement;
 import com.example.demo.ddd.domain.hotel.hotel.tariff.supplementsperday.SupplementPerDayPrice;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,5 +46,5 @@ public record Tariff(
         List<ApplicationTerm> applicationTerms,
         List<SupplementPerDayPrice> supplementPerDayPrices
 
-        ) {
+        ) implements GenericEntity {
 }

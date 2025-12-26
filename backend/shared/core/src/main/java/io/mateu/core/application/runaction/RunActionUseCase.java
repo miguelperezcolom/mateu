@@ -40,6 +40,8 @@ import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RouteSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -615,6 +617,9 @@ public class RunActionUseCase {
           return Flux.just(
               wrap(app, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
         }
+        if (isDeclarativeApp(instance.getClass())) {
+          return resolveMenuInDeclarativeApp(instance, actionId);
+        }
         return Mono.just(app)
             .flatMapMany(
                 appinstance ->
@@ -736,6 +741,32 @@ public class RunActionUseCase {
       }
     }
     return Flux.empty();
+  }
+
+  private Flux<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
+    return Mono.just(instance)
+            .map(app -> findContainer(app, actionId)).flux();
+  }
+
+  private Object findContainer(Object app, String route) {
+    var fieldInClass = getFieldByName(app.getClass(), route);
+    if (fieldInClass != null) {
+      return getValueOrNewInstance(fieldInClass, app);
+    }
+    for (Field field : getAllFields(app.getClass()).stream().filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)).toList()) {
+      if (isDeclarativeApp(field.getType())) {
+        var optionInMenu = findContainer(getValueOrNewInstance(field, app), route);
+        if (optionInMenu != null) {
+          return optionInMenu;
+        }
+      }
+    }
+    return null;
+  }
+
+  public static boolean isDeclarativeApp(Class type) {
+    return getAllFields(type).stream()
+            .anyMatch(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class));
   }
 
   private Object wrap(
