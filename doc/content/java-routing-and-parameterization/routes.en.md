@@ -6,6 +6,9 @@ weight: 4
 With **Mateu** you do not technically need to define routes (they are transparently defined for you, from your java 
 code), but defining routes is a good practice.
 
+So, if you declarative define an app (a class with fields annotated with @Menu) routes will be created from the 
+field names. On the other hand, you can annotate any class with @Route to create a route. 
+
 As an example, here you have the simplest route definition:
 
 ```java
