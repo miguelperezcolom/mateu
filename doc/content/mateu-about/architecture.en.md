@@ -8,7 +8,7 @@ exceedingly simple API.
 
 The following diagram gives the architecture overall view:
 
-<p align="center"><img src="../../../images/arch-overall-1.svg" width="500"/></p>
+<p align="center"><img src="../../../images/arch-overall-1.svg" width="400"/></p>
 
 Please notice that both the frontend and the backend components are interchangeable. You can indeed choose among
 the ones provided by **Mateu** or easily build your own. E.g. you can choose to combine the **Red Hat** frontend with a 
@@ -18,7 +18,7 @@ and **.Net**.
 
 So, the same backend can be used from different frontends like below.
 
-<p align="center"><img src="../../../images/arch-overall-12.svg" width="600"/></p>
+<p align="center"><img src="../../../images/arch-overall-12.svg" width="500"/></p>
 
 We can also use the same fronted to compose UIs defined from different backends.
 
