@@ -3,7 +3,7 @@ title: "Multi-page components"
 weight: 120
 ---
 
-controller-like
+controller-like, or router + actions
 
 examples:
 - cruds
