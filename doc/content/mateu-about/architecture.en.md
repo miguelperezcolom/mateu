@@ -3,7 +3,7 @@ title: "Architecture"
 weight: 16
 ---
 
-At the highest level **Mateu**'s architecture is exceedingly simple: just a static frontend component which talks to the backend using an 
+At the highest level **Mateu**'s architecture is exceedingly simple: just a static frontend component (a renderer) which talks to the backend using an 
 exceedingly simple API.
 
 The following diagram gives the architecture overall view:
