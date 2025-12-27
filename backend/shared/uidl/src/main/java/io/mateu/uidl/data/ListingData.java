@@ -22,7 +22,6 @@ public record ListingData<Row>(Page<Row> page, String emptyStateMessage) {
   }
 
   public static <Row> ListingData<Row> of(List<Row> rows) {
-    return new ListingData<>(
-            new Page("", rows.size(), 0, rows.size(), rows));
+    return new ListingData<>(new Page("", rows.size(), 0, rows.size(), rows));
   }
 }

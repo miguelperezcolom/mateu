@@ -16,6 +16,8 @@ Java **Micronaut** based backend, or perhaps you prefer to go with the **Oracle'
 backend, or perhaps you want to use a **Vaadin** frontend relying on several micro services using **Quarkus**, **Springboot MVC** 
 and **.Net**.
 
+<p align="center"><img src="../../../images/arch-overall-12.svg" width="500"/></p>
+
 The good point about being so simple and decoupled is that you can even easily build your own frontend and backend 
 artifacts in order to, e.g., use your own design system while leveraging the existing Mateu's backend libraries.
 

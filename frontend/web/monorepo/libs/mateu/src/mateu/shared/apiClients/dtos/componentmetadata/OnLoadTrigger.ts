@@ -4,5 +4,6 @@ export default interface OnLoadTrigger extends Trigger {
 
     timeoutMillis: number
     times: number
+    triggered: boolean
 
 }

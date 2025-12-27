@@ -49,6 +49,26 @@ public class ReflectionFormFieldMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    return getFormField(
+        field,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        isReadOnly(field, instance));
+  }
+
+  public static Component getFormField(
+      Field field,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean readOnly) {
     if (Component.class.isAssignableFrom(field.getType())) {
       return CustomField.builder()
           .label(getLabel(field))
@@ -71,7 +91,7 @@ public class ReflectionFormFieldMapper {
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
-        .readOnly(isReadOnly(field, instance))
+        .readOnly(readOnly)
         .build();
   }
 

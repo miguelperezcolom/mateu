@@ -235,6 +235,7 @@ export class MateuApp extends ComponentElement {
         .app-content {
             padding-left: 2rem;
             padding-right: 2rem;
+            width: calc(100% - 4rem);
         }
         
   `

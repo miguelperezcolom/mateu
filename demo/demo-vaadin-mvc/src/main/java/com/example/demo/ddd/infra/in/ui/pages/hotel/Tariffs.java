@@ -3,6 +3,7 @@ package com.example.demo.ddd.infra.in.ui.pages.hotel;
 import com.example.demo.ddd.domain.hotel.hotel.Tariff;
 import com.example.demo.ddd.domain.hotel.hotel.TariffRepository;
 import com.example.demo.ddd.domain.hotel.shared.Repository;
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericCrud;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericListingBackend;
 import io.mateu.uidl.annotations.Trigger;
@@ -12,8 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class Tariffs extends GenericListingBackend<Tariff> {
+public class Tariffs extends GenericCrud<Tariff> {
 
     final TariffRepository tariffRepository;
 

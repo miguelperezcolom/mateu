@@ -37,7 +37,7 @@ public class Reader {
     static List<RegimenDto> leerRegimenes() {
         return readAllLines(Path.of(Reader.class.getResource("/data/regimenes.csv").getPath()))
                 .stream()
-                .map(linea -> new RegimenDto(linea[0], linea[1]))
+                .map(linea -> new RegimenDto(linea[0], linea[1], linea[2]))
                 .toList();
     }
 

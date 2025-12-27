@@ -7,6 +7,7 @@ import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import OnLoadTrigger from "@mateu/shared/apiClients/dtos/componentmetadata/OnLoadTrigger.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -110,7 +111,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         const serverSideComponent = this.component as ServerSideComponent
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
-                if (!trigger.condition || eval(trigger.condition)) {
+                if (!trigger.condition || eval(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
+                    (trigger as OnLoadTrigger).triggered = true
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
                             actionId: trigger.actionId

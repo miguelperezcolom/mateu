@@ -32,6 +32,7 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
@@ -40,7 +41,6 @@ import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RouteSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -613,12 +613,13 @@ public class RunActionUseCase {
       RunActionCommand command) {
     if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
       if (potentialApp instanceof App app) {
-        if ("".equals(actionId)) {
+        var effectiveRoute = "".equals(actionId)?route:actionId;
+        if ("".equals(effectiveRoute)) {
           return Flux.just(
               wrap(app, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
         }
         if (isDeclarativeApp(instance.getClass())) {
-          return resolveMenuInDeclarativeApp(instance, actionId);
+          return resolveMenuInDeclarativeApp(instance, effectiveRoute);
         }
         return Mono.just(app)
             .flatMapMany(
@@ -744,8 +745,7 @@ public class RunActionUseCase {
   }
 
   private Flux<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
-    return Mono.just(instance)
-            .map(app -> findContainer(app, actionId)).flux();
+    return Mono.just(instance).map(app -> findContainer(app, actionId)).flux();
   }
 
   private Object findContainer(Object app, String route) {
@@ -753,7 +753,10 @@ public class RunActionUseCase {
     if (fieldInClass != null) {
       return getValueOrNewInstance(fieldInClass, app);
     }
-    for (Field field : getAllFields(app.getClass()).stream().filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)).toList()) {
+    for (Field field :
+        getAllFields(app.getClass()).stream()
+            .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+            .toList()) {
       if (isDeclarativeApp(field.getType())) {
         var optionInMenu = findContainer(getValueOrNewInstance(field, app), route);
         if (optionInMenu != null) {
@@ -766,11 +769,29 @@ public class RunActionUseCase {
 
   public static boolean isDeclarativeApp(Class type) {
     return getAllFields(type).stream()
-            .anyMatch(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class));
+        .anyMatch(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class));
   }
 
-  private Object wrap(
+  public static Object wrap(
       Component component,
+      Object modelView,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return wrap(
+        List.of(component),
+        modelView,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest);
+  }
+
+  public static Object wrap(
+      List<Component> components,
       Object modelView,
       String baseUrl,
       String route,
@@ -780,10 +801,19 @@ public class RunActionUseCase {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         modelView.getClass().getName(),
-        List.of(
-            mapComponentToDto(
-                null, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest)),
-        modelView,
+        components.stream()
+            .map(
+                component ->
+                    mapComponentToDto(
+                        null,
+                        component,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest))
+            .toList(),
+        getData(modelView),
         "",
         "",
         mapActions(modelView),
@@ -791,6 +821,13 @@ public class RunActionUseCase {
         mapRules(modelView),
         mapValidations(modelView),
         null);
+  }
+
+  private static Object getData(Object modelView) {
+    if (modelView instanceof DataSupplier dataSupplier) {
+      return dataSupplier.data();
+    }
+    return modelView;
   }
 
   @SneakyThrows

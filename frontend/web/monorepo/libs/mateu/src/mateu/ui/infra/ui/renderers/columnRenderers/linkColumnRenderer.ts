@@ -21,6 +21,15 @@ export const renderLinkCell = (item: any,
                                 _stereotype: string,
                                column: GridColumn
 ) => {
+    if (column.text) {
+        if (column.actionId) {
+            // @ts-ignore
+            return html`<a href="javascript: void(0);" @click="${(_e: any) => handleClick(vaadinColumn, column, item)}">${column.text}</a>`;
+        }
+        // @ts-ignore
+        const href = item[vaadinColumn.path]
+        return html`<a href="${href}">${column.text}</a>`;
+    }
     if (type == 'string') {
         if (column.actionId) {
             // @ts-ignore

@@ -17,5 +17,6 @@ export default interface GridColumn extends ComponentMetadata {
     stereotype: string
     tooltipPath: string
     actionId: string
+    text: string
 
 }

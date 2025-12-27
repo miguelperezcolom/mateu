@@ -22,5 +22,6 @@ public record GridColumnDto(
     boolean resizable,
     String width,
     String tooltipPath,
-    String actionId)
+    String actionId,
+    String text)
     implements ComponentMetadataDto {}

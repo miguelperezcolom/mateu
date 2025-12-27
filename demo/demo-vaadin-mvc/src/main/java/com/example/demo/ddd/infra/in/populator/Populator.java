@@ -1,7 +1,13 @@
 package com.example.demo.ddd.infra.in.populator;
 
 import com.example.demo.ddd.domain.hotel.agency.AgencyRepository;
+import com.example.demo.ddd.domain.hotel.codes.BoardTypeCodeRepository;
+import com.example.demo.ddd.domain.hotel.codes.RoomTypeCodeRepository;
+import com.example.demo.ddd.domain.hotel.codes.SeasonRepository;
+import com.example.demo.ddd.domain.hotel.hotel.ContractRepository;
 import com.example.demo.ddd.domain.hotel.hotel.HotelRepository;
+import com.example.demo.ddd.domain.hotel.hotel.InventoryRepository;
+import com.example.demo.ddd.domain.hotel.hotel.TariffRepository;
 import com.example.demo.ddd.domain.hotel.world.CountryRepository;
 import com.example.demo.ddd.domain.hotel.world.DestinationRepository;
 import com.example.demo.ddd.infra.in.populator.dtos.AgenciaDto;
@@ -27,6 +33,12 @@ public class Populator {
     final HotelRepository hotelRepository;
     final CountryRepository countryRepository;
     final DestinationRepository destinationRepository;
+    final SeasonRepository seasonRepository;
+    final RoomTypeCodeRepository roomTypeCodeRepository;
+    final BoardTypeCodeRepository boardTypeCodeRepository;
+    final ContractRepository contractRepository;
+    final TariffRepository tariffRepository;
+    final InventoryRepository inventoryRepository;
 
     public DataSet create() {
         List<TipoHabitacionDto> tiposHabitacion = leerTiposHabitacion();
@@ -44,7 +56,14 @@ public class Populator {
                 agencyRepository,
                 hotelRepository,
                 countryRepository,
-                destinationRepository);
+                destinationRepository,
+                seasonRepository,
+                roomTypeCodeRepository,
+                boardTypeCodeRepository,
+                contractRepository,
+                tariffRepository,
+                inventoryRepository
+);
     }
 
 }

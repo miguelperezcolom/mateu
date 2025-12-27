@@ -21,7 +21,8 @@ public record GridColumn(
     boolean resizable,
     String width,
     String tooltipPath,
-    String actionId)
+    String actionId,
+    String text)
     implements GridContent {
 
   public FieldDataType dataType() {

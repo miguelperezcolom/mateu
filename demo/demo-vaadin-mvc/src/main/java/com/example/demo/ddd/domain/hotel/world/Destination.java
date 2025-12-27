@@ -7,6 +7,7 @@ import java.util.List;
 public record Destination(
         String code,
         String name,
+        String countryCode,
         List<String> hotelIds
 ) implements GenericEntity {
     @Override

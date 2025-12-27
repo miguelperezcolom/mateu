@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -65,12 +64,14 @@ public final class JsonSerializer {
     return pojoFromJson(json, c);
   }
 
-  public static <T> T pojoFromJson(String json, Class<T> c) throws Exception {
+  @SneakyThrows
+  public static <T> T pojoFromJson(String json, Class<T> c) {
     if (json == null || json.isEmpty()) json = "{}";
     return mapper.readValue(json, c);
   }
 
-  public static Map<String, Object> fromJson(String json) throws IOException {
+  @SneakyThrows
+  public static Map<String, Object> fromJson(String json) {
     if (json == null || "".equals(json)) json = "{}";
     return mapper.readValue(json, Map.class);
   }

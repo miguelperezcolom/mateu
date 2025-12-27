@@ -182,7 +182,7 @@ public class ReflectionPageMapper {
     return getGenericClass(instance.getClass(), ListingBackend.class, "Filters");
   }
 
-  private static Collection<? extends GridContent> getColumns(
+  public static Collection<? extends GridContent> getColumns(
       Class rowClass,
       Object instance,
       String baseUrl,
@@ -209,7 +209,7 @@ public class ReflectionPageMapper {
         .build();
   }
 
-  private static Collection<FormField> getFilters(
+  public static Collection<FormField> getFilters(
       Class filtersClass,
       Object instance,
       String baseUrl,
@@ -232,7 +232,35 @@ public class ReflectionPageMapper {
         .toList();
   }
 
-  private static Collection<? extends Component> getForm(
+  public static Collection<? extends Component> getView(
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return List.of(
+        FormLayout.builder()
+            .content(
+                getAllEditableFields(instance.getClass()).stream()
+                    .filter(field -> !field.isAnnotationPresent(Menu.class))
+                    .map(
+                        field ->
+                            (Component)
+                                getFormField(
+                                    field,
+                                    instance,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest,
+                                    true))
+                    .toList())
+            .build());
+  }
+
+  public static Collection<? extends Component> getForm(
       Object instance,
       String baseUrl,
       String route,

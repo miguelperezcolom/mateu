@@ -6,9 +6,11 @@ import com.example.demo.ddd.infra.in.ui.pages.hotel.Hotels;
 import com.example.demo.ddd.infra.in.ui.pages.project.Projects;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.annotations.Style;
 import org.springframework.stereotype.Service;
 
 @MateuUI("")
+@Style("width: 100%;")
 public class Home {
 
     @Menu

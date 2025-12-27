@@ -33,6 +33,7 @@ public class GridColumnComponentToDtoMapper {
             .width(getWidth(gridColumn))
             .tooltipPath(gridColumn.tooltipPath())
             .actionId(gridColumn.actionId())
+            .text(gridColumn.text())
             .build(),
         gridColumn.id(),
         List.of(),
