@@ -16,7 +16,17 @@ Java **Micronaut** based backend, or perhaps you prefer to go with the **Oracle'
 backend, or perhaps you want to use a **Vaadin** frontend relying on several micro services using **Quarkus**, **Springboot MVC** 
 and **.Net**.
 
+So, the same backend can be used from different frontends like below.
+
 <p align="center"><img src="../../../images/arch-overall-12.svg" width="500"/></p>
+
+We can also use the same fronted to compose UIs defined from different backends.
+
+<p align="center"><img src="../../../images/arch-overall-13.svg" width="500"/></p>
+
+Even from backends served from different urls.
+
+<p align="center"><img src="../../../images/arch-overall-14.svg" width="500"/></p>
 
 The good point about being so simple and decoupled is that you can even easily build your own frontend and backend 
 artifacts in order to, e.g., use your own design system while leveraging the existing Mateu's backend libraries.
