@@ -93,18 +93,28 @@ Well, for what is of interest here, our inputs contain:
 
 So, our pseudocode for arriving to the target instance is the following:
 
-- if the server-side-type is informed, 
-  - return it
-- if the app server-side type is informed
-  - resolve menu (find option in menu with name == action or remaining route)
-- guess from route
+```java
+if (the server-side-type is informed) {
+  return it
+} 
+if (the app server-side type is informed) {
+    return resolve menu in app; // find option in menu with name == action or remaining route
+}
+return guess from route
+
+```
 
 Guess from route logic:
 
-- if there is an app matching a part of the route
-  - return the app class and the consumed part of the route
-- if there is a matching route (a class annotated with @Route)
-  - if the class implements RouteHandler
-    - instantiate and return the route handling result
-  - return the class matching the route
-- return the class matching the UI (the class annotated with @MateuUI) 
+```java
+if (there is an app matching a part of the route) {
+  return the app class and the consumed part of the route;
+}
+if (there is a matching route){ //a class annotated with @Route
+  if (the class implements RouteHandler) {
+    instantiate and return the route handling result
+  }
+  return the class matching the route;
+}
+return the class matching the UI; // the class annotated with @MateuUI mathing the base route 
+```
