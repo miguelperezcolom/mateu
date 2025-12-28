@@ -147,7 +147,7 @@ public class ProductSubmenu {
 ```
 #### The CRUDs
 
-Each of those edge menu option is a class extending the *+GenericCrud** class, for an entity. Something like this:
+Each of those edge menu option is a class extending the **GenericCrud** class, for an entity. Something like this:
 
 ```java
 @Service
