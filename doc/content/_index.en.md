@@ -58,7 +58,7 @@ Since May 2024, work has begun on **Mateu v3**, which includes:
 
 ## 🚀 Ready to Build Smarter UIs?
 
-👉 [**Try the live demo**](http://demo.mateu.io)  
+👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
 👉 [**Check out the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
 👉 [**Explore the documentation**](https://mateu.io/java-create-your-project/springboot-mvc/)
 
