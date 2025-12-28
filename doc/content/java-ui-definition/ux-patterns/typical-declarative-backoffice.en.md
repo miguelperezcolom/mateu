@@ -41,6 +41,11 @@ Usually you would define the aggregates in the domain layer and the use cases fo
 application layer but all that boilerplate does not provide any value for the purpose of this article, so we decide 
 to get rid of it. 
 
+Please note that the business invariants would usually be enforced in the aggregates and in the value objects. Here we
+just state data validation rules by using jakarta's validation annotations (JSR-380). 
+
+Please notice also that we do not mention i18n as there is a dedicated chapter to it in Mateu's documentation.
+
 ## The domain
 
 This is a sample entity and repository definitions:
@@ -304,4 +309,61 @@ When editing an entity any field containing a list of java non-basic objects is 
 there is any field which cannot be edited inline (when the field type is not one of String, int, double, boolean or 
 LocalDate), the row editor (visible on row select or when clicking the "Add" button) is used instead.
 
+#### Forms
+
+For adding a form to your UI you just need to create a plain java class, annotate methods, Runnable or Callable fields
+with **@Button**, and add a menu option in your main app.
+
+#### Wizards
+
+If you want to create a multi-form experience you can just create a class implementing the **Wizard** interface. Each 
+field in your class wil be inferred as a wizards step. 
+
+#### Overwrite the default behavior for any route
+
+Each crud view in your app is linked to a route. E.g.:
+
+- **/hotels** for the hotels crud list 
+- **/hotels/1** for the hotel with id 1 read only view
+- **/hotels/1/edit** for editing the hotel with id 1 main values
+- **/hotels/1/stop-sales** for the stop-sales crud, visible in the stop-sales tab in the hotel with id 1 read only view  
+- **/hotels/1/inventory** for the inventory crud, visible in the inventory tab in the hotel with id 1 read only view
+
+You can overwrite any of those views you just need by providing an alternate view (a plain java class) and annotate 
+it with **@Route** supplying the route to override. 
+
+## A note on the paradigm shift
+
+With this approach we move away from the traditional frontend-backend split.
+There is no separate frontend application consuming APIs.
+
+Instead, the UI becomes just another primary adapter of the same application,
+defined in the infrastructure layer and evolving together with the domain.
+
+This increases cohesion, reduces artificial APIs and enables true end-to-end ownership.
+
+## Reuse and modularity
+
+Because UIs are defined in Java, we can leverage the full Java ecosystem:
+shared Maven modules, common validations, reusable UI patterns and shared domain concepts.
+
+This makes it trivial to reuse behavior and UI definitions across multiple backoffices
+without duplicating logic or relying on fragile API contracts.
+
+## Testing
+
+Declarative UIs do not remove the need for testing.
+End-to-end UI testing can be applied as usual, while most business rules remain
+testable at the domain and application layers.
+
+Just remember most of the costly e2e tst can be replaced by unit tests as you do not need to validate that the frontend
+component works. You just need to validate your UI logic, and that's just plain java. You can do that using fast and
+simple JUnit tests.
+
+## Security and permissions
+
+We can protect our application, if we have an IDP available, by just annotating our UI class with **@KeycloakSecured**.
+
+We can later set the required authorization or any class, field or method by annotating it with **@EyesOnly**. This 
+annotation allows us to declare who can do what according to their permissions.  
 
