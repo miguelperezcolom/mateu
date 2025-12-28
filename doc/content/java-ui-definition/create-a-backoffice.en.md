@@ -1,7 +1,9 @@
 ---
-title: "Typical declarative backoffice"
-weight: 120
+title: "Create a backoffice"
+weight: 81
 ---
+
+## Introduction
 
 Ok. So, let's say we want to build a backoffice for our entities. 
 
@@ -10,7 +12,7 @@ by writing the minimum lines of code, in a declarative way. Here we are gonna se
 
 ## Our use case
 
-For clarity shake we are gonna build a backoffice for
+For illustration purposes we are gonna build a backoffice for
 a simplified travel booking system with the following entities:
 
 - agency
@@ -30,11 +32,11 @@ We are gonna follow a hexagonal architecture approach.
 In the domain layer, for each entity, we would usually define the aggregates and a repository interface in the ports package 
 in the application layer. We would usually implement the repository interface in the infrastructure layer.
 
-We are gonna define our backoffice in the ui package in primary part of the infrastructure layer.
+We are going to define our backoffice in the ui package, as a primary adapter in the infrastructure layer.
 
-### Disclaimer
+## Disclaimer
 
-For simplicity's sake we are not gonna define our aggregates nor crud use cases in the application and domain layer but,
+For simplicity's sake we are not gonna define our aggregates nor CRUD use cases in the application and domain layer but,
 instead, we are gonna make the UI directly consume the infrastructure layer entities and repositories.
 
 Usually you would define the aggregates in the domain layer and the use cases for the CRUD operations in the 
@@ -46,7 +48,35 @@ just state data validation rules by using jakarta's validation annotations (JSR-
 
 Please notice also that we do not mention i18n as there is a dedicated chapter to it in Mateu's documentation.
 
-## The domain
+All the code you will see is framework-agnostic. We could run it on a Spring Boot MVC, Webflux, Quarkus or Micronaut application.
+
+## Running the example
+
+This example assumes a standard Java application.
+
+You only need to:
+- include Mateu as a dependency
+- annotate your main class
+- run the application and open `/`
+
+## The domain and application layers
+
+Here is where we would usually define our use cases (basically orchestrators) and ports, in the application layer, 
+while we would define our aggregates, value objects, domain services and domain events and exceptions in the domain layer.
+
+As we mentioned in the disclaimer these layers will be empty for our example as they do not provide any value to us, 
+other than a lot of boilerplate, as per the purpose of this document. Our UI will directly consume the entities and 
+repositories in the infrastructure layer instead.
+
+## The infrastructure layer
+
+Here we provide the adapters (e.g. the repositories implementations) for the ports (e.g. the repositories), and we also 
+define the controllers for the synchronous apis, the event consumers and producers for the async apis and the UIs. In 
+essence, we define what connects our domain (the use cases, indeed) to the outside world.
+
+### Persistence
+
+Here we provide the adapters for the repositories. 
 
 This is a sample entity and repository definitions:
 
@@ -66,15 +96,7 @@ public interface AgencyRepository
 
 ```
 
-## The infrastructure
-
-Here we provide the adapters for the ports, and we also define the controllers for the synchronous apis, the 
-event consumers and producers for the async apis and the UIs. In essence, we define what connects our domain to 
-the outside world.
-
-### Persistence
-
-Here we provide the adapters for the repositories. For simplicity's sake we are gonna implement the repository interfaces 
+For simplicity's sake we are gonna implement the repository interfaces 
 like this:
 
 ```java
@@ -108,12 +130,31 @@ public class LocalRepository<EntityType
     public Optional<EntityType> findById(IdType id) {
         return Optional.ofNullable(repository.get(id));
     }
+
+    @Override
+    public ListingData<EntityType> search(
+      String searchText, Pageable pageable, HttpRequest httpRequest) {
+      var found = repository.values().stream()
+        .filter(entity -> searchText.isEmpty() || 
+          entity.toString().toLowerCase().contains(searchText))
+        .toList();
+      return new ListingData<>(new Page<>(
+        searchText,
+        found.size(),
+        0,
+        found.size(),
+        found.stream().map(entity ->
+          new Option(entity.code(), entity.name())).toList()));
+    }
 }
 ```
 
+This is a very naive implementation intended only for demo purposes. Using a JPA or Document repository would also work, 
+but we choose this implementation as our goal is only to showcase the UI patterns, not persistence concerns.
+
 ### The UI
 
-The first thing is to define the UI. This means, an app with some menus for accessing the different cruds:
+The first thing is to define the home and the main menu. This means, an app with some menus for accessing the different CRUDs:
 
 ```java
 @MateuUI("")
@@ -164,7 +205,7 @@ public class ProductSubmenu {
 ```
 #### The CRUDs
 
-Each of those edge menu option is a class extending the **GenericCrud** class, for an entity. Something like this:
+Each of those leaf menu entries is a class extending the **GenericCrud** class, for an entity. Something like this:
 
 ```java
 @Service
@@ -182,6 +223,22 @@ public class Agencies extends GenericCrud<Agency> {
 
 The **GenericCrud** class provides the list, create, view, edit and delete functionalities out of the box, inferring the
 columns and fields from the entity fields.
+
+You can override or adjust what **Mateu** infers by using annotations, as explained in the documentation. 
+
+#### CRUD level actions
+
+TBD
+
+#### Conditional actions
+
+TBD
+
+#### Errors
+
+Any exception thrown from your code will be shown to the user. As always, it's a good practice not to let 
+technical exceptions to reach the user, but use custom (business) exceptions where you can provide a 
+human-readable error description. 
 
 #### Foreign keys
 
@@ -314,10 +371,14 @@ LocalDate), the row editor (visible on row select or when clicking the "Add" but
 For adding a form to your UI you just need to create a plain java class, annotate methods, Runnable or Callable fields
 with **@Button**, and add a menu option in your main app.
 
+#### Form level validations
+
+TBD
+
 #### Wizards
 
 If you want to create a multi-form experience you can just create a class implementing the **Wizard** interface. Each 
-field in your class wil be inferred as a wizards step. 
+field in your class will be inferred as a wizards step. 
 
 #### Overwrite the default behavior for any route
 
@@ -330,7 +391,11 @@ Each crud view in your app is linked to a route. E.g.:
 - **/hotels/1/inventory** for the inventory crud, visible in the inventory tab in the hotel with id 1 read only view
 
 You can overwrite any of those views you just need by providing an alternate view (a plain java class) and annotate 
-it with **@Route** supplying the route to override. 
+it with **@Route** supplying the route to override.
+
+```java
+TBD
+```
 
 ## A note on the paradigm shift
 
@@ -350,6 +415,17 @@ shared Maven modules, common validations, reusable UI patterns and shared domain
 This makes it trivial to reuse behavior and UI definitions across multiple backoffices
 without duplicating logic or relying on fragile API contracts.
 
+## Observability
+
+Mateu logs nothing by default, but the **GeneralCrud** logs every operation. Other than that, it's up to you to log whatever. 
+
+## Concurrency / versioning / optimistic locking
+
+For this simple example we are not looking after what happens if two users try to save the same entity at the same time.
+Here the last one to save will just overwrite the other's action. For this demo it's good enough.
+
+Usually you would take care of this in the repo's implementation and throw a custom exception or do whatever makes sense to you.
+
 ## Testing
 
 Declarative UIs do not remove the need for testing.
@@ -365,5 +441,13 @@ simple JUnit tests.
 We can protect our application, if we have an IDP available, by just annotating our UI class with **@KeycloakSecured**.
 
 We can later set the required authorization or any class, field or method by annotating it with **@EyesOnly**. This 
-annotation allows us to declare who can do what according to their permissions.  
+annotation allows us to declare who can do what according to their permissions. 
+
+> There are other ways to do this, e.g.
+by using AOP and adding the permissions in a header at the api gateway instead of using the JWT scopes, but this is 
+simple and also works.
+
+## Conclusion
+
+At this point you have a fully functional backoffice, defined in Java, sharing the same language, validations and lifecycle as your domain.
 
