@@ -106,7 +106,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                             httpRequest.runActionRq().route(),
                                             httpRequest.runActionRq().consumedRoute(),
                                             httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest
+                                            httpRequest,
+                                            false
                                     ).stream().toList()
                             )
                             .toolbar(List.of(new Button("Save", "save")))
@@ -129,7 +130,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                             httpRequest.runActionRq().route(),
                                             httpRequest.runActionRq().consumedRoute(),
                                             httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest
+                                            httpRequest,
+                                            true
                                     ).stream().toList()
                             )
                             .toolbar(List.of(new Button("Create", "create")))

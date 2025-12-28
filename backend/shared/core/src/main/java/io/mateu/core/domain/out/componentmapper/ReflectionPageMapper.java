@@ -21,7 +21,9 @@ import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.annotations.NonEditable;
 import io.mateu.uidl.annotations.PageTitle;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Subtitle;
@@ -119,7 +121,7 @@ public class ReflectionPageMapper {
               instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
     if (isForm(instance)) {
-      return getForm(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      return getForm(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false);
     }
     return getAllFields(instance.getClass()).stream()
         .filter(
@@ -266,7 +268,8 @@ public class ReflectionPageMapper {
       String route,
       String consumedRoute,
       String initiatorComponentId,
-      HttpRequest httpRequest) {
+      HttpRequest httpRequest,
+      boolean forCreationForm) {
     return List.of(
         FormLayout.builder()
             .content(
@@ -282,9 +285,14 @@ public class ReflectionPageMapper {
                                     route,
                                     consumedRoute,
                                     initiatorComponentId,
-                                    httpRequest))
+                                    httpRequest, isReadOnly(field, instance, forCreationForm)))
                     .toList())
             .build());
+  }
+
+  private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
+    return instance.getClass().isAnnotationPresent(ReadOnly.class)
+            || field.isAnnotationPresent(ReadOnly.class) || (!forCreationForm && field.isAnnotationPresent(NonEditable.class));
   }
 
   private static boolean isForm(Object instance) {

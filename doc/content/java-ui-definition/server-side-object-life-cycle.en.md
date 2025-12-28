@@ -38,6 +38,9 @@ When creating an instance, Mateu first looks for a constructor which matches the
 usually the case for Java records. If that constructor does not exist, then the default constructor with no parameters 
 is used.
 
+Please notice that there is some more logic here in order to support routing and declarative apps. This additional 
+logic is explained at the end of this chapter.
+
 ## 3. Hydratation
 
 This only happens if the object implements the **Hydratable** interface or if **Mateu** has not found a constructor 
@@ -73,3 +76,33 @@ by providing a bean implementing the **Translator** interface.
 ## 8. Send dtos to the frontend
 
 This will be the http response or a flow of objects, if you are using server sent events (SSE).
+
+# Instantiation explanation extended
+
+It's clear that we instantiate an object at the beginning of the flow but, how do we know which object to instantiate?
+
+Well, for what is of interest here, our inputs contain:
+
+- the route
+- the part of that route which has already been consumed
+- an action id
+- optionally the server-side type
+- optionally an application server-side type
+
+So, our pseudocode for arriving to the target instance is the following:
+
+- if the server-side-type is informed, 
+  - return it
+- if the app server-side type is informed
+  - resolve menu (find option in menu with name == action or remaining route)
+- guess from route
+
+Guess from route logic:
+
+- if there is an app matching a part of the route
+  - return the app class and the consumed part of the route
+- if there is a matching route (a class annotated with @Route)
+  - if the class implements RouteHandler
+    - instantiate and return the route handling result
+  - return the class matching the route
+- return the class matching the UI (the class annotated with @MateuUI) 

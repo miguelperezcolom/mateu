@@ -114,7 +114,7 @@ public class RunActionUseCase {
                         command.httpRequest()))
         // .map(uiIncrement -> setConsumedRoute(uiIncrement, command.route()))
         // in case I was not able to find a target instance
-        .doOnError(error -> error.printStackTrace())
+        .doOnError(Throwable::printStackTrace)
         .onErrorResume(
             error ->
                 Mono.just(
