@@ -52,11 +52,11 @@ All the code you will see is framework-agnostic. We could run it on a Spring Boo
 
 ## Running the example
 
-This example assumes a standard Java application.
+This example assumes a standard Java application, no matter if you are using Spring Boot MVC, Webflux, Micronaut or Quarkus.
 
 You only need to:
 - include Mateu as a dependency
-- annotate your main class
+- define your UI as explained in this document 
 - run the application and open `/`
 
 ## The domain and application layers
