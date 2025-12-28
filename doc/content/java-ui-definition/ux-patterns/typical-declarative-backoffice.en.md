@@ -3,10 +3,10 @@ title: "Typical declarative backoffice"
 weight: 120
 ---
 
-Ok. So, let's say we want to build a backoffice for our entities. **Mateu**'s main purpose is to allow you to do it
-by writing the minimum lines of code, in a declarative way.
+Ok. So, let's say we want to build a backoffice for our entities. 
 
-Here we are gonna see how we can do it.
+**Mateu**'s main purpose is to allow you to do it
+by writing the minimum lines of code, in a declarative way. Here we are gonna see how we can do it.
 
 ## Our use case
 
@@ -168,5 +168,46 @@ columns and fields from the entity fields.
 
 #### Foreign keys
 
-TBD
+There are some fields that are indeed foreign keys to other entities. For those fields we want to provide a way to choose
+the referenced entity rather than providing the raw value. We can easily do it by providing a class implementing the 
+**ForeignKeyOptionsSupplier** interface and annotating the foreign key field with @ForeignKey like below:
+
+```java
+
+@Service
+@RequiredArgsConstructor
+public class CountryCodeOptionsSupplier 
+  implements ForeignKeyOptionsSupplier {
+
+  final CountryRepository countryRepository;
+
+  @Override
+  public ListingData<Option> search(
+    String searchText, Pageable pageable, HttpRequest httpRequest) {
+    var found = countryRepository.findAll();
+    return new ListingData<>(new Page<>(
+      searchText,
+      found.size(),
+      0,
+      found.size(),
+      found.stream().map(country -> 
+        new Option(country.code(), country.name())).toList()));
+  }
+}
+
+public record Destination(
+        String code,
+        String name,
+        @ForeignKey(CountryCodeOptionsSupplier.class)
+        String countryCode
+) implements GenericEntity {
+
+    @Override
+    public String id() {
+        return code;
+    }
+
+}
+
+```
 
