@@ -199,20 +199,24 @@ public class CountryCodeOptionsSupplier
 }
 
 public record Destination(
-        @NotEmpty
-        @EditableOnlyWhenCreating
-        String code,
-        @NotEmpty
-        String name,
-        @ForeignKey(CountryCodeOptionsSupplier.class)
-        String countryCode
+  @NotEmpty
+  @EditableOnlyWhenCreating
+  String code,
+  @NotEmpty
+  String name,
+  @ForeignKey(CountryCodeOptionsSupplier.class)
+  @NotNull
+  String countryCode,
+  @NotEmpty
+  @ForeignKey(HotelIdOptionsSupplier.class)
+  List<String> hotelIds
 ) implements GenericEntity {
 
-    // the GenericCrud class expects entities to have an id field
-    @Override
-    public String id() {
-        return code;
-    }
+  // the GenericCrud class expects entities to have an id field
+  @Override
+  public String id() {
+    return code;
+  }
 
 }
 

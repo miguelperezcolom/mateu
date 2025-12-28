@@ -1,10 +1,14 @@
 package com.example.demo.ddd.domain.hotel.agency;
 
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
-import io.mateu.uidl.annotations.NonEditable;
+import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import jakarta.validation.constraints.NotEmpty;
 
 public record Agency(
-        @NonEditable String id,
+        @EditableOnlyWhenCreating
+        @NotEmpty
+        String id,
+        @NotEmpty
         String name
 ) implements GenericEntity {
 }

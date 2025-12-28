@@ -21,7 +21,7 @@ import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.NonEditable;
+import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
@@ -292,7 +292,7 @@ public class ReflectionPageMapper {
 
   private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
-            || field.isAnnotationPresent(ReadOnly.class) || (!forCreationForm && field.isAnnotationPresent(NonEditable.class));
+            || field.isAnnotationPresent(ReadOnly.class) || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
   }
 
   private static boolean isForm(Object instance) {
