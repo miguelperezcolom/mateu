@@ -27,10 +27,19 @@ a simplified travel booking system with the following entities:
 
 We are gonna follow a hexagonal architecture approach.
 
-In the domain layer, for each entity, we are defining the entity itself and a repository interface in the ports package 
-in the application layer. We are gonna implement the repository interface in the infrastructure layer.
+In the domain layer, for each entity, we would usually define the aggregates and a repository interface in the ports package 
+in the application layer. We would usually implement the repository interface in the infrastructure layer.
 
-We are gonna define our backoffice in the ui package in the infrastructure layer.
+We are gonna define our backoffice in the ui package in primary part of the infrastructure layer.
+
+### Disclaimer
+
+For simplicity's sake we are not gonna define our aggregates nor crud use cases in the application and domain layer but,
+instead, we are gonna make the UI directly consume the infrastructure layer entities and repositories.
+
+Usually you would define the aggregates in the domain layer and the use cases for the CRUD operations in the 
+application layer but all that boilerplate does not provide any value for the purpose of this article, so we decide 
+to get rid of it. 
 
 ## The domain
 
