@@ -170,7 +170,7 @@ columns and fields from the entity fields.
 
 There are some fields that are indeed foreign keys to other entities. For those fields we want to provide a way to choose
 the referenced entity rather than providing the raw value. We can easily do it by providing a class implementing the 
-**ForeignKeyOptionsSupplier** interface and annotating the foreign key field with @ForeignKey like below:
+**ForeignKeyOptionsSupplier** interface and annotating the foreign key field with **@ForeignKey** like below:
 
 ```java
 
