@@ -273,10 +273,35 @@ public record Hotel(
 }
 ```
 
-#### Lists
+#### Objects
 
-A list of java objects is inferred as an editable table. In case there is any field which cannot be edited inline 
-(when the field type is not one of String, int, double, boolean or LocalDate), the row editor (visible on row select 
-or when clicking the "Add" button) is used instead.
+When an entity owns another entity (the typical 1:1 use case) the child entity will be displayed as a tab inside the 
+parent's view, and will have an "Edit" button to access the editor to modify its values.
+
+This is what happens for the **Tariff** entity and the **TariffGeneralInfo** field:
+
+```java
+public record Tariff(
+  @NotEmpty
+  @EditableOnlyWhenCreating
+  String id,
+
+  @NotEmpty
+  String name,
+
+  // more fields...
+
+  TariffGeneralInfo generalInfo
+  
+  ) implements GenericEntity {
+}
+
+```
+
+#### Lists of non-basic objects
+
+When editing an entity any field containing a list of java non-basic objects is inferred as an editable table. In case 
+there is any field which cannot be edited inline (when the field type is not one of String, int, double, boolean or 
+LocalDate), the row editor (visible on row select or when clicking the "Add" button) is used instead.
 
 
