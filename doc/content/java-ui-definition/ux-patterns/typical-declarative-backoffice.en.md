@@ -62,14 +62,18 @@ like this:
 
 ```java
 @Service
-public class LocalAgencyRepository extends LocalRepository<Agency, String> implements AgencyRepository {
+public class LocalAgencyRepository 
+  extends LocalRepository<Agency, String> 
+  implements AgencyRepository {
 }
 ```
 
 Where **LocalRepository** is a generic repository storing the entities in memory using a simple **Map**, like this:
 
 ```java
-public class LocalRepository<EntityType extends Entity<IdType>, IdType> implements Repository<EntityType, IdType> {
+public class LocalRepository<EntityType 
+  extends Entity<IdType>, IdType> 
+  implements Repository<EntityType, IdType> {
 
     private final Map<IdType, EntityType> repository = new ConcurrentHashMap<>();
 
