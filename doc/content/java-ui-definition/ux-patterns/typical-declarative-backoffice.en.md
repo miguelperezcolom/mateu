@@ -208,17 +208,22 @@ public class CountryCodeOptionsSupplier
 }
 
 public record Destination(
+  
   @NotEmpty
   @EditableOnlyWhenCreating
   String code,
+  
   @NotEmpty
   String name,
+  
   @ForeignKey(CountryCodeOptionsSupplier.class)
   @NotNull
   String countryCode,
+  
   @NotEmpty
   @ForeignKey(HotelIdOptionsSupplier.class)
   List<String> hotelIds
+  
 ) implements GenericEntity {
 
   // the GenericCrud class expects entities to have an id field
@@ -243,12 +248,16 @@ When this happens we just need to annotate the list of child entities, in the pa
 
 ```java
 public record Hotel(
+  
   @NotEmpty
   @EditableOnlyWhenCreating
   String id,
+  
   @NotEmpty
   String name,
+  
   String imageUrl,
+  
   @ForeignKey(DestinationIdOptionsSupplier.class)
   String destinationId,
   
@@ -256,8 +265,10 @@ public record Hotel(
   
   @Composition(targetClass = Inventory.class, foreignKeyField = "hotelId")
   List<String> inventoryIds,
+  
   @Composition(targetClass = StopSalesLine.class, foreignKeyField = "hotelId")
   List<String> stopSalesIds
+  
   ) implements GenericEntity {
 }
 ```
