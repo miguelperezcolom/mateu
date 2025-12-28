@@ -38,7 +38,10 @@ This is a sample entity and repository definitions:
 
 ```java
 public record Agency(
-        @NonEditable String id, // this field is only editable in the creation form
+        @NotEmpty
+        @EditableOnlyWhenCreating 
+        String id,
+        @NotEmpty
         String name
 ) implements GenericEntity {
 }
@@ -196,12 +199,16 @@ public class CountryCodeOptionsSupplier
 }
 
 public record Destination(
+        @NotEmpty
+        @EditableOnlyWhenCreating
         String code,
+        @NotEmpty
         String name,
         @ForeignKey(CountryCodeOptionsSupplier.class)
         String countryCode
 ) implements GenericEntity {
 
+    // the GenericCrud class expects entities to have an id field
     @Override
     public String id() {
         return code;
