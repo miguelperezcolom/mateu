@@ -67,7 +67,7 @@ Here we provide the adapters for the ports, and we also define the controllers f
 event consumers and producers for the async apis and the UIs. In essence, we define what connects our domain to 
 the outside world.
 
-## Persistence
+### Persistence
 
 Here we provide the adapters for the repositories. For simplicity's sake we are gonna implement the repository interfaces 
 like this:
@@ -230,4 +230,42 @@ public record Destination(
 }
 
 ```
+
+#### Owned entities
+
+Sometimes it happens that one entity is the owner of another entity. It is the typical case of a 1:n relationship,
+or a composition in UML terms.
+
+For those cases we usually want to show, from the view of the parent entity, a list of tabs containing one nested crud
+per each child entity list.
+
+When this happens we just need to annotate the list of child entities, in the parent entities, with **@Composition** like below:
+
+```java
+public record Hotel(
+  @NotEmpty
+  @EditableOnlyWhenCreating
+  String id,
+  @NotEmpty
+  String name,
+  String imageUrl,
+  @ForeignKey(DestinationIdOptionsSupplier.class)
+  String destinationId,
+  
+  // some other fields...
+  
+  @Composition(targetClass = Inventory.class, foreignKeyField = "hotelId")
+  List<String> inventoryIds,
+  @Composition(targetClass = StopSalesLine.class, foreignKeyField = "hotelId")
+  List<String> stopSalesIds
+  ) implements GenericEntity {
+}
+```
+
+#### Lists
+
+A list of java objects is inferred as an editable table. In case there is any field which cannot be edited inline 
+(when the field type is not one of String, int, double, boolean or LocalDate), the row editor (visible on row select 
+or when clicking the "Add" button) is used instead.
+
 
