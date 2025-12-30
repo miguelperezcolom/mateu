@@ -4,6 +4,8 @@ import com.example.demo.ddd.domain.hotel.shared.Repository;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.PrimaryKey;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonVariant;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
@@ -12,6 +14,8 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -46,7 +50,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewIns
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm, ViewForm, EditForm>
-        implements ActionHandler, DataSupplier, TriggersSupplier {
+        implements ActionHandler, DataSupplier, TriggersSupplier, ActionSupplier {
 
     private Row selectedItem;
 
@@ -87,6 +91,13 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         }
         if ("save".equals(actionId)) {
             repository().saveAll(List.of(pojoFromJson(toJson(httpRequest.runActionRq().componentState()), entityClass())));
+        }
+        if ("delete".equals(actionId)) {
+            List<?> selection = (List<?>) httpRequest.runActionRq().componentState().getOrDefault("crud_selected_items", List.of());
+            List<String> selectedIds = selection.stream()
+                    .map(map -> (String) ((Map<String, Object>)map).get(getIdField(rowClass())))
+                    .toList();
+            repository().deleteAllById(selectedIds);
         }
         if ("view".equals(actionId)) {
             var idField = getIdField(entityClass());
@@ -197,6 +208,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                         .listingType(ListingType.table)
                                         .title("Xxx")
                                         .searchable(true)
+                                        .rowsSelectionEnabled(true)
                                         .columns(Stream.concat(getColumns(rowClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().initiatorComponentId(), httpRequest)
                                                                 .stream()
                                                 , Stream.of(GridColumn.builder()
@@ -207,11 +219,15 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                                                 .build()))
                                                 .toList())
                                         .filters(getFilters(filtersClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().consumedRoute(), httpRequest.runActionRq().initiatorComponentId(), httpRequest))
-                                        .trigger(new OnLoadTrigger("search"))
                                         .style("min-width: 30rem; display: block;")
                                         .build()
                                 ))
-                        .toolbar(List.of(new Button("New", "new")))
+                        .toolbar(List.of(new Button("New", "new"),
+                                Button.builder()
+                                        .label("Delete")
+                                        .actionId("delete")
+                                        .variant(ButtonVariant.error)
+                                        .build()))
                         .build(),
                 this,
                 "base_url",
@@ -315,7 +331,19 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         return List.of(
                 new OnLoadTrigger("search"),
                 new OnSuccessTrigger("search", "create", ""),
+                new OnSuccessTrigger("search", "delete", ""),
                 new OnSuccessTrigger("search", "save", "")
+        );
+    }
+
+    @Override
+    public List<Action> actions() {
+        return List.of(
+                Action.builder()
+                        .id("delete")
+                        .confirmationRequired(true)
+                        .rowsSelectedRequired(true)
+                        .build()
         );
     }
 }

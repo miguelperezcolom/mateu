@@ -56,6 +56,11 @@ public class LocalRepository<EntityType extends Entity<IdType>, IdType> implemen
                         .toList()));
     }
 
+    @Override
+    public void deleteAllById(List<IdType> selectedIds) {
+        selectedIds.forEach(repository::remove);
+    }
+
     private String name(EntityType value) {
         var nameField = getFieldByName(value.getClass(), "name");
         if (nameField != null) {

@@ -17,4 +17,6 @@ public interface Repository<EntityType, IdType> {
     Optional<EntityType> findById(IdType id);
 
     ListingData<EntityType> search(String searchText, Pageable pageable);
+
+    void deleteAllById(List<IdType> selectedIds);
 }
