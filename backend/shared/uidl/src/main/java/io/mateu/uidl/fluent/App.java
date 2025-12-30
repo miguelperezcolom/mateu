@@ -21,7 +21,8 @@ public record App(
     @Singular List<Component> widgets,
     boolean drawerClosed,
     String style,
-    String cssClasses)
+    String cssClasses,
+    String logo)
     implements Component, PageMainContent {
 
   public App {

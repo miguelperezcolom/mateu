@@ -18,12 +18,13 @@ public class HotelIdOptionsSupplier implements ForeignKeyOptionsSupplier {
 
     @Override
     public ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest) {
-        var found = hotelRepository.findAll();
+        var found = hotelRepository.search(searchText , pageable);
         return new ListingData<>(new Page<>(
                 searchText,
-                found.size(),
-                0,
-                found.size(),
-                found.stream().map(hotel -> new Option(hotel.id(), hotel.name())).toList()));
+                found.page().pageSize(),
+                found.page().pageNumber(),
+                found.page().totalElements(),
+                found.page().content().stream().map(hotel ->
+                        new Option(hotel.id(), hotel.name())).toList()));
     }
 }

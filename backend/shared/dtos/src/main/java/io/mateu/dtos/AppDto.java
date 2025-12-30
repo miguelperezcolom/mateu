@@ -14,6 +14,7 @@ public record AppDto(
     String logo,
     String title,
     String subtitle,
+    String favicon,
     List<MenuOptionDto> menu,
     int totalMenuOptions,
     String homeRoute,

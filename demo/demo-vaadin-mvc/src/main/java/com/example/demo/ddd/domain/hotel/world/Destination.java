@@ -18,11 +18,11 @@ public record Destination(
         String code,
         @NotEmpty
         String name,
-        @ForeignKey(CountryCodeOptionsSupplier.class)
+        @ForeignKey(search = CountryCodeOptionsSupplier.class, label = CountryLabelSupplier.class)
         @NotNull
         String countryCode,
         @NotEmpty
-        @ForeignKey(HotelIdOptionsSupplier.class)
+        @ForeignKey(search = HotelIdOptionsSupplier.class, label = HotelLabelSupplier.class)
         List<String> hotelIds
 ) implements GenericEntity {
 

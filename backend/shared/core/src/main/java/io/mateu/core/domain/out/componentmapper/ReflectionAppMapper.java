@@ -14,6 +14,7 @@ import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.HomeRoute;
+import io.mateu.uidl.annotations.Logo;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
@@ -67,6 +68,7 @@ public class ReflectionAppMapper {
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
+            .logo(getLogo(instance))
         .subtitle(getSubtitle(instance))
         .menu(menu)
         .style(getStyle(instance))
@@ -97,6 +99,13 @@ public class ReflectionAppMapper {
 
   private static boolean isMenu(Actionable actionable) {
     return actionable instanceof Menu;
+  }
+
+  private static String getLogo(Object instance) {
+    if (instance.getClass().isAnnotationPresent(Logo.class)) {
+      return instance.getClass().getAnnotation(Logo.class).value();
+    }
+    return null;
   }
 
   private static String getFavicon(Object instance) {

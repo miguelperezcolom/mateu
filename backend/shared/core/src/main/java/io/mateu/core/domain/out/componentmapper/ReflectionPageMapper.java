@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
@@ -17,6 +18,7 @@ import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Footer;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
@@ -192,8 +194,25 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(rowClass).stream()
+            .filter(ReflectionPageMapper::filterColumn)
         .map(field -> getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toList();
+  }
+
+  private static boolean filterColumn(Field field) {
+    if (field.isAnnotationPresent(Menu.class)) {
+      return false;
+    }
+    if (Collection.class.isAssignableFrom(field.getType())) {
+      return false;
+    }
+    if (field.getType().isEnum()) {
+      return true;
+    }
+    if (!isBasic(field.getType())) {
+      return false;
+    }
+    return true;
   }
 
   private static GridColumn getColumn(
@@ -293,6 +312,9 @@ public class ReflectionPageMapper {
   private static boolean filterField(Field field, boolean forCreationForm) {
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
+    }
+    if (field.isAnnotationPresent(ForeignKey.class)) {
+      return true;
     }
     if (Collection.class.isAssignableFrom(field.getType())) {
       return false;

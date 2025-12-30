@@ -17,12 +17,13 @@ public class CountryCodeOptionsSupplier implements ForeignKeyOptionsSupplier {
 
     @Override
     public ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest) {
-        var found = countryRepository.findAll();
+        var found = countryRepository.search(searchText , pageable);
         return new ListingData<>(new Page<>(
                 searchText,
-                found.size(),
-                0,
-                found.size(),
-                found.stream().map(country -> new Option(country.code(), country.name())).toList()));
+                found.page().pageSize(),
+                found.page().pageNumber(),
+                found.page().totalElements(),
+                found.page().content().stream().map(country ->
+                        new Option(country.code(), country.name())).toList()));
     }
 }

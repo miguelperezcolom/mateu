@@ -3,6 +3,7 @@ package com.example.demo.ddd.domain.hotel.hotel;
 import com.example.demo.ddd.domain.hotel.hotel.stopsales.StopSalesLine;
 import com.example.demo.ddd.domain.hotel.codes.BoardType;
 import com.example.demo.ddd.domain.hotel.world.DestinationIdOptionsSupplier;
+import com.example.demo.ddd.domain.hotel.world.DestinationLabelSupplier;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
@@ -13,7 +14,7 @@ public record Hotel(
         String id,
         String name,
         String image,
-        @ForeignKey(DestinationIdOptionsSupplier.class)
+        @ForeignKey(search = DestinationIdOptionsSupplier.class, label = DestinationLabelSupplier.class)
         String destinationId,
         List<String> roomTypeCodes,
         List<String> boardTypeCodes,

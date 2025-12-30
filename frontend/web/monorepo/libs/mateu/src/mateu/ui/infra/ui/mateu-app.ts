@@ -216,6 +216,24 @@ export class MateuApp extends ComponentElement {
         if (_changedProperties.has('component')) {
             this.selectedRoute = undefined;
         }
+        if (this.component) {
+            const clientSideComponent = this.component as ClientSideComponent
+            const metadata = clientSideComponent.metadata
+            if (metadata) {
+                const app = metadata as App
+                if (app.favicon) {
+                    let link = document.querySelector("link[rel~='icon']")
+                    if (!link) {
+                        link = document.createElement('link')
+                        // @ts-ignore
+                        link.rel = 'icon'
+                        document.head.appendChild(link)
+                    }
+                    // @ts-ignore
+                    link.href = app.favicon
+                }
+            }
+        }
     }
 
     connectedCallback() {
@@ -238,6 +256,10 @@ export class MateuApp extends ComponentElement {
             padding-left: 2rem;
             padding-right: 2rem;
             width: calc(100% - 4rem);
+        }
+        
+        .menu vaadin-menu-bar-button {
+            background-color: var(--lumo-base-color);
         }
         
   `

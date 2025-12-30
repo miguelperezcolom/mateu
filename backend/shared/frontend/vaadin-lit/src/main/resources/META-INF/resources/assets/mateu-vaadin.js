@@ -23962,7 +23962,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         ></vaadin-notification>`}};MateuApiCaller.styles=i$w`
         :host {
         }
-  `;__decorateClass$9([r$o()],MateuApiCaller.prototype,"loading",2);__decorateClass$9([r$o()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$9([r$o()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$9([t$o("mateu-api-caller")],MateuApiCaller);var __defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$8(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$8(Q,X,ie),ie};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedRoute=void 0,this.getSelectedOption=te=>{if(te)for(let Q=0;Q<te.length;Q++){const X=te[Q];if(X.selected)return X;const ee=this.getSelectedOption(X.submenus);if(ee)return ee}return null},this.itemSelected=te=>{this.selectRoute(te.detail.value.route,te.detail.value.actionId)},this.selectRoute=(te,Q)=>{if(Q){this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:Q,initiatorComponentId:`ux_${this.id}`},bubbles:!0,composed:!0}));return}if(te){this.selectedRoute=te,this.instant=nanoid();let X=this.baseUrl??"";X.indexOf("://")<0&&(X.startsWith("/")||(X="/"+X),X=window.location.origin+X),X.endsWith("/")&&te.startsWith("/")&&(te=te.substring(1));let ee=new URL(X+te);if(window.location.pathname!=ee.pathname){let ie=ee.pathname;ie&&!ie.startsWith("/")&&(ie="/"+ie),window.history.pushState({},"",ie)}}},this.mapItems=(te,Q)=>te.map(X=>{if(X.submenus&&X.submenus.length>0){let ee=this.mapItems(X.submenus,Q);return Q&&X.label.toLowerCase().includes(Q)&&(ee=this.mapItems(X.submenus,"")),ee&&ee.length>0?{text:X.label,route:X.destination?.route,actionId:X.actionId,selected:Q||X.selected,children:ee}:void 0}if(X.separator)return Q?void 0:{component:"hr"};if(!Q||X.label.toLowerCase().includes(Q))return{text:X.label,route:X.destination?.route,actionId:X.actionId,selected:Q||X.selected}}).filter(X=>X),this.getSelectedIndex=te=>{if(te){const Q=this.getSelectedOption(te);if(Q)return te.indexOf(Q)}},this.renderOptionOnLeftMenu=te=>te.submenus&&te.submenus.length>0?x$4`
+  `;__decorateClass$9([r$o()],MateuApiCaller.prototype,"loading",2);__decorateClass$9([r$o()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$9([r$o()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$9([t$o("mateu-api-caller")],MateuApiCaller);var __defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$8(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$8(Q,X,ie),ie};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedRoute=void 0,this.getSelectedOption=te=>{if(te)for(let Q=0;Q<te.length;Q++){const X=te[Q];if(X.selected)return X;const ee=this.getSelectedOption(X.submenus);if(ee)return ee}return null},this.itemSelected=te=>{this.selectRoute(te.detail.value.route,te.detail.value.actionId)},this.selectRoute=(te,Q)=>{if(console.log("selectRoute",te,Q),te){this.selectedRoute=te,this.instant=nanoid();let X=this.baseUrl??"";X.indexOf("://")<0&&(X.startsWith("/")||(X="/"+X),X=window.location.origin+X),X.endsWith("/")&&te.startsWith("/")&&(te=te.substring(1));let ee=new URL(X+te);if(window.location.pathname!=ee.pathname){let ie=ee.pathname;ie&&!ie.startsWith("/")&&(ie="/"+ie),window.history.pushState({},"",ie)}}},this.mapItems=(te,Q)=>te.map(X=>{if(X.submenus&&X.submenus.length>0){let ee=this.mapItems(X.submenus,Q);return Q&&X.label.toLowerCase().includes(Q)&&(ee=this.mapItems(X.submenus,"")),ee&&ee.length>0?{text:X.label,route:X.destination?.route,actionId:X.actionId,selected:Q||X.selected,children:ee}:void 0}if(X.separator)return Q?void 0:{component:"hr"};if(!Q||X.label.toLowerCase().includes(Q))return{text:X.label,route:X.destination?.route,actionId:X.actionId,selected:Q||X.selected}}).filter(X=>X),this.getSelectedIndex=te=>{if(te){const Q=this.getSelectedOption(te);if(Q)return te.indexOf(Q)}},this.renderOptionOnLeftMenu=te=>te.submenus&&te.submenus.length>0?x$4`
                 <vaadin-details summary="${te.label}" theme="reverse">
                     <vaadin-vertical-layout>
                         ${te.submenus.map(Q=>x$4`${this.renderOptionOnLeftMenu(Q)}`)}
@@ -23988,12 +23988,16 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                                 </vaadin-side-nav-item>
                         `}
 
-                            `)}`:E$5,this.updateRoute=te=>{te.preventDefault(),te.stopPropagation(),this.selectRoute(te.detail.route,te.detail.actionId)}}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}updated(te){super.updated(te),te.has("component")&&(this.selectedRoute=void 0)}connectedCallback(){super.connectedCallback(),this.addEventListener("update-route",this.updateRoute)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("update-route",this.updateRoute)}render(){return componentRenderer.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};MateuApp.styles=i$w`
+                            `)}`:E$5,this.updateRoute=te=>{te.preventDefault(),te.stopPropagation(),this.selectRoute(te.detail.route,te.detail.actionId)}}createRenderRoot(){return componentRenderer.mustUseShadowRoot()?super.createRenderRoot():this}updated(te){if(super.updated(te),te.has("component")&&(this.selectedRoute=void 0),this.component){const X=this.component.metadata;if(X){const ee=X;if(ee.favicon){let ie=document.querySelector("link[rel~='icon']");ie||(ie=document.createElement("link"),ie.rel="icon",document.head.appendChild(ie)),ie.href=ee.favicon}}}}connectedCallback(){super.connectedCallback(),this.addEventListener("update-route",this.updateRoute)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("update-route",this.updateRoute)}render(){return componentRenderer.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};MateuApp.styles=i$w`
 
         .app-content {
             padding-left: 2rem;
             padding-right: 2rem;
             width: calc(100% - 4rem);
+        }
+        
+        .menu vaadin-menu-bar-button {
+            background-color: var(--lumo-base-color);
         }
         
   `;__decorateClass$8([r$o()],MateuApp.prototype,"filter",2);__decorateClass$8([r$o()],MateuApp.prototype,"instant",2);__decorateClass$8([r$o()],MateuApp.prototype,"selectedRoute",2);__decorateClass$8([e$m("vaadin-app-layout")],MateuApp.prototype,"vaadinAppLayout",2);MateuApp=__decorateClass$8([t$o("mateu-app")],MateuApp);/*!
@@ -24184,13 +24188,24 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             
             ${Q.variant==AppVariant.MENU_ON_TOP?x$4`
 
-                <vaadin-vertical-layout>
-                    <vaadin-menu-bar
-                            .items="${ae}"
-                            @item-selected="${te.itemSelected}"
-                            theme="dropdown-indicators"
-                    >
-                    </vaadin-menu-bar>
+                <vaadin-vertical-layout style="width: 100%;">
+                    <vaadin-horizontal-layout style="width: 100%; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
+                        <vaadin-horizontal-layout style="align-items: center;">
+                            ${Q.logo?x$4`<img src="${Q.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:E$5}
+                            ${Q.title?x$4`<h2 style="margin: 0; margin-left: 10px;">${Q.title}</h2>`:E$5}
+                        </vaadin-horizontal-layout>
+                        <vaadin-menu-bar
+                                .items="${ae}"
+                                @item-selected="${te.itemSelected}"
+                                theme="dropdown-indicators"
+                                style="flex-grow: 1;"
+                                class="menu"
+                        >
+                        </vaadin-menu-bar>
+                        <vaadin-horizontal-layout>
+                            widgets
+                        </vaadin-horizontal-layout>
+                    </vaadin-horizontal-layout>
                     <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux

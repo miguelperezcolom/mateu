@@ -50,13 +50,24 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
-                <vaadin-vertical-layout>
-                    <vaadin-menu-bar
-                            .items="${items}"
-                            @item-selected="${container.itemSelected}"
-                            theme="dropdown-indicators"
-                    >
-                    </vaadin-menu-bar>
+                <vaadin-vertical-layout style="width: 100%;">
+                    <vaadin-horizontal-layout style="width: 100%; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
+                        <vaadin-horizontal-layout style="align-items: center;">
+                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
+                            ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
+                        </vaadin-horizontal-layout>
+                        <vaadin-menu-bar
+                                .items="${items}"
+                                @item-selected="${container.itemSelected}"
+                                theme="dropdown-indicators"
+                                style="flex-grow: 1;"
+                                class="menu"
+                        >
+                        </vaadin-menu-bar>
+                        <vaadin-horizontal-layout>
+                            widgets
+                        </vaadin-horizontal-layout>
+                    </vaadin-horizontal-layout>
                     <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux

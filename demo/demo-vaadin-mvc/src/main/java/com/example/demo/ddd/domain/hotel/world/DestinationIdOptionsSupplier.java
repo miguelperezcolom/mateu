@@ -17,12 +17,13 @@ public class DestinationIdOptionsSupplier implements ForeignKeyOptionsSupplier {
 
     @Override
     public ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest) {
-        var found = destinationRepository.findAll();
+        var found = destinationRepository.search(searchText , pageable);
         return new ListingData<>(new Page<>(
                 searchText,
-                found.size(),
-                0,
-                found.size(),
-                found.stream().map(destination -> new Option(destination.code(), destination.name())).toList()));
+                found.page().pageSize(),
+                found.page().pageNumber(),
+                found.page().totalElements(),
+                found.page().content().stream().map(destination ->
+                        new Option(destination.code(), destination.name())).toList()));
     }
 }

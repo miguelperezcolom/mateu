@@ -8,6 +8,8 @@ export default interface App extends ComponentMetadata {
     variant: AppVariant
     title: string | undefined
     subtitle: string | undefined
+    logo: string | undefined
+    favicon: string | undefined
     menu: MenuOption[]
     totalMenuOptions: number
     homeRoute: string

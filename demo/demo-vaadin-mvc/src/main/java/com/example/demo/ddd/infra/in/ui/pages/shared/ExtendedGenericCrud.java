@@ -1,10 +1,8 @@
 package com.example.demo.ddd.infra.in.ui.pages.shared;
 
 import com.example.demo.ddd.domain.hotel.shared.Repository;
-import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.PrimaryKey;
-import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldStereotype;
@@ -12,7 +10,6 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.data.Text;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
@@ -25,17 +22,19 @@ import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.Humanizer.toPlural;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.infra.JsonSerializer.*;
@@ -68,7 +67,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         if (actionId.startsWith("search-")) {
             String fieldName = actionId.substring(actionId.indexOf('-') + 1);
             var fkAnnotation = getFieldByName(entityClass(), fieldName).getAnnotation(ForeignKey.class);
-            ForeignKeyOptionsSupplier optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.value());
+            ForeignKeyOptionsSupplier optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
 
             Pageable pageable = httpRequest.getParameters(Pageable.class);
             String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
@@ -117,7 +116,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest
+                    addData(item, httpRequest)
             );
         }
         if ("edit".equals(actionId)) {
@@ -149,7 +148,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest
+                    addData(item, httpRequest)
             );
         }
         if ("new".equals(actionId)) {
@@ -192,7 +191,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                         .listingType(ListingType.table)
                                         .title("Xxx")
                                         .searchable(true)
-                                        .columns(Stream.concat(getColumns(rowClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().initiatorComponentId(), httpRequest).stream()
+                                        .columns(Stream.concat(getColumns(rowClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().initiatorComponentId(), httpRequest)
+                                                                .stream()
                                                 , Stream.of(GridColumn.builder()
                                                                 .label("Action")
                                                                 .stereotype(FieldStereotype.link)
@@ -214,6 +214,41 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                 httpRequest.runActionRq().initiatorComponentId(),
                 httpRequest
         );
+    }
+
+    private HttpRequest addData(EntityType item, HttpRequest httpRequest) {
+        if (item == null) {
+            return httpRequest;
+        }
+        var data = new HashMap<String, Object>();
+        getAllFields(entityClass()).stream().filter(field -> field.isAnnotationPresent(ForeignKey.class)).forEach(field -> {
+            LabelSupplier labelSupplier = MateuBeanProvider.getBean(field.getAnnotation(ForeignKey.class).label());
+            if (Collection.class.isAssignableFrom(field.getType())) {
+                var options = new ArrayList<>();
+
+                var ids = (Collection<?>) getValue(field, item);
+                if (ids != null) {
+                    ids.forEach(id -> {
+                        var label = labelSupplier.label(id, httpRequest);
+                        options.add(new Option(id, label));
+                    });
+                }
+
+                data.put(field.getName(),
+                        new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
+                                options));
+            } else {
+                var id = getValue(field, item);
+                if (id != null) {
+                    var label = labelSupplier.label(id, httpRequest);
+                    data.put(field.getName(),
+                            new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
+                                    List.of(new Option(id, label))));
+                }
+            }
+        });
+        httpRequest.setAttribute("data", data);
+        return httpRequest;
     }
 
     private String getEntityName(EntityType item) {
