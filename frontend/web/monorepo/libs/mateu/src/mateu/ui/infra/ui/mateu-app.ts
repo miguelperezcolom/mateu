@@ -67,7 +67,8 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (route: string | undefined, actionId: string | undefined) => {
-        if (actionId) {
+        console.log('selectRoute', route, actionId)
+        if (false && actionId) {
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId,
@@ -79,6 +80,7 @@ export class MateuApp extends ComponentElement {
             return
         }
         if (route) {
+
             this.selectedRoute = route
             this.instant = nanoid()
             let baseUrl = this.baseUrl??''

@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.domain.Humanizer;
 import io.mateu.dtos.ComponentDto;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Representation;
@@ -18,7 +19,9 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FutureComponent;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Range;
+import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -27,6 +30,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.SneakyThrows;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -35,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -91,8 +97,39 @@ public class ReflectionFormFieldMapper {
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
+            .remoteCoordinates(getRemoteCoordinates(field))
         .readOnly(readOnly)
+            .options(getOptions(field))
         .build();
+  }
+
+  private static List<Option> getOptions(Field field) {
+    List<Option> options = new ArrayList<>();
+    if (field.getType().isEnum()) {
+      for (Object enumConstant : field.getType().getEnumConstants()) {
+        try {
+          Field enumField = field.getType().getField(enumConstant.toString());
+          Label label = enumField.getAnnotation(Label.class);
+
+          String labelValue = label != null ? label.value() : enumConstant.toString();
+
+          options.add(new Option(enumConstant.toString(), labelValue));
+
+        } catch (NoSuchFieldException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+    return options;
+  }
+
+  private static RemoteCoordinates getRemoteCoordinates(Field field) {
+    if (field.isAnnotationPresent(ForeignKey.class)) {
+      return RemoteCoordinates.builder()
+              .action("search-" + field.getName())
+              .build();
+    }
+    return null;
   }
 
   private static Component resolveFutureComponents(
@@ -163,6 +200,12 @@ public class ReflectionFormFieldMapper {
   }
 
   public static FieldStereotype getStereotype(Field field) {
+    if (field.getType().isEnum()) {
+      return FieldStereotype.select;
+    }
+    if (field.isAnnotationPresent(ForeignKey.class)) {
+      return FieldStereotype.combobox;
+    }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
     }
@@ -214,6 +257,9 @@ public class ReflectionFormFieldMapper {
     }
     if (field.getType().isArray() || Collection.class.isAssignableFrom(field.getType())) {
       return FieldDataType.array;
+    }
+    if (field.getType().isEnum()) {
+      return FieldDataType.string;
     }
     if (File.class.isAssignableFrom(field.getType())) {
       return FieldDataType.file;

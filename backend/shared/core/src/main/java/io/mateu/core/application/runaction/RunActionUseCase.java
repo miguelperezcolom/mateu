@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -84,12 +85,12 @@ public class RunActionUseCase {
                         command.httpRequest().getAttribute("resolvedRoute"),
                         instance.getClass().getSimpleName()))
             // if the target instance is an app, resolve the menu to get the real target instance
-            .flatMapMany(instance -> resolveMenuIfApp(command, instance))
+//            .flatMapMany(instance -> resolveMenuIfApp(command, instance))
             // here I have the target instance
             .flatMap(instance -> routeIfNeeded(command, instance))
             .doOnNext(instance -> updateResolvedRoute(command, instance))
             // .map(instance -> setRouteIfApp(command, instance))
-            .flatMap(
+            .flatMapMany(
                 instance ->
                     actionRunnerProvider
                         .get(
@@ -209,7 +210,7 @@ public class RunActionUseCase {
     return Mono.just(instance);
   }
 
-  private Flux<?> resolveMenuIfApp(RunActionCommand command, Object instance) {
+  private Mono<?> resolveMenuIfApp(RunActionCommand command, Object instance) {
     if (instance instanceof App app) {
       return resolveInApp(
           command.route(),
@@ -261,7 +262,8 @@ public class RunActionUseCase {
           command.actionId(),
           command);
     }
-    return Flux.just(instance);
+
+    return Mono.empty();
   }
 
   public static Actionable resolveMenu(List<Actionable> actionables, String route) {
@@ -292,61 +294,48 @@ public class RunActionUseCase {
   private Mono<?> createInstance(RunActionCommand command) {
     // si className --> ok
 
+    log.info("createInstance {}", command);
+
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
-      return createInstance(command.serverSiteType(), command)
-          .map(
-              object -> {
-                if (object instanceof PostHydrationHandler postHydrationHandler) {
-                  postHydrationHandler.onHydrated(command.httpRequest());
-                }
-                return object;
-              });
-    }
-    if ("/_page".equals(command.route())
-        && command.appServerSideType() != null
-        && !command.appServerSideType().isEmpty()) {
-      return createInstance(command.appServerSideType(), command)
-          .map(
-              object -> {
-                if (object instanceof PostHydrationHandler postHydrationHandler) {
-                  postHydrationHandler.onHydrated(command.httpRequest());
-                }
-                return object;
-              });
-    }
-    // si hay una ruta --> esa clase
-    Mono<?> instanceCreationPipe = resolveRoute(command);
-    if (instanceCreationPipe != null) return instanceCreationPipe;
-    //    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-    //      return createInstance(command.appServerSideType(), command)
-    //          .map(
-    //              object -> {
-    //                if (object instanceof PostHydrationHandler postHydrationHandler) {
-    //                  postHydrationHandler.onHydrated(command.httpRequest());
-    //                }
-    //                return object;
-    //              });
-    //    }
-    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-      return createInstance(command.appServerSideType(), command)
-          .map(
-              object -> {
-                if (object instanceof PostHydrationHandler postHydrationHandler) {
-                  postHydrationHandler.onHydrated(command.httpRequest());
-                }
-                return object;
-              });
+      return createInstanceAndPostHydrate(command.serverSiteType(), command);
     }
 
-    return Mono.empty();
+    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
+      if ("/_page".equals(command.route())) {
+        return createInstanceAndPostHydrate(command.appServerSideType(), command);
+      }
+      return createInstanceAndPostHydrate(command.appServerSideType(), command)
+              .flatMap(app -> resolveMenuIfApp(command, app))
+              .switchIfEmpty((Mono) resolveRoute(command));
+    }
+
+    // si hay una ruta --> esa clase
+    return resolveRoute(command);
+  }
+
+  private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
+    return createInstance(className, command)
+            .map(object -> postHydrate(command, object));
+  }
+
+  private static Object postHydrate(RunActionCommand command, Object object) {
+    if (object instanceof PostHydrationHandler postHydrationHandler) {
+      postHydrationHandler.onHydrated(command.httpRequest());
+    }
+    return object;
   }
 
   @SneakyThrows
   private Mono<?> resolveRoute(RunActionCommand command) {
     List<String> routes = createRoutes(command).reversed();
+    return Flux.fromIterable(routes)
+            .flatMap(route -> resolveAppRoute(route, command))
+            .next()
+            .switchIfEmpty((Mono) Flux.fromIterable(routes).flatMap(route -> resolveNonAppRoute(route, command)).next());
+    /*
     for (String route : routes) {
       var instanceCreationPipe = resolveAppRoute(route, command);
-      if (instanceCreationPipe != null) {
+      if (instanceCreationPipe.em) {
 
         return instanceCreationPipe;
       }
@@ -357,7 +346,9 @@ public class RunActionUseCase {
         return instanceCreationPipe;
       }
     }
-    return null;
+    return Mono.empty();
+
+     */
   }
 
   @SneakyThrows
@@ -445,7 +436,7 @@ public class RunActionUseCase {
         }
       }
     }
-    return null;
+    return Mono.empty();
   }
 
   private List<String> createRoutes(RunActionCommand command) {
@@ -600,7 +591,7 @@ public class RunActionUseCase {
     return fromRoute;
   }
 
-  public Flux<?> resolveInApp(
+  public Mono<?> resolveInApp(
       String route,
       String consumedRoute,
       Map<String, Object> data,
@@ -612,38 +603,7 @@ public class RunActionUseCase {
       String actionId,
       RunActionCommand command) {
     if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
-      if (potentialApp instanceof App app) {
-        var effectiveRoute = "".equals(actionId)?route:actionId;
-        if ("".equals(effectiveRoute)) {
-          return Flux.just(
-              wrap(app, instance, baseUrl, route, consumedRoute, initialComponentId, httpRequest));
-        }
-        if (isDeclarativeApp(instance.getClass())) {
-          return resolveMenuInDeclarativeApp(instance, effectiveRoute);
-        }
-        return Mono.just(app)
-            .flatMapMany(
-                appinstance ->
-                    actionRunnerProvider
-                        .get(instance, actionId, consumedRoute, route, httpRequest)
-                        .run(instance, command))
-            .flatMap(
-                result -> {
-                  if (result instanceof App resultAsApp) {
-                    return Mono.just(
-                        wrap(
-                            resultAsApp,
-                            instance,
-                            baseUrl,
-                            route,
-                            consumedRoute,
-                            initialComponentId,
-                            httpRequest));
-                  }
-                  return Mono.just(result);
-                });
-      }
-      return Flux.just(potentialApp);
+      return Mono.just(potentialApp);
     }
     App app = null;
     if (potentialApp instanceof App) {
@@ -660,21 +620,22 @@ public class RunActionUseCase {
     }
 
     if (app != null) {
-      var actionable = resolveMenu(app.menu(), route);
+      var actionable = resolveMenu(app.menu(), route.startsWith(consumedRoute)?route.substring(consumedRoute.length()):route);
       if (actionable == null) {
-        if (!consumedRoute.equals(route)) {
-          return Flux.just(app.withRoute(route));
-        }
-        return Flux.empty();
+        return Mono.empty();
       }
       if (actionable instanceof RouteLink routeLink) {
+        return Mono.empty();
+        /*
         if (route.equals(consumedRoute)) {
-          return Flux.empty();
+          return Mono.empty();
         }
-        return Flux.just(app.withRoute(route).withHomeRoute(routeLink.route()));
+        return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));
+        
+         */
       }
       if (actionable instanceof ContentLink contentLink) {
-        return Flux.just(contentLink.componentSupplier().component(httpRequest));
+        return Mono.just(contentLink.componentSupplier().component(httpRequest));
       }
       if (actionable instanceof FieldLink fieldLink) {
         return instanceFactoryProvider
@@ -716,8 +677,7 @@ public class RunActionUseCase {
                     postHydrationHandler.onHydrated(httpRequest);
                   }
                   return object;
-                })
-            .flux();
+                });
       }
       if (actionable instanceof MethodLink methodLink) {
         return instanceFactoryProvider
@@ -734,24 +694,25 @@ public class RunActionUseCase {
                     postHydrationHandler.onHydrated(httpRequest);
                   }
                   return object;
-                })
-            .flux();
+                });
       }
       if (actionable instanceof Menu menu) {
-        return Flux.just(new Text("Es un menu"));
+        return Mono.just(new Text("Es un menu"));
       }
     }
-    return Flux.empty();
+    return Mono.empty();
   }
 
-  private Flux<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
-    return Mono.just(instance).map(app -> findContainer(app, actionId)).flux();
+  private Mono<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
+    return Mono.just(instance)
+            .map(app -> findContainer(app, actionId))
+            .map(optional -> optional.orElse(Mono.empty()));
   }
 
-  private Object findContainer(Object app, String route) {
+  private Optional<Object> findContainer(Object app, String route) {
     var fieldInClass = getFieldByName(app.getClass(), route);
     if (fieldInClass != null) {
-      return getValueOrNewInstance(fieldInClass, app);
+      return Optional.of(getValueOrNewInstance(fieldInClass, app));
     }
     for (Field field :
         getAllFields(app.getClass()).stream()
@@ -759,12 +720,12 @@ public class RunActionUseCase {
             .toList()) {
       if (isDeclarativeApp(field.getType())) {
         var optionInMenu = findContainer(getValueOrNewInstance(field, app), route);
-        if (optionInMenu != null) {
+        if (optionInMenu.isPresent()) {
           return optionInMenu;
         }
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   public static boolean isDeclarativeApp(Class type) {

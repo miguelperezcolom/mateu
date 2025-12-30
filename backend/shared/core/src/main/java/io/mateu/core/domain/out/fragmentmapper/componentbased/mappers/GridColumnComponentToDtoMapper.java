@@ -50,7 +50,7 @@ public class GridColumnComponentToDtoMapper {
       return "9rem";
     }
 
-    return null;
+    return "10rem";
   }
 
   private static String getAlignment(GridColumn gridColumn) {

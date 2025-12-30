@@ -274,7 +274,7 @@ public class ReflectionPageMapper {
         FormLayout.builder()
             .content(
                 getAllEditableFields(instance.getClass()).stream()
-                    .filter(field -> !field.isAnnotationPresent(Menu.class))
+                        .filter(field -> filterField(field, forCreationForm))
                     .map(
                         field ->
                             (Component)
@@ -288,6 +288,18 @@ public class ReflectionPageMapper {
                                     httpRequest, isReadOnly(field, instance, forCreationForm)))
                     .toList())
             .build());
+  }
+
+  private static boolean filterField(Field field, boolean forCreationForm) {
+    if (field.isAnnotationPresent(Menu.class)) {
+      return false;
+    }
+    if (Collection.class.isAssignableFrom(field.getType())) {
+      return false;
+    }
+    if (forCreationForm) {
+    }
+    return true;
   }
 
   private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
