@@ -1,8 +1,11 @@
 package com.example.demo.ddd.infra.in.ui.pages.shared;
 
 import com.example.demo.ddd.domain.hotel.shared.Repository;
+import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.PrimaryKey;
+import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonColor;
 import io.mateu.uidl.data.ButtonVariant;
@@ -23,7 +26,9 @@ import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -32,6 +37,7 @@ import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,6 +50,7 @@ import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.infra.JsonSerializer.*;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
@@ -69,6 +76,39 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
     @SneakyThrows
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if (actionId.startsWith("action-on-row-")) {
+            String methodName = actionId.substring("action-on-row-".length());
+            for (Method method : getAllMethods(getClass())) {
+                if (methodName.equals(method.getName())) {
+                    method.setAccessible(true);
+                    method.invoke(this, httpRequest);
+                    break;
+                }
+            }
+        }
+        if (actionId.startsWith("action-on-view-")) {
+            String methodName = actionId.substring("action-on-view-".length());
+            var idField = getIdField(entityClass());
+
+            var found = repository().findById((String) httpRequest.runActionRq().componentState().get(idField));
+            if (found.isEmpty()) {
+                throw new RuntimeException("No item found with id " + httpRequest.runActionRq().parameters().get(idField));
+            }
+            var item = found.get();
+
+
+            for (Method method : getAllMethods(getClass())) {
+                if (methodName.equals(method.getName())) {
+                    method.setAccessible(true);
+                    if (method.getParameterCount() == 1) {
+                        return method.invoke(this, item);
+                    }
+                    if (method.getParameterCount() == 2) {
+                        return method.invoke(this, item, httpRequest);
+                    }
+                }
+            }
+        }
         if (actionId.startsWith("search-")) {
             String fieldName = actionId.substring(actionId.indexOf('-') + 1);
             var fkAnnotation = getFieldByName(entityClass(), fieldName).getAnnotation(ForeignKey.class);
@@ -108,6 +148,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             }
             var item = found.get();
             selectedItem = mapToRow(item);
+            var toolbar = createViewToolbar();
             return wrap(
                     Page.builder()
                             .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
@@ -121,7 +162,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                             httpRequest
                                     ).stream().toList()
                             )
-                            .toolbar(List.of(new Button("Edit", "edit")))
+                            .toolbar(toolbar)
                             .build(),
                     this,
                     "base_url",
@@ -200,6 +241,16 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             }
             return new Data(Map.of("crud", repository().search(searchText, pageable)));
         }
+        var toolbar = new ArrayList<UserTrigger>();
+        addButtons(toolbar);
+        toolbar.add(new Button("New", "new"));
+        if (Deleteable.class.isAssignableFrom(entityClass())) {
+            toolbar.add(Button.builder()
+                    .label("Delete")
+                    .actionId("delete")
+                    .variant(ButtonVariant.error)
+                    .build());
+        }
         return wrap(
                 Page.builder()
                         .title(toUpperCaseFirst(getClass().getSimpleName()))
@@ -222,12 +273,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                         .style("min-width: 30rem; display: block;")
                                         .build()
                                 ))
-                        .toolbar(List.of(new Button("New", "new"),
-                                Button.builder()
-                                        .label("Delete")
-                                        .actionId("delete")
-                                        .variant(ButtonVariant.error)
-                                        .build()))
+                        .toolbar(toolbar)
                         .build(),
                 this,
                 "base_url",
@@ -236,6 +282,28 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                 httpRequest.runActionRq().initiatorComponentId(),
                 httpRequest
         );
+    }
+
+    private List<UserTrigger> createViewToolbar() {
+        var toolbar = new ArrayList<UserTrigger>();
+        getAllMethods(getClass())
+                .stream().filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
+                .forEach(method -> {
+                    toolbar.add(new Button(toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
+                });
+        toolbar.add(new Button("Edit", "edit"));
+        return toolbar;
+    }
+
+    private void addButtons(ArrayList<UserTrigger> toolbar) {
+        getAllMethods(getClass())
+                .stream().filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+                .forEach(method -> {
+            toolbar.add(Button.builder()
+                    .label(toUpperCaseFirst(method.getName()))
+                    .actionId("action-on-row-" + method.getName())
+                    .build());
+        });
     }
 
     private HttpRequest addData(EntityType item, HttpRequest httpRequest) {
@@ -328,22 +396,39 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
 
     @Override
     public List<Trigger> triggers() {
-        return List.of(
-                new OnLoadTrigger("search"),
-                new OnSuccessTrigger("search", "create", ""),
-                new OnSuccessTrigger("search", "delete", ""),
-                new OnSuccessTrigger("search", "save", "")
-        );
+        var triggers = new ArrayList<Trigger>();
+        triggers.add(new OnLoadTrigger("search"));
+        triggers.add(new OnSuccessTrigger("search", "create", ""));
+        triggers.add(new OnSuccessTrigger("search", "delete", ""));
+        triggers.add(new OnSuccessTrigger("search", "save", ""));
+        getAllMethods(getClass())
+                .stream().filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+                .forEach(method -> {
+                    triggers.add(new OnSuccessTrigger("search",
+                            "action-on-row-" + method.getName(), ""));
+                });
+        return triggers;
     }
 
     @Override
     public List<Action> actions() {
-        return List.of(
+        var actions = new ArrayList<Action>();
+        actions.add(
                 Action.builder()
                         .id("delete")
                         .confirmationRequired(true)
                         .rowsSelectedRequired(true)
                         .build()
         );
+        getAllMethods(getClass())
+                .stream().filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+                .forEach(method -> {
+                    actions.add(Action.builder()
+                            .id("action-on-row-" + method.getName())
+                            .confirmationRequired(true)
+                            .rowsSelectedRequired(true)
+                            .build());
+                });
+        return actions;
     }
 }

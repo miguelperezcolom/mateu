@@ -239,6 +239,7 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
+            .filter(field -> false)
         .map(
             field ->
                 (FormField)
