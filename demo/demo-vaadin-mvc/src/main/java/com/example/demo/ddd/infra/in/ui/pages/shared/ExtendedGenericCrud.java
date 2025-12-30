@@ -10,6 +10,7 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
@@ -177,11 +178,16 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             );
         }
         if ("search".equals(actionId)) {
-            return new Data(Map.of("crud", ListingData.of(repository().findAll()
-                    //.stream()
-                    //.map(entity -> new GenericRow(entity.id(), entity.name()))
-                    //.toList()
-            )));
+            String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
+            Pageable pageable = new Pageable(
+                    (Integer) httpRequest.runActionRq().componentState().get("page"),
+                    (Integer) httpRequest.runActionRq().componentState().get("size"),
+                    (List<Sort>) httpRequest.runActionRq().componentState().get("sort")
+            );
+            if (searchText == null) {
+                searchText = "";
+            }
+            return new Data(Map.of("crud", repository().search(searchText, pageable)));
         }
         return wrap(
                 Page.builder()

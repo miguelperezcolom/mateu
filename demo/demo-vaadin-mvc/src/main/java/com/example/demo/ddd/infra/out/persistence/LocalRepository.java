@@ -1,6 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence;
 
 import com.example.demo.ddd.domain.hotel.shared.Repository;
+import com.google.common.base.Ascii;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Page;
@@ -10,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 public class LocalRepository<EntityType extends Entity<IdType>, IdType> implements Repository<EntityType, IdType> {
 
@@ -39,7 +43,7 @@ public class LocalRepository<EntityType extends Entity<IdType>, IdType> implemen
         var found = repository.values().stream()
                 .filter(value -> value != null &&
                         ("".equals(cleanSearchText) ||
-                                value.toString().toLowerCase().contains(cleanSearchText)))
+                                name(value).toLowerCase().contains(cleanSearchText)))
                 .toList();
         return new ListingData<>(new Page<>(
                 searchText,
@@ -50,5 +54,13 @@ public class LocalRepository<EntityType extends Entity<IdType>, IdType> implemen
                         .skip((long) pageable.page() * pageable.size())
                         .limit(pageable.size())
                         .toList()));
+    }
+
+    private String name(EntityType value) {
+        var nameField = getFieldByName(value.getClass(), "name");
+        if (nameField != null) {
+            return (String) getValue(nameField, value);
+        }
+        return value.toString();
     }
 }
