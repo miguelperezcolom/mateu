@@ -51,7 +51,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
 
                 <vaadin-vertical-layout style="width: 100%;">
-                    <vaadin-horizontal-layout style="width: 100%; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
+                    <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
                         <vaadin-horizontal-layout style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
@@ -60,7 +60,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 .items="${items}"
                                 @item-selected="${container.itemSelected}"
                                 theme="dropdown-indicators"
-                                style="flex-grow: 1;"
+                                style="flex-grow: 1; margin-left: 4rem; margin-top: 1.3rem;"
                                 class="menu"
                         >
                         </vaadin-menu-bar>
