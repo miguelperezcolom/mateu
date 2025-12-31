@@ -208,7 +208,7 @@ public class ProductSubmenu {
 
 ```
 
-<p align="center"><img src="../../../images/back-1.svg" width="600"/></p>
+<p align="center"><img src="../../../images/back-1.png" width="600"/></p>
 
 
 #### The CRUDs
