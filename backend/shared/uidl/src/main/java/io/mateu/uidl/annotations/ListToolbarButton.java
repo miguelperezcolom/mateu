@@ -7,4 +7,10 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface ListToolbarButton {}
+public @interface ListToolbarButton {
+
+    boolean confirmationRequired() default true;
+
+    boolean rowsSelectedRequired() default true;
+
+}

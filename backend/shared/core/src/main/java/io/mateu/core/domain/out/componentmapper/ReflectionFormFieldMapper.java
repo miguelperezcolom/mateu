@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import io.mateu.core.domain.Humanizer;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Representation;
@@ -178,7 +179,8 @@ public class ReflectionFormFieldMapper {
 
   private static boolean isReadOnly(Field field, Object instance) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
-        || field.isAnnotationPresent(ReadOnly.class);
+        || field.isAnnotationPresent(ReadOnly.class)
+            || field.isAnnotationPresent(GeneratedValue.class);
   }
 
   private static int getSliderMax(Field field) {

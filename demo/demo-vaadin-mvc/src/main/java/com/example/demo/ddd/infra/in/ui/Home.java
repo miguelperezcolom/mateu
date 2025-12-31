@@ -1,6 +1,7 @@
 package com.example.demo.ddd.infra.in.ui;
 
 import com.example.demo.ddd.infra.in.ui.pages.hotel.Agencies;
+import com.example.demo.ddd.infra.in.ui.pages.hotel.Bookings;
 import com.example.demo.ddd.infra.in.ui.pages.hotel.Countries;
 import com.example.demo.ddd.infra.in.ui.pages.hotel.Hotels;
 import com.example.demo.ddd.infra.in.ui.pages.project.Projects;
@@ -28,10 +29,10 @@ public class Home {
     Agencies agencies;
 
     @Menu
-    MasterDataMenu masterData;
+    ProductSubmenu product;
 
     @Menu
-    ProductSubmenu product;
+    Bookings bookings;
 
     String content = "Hola!";
 

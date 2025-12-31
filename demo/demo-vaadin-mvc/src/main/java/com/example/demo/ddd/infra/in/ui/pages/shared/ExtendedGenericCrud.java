@@ -2,6 +2,7 @@ package com.example.demo.ddd.infra.in.ui.pages.shared;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.PrimaryKey;
 import io.mateu.uidl.annotations.ViewToolbarButton;
@@ -62,6 +63,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
 
     @Override
     public Object data(HttpRequest httpRequest) {
+        if (httpRequest.getAttribute("new") != null) {
+            var data = fromJson(toJson(this));
+            getAllFields(entityClass())
+                    .stream().filter(field -> field.isAnnotationPresent(GeneratedValue.class))
+                    .forEach(field -> {
+                        var generator = MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
+                        var value = generator.generate();
+                data.put(field.getName(), value);
+            });
+            return data;
+        }
         if (httpRequest.getAttribute("selectedItem") != null) {
             var data = fromJson(toJson(this));
             data.putAll(fromJson(toJson(httpRequest.getAttribute("selectedItem"))));
@@ -211,13 +223,14 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
     }
 
     private Object create(HttpRequest httpRequest) {
+        httpRequest.setAttribute("new", true);
         return wrap(
                 Page.builder()
                         .title("New " + toUpperCaseFirst(entityClass().getSimpleName()))
                         .style("max-width:900px;margin: auto;")
                         .content(
                                 getForm(
-                                        MateuInstanceFactory.newInstance(entityClass(), Map.of(), null),
+                                        entityClass(),
                                         "base_url",
                                         httpRequest.runActionRq().route(),
                                         httpRequest.runActionRq().consumedRoute(),
@@ -448,8 +461,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                 .forEach(method -> {
                     actions.add(Action.builder()
                             .id("action-on-row-" + method.getName())
-                            .confirmationRequired(true)
-                            .rowsSelectedRequired(true)
+                            .confirmationRequired(method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
+                            .rowsSelectedRequired(method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
                             .build());
                 });
         return actions;

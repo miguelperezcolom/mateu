@@ -19,6 +19,7 @@ import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
@@ -293,14 +294,14 @@ public class ReflectionPageMapper {
     return List.of(
         FormLayout.builder()
             .content(
-                getAllEditableFields(instance.getClass()).stream()
+                getAllEditableFields(getClass(instance)).stream()
                         .filter(field -> filterField(field, forCreationForm))
                     .map(
                         field ->
                             (Component)
                                 getFormField(
                                     field,
-                                    instance,
+                                    getInstance(instance),
                                     baseUrl,
                                     route,
                                     consumedRoute,
@@ -308,6 +309,20 @@ public class ReflectionPageMapper {
                                     httpRequest, isReadOnly(field, instance, forCreationForm)))
                     .toList())
             .build());
+  }
+
+  private static Object getInstance(Object instance) {
+    if (Class.class.equals(instance.getClass())) {
+      return null;
+    }
+    return instance;
+  }
+
+  private static Class getClass(Object instance) {
+    if (Class.class.equals(instance.getClass())) {
+      return (Class) instance;
+    }
+    return instance.getClass();
   }
 
   private static boolean filterField(Field field, boolean forCreationForm) {
@@ -327,7 +342,8 @@ public class ReflectionPageMapper {
 
   private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
-            || field.isAnnotationPresent(ReadOnly.class) || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
+            || field.isAnnotationPresent(ReadOnly.class)
+            || field.isAnnotationPresent(GeneratedValue.class) || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
   }
 
   private static boolean isForm(Object instance) {
