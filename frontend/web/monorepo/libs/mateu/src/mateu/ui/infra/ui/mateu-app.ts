@@ -67,7 +67,6 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (route: string | undefined, actionId: string | undefined) => {
-        console.log('selectRoute', route, actionId)
         if (false && actionId) {
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
@@ -102,7 +101,6 @@ export class MateuApp extends ComponentElement {
                 window.history.pushState({},"", pathname);
             }
 
-            console.log('baseurl, route = ', baseUrl, route)
             //this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("baseUrl", baseUrl)
             this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("route", route)
             this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("instant", nanoid())
