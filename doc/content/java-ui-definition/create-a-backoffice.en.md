@@ -159,6 +159,10 @@ The first thing is to define the home and the main menu. This means, an app with
 ```java
 @MateuUI("")
 @Style("width: 100%;")
+@Title("App")
+@FavIcon("/images/favicon.png")
+@PageTitle("My app")
+@Logo("/images/logo.png")
 public class Home {
 
     @Menu
@@ -203,6 +207,10 @@ public class ProductSubmenu {
 }
 
 ```
+
+<p align="center"><img src="../../../images/back-1.svg" width="600"/></p>
+
+
 #### The CRUDs
 
 Each of those leaf menu entries is a class extending the **GenericCrud** class, for an entity. Something like this:
@@ -259,7 +267,22 @@ you only need to create a method in your CRUD class and annotate it with **@View
 
 #### Conditional actions
 
-TBD
+For actions which mus be disabled under some circumstances you can annotate the method like below:
+
+```java
+
+    @ViewToolbarButton
+    @Disabled("state.name && state.age > 17")
+    Object test(Hotel hotel, HttpRequest httpRequest) {
+        log.info("test {}", hotel);
+        return Message.builder()
+                .text("Hola " + hotel.name())
+                .build();
+    }
+    
+```
+
+```
 
 #### Errors
 
@@ -400,7 +423,26 @@ with **@Button**, and add a menu option in your main app.
 
 #### Form level validations
 
-TBD
+While you can set field level validations by using jakarta's validation annotations (JSR-380), there are some validations
+which affect several fields. For those cases, you can declare form-level validations like below:
+
+```java
+    @Override
+    public List<Validation> validations() {
+        return List.of(
+                Validation.builder()
+                        .condition("state.name && state.age > 17")
+                        .fieldId("name,age")
+                        .message("Name is required and age must be greater than 17")
+                        .build(),
+                Validation.builder()
+                        .condition("state.name && state.age > 30")
+                        .message("Name is required and age must be greater than 30")
+                        .build()
+
+        );
+    }
+```
 
 #### Wizards
 
@@ -421,7 +463,12 @@ You can overwrite any of those views you just need by providing an alternate vie
 it with **@Route** supplying the route to override.
 
 ```java
-TBD
+@Route("/hotels/.*/edit")
+public class CustomHotelEditForm {
+  
+  // whatever content
+  
+}
 ```
 
 ## A note on the paradigm shift

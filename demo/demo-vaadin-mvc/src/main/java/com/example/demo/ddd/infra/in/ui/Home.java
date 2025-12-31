@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 @Logo("/images/logo.png")
 public class Home {
 
-    @Menu
-    Projects projects;
+    //@Menu
+    //Projects projects;
 
     @Menu
     Agencies agencies;
