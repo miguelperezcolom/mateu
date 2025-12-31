@@ -232,6 +232,16 @@ public class Agencies extends GenericCrud<Agency> {
 The **GenericCrud** class provides the list, create, view, edit and delete functionalities out of the box, inferring the
 columns and fields from the entity fields.
 
+<p align="center"><img src="../../../images/back-2.png" width="600"/></p>
+
+<p align="center"><img src="../../../images/back-3.png" width="600"/></p>
+
+<p align="center"><img src="../../../images/back-4.png" width="600"/></p>
+
+<p align="center"><img src="../../../images/back-5.png" width="600"/></p>
+
+<p align="center"><img src="../../../images/back-6.png" width="600"/></p>
+
 You can override or adjust what **Mateu** infers by using annotations, as explained in the documentation. 
 
 #### CRUD level actions
@@ -247,6 +257,8 @@ you only need to create a method in your CRUD class and annotate it with **@List
     }
 
 ```
+
+<p align="center"><img src="../../../images/back-7.png" width="500"/></p>
 
 #### View level actions
 
@@ -264,6 +276,10 @@ you only need to create a method in your CRUD class and annotate it with **@View
     }
     
 ```
+
+<p align="center"><img src="../../../images/back-8.png" width="500"/></p>
+
+<p align="center"><img src="../../../images/back-9.png" width="500"/></p>
 
 #### Conditional actions
 
