@@ -228,7 +228,34 @@ You can override or adjust what **Mateu** infers by using annotations, as explai
 
 #### CRUD level actions
 
-TBD
+You can add buttons to the CRUD listing view for calling some logic on the server side. For doing that, 
+you only need to create a method in your CRUD class and annotate it with **@ListToolbarButton**, like below:
+
+```java
+
+    @ListToolbarButton
+    void resetImage(HttpRequest httpRequest) {
+        log.info("reset image {}", httpRequest.getSelectedRows(Map.class));
+    }
+
+```
+
+#### View level actions
+
+You ca also add buttons to the entity read only view for calling some logic on the server side, for any entity. For doing that,
+you only need to create a method in your CRUD class and annotate it with **@ViewToolbarButton**, like below:
+
+```java
+
+    @ViewToolbarButton
+    Object test(Hotel hotel, HttpRequest httpRequest) {
+        log.info("test {}", hotel);
+        return Message.builder()
+                .text("Hola " + hotel.name())
+                .build();
+    }
+    
+```
 
 #### Conditional actions
 
