@@ -282,8 +282,6 @@ For actions which mus be disabled under some circumstances you can annotate the 
     
 ```
 
-```
-
 #### Errors
 
 Any exception thrown from your code will be shown to the user. As always, it's a good practice not to let 
