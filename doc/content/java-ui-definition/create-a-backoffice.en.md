@@ -279,7 +279,7 @@ you only need to create a method in your CRUD class and annotate it with **@View
 
 <p align="center"><img src="../../../images/back-8.png" width="500"/></p>
 
-<p align="center"><img src="../../../images/back-9.png" width="500"/></p>
+<p align="center"><img src="../../../images/back-9.png" width="600"/></p>
 
 #### Conditional actions
 
@@ -361,6 +361,7 @@ public record Destination(
 }
 
 ```
+<p align="center"><img src="../../../images/back-10.png" width="600"/></p>
 
 #### Owned entities
 
