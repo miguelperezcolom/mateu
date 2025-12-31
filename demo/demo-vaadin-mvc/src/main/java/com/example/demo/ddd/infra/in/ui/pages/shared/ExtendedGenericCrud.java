@@ -1,18 +1,15 @@
 package com.example.demo.ddd.infra.in.ui.pages.shared;
 
-import com.example.demo.ddd.domain.hotel.shared.Repository;
-import io.mateu.core.domain.Humanizer;
+import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.PrimaryKey;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.ButtonColor;
 import io.mateu.uidl.data.ButtonVariant;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
@@ -28,13 +25,14 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ActionHandler;
-import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
+import io.mateu.uidl.interfaces.RouteHandler;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -54,18 +52,19 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
+import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+@Slf4j
 public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm, ViewForm, EditForm>
-        implements ActionHandler, DataSupplier, TriggersSupplier, ActionSupplier {
+        implements ActionHandler, DataSupplier, TriggersSupplier, ActionSupplier, RouteHandler {
 
-    private Row selectedItem;
 
     @Override
-    public Object data() {
-        if (selectedItem != null) {
+    public Object data(HttpRequest httpRequest) {
+        if (httpRequest.getAttribute("selectedItem") != null) {
             var data = fromJson(toJson(this));
-            data.putAll(fromJson(toJson(selectedItem)));
+            data.putAll(fromJson(toJson(httpRequest.getAttribute("selectedItem"))));
             return data;
         }
         return this;
@@ -141,93 +140,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         }
         if ("view".equals(actionId)) {
             var idField = getIdField(entityClass());
-
-            var found = repository().findById((String) httpRequest.runActionRq().parameters().get(idField));
-            if (found.isEmpty()) {
-                throw new RuntimeException("No item found with id " + httpRequest.runActionRq().parameters().get(idField));
-            }
-            var item = found.get();
-            selectedItem = mapToRow(item);
-            var toolbar = createViewToolbar();
-            return wrap(
-                    Page.builder()
-                            .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
-                            .content(
-                                    getView(
-                                            item,
-                                            "base_url",
-                                            httpRequest.runActionRq().route(),
-                                            httpRequest.runActionRq().consumedRoute(),
-                                            httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest
-                                    ).stream().toList()
-                            )
-                            .toolbar(toolbar)
-                            .build(),
-                    this,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    addData(item, httpRequest)
-            );
+            var id = (String) httpRequest.runActionRq().parameters().get(idField);
+            return List.of(view(id, httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id));
         }
         if ("edit".equals(actionId)) {
             var idField = getIdField(entityClass());
-            var found = repository().findById((String) getValue(getFieldByName(selectedItem.getClass(), idField), selectedItem));
-            if (found.isEmpty()) {
-                throw new RuntimeException("No item found with id " + httpRequest.runActionRq().parameters().get(idField));
-            }
-            var item = found.get();
-            selectedItem = mapToRow(item);
-            return wrap(
-                    Page.builder()
-                            .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
-                            .content(
-                                    getForm(
-                                            item,
-                                            "base_url",
-                                            httpRequest.runActionRq().route(),
-                                            httpRequest.runActionRq().consumedRoute(),
-                                            httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest,
-                                            false
-                                    ).stream().toList()
-                            )
-                            .toolbar(List.of(new Button("Save", "save")))
-                            .build(),
-                    this,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    addData(item, httpRequest)
-            );
+            var id = (String) httpRequest.runActionRq().componentState().get(idField);
+
+            return List.of(edit(id, httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id + "/edit"));
         }
         if ("new".equals(actionId)) {
-            return wrap(
-                    Page.builder()
-                            .title("New " + toUpperCaseFirst(entityClass().getSimpleName()))
-                            .content(
-                                    getForm(
-                                            MateuInstanceFactory.newInstance(entityClass(), Map.of(), null),
-                                            "base_url",
-                                            httpRequest.runActionRq().route(),
-                                            httpRequest.runActionRq().consumedRoute(),
-                                            httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest,
-                                            true
-                                    ).stream().toList()
-                            )
-                            .toolbar(List.of(new Button("Create", "create")))
-                            .build(),
-                    this,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest
-            );
+            return List.of(create(httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/new"));
         }
         if ("search".equals(actionId)) {
             String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
@@ -251,24 +174,27 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                     .variant(ButtonVariant.error)
                     .build());
         }
-        return wrap(
+        var columns = Stream.concat(getColumns(rowClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().initiatorComponentId(), httpRequest)
+                                .stream()
+                        , Stream.of(GridColumn.builder()
+                                .label("Action")
+                                .id("_action")
+                                .stereotype(FieldStereotype.link)
+                                .actionId("view")
+                                .text("View")
+                                .build()))
+                .toList();
+        return List.of(wrap(
                 Page.builder()
                         .title(toUpperCaseFirst(getClass().getSimpleName()))
+                        .style(columns.size() > 5?"width: 100%;":"max-width:900px;margin: auto;")
                         .content(List.of(
                                 Listing.builder()
                                         .listingType(ListingType.table)
                                         .title("Xxx")
                                         .searchable(true)
                                         .rowsSelectionEnabled(true)
-                                        .columns(Stream.concat(getColumns(rowClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().initiatorComponentId(), httpRequest)
-                                                                .stream()
-                                                , Stream.of(GridColumn.builder()
-                                                                .label("Action")
-                                                                .stereotype(FieldStereotype.link)
-                                                                .actionId("view")
-                                                                .text("View")
-                                                                .build()))
-                                                .toList())
+                                        .columns(columns)
                                         .filters(getFilters(filtersClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().consumedRoute(), httpRequest.runActionRq().initiatorComponentId(), httpRequest))
                                         .style("min-width: 30rem; display: block;")
                                         .build()
@@ -281,7 +207,104 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                 httpRequest.runActionRq().consumedRoute(),
                 httpRequest.runActionRq().initiatorComponentId(),
                 httpRequest
+        ), pushStateToHistory(getCrudRoute(httpRequest)));
+    }
+
+    private Object create(HttpRequest httpRequest) {
+        return wrap(
+                Page.builder()
+                        .title("New " + toUpperCaseFirst(entityClass().getSimpleName()))
+                        .style("max-width:900px;margin: auto;")
+                        .content(
+                                getForm(
+                                        MateuInstanceFactory.newInstance(entityClass(), Map.of(), null),
+                                        "base_url",
+                                        httpRequest.runActionRq().route(),
+                                        httpRequest.runActionRq().consumedRoute(),
+                                        httpRequest.runActionRq().initiatorComponentId(),
+                                        httpRequest,
+                                        true
+                                ).stream().toList()
+                        )
+                        .toolbar(List.of(new Button("Create", "create")))
+                        .build(),
+                this,
+                "base_url",
+                httpRequest.runActionRq().route(),
+                httpRequest.runActionRq().consumedRoute(),
+                httpRequest.runActionRq().initiatorComponentId(),
+                httpRequest
         );
+    }
+
+    private Object edit(String id, HttpRequest httpRequest) {
+        var found = repository().findById(id);
+        if (found.isEmpty()) {
+            throw new RuntimeException("No item found with id " + id);
+        }
+        var item = found.get();
+        httpRequest.setAttribute("selectedItem", mapToRow(item));
+        return wrap(
+                Page.builder()
+                        .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
+                        .style("max-width:900px;margin: auto;")
+                        .content(
+                                getForm(
+                                        item,
+                                        "base_url",
+                                        httpRequest.runActionRq().route(),
+                                        httpRequest.runActionRq().consumedRoute(),
+                                        httpRequest.runActionRq().initiatorComponentId(),
+                                        httpRequest,
+                                        false
+                                ).stream().toList()
+                        )
+                        .toolbar(List.of(new Button("Save", "save")))
+                        .build(),
+                this,
+                "base_url",
+                httpRequest.runActionRq().route(),
+                httpRequest.runActionRq().consumedRoute(),
+                httpRequest.runActionRq().initiatorComponentId(),
+                addData(item, httpRequest)
+        );
+    }
+
+    private Object view(String id, HttpRequest httpRequest) {
+        var found = repository().findById(id);
+        if (found.isEmpty()) {
+            throw new RuntimeException("No item found with id " + id);
+        }
+        var item = found.get();
+        httpRequest.setAttribute("selectedItem", mapToRow(item));
+        var toolbar = createViewToolbar();
+        return wrap(
+                Page.builder()
+                        .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
+                        .style("max-width:900px;margin: auto;")
+                        .content(
+                                getView(
+                                        item,
+                                        "base_url",
+                                        httpRequest.runActionRq().route(),
+                                        httpRequest.runActionRq().consumedRoute(),
+                                        httpRequest.runActionRq().initiatorComponentId(),
+                                        httpRequest
+                                ).stream().toList()
+                        )
+                        .toolbar(toolbar)
+                        .build(),
+                this,
+                "base_url",
+                httpRequest.runActionRq().route(),
+                httpRequest.runActionRq().consumedRoute(),
+                httpRequest.runActionRq().initiatorComponentId(),
+                addData(item, httpRequest)
+        );
+    }
+
+    private String getCrudRoute(HttpRequest httpRequest) {
+        return "/" + httpRequest.runActionRq().route().split("/")[1];
     }
 
     private List<UserTrigger> createViewToolbar() {
@@ -430,5 +453,27 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                             .build());
                 });
         return actions;
+    }
+
+    @Override
+    public Object handleRoute(String route, HttpRequest httpRequest) {
+        log.info("route is {}", route);
+        if (httpRequest.runActionRq().actionId() == null || "".equals(httpRequest.runActionRq().actionId())) {
+            var crudRoute = getCrudRoute(httpRequest);
+            var actionId = route.substring(crudRoute.length());
+            if (actionId.startsWith("/")) {
+                actionId = actionId.substring(1);
+            }
+            if (!"".equals(actionId)) {
+                if ("new".equals(actionId)) {
+                    return create(httpRequest);
+                }
+                if (actionId.endsWith("edit")) {
+                    return edit(actionId.split("/")[0], httpRequest);
+                }
+                return view(actionId, httpRequest);
+            }
+        }
+        return this;
     }
 }

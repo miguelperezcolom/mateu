@@ -57,7 +57,7 @@ This example assumes a standard Java application, no matter if you are using Spr
 You only need to:
 - include Mateu as a dependency
 - define your UI as explained in this document 
-- run the application and open `/`
+- run the application and open the server url in your browser, e.g. `http://localhost:8080`
 
 ## The domain and application layers
 

@@ -163,6 +163,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 width="${mateuColumn.width??nothing}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
+                                .xcolumn="${mateuColumn}"
                                 ${columnBodyRenderer(
 
                                         (item: any,

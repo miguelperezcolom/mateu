@@ -1,0 +1,6 @@
+package com.example.demo.ddd.infra.out.persistence.hotel.codes;
+
+import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
+
+public interface RoomTypeCodeRepository extends Repository<RoomTypeCode, String> {
+}

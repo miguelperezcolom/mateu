@@ -1,7 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence;
 
-import com.example.demo.ddd.domain.hotel.world.Destination;
-import com.example.demo.ddd.domain.hotel.world.DestinationRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.Destination;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
 import org.springframework.stereotype.Service;
 
 @Service

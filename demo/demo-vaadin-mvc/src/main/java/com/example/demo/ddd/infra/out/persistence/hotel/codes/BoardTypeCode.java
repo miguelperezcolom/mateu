@@ -1,0 +1,14 @@
+package com.example.demo.ddd.infra.out.persistence.hotel.codes;
+
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+
+public record BoardTypeCode(
+        String code,
+        String name,
+        BoardType boardType
+) implements GenericEntity {
+    @Override
+    public String id() {
+        return code;
+    }
+}

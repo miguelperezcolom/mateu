@@ -19,8 +19,10 @@ export const renderLinkCell = (item: any,
                                  vaadinColumn: VaadinGridColumn,
                                 type: string,
                                 _stereotype: string,
-                               column: GridColumn
+                               _column: GridColumn
 ) => {
+    // @ts-ignore
+    const column = vaadinColumn.xcolumn??_column
     if (column.text) {
         if (column.actionId) {
             // @ts-ignore
@@ -38,9 +40,9 @@ export const renderLinkCell = (item: any,
         }
         // @ts-ignore
         const href = item[vaadinColumn.path]
-        return html`<a href="${href}">${href}</a>`;
+        return html`<a href="${href}">yy${href}</a>`;
     }
     // @ts-ignore
     const link = item[vaadinColumn.path]
-    return html`<a href="${link.href}">${link.text}</a>`;
+    return html`<a href="${link.href}">xx${link.text}</a>`;
 }

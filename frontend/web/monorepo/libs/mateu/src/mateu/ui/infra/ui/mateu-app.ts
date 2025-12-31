@@ -101,6 +101,11 @@ export class MateuApp extends ComponentElement {
                 }
                 window.history.pushState({},"", pathname);
             }
+
+            console.log('baseurl, route = ', baseUrl, route)
+            //this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("baseUrl", baseUrl)
+            this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("route", route)
+            this.shadowRoot?.querySelector('mateu-ux')?.setAttribute("instant", nanoid())
             //window.history.pushState({},"", this.baseUrl + app.homeRoute);
         }
     }

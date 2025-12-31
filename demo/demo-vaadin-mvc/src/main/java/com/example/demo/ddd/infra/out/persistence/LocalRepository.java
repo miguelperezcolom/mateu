@@ -1,9 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence;
 
-import com.example.demo.ddd.domain.hotel.shared.Repository;
-import com.google.common.base.Ascii;
+import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 

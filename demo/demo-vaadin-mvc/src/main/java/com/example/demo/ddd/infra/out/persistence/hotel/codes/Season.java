@@ -1,0 +1,8 @@
+package com.example.demo.ddd.infra.out.persistence.hotel.codes;
+
+import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+
+import java.time.LocalDate;
+
+public record Season(String id, String name, LocalDate from, LocalDate to) implements GenericEntity {
+}

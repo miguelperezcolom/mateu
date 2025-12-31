@@ -1,13 +1,9 @@
 package com.example.demo.ddd.infra.in.ui.pages.hotel;
 
-import com.example.demo.ddd.domain.hotel.hotel.Inventory;
-import com.example.demo.ddd.domain.hotel.hotel.InventoryRepository;
-import com.example.demo.ddd.domain.hotel.shared.Repository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Inventory;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 import com.example.demo.ddd.infra.in.ui.pages.shared.GenericCrud;
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericListingBackend;
-import io.mateu.uidl.annotations.Trigger;
-import io.mateu.uidl.annotations.TriggerType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

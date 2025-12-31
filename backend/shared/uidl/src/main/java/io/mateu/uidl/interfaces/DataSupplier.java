@@ -3,5 +3,5 @@ package io.mateu.uidl.interfaces;
 
 public interface DataSupplier {
 
-  Object data();
+  Object data(HttpRequest httpRequest);
 }

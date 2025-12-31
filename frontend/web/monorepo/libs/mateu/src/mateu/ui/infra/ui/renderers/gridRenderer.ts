@@ -51,7 +51,9 @@ export const renderGrid = (
                      all-rows-visible
         >
             ${metadata.content.map((mateuColumn, index) => index > 0?html`
-            <vaadin-grid-column path="${mateuColumn.id}" ${columnBodyRenderer(
+            <vaadin-grid-column path="${mateuColumn.id}"
+                                .column="${mateuColumn.metadata}"
+                                ${columnBodyRenderer(
                     (item: any,
                      model: GridItemModel<any>,
                      column: VaadinGridColumn) => columnRenderer(item,

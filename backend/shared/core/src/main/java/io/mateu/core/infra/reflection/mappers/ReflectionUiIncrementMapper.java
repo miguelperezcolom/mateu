@@ -123,6 +123,24 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     }
     if (instance instanceof Collection<?> collection) {
       return collection.stream()
+              .filter(object -> {
+                if (object instanceof AppState) {
+                  return false;
+                }
+                if (object instanceof AppData) {
+                  return false;
+                }
+                if (object instanceof Message) {
+                  return false;
+                }
+                if (object instanceof UICommand) {
+                  return false;
+                }
+                if (object instanceof URI || object instanceof URL) {
+                  return false;
+                }
+                return true;
+              })
           .map(
               object ->
                   serializeData(

@@ -1,6 +1,6 @@
 package com.example.demo.ddd.infra.in.ui.pages.shared;
 
-import com.example.demo.ddd.domain.hotel.shared.Repository;
+import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;

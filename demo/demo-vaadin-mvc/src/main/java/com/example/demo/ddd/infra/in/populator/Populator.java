@@ -1,15 +1,15 @@
 package com.example.demo.ddd.infra.in.populator;
 
-import com.example.demo.ddd.domain.hotel.agency.AgencyRepository;
-import com.example.demo.ddd.domain.hotel.codes.BoardTypeCodeRepository;
-import com.example.demo.ddd.domain.hotel.codes.RoomTypeCodeRepository;
-import com.example.demo.ddd.domain.hotel.codes.SeasonRepository;
-import com.example.demo.ddd.domain.hotel.hotel.ContractRepository;
-import com.example.demo.ddd.domain.hotel.hotel.HotelRepository;
-import com.example.demo.ddd.domain.hotel.hotel.InventoryRepository;
-import com.example.demo.ddd.domain.hotel.hotel.TariffRepository;
-import com.example.demo.ddd.domain.hotel.world.CountryRepository;
-import com.example.demo.ddd.domain.hotel.world.DestinationRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.ContractRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
 import com.example.demo.ddd.infra.in.populator.dtos.AgenciaDto;
 import com.example.demo.ddd.infra.in.populator.dtos.DestinoDto;
 import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;

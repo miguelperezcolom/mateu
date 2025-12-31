@@ -774,7 +774,7 @@ public class RunActionUseCase {
                         initiatorComponentId,
                         httpRequest))
             .toList(),
-        getData(modelView),
+        getData(modelView, httpRequest),
         "",
         "",
         mapActions(modelView),
@@ -784,9 +784,9 @@ public class RunActionUseCase {
         null);
   }
 
-  private static Object getData(Object modelView) {
+  private static Object getData(Object modelView, HttpRequest httpRequest) {
     if (modelView instanceof DataSupplier dataSupplier) {
-      return dataSupplier.data();
+      return dataSupplier.data(httpRequest);
     }
     return modelView;
   }
