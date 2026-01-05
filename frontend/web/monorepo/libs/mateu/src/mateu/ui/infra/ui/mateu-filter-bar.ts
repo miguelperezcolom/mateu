@@ -170,7 +170,8 @@ export class MateuFilterBar extends LitElement {
                             style: '',
                             children: [],
                             slot: '',
-                            cssClasses: ''
+                            cssClasses: '',
+                            initialData: {}
         } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                     </vaadin-form-row>
                 </vaadin-form-layout>
