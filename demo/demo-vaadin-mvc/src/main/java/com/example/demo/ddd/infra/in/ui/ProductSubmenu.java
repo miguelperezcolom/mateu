@@ -17,13 +17,9 @@ public class ProductSubmenu {
     MasterDataMenu masterData;
 
     @Menu
-    Hotels hotels;
+    HotelSubmenu hotel;
 
     @Menu
-    Inventories inventories;
-    @Menu
-    Contracts contracts;
-    @Menu
-    Tariffs tariffs;
+    TransferSubmenu transfer;
 
 }

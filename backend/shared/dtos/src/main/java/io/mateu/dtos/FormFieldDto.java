@@ -50,8 +50,9 @@ public record FormFieldDto(
     int sliderMin,
     int sliderMax,
     boolean stepButtonsVisible,
-    double step)
-    implements ComponentMetadataDto {
+    double step,
+    String itemIdPath
+) implements ComponentMetadataDto {
 
   public FormFieldDto {
     badges =

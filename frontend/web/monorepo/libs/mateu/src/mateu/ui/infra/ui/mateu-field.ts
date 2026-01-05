@@ -379,12 +379,13 @@ export class MateuField extends LitElement {
         const labelText = this.field?.label + '' + (this.field?.required?' (*)':'')
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
-        if (this.field?.readOnly) {
+        if (this.field?.readOnly && !('grid' == this.field.stereotype)) {
+            const valueToDisplay = value || this.data[fieldId]
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
                         label="${label}"
-                        value="${value}"
+                        value="${valueToDisplay}"
                         readonly
                         style="${this.field.style}"
                 ></vaadin-text-field>

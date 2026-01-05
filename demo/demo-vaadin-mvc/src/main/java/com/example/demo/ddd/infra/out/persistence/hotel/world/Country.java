@@ -1,6 +1,6 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.world;
 
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import io.mateu.core.infra.declarative.GenericEntity;
 
 import java.util.List;
 

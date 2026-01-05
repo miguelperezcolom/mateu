@@ -1,9 +1,7 @@
-package com.example.demo.ddd.infra.out.persistence.hotel.shared;
+package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 import java.util.Optional;

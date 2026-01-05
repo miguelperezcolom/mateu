@@ -1,6 +1,8 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.hotel;
 
-import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
 
-public interface InventoryRepository extends Repository<Inventory, String> {
+import io.mateu.uidl.interfaces.CompositionRepository;
+import io.mateu.uidl.interfaces.Repository;
+
+public interface InventoryRepository extends CompositionRepository<Inventory, String, String> {
 }

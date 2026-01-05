@@ -1,6 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence;
 
-import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
+import io.mateu.core.infra.declarative.Entity;
+import io.mateu.uidl.interfaces.Repository;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;

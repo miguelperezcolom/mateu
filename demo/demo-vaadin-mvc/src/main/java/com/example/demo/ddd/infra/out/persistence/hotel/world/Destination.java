@@ -1,6 +1,6 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.world;
 
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import io.mateu.core.infra.declarative.GenericEntity;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.ForeignKey;
 import jakarta.validation.constraints.NotEmpty;

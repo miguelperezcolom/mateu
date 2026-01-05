@@ -32,7 +32,7 @@ public class Home {
     ProductSubmenu product;
 
     @Menu
-    Bookings bookings;
+    CallCenterSubmenu callCenter;
 
     String content = "Hola!";
 

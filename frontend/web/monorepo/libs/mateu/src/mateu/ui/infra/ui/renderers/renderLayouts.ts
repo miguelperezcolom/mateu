@@ -1,21 +1,20 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
-import { html, LitElement, nothing, TemplateResult } from "lit";
+import {html, LitElement, nothing, TemplateResult} from "lit";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import HorizontalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/HorizontalLayout";
 import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/VerticalLayout";
 import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
-import AccordionLayout, {
-    AccordionLayoutVariant
-} from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
+import AccordionLayout, {AccordionLayoutVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
 import BoardLayoutItem from "@mateu/shared/apiClients/dtos/componentmetadata/BoardLayout";
-import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
+import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import {Tabs} from "@vaadin/tabs";
 
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
     const metadata = component.metadata as FormLayout
@@ -208,7 +207,9 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
         variant = 'equal-width-tabs'
     }
 
-    console.log('variant', variant)
+    const itemsChanged = (e: Event) => {
+        (e.target as Tabs).selected = 0
+    }
 
     return html`
         <vaadin-tabsheet
@@ -219,6 +220,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                          style="${style}" 
                          class="${component.cssClasses}"
                          orientation="${metadata.orientation??nothing}"
+                         @items-changed=${itemsChanged}
             >
                 ${component.children?.map(child => child as ClientSideComponent).map(child => html`
                     <vaadin-tab id="${(child.metadata as Tab).label}" 

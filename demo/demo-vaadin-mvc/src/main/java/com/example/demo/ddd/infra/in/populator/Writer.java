@@ -2,6 +2,10 @@ package com.example.demo.ddd.infra.in.populator;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.Agency;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.Booking;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.BookingRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.File;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.FileRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardType;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCode;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeRepository;
@@ -11,6 +15,7 @@ import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeReposi
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SaleScope;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.Season;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Address;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Contract;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.ContractRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Hotel;
@@ -29,6 +34,10 @@ import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Destination;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
 import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;
+import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
+import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -37,6 +46,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Writer {
+
+    static List<String> names = List.of("Mateu", "Antonia", "Miguel");
 
     static void write(
             DataSet dataSet,
@@ -49,7 +60,7 @@ public class Writer {
             BoardTypeCodeRepository boardTypeCodeRepository,
             ContractRepository contractRepository,
             TariffRepository tariffRepository,
-            InventoryRepository inventoryRepository) {
+            InventoryRepository inventoryRepository, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator) {
         writeAgencies(dataSet, agencyRepository);
         writeHotels(dataSet, hotelRepository);
         writeCountries(dataSet, countryRepository);
@@ -60,6 +71,33 @@ public class Writer {
         writeTariffs(dataSet, tariffRepository, seasonRepository);
         writeContracts(dataSet, contractRepository);
         writeInventories(dataSet, inventoryRepository);
+        writeBookings(dataSet, fileRepository, bookingRepository, locatorValueGenerator);
+    }
+
+    private static void writeBookings(DataSet dataSet, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator) {
+        dataSet.agencias().forEach(agencia -> {
+            String fileLocator = locatorValueGenerator.generate().toString();
+            String bookingLocator = locatorValueGenerator.generate().toString();
+            fileRepository.saveAll(List.of(new File(
+                    fileLocator,
+                    agencia.codigo(),
+                    names.get(fileRepository.findAll().size() % names.size()),
+                    LocalDate.now(),
+                    new Amount("EUR", 10.2),
+                    new Status(StatusType.SUCCESS, "Confirmed"),
+                    List.of(bookingLocator)
+            )));
+            var hotel = dataSet.hoteles().get(fileRepository.findAll().size() % dataSet.hoteles().size());
+            bookingRepository.saveAll(List.of(new Booking(
+                    bookingLocator,
+                    fileLocator,
+                    hotel.codigo(),
+                    LocalDate.now().plusDays(10),
+                    LocalDate.now().plusDays(10 + 7),
+                    hotel.nombre(),
+                    "Populated"
+            )));
+        });
     }
 
     private static void writeInventories(DataSet dataSet, InventoryRepository inventoryRepository) {
@@ -202,10 +240,9 @@ public class Writer {
                 .map(hotel -> new Hotel(
                         hotel.codigo(),
                         hotel.nombre(),
-                        "image",
                         hotel.idDestino(),
-                        List.of(),
-                        List.of(),
+                        new Address("", "", "", "", ""),
+                        null,
                         List.of(),
                         List.of(),
                         List.of(),

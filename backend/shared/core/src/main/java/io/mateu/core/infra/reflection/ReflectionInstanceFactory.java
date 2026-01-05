@@ -144,6 +144,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return params.toArray();
   }
 
+  @SneakyThrows
   private Object createInstance(Class type, Object data, HttpRequest httpRequest) {
     if (isBasic(type)) {
       if (LocalDate.class.equals(type)) {
@@ -164,8 +165,12 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         ((Object[]) array)[i] = values.get(i);
       }
       return array;
-    } else {
+    } else if (Class.class.equals(type)) {
+      return Class.forName((String) data);
+    } else if (data instanceof Map) {
       return newInstance(type, (Map<String, Object>) data, httpRequest);
+    } else {
+      return data;
     }
   }
 

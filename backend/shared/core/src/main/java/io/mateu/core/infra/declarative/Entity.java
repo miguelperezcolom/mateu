@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.out.persistence;
+package io.mateu.core.infra.declarative;
 
 public interface Entity<IdType> {
 

@@ -7,5 +7,9 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LocalBookingRepository extends LocalRepository<Booking, String> implements BookingRepository {
+public class LocalBookingRepository extends CompositionLocalRepository<Booking, String, String> implements BookingRepository {
+    @Override
+    public boolean belongsToParent(Booking entity, String parentId) {
+        return parentId.equals(entity.fileId());
+    }
 }

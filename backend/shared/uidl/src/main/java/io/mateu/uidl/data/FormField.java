@@ -30,7 +30,8 @@ public record FormField(
     int sliderMin,
     int sliderMax,
     boolean stepButtonsVisible,
-    double step)
+    double step,
+    String itemIdPath)
     implements Component {
 
   public FormField {

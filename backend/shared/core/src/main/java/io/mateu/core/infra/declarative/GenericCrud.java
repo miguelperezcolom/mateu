@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.pages.shared;
+package io.mateu.core.infra.declarative;
 
 public abstract class GenericCrud<EntityType> extends ExtendedGenericCrud<EntityType, EntityType, EntityType, EntityType, EntityType, EntityType> {
 

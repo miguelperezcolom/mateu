@@ -1,6 +1,13 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.hotel;
 
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import io.mateu.core.infra.declarative.GenericEntity;
+import io.mateu.core.infra.valuegenerators.UUIDValueGenerator;
+import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import io.mateu.uidl.annotations.GeneratedValue;
+import io.mateu.uidl.annotations.ReadOnly;
 
-public record Inventory(String hotelId, String id, String name) implements GenericEntity {
+public record Inventory(
+        @ReadOnly String hotelId,
+        @GeneratedValue(UUIDValueGenerator.class) String id,
+        String name) implements GenericEntity {
 }

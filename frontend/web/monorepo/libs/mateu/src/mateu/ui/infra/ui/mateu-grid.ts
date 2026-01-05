@@ -53,8 +53,8 @@ export class MateuGrid extends MetadataDrivenElement {
         if (this.field?.fieldId && this.state && this.state[this.field.fieldId]) {
             items = this.state[this.field.fieldId]
         }
-        const showDetail = this.state[this.field?.fieldId + '_show_detail']
-        const editing = this.state[this.field?.fieldId + '_editing']
+        const showDetail = this.state[this.field?.fieldId + '_show_detail'] || this.state['_show_detail'][this.field!.fieldId]
+        const editing = this.state[this.field?.fieldId + '_editing'] || this.state['_editing'][this.field!.fieldId]
 
 
         if (this.field?.remoteCoordinates) {
@@ -99,7 +99,7 @@ export class MateuGrid extends MetadataDrivenElement {
                         class="${this.field?.cssClasses}"
                         .items="${items}"
                         .selectedItems="${this.selectedItems}"
-                        item-id-path="lineId"
+                        item-id-path="${this.field?.itemIdPath}"
                         @active-item-changed="${(e: GridActiveItemChangedEvent<any>) => {
                             if (this.field?.onItemSelectionActionId) {
                                 const item = e.detail.value
@@ -119,11 +119,12 @@ export class MateuGrid extends MetadataDrivenElement {
                         }}"
                         all-rows-visible
                 >
+                    <span slot="empty-state">Empty list.</span>
                     ${this.field?.columns?.map(column =>
                             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </vaadin-grid>
                 <div slot="${showDetail?'detail':'detail-hidden'}" style="display: contents;">
-                    <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                    <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
                     ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data, this.appState, this.appData)}
                     </div>
                 </div>

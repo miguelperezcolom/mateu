@@ -60,6 +60,13 @@ public class ValueProvider {
     } catch (Exception ignored) {
 
     }
+    if (getter != null) {
+      try {
+        getter = o.getClass().getMethod(f.getName());
+      } catch (Exception ignored) {
+
+      }
+    }
     Object v = null;
     try {
       if (getter != null) v = getter.invoke(o);

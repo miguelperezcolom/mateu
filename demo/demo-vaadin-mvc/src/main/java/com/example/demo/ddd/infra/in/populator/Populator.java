@@ -1,6 +1,8 @@
 package com.example.demo.ddd.infra.in.populator;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.BookingRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.booking.FileRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
@@ -15,6 +17,7 @@ import com.example.demo.ddd.infra.in.populator.dtos.DestinoDto;
 import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;
 import com.example.demo.ddd.infra.in.populator.dtos.RegimenDto;
 import com.example.demo.ddd.infra.in.populator.dtos.TipoHabitacionDto;
+import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import static com.example.demo.ddd.infra.in.populator.Writer.write;
 @RequiredArgsConstructor
 public class Populator {
 
+    final LocatorValueGenerator locatorValueGenerator;
     final AgencyRepository agencyRepository;
     final HotelRepository hotelRepository;
     final CountryRepository countryRepository;
@@ -39,6 +43,8 @@ public class Populator {
     final ContractRepository contractRepository;
     final TariffRepository tariffRepository;
     final InventoryRepository inventoryRepository;
+    final FileRepository fileRepository;
+    final BookingRepository bookingRepository;
 
     public DataSet create() {
         List<TipoHabitacionDto> tiposHabitacion = leerTiposHabitacion();
@@ -62,7 +68,10 @@ public class Populator {
                 boardTypeCodeRepository,
                 contractRepository,
                 tariffRepository,
-                inventoryRepository
+                inventoryRepository,
+                fileRepository,
+                bookingRepository,
+                locatorValueGenerator
 );
     }
 

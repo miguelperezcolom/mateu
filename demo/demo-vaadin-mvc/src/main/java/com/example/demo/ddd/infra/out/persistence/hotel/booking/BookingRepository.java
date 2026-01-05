@@ -1,7 +1,8 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.booking;
 
-import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
+import io.mateu.uidl.interfaces.CompositionRepository;
+import io.mateu.uidl.interfaces.Repository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Country;
 
-public interface BookingRepository extends Repository<Booking, String> {
+public interface BookingRepository extends CompositionRepository<Booking, String, String> {
 }

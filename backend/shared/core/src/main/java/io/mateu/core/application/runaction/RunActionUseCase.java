@@ -32,7 +32,7 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
-import io.mateu.uidl.interfaces.DataSupplier;
+import io.mateu.uidl.interfaces.StateSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
@@ -774,7 +774,7 @@ public class RunActionUseCase {
                         initiatorComponentId,
                         httpRequest))
             .toList(),
-        getData(modelView, httpRequest),
+        getState(modelView, httpRequest),
         "",
         "",
         mapActions(modelView),
@@ -784,9 +784,9 @@ public class RunActionUseCase {
         null);
   }
 
-  private static Object getData(Object modelView, HttpRequest httpRequest) {
-    if (modelView instanceof DataSupplier dataSupplier) {
-      return dataSupplier.data(httpRequest);
+  public static Object getState(Object modelView, HttpRequest httpRequest) {
+    if (modelView instanceof StateSupplier stateSupplier) {
+      return stateSupplier.state(httpRequest);
     }
     return modelView;
   }

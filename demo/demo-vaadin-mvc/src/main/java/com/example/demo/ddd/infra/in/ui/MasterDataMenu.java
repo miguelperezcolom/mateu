@@ -15,14 +15,4 @@ public class MasterDataMenu {
     @Menu
     Destinations destinations;
 
-    @Menu
-    Seasons seasons;
-
-    @Menu
-    RoomTypeCodes roomTypeCodes;
-
-    @Menu
-    BoardTypeCodes boardTypeCodes;
-
-
 }

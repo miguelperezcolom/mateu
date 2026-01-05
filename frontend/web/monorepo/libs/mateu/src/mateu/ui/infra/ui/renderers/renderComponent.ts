@@ -29,8 +29,8 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          slot="${component.slot??nothing}"
                          style="${component.style}" 
                          class="${component.cssClasses}"
-                         .state="${state}"
-                         .data="${data}"
+                         .state="${component.initialData}"
+                         .data="${{}}"
                          .appState="${appState}"
                          .appData="${appData}"
         >

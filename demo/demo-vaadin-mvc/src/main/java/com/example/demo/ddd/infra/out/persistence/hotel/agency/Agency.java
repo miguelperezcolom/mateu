@@ -1,7 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.agency;
 
-import com.example.demo.ddd.infra.in.ui.pages.shared.Deleteable;
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import io.mateu.core.infra.declarative.Deleteable;
+import io.mateu.core.infra.declarative.GenericEntity;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import jakarta.validation.constraints.NotEmpty;
 

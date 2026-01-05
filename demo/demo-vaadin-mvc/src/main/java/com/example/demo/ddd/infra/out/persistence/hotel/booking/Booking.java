@@ -1,6 +1,6 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.booking;
 
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericEntity;
+import io.mateu.core.infra.declarative.GenericEntity;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyIdOptionsSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyLabelSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.HotelIdOptionsSupplier;
@@ -18,8 +18,8 @@ public record Booking(
         @GeneratedValue(LocatorValueGenerator.class)
         String id,
         @NotEmpty
-        @ForeignKey(search = AgencyIdOptionsSupplier.class, label = AgencyLabelSupplier.class)
-        String agencyId,
+        @ForeignKey(search = FileIdOptionsSupplier.class, label = FileLabelSupplier.class)
+        String fileId,
         @NotEmpty
         @ForeignKey(search = HotelIdOptionsSupplier.class, label = HotelLabelSupplier.class)
         String hotelId,

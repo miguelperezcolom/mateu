@@ -56,6 +56,7 @@ public class FieldComponentToDtoMapper {
             .stepButtonsVisible(formField.stepButtonsVisible())
             .step(formField.step())
             .style(formField.style())
+                .itemIdPath(formField.itemIdPath())
             .columns(
                 formField.columns().stream()
                     .map(

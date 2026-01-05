@@ -1,9 +1,12 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-
 import io.mateu.core.domain.Humanizer;
+import io.mateu.core.infra.declarative.DynamicCrud;
+import io.mateu.core.infra.declarative.DynamicEditor;
+import io.mateu.core.infra.declarative.Entity;
 import io.mateu.dtos.ComponentDto;
+import io.mateu.uidl.annotations.Colspan;
+import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Label;
@@ -11,13 +14,17 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Representation;
 import io.mateu.uidl.annotations.SliderMax;
 import io.mateu.uidl.annotations.SliderMin;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.FormPosition;
 import io.mateu.uidl.data.FutureComponent;
+import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Option;
@@ -27,11 +34,11 @@ import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.SneakyThrows;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -45,6 +52,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 public class ReflectionFormFieldMapper {
 
@@ -55,7 +71,7 @@ public class ReflectionFormFieldMapper {
       String route,
       String consumedRoute,
       String initiatorComponentId,
-      HttpRequest httpRequest) {
+      HttpRequest httpRequest, boolean forCreationForm) {
     return getFormField(
         field,
         instance,
@@ -64,10 +80,23 @@ public class ReflectionFormFieldMapper {
         consumedRoute,
         initiatorComponentId,
         httpRequest,
-        isReadOnly(field, instance));
+        isReadOnly(field, instance), forCreationForm);
   }
 
   public static Component getFormField(
+          Field field,
+          Object instance,
+          String baseUrl,
+          String route,
+          String consumedRoute,
+          String initiatorComponentId,
+          HttpRequest httpRequest,
+          boolean readOnly, boolean forCreationForm) {
+    return getFormField("", field, instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, readOnly, forCreationForm);
+  }
+
+  public static Component getFormField(
+      String prefix,
       Field field,
       Object instance,
       String baseUrl,
@@ -75,7 +104,7 @@ public class ReflectionFormFieldMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest,
-      boolean readOnly) {
+      boolean readOnly, boolean forCreationForm) {
     if (Component.class.isAssignableFrom(field.getType())) {
       return CustomField.builder()
           .label(getLabel(field))
@@ -88,20 +117,196 @@ public class ReflectionFormFieldMapper {
           //                  consumedRoute,
           //                  initiatorComponentId,
           //                  httpRequest))
+              .colspan(getColspan(field))
           .build();
     }
+    if (List.class.isAssignableFrom(field.getType())
+            && field.isAnnotationPresent(Composition.class)) {
+      return createCrudForCompositionField(field, httpRequest, instance);
+    }
+    if (field.isAnnotationPresent(Composition.class)) {
+      return createEditorForCompositionField(field, httpRequest, instance);
+    }
+    if (List.class.isAssignableFrom(field.getType())
+            && !field.isAnnotationPresent(ForeignKey.class)
+            && !field.isAnnotationPresent(Composition.class)
+            && !isBasic(field.getType())) {
+      return createCrudForField(field, readOnly, httpRequest);
+    }
+    if (!isBasic(field.getType()) && !List.class.isAssignableFrom(field.getType()) && !Map.class.isAssignableFrom(field.getType())) {
+      var value = instance instanceof Class?null:getValue(field, instance);
+      return CustomField.builder()
+              .label(getLabel(field))
+              .content(getForm(("".equals(prefix)?"":(prefix + "-")) + field.getName() + "-",
+                      value != null? value : field.getType(),
+                      baseUrl,
+                      route,
+                      consumedRoute,
+                      initiatorComponentId,
+                      httpRequest,
+                      forCreationForm, readOnly).iterator().next())
+              .colspan(getColspan(field))
+              .build();
+    }
     return FormField.builder()
-        .id(field.getName())
+        .id(getFieldId(field, prefix, readOnly))
         .label(getLabel(field))
         .dataType(getDataType(field))
         .stereotype(getStereotype(field))
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
-            .remoteCoordinates(getRemoteCoordinates(field))
+            .remoteCoordinates(getRemoteCoordinates(prefix, field))
         .readOnly(readOnly)
             .options(getOptions(field))
+            .colspan(getColspan(field))
         .build();
+  }
+
+  private static Component createEditorForCompositionField(Field field, HttpRequest httpRequest, Object instance) {
+    var composition = field.getAnnotation(Composition.class);
+    var crud = new DynamicEditor(composition.targetClass(),
+            composition.repositoryClass(),
+            composition.foreignKeyField(),
+            ((Entity<?>)instance).id(),
+            getLabel(field),
+            true);
+    return new CustomField("", crud, "", "", 2);
+  }
+
+  private static Component createCrudForCompositionField(Field field, HttpRequest httpRequest, Object instance) {
+    var composition = field.getAnnotation(Composition.class);
+    var crud = new DynamicCrud(composition.targetClass(),
+            composition.repositoryClass(),
+            composition.foreignKeyField(),
+            ((Entity<?>)instance).id(),
+            getLabel(field),
+            true);
+    return new CustomField("", crud, "", "", 2);
+  }
+
+  private static int getColspan(Field field) {
+    if (field.isAnnotationPresent(Colspan.class)) {
+      return field.getAnnotation(Colspan.class).value();
+    }
+    return 1;
+  }
+
+  private static Component createCrudForField(Field field, boolean readOnly, HttpRequest httpRequest) {
+    var columns = new ArrayList<GridContent>();
+    /*
+    List.of(
+                    GridColumn.builder()
+                            .dataType(FieldDataType.string)
+                            .id("productName")
+                            .label("Product")
+                            .build(),
+                    GridColumn.builder()
+                            .dataType(FieldDataType.string)
+                            .stereotype(FieldStereotype.link)
+                            .id("productId")
+                            .label("Product Number")
+                            .actionId("view-product")
+                            .build(),
+                    GridColumn.builder()
+                            .dataType(FieldDataType.string)
+                            .stereotype(FieldStereotype.image)
+                            .id("image")
+                            .label("Image")
+                            .build(),
+                    GridColumn.builder()
+                            .dataType(FieldDataType.money)
+                            .id("listPrice")
+                            .label("List Price")
+                            .build(),
+                    GridColumn.builder()
+                            .dataType(FieldDataType.number)
+                            .id("quantity")
+                            .label("Quantity")
+                            .build(),
+                    GridColumn.builder()
+                            .dataType(FieldDataType.money)
+                            .id("amount")
+                            .label("Amount")
+                            .build()
+     */
+    getAllFields(getGenericClass(field, field.getType(), "E")).forEach(columnField -> {
+      columns.add(GridColumn.builder()
+              .dataType(FieldDataType.string)
+              .id(columnField.getName())
+              .label(getLabel(columnField))
+              .build());
+    });
+    return FormField.builder()
+            .id(field.getName())
+            .dataType(FieldDataType.array)
+            .stereotype(FieldStereotype.grid)
+            .readOnly(readOnly)
+            .label(getLabel(field))
+            .columns(
+                    columns
+            )
+            .style("min-width: 10rem; width: 100%;")
+            .colspan(getColspan(field))
+            .itemIdPath("_rowNumber")
+            .onItemSelectionActionId(field.getName() + "_selected")
+            .formPosition(FormPosition.right)
+            .createForm(Form.builder()
+                    .title("New " + getLabel(field))
+                    .content(getForm(
+                            field.getName() + "-",
+                            getGenericClass(field, field.getType(), "E"),
+                            "base_url",
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().consumedRoute(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest,
+                            true,
+                            readOnly
+                    ).stream().toList())
+                    .buttons(List.of(
+                            Button.builder()
+                                    .label("Cancel")
+                                    .actionId(field.getName() + "_cancel")
+                                    .build(),
+                            Button.builder()
+                                    .label("Save")
+                                    .actionId(field.getName() + "_create")
+                                    .build()
+                    ))
+                    .build())
+            .editor(Form.builder()
+                    .title("Update " + getLabel(field))
+                    .content(getForm(
+                            field.getName() + "-",
+                            getGenericClass(field, field.getType(), "E"),
+                            "base_url",
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().consumedRoute(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest,
+                            true,
+                            readOnly
+                    ).stream().toList())
+                    .buttons(List.of(
+                            Button.builder()
+                                    .label("Cancel")
+                                    .actionId(field.getName() + "_cancel")
+                                    .build(),
+                            Button.builder()
+                                    .label("Save")
+                                    .actionId(field.getName() + "_save")
+                                    .build()
+                    ))
+                    .build())
+            .build();
+  }
+
+  private static String getFieldId(Field field, String prefix, boolean readOnly) {
+    if (readOnly && field.isAnnotationPresent(ForeignKey.class)) {
+      return prefix + field.getName() + "-label";
+    }
+    return prefix + field.getName();
   }
 
   private static List<Option> getOptions(Field field) {
@@ -124,10 +329,10 @@ public class ReflectionFormFieldMapper {
     return options;
   }
 
-  private static RemoteCoordinates getRemoteCoordinates(Field field) {
+  private static RemoteCoordinates getRemoteCoordinates(String prefix, Field field) {
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return RemoteCoordinates.builder()
-              .action("search-" + field.getName())
+              .action("search-" + prefix + field.getName())
               .build();
     }
     return null;
@@ -218,7 +423,7 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(Label.class)) {
       return field.getAnnotation(Label.class).value();
     }
-    return Humanizer.toUpperCaseFirst(field.getName());
+    return toUpperCaseFirst(field.getName());
   }
 
   public static FieldDataType getDataType(Field field) {

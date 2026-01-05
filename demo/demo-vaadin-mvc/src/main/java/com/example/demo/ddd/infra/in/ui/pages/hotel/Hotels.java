@@ -2,8 +2,8 @@ package com.example.demo.ddd.infra.in.ui.pages.hotel;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Hotel;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
-import com.example.demo.ddd.infra.in.ui.pages.shared.GenericCrud;
+import io.mateu.uidl.interfaces.Repository;
+import io.mateu.core.infra.declarative.GenericCrud;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Message;

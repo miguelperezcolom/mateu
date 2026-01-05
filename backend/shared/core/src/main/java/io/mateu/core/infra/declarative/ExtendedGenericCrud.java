@@ -1,6 +1,6 @@
-package com.example.demo.ddd.infra.in.ui.pages.shared;
+package io.mateu.core.infra.declarative;
 
-import com.example.demo.ddd.infra.out.persistence.hotel.shared.Repository;
+import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -11,12 +11,17 @@ import io.mateu.uidl.data.ButtonVariant;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
+import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.OnLoadTrigger;
@@ -26,25 +31,31 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ActionHandler;
-import io.mateu.uidl.interfaces.DataSupplier;
+import io.mateu.uidl.interfaces.CompositionRepository;
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
+import io.mateu.uidl.interfaces.Repository;
 import io.mateu.uidl.interfaces.RouteHandler;
+import io.mateu.uidl.interfaces.StateSupplier;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.infra.JsonSerializer.*;
@@ -52,19 +63,30 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 @Slf4j
 public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm, ViewForm, EditForm>
-        implements ActionHandler, DataSupplier, TriggersSupplier, ActionSupplier, RouteHandler {
+        implements ActionHandler, StateSupplier, TriggersSupplier, ActionSupplier, RouteHandler {
+
+    String _state = "";
+    Map<String, Object> _show_detail = new HashMap<>();
+    Map<String, Object> _editing = new HashMap<>();
+
+    public boolean oneToOne() {
+        return false;
+    }
+
+    public Object parentId() {
+        return null;
+    }
 
 
     @Override
-    public Object data(HttpRequest httpRequest) {
+    public Object state(HttpRequest httpRequest) {
         if (httpRequest.getAttribute("new") != null) {
-            var data = fromJson(toJson(this));
+            var data = toMap();
             getAllFields(entityClass())
                     .stream().filter(field -> field.isAnnotationPresent(GeneratedValue.class))
                     .forEach(field -> {
@@ -72,14 +94,57 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                         var value = generator.generate();
                 data.put(field.getName(), value);
             });
+            addRowNumber(data);
             return data;
         }
         if (httpRequest.getAttribute("selectedItem") != null) {
-            var data = fromJson(toJson(this));
-            data.putAll(fromJson(toJson(httpRequest.getAttribute("selectedItem"))));
+            var data = toMap();
+            data.putAll(toMap(httpRequest.getAttribute("selectedItem")));
+            addRowNumber(data);
             return data;
         }
-        return this;
+        var data = toMap();
+        addRowNumber(data);
+        return data;
+    }
+
+    protected Map<String, Object> toMap() {
+        return toMap(this);
+    }
+
+    protected Map<String, Object> toMap(Object instance) {
+        var map = fromJson(toJson(instance));
+        getAllFields(instance.getClass()).stream()
+                .filter(field -> !isBasic(field.getType())
+                        && !Collection.class.isAssignableFrom(field.getType())
+                        && !Map.class.isAssignableFrom(field.getType())
+                        && !Modifier.isFinal(field.getModifiers())
+                ).forEach(field -> {
+            var value = getValue(field, instance);
+            if (value != null) {
+                if (value instanceof Class || isBasic(value)) {
+                    map.put(field.getName(), value);
+                } else {
+                    var nestedMap = toMap(value).entrySet().stream().collect(Collectors.toMap(entry -> field.getName() + "-" + entry.getKey(), Map.Entry::getValue));
+                    map.putAll(nestedMap);
+                }
+            }
+        });
+        return map;
+    }
+
+    protected void addRowNumber(Map<String, Object> data) {
+        getAllFields(entityClass()).stream().filter(field -> Collection.class.isAssignableFrom(field.getType()))
+                .forEach(field -> {
+                    var list = (List<?>) data.get(field.getName());
+                    if (list != null) {
+                        for (int i = 0; i < list.size(); i++) {
+                            if (list.get(i) instanceof Map map) {
+                                map.put("_rowNumber", i);
+                            }
+                        }
+                    }
+        });
     }
 
     public abstract Repository<EntityType, String> repository();
@@ -89,10 +154,18 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if (actionId.startsWith("action-on-row-")) {
             String methodName = actionId.substring("action-on-row-".length());
-            for (Method method : getAllMethods(getClass())) {
+            for (Method method : getAllMethods(getClass()).reversed()) {
                 if (methodName.equals(method.getName())) {
                     method.setAccessible(true);
-                    method.invoke(this, httpRequest);
+                    Object result = null;
+                    if (method.getParameterCount() == 0) {
+                        result = method.invoke(this);
+                    } else {
+                        result = method.invoke(this, httpRequest);
+                    }
+                    if (result != null) {
+                        return result;
+                    }
                     break;
                 }
             }
@@ -121,9 +194,19 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             }
         }
         if (actionId.startsWith("search-")) {
+            // search-field-childfield
             String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-            var fkAnnotation = getFieldByName(entityClass(), fieldName).getAnnotation(ForeignKey.class);
-            ForeignKeyOptionsSupplier optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+            ForeignKeyOptionsSupplier optionsSupplier = null;
+            if (fieldName.contains("-")) {
+                var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
+                var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+                var rowClass = getGenericClass((ParameterizedType) getFieldByName(entityClass(), parentFieldName).getGenericType(), List.class, "E");
+                var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+            } else {
+                var fkAnnotation = getFieldByName(entityClass(), fieldName).getAnnotation(ForeignKey.class);
+                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+            }
 
             Pageable pageable = httpRequest.getParameters(Pageable.class);
             String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
@@ -138,10 +221,12 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         }
 
         if ("create".equals(actionId)) {
-            repository().saveAll(List.of(pojoFromJson(toJson(httpRequest.runActionRq().componentState()), entityClass())));
+            repository().saveAll(List.of(toEntity(httpRequest)));
+            actionId = "";
         }
         if ("save".equals(actionId)) {
-            repository().saveAll(List.of(pojoFromJson(toJson(httpRequest.runActionRq().componentState()), entityClass())));
+            repository().saveAll(List.of(toEntity(httpRequest)));
+            actionId = "";
         }
         if ("delete".equals(actionId)) {
             List<?> selection = (List<?>) httpRequest.runActionRq().componentState().getOrDefault("crud_selected_items", List.of());
@@ -151,18 +236,36 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             repository().deleteAllById(selectedIds);
         }
         if ("view".equals(actionId)) {
+            _show_detail = new HashMap<>();
+            _editing = new HashMap<>();
             var idField = getIdField(entityClass());
             var id = (String) httpRequest.runActionRq().parameters().get(idField);
-            return List.of(view(id, httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id));
+            var view = view(id, httpRequest);
+            if (childCrud()) {
+                return List.of(view);
+            }
+            return List.of(view, pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id));
         }
         if ("edit".equals(actionId)) {
+            _show_detail = new HashMap<>();
+            _editing = new HashMap<>();
             var idField = getIdField(entityClass());
             var id = (String) httpRequest.runActionRq().componentState().get(idField);
 
-            return List.of(edit(id, httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id + "/edit"));
+            var edit = edit(id, httpRequest);
+            if (childCrud()) {
+                return List.of(edit);
+            }
+            return List.of(edit, pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id + "/edit"));
         }
         if ("new".equals(actionId)) {
-            return List.of(create(httpRequest), pushStateToHistory(getCrudRoute(httpRequest) + "/new"));
+            _show_detail = new HashMap<>();
+            _editing = new HashMap<>();
+            var create = create(httpRequest);
+            if (childCrud()) {
+                return List.of(create);
+            }
+            return List.of(create, pushStateToHistory(getCrudRoute(httpRequest) + "/new"));
         }
         if ("search".equals(actionId)) {
             String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
@@ -174,8 +277,131 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             if (searchText == null) {
                 searchText = "";
             }
-            return new Data(Map.of("crud", repository().search(searchText, pageable)));
+            return new Data(Map.of("crud", search(searchText, pageable)));
         }
+        if (!"".equals(actionId)) {
+            log.info("state is {}", _state);
+            for (Field field : getAllFields(entityClass())) {
+                if (List.class.isAssignableFrom(field.getType())
+                        && !field.isAnnotationPresent(ForeignKey.class)
+                        && !field.isAnnotationPresent(Composition.class)
+                        && !isBasic(field.getType())) {
+                    var rowClass = getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+                    if ((field.getName() + "_create").equals(actionId)) {
+                        _show_detail.put(field.getName(), true);
+                        _editing.put(field.getName(), false);
+
+                        var filteredState = httpRequest.runActionRq().componentState().entrySet().stream()
+                                .filter(entry -> entry.getKey().startsWith(field.getName() + "-"))
+                                .collect(Collectors.toMap(entry -> entry.getKey().substring((field.getName() + "-").length()), Map.Entry::getValue));
+                        var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
+
+                        var list = (List) httpRequest.runActionRq().componentState().get(field.getName());;
+                        if (list == null) {
+                            list = List.of(fromJson(toJson(item)));
+                        } else {
+                            list = new ArrayList<>(list);
+                            list.add(fromJson(toJson(item)));
+                        }
+                        var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                        newState.put(field.getName(), list);
+                        addRowNumber(newState);
+                        return new State(newState);
+                    }
+                    if ((field.getName() + "_add").equals(actionId)) {
+                        _show_detail.put(field.getName(), true);
+                        _editing.put(field.getName(), false);
+
+                        return new State(this);
+                    }
+                    if ((field.getName() + "_selected").equals(actionId)) {
+                        _show_detail.put(field.getName(), true);
+                        _editing.put(field.getName(), true);
+
+                        var values = ((List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(field.getName() + "_selected_items")).get(0);
+                        var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                        for (String key : values.keySet()) {
+                            newState.put(field.getName() + "-" + key, values.get(key));
+                        }
+
+                        return new State(newState);
+                    }
+                    if ((field.getName() + "_save").equals(actionId)) {
+                        var values = ((List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(field.getName() + "_selected_items")).get(0);
+                        var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                        for (String key : values.keySet()) {
+                            newState.put(field.getName() + "-" + key, values.get(key));
+                        }
+
+                        return new State(newState);
+                    }
+                    if ((field.getName() + "_remove").equals(actionId)) {
+                        _show_detail.put(field.getName(), false);
+                        var selectedLines = (List)httpRequest.runActionRq().componentState().get(field.getName() + "_selected_items");
+                        if (selectedLines != null) {
+                            var list = ((List)httpRequest.runActionRq().componentState().get(field.getName())).stream()
+                                    .filter(line -> selectedLines.stream()
+                                            .filter(selected -> selected.equals(line))
+                                            .findAny()
+                                            .isEmpty()).toList();
+                            var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                            newState.put(field.getName(), list);
+                            return new State(newState);
+                        }
+                        return new State(this);
+                    }
+                    if ((field.getName() + "_cancel").equals(actionId)) {
+                        _show_detail.put(field.getName(), false);
+                        return new State(this);
+                    }
+                }
+            }
+            return new State(this);
+        }
+
+        if (oneToOne()) {
+            _show_detail = new HashMap<>();
+            _editing = new HashMap<>();
+            var parentId = parentId();
+            var found = ((CompositionRepository)repository()).search(null, parentId, new Pageable(0, 10, List.of()));
+            if (found.page().totalElements() == 0) {
+                return new VerticalLayout(new Text("No element yet. Click on New to create one."), Button.builder()
+                        .label("New")
+                        .actionId("" + "-new")
+                        .build());
+            } else {
+                var entity = found.page().content().get(0);
+                var idFieldName = getIdField(entity.getClass());
+                var id = getValue(getFieldByName(entity.getClass(), idFieldName), entity);
+                var view = view((String) id, httpRequest);
+                if (childCrud()) {
+                    return List.of(view);
+                }
+                return List.of(view, pushStateToHistory(getCrudRoute(httpRequest) + "/" +  id));
+            }
+        } else {
+            var list = wrap(
+                    list(httpRequest),
+                    this,
+                    "base_url",
+                    httpRequest.runActionRq().route(),
+                    httpRequest.runActionRq().consumedRoute(),
+                    httpRequest.runActionRq().initiatorComponentId(),
+                    httpRequest
+            );
+            if (childCrud()) {
+                return list;
+            }
+            return List.of(list, pushStateToHistory(getCrudRoute(httpRequest)));
+        }
+    }
+
+    public ListingData<EntityType> search(String searchText, Pageable pageable) {
+        return repository().search(searchText, pageable);
+    }
+
+    public Component list(HttpRequest httpRequest) {
+        _state = "list";
         var toolbar = new ArrayList<UserTrigger>();
         addButtons(toolbar);
         toolbar.add(new Button("New", "new"));
@@ -196,46 +422,62 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                                 .text("View")
                                 .build()))
                 .toList();
-        return List.of(wrap(
-                Page.builder()
-                        .title(toUpperCaseFirst(getClass().getSimpleName()))
-                        .style(columns.size() > 5?"width: 100%;":"max-width:900px;margin: auto;")
-                        .content(List.of(
-                                Listing.builder()
-                                        .listingType(ListingType.table)
-                                        .title("Xxx")
-                                        .searchable(true)
-                                        .rowsSelectionEnabled(true)
-                                        .columns(columns)
-                                        .filters(getFilters(filtersClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().consumedRoute(), httpRequest.runActionRq().initiatorComponentId(), httpRequest))
-                                        .style("min-width: 30rem; display: block;")
-                                        .build()
-                                ))
-                        .toolbar(toolbar)
-                        .build(),
-                this,
-                "base_url",
-                httpRequest.runActionRq().route(),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().initiatorComponentId(),
-                httpRequest
-        ), pushStateToHistory(getCrudRoute(httpRequest)));
+        return Page.builder()
+                .title(title())
+                .style(columns.size() > 5?"width: 100%;":"max-width:900px;margin: auto;")
+                .content(List.of(
+                        Listing.builder()
+                                .listingType(ListingType.table)
+                                .title("Xxx")
+                                .searchable(true)
+                                .rowsSelectionEnabled(true)
+                                .columns(columns)
+                                .filters(getFilters(filtersClass(), this, "base_url", httpRequest.runActionRq().route(), httpRequest.runActionRq().consumedRoute(), httpRequest.runActionRq().initiatorComponentId(), httpRequest))
+                                .style("min-width: 30rem; display: block;")
+                                .build()
+                ))
+                .toolbar(toolbar)
+                .build();
+    }
+
+    public String title() {
+        return toUpperCaseFirst(getClass().getSimpleName());
+    }
+
+    private EntityType toEntity(HttpRequest httpRequest) {
+        var map = new HashMap<>(httpRequest.runActionRq().componentState());
+        reduce("", map, entityClass());
+        return pojoFromJson(toJson(map), entityClass());
+    }
+
+    private void reduce(String prefix, HashMap<String, Object> map, Class<?> type) {
+        getAllFields(type).stream().filter(field -> !isBasic(field.getType()) && !List.class.isAssignableFrom(field.getType())).forEach(field -> {
+            reduce(prefix + field.getName() + "-", map, field.getType());
+        });
+        if (!"".equals(prefix)) {
+            map.put(prefix.substring(0, prefix.length() - 1), map.entrySet().stream()
+                    .filter(entry -> entry.getKey().startsWith(prefix))
+                            .filter(entry -> entry.getValue() != null)
+                    .collect(Collectors.toMap(entry -> entry.getKey().substring(prefix.length()), Map.Entry::getValue)));
+        }
     }
 
     private Object create(HttpRequest httpRequest) {
         httpRequest.setAttribute("new", true);
+        _state = "create";
         return wrap(
                 Page.builder()
                         .title("New " + toUpperCaseFirst(entityClass().getSimpleName()))
                         .style("max-width:900px;margin: auto;")
                         .content(
-                                getForm(
+                                getView(
                                         entityClass(),
                                         "base_url",
                                         httpRequest.runActionRq().route(),
                                         httpRequest.runActionRq().consumedRoute(),
                                         httpRequest.runActionRq().initiatorComponentId(),
                                         httpRequest,
+                                        false,
                                         true
                                 ).stream().toList()
                         )
@@ -257,18 +499,20 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         }
         var item = found.get();
         httpRequest.setAttribute("selectedItem", mapToRow(item));
+        _state = "edit";
         return wrap(
                 Page.builder()
                         .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
                         .style("max-width:900px;margin: auto;")
                         .content(
-                                getForm(
+                                getView(
                                         item,
                                         "base_url",
                                         httpRequest.runActionRq().route(),
                                         httpRequest.runActionRq().consumedRoute(),
                                         httpRequest.runActionRq().initiatorComponentId(),
                                         httpRequest,
+                                        false,
                                         false
                                 ).stream().toList()
                         )
@@ -283,30 +527,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         );
     }
 
-    private Object view(String id, HttpRequest httpRequest) {
+    protected Object view(String id, HttpRequest httpRequest) {
         var found = repository().findById(id);
         if (found.isEmpty()) {
             throw new RuntimeException("No item found with id " + id);
         }
         var item = found.get();
         httpRequest.setAttribute("selectedItem", mapToRow(item));
-        var toolbar = createViewToolbar();
+        _state = "view";
+        var view = viewComponent(item, httpRequest);
         return wrap(
-                Page.builder()
-                        .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
-                        .style("max-width:900px;margin: auto;")
-                        .content(
-                                getView(
-                                        item,
-                                        "base_url",
-                                        httpRequest.runActionRq().route(),
-                                        httpRequest.runActionRq().consumedRoute(),
-                                        httpRequest.runActionRq().initiatorComponentId(),
-                                        httpRequest
-                                ).stream().toList()
-                        )
-                        .toolbar(toolbar)
-                        .build(),
+                view,
                 this,
                 "base_url",
                 httpRequest.runActionRq().route(),
@@ -316,7 +547,28 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         );
     }
 
-    private String getCrudRoute(HttpRequest httpRequest) {
+    protected Component viewComponent(EntityType item, HttpRequest httpRequest) {
+        var toolbar = createViewToolbar();
+        return Page.builder()
+                .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
+                .style("max-width:900px;margin: auto;")
+                .content(
+                        getView(
+                                item,
+                                "base_url",
+                                httpRequest.runActionRq().route(),
+                                httpRequest.runActionRq().consumedRoute(),
+                                httpRequest.runActionRq().initiatorComponentId(),
+                                httpRequest,
+                                true,
+                                false
+                        ).stream().toList()
+                )
+                .toolbar(toolbar)
+                .build();
+    }
+
+    protected String getCrudRoute(HttpRequest httpRequest) {
         return "/" + httpRequest.runActionRq().route().split("/")[1];
     }
 
@@ -350,7 +602,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         getAllFields(entityClass()).stream().filter(field -> field.isAnnotationPresent(ForeignKey.class)).forEach(field -> {
             LabelSupplier labelSupplier = MateuBeanProvider.getBean(field.getAnnotation(ForeignKey.class).label());
             if (Collection.class.isAssignableFrom(field.getType())) {
-                var options = new ArrayList<>();
+                var options = new ArrayList<Option>();
 
                 var ids = (Collection<?>) getValue(field, item);
                 if (ids != null) {
@@ -359,7 +611,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                         options.add(new Option(id, label));
                     });
                 }
-
+                data.put(field.getName() + "-label", options.stream().map(Option::label).collect(Collectors.joining()));
                 data.put(field.getName(),
                         new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                                 options));
@@ -367,6 +619,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                 var id = getValue(field, item);
                 if (id != null) {
                     var label = labelSupplier.label(id, httpRequest);
+                    data.put(field.getName() + "-label", label);
                     data.put(field.getName(),
                             new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
                                     List.of(new Option(id, label))));
@@ -399,7 +652,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         return item.toString();
     }
 
-    private String getIdField(Class<?> entityClass) {
+    protected String getIdField(Class<?> entityClass) {
         boolean hasIdField = false;
         String firstField = null;
         for (Field field : getAllFields(entityClass)) {
@@ -418,15 +671,15 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
         return (Row) item;
     }
 
-    Class<Filters> filtersClass() {
+    public Class<Filters> filtersClass() {
         return getGenericClass(this.getClass(), ExtendedGenericCrud.class, "Filters");
     }
 
-    Class<Row> rowClass() {
+    public Class<Row> rowClass() {
         return getGenericClass(this.getClass(), ExtendedGenericCrud.class, "Row");
     }
 
-    Class<EntityType> entityClass() {
+    public Class<EntityType> entityClass() {
         return getGenericClass(this.getClass(), ExtendedGenericCrud.class, "EntityType");
     }
 
@@ -488,5 +741,9 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
             }
         }
         return this;
+    }
+
+    public boolean childCrud() {
+        return false;
     }
 }
