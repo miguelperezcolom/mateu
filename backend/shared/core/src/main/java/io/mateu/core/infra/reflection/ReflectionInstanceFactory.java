@@ -148,8 +148,14 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   private Object createInstance(Class type, Object data, HttpRequest httpRequest) {
     if (isBasic(type)) {
       if (LocalDate.class.equals(type)) {
+        if ("".equals(data)) {
+          return null;
+        }
         return LocalDate.parse(convert(data));
       } else if (LocalDateTime.class.equals(type)) {
+        if ("".equals(data)) {
+          return null;
+        }
         return LocalDateTime.parse(convert(data));
       } else {
         return convert(data, type);

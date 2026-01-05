@@ -7,7 +7,7 @@ export const renderProgressBar = (component: ClientSideComponent) => {
     const metadata = component.metadata as ProgressBar
 
     return html`
-        <div>
+        <div style="${component.style}">
         <vaadin-progress-bar 
                 ?indeterminate="${metadata.indeterminate}"
                 min="${metadata.min && metadata.min != 0?metadata.min:nothing}"

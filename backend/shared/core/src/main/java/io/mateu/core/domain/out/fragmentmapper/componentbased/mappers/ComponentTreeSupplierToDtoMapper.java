@@ -39,9 +39,12 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.StateSupplier;
+import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
@@ -84,6 +87,9 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   public static List<ValidationDto> mapValidations(Object serverSideObject) {
+    if (serverSideObject instanceof ValidationDtoSupplier validationSupplier) {
+      return validationSupplier.validationDtos();
+    }
     if (serverSideObject instanceof ValidationSupplier validationSupplier) {
       return validationSupplier.validations().stream()
           .map(
@@ -109,7 +115,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .toList();
   }
 
-  private static List<ValidationDto> getValidations(Field field) {
+  public static List<ValidationDto> getValidations(Field field) {
     List<ValidationDto> validations = new ArrayList<>();
     if (field.isAnnotationPresent(Size.class)) {
       Arrays.stream(field.getAnnotationsByType(Size.class))
@@ -176,10 +182,26 @@ public class ComponentTreeSupplierToDtoMapper {
               .message(field.getAnnotation(Pattern.class).message())
               .build());
     }
+    if (field.isAnnotationPresent(NotEmpty.class)) {
+      validations.add(
+              ValidationDto.builder()
+                      .fieldId(field.getName())
+                      .condition("state." + field.getName())
+                      .message(field.getAnnotation(NotEmpty.class).message().replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"))
+                      .build());
+    }
+    if (field.isAnnotationPresent(NotNull.class)) {
+      validations.add(
+              ValidationDto.builder()
+                      .fieldId(field.getName())
+                      .condition("state." + field.getName())
+                      .message(field.getAnnotation(NotNull.class).message().replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"))
+                      .build());
+    }
     return validations;
   }
 
-  private static ValidationDto mapToValidation(Validation annotation) {
+  public static ValidationDto mapToValidation(Validation annotation) {
     return ValidationDto.builder()
         .fieldId(annotation.fieldId())
         .condition(annotation.condition())

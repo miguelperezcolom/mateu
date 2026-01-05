@@ -1,5 +1,7 @@
 package io.mateu.core.infra.declarative;
 
+import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
+import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
@@ -17,6 +19,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.Validation;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Action;
@@ -31,6 +34,7 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.CompositionRepository;
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -39,6 +43,8 @@ import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import io.mateu.uidl.interfaces.Repository;
 import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.StateSupplier;
+import io.mateu.uidl.interfaces.ValidationDtoSupplier;
+import io.mateu.uidl.interfaces.ValidationSupplier;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,10 +53,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +66,7 @@ import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.getValidations;
 import static io.mateu.core.infra.JsonSerializer.*;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
@@ -68,7 +77,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 @Slf4j
 public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm, ViewForm, EditForm>
-        implements ActionHandler, StateSupplier, TriggersSupplier, ActionSupplier, RouteHandler {
+        implements ActionHandler, StateSupplier, TriggersSupplier, ActionSupplier, RouteHandler, ValidationDtoSupplier, ComponentTreeSupplier {
 
     String _state = "";
     Map<String, Object> _show_detail = new HashMap<>();
@@ -709,6 +718,18 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
                         .rowsSelectedRequired(true)
                         .build()
         );
+        actions.add(
+                Action.builder()
+                        .id("save")
+                        .validationRequired(true)
+                        .build()
+        );
+        actions.add(
+                Action.builder()
+                        .id("create")
+                        .validationRequired(true)
+                        .build()
+        );
         getAllMethods(getClass())
                 .stream().filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
                 .forEach(method -> {
@@ -745,5 +766,27 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row, CreationForm
 
     public boolean childCrud() {
         return false;
+    }
+
+    @Override
+    public List<ValidationDto> validationDtos() {
+        if ("edit".equals(_state) || "create".equals(_state)) {
+            List<ValidationDto> fieldLevelValidations = new ArrayList<>();
+            getAllFields(entityClass()).stream()
+                        .flatMap(field -> getValidations(field).stream())
+                        .filter(Objects::nonNull)
+                        .forEach(fieldLevelValidations::add);
+            return Stream.concat(
+                            fieldLevelValidations.stream(),
+                            Arrays.stream(entityClass().getAnnotationsByType(io.mateu.uidl.annotations.Validation.class))
+                                    .map(ComponentTreeSupplierToDtoMapper::mapToValidation))
+                    .toList();
+        }
+        return List.of();
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+        return list(httpRequest);
     }
 }

@@ -40,6 +40,7 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
+import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.Max;
@@ -109,6 +110,9 @@ public class FutureComponentToDtoMapper {
   }
 
   public static List<ValidationDto> mapValidations(Object serverSideObject) {
+    if (serverSideObject instanceof ValidationDtoSupplier validationSupplier) {
+      return validationSupplier.validationDtos();
+    }
     if (serverSideObject instanceof ValidationSupplier validationSupplier) {
       return validationSupplier.validations().stream()
           .map(

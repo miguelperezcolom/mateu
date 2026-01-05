@@ -34,6 +34,9 @@ public class Home {
     @Menu
     CallCenterSubmenu callCenter;
 
+    @Menu
+    FinancialSubmenu financial;
+
     String content = "Hola!";
 
 }

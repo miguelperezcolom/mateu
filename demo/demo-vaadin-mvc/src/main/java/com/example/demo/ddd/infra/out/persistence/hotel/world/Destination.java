@@ -17,7 +17,6 @@ public record Destination(
         @ForeignKey(search = CountryCodeOptionsSupplier.class, label = CountryLabelSupplier.class)
         @NotNull
         String countryCode,
-        @NotEmpty
         @ForeignKey(search = HotelIdOptionsSupplier.class, label = HotelLabelSupplier.class)
         List<String> hotelIds
 ) implements GenericEntity {

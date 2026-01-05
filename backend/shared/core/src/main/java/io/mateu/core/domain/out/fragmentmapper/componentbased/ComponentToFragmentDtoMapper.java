@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased;
 
+import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AccordionLayoutComponentToDtoMapper.mapAccordionLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AccordionPanelComponentToDtoMapper.mapAccordionPanelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AnchorComponentToDtoMapper.mapAnchorToDto;
@@ -164,7 +165,7 @@ public final class ComponentToFragmentDtoMapper {
             consumedRoute,
             initiatorComponentId,
             httpRequest),
-        componentSupplier,
+        getState(componentSupplier, httpRequest),
         getData(httpRequest),
         UIFragmentActionDto.Replace);
   }

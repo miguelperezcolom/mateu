@@ -41,7 +41,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.File;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -419,11 +421,17 @@ public class ReflectionFormFieldMapper {
     return FieldStereotype.regular;
   }
 
-  public static String getLabel(Field field) {
-    if (field.isAnnotationPresent(Label.class)) {
-      return field.getAnnotation(Label.class).value();
+  public static String getLabel(AnnotatedElement fieldOrMethod) {
+    if (fieldOrMethod.isAnnotationPresent(Label.class)) {
+      return fieldOrMethod.getAnnotation(Label.class).value();
     }
-    return toUpperCaseFirst(field.getName());
+    if (fieldOrMethod instanceof Field field) {
+      return toUpperCaseFirst(field.getName());
+    }
+    if (fieldOrMethod instanceof Method method) {
+      return toUpperCaseFirst(method.getName());
+    }
+    return "Not a field nor a method";
   }
 
   public static FieldDataType getDataType(Field field) {
