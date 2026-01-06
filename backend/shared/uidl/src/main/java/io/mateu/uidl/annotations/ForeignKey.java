@@ -2,7 +2,6 @@ package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.LabelSupplier;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,8 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface ForeignKey {
 
-    Class<? extends ForeignKeyOptionsSupplier> search();
+  Class<? extends ForeignKeyOptionsSupplier> search();
 
-    Class<? extends LabelSupplier> label();
-
+  Class<? extends LabelSupplier> label();
 }

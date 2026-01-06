@@ -10,6 +10,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface Tab {
 
-    String value();
-
+  String value();
 }

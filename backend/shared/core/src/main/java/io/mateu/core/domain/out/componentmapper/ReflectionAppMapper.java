@@ -68,7 +68,7 @@ public class ReflectionAppMapper {
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
-            .logo(getLogo(instance))
+        .logo(getLogo(instance))
         .subtitle(getSubtitle(instance))
         .menu(menu)
         .style(getStyle(instance))

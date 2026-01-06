@@ -204,6 +204,6 @@ public class OrderDetailPage implements ComponentTreeSupplier, PostHydrationHand
                     .build();
             return dialog;
         }
-        return null;
+        return this;
     }
 }

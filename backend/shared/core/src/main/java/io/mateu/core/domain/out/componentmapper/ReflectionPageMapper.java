@@ -17,6 +17,7 @@ import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.CssClasses;
+import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.ForeignKey;
@@ -25,7 +26,6 @@ import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
@@ -129,7 +129,8 @@ public class ReflectionPageMapper {
               instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
     if (isForm(instance)) {
-      return getForm(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false, false);
+      return getForm(
+          instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false, false);
     }
     return getAllFields(instance.getClass()).stream()
         .filter(
@@ -200,7 +201,7 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(rowClass).stream()
-            .filter(ReflectionPageMapper::filterColumn)
+        .filter(ReflectionPageMapper::filterColumn)
         .map(field -> getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toList();
   }
@@ -245,7 +246,7 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
-            .filter(field -> false)
+        .filter(field -> false)
         .map(
             field ->
                 (FormField)
@@ -256,7 +257,8 @@ public class ReflectionPageMapper {
                         route,
                         consumedRoute,
                         initiatorComponentId,
-                        httpRequest, false))
+                        httpRequest,
+                        false))
         .toList();
   }
 
@@ -267,68 +269,90 @@ public class ReflectionPageMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest,
-      boolean readOnly, boolean forCreationForm) {
+      boolean readOnly,
+      boolean forCreationForm) {
     List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
     List<Field> noTabFields = new ArrayList<>();
-    arrangeInTabs(instance instanceof Class?(Class)instance:instance.getClass(), fieldsPerTab, noTabFields, readOnly, forCreationForm);
+    arrangeInTabs(
+        instance instanceof Class ? (Class) instance : instance.getClass(),
+        fieldsPerTab,
+        noTabFields,
+        readOnly,
+        forCreationForm);
     var content = new ArrayList<Component>();
     if (noTabFields.size() > 0) {
-      content.add(FormLayout.builder()
+      content.add(
+          FormLayout.builder()
               .content(
-                      noTabFields.stream()
-                              .map(
-                                      field ->
-                                              (Component)
-                                                      getFormField(
-                                                              field,
-                                                              instance,
-                                                              baseUrl,
-                                                              route,
-                                                              consumedRoute,
-                                                              initiatorComponentId,
-                                                              httpRequest,
-                                                              readOnly, forCreationForm))
-                              .toList())
+                  noTabFields.stream()
+                      .map(
+                          field ->
+                              (Component)
+                                  getFormField(
+                                      field,
+                                      instance,
+                                      baseUrl,
+                                      route,
+                                      consumedRoute,
+                                      initiatorComponentId,
+                                      httpRequest,
+                                      readOnly,
+                                      forCreationForm))
+                      .toList())
               .build());
     }
     if (fieldsPerTab.size() > 0) {
-      content.add(TabLayout.builder()
-                      .id("_tabs")
-                      .tabs(fieldsPerTab.stream().map(pair -> io.mateu.uidl.data.Tab.builder()
-                              .label(pair.first().value())
-                              .content(FormLayout.builder()
-                                      .content(
+      content.add(
+          TabLayout.builder()
+              .id("_tabs")
+              .tabs(
+                  fieldsPerTab.stream()
+                      .map(
+                          pair ->
+                              io.mateu.uidl.data.Tab.builder()
+                                  .label(pair.first().value())
+                                  .content(
+                                      FormLayout.builder()
+                                          .content(
                                               pair.second().stream()
-                                                      .map(
-                                                              field ->
-                                                                      (Component)
-                                                                              getFormField(
-                                                                                      field,
-                                                                                      instance,
-                                                                                      baseUrl,
-                                                                                      route,
-                                                                                      consumedRoute,
-                                                                                      initiatorComponentId,
-                                                                                      httpRequest,
-                                                                                      readOnly, forCreationForm))
-                                                      .toList())
-                                      .build())
-                              .build()).toList())
+                                                  .map(
+                                                      field ->
+                                                          (Component)
+                                                              getFormField(
+                                                                  field,
+                                                                  instance,
+                                                                  baseUrl,
+                                                                  route,
+                                                                  consumedRoute,
+                                                                  initiatorComponentId,
+                                                                  httpRequest,
+                                                                  readOnly,
+                                                                  forCreationForm))
+                                                  .toList())
+                                          .build())
+                                  .build())
+                      .toList())
               .build());
     }
     return content;
   }
 
-  private static void arrangeInTabs(Class<?> type, List<Pair<Tab, List<Field>>> fieldsPerTab, List<Field> noTabFields, boolean readOnly, boolean forCreationForm) {
+  private static void arrangeInTabs(
+      Class<?> type,
+      List<Pair<Tab, List<Field>>> fieldsPerTab,
+      List<Field> noTabFields,
+      boolean readOnly,
+      boolean forCreationForm) {
     Tab currentTab = null;
     List<Field> currentTabFields = new ArrayList<>();
-    var filteredFields = getAllEditableFields(type).stream()
+    var filteredFields =
+        getAllEditableFields(type).stream()
             .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
             .toList();
     for (Field field : filteredFields) {
       if (field.isAnnotationPresent(Tab.class)) {
         if (currentTab != null) {
-            fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
+          fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
         }
         currentTab = field.getAnnotation(Tab.class);
         currentTabFields = new ArrayList<>();
@@ -340,20 +364,29 @@ public class ReflectionPageMapper {
       }
     }
     if (currentTab != null) {
-        fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
+      fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
     }
   }
 
   public static Collection<? extends Component> getForm(
-          Object instance,
-          String baseUrl,
-          String route,
-          String consumedRoute,
-          String initiatorComponentId,
-          HttpRequest httpRequest,
-          boolean forCreationForm,
-          boolean readOnly) {
-    return getForm("", instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, forCreationForm, readOnly);
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly) {
+    return getForm(
+        "",
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly);
   }
 
   public static Collection<? extends Component> getForm(
@@ -370,19 +403,21 @@ public class ReflectionPageMapper {
         FormLayout.builder()
             .content(
                 getAllEditableFields(getClass(instance)).stream()
-                        .filter(field -> filterField(field, forCreationForm))
+                    .filter(field -> filterField(field, forCreationForm))
                     .map(
                         field ->
                             (Component)
                                 getFormField(
-                                        prefix,
+                                    prefix,
                                     field,
                                     getInstance(instance),
                                     baseUrl,
                                     route,
                                     consumedRoute,
                                     initiatorComponentId,
-                                    httpRequest, readOnly || isReadOnly(field, instance, forCreationForm), forCreationForm))
+                                    httpRequest,
+                                    readOnly || isReadOnly(field, instance, forCreationForm),
+                                    forCreationForm))
                     .toList())
             .build());
   }
@@ -408,18 +443,19 @@ public class ReflectionPageMapper {
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return true;
     }
-    if (Collection.class.isAssignableFrom(field.getType()) && field.isAnnotationPresent(Composition.class)) {
+    if (Collection.class.isAssignableFrom(field.getType())
+        && field.isAnnotationPresent(Composition.class)) {
       return false;
     }
-    if (forCreationForm) {
-    }
+    if (forCreationForm) {}
     return true;
   }
 
   private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
-            || field.isAnnotationPresent(ReadOnly.class)
-            || field.isAnnotationPresent(GeneratedValue.class) || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
+        || field.isAnnotationPresent(ReadOnly.class)
+        || field.isAnnotationPresent(GeneratedValue.class)
+        || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
   }
 
   private static boolean isForm(Object instance) {

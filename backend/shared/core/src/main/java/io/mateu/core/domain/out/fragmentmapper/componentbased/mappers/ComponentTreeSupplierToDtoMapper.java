@@ -38,7 +38,6 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
-import io.mateu.uidl.interfaces.StateSupplier;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
 import jakarta.validation.constraints.Max;
@@ -184,19 +183,29 @@ public class ComponentTreeSupplierToDtoMapper {
     }
     if (field.isAnnotationPresent(NotEmpty.class)) {
       validations.add(
-              ValidationDto.builder()
-                      .fieldId(field.getName())
-                      .condition("state." + field.getName())
-                      .message(field.getAnnotation(NotEmpty.class).message().replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"))
-                      .build());
+          ValidationDto.builder()
+              .fieldId(field.getName())
+              .condition("state." + field.getName())
+              .message(
+                  field
+                      .getAnnotation(NotEmpty.class)
+                      .message()
+                      .replace(
+                          "{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"))
+              .build());
     }
     if (field.isAnnotationPresent(NotNull.class)) {
       validations.add(
-              ValidationDto.builder()
-                      .fieldId(field.getName())
-                      .condition("state." + field.getName())
-                      .message(field.getAnnotation(NotNull.class).message().replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"))
-                      .build());
+          ValidationDto.builder()
+              .fieldId(field.getName())
+              .condition("state." + field.getName())
+              .message(
+                  field
+                      .getAnnotation(NotNull.class)
+                      .message()
+                      .replace(
+                          "{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"))
+              .build());
     }
     return validations;
   }

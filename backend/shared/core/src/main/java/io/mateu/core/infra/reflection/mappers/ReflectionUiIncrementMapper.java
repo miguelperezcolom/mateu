@@ -123,7 +123,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     }
     if (instance instanceof Collection<?> collection) {
       return collection.stream()
-              .filter(object -> {
+          .filter(
+              object -> {
                 if (object instanceof AppState) {
                   return false;
                 }

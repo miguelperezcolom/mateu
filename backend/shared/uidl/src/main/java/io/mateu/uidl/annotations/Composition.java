@@ -1,7 +1,6 @@
 package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.interfaces.CompositionRepository;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,10 +11,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface Composition {
 
-    Class<?> targetClass();
+  Class<?> targetClass();
 
-    Class<? extends CompositionRepository> repositoryClass();
+  Class<? extends CompositionRepository> repositoryClass();
 
-    String foreignKeyField();
-
+  String foreignKeyField();
 }

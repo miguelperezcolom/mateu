@@ -6,9 +6,5 @@ import io.mateu.uidl.data.Pageable;
 
 public interface ForeignKeyOptionsSupplier {
 
-    ListingData<Option> search(
-            String searchText,
-            Pageable pageable,
-            HttpRequest httpRequest);
-
+  ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest);
 }

@@ -6,10 +6,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Singleton
 public class OrderDetailRouter implements RouteResolver {
 
     private final Pattern pattern = Pattern.compile("/use-cases/rra/orders/.*");

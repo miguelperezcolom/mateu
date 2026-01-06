@@ -523,7 +523,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
             return UICommand.navigateTo("/use-cases/rra/orders");
         }
         System.out.println("unknown action: " + actionId);
-        return new State(this);
+        return this;
     }
 
     private String calculateTotal() {

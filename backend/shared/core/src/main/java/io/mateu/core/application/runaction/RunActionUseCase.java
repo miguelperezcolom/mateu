@@ -32,13 +32,13 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
-import io.mateu.uidl.interfaces.StateSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RouteSupplier;
+import io.mateu.uidl.interfaces.StateSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Field;
@@ -85,7 +85,7 @@ public class RunActionUseCase {
                         command.httpRequest().getAttribute("resolvedRoute"),
                         instance.getClass().getSimpleName()))
             // if the target instance is an app, resolve the menu to get the real target instance
-//            .flatMapMany(instance -> resolveMenuIfApp(command, instance))
+            //            .flatMapMany(instance -> resolveMenuIfApp(command, instance))
             // here I have the target instance
             .flatMap(instance -> routeIfNeeded(command, instance))
             .doOnNext(instance -> updateResolvedRoute(command, instance))
@@ -191,8 +191,16 @@ public class RunActionUseCase {
     }
   }
 
+  private String getShortestMatcher(Pattern patten, String route) {
+    var matchingRoute = "";
+    while (!route.equals(route) && !patten.matcher(matchingRoute).find()) {
+      matchingRoute = matchingRoute.substring(0, matchingRoute.length() + 1);
+    }
+    return matchingRoute;
+  }
+
   private String getLongestMatcher(Pattern patten, String route) {
-    while (!route.isEmpty() && !patten.matcher(route).find()) {
+    while (!route.isEmpty() && !patten.matcher(route).matches()) {
       route = route.substring(0, route.length() - 1);
     }
     return route;
@@ -305,8 +313,8 @@ public class RunActionUseCase {
         return createInstanceAndPostHydrate(command.appServerSideType(), command);
       }
       return createInstanceAndPostHydrate(command.appServerSideType(), command)
-              .flatMap(app -> resolveMenuIfApp(command, app))
-              .switchIfEmpty((Mono) resolveRoute(command));
+          .flatMap(app -> resolveMenuIfApp(command, app))
+          .switchIfEmpty((Mono) resolveRoute(command));
     }
 
     // si hay una ruta --> esa clase
@@ -314,8 +322,7 @@ public class RunActionUseCase {
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
-    return createInstance(className, command)
-            .map(object -> postHydrate(command, object));
+    return createInstance(className, command).map(object -> postHydrate(command, object));
   }
 
   private static Object postHydrate(RunActionCommand command, Object object) {
@@ -329,9 +336,13 @@ public class RunActionUseCase {
   private Mono<?> resolveRoute(RunActionCommand command) {
     List<String> routes = createRoutes(command).reversed();
     return Flux.fromIterable(routes)
-            .flatMap(route -> resolveAppRoute(route, command))
-            .next()
-            .switchIfEmpty((Mono) Flux.fromIterable(routes).flatMap(route -> resolveNonAppRoute(route, command)).next());
+        .flatMap(route -> resolveAppRoute(route, command))
+        .next()
+        .switchIfEmpty(
+            (Mono)
+                Flux.fromIterable(routes)
+                    .flatMap(route -> resolveNonAppRoute(route, command))
+                    .next());
     /*
     for (String route : routes) {
       var instanceCreationPipe = resolveAppRoute(route, command);
@@ -620,7 +631,12 @@ public class RunActionUseCase {
     }
 
     if (app != null) {
-      var actionable = resolveMenu(app.menu(), route.startsWith(consumedRoute)?route.substring(consumedRoute.length()):route);
+      var actionable =
+          resolveMenu(
+              app.menu(),
+              route
+              // miguel route.startsWith(consumedRoute) ? route.substring(consumedRoute.length()) : route
+          );
       if (actionable == null) {
         return Mono.empty();
       }
@@ -631,7 +647,7 @@ public class RunActionUseCase {
           return Mono.empty();
         }
         return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));
-        
+
          */
       }
       if (actionable instanceof ContentLink contentLink) {
@@ -705,8 +721,8 @@ public class RunActionUseCase {
 
   private Mono<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
     return Mono.just(instance)
-            .map(app -> findContainer(app, actionId))
-            .map(optional -> optional.orElse(Mono.empty()));
+        .map(app -> findContainer(app, actionId))
+        .map(optional -> optional.orElse(Mono.empty()));
   }
 
   private Optional<Object> findContainer(Object app, String route) {

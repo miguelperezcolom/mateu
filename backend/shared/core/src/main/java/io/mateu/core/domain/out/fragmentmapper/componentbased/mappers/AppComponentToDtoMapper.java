@@ -44,10 +44,10 @@ public final class AppComponentToDtoMapper {
     var menu = getMenu(app, route, appRoute);
     var appDto =
         AppDto.builder()
-                .favicon(app.favicon())
+            .favicon(app.favicon())
             .title(app.title())
             .subtitle(app.subtitle())
-                .logo(app.logo())
+            .logo(app.logo())
             .route(appRoute)
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(

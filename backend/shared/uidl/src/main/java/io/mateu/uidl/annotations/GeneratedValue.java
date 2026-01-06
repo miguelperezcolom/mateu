@@ -1,9 +1,6 @@
 package io.mateu.uidl.annotations;
 
-import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
-import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.ValueGenerator;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,6 +11,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface GeneratedValue {
 
-    Class<? extends ValueGenerator> value();
-
+  Class<? extends ValueGenerator> value();
 }
