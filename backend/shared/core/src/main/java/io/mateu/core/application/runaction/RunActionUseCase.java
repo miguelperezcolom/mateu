@@ -633,10 +633,10 @@ public class RunActionUseCase {
     if (app != null) {
       var actionable =
           resolveMenu(
-              app.menu(),
-              route
-              // miguel route.startsWith(consumedRoute) ? route.substring(consumedRoute.length()) : route
-          );
+              app.menu(), route
+              // miguel route.startsWith(consumedRoute) ? route.substring(consumedRoute.length()) :
+              // route
+              );
       if (actionable == null) {
         return Mono.empty();
       }

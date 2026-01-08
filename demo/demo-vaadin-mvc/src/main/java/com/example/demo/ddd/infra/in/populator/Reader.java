@@ -23,7 +23,7 @@ public class Reader {
     static List<HotelDto> leerHoteles() {
         return readAllLines(Path.of(Reader.class.getResource("/data/hoteles.csv").getPath()))
                 .stream()
-                .map(linea -> new HotelDto(linea[0], linea[1], linea[2]))
+                .map(linea -> new HotelDto(linea[0], linea[1], linea[2], linea[3], linea[4]))
                 .toList();
     }
 
