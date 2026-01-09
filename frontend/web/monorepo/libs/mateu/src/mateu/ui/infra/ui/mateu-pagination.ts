@@ -51,7 +51,7 @@ export class MateuPagination extends LitElement {
                 }
                 pages.push({pageNumber: this.pageNumber, text: `${this.pageNumber}`, clickable: false})
                 if (this.pageNumber < lastPage - 1) {
-                    const whichPage:number = +this.pageNumber + 1;
+                    const whichPage:number = this.pageNumber + 1;
                     pages.push({pageNumber: whichPage, text: 'next', clickable: true})
                 }
                 if (this.pageNumber < lastPage) {
@@ -63,7 +63,7 @@ export class MateuPagination extends LitElement {
     }
 
     clickOnPage(event: Event) {
-        const page = (event.target as HTMLElement).getAttribute('page');
+        const page = parseInt((event.target as HTMLElement).getAttribute('page') as string);
         this.dispatchEvent(new CustomEvent('page-changed', {
             bubbles: true,
             composed: true,
