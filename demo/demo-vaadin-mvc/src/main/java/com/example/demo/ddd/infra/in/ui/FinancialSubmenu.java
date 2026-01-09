@@ -9,4 +9,7 @@ public class FinancialSubmenu {
 
     @Menu
     Files payments;
+
+    @Menu
+    Files accounts;
 }

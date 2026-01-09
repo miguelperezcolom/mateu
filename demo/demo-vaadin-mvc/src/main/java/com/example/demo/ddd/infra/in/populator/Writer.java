@@ -9,10 +9,8 @@ import com.example.demo.ddd.infra.out.persistence.hotel.booking.FileRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardType;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCode;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.codes.PaxType;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCode;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.codes.SaleScope;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.Season;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Address;
@@ -24,11 +22,6 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Inventory;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Tariff;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.OccupationType;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffChildAgeRange;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffGeneralInfo;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffStatus;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffType;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Country;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Destination;
@@ -60,7 +53,7 @@ public class Writer {
             BoardTypeCodeRepository boardTypeCodeRepository,
             ContractRepository contractRepository,
             TariffRepository tariffRepository,
-            InventoryRepository inventoryRepository, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator) {
+            InventoryRepository inventoryRepository, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator, TariffGenerator tariffGenerator) {
         writeAgencies(dataSet, agencyRepository);
         writeHotels(dataSet, hotelRepository);
         writeCountries(dataSet, countryRepository);
@@ -68,7 +61,7 @@ public class Writer {
         writeSeasons(seasonRepository);
         writeRooms(dataSet, roomTypeCodeRepository);
         writeBoards(dataSet, boardTypeCodeRepository);
-        writeTariffs(dataSet, tariffRepository, seasonRepository);
+        writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator);
         writeContracts(dataSet, contractRepository);
         writeInventories(dataSet, inventoryRepository);
         writeBookings(dataSet, fileRepository, bookingRepository, locatorValueGenerator);
@@ -125,60 +118,11 @@ public class Writer {
         contractRepository.saveAll(contracts);
     }
 
-    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository) {
+    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator) {
         List<Tariff> tariffs = new ArrayList<>();
         for (HotelDto hotel : dataSet.hoteles()) {
             for (Season season : seasonRepository.findAll()) {
-                tariffs.add(new Tariff(
-                        UUID.randomUUID().toString(),
-                        "name",
-                        0,
-                        false,
-                        season.from(),
-                        season.to(),
-                        null,
-                        null,
-                        new TariffGeneralInfo(
-                                TariffStatus.G,
-                                hotel.codigo(),
-                                "EUR",
-                                "season_id",
-                                false,
-                                "name_in_channel_manager",
-                                TariffType.GEN,
-                                false,
-                                0,
-                                true,
-                                "base_room_id",
-                                OccupationType.AD1,
-                                PaxType.AD,
-                                0,
-                                "base_board_type",
-                                true,
-                                0,
-                                true,
-                                "ref_code",
-                                true,
-                                true,
-                                2,
-                                12,
-                                SaleScope.RPC
-                        ),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        new TariffChildAgeRange(1, 2, 12),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of()
-                ));
+                tariffs.addAll(tariffGenerator.generate(hotel, season));
             }
         }
         tariffRepository.saveAll(tariffs);

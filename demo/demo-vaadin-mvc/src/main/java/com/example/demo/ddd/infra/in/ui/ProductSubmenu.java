@@ -14,9 +14,6 @@ import io.mateu.uidl.annotations.Menu;
 public class ProductSubmenu {
 
     @Menu
-    MasterDataMenu masterData;
-
-    @Menu
     HotelSubmenu hotel;
 
     @Menu

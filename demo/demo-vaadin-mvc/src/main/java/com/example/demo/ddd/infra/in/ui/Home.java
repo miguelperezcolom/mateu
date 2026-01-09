@@ -26,6 +26,9 @@ public class Home {
     //Projects projects;
 
     @Menu
+    MasterDataMenu masterData;
+
+    @Menu
     Agencies agencies;
 
     @Menu
