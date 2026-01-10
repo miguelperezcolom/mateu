@@ -185,7 +185,7 @@ public class Writer {
                         hotel.codigo(),
                         hotel.nombre(),
                         hotel.idDestino(),
-                        new Address("", "", "", "", ""),
+                        new Address("Arxiduc Lluís Salvador, 38", "Palma de Mallorca", "07004", "Baleares", "ES"),
                         null,
                         List.of(),
                         List.of(),

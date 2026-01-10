@@ -7,12 +7,14 @@ import com.example.demo.ddd.infra.out.persistence.hotel.codes.Season;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Tariff;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.*;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.applicationterms.ApplicationTerm;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.applicationterms.TermType;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.charges.ChargePrice;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.*;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplements.Supplement;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplementsperday.SupplementPerDayPrice;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,18 +39,18 @@ public class TariffGenerator {
                         TariffStatus.G,
                         hotel.codigo(),
                         "EUR",
-                        "season_id",
+                        season.id(),
                         false,
                         "name_in_channel_manager",
                         TariffType.GEN,
                         false,
                         0,
                         true,
-                        "base_room_id",
+                        dataSet.tiposHabitacion().get(0).codigo(),
                         OccupationType.AD1,
                         PaxType.AD,
                         0,
-                        "base_board_type",
+                        dataSet.regimenes().get(0).codigo(),
                         true,
                         0,
                         true,
@@ -68,35 +70,71 @@ public class TariffGenerator {
                 generatePrices(dataSet, periods),
                 generatePaxSupplements(dataSet, periods),
                 generateRoomSupplements(dataSet, periods),
-                generateBoardSupplements(),
-                generateSupplements(),
-                generateCharges(),
-                generateApplicationTerms(),
-                generateSupplementsPerDay()
+                generateBoardSupplements(dataSet, periods),
+                generateSupplements(dataSet),
+                generateCharges(dataSet, season),
+                generateApplicationTerms(season),
+                generateSupplementsPerDay(dataSet, season)
         );
         tariffs.add(tariff);
         return tariffs;
 
     }
 
-    private List<SupplementPerDayPrice> generateSupplementsPerDay() {
-        return List.of();
+    private List<SupplementPerDayPrice> generateSupplementsPerDay(DataSet dataSet, Season season) {
+        return List.of(new SupplementPerDayPrice(
+                season.from(),
+                season.to(),
+                dataSet.tiposHabitacion().get(0).codigo(),
+                3.1, 2.2,
+                true, true,
+                false, false,
+                true, false,
+                false));
     }
 
-    private List<ApplicationTerm> generateApplicationTerms() {
-        return List.of();
+    private List<ApplicationTerm> generateApplicationTerms(Season season) {
+        return List.of(
+                new ApplicationTerm(season.from(), season.to(), TermType.ANT, 4)
+        );
     }
 
-    private List<ChargePrice> generateCharges() {
-        return List.of();
+    private List<ChargePrice> generateCharges(DataSet dataSet, Season season) {
+        return List.of(
+                new ChargePrice(
+                        season.from(),
+                        season.to(),
+                        "C01",
+                        "Charge 01",
+                        dataSet.tiposHabitacion().get(0).codigo(),
+                        false,
+                        32.1,
+                        5.3,
+                        "Generated"
+                )
+        );
     }
 
-    private List<Supplement> generateSupplements() {
-        return List.of();
+    private List<Supplement> generateSupplements(DataSet dataSet) {
+        return List.of(
+                new Supplement("SV", "Vista mar"),
+                new Supplement("SV", "Vista mar")
+        );
     }
 
-    private List<BoardSupplement> generateBoardSupplements() {
-        return List.of();
+    private List<BoardSupplement> generateBoardSupplements(DataSet dataSet, List<Period> periods) {
+        return periods.stream().map(p -> dataSet.regimenes().stream()
+                        .map(t -> new BoardSupplement(
+                                t.codigo(),
+                                p.number(),
+                                PaxType.AD,
+                                0,
+                                t.codigo(),
+                                1.4,
+                                20d,
+                                "Generated"
+                        )).toList())
+                .flatMap(Collection::stream).toList();
     }
 
     private List<RoomSupplement> generateRoomSupplements(DataSet dataSet, List<Period> periods) {

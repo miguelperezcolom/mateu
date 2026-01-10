@@ -134,7 +134,7 @@ public abstract class ExtendedGenericCrud<
                 !isBasic(field.getType())
                     && !Collection.class.isAssignableFrom(field.getType())
                     && !Map.class.isAssignableFrom(field.getType())
-                    && !Modifier.isFinal(field.getModifiers()))
+                    && (instance.getClass().isRecord() || !Modifier.isFinal(field.getModifiers())))
         .forEach(
             field -> {
               var value = getValue(field, instance);
