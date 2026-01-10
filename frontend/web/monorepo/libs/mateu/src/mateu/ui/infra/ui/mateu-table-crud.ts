@@ -80,6 +80,9 @@ export class MateuTableCrud extends LitElement {
 
     handleSearchRequested = (callback: any) => {
         this.state['crud_selected_items'] = []
+        if (!(this.component?.metadata as Crud).infiniteScrolling) {
+            this.data[this.id].page.content = []
+        }
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
@@ -186,7 +189,7 @@ export class MateuTableCrud extends LitElement {
                         totalElements="${this.data[this.component?.id!]?.page?.totalElements}"
                         pageSize="${this.data[this.component?.id!]?.page?.pageSize}"
                         data-testid="pagination"
-                        pageNumber=${this.data[this.component?.id!]?.page?.pageNumber}
+                        pageNumber="${this.data[this.component?.id!]?.page?.pageNumber}"
                 >
                     ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </mateu-pagination>

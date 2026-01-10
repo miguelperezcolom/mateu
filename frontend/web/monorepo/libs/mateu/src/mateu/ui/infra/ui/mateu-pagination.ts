@@ -51,8 +51,7 @@ export class MateuPagination extends LitElement {
                 }
                 pages.push({pageNumber: this.pageNumber, text: `${this.pageNumber}`, clickable: false})
                 if (this.pageNumber < lastPage - 1) {
-                    const whichPage:number = this.pageNumber + 1;
-                    pages.push({pageNumber: whichPage, text: 'next', clickable: true})
+                    pages.push({pageNumber: parseInt('' + this.pageNumber) + 1, text: 'next', clickable: true})
                 }
                 if (this.pageNumber < lastPage) {
                     pages.push({pageNumber: lastPage, text: 'last', clickable: true})
@@ -82,6 +81,7 @@ export class MateuPagination extends LitElement {
           <vaadin-button theme="tertiary" @click=${this.clickOnPage} page=${p.pageNumber} data-testid="page-${p.pageNumber}">${p.text}</vaadin-button>
         `:html` [ ${p.text} ] `)}
         `}
+                Total elements: ${this.totalElements}
             <slot></slot>
             </div>
        `:nothing
