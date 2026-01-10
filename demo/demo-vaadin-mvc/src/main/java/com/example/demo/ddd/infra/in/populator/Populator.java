@@ -45,6 +45,7 @@ public class Populator {
     final InventoryRepository inventoryRepository;
     final FileRepository fileRepository;
     final BookingRepository bookingRepository;
+    private final TariffGenerator tariffGenerator;
 
     public DataSet create() {
         List<TipoHabitacionDto> tiposHabitacion = leerTiposHabitacion();
@@ -71,7 +72,8 @@ public class Populator {
                 inventoryRepository,
                 fileRepository,
                 bookingRepository,
-                locatorValueGenerator
+                locatorValueGenerator,
+                tariffGenerator
 );
     }
 

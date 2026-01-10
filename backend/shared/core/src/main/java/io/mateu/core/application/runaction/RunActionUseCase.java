@@ -398,7 +398,7 @@ public class RunActionUseCase {
         }
       }
     }
-    return null;
+    return Mono.empty();
   }
 
   @SneakyThrows

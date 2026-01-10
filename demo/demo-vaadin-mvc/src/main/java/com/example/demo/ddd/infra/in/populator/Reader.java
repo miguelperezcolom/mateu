@@ -44,7 +44,7 @@ public class Reader {
     static List<TipoHabitacionDto> leerTiposHabitacion() {
         return readAllLines(Path.of(Reader.class.getResource("/data/tipos_habitacion.csv").getPath()))
                 .stream()
-                .map(linea -> new TipoHabitacionDto(linea[0], linea[1], Integer.parseInt(linea[2]), Integer.parseInt(linea[3])))
+                .map(linea -> new TipoHabitacionDto(linea[0], linea[1], Integer.parseInt(linea[2].trim()), Integer.parseInt(linea[3].trim())))
                 .toList();
     }
 

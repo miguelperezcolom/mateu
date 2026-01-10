@@ -122,7 +122,7 @@ public class Writer {
         List<Tariff> tariffs = new ArrayList<>();
         for (HotelDto hotel : dataSet.hoteles()) {
             for (Season season : seasonRepository.findAll()) {
-                tariffs.addAll(tariffGenerator.generate(hotel, season));
+                tariffs.addAll(tariffGenerator.generate(dataSet, hotel, season));
             }
         }
         tariffRepository.saveAll(tariffs);
