@@ -32,51 +32,6 @@ public class ReflectionAppMapper {
     return total;
   }
 
-  public static String getHomeRoute(List<MenuOptionDto> menu, String route, String appRoute) {
-    var optionRoute = route.replaceFirst(appRoute, "");
-    if (optionRoute != null && !optionRoute.isEmpty()) {
-      return route;
-    }
-    if (menu != null) {
-      var selectedRoute = getSelectedRoute(menu, route, true);
-      if (selectedRoute != null) {
-        return selectedRoute;
-      }
-      selectedRoute = getSelectedRoute(menu, route, false);
-      if (selectedRoute != null) {
-        return selectedRoute;
-      }
-      for (MenuOptionDto option : menu) {
-        if (option.selected()) {
-          return option.destination().route();
-        }
-      }
-      if (!menu.isEmpty()) {
-        return menu.getFirst().destination().route();
-      }
-    }
-    return "/home";
-  }
-
-  private static String getSelectedRoute(List<MenuOptionDto> menu, String route, boolean exact) {
-    for (MenuOptionDto option : menu) {
-      if (option.destination() != null) {
-        var matches =
-            exact
-                ? option.destination().route() != null && option.destination().route().equals(route)
-                : route.startsWith(option.destination().route());
-        if (matches) {
-          return route;
-        }
-      }
-      var selectedRoute = getSelectedRoute(option.submenus(), route, exact);
-      if (selectedRoute != null) {
-        return selectedRoute;
-      }
-    }
-    return null;
-  }
-
   @SneakyThrows
   public static String getRoute(
       Object componentSupplier,
@@ -160,58 +115,6 @@ public class ReflectionAppMapper {
     return null;
   }
 
-  public static List<MenuOptionDto> getMenu(
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      String appRoute,
-      HttpRequest httpRequest) {
-    if (instance instanceof MenuSupplier hasMenu) {
-      var menuFromApp = hasMenu.menu(httpRequest);
-      var selectedRoute =
-          appRoute.equals(route)
-              ? menuFromApp.stream()
-                  .filter(Actionable::selected)
-                  .findFirst()
-                  .map(Actionable::path)
-                  .orElse(route)
-              : route;
-      var menu =
-          menuFromApp.stream()
-              .map(
-                  option ->
-                      new MenuOptionDto(
-                          MenuTypeDto.MenuOption,
-                          "icon",
-                          option.label(),
-                          option.component() != null
-                              ? mapComponentToDto(
-                                  null,
-                                  option.component(),
-                                  baseUrl,
-                                  route,
-                                  consumedRoute,
-                                  initiatorComponentId,
-                                  httpRequest)
-                              : null,
-                          new GoToRouteDto("", option.path(), ""),
-                          getActionId(option),
-                          List.of(),
-                          0,
-                          true,
-                          isSelected(option, appRoute, selectedRoute),
-                          false,
-                          false,
-                          null,
-                          null,
-                          false))
-              .toList();
-      return menu;
-    }
-    return List.of();
-  }
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {
     if (route != null && !route.isEmpty() && !appRoute.equals(route)) {

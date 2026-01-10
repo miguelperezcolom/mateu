@@ -42,6 +42,11 @@ export default defineConfig({
       '/myassets': 'http://localhost:8091',
       '/sse': 'http://localhost:8091',
       '/upload': 'http://localhost:8091',
+      '/master-data': 'http://localhost:8091',
+      '/product': 'http://localhost:8091',
+      '/call-center': 'http://localhost:8091',
+      '/crm': 'http://localhost:8091',
+      '/financial': 'http://localhost:8091',
     },
   },
 })

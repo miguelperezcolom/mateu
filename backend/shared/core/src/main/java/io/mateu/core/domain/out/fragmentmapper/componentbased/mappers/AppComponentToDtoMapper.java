@@ -15,6 +15,7 @@ import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.MethodLink;
+import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
@@ -133,6 +134,7 @@ public final class AppComponentToDtoMapper {
                                 || option instanceof ContentLink
                                 || option instanceof FieldLink
                                 || option instanceof MethodLink
+                                || option instanceof RemoteMenu
                             ? new GoToRouteDto("", getPath(appRoute, option), null)
                             : null)
                     .actionId(getActionId(option))
@@ -144,6 +146,9 @@ public final class AppComponentToDtoMapper {
                             ? buildMenu(asMenu.submenu(), route, appRoute)
                             : List.of())
                     .separator(option instanceof MenuSeparator)
+                        .baseUrl((option instanceof RemoteMenu remoteMenu)? remoteMenu.baseUrl():null)
+                        .route((option instanceof RemoteMenu remoteMenu)? remoteMenu.route():null)
+                        .params((option instanceof RemoteMenu remoteMenu)? remoteMenu.params():null)
                     .build())
         .toList();
   }

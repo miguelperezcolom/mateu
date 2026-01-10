@@ -13,5 +13,9 @@ export default interface MenuOption {
     disabled: boolean
     disabledOnClick: boolean
     itemData: any
-    icon: string
+    icon: string,
+    baseUrl: string
+    route: string
+    params: any
+    explode: boolean
 }

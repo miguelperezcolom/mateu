@@ -1,0 +1,28 @@
+package com.example.demo.ddd.infra.in.ui.project.pages.project.aggregates;
+
+import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.PostHydrationHandler;
+import jakarta.inject.Named;
+
+@Title("Aggregates")
+@Route(value = "/projects/[^/]+/aggregates", parentRoute = "/projects/[^/]+$")
+@Named
+public class Aggregates implements PostHydrationHandler {
+
+    String id;
+
+    String route;
+
+
+    @Override
+    public void onHydrated(HttpRequest httpRequest) {
+        route = httpRequest.runActionRq().route();
+    }
+
+    public Aggregates load(String id) {
+        this.id = id;
+        return this;
+    }
+}

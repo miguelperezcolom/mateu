@@ -3,6 +3,8 @@ package io.mateu.dtos;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import lombok.Builder;
 
 @Builder
@@ -21,7 +23,11 @@ public record MenuOptionDto(
     boolean disabledOnClick,
     String className,
     Object itemData,
-    boolean separator) {
+    boolean separator,
+    String baseUrl,
+    String route,
+    Map<String, Object> params,
+    boolean explode) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());
