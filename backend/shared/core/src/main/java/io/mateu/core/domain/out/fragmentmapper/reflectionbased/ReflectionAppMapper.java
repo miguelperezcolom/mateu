@@ -1,17 +1,11 @@
 package io.mateu.core.domain.out.fragmentmapper.reflectionbased;
 
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.getActionId;
-
-import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
-import io.mateu.dtos.MenuTypeDto;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.MenuSupplier;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
 import java.util.List;
@@ -114,7 +108,6 @@ public class ReflectionAppMapper {
     }
     return null;
   }
-
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {
     if (route != null && !route.isEmpty() && !appRoute.equals(route)) {

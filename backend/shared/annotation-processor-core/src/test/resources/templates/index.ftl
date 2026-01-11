@@ -108,7 +108,7 @@ public class ${simpleClassName}Controller {
     html = html.replaceAll("<!-- AQUIMATEU -->", "<script type='module' src='${frontendPath}'></script>"
                             + (liveReloadEnabled?
                                     "<script src='http://localhost:35729/livereload.js'></script>":""));
-    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}' contextData='" + getContextData(request) + "'></mateu-ui>");
+    html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}' contextData='" + getContextData(request) + "' style=\"width:100%;height:100vh;\"></mateu-ui>");
 </#if>
         return html;
     }

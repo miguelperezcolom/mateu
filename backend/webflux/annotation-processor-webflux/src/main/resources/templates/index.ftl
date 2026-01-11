@@ -69,8 +69,8 @@ public class ${simpleClassName}Controller {
                 document.head.appendChild(s);
 
                 const u = document.createElement('mateu-ui');
-                u.setAttribute('uiId', '${className}')
-                u.setAttribute('baseUrl', '${path}')
+                u.setAttribute('baseUrl', '${path}');
+                u.setAttribute('style', 'width:100%;height:100vh;');
                 document.body.appendChild(u);
 
             }
@@ -84,7 +84,7 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
 <#else >
         html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-        + "<mateu-ui baseUrl=\"${path}\"></mateu-ui>"
+        + "<mateu-ui baseUrl=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
         + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;
