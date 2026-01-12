@@ -31,16 +31,16 @@ public class Home {
     RemoteMenu masterData = new RemoteMenu("/master-data", "", "", "com.example.demo.ddd.infra.in.ui.masterdata.MasterDataHome", "", Map.of(), false);
 
     @Menu
-    RemoteMenu crm = new RemoteMenu("/crm", "", "", "", "", Map.of(), false);
+    RemoteMenu crm = new RemoteMenu("/crm");
 
     @Menu
-    RemoteMenu product = new RemoteMenu("/product", "", "", "", "", Map.of(), false);
+    RemoteMenu product = new RemoteMenu("/product");
 
     @Menu
-    RemoteMenu callCenter = new RemoteMenu("/call-center", "", "", "", "", Map.of(), false);
+    RemoteMenu callCenter = new RemoteMenu("/call-center");
 
     @Menu
-    RemoteMenu financial = new RemoteMenu("/financial", "", "", "", "", Map.of(), false);
+    RemoteMenu financial = new RemoteMenu("/financial");
 
     String content = "Hola!";
 
