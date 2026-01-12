@@ -35,9 +35,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <mateu-ux
                                     route="${container.selectedRoute??metadata.homeRoute}"
                                     id="ux_${container.id}"
-                                    baseUrl="${container.baseUrl}"
+                                    baseUrl="${container.selectedBaseUrl}"
                                     consumedRoute="${metadata.route}"
-                                    appServerSideType="${metadata.appServerSideType}"
+                                    appServerSideType="${container.selectedAppServerSideType}"
                                     style="width: 100%;"
                                     .appState="${appState}"
                                     .appData="${appData}"
@@ -72,10 +72,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${container.selectedRoute??metadata.homeRoute}"
-                                id="ux_${container.id}" 
-                                baseUrl="${container.baseUrl}"
+                                id="ux_${container.id}"
+                                baseUrl="${container.selectedBaseUrl}"
                                 consumedRoute="${metadata.route}"
-                                appServerSideType="${metadata.appServerSideType}"
+                                appServerSideType="${container.selectedAppServerSideType}"
                                 style="width: 100%;"
                                 .appState="${appState}"
                                 .appData="${appData}"
@@ -99,9 +99,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <mateu-ux
                                 route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
-                                baseUrl="${container.baseUrl}"
+                                baseUrl="${container.selectedBaseUrl}"
                                 consumedRoute="${metadata.route}"
-                                appServerSideType="${metadata.appServerSideType}"
+                                appServerSideType="${container.selectedAppServerSideType}"
                                 style="width: 100%; padding: 1em;"
                                 .appState="${appState}"
                                 .appData="${appData}"
@@ -122,7 +122,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${metadata.menu.map(option => {
                                 return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.destination.route, option.actionId)}"
+                                        @click="${() => container.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType)}"
                                 >${option.label}</vaadin-tab>
                             `
                             })}
@@ -134,9 +134,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-ux
                                         route="${container.selectedRoute??metadata.homeRoute}"
                                         id="ux_${container.id}"
-                                        baseUrl="${container.baseUrl}"
+                                        baseUrl="${container.selectedBaseUrl}"
                                         consumedRoute="${metadata.route}"
-                                        appServerSideType="${metadata.appServerSideType}"
+                                        appServerSideType="${container.selectedAppServerSideType}"
                                         style="width: 100%;"
                                         .appState="${appState}"
                                         .appData="${appData}"

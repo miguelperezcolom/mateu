@@ -1,4 +1,5 @@
 export interface GoToRoute {
-    route: string,
+    baseUrl: string
+    route: string
     target: string
 }

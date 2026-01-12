@@ -146,9 +146,22 @@ public final class AppComponentToDtoMapper {
                             ? buildMenu(asMenu.submenu(), route, appRoute)
                             : List.of())
                     .separator(option instanceof MenuSeparator)
+                        .remote(option instanceof RemoteMenu)
                     .baseUrl(
                         (option instanceof RemoteMenu remoteMenu) ? remoteMenu.baseUrl() : null)
                     .route((option instanceof RemoteMenu remoteMenu) ? remoteMenu.route() : null)
+                    .consumedRoute(
+                        (option instanceof RemoteMenu remoteMenu)
+                            ? remoteMenu.consumedRoute()
+                            : null)
+                    .appServerSideType(
+                        (option instanceof RemoteMenu remoteMenu)
+                            ? remoteMenu.appServerSideType()
+                            : null)
+                    .serverSideType(
+                        (option instanceof RemoteMenu remoteMenu)
+                            ? remoteMenu.serverSideType()
+                            : null)
                     .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
                     .build())
         .toList();

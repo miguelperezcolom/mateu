@@ -42,6 +42,8 @@ export class MateuUx extends ConnectedElement {
     @property()
     appServerSideType: string | undefined = undefined
     @property()
+    uriPrefix: string | undefined = undefined
+    @property()
     overrides: string | undefined = undefined;
     @property()
     homeRoute: string | undefined = undefined;

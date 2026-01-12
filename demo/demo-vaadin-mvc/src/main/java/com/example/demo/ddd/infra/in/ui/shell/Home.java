@@ -28,19 +28,19 @@ public class Home {
     //Projects projects;
 
     @Menu
-    RemoteMenu masterData = new RemoteMenu("/master-data", "", Map.of());
+    RemoteMenu masterData = new RemoteMenu("/master-data", "", "", "com.example.demo.ddd.infra.in.ui.masterdata.MasterDataHome", "", Map.of(), false);
 
     @Menu
-    RemoteMenu crm = new RemoteMenu("/crm", "", Map.of());
+    RemoteMenu crm = new RemoteMenu("/crm", "", "", "", "", Map.of(), false);
 
     @Menu
-    RemoteMenu product = new RemoteMenu("/product", "", Map.of());
+    RemoteMenu product = new RemoteMenu("/product", "", "", "", "", Map.of(), false);
 
     @Menu
-    RemoteMenu callCenter = new RemoteMenu("/call-center", "", Map.of());
+    RemoteMenu callCenter = new RemoteMenu("/call-center", "", "", "", "", Map.of(), false);
 
     @Menu
-    RemoteMenu financial = new RemoteMenu("/financial", "", Map.of());
+    RemoteMenu financial = new RemoteMenu("/financial", "", "", "", "", Map.of(), false);
 
     String content = "Hola!";
 

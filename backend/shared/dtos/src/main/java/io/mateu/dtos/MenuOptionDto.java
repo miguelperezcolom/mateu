@@ -23,8 +23,14 @@ public record MenuOptionDto(
     String className,
     Object itemData,
     boolean separator,
+
+    boolean remote,
+
     String baseUrl,
     String route,
+    String consumedRoute,
+    String appServerSideType,
+    String serverSideType,
     Map<String, Object> params,
     boolean explode) {
 

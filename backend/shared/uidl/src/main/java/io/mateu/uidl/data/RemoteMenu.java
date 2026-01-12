@@ -8,7 +8,14 @@ import lombok.With;
 
 @Builder
 @With
-public record RemoteMenu(String baseUrl, String route, Map<String, Object> params)
+public record RemoteMenu(
+    String baseUrl,
+    String route,
+    String consumedRoute,
+    String appServerSideType,
+    String serverSideType,
+    Map<String, Object> params,
+    boolean explode)
     implements Actionable {
 
   @Override

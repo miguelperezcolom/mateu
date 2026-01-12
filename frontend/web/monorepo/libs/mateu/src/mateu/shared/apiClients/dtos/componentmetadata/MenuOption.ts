@@ -14,8 +14,14 @@ export default interface MenuOption {
     disabledOnClick: boolean
     itemData: any
     icon: string,
+
+    remote: boolean
+
     baseUrl: string
     route: string
+    consumedRoute: string
+    appServerSideType: string | undefined
+    serverSideType: string
     params: any
     explode: boolean
 }

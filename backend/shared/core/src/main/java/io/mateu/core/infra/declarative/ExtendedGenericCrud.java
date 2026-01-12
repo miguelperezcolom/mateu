@@ -132,6 +132,7 @@ public abstract class ExtendedGenericCrud<
         .filter(
             field ->
                 !isBasic(field.getType())
+                    && !field.getType().isEnum()
                     && !Collection.class.isAssignableFrom(field.getType())
                     && !Map.class.isAssignableFrom(field.getType())
                     && (instance.getClass().isRecord() || !Modifier.isFinal(field.getModifiers())))
