@@ -357,7 +357,10 @@ public class ReflectionPageMapper {
     var filteredFields =
         getAllEditableFields(type).stream()
             .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
-                .filter(field -> !field.isAnnotationPresent(Hidden.class) || !"".equals(field.getAnnotation(Hidden.class).value()))
+            .filter(
+                field ->
+                    !field.isAnnotationPresent(Hidden.class)
+                        || !"".equals(field.getAnnotation(Hidden.class).value()))
             .toList();
     for (Field field : filteredFields) {
       if (field.isAnnotationPresent(Tab.class)) {

@@ -87,7 +87,8 @@ public abstract class ExtendedGenericCrud<
         ActionSupplier,
         RouteHandler,
         ValidationDtoSupplier,
-        ComponentTreeSupplier, RuleSupplier {
+        ComponentTreeSupplier,
+        RuleSupplier {
 
   String _state = "";
   Map<String, Object> _show_detail = new HashMap<>();
@@ -882,19 +883,19 @@ public abstract class ExtendedGenericCrud<
     if ("edit".equals(_state) || "create".equals(_state)) {
       List<Rule> rules = new ArrayList<>();
       getAllFields(entityClass()).stream()
-              .filter(field -> field.isAnnotationPresent(Disabled.class))
-              .forEach(field -> {
+          .filter(field -> field.isAnnotationPresent(Disabled.class))
+          .forEach(
+              field -> {
                 rules.add(
-                        Rule.builder()
+                    Rule.builder()
                         .filter("true")
                         .action(RuleAction.SetDataValue)
                         .fieldName(field.getName())
-                        //.fieldName("aButton,aField")
+                        // .fieldName("aButton,aField")
                         .fieldAttribute(RuleFieldAttribute.disabled)
                         .expression("true")
                         .result(RuleResult.Continue)
-                        .build()
-                );
+                        .build());
               });
       return rules;
     }

@@ -150,9 +150,8 @@ public class ReflectionFormFieldMapper {
     if (!isBasic(field.getType())
         && !List.class.isAssignableFrom(field.getType())
         && !Map.class.isAssignableFrom(field.getType())
-            && !Amount.class.equals(field.getType())
-            && !Status.class.equals(field.getType())
-    ) {
+        && !Amount.class.equals(field.getType())
+        && !Status.class.equals(field.getType())) {
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))
