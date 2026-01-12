@@ -20,6 +20,7 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Representation;
 import io.mateu.uidl.annotations.SliderMax;
 import io.mateu.uidl.annotations.SliderMin;
+import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -148,7 +149,10 @@ public class ReflectionFormFieldMapper {
     }
     if (!isBasic(field.getType())
         && !List.class.isAssignableFrom(field.getType())
-        && !Map.class.isAssignableFrom(field.getType())) {
+        && !Map.class.isAssignableFrom(field.getType())
+            && !Amount.class.equals(field.getType())
+            && !Status.class.equals(field.getType())
+    ) {
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))
@@ -162,7 +166,7 @@ public class ReflectionFormFieldMapper {
                       initiatorComponentId,
                       httpRequest,
                       forCreationForm,
-                      readOnly)
+                      readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
                   .iterator()
                   .next())
           .colspan(getColspan(field))
@@ -177,7 +181,7 @@ public class ReflectionFormFieldMapper {
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
-        .readOnly(readOnly)
+        .readOnly(readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
         .options(getOptions(field))
         .colspan(getColspan(field))
         .build();
@@ -318,7 +322,7 @@ public class ReflectionFormFieldMapper {
                             httpRequest.runActionRq().consumedRoute(),
                             httpRequest.runActionRq().initiatorComponentId(),
                             httpRequest,
-                            true,
+                            false,
                             readOnly)
                         .stream()
                         .toList())
@@ -445,6 +449,9 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
     }
+    if (Amount.class.equals(field.getType())) {
+      return FieldStereotype.money;
+    }
     return FieldStereotype.regular;
   }
 
@@ -505,6 +512,9 @@ public class ReflectionFormFieldMapper {
     }
     if (File.class.isAssignableFrom(field.getType())) {
       return FieldDataType.file;
+    }
+    if (Amount.class.isAssignableFrom(field.getType())) {
+      return FieldDataType.money;
     }
     if (Status.class.isAssignableFrom(field.getType())) {
       return FieldDataType.status;

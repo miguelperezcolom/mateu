@@ -16,6 +16,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Composition;
+import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -29,6 +30,10 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.Rule;
+import io.mateu.uidl.data.RuleAction;
+import io.mateu.uidl.data.RuleFieldAttribute;
+import io.mateu.uidl.data.RuleResult;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
@@ -54,6 +59,7 @@ import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import io.mateu.uidl.interfaces.Repository;
 import io.mateu.uidl.interfaces.RouteHandler;
+import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.StateSupplier;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import java.lang.reflect.Field;
@@ -81,7 +87,7 @@ public abstract class ExtendedGenericCrud<
         ActionSupplier,
         RouteHandler,
         ValidationDtoSupplier,
-        ComponentTreeSupplier {
+        ComponentTreeSupplier, RuleSupplier {
 
   String _state = "";
   Map<String, Object> _show_detail = new HashMap<>();
@@ -869,5 +875,29 @@ public abstract class ExtendedGenericCrud<
   @Override
   public Component component(HttpRequest httpRequest) {
     return list(httpRequest);
+  }
+
+  @Override
+  public List<Rule> rules() {
+    if ("edit".equals(_state) || "create".equals(_state)) {
+      List<Rule> rules = new ArrayList<>();
+      getAllFields(entityClass()).stream()
+              .filter(field -> field.isAnnotationPresent(Disabled.class))
+              .forEach(field -> {
+                rules.add(
+                        Rule.builder()
+                        .filter("true")
+                        .action(RuleAction.SetDataValue)
+                        .fieldName(field.getName())
+                        //.fieldName("aButton,aField")
+                        .fieldAttribute(RuleFieldAttribute.disabled)
+                        .expression("true")
+                        .result(RuleResult.Continue)
+                        .build()
+                );
+              });
+      return rules;
+    }
+    return List.of();
   }
 }

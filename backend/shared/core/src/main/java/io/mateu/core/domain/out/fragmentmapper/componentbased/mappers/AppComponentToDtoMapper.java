@@ -146,7 +146,7 @@ public final class AppComponentToDtoMapper {
                             ? buildMenu(asMenu.submenu(), route, appRoute)
                             : List.of())
                     .separator(option instanceof MenuSeparator)
-                        .remote(option instanceof RemoteMenu)
+                    .remote(option instanceof RemoteMenu)
                     .baseUrl(
                         (option instanceof RemoteMenu remoteMenu) ? remoteMenu.baseUrl() : null)
                     .route((option instanceof RemoteMenu remoteMenu) ? remoteMenu.route() : null)

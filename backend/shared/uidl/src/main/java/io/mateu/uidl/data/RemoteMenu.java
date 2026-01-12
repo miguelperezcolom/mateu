@@ -18,23 +18,23 @@ public record RemoteMenu(
     boolean explode)
     implements Actionable {
 
-    public RemoteMenu(String baseUrl) {
-        this(baseUrl, "", "", "", "", Map.of(), false);
-    }
+  public RemoteMenu(String baseUrl) {
+    this(baseUrl, "", "", "", "", Map.of(), false);
+  }
 
-    public RemoteMenu(String baseUrl, boolean explode) {
-        this(baseUrl, "", "", "", "", Map.of(), explode);
-    }
+  public RemoteMenu(String baseUrl, boolean explode) {
+    this(baseUrl, "", "", "", "", Map.of(), explode);
+  }
 
-    public RemoteMenu(String baseUrl, String route, boolean explode) {
-        this(baseUrl, route, "", "", "", Map.of(), explode);
-    }
+  public RemoteMenu(String baseUrl, String route, boolean explode) {
+    this(baseUrl, route, "", "", "", Map.of(), explode);
+  }
 
-    public RemoteMenu(String baseUrl, String route) {
-        this(baseUrl, route, "", "", "", Map.of(), false);
-    }
+  public RemoteMenu(String baseUrl, String route) {
+    this(baseUrl, route, "", "", "", Map.of(), false);
+  }
 
-    @Override
+  @Override
   public boolean selected() {
     return false;
   }

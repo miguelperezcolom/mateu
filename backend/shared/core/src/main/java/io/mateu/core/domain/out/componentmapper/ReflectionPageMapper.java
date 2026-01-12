@@ -23,6 +23,7 @@ import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Header;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
@@ -34,11 +35,13 @@ import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.GridContent;
+import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Listing;
@@ -216,6 +219,12 @@ public class ReflectionPageMapper {
     if (field.getType().isEnum()) {
       return true;
     }
+    if (Status.class.equals(field.getType())) {
+      return true;
+    }
+    if (Amount.class.equals(field.getType())) {
+      return true;
+    }
     if (!isBasic(field.getType())) {
       return false;
     }
@@ -280,7 +289,7 @@ public class ReflectionPageMapper {
         readOnly,
         forCreationForm);
     var content = new ArrayList<Component>();
-    if (noTabFields.size() > 0) {
+    if (!noTabFields.isEmpty()) {
       content.add(
           FormLayout.builder()
               .content(
@@ -348,6 +357,7 @@ public class ReflectionPageMapper {
     var filteredFields =
         getAllEditableFields(type).stream()
             .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
+                .filter(field -> !field.isAnnotationPresent(Hidden.class) || !"".equals(field.getAnnotation(Hidden.class).value()))
             .toList();
     for (Field field : filteredFields) {
       if (field.isAnnotationPresent(Tab.class)) {
@@ -451,8 +461,8 @@ public class ReflectionPageMapper {
     return true;
   }
 
-  private static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
-    return instance.getClass().isAnnotationPresent(ReadOnly.class)
+  public static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
+    return (instance != null && instance.getClass().isAnnotationPresent(ReadOnly.class))
         || field.isAnnotationPresent(ReadOnly.class)
         || field.isAnnotationPresent(GeneratedValue.class)
         || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));

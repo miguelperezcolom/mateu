@@ -15,8 +15,7 @@ export const renderMoneyCell = (item: any,
         formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
             amount.value,
         )
-    }
-    if ('money' == stereotype) {
+    } else if ('money' == stereotype) {
         formatted = new Intl.NumberFormat("de-DE", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,

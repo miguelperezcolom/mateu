@@ -379,7 +379,7 @@ export class MateuField extends LitElement {
         const labelText = this.field?.label + '' + (this.field?.required?' (*)':'')
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
-        if (this.field?.readOnly && !('grid' == this.field.stereotype)) {
+        if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
             const valueToDisplay = value || this.data[fieldId]
             return html`
                 <vaadin-text-field
@@ -1409,14 +1409,15 @@ export class MateuField extends LitElement {
                     formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
                         amount.value,
                     )
-                }
-                formatted = new Intl.NumberFormat("de-DE", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
+                } else {
+                    formatted = new Intl.NumberFormat("de-DE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
 
-                }).format(
-                    amount,
-                )
+                    }).format(
+                        amount,
+                    )
+                }
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
