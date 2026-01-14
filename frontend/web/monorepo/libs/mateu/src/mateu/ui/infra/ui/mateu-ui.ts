@@ -39,6 +39,7 @@ export class MateuUi extends LitElement {
     routeChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
+
         if (e instanceof CustomEvent) {
             let route = e.detail.route
             let baseUrl = this.baseUrl??''
@@ -52,7 +53,7 @@ export class MateuUi extends LitElement {
                 route = route.substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
-            if (window.location.pathname != targetUrl.pathname) {
+            if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
@@ -72,13 +73,13 @@ export class MateuUi extends LitElement {
 
         this.loadUrl(window)
 
-        this.addEventListener('route-changed', this.routeChangedListener)
+        this.addEventListener('url-update-requested', this.routeChangedListener)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.upstreamSubscription?.unsubscribe()
-        this.removeEventListener('route-changed', this.routeChangedListener)
+        this.removeEventListener('url-update-requested', this.routeChangedListener)
     }
 
     loadUrl(w: Window) {

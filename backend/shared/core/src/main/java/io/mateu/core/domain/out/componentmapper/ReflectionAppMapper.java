@@ -22,11 +22,7 @@ import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Widget;
-import io.mateu.uidl.data.ContentLink;
-import io.mateu.uidl.data.FieldLink;
-import io.mateu.uidl.data.Menu;
-import io.mateu.uidl.data.MethodLink;
-import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
@@ -271,6 +267,9 @@ public class ReflectionAppMapper {
       if (actionable instanceof MethodLink methodLink) {
         actionable = methodLink.withLabel(getLabel(field));
       }
+        if (actionable instanceof RemoteMenu remoteMenu) {
+            actionable = remoteMenu.withLabel(getLabel(field));
+        }
     }
     if (actionable.path() == null || actionable.path().isEmpty()) {
       if (actionable instanceof ContentLink contentLink) {
@@ -282,6 +281,9 @@ public class ReflectionAppMapper {
       if (actionable instanceof MethodLink methodLink) {
         actionable = methodLink.withPath(appRoute + "/" + field.getName());
       }
+        if (actionable instanceof RemoteMenu remoteMenu) {
+            actionable = remoteMenu.withPath(appRoute + "/" + field.getName());
+        }
     }
     return actionable;
   }

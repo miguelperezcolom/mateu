@@ -73,7 +73,6 @@ export default abstract class ConnectedElement extends LitElement {
                             .filter(fragment => fragment)
                             .map(fragment => fragment!)
                             .flat())
-                        console.log('updated menu', app.menu)
                         app.variant = AppVariant.MENU_ON_TOP
                         upstream.next({
                             fragment: {
@@ -95,15 +94,13 @@ export default abstract class ConnectedElement extends LitElement {
         menu.forEach(option => {
             if (option.remote) {
                 const replacement = increments.find(increment => increment.targetComponentId == option.baseUrl + '#' + option.route)
-                console.log('replacement', replacement, option)
                 if (replacement) {
                     if (replacement.component?.type == ComponentType.ClientSide) {
                         const clientSideComponent = replacement.component as ClientSideComponent
                         if (clientSideComponent.metadata?.type == ComponentMetadataType.App) {
                             const app = clientSideComponent.metadata as App
                             const effectiveAppServerSideType = option.appServerSideType && !('' == option.appServerSideType)?option.appServerSideType:app.appServerSideType
-                            console.log('xxx', option.appServerSideType, app.appServerSideType, option.appServerSideType??app.appServerSideType, effectiveAppServerSideType)
-                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType)
+                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.destination.route)
                             replaced.push(...app.menu)
                         }
                     }
@@ -115,15 +112,16 @@ export default abstract class ConnectedElement extends LitElement {
         return replaced
     }
 
-    private changeBaseUrl(menu: MenuOption[], baseUrl: string, appServerSideType: string | undefined): void {
+    private changeBaseUrl(menu: MenuOption[], baseUrl: string, appServerSideType: string | undefined, uriPrefix: string | undefined): void {
         menu.forEach(option => {
             if (!option.baseUrl) {
                 if (option.submenus && option.submenus.length > 0) {
-                    this.changeBaseUrl(option.submenus, baseUrl, appServerSideType)
+                    this.changeBaseUrl(option.submenus, baseUrl, appServerSideType, uriPrefix)
                 } else {
                     option.baseUrl = baseUrl
                     option.appServerSideType = appServerSideType
                     option.destination.baseUrl = baseUrl
+                    option.uriPrefix = uriPrefix
                 }
             }
         })
@@ -174,7 +172,13 @@ export default abstract class ConnectedElement extends LitElement {
         if ('PushStateToHistory' == command.type) {
             const destination = command.data as string
             if (destination) {
-                window.history.pushState({}, '', destination)
+                this.dispatchEvent(new CustomEvent('route-changed', {
+                    detail: {
+                        route: destination
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
                 this.dispatchEvent(new CustomEvent('history-pushed', {
                     detail: {
                         route: destination

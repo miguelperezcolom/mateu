@@ -45,6 +45,9 @@ export class MateuApp extends ComponentElement {
     selectedRoute: string | undefined = undefined
 
     @state()
+    selectedUriPrefix: string | undefined = undefined
+
+    @state()
     selectedBaseUrl: string | undefined = undefined
 
     @state()
@@ -70,12 +73,12 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
-        console.log('itemSelected', e.detail.value)
         // @ts-ignore
-        this.selectRoute(e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType)
+        this.selectRoute(e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
     }
 
-    selectRoute = (route: string | undefined, actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined) => {
+    selectRoute = (route: string | undefined, actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+
         if (false && actionId) {
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
@@ -89,11 +92,10 @@ export class MateuApp extends ComponentElement {
         }
         if (route) {
 
-            console.log('_baseUrl', _baseUrl, appServerSideType)
-
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
             this.selectedAppServerSideType = appServerSideType
+            this.selectedUriPrefix = uriPrefix;
             this.instant = nanoid()
             let baseUrl = this.baseUrl??''
             if (baseUrl.indexOf('://') < 0) {
@@ -106,12 +108,30 @@ export class MateuApp extends ComponentElement {
                 route = route.substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
-            if (window.location.pathname != targetUrl.pathname) {
+            if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
                 }
-                window.history.pushState({},"", pathname);
+
+                let effectiveRoute = pathname
+                if (this.selectedUriPrefix) {
+                    if (effectiveRoute.startsWith('/') && this.selectedUriPrefix.endsWith('/')) {
+                        effectiveRoute = this.selectedUriPrefix + effectiveRoute.substring(1)
+                    } else if (!effectiveRoute.startsWith('/') && !this.selectedUriPrefix.endsWith('/')) {
+                        effectiveRoute = this.selectedUriPrefix + '/' + effectiveRoute
+                    } else {
+                        effectiveRoute = this.selectedUriPrefix + effectiveRoute
+                    }
+                }
+
+                this.dispatchEvent(new CustomEvent('route-changed', {
+                    detail: {
+                        route: effectiveRoute,
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
             }
 
             var uxElement = this.shadowRoot?.querySelector('mateu-ux');
@@ -126,7 +146,6 @@ export class MateuApp extends ComponentElement {
     }
 
     mapItems = (options: MenuOption[], filter: string): any => {
-        console.log('options', options)
         return options.map(option => {
             if (option.submenus && option.submenus.length > 0) {
                 let children = this.mapItems(option.submenus, filter)
@@ -139,6 +158,7 @@ export class MateuApp extends ComponentElement {
                         route: option.destination?.route,
                         baseUrl: option.baseUrl,
                         appServerSideType: option.appServerSideType,
+                        uriPrefix: option.uriPrefix,
                         actionId: option.actionId,
                         selected: filter || option.selected,
                         children
@@ -157,6 +177,7 @@ export class MateuApp extends ComponentElement {
                     route: option.destination?.route,
                     baseUrl: option.baseUrl,
                     appServerSideType: option.appServerSideType,
+                    uriPrefix: option.uriPrefix,
                     actionId: option.actionId,
                     selected: filter || option.selected,
                 }
@@ -185,7 +206,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType)}"
+                @click="${() => this.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
         >${option.label}</vaadin-button>`
     }
 
@@ -197,8 +218,9 @@ export class MateuApp extends ComponentElement {
         actionId: string | undefined
         baseUrl: string | undefined
         appServerSideType: string | undefined
+        uriPrefix: string | undefined
     }) => {
-        this.selectRoute(e.path, e.actionId, e.baseUrl, e.appServerSideType)
+        this.selectRoute(e.path, e.actionId, e.baseUrl, e.appServerSideType, e.uriPrefix)
         if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
             if (this.vaadinAppLayout) {
                 this.vaadinAppLayout.drawerOpened = false
@@ -236,7 +258,7 @@ export class MateuApp extends ComponentElement {
         e.preventDefault()
         e.stopPropagation()
         var detail = (e as CustomEvent).detail
-        this.selectRoute(detail.route, detail.actionId, detail.baseUrl, detail.appServerSideType)
+        this.selectRoute(detail.route, detail.actionId, detail.baseUrl, detail.appServerSideType, detail.uriPrefix)
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -266,12 +288,12 @@ export class MateuApp extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback()
-        this.addEventListener('update-route', this.updateRoute)
+        //this.addEventListener('update-route', this.updateRoute)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.removeEventListener('update-route', this.updateRoute)
+        //this.removeEventListener('update-route', this.updateRoute)
     }
 
     render() {

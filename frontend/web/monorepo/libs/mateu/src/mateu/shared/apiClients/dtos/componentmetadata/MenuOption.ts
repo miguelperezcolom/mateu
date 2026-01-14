@@ -24,4 +24,5 @@ export default interface MenuOption {
     serverSideType: string
     params: any
     explode: boolean
+    uriPrefix: string | undefined
 }

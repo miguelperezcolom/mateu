@@ -38,6 +38,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     baseUrl="${container.selectedBaseUrl}"
                                     consumedRoute="${metadata.route}"
                                     appServerSideType="${container.selectedAppServerSideType}"
+                                    uriPrefix="${container.selectedUriPrefix}"
                                     style="width: 100%;"
                                     .appState="${appState}"
                                     .appData="${appData}"
@@ -76,6 +77,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 baseUrl="${container.selectedBaseUrl}"
                                 consumedRoute="${metadata.route}"
                                 appServerSideType="${container.selectedAppServerSideType}"
+                                uriPrefix="${container.selectedUriPrefix}"
                                 style="width: 100%;"
                                 .appState="${appState}"
                                 .appData="${appData}"
@@ -102,6 +104,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 baseUrl="${container.selectedBaseUrl}"
                                 consumedRoute="${metadata.route}"
                                 appServerSideType="${container.selectedAppServerSideType}"
+                                uriPrefix="${container.selectedUriPrefix}"
                                 style="width: 100%; padding: 1em;"
                                 .appState="${appState}"
                                 .appData="${appData}"
@@ -122,7 +125,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${metadata.menu.map(option => {
                                 return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType)}"
+                                        @click="${() => container.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
                                 >${option.label}</vaadin-tab>
                             `
                             })}
@@ -137,6 +140,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         baseUrl="${container.selectedBaseUrl}"
                                         consumedRoute="${metadata.route}"
                                         appServerSideType="${container.selectedAppServerSideType}"
+                                        uriPrefix="${container.selectedUriPrefix}"
                                         style="width: 100%;"
                                         .appState="${appState}"
                                         .appData="${appData}"

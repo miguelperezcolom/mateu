@@ -43,7 +43,13 @@ export class MateuSapUI5App extends MetadataDrivenElement {
             if (pathname && !pathname.startsWith('/')) {
                 pathname = '/' + pathname
             }
-            window.history.pushState({},"", pathname);
+            this.dispatchEvent(new CustomEvent('update-route', {
+                detail: {
+                    route: pathname
+                },
+                bubbles: true,
+                composed: true
+            }))
         }
         if (this.route) {
             container.requestUpdate()
@@ -66,7 +72,13 @@ export class MateuSapUI5App extends MetadataDrivenElement {
             if (pathname && !pathname.startsWith('/')) {
                 pathname = '/' + pathname
             }
-            window.history.pushState({},"", pathname);
+            this.dispatchEvent(new CustomEvent('update-route', {
+                detail: {
+                    route: pathname
+                },
+                bubbles: true,
+                composed: true
+            }))
         }
 
         if (this.route) {

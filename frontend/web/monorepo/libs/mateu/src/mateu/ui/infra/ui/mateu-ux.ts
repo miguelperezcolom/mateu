@@ -77,6 +77,7 @@ export class MateuUx extends ConnectedElement {
     service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this, upstream).then();
      */
 
+
     actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
         if (e instanceof CustomEvent) {
             e.preventDefault()
@@ -95,22 +96,29 @@ export class MateuUx extends ConnectedElement {
         }
     }
 
-    navigateToRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+    routeChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         if (e instanceof CustomEvent) {
             e.preventDefault()
             e.stopPropagation()
-            this.route = e.detail.route
-            this.setAttribute('route', this.route??'')
 
-            this.dispatchEvent(new CustomEvent('update-route', {
+            let effectiveRoute = e.detail.route
+            if (this.uriPrefix) {
+                if (effectiveRoute.startsWith('/') && this.uriPrefix.endsWith('/')) {
+                    effectiveRoute = this.uriPrefix + effectiveRoute.substring(1)
+                } else if (!effectiveRoute.startsWith('/') && !this.uriPrefix.endsWith('/')) {
+                    effectiveRoute = this.uriPrefix + '/' + effectiveRoute
+                } else {
+                    effectiveRoute = this.uriPrefix + effectiveRoute
+                }
+            }
+
+            this.dispatchEvent(new CustomEvent('url-update-requested', {
                 detail: {
-                    route: e.detail.route
+                    route: effectiveRoute
                 },
                 bubbles: true,
                 composed: true
             }))
-            //window.history.pushState({},"", this.baseUrl + this.route);
-            //window.dispatchEvent(new PopStateEvent('popstate', window.history.state))
         }
     }
 
@@ -207,8 +215,8 @@ export class MateuUx extends ConnectedElement {
         this.overridesParsed = parseOverrides(this.overrides);
         this.addEventListener('server-side-action-requested', this.actionRequestedListener)
         this.addEventListener('backend-call-failed', this.backendFailedListener)
-        this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
         this.addEventListener('history-pushed', this.historyPushed)
+        this.addEventListener('route-changed', this.routeChangedListener)
 
         // @ts-ignore
         window.Vaadin.featureFlags.masterDetailLayoutComponent = true
@@ -219,8 +227,8 @@ export class MateuUx extends ConnectedElement {
         super.disconnectedCallback();
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
         this.removeEventListener('backend-call-failed', this.backendFailedListener)
-        this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
         this.removeEventListener('history-pushed', this.historyPushed)
+        this.removeEventListener('route-changed', this.routeChangedListener)
     }
 
 

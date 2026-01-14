@@ -22,7 +22,13 @@ const selected = (event: CustomEvent, container: MateuApp, _baseUrl: string, met
         if (pathname && !pathname.startsWith('/')) {
             pathname = '/' + pathname
         }
-        window.history.pushState({},"", pathname);
+        container.dispatchEvent(new CustomEvent('route-changed', {
+            detail: {
+                route: pathname
+            },
+            bubbles: true,
+            composed: true
+        }))
         metadata.homeRoute = route
         container.requestUpdate()
     }
@@ -43,7 +49,13 @@ const selectedTab = (event: CustomEvent, container: MateuApp, _baseUrl: string, 
         if (pathname && !pathname.startsWith('/')) {
             pathname = '/' + pathname
         }
-        window.history.pushState({},"", pathname);
+        container.dispatchEvent(new CustomEvent('route-changed', {
+            detail: {
+                route: pathname
+            },
+            bubbles: true,
+            composed: true
+        }))
         metadata.homeRoute = route
         container.requestUpdate()
     }

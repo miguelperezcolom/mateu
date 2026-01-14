@@ -25,6 +25,7 @@ export class MateuEventInterceptor extends LitElement {
         this.addEventListener('value-changed', this.redispatchEvent)
         this.addEventListener('action-requested', this.redispatchEvent)
         this.addEventListener('server-side-action-requested', this.redispatchEvent)
+        this.addEventListener('route-changed', this.redispatchEvent)
     }
 
     disconnectedCallback() {
@@ -32,6 +33,7 @@ export class MateuEventInterceptor extends LitElement {
         this.removeEventListener('value-changed', this.redispatchEvent)
         this.removeEventListener('action-requested', this.redispatchEvent)
         this.removeEventListener('server-side-action-requested', this.redispatchEvent)
+        this.removeEventListener('route-changed', this.redispatchEvent)
     }
 
     render() {

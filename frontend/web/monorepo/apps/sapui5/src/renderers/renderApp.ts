@@ -30,7 +30,13 @@ const selected = (event: CustomEvent, container: LitElement, _baseUrl: string, m
         if (pathname && !pathname.startsWith('/')) {
             pathname = '/' + pathname
         }
-        window.history.pushState({},"", pathname);
+        container.dispatchEvent(new CustomEvent('route-changed', {
+            detail: {
+                route: pathname
+            },
+            bubbles: true,
+            composed: true
+        }))
     }
     if (route) {
         metadata.homeRoute = route

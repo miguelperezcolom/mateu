@@ -15,23 +15,25 @@ public record RemoteMenu(
     String appServerSideType,
     String serverSideType,
     Map<String, Object> params,
-    boolean explode)
+    boolean explode,
+    String label,
+    String path)
     implements Actionable {
 
   public RemoteMenu(String baseUrl) {
-    this(baseUrl, "", "", "", "", Map.of(), false);
+    this(baseUrl, "", "", "", "", Map.of(), false, null, null);
   }
 
   public RemoteMenu(String baseUrl, boolean explode) {
-    this(baseUrl, "", "", "", "", Map.of(), explode);
+    this(baseUrl, "", "", "", "", Map.of(), explode, null, null);
   }
 
   public RemoteMenu(String baseUrl, String route, boolean explode) {
-    this(baseUrl, route, "", "", "", Map.of(), explode);
+    this(baseUrl, route, "", "", "", Map.of(), explode, null, null);
   }
 
   public RemoteMenu(String baseUrl, String route) {
-    this(baseUrl, route, "", "", "", Map.of(), false);
+    this(baseUrl, route, "", "", "", Map.of(), false, null, null);
   }
 
   @Override
@@ -39,15 +41,6 @@ public record RemoteMenu(
     return false;
   }
 
-  @Override
-  public String path() {
-    return "";
-  }
-
-  @Override
-  public String label() {
-    return "";
-  }
 
   @Override
   public Component component() {

@@ -193,6 +193,9 @@ public final class AppComponentToDtoMapper {
     if (option instanceof MethodLink methodLink) {
       option = methodLink.withPath(prepend(appRoute, methodLink.path()));
     }
+      if (option instanceof RemoteMenu remoteMenu) {
+          option = remoteMenu.withPath(prepend(appRoute, remoteMenu.path()));
+      }
     return option.path();
   }
 

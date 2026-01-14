@@ -28,7 +28,7 @@ public class Home {
     //Projects projects;
 
     @Menu
-    RemoteMenu masterData = new RemoteMenu("/master-data", "", "", "com.example.demo.ddd.infra.in.ui.masterdata.MasterDataHome", "", Map.of(), false);
+    RemoteMenu masterData = new RemoteMenu("/master-data", "", "", "com.example.demo.ddd.infra.in.ui.masterdata.MasterDataHome", "", Map.of(), false, null, null);
 
     @Menu
     RemoteMenu crm = new RemoteMenu("/crm");
