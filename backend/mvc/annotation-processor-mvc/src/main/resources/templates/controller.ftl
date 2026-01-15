@@ -16,13 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import io.mateu.core.infra.MateuController;
 
 
 @CrossOrigin
 @RestController("${pkgName}.${simpleClassName}MateuController")
 @RequestMapping("${path}/mateu")
 @Slf4j
-public class ${simpleClassName}MateuController {
+public class ${simpleClassName}MateuController implements MateuController {
 
     private final MateuService service;
 
@@ -33,6 +34,10 @@ public class ${simpleClassName}MateuController {
     private String uiId = "${className}";
 
     private String baseUrl = "${path}";
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
 
     @PostMapping("v3/**")
     public Mono<UIIncrementDto> runStep(

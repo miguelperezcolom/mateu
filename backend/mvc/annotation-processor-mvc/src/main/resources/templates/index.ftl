@@ -19,11 +19,6 @@ public class ${simpleClassName}Controller {
     @Value("${r"${spring.devtools.livereload.enabled:false}"}")
     private boolean liveReloadEnabled;
 
-    @GetMapping(value = "*", produces = MediaType.TEXT_HTML_VALUE)
-    public String getIndexAlways() {
-        return getIndex();
-    }
-
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");

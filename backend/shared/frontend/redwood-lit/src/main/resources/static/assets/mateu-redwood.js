@@ -737,9 +737,9 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                             <mateu-ux
                                     route="${te.selectedRoute??Q.homeRoute}"
                                     id="ux_${te.id}"
-                                    baseUrl="${te.selectedBaseUrl}"
+                                    baseUrl="${te.selectedBaseUrl??te.baseUrl}"
                                     consumedRoute="${Q.route}"
-                                    appServerSideType="${te.selectedAppServerSideType}"
+                                    appServerSideType="${te.selectedAppServerSideType??Q.appServerSideType}"
                                     uriPrefix="${te.selectedUriPrefix}"
                                     style="width: 100%;"
                                     .appState="${oe}"
@@ -752,7 +752,6 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
             `:E$5}
             
             ${Q.variant==AppVariant.MENU_ON_TOP?x$4`
-
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
                         <vaadin-horizontal-layout style="align-items: center;">
@@ -771,15 +770,15 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                             widgets
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
-                    <div class="app-content">
+                    <div class="app-content">   
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${te.selectedRoute??Q.homeRoute}"
                                 id="ux_${te.id}"
-                                baseUrl="${te.selectedBaseUrl}"
+                                baseUrl="${te.selectedBaseUrl??Q.homeBaseUrl??te.baseUrl}"
                                 consumedRoute="${Q.route}"
-                                appServerSideType="${te.selectedAppServerSideType}"
-                                uriPrefix="${te.selectedUriPrefix}"
+                                appServerSideType="${te.selectedAppServerSideType??Q.homeAppServerSideType??Q.appServerSideType}"
+                                uriPrefix="${te.selectedUriPrefix??Q.homeUriPrefix}"
                                 style="width: 100%;"
                                 .appState="${oe}"
                                 .appData="${ne}"
@@ -803,9 +802,9 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         <mateu-ux
                                 route="${te.selectedRoute??Q.homeRoute}"
                                 id="ux_${te.id}"
-                                baseUrl="${te.selectedBaseUrl}"
+                                baseUrl="${te.selectedBaseUrl??te.baseUrl}"
                                 consumedRoute="${Q.route}"
-                                appServerSideType="${te.selectedAppServerSideType}"
+                                appServerSideType="${te.selectedAppServerSideType??Q.appServerSideType}"
                                 uriPrefix="${te.selectedUriPrefix}"
                                 style="width: 100%; padding: 1em;"
                                 .appState="${oe}"
@@ -837,9 +836,9 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                                 <mateu-ux
                                         route="${te.selectedRoute??Q.homeRoute}"
                                         id="ux_${te.id}"
-                                        baseUrl="${te.selectedBaseUrl}"
+                                        baseUrl="${te.selectedBaseUrl??te.baseUrl}"
                                         consumedRoute="${Q.route}"
-                                        appServerSideType="${te.selectedAppServerSideType}"
+                                        appServerSideType="${te.selectedAppServerSideType??Q.appServerSideType}"
                                         uriPrefix="${te.selectedUriPrefix}"
                                         style="width: 100%;"
                                         .appState="${oe}"
@@ -24109,7 +24108,7 @@ ${typography}
         ></vaadin-notification>`}};MateuApiCaller.styles=i$w`
         :host {
         }
-  `;__decorateClass$9([r$n()],MateuApiCaller.prototype,"loading",2);__decorateClass$9([r$n()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$9([r$n()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$9([t$p("mateu-api-caller")],MateuApiCaller);var __defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$8(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$8(Q,X,ie),ie};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedAppServerSideType=void 0,this.selectedParams=void 0,this.getSelectedOption=te=>{if(te)for(let Q=0;Q<te.length;Q++){const X=te[Q];if(X.selected)return X;const ee=this.getSelectedOption(X.submenus);if(ee)return ee}return null},this.itemSelected=te=>{this.selectRoute(te.detail.value.route,te.detail.value.actionId,te.detail.value.baseUrl,te.detail.value.appServerSideType,te.detail.value.uriPrefix)},this.selectRoute=(te,Q,X,ee,ie)=>{if(te){this.selectedBaseUrl=X,this.selectedRoute=te,this.selectedAppServerSideType=ee,this.selectedUriPrefix=ie,this.instant=nanoid();let ne=this.baseUrl??"";ne.indexOf("://")<0&&(ne.startsWith("/")||(ne="/"+ne),ne=window.location.origin+ne),ne.endsWith("/")&&te.startsWith("/")&&(te=te.substring(1));let ae=new URL(ne+te);if((window.location.pathname||ae.pathname)&&window.location.pathname!=ae.pathname){let se=ae.pathname;se&&!se.startsWith("/")&&(se="/"+se);let le=se;this.selectedUriPrefix&&(le.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?le=this.selectedUriPrefix+le.substring(1):!le.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?le=this.selectedUriPrefix+"/"+le:le=this.selectedUriPrefix+le),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:le},bubbles:!0,composed:!0}))}var oe=this.shadowRoot?.querySelector("mateu-ux");oe&&(oe.setAttribute("baseUrl",X??""),oe.setAttribute("appServerSideType",ee??""),oe.setAttribute("route",te),oe.setAttribute("instant",nanoid()))}},this.mapItems=(te,Q)=>te.map(X=>{if(X.submenus&&X.submenus.length>0){let ee=this.mapItems(X.submenus,Q);return Q&&X.label.toLowerCase().includes(Q)&&(ee=this.mapItems(X.submenus,"")),ee&&ee.length>0?{text:X.label,route:X.destination?.route,baseUrl:X.baseUrl,appServerSideType:X.appServerSideType,uriPrefix:X.uriPrefix,actionId:X.actionId,selected:Q||X.selected,children:ee}:void 0}if(X.separator)return Q?void 0:{component:"hr"};if(!Q||X.label.toLowerCase().includes(Q))return{text:X.label,route:X.destination?.route,baseUrl:X.baseUrl,appServerSideType:X.appServerSideType,uriPrefix:X.uriPrefix,actionId:X.actionId,selected:Q||X.selected}}).filter(X=>X),this.getSelectedIndex=te=>{if(te){const Q=this.getSelectedOption(te);if(Q)return te.indexOf(Q)}},this.renderOptionOnLeftMenu=te=>te.submenus&&te.submenus.length>0?x$4`
+  `;__decorateClass$9([r$n()],MateuApiCaller.prototype,"loading",2);__decorateClass$9([r$n()],MateuApiCaller.prototype,"notificationOpened",2);__decorateClass$9([r$n()],MateuApiCaller.prototype,"error",2);MateuApiCaller=__decorateClass$9([t$p("mateu-api-caller")],MateuApiCaller);var __defProp$8=Object.defineProperty,__getOwnPropDesc$8=Object.getOwnPropertyDescriptor,__decorateClass$8=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$8(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$8(Q,X,ie),ie};let MateuApp=class extends ComponentElement{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedAppServerSideType=void 0,this.selectedParams=void 0,this.getSelectedOption=te=>{if(te)for(let Q=0;Q<te.length;Q++){const X=te[Q];if(X.selected)return X;const ee=this.getSelectedOption(X.submenus);if(ee)return ee}return null},this.itemSelected=te=>{this.selectRoute(te.detail.value.route,te.detail.value.actionId,te.detail.value.baseUrl,te.detail.value.appServerSideType,te.detail.value.uriPrefix)},this.selectRoute=(te,Q,X,ee,ie)=>{if(te){this.selectedBaseUrl=X,this.selectedRoute=te,this.selectedAppServerSideType=ee,this.selectedUriPrefix=ie,this.instant=nanoid();let oe=this.baseUrl??"";oe.indexOf("://")<0&&(oe.startsWith("/")||(oe="/"+oe),oe=window.location.origin+oe),oe.endsWith("/")&&te.startsWith("/")&&(te=te.substring(1));let ne=new URL(oe+te);if((window.location.pathname||ne.pathname)&&window.location.pathname!=ne.pathname){let le=ne.pathname;le&&!le.startsWith("/")&&(le="/"+le);let de=le;this.selectedUriPrefix&&(de.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?de=this.selectedUriPrefix+de.substring(1):!de.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?de=this.selectedUriPrefix+"/"+de:de=this.selectedUriPrefix+de),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:de},bubbles:!0,composed:!0}))}const ae=this.component.metadata;console.log("selectRoute",ee,ae);const se=this.shadowRoot?.querySelector("mateu-ux");se&&(console.log("selectRoute",te,X,this.baseUrl,X??this.baseUrl),se.setAttribute("baseUrl",X??this.baseUrl),se.setAttribute("appServerSideType",ee??ae.appServerSideType),se.setAttribute("route",te),se.setAttribute("instant",nanoid()))}},this.mapItems=(te,Q)=>te.map(X=>{if(X.submenus&&X.submenus.length>0){let ee=this.mapItems(X.submenus,Q);return Q&&X.label.toLowerCase().includes(Q)&&(ee=this.mapItems(X.submenus,"")),ee&&ee.length>0?{text:X.label,route:X.destination?.route,baseUrl:X.baseUrl,appServerSideType:X.appServerSideType,uriPrefix:X.uriPrefix,actionId:X.actionId,selected:Q||X.selected,children:ee}:void 0}if(X.separator)return Q?void 0:{component:"hr"};if(!Q||X.label.toLowerCase().includes(Q))return{text:X.label,route:X.destination?.route,baseUrl:X.baseUrl,appServerSideType:X.appServerSideType,uriPrefix:X.uriPrefix,actionId:X.actionId,selected:Q||X.selected}}).filter(X=>X),this.getSelectedIndex=te=>{if(te){const Q=this.getSelectedOption(te);if(Q)return te.indexOf(Q)}},this.renderOptionOnLeftMenu=te=>te.submenus&&te.submenus.length>0?x$4`
                 <vaadin-details summary="${te.label}" theme="reverse">
                     <vaadin-vertical-layout>
                         ${te.submenus.map(Q=>x$4`${this.renderOptionOnLeftMenu(Q)}`)}

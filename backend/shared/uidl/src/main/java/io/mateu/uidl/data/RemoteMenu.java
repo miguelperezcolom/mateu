@@ -41,7 +41,6 @@ public record RemoteMenu(
     return false;
   }
 
-
   @Override
   public Component component() {
     return null;

@@ -38,9 +38,8 @@ import io.mateu.uidl.interfaces.WidgetSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jdk.jfr.Label;
 import lombok.SneakyThrows;
@@ -56,9 +55,14 @@ public class ReflectionAppMapper {
       HttpRequest httpRequest) {
     var appRoute = getRoute(instance, instance, httpRequest, route, consumedRoute);
     var menu = getMenu(appRoute, instance, route, httpRequest);
+    var selectedOption = getSelectedOption(appRoute, route, menu);
     return App.builder()
         .route(appRoute)
-        .homeRoute(getHomeRoute(instance))
+        .homeRoute(getHomeRoute(instance, selectedOption))
+        .homeBaseUrl(getHomeBaseUrl(baseUrl, selectedOption))
+        .homeAppServerSideType(getHomeAppServerSideType(instance, selectedOption))
+        .homeConsumedRoute(getHomeConsumedRoute(appRoute, selectedOption))
+        .homeUriPrefix(getHomeUriPrefix(selectedOption))
         .serverSideType(instance.getClass().getName())
         .variant(getVariant(instance, menu))
         .pageTitle(getPageTitle(instance))
@@ -74,12 +78,80 @@ public class ReflectionAppMapper {
         .build();
   }
 
-  private static String getHomeRoute(Object instance) {
+  public static Optional<Actionable> getSelectedOption(
+      String appRoute, String route, Collection<? extends Actionable> menu) {
+    if (!appRoute.equals(route)) {
+      var effectiveRoute = route.substring(appRoute.length()); // /masterData/countries
+      return getSelectedOption(effectiveRoute, menu);
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<Actionable> getSelectedOption(
+      String route, Collection<? extends Actionable> actionables) {
+    if (route.startsWith("/")) {
+      route = route.substring(1);
+    }
+    var token = route.split("/")[0];
+    if (!"".equals(token)) {
+      token = "/" + token;
+      for (Actionable actionable : actionables) {
+        if (token.equals(actionable.path())) {
+          if (actionable instanceof Menu menu) {
+            return getSelectedOption(
+                Arrays.stream(route.split("/")).skip(1).collect(Collectors.joining("/")),
+                menu.submenu());
+          }
+          if (actionable instanceof RemoteMenu remoteMenu) {
+            return Optional.of(remoteMenu);
+          }
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
+  private static String getHomeUriPrefix(Optional<? extends Actionable> selectedOption) {
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      return remoteMenu.path();
+    }
+    return null;
+  }
+
+  private static String getHomeConsumedRoute(
+      String appRoute, Optional<? extends Actionable> selectedOption) {
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      return remoteMenu.consumedRoute();
+    }
+    return appRoute;
+  }
+
+  private static String getHomeAppServerSideType(
+      Object instance, Optional<? extends Actionable> selectedOption) {
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      return remoteMenu.appServerSideType();
+    }
+    return null;
+  }
+
+  private static String getHomeBaseUrl(
+      String baseUrl, Optional<? extends Actionable> selectedOption) {
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      return remoteMenu.baseUrl();
+    }
+    return null;
+  }
+
+  private static String getHomeRoute(Object instance, Optional<Actionable> selectedOption) {
+    var prefix = "";
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      prefix = remoteMenu.path();
+    }
     if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
-      return homeRouteSupplier.homeRoute();
+      return homeRouteSupplier.homeRoute().substring(prefix.length());
     }
     if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
-      return instance.getClass().getAnnotation(HomeRoute.class).value();
+      return instance.getClass().getAnnotation(HomeRoute.class).value().substring(prefix.length());
     }
     return "xxx";
   }
@@ -267,9 +339,9 @@ public class ReflectionAppMapper {
       if (actionable instanceof MethodLink methodLink) {
         actionable = methodLink.withLabel(getLabel(field));
       }
-        if (actionable instanceof RemoteMenu remoteMenu) {
-            actionable = remoteMenu.withLabel(getLabel(field));
-        }
+      if (actionable instanceof RemoteMenu remoteMenu) {
+        actionable = remoteMenu.withLabel(getLabel(field));
+      }
     }
     if (actionable.path() == null || actionable.path().isEmpty()) {
       if (actionable instanceof ContentLink contentLink) {
@@ -281,9 +353,9 @@ public class ReflectionAppMapper {
       if (actionable instanceof MethodLink methodLink) {
         actionable = methodLink.withPath(appRoute + "/" + field.getName());
       }
-        if (actionable instanceof RemoteMenu remoteMenu) {
-            actionable = remoteMenu.withPath(appRoute + "/" + field.getName());
-        }
+      if (actionable instanceof RemoteMenu remoteMenu) {
+        actionable = remoteMenu.withPath(appRoute + "/" + field.getName());
+      }
     }
     return actionable;
   }

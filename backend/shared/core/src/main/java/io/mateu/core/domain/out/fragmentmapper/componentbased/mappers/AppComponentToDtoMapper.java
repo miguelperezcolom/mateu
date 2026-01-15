@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.Humanizer.toCamelCase;
+import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
 
@@ -23,6 +24,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.SneakyThrows;
 
@@ -43,6 +45,7 @@ public final class AppComponentToDtoMapper {
       appRoute = route;
     }
     var menu = getMenu(app, route, appRoute);
+    var selectedOption = getSelectedOption(appRoute, route, app.menu());
     var appDto =
         AppDto.builder()
             .favicon(app.favicon())
@@ -53,7 +56,14 @@ public final class AppComponentToDtoMapper {
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(
                 getHomeRoute(
-                    app, route, appRoute, httpRequest)) // getHomeRoute(menu, route, appRoute))
+                    app,
+                    route,
+                    appRoute,
+                    httpRequest,
+                    selectedOption)) // getHomeRoute(menu, route, appRoute))
+            .homeBaseUrl(app.homeBaseUrl())
+            .homeAppServerSideType(app.homeAppServerSideType())
+            .homeUriPrefix(app.homeUriPrefix())
             .appServerSideType(
                 componentSupplier != null
                     ? componentSupplier.getClass().getName()
@@ -71,13 +81,23 @@ public final class AppComponentToDtoMapper {
 
   @SneakyThrows
   private static String getHomeRoute(
-      Object instance, String route, String appRoute, HttpRequest httpRequest) {
+      Object instance,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
     if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
+      if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+        return route.substring(remoteMenu.path().length());
+      }
       return route;
     }
     String homeRoute = getHomeRouteInternal(instance, route);
     if (instance instanceof App app) {
       if ("xxx".equals(app.homeRoute())) {
+        if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+          return homeRoute.substring(remoteMenu.path().length());
+        }
         return homeRoute;
       }
     }
@@ -193,9 +213,9 @@ public final class AppComponentToDtoMapper {
     if (option instanceof MethodLink methodLink) {
       option = methodLink.withPath(prepend(appRoute, methodLink.path()));
     }
-      if (option instanceof RemoteMenu remoteMenu) {
-          option = remoteMenu.withPath(prepend(appRoute, remoteMenu.path()));
-      }
+    if (option instanceof RemoteMenu remoteMenu) {
+      option = remoteMenu.withPath(prepend(appRoute, remoteMenu.path()));
+    }
     return option.path();
   }
 

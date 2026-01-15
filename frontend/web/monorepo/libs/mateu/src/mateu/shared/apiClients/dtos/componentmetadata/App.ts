@@ -13,6 +13,9 @@ export default interface App extends ComponentMetadata {
     menu: MenuOption[]
     totalMenuOptions: number
     homeRoute: string
+    homeBaseUrl: string
+    homeAppServerSideType: string
+    homeUriPrefix: string
     style: string | undefined
     cssClasses: string | undefined
     drawerClosed: boolean

@@ -35,9 +35,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <mateu-ux
                                     route="${container.selectedRoute??metadata.homeRoute}"
                                     id="ux_${container.id}"
-                                    baseUrl="${container.selectedBaseUrl}"
+                                    baseUrl="${container.selectedBaseUrl??container.baseUrl}"
                                     consumedRoute="${metadata.route}"
-                                    appServerSideType="${container.selectedAppServerSideType}"
+                                    appServerSideType="${container.selectedAppServerSideType??metadata.appServerSideType}"
                                     uriPrefix="${container.selectedUriPrefix}"
                                     style="width: 100%;"
                                     .appState="${appState}"
@@ -50,7 +50,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
-
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
                         <vaadin-horizontal-layout style="align-items: center;">
@@ -69,15 +68,15 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             widgets
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
-                    <div class="app-content">
+                    <div class="app-content">   
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
-                                baseUrl="${container.selectedBaseUrl}"
+                                baseUrl="${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}"
                                 consumedRoute="${metadata.route}"
-                                appServerSideType="${container.selectedAppServerSideType}"
-                                uriPrefix="${container.selectedUriPrefix}"
+                                appServerSideType="${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}"
+                                uriPrefix="${container.selectedUriPrefix??metadata.homeUriPrefix}"
                                 style="width: 100%;"
                                 .appState="${appState}"
                                 .appData="${appData}"
@@ -101,9 +100,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <mateu-ux
                                 route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
-                                baseUrl="${container.selectedBaseUrl}"
+                                baseUrl="${container.selectedBaseUrl??container.baseUrl}"
                                 consumedRoute="${metadata.route}"
-                                appServerSideType="${container.selectedAppServerSideType}"
+                                appServerSideType="${container.selectedAppServerSideType??metadata.appServerSideType}"
                                 uriPrefix="${container.selectedUriPrefix}"
                                 style="width: 100%; padding: 1em;"
                                 .appState="${appState}"
@@ -137,9 +136,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-ux
                                         route="${container.selectedRoute??metadata.homeRoute}"
                                         id="ux_${container.id}"
-                                        baseUrl="${container.selectedBaseUrl}"
+                                        baseUrl="${container.selectedBaseUrl??container.baseUrl}"
                                         consumedRoute="${metadata.route}"
-                                        appServerSideType="${container.selectedAppServerSideType}"
+                                        appServerSideType="${container.selectedAppServerSideType??metadata.appServerSideType}"
                                         uriPrefix="${container.selectedUriPrefix}"
                                         style="width: 100%;"
                                         .appState="${appState}"

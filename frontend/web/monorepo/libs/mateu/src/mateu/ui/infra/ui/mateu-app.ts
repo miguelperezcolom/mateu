@@ -134,10 +134,15 @@ export class MateuApp extends ComponentElement {
                 }))
             }
 
-            var uxElement = this.shadowRoot?.querySelector('mateu-ux');
+            const metadata = (this.component as ClientSideComponent).metadata as App;
+
+            console.log('selectRoute', appServerSideType, metadata)
+
+            const uxElement = this.shadowRoot?.querySelector('mateu-ux');
             if (uxElement) {
-                uxElement.setAttribute("baseUrl", _baseUrl??'')
-                uxElement.setAttribute("appServerSideType", appServerSideType??'')
+                console.log('selectRoute', route, _baseUrl, this.baseUrl, _baseUrl??this.baseUrl)
+                uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
+                uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
                 uxElement.setAttribute("route", route)
                 uxElement.setAttribute("instant", nanoid())
                 //window.history.pushState({},"", this.baseUrl + app.homeRoute);
