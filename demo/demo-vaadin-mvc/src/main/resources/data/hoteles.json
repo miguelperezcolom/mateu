@@ -1,0 +1,3087 @@
+[
+  {
+    "id": 102,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CONCORDIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CONCORDIA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "CON",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 297,
+    "max_rooms_capacity": 588,
+    "active": true
+  },
+  {
+    "id": 105,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU SAN FRANCISCO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU SAN FRANCISCO"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "SFC",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 165,
+    "max_rooms_capacity": 330,
+    "active": true
+  },
+  {
+    "id": 107,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU FESTIVAL"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU FESTIVAL"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "FES",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 238,
+    "max_rooms_capacity": 476,
+    "active": true
+  },
+  {
+    "id": 108,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BRAVO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BRAVO"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "BRA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 444,
+    "max_rooms_capacity": 894,
+    "active": true
+  },
+  {
+    "id": 116,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAYA PARK"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAYA PARK"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "PLP",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 475,
+    "max_rooms_capacity": 950,
+    "active": true
+  },
+  {
+    "id": 118,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU ROMANTICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU ROMANTICA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "ROM",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 267,
+    "max_rooms_capacity": 558,
+    "active": true
+  },
+  {
+    "id": 128,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "HOTEL ROMANTIC"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "HOTEL ROMANTIC"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "RMN",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 12,
+    "max_rooms_capacity": 24,
+    "active": true
+  },
+  {
+    "id": 1334,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU MADEIRA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU MADEIRA"
+      }
+    ],
+    "country_code": "PT",
+    "country_alpha_iso_code_3": "PRT",
+    "country_alpha_iso_code_2": "PT",
+    "iso_country": "PT",
+    "country_numeric_iso_code": 620,
+    "hotel_short_name": "MRA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 327,
+    "max_rooms_capacity": 644,
+    "active": true
+  },
+  {
+    "id": 1401,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA THE GRESHAM DUBLIN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA THE GRESHAM DUBLIN"
+      }
+    ],
+    "country_code": "IE",
+    "country_alpha_iso_code_3": "IRL",
+    "country_alpha_iso_code_2": "IE",
+    "iso_country": "IE",
+    "country_numeric_iso_code": 372,
+    "hotel_short_name": "ZDU",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 407,
+    "max_rooms_capacity": 814,
+    "active": true
+  },
+  {
+    "id": 141,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU LA MOLA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU LA MOLA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "MOL",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 348,
+    "max_rooms_capacity": 683,
+    "active": true
+  },
+  {
+    "id": 143,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE LA MOLA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE LA MOLA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XMO",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 345,
+    "max_rooms_capacity": 690,
+    "active": true
+  },
+  {
+    "id": 1601,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA LONDON VICTORIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA LONDON VICTORIA"
+      }
+    ],
+    "country_code": "GB",
+    "country_alpha_iso_code_3": "GBR",
+    "country_alpha_iso_code_2": "GB",
+    "iso_country": "GB",
+    "country_numeric_iso_code": 826,
+    "hotel_short_name": "ZLV",
+    "hotel_type": "HFI",
+    "currency_code": "GBP",
+    "currency_alpha_iso_code": "GBP",
+    "currency_numeric_iso_code": 826,
+    "rooms_quantity": 435,
+    "max_rooms_capacity": 870,
+    "active": true
+  },
+  {
+    "id": 1713,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BACHATA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BACHATA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "BAC",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 592,
+    "max_rooms_capacity": 1184,
+    "active": true
+  },
+  {
+    "id": 1721,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU MERENGUE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU MERENGUE"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "MRN",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 998,
+    "max_rooms_capacity": 1996,
+    "active": true
+  },
+  {
+    "id": 1882,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU GUARANA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU GUARANA"
+      }
+    ],
+    "country_code": "PT",
+    "country_alpha_iso_code_3": "PRT",
+    "country_alpha_iso_code_2": "PT",
+    "iso_country": "PT",
+    "country_numeric_iso_code": 620,
+    "hotel_short_name": "GUA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 500,
+    "max_rooms_capacity": 1000,
+    "active": true
+  },
+  {
+    "id": 205,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PAPAYAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PAPAYAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "PPY",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 469,
+    "max_rooms_capacity": 938,
+    "active": true
+  },
+  {
+    "id": 2101,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA BERLIN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA BERLIN"
+      }
+    ],
+    "country_code": "DE",
+    "country_alpha_iso_code_3": "DEU",
+    "country_alpha_iso_code_2": "DE",
+    "iso_country": "DE",
+    "country_numeric_iso_code": 276,
+    "hotel_short_name": "ZBE",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 357,
+    "max_rooms_capacity": 714,
+    "active": true
+  },
+  {
+    "id": 212,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MELONERAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MELONERAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XME",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 574,
+    "max_rooms_capacity": 1118,
+    "active": true
+  },
+  {
+    "id": 214,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU DON MIGUEL"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU DON MIGUEL"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "DMI",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 286,
+    "max_rooms_capacity": 562,
+    "active": true
+  },
+  {
+    "id": 215,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE OASIS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE OASIS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XOA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 757,
+    "max_rooms_capacity": 1491,
+    "active": true
+  },
+  {
+    "id": 216,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU GRAN CANARIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU GRAN CANARIA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "CGC",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 699,
+    "max_rooms_capacity": 1398,
+    "active": true
+  },
+  {
+    "id": 217,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU VISTAMAR"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU VISTAMAR"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "VIS",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 487,
+    "max_rooms_capacity": 944,
+    "active": true
+  },
+  {
+    "id": 231,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE PALMERAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE PALMERAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XPL",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 310,
+    "max_rooms_capacity": 620,
+    "active": true
+  },
+  {
+    "id": 232,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MASPALOMAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MASPALOMAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XMP",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 382,
+    "max_rooms_capacity": 764,
+    "active": true
+  },
+  {
+    "id": 2751,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU YUCATAN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU YUCATAN"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "YUC",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 649,
+    "max_rooms_capacity": 1298,
+    "active": true
+  },
+  {
+    "id": 2752,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TEQUILA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TEQUILA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "TEQ",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 869,
+    "max_rooms_capacity": 1738,
+    "active": true
+  },
+  {
+    "id": 2753,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MEXICO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MEXICO"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XMX",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 434,
+    "max_rooms_capacity": 868,
+    "active": true
+  },
+  {
+    "id": 2754,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAYACAR"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAYACAR"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "CAR",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 500,
+    "max_rooms_capacity": 1000,
+    "active": true
+  },
+  {
+    "id": 2755,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU LUPITA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU LUPITA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "LUP",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 302,
+    "max_rooms_capacity": 604,
+    "active": true
+  },
+  {
+    "id": 2760,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE RIVIERA MAYA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE RIVIERA MAYA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XRM",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 523,
+    "max_rooms_capacity": 1046,
+    "active": true
+  },
+  {
+    "id": 2801,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CANCUN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CANCUN"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "CNC",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 786,
+    "max_rooms_capacity": 1572,
+    "active": true
+  },
+  {
+    "id": 2802,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE LAS AMERICAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE LAS AMERICAS"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XLA",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 470,
+    "max_rooms_capacity": 940,
+    "active": true
+  },
+  {
+    "id": 2803,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CARIBE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CARIBE"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "CRB",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 544,
+    "max_rooms_capacity": 1088,
+    "active": true
+  },
+  {
+    "id": 2804,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE PENINSULA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE PENINSULA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XPE",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 618,
+    "max_rooms_capacity": 1236,
+    "active": true
+  },
+  {
+    "id": 2806,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE KUKULKAN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE KUKULKAN"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XKU",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 478,
+    "max_rooms_capacity": 956,
+    "active": true
+  },
+  {
+    "id": 2807,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU VENTURA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU VENTURA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "VEN",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 712,
+    "max_rooms_capacity": 1424,
+    "active": true
+  },
+  {
+    "id": 2851,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE COSTA MUJERES"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE COSTA MUJERES"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XCM",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 707,
+    "max_rooms_capacity": 1414,
+    "active": true
+  },
+  {
+    "id": 2853,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU DUNAMAR"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU DUNAMAR"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "DUN",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 740,
+    "max_rooms_capacity": 1480,
+    "active": true
+  },
+  {
+    "id": 2854,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU LATINO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU LATINO"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "LAT",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 657,
+    "max_rooms_capacity": 1314,
+    "active": true
+  },
+  {
+    "id": 305,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE JANDIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE JANDIA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XJA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 214,
+    "max_rooms_capacity": 428,
+    "active": true
+  },
+  {
+    "id": 3102,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE ANTILLAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE ANTILLAS"
+      }
+    ],
+    "country_code": "AW",
+    "country_alpha_iso_code_3": "ABW",
+    "country_alpha_iso_code_2": "AW",
+    "iso_country": "AW",
+    "country_numeric_iso_code": 533,
+    "hotel_short_name": "XAN",
+    "hotel_type": "HFI",
+    "currency_code": "AWG",
+    "currency_alpha_iso_code": "AWG",
+    "currency_numeric_iso_code": 533,
+    "rooms_quantity": 514,
+    "max_rooms_capacity": 1028,
+    "active": true
+  },
+  {
+    "id": 3105,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE ARUBA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE ARUBA"
+      }
+    ],
+    "country_code": "AW",
+    "country_alpha_iso_code_3": "ABW",
+    "country_alpha_iso_code_2": "AW",
+    "iso_country": "AW",
+    "country_numeric_iso_code": 533,
+    "hotel_short_name": "XAU",
+    "hotel_type": "HFI",
+    "currency_code": "AWG",
+    "currency_alpha_iso_code": "AWG",
+    "currency_numeric_iso_code": 533,
+    "rooms_quantity": 524,
+    "max_rooms_capacity": 1048,
+    "active": true
+  },
+  {
+    "id": 3114,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "CLUB ROYAL PALM"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "CLUB ROYAL PALM"
+      }
+    ],
+    "country_code": "AW",
+    "country_alpha_iso_code_3": "ABW",
+    "country_alpha_iso_code_2": "AW",
+    "iso_country": "AW",
+    "country_numeric_iso_code": 533,
+    "hotel_short_name": "BTS",
+    "hotel_type": "HFI",
+    "currency_code": "AWG",
+    "currency_alpha_iso_code": "AWG",
+    "currency_numeric_iso_code": 533,
+    "rooms_quantity": 41,
+    "max_rooms_capacity": 82,
+    "active": true
+  },
+  {
+    "id": 313,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "HOTEL CALYPSO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "HOTEL CALYPSO"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "CLY",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 250,
+    "max_rooms_capacity": 500,
+    "active": true
+  },
+  {
+    "id": 314,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE CALYPSO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE CALYPSO"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XCY",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 248,
+    "max_rooms_capacity": 496,
+    "active": true
+  },
+  {
+    "id": 316,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE TRES ISLAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE TRES ISLAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XTR",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 372,
+    "max_rooms_capacity": 699,
+    "active": true
+  },
+  {
+    "id": 317,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU OLIVA BEACH RESORT"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU OLIVA BEACH RESORT"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "OBE",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 826,
+    "max_rooms_capacity": 1594,
+    "active": true
+  },
+  {
+    "id": 3502,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA GUADALAJARA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA GUADALAJARA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "ZGL",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 558,
+    "max_rooms_capacity": 1116,
+    "active": true
+  },
+  {
+    "id": 3601,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU EMERALD BAY"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU EMERALD BAY"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "EBA",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 1036,
+    "max_rooms_capacity": 2072,
+    "active": true
+  },
+  {
+    "id": 3701,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU VALLARTA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU VALLARTA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "VAL",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 694,
+    "max_rooms_capacity": 1388,
+    "active": true
+  },
+  {
+    "id": 3755,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU JALISCO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU JALISCO"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "JAL",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 700,
+    "max_rooms_capacity": 1400,
+    "active": true
+  },
+  {
+    "id": 3756,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE PACIFICO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE PACIFICO"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XPF",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 582,
+    "max_rooms_capacity": 1164,
+    "active": true
+  },
+  {
+    "id": 3801,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE CABO SAN LUCAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE CABO SAN LUCAS"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XCL",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 694,
+    "max_rooms_capacity": 1388,
+    "active": true
+  },
+  {
+    "id": 3802,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU SANTA FE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU SANTA FE"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "SFE",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 1416,
+    "max_rooms_capacity": 2832,
+    "active": true
+  },
+  {
+    "id": 3803,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE BAJA CALIFORNIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE BAJA CALIFORNIA"
+      }
+    ],
+    "country_code": "MX",
+    "country_alpha_iso_code_3": "MEX",
+    "country_alpha_iso_code_2": "MX",
+    "iso_country": "MX",
+    "country_numeric_iso_code": 484,
+    "hotel_short_name": "XBC",
+    "hotel_type": "HFI",
+    "currency_code": "MXN",
+    "currency_alpha_iso_code": "MXN",
+    "currency_numeric_iso_code": 484,
+    "rooms_quantity": 626,
+    "max_rooms_capacity": 1252,
+    "active": true
+  },
+  {
+    "id": 4001,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE PARADISE ISLAND"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE PARADISE ISLAND"
+      }
+    ],
+    "country_code": "BS",
+    "country_alpha_iso_code_3": "BHS",
+    "country_alpha_iso_code_2": "BS",
+    "iso_country": "BS",
+    "country_numeric_iso_code": 44,
+    "hotel_short_name": "XPI",
+    "hotel_type": "HFI",
+    "currency_code": "BSD",
+    "currency_alpha_iso_code": "BSD",
+    "currency_numeric_iso_code": 44,
+    "rooms_quantity": 379,
+    "max_rooms_capacity": 758,
+    "active": true
+  },
+  {
+    "id": 405,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE TENERIFE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE TENERIFE"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "XTF",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 366,
+    "max_rooms_capacity": 733,
+    "active": true
+  },
+  {
+    "id": 406,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU ARECAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU ARECAS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "ARC",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 454,
+    "max_rooms_capacity": 908,
+    "active": true
+  },
+  {
+    "id": 410,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BUENAVISTA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BUENAVISTA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "BVI",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 1291,
+    "max_rooms_capacity": 2582,
+    "active": true
+  },
+  {
+    "id": 4101,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE SAINT MARTIN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE SAINT MARTIN"
+      }
+    ],
+    "country_code": "MF",
+    "country_alpha_iso_code_3": "MAF",
+    "country_alpha_iso_code_2": "MF",
+    "iso_country": "MF",
+    "country_numeric_iso_code": 663,
+    "hotel_short_name": "XSM",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 258,
+    "max_rooms_capacity": 516,
+    "active": true
+  },
+  {
+    "id": 4401,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA PANAMA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA PANAMA"
+      }
+    ],
+    "country_code": "PA",
+    "country_alpha_iso_code_3": "PAN",
+    "country_alpha_iso_code_2": "PA",
+    "iso_country": "PA",
+    "country_numeric_iso_code": 591,
+    "hotel_short_name": "ZPY",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 645,
+    "max_rooms_capacity": 1290,
+    "active": true
+  },
+  {
+    "id": 4501,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAYA BLANCA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAYA BLANCA"
+      }
+    ],
+    "country_code": "PA",
+    "country_alpha_iso_code_3": "PAN",
+    "country_alpha_iso_code_2": "PA",
+    "iso_country": "PA",
+    "country_numeric_iso_code": 591,
+    "hotel_short_name": "PBL",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 573,
+    "max_rooms_capacity": 1146,
+    "active": true
+  },
+  {
+    "id": 4731,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE TROPICAL BAY"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE TROPICAL BAY"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "XBA",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 466,
+    "max_rooms_capacity": 932,
+    "active": true
+  },
+  {
+    "id": 4732,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU NEGRIL"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU NEGRIL"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "NEG",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 600,
+    "max_rooms_capacity": 1356,
+    "active": true
+  },
+  {
+    "id": 4801,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU OCHO RÍOS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU OCHO RÍOS"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "ORI",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 903,
+    "max_rooms_capacity": 1806,
+    "active": true
+  },
+  {
+    "id": 4821,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE AQUARELLE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE AQUARELLE"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "XAQ",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 753,
+    "max_rooms_capacity": 1506,
+    "active": true
+  },
+  {
+    "id": 4901,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU MONTEGO BAY"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU MONTEGO BAY"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "MBA",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 850,
+    "max_rooms_capacity": 1700,
+    "active": true
+  },
+  {
+    "id": 4902,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE JAMAICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE JAMAICA"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "XJM",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 289,
+    "max_rooms_capacity": 578,
+    "active": true
+  },
+  {
+    "id": 4903,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU REGGAE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU REGGAE"
+      }
+    ],
+    "country_code": "JM",
+    "country_alpha_iso_code_3": "JAM",
+    "country_alpha_iso_code_2": "JM",
+    "iso_country": "JM",
+    "country_numeric_iso_code": 388,
+    "hotel_short_name": "RGE",
+    "hotel_type": "HFI",
+    "currency_code": "JMD",
+    "currency_alpha_iso_code": "JMD",
+    "currency_numeric_iso_code": 388,
+    "rooms_quantity": 454,
+    "max_rooms_capacity": 908,
+    "active": true
+  },
+  {
+    "id": 504,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CHICLANA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CHICLANA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "CHC",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 844,
+    "max_rooms_capacity": 1688,
+    "active": true
+  },
+  {
+    "id": 5401,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU GUANACASTE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU GUANACASTE"
+      }
+    ],
+    "country_code": "CR",
+    "country_alpha_iso_code_3": "CRI",
+    "country_alpha_iso_code_2": "CR",
+    "iso_country": "CR",
+    "country_numeric_iso_code": 188,
+    "hotel_short_name": "GNC",
+    "hotel_type": "HFI",
+    "currency_code": "CRC",
+    "currency_alpha_iso_code": "CRC",
+    "currency_numeric_iso_code": 188,
+    "rooms_quantity": 1051,
+    "max_rooms_capacity": 2102,
+    "active": true
+  },
+  {
+    "id": 5402,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE COSTA RICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE COSTA RICA"
+      }
+    ],
+    "country_code": "CR",
+    "country_alpha_iso_code_3": "CRI",
+    "country_alpha_iso_code_2": "CR",
+    "iso_country": "CR",
+    "country_numeric_iso_code": 188,
+    "hotel_short_name": "XCR",
+    "hotel_type": "HFI",
+    "currency_code": "CRC",
+    "currency_alpha_iso_code": "CRC",
+    "currency_numeric_iso_code": 188,
+    "rooms_quantity": 538,
+    "max_rooms_capacity": 1076,
+    "active": true
+  },
+  {
+    "id": 561,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU MONICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU MONICA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "MON",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 280,
+    "max_rooms_capacity": 559,
+    "active": true
+  },
+  {
+    "id": 562,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BELPLAYA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BELPLAYA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "BEL",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 325,
+    "max_rooms_capacity": 631,
+    "active": true
+  },
+  {
+    "id": 563,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU NAUTILUS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU NAUTILUS"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "NAU",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 309,
+    "max_rooms_capacity": 603,
+    "active": true
+  },
+  {
+    "id": 565,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "HOTEL RIU COSTA LAGO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "HOTEL RIU COSTA LAGO"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "CLA",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 296,
+    "max_rooms_capacity": 592,
+    "active": true
+  },
+  {
+    "id": 568,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU COSTA DEL SOL"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU COSTA DEL SOL"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "COS",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 631,
+    "max_rooms_capacity": 1262,
+    "active": true
+  },
+  {
+    "id": 5724,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA MIAMI BEACH"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA MIAMI BEACH"
+      }
+    ],
+    "country_code": "US",
+    "country_alpha_iso_code_3": "USA",
+    "country_alpha_iso_code_2": "US",
+    "iso_country": "US",
+    "country_numeric_iso_code": 840,
+    "hotel_short_name": "ZMB",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 284,
+    "max_rooms_capacity": 568,
+    "active": true
+  },
+  {
+    "id": 5801,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA NEW YORK TIMES SQ"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA NEW YORK TIMES SQ"
+      }
+    ],
+    "country_code": "US",
+    "country_alpha_iso_code_3": "USA",
+    "country_alpha_iso_code_2": "US",
+    "iso_country": "US",
+    "country_numeric_iso_code": 840,
+    "hotel_short_name": "ZNY",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 647,
+    "max_rooms_capacity": 1294,
+    "active": true
+  },
+  {
+    "id": 5802,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA MANHATTAN T SQ"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA MANHATTAN T SQ"
+      }
+    ],
+    "country_code": "US",
+    "country_alpha_iso_code_3": "USA",
+    "country_alpha_iso_code_2": "US",
+    "iso_country": "US",
+    "country_numeric_iso_code": 840,
+    "hotel_short_name": "ZMH",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 656,
+    "max_rooms_capacity": 1312,
+    "active": true
+  },
+  {
+    "id": 5811,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA CHICAGO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA CHICAGO"
+      }
+    ],
+    "country_code": "US",
+    "country_alpha_iso_code_3": "USA",
+    "country_alpha_iso_code_2": "US",
+    "iso_country": "US",
+    "country_numeric_iso_code": 840,
+    "hotel_short_name": "ZCH",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 390,
+    "max_rooms_capacity": 780,
+    "active": true
+  },
+  {
+    "id": 582,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA ESPAÑA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA ESPAÑA"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "ZES",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 582,
+    "max_rooms_capacity": 1164,
+    "active": true
+  },
+  {
+    "id": 5831,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA FISHERMAN'S WHARF"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA FISHERMAN'S WHARF"
+      }
+    ],
+    "country_code": "US",
+    "country_alpha_iso_code_3": "USA",
+    "country_alpha_iso_code_2": "US",
+    "iso_country": "US",
+    "country_numeric_iso_code": 840,
+    "hotel_short_name": "ZFW",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 531,
+    "max_rooms_capacity": 1062,
+    "active": true
+  },
+  {
+    "id": 6001,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PLAZA TORONTO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PLAZA TORONTO"
+      }
+    ],
+    "country_code": "CA",
+    "country_alpha_iso_code_3": "CAN",
+    "country_alpha_iso_code_2": "CA",
+    "iso_country": "CA",
+    "country_numeric_iso_code": 124,
+    "hotel_short_name": "ZTO",
+    "hotel_type": "HFI",
+    "currency_code": "CAD",
+    "currency_alpha_iso_code": "CAD",
+    "currency_numeric_iso_code": 124,
+    "rooms_quantity": 352,
+    "max_rooms_capacity": 704,
+    "active": true
+  },
+  {
+    "id": 611,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PARAISO LANZAROTE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PARAISO LANZAROTE"
+      }
+    ],
+    "country_code": "ES",
+    "country_alpha_iso_code_3": "ESP",
+    "country_alpha_iso_code_2": "ES",
+    "iso_country": "ES",
+    "hotel_short_name": "PLZ",
+    "hotel_type": "HFI",
+    "currency_code": "EUR",
+    "currency_alpha_iso_code": "EUR",
+    "currency_numeric_iso_code": 978,
+    "rooms_quantity": 640,
+    "max_rooms_capacity": 1246,
+    "active": true
+  },
+  {
+    "id": 6501,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TIKIDA PALMERAIE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TIKIDA PALMERAIE"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "TPA",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 392,
+    "max_rooms_capacity": 784,
+    "active": true
+  },
+  {
+    "id": 6502,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TIKIDA GARDEN"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TIKIDA GARDEN"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "TGA",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 261,
+    "max_rooms_capacity": 522,
+    "active": true
+  },
+  {
+    "id": 6551,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TIKIDA DUNAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TIKIDA DUNAS"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "TDU",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 406,
+    "max_rooms_capacity": 812,
+    "active": true
+  },
+  {
+    "id": 6552,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TIKIDA BEACH"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TIKIDA BEACH"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "TBE",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 255,
+    "max_rooms_capacity": 510,
+    "active": true
+  },
+  {
+    "id": 6553,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE TIKIDA AGADIR"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE TIKIDA AGADIR"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "XTA",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 456,
+    "max_rooms_capacity": 912,
+    "active": true
+  },
+  {
+    "id": 6556,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE TIKIDA TAGHAZOUT"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE TIKIDA TAGHAZOUT"
+      }
+    ],
+    "country_code": "MA",
+    "country_alpha_iso_code_3": "MAR",
+    "country_alpha_iso_code_2": "MA",
+    "iso_country": "MA",
+    "country_numeric_iso_code": 504,
+    "hotel_short_name": "XTG",
+    "hotel_type": "HFI",
+    "currency_code": "MAD",
+    "currency_alpha_iso_code": "MAD",
+    "currency_numeric_iso_code": 504,
+    "rooms_quantity": 504,
+    "max_rooms_capacity": 1008,
+    "active": true
+  },
+  {
+    "id": 6601,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BAOBAB"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BAOBAB"
+      }
+    ],
+    "country_code": "SN",
+    "country_alpha_iso_code_3": "SEN",
+    "country_alpha_iso_code_2": "SN",
+    "iso_country": "SN",
+    "country_numeric_iso_code": 686,
+    "hotel_short_name": "BAB",
+    "hotel_type": "HFI",
+    "currency_code": "XOF",
+    "currency_alpha_iso_code": "XOF",
+    "currency_numeric_iso_code": 952,
+    "rooms_quantity": 524,
+    "max_rooms_capacity": 1048,
+    "active": true
+  },
+  {
+    "id": 6901,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU DUBAI"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU DUBAI"
+      }
+    ],
+    "country_code": "AE",
+    "country_alpha_iso_code_3": "ARE",
+    "country_alpha_iso_code_2": "AE",
+    "iso_country": "AE",
+    "country_numeric_iso_code": 784,
+    "hotel_short_name": "DUB",
+    "hotel_type": "HFI",
+    "currency_code": "AED",
+    "currency_alpha_iso_code": "AED",
+    "currency_numeric_iso_code": 784,
+    "rooms_quantity": 787,
+    "max_rooms_capacity": 1589,
+    "active": true
+  },
+  {
+    "id": 7002,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU LE MORNE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU LE MORNE"
+      }
+    ],
+    "country_code": "MU",
+    "country_alpha_iso_code_3": "MUS",
+    "country_alpha_iso_code_2": "MU",
+    "iso_country": "MU",
+    "country_numeric_iso_code": 480,
+    "hotel_short_name": "LMO",
+    "hotel_type": "HFI",
+    "currency_code": "MUR",
+    "currency_alpha_iso_code": "MUR",
+    "currency_numeric_iso_code": 480,
+    "rooms_quantity": 218,
+    "max_rooms_capacity": 436,
+    "active": true
+  },
+  {
+    "id": 7003,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CREOLE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CREOLE"
+      }
+    ],
+    "country_code": "MU",
+    "country_alpha_iso_code_3": "MUS",
+    "country_alpha_iso_code_2": "MU",
+    "iso_country": "MU",
+    "country_numeric_iso_code": 480,
+    "hotel_short_name": "CRE",
+    "hotel_type": "HFI",
+    "currency_code": "MUR",
+    "currency_alpha_iso_code": "MUR",
+    "currency_numeric_iso_code": 480,
+    "rooms_quantity": 313,
+    "max_rooms_capacity": 626,
+    "active": true
+  },
+  {
+    "id": 7005,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MAURITIUS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MAURITIUS"
+      }
+    ],
+    "country_code": "MU",
+    "country_alpha_iso_code_3": "MUS",
+    "country_alpha_iso_code_2": "MU",
+    "iso_country": "MU",
+    "country_numeric_iso_code": 480,
+    "hotel_short_name": "XMU",
+    "hotel_type": "HFI",
+    "currency_code": "MUR",
+    "currency_alpha_iso_code": "MUR",
+    "currency_numeric_iso_code": 480,
+    "rooms_quantity": 310,
+    "max_rooms_capacity": 620,
+    "active": true
+  },
+  {
+    "id": 7006,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TURQUOISE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TURQUOISE"
+      }
+    ],
+    "country_code": "MU",
+    "country_alpha_iso_code_3": "MUS",
+    "country_alpha_iso_code_2": "MU",
+    "iso_country": "MU",
+    "country_numeric_iso_code": 480,
+    "hotel_short_name": "TRQ",
+    "hotel_type": "HFI",
+    "currency_code": "MUR",
+    "currency_alpha_iso_code": "MUR",
+    "currency_numeric_iso_code": 480,
+    "rooms_quantity": 390,
+    "max_rooms_capacity": 790,
+    "active": true
+  },
+  {
+    "id": 702,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU NAIBOA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU NAIBOA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "NAI",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 744,
+    "max_rooms_capacity": 1446,
+    "active": true
+  },
+  {
+    "id": 705,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU BAMBÚ"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU BAMBÚ"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "BAM",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 1000,
+    "max_rooms_capacity": 2144,
+    "active": true
+  },
+  {
+    "id": 706,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE PUNTA CANA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE PUNTA CANA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "XPC",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 704,
+    "max_rooms_capacity": 1408,
+    "active": true
+  },
+  {
+    "id": 707,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE BAVARO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE BAVARO"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "XBV",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 1048,
+    "max_rooms_capacity": 2096,
+    "active": true
+  },
+  {
+    "id": 708,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "SENSIMAR PUNTA CANA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "SENSIMAR PUNTA CANA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "SSB",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 104,
+    "max_rooms_capacity": 208,
+    "active": true
+  },
+  {
+    "id": 709,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU REPUBLICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU REPUBLICA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "REP",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 1508,
+    "max_rooms_capacity": 3016,
+    "active": true
+  },
+  {
+    "id": 710,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "SENSIMAR REPUBLICA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "SENSIMAR REPUBLICA"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "SRE",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 252,
+    "max_rooms_capacity": 504,
+    "active": true
+  },
+  {
+    "id": 7101,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU SRI LANKA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU SRI LANKA"
+      }
+    ],
+    "country_code": "LK",
+    "country_alpha_iso_code_3": "LKA",
+    "country_alpha_iso_code_2": "LK",
+    "iso_country": "LK",
+    "country_numeric_iso_code": 144,
+    "hotel_short_name": "SRI",
+    "hotel_type": "HFI",
+    "currency_code": "LKR",
+    "currency_alpha_iso_code": "LKR",
+    "currency_numeric_iso_code": 144,
+    "rooms_quantity": 501,
+    "max_rooms_capacity": 1002,
+    "active": true
+  },
+  {
+    "id": 712,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MACAO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MACAO"
+      }
+    ],
+    "country_code": "DO",
+    "country_alpha_iso_code_3": "DOM",
+    "country_alpha_iso_code_2": "DO",
+    "iso_country": "DO",
+    "country_numeric_iso_code": 214,
+    "hotel_short_name": "XMC",
+    "hotel_type": "HFI",
+    "currency_code": "DOP",
+    "currency_alpha_iso_code": "DOP",
+    "currency_numeric_iso_code": 214,
+    "rooms_quantity": 476,
+    "max_rooms_capacity": 952,
+    "active": true
+  },
+  {
+    "id": 7201,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU ATOLL"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU ATOLL"
+      }
+    ],
+    "country_code": "MV",
+    "country_alpha_iso_code_3": "MDV",
+    "country_alpha_iso_code_2": "MV",
+    "iso_country": "MV",
+    "country_numeric_iso_code": 462,
+    "hotel_short_name": "ATO",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 264,
+    "max_rooms_capacity": 528,
+    "active": true
+  },
+  {
+    "id": 7202,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE MALDIVAS"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE MALDIVAS"
+      }
+    ],
+    "country_code": "MV",
+    "country_alpha_iso_code_3": "MDV",
+    "country_alpha_iso_code_2": "MV",
+    "iso_country": "MV",
+    "country_numeric_iso_code": 462,
+    "hotel_short_name": "XMV",
+    "hotel_type": "HFI",
+    "currency_code": "USD",
+    "currency_alpha_iso_code": "USD",
+    "currency_numeric_iso_code": 840,
+    "rooms_quantity": 176,
+    "max_rooms_capacity": 352,
+    "active": true
+  },
+  {
+    "id": 7301,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE ZANZIBAR"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE ZANZIBAR"
+      }
+    ],
+    "country_code": "TZ",
+    "country_alpha_iso_code_3": "TZA",
+    "country_alpha_iso_code_2": "TZ",
+    "iso_country": "TZ",
+    "country_numeric_iso_code": 834,
+    "hotel_short_name": "XZN",
+    "hotel_type": "HFI",
+    "currency_code": "TZS",
+    "currency_alpha_iso_code": "TZS",
+    "currency_numeric_iso_code": 834,
+    "rooms_quantity": 307,
+    "max_rooms_capacity": 614,
+    "active": true
+  },
+  {
+    "id": 7302,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "HOTEL LA GEMMA DELL'EST"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "HOTEL LA GEMMA DELL'EST"
+      }
+    ],
+    "country_code": "TZ",
+    "country_alpha_iso_code_3": "TZA",
+    "country_alpha_iso_code_2": "TZ",
+    "iso_country": "TZ",
+    "country_numeric_iso_code": 834,
+    "hotel_short_name": "LGE",
+    "hotel_type": "HFI",
+    "currency_code": "TZS",
+    "currency_alpha_iso_code": "TZS",
+    "currency_numeric_iso_code": 834,
+    "rooms_quantity": 149,
+    "max_rooms_capacity": 298,
+    "active": true
+  },
+  {
+    "id": 7303,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU JAMBO"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU JAMBO"
+      }
+    ],
+    "country_code": "TZ",
+    "country_alpha_iso_code_3": "TZA",
+    "country_alpha_iso_code_2": "TZ",
+    "iso_country": "TZ",
+    "country_numeric_iso_code": 834,
+    "hotel_short_name": "JBO",
+    "hotel_type": "HFI",
+    "currency_code": "TZS",
+    "currency_alpha_iso_code": "TZS",
+    "currency_numeric_iso_code": 834,
+    "rooms_quantity": 484,
+    "max_rooms_capacity": 968,
+    "active": true
+  },
+  {
+    "id": 7304,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE SWAHILI"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE SWAHILI"
+      }
+    ],
+    "country_code": "TZ",
+    "country_alpha_iso_code_3": "TZA",
+    "country_alpha_iso_code_2": "TZ",
+    "iso_country": "TZ",
+    "country_numeric_iso_code": 834,
+    "hotel_short_name": "XSW",
+    "hotel_type": "HFI",
+    "currency_code": "TZS",
+    "currency_alpha_iso_code": "TZS",
+    "currency_numeric_iso_code": 834,
+    "active": true
+  },
+  {
+    "id": 801,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU FUNANA (A)"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU FUNANA (A)"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "FUR",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 500,
+    "max_rooms_capacity": 1000,
+    "active": true
+  },
+  {
+    "id": 802,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU GAROPA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU GAROPA"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "GRP",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 572,
+    "max_rooms_capacity": 1144,
+    "active": true
+  },
+  {
+    "id": 803,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU CABO VERDE"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU CABO VERDE"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "CAV",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 520,
+    "max_rooms_capacity": 1040,
+    "active": true
+  },
+  {
+    "id": 804,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU FUNANA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU FUNANA"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "FUN",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 592,
+    "max_rooms_capacity": 1184,
+    "active": true
+  },
+  {
+    "id": 805,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE SANTA MARIA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE SANTA MARIA"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "XST",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 1002,
+    "max_rooms_capacity": 2004,
+    "active": true
+  },
+  {
+    "id": 820,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU KARAMBOA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU KARAMBOA"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "KAR",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 1509,
+    "max_rooms_capacity": 3018,
+    "active": true
+  },
+  {
+    "id": 822,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU TOUAREG"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU TOUAREG"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "TOU",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 1151,
+    "max_rooms_capacity": 2302,
+    "active": true
+  },
+  {
+    "id": 823,
+    "hotel_names": [
+      {
+        "iso_language": "en-US",
+        "description": "RIU PALACE BOAVISTA"
+      },
+      {
+        "iso_language": "en-GB",
+        "description": "RIU PALACE BOAVISTA"
+      }
+    ],
+    "country_code": "CV",
+    "country_alpha_iso_code_3": "CPV",
+    "country_alpha_iso_code_2": "CV",
+    "iso_country": "CV",
+    "country_numeric_iso_code": 132,
+    "hotel_short_name": "XBO",
+    "hotel_type": "HFI",
+    "currency_code": "CVE",
+    "currency_alpha_iso_code": "CVE",
+    "currency_numeric_iso_code": 132,
+    "rooms_quantity": 505,
+    "max_rooms_capacity": 1010,
+    "active": true
+  }
+]

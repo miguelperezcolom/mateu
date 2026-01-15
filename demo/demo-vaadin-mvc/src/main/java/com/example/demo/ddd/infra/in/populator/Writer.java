@@ -1,5 +1,6 @@
 package com.example.demo.ddd.infra.in.populator;
 
+import com.example.demo.ddd.infra.in.populator.dtos.AgenciaDto;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.Agency;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.booking.Booking;
@@ -61,8 +62,8 @@ public class Writer {
         writeSeasons(seasonRepository);
         writeRooms(dataSet, roomTypeCodeRepository);
         writeBoards(dataSet, boardTypeCodeRepository);
-        writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator);
-        writeContracts(dataSet, contractRepository);
+        writeContracts(dataSet, contractRepository, seasonRepository);
+        writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator, contractRepository);
         writeInventories(dataSet, inventoryRepository);
         writeBookings(dataSet, fileRepository, bookingRepository, locatorValueGenerator);
     }
@@ -103,28 +104,33 @@ public class Writer {
                 .toList());
     }
 
-    private static void writeContracts(DataSet dataSet, ContractRepository contractRepository) {
+    private static void writeContracts(DataSet dataSet, ContractRepository contractRepository, SeasonRepository seasonRepository) {
         List<Contract> contracts = new ArrayList<>();
-        for (int year = 2023; year <= 2026; year++) {
-            contracts.add(new Contract(
-                    UUID.randomUUID().toString(),
-                    "contract_name",
-                    "hotel_id",
-                    "agency_id",
-                    "season_id",
-                    List.of()
-            ));
+        for (HotelDto hotel : dataSet.hoteles().stream().limit(1).toList()) {
+            for (AgenciaDto agencia : dataSet.agencias()) {
+                for (Season season : seasonRepository.findAll()) {
+                    contracts.add(new Contract(
+                            UUID.randomUUID().toString(),
+                            hotel.nombre() + " - " + agencia.nombre() + " - " + season.name(),
+                            hotel.codigo(),
+                            agencia.codigo(),
+                            season.id(),
+                            List.of()
+                    ));
+                }
+            }
         }
         contractRepository.saveAll(contracts);
     }
 
-    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator) {
+    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator, ContractRepository contractRepository) {
         List<Tariff> tariffs = new ArrayList<>();
-        for (HotelDto hotel : dataSet.hoteles()) {
-            for (Season season : seasonRepository.findAll()) {
-                tariffs.addAll(tariffGenerator.generate(dataSet, hotel, season));
-            }
-        }
+        contractRepository.findAll().forEach(contract -> {
+            tariffs.addAll(tariffGenerator.generate(dataSet,
+                    dataSet.hoteles().stream().filter(hotel -> hotel.codigo().equals(contract.hotelId())).findFirst().get(),
+                    seasonRepository.findById(contract.seasonId()).get(),
+                    contract));
+        });
         tariffRepository.saveAll(tariffs);
     }
 

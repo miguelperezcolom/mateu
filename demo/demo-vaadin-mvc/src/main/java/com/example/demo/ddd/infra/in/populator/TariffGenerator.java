@@ -4,6 +4,7 @@ import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.PaxType;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SaleScope;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.Season;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Contract;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Tariff;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.*;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.applicationterms.ApplicationTerm;
@@ -21,62 +22,67 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class TariffGenerator {
 
-    List<Tariff> generate(DataSet dataSet, HotelDto hotel, Season season) {
+    List<Tariff> generate(DataSet dataSet, HotelDto hotel, Season season, Contract contract) {
 
         var periods = generatePeriods(season);
 
         List<Tariff> tariffs = new ArrayList<>();
-        var tariff = new Tariff(
-                UUID.randomUUID().toString(),
-                "name",
-                0,
-                false,
-                season.from(),
-                season.to(),
-                null,
-                null,
-                new TariffGeneralInfo(
-                        TariffStatus.G,
-                        hotel.codigo(),
-                        "EUR",
-                        season.id(),
-                        false,
-                        "name_in_channel_manager",
-                        TariffType.GEN,
-                        false,
-                        0,
-                        true,
-                        dataSet.tiposHabitacion().get(0).codigo(),
-                        OccupationType.AD1,
-                        PaxType.AD,
-                        0,
-                        dataSet.regimenes().get(0).codigo(),
-                        true,
-                        0,
-                        true,
-                        "ref_code",
-                        true,
-                        true,
-                        2,
-                        12,
-                        SaleScope.RPC
-                ),
-                generateRoomTypes(dataSet),
-                generateOccupationTypes(dataSet),
-                generateRoomPaxSupplements(dataSet),
-                new TariffChildAgeRange(1, 2, 12),
-                generateBoards(dataSet),
-                periods,
-                generatePrices(dataSet, periods),
-                generatePaxSupplements(dataSet, periods),
-                generateRoomSupplements(dataSet, periods),
-                generateBoardSupplements(dataSet, periods),
-                generateSupplements(dataSet),
-                generateCharges(dataSet, season),
-                generateApplicationTerms(season),
-                generateSupplementsPerDay(dataSet, season)
-        );
-        tariffs.add(tariff);
+
+        for (int i = 0; i < 500; i++) {
+            var tariff = new Tariff(
+                    UUID.randomUUID().toString(),
+                    contract.id(),
+                    "name",
+                    0,
+                    false,
+                    season.from(),
+                    season.to(),
+                    null,
+                    null,
+                    new TariffGeneralInfo(
+                            TariffStatus.G,
+                            hotel.codigo(),
+                            "EUR",
+                            season.id(),
+                            false,
+                            "name_in_channel_manager",
+                            TariffType.GEN,
+                            false,
+                            0,
+                            true,
+                            dataSet.tiposHabitacion().get(0).codigo(),
+                            OccupationType.AD1,
+                            PaxType.AD,
+                            0,
+                            dataSet.regimenes().get(0).codigo(),
+                            true,
+                            0,
+                            true,
+                            "ref_code",
+                            true,
+                            true,
+                            2,
+                            12,
+                            SaleScope.RPC
+                    ),
+                    generateRoomTypes(dataSet),
+                    generateOccupationTypes(dataSet),
+                    generateRoomPaxSupplements(dataSet),
+                    new TariffChildAgeRange(1, 2, 12),
+                    generateBoards(dataSet),
+                    periods,
+                    generatePrices(dataSet, periods),
+                    generatePaxSupplements(dataSet, periods),
+                    generateRoomSupplements(dataSet, periods),
+                    generateBoardSupplements(dataSet, periods),
+                    generateSupplements(dataSet),
+                    generateCharges(dataSet, season),
+                    generateApplicationTerms(season),
+                    generateSupplementsPerDay(dataSet, season)
+            );
+            tariffs.add(tariff);
+        }
+
         return tariffs;
 
     }

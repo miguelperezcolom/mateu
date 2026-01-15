@@ -25,6 +25,7 @@ import java.util.List;
 
 public record Tariff(
         String id,
+        String contractId,
         String name,
         int version,
         boolean computesPMC,
