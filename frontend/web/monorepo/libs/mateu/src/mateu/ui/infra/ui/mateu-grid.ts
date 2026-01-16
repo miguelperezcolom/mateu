@@ -53,8 +53,8 @@ export class MateuGrid extends MetadataDrivenElement {
         if (this.field?.fieldId && this.state && this.state[this.field.fieldId]) {
             items = this.state[this.field.fieldId]
         }
-        const showDetail = this.state[this.field?.fieldId + '_show_detail'] || this.state['_show_detail'][this.field!.fieldId]
-        const editing = this.state[this.field?.fieldId + '_editing'] || this.state['_editing'][this.field!.fieldId]
+        const showDetail = this.state[this.field?.fieldId + '_show_detail'] || (this.state['_show_detail'] && this.state['_show_detail'][this.field!.fieldId])
+        const editing = this.state[this.field?.fieldId + '_editing'] || (this.state['_editing'] && this.state['_editing'][this.field!.fieldId])
 
 
         if (this.field?.remoteCoordinates) {

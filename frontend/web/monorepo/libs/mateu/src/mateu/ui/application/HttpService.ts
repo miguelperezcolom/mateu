@@ -25,6 +25,8 @@ export class HttpService implements Service {
     }
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
+
+
         uiIncrement?.fragments?.forEach(fragment => {
             upstream.next({
                 command: undefined,
@@ -103,6 +105,19 @@ export class HttpService implements Service {
             if (callback) {
                 callback()
             }
+
+            if (uiIncrement.messages && uiIncrement.messages.length == 1) {
+                if (uiIncrement.messages[0].variant == 'error') {
+                    initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
+                        detail: {
+                            actionId
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+            }
+
             initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-succeeded', {
                 detail: {
                     actionId
@@ -112,6 +127,7 @@ export class HttpService implements Service {
             }))
 
         } catch(reason) {
+            console.log('reason', reason)
                 initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
                     bubbles: true,
                     composed: true,

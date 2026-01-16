@@ -90,8 +90,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             const state = this.state
             // @ts-ignore
             const data = this.data
+
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .forEach(trigger => {
+                    console.log('adding listener for ' + trigger.eventName)
                     this.addEventListener(trigger.eventName, this.customEventManager)
                 })
             if (componentRenderer.getAfterRenderHook()) {
@@ -109,6 +111,13 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         // @ts-ignore
         const data = this.data
         const serverSideComponent = this.component as ServerSideComponent
+
+        serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
+            .forEach(trigger => {
+                console.log('adding listener for ' + trigger.eventName)
+                this.addEventListener(trigger.eventName, this.customEventManager)
+            })
+
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
                 if (!trigger.condition || eval(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {

@@ -58,7 +58,24 @@ export class MateuUi extends LitElement {
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
                 }
+
                 window.history.pushState({},"", pathname);
+            }
+        }
+    }
+
+    navigateToRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        if (e instanceof CustomEvent) {
+            let route = e.detail.route
+            const uxElement = this.shadowRoot?.querySelector('mateu-ux');
+            if (uxElement) {
+//                uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
+//                uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
+                uxElement.setAttribute("route", route)
+                uxElement.setAttribute("instant", nanoid())
             }
         }
     }
@@ -74,12 +91,14 @@ export class MateuUi extends LitElement {
         this.loadUrl(window)
 
         this.addEventListener('url-update-requested', this.routeChangedListener)
+        this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.upstreamSubscription?.unsubscribe()
         this.removeEventListener('url-update-requested', this.routeChangedListener)
+        this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
     }
 
     loadUrl(w: Window) {

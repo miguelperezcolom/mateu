@@ -58,6 +58,7 @@ import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
+import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -216,9 +217,10 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                             .component="${component}"
                             .data="${state}"
                             style="${component.style}" 
-                          class="${component.cssClasses}"
+                            class="${component.cssClasses}"
                             .appState="${appState}"
                             .appData="${appData}"
+                            .selectedRoute="${(component.metadata as App).homeRoute}"
                 >
                  ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
              </mateu-app>`

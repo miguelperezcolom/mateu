@@ -77,19 +77,8 @@ export class MateuApp extends ComponentElement {
         this.selectRoute(e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
     }
 
-    selectRoute = (route: string | undefined, actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+    selectRoute = (route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
 
-        if (false && actionId) {
-            this.dispatchEvent(new CustomEvent('action-requested', {
-                detail: {
-                    actionId,
-                    initiatorComponentId: `ux_${this.id}`
-                },
-                bubbles: true,
-                composed: true
-            }))
-            return
-        }
         if (route) {
 
             this.selectedBaseUrl = _baseUrl
@@ -112,6 +101,9 @@ export class MateuApp extends ComponentElement {
                 let pathname = targetUrl.pathname
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
+                }
+                if (this.baseUrl && pathname.startsWith(this.baseUrl)) {
+                    pathname = pathname.substring(this.baseUrl.length)
                 }
 
                 let effectiveRoute = pathname
@@ -136,11 +128,8 @@ export class MateuApp extends ComponentElement {
 
             const metadata = (this.component as ClientSideComponent).metadata as App;
 
-            console.log('selectRoute', appServerSideType, metadata)
-
             const uxElement = this.shadowRoot?.querySelector('mateu-ux');
             if (uxElement) {
-                console.log('selectRoute', route, _baseUrl, this.baseUrl, _baseUrl??this.baseUrl)
                 uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
                 uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
                 uxElement.setAttribute("route", route)
@@ -268,9 +257,6 @@ export class MateuApp extends ComponentElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has('component')) {
-            this.selectedRoute = undefined;
-        }
         if (this.component) {
             const clientSideComponent = this.component as ClientSideComponent
             const metadata = clientSideComponent.metadata

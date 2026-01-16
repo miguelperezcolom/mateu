@@ -395,15 +395,18 @@ export class MateuComponent extends ComponentElement {
             } catch (e) {
                 console.error('when evaluating ' + action.js, e, component, state, data )
             }
-            return
         }
 
         if (action && action.customEvent) {
+            console.log('custom event', action.customEvent)
             this.dispatchEvent(new CustomEvent(action.customEvent.name, {
                 detail: action.customEvent.detail,
                 bubbles: true,
                 composed: true
             }))
+        }
+
+        if (action && (action.js || action.customEvent)) {
             return
         }
 
@@ -462,6 +465,7 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendFailed = (e: Event) => {
         const customEvent = e as CustomEvent
+        console.log('backend failed', customEvent)
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnError)

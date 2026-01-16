@@ -147,6 +147,7 @@ export default abstract class ConnectedElement extends LitElement {
     abstract manageActionRequestedEvent(event: CustomEvent):void
 
     applyCommand(command: UICommand) {
+
         if ('SetWindowTitle' == command.type) {
             document.title = command.data as string
         }

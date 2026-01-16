@@ -40,6 +40,7 @@ public class RRA implements AppSupplier {
                                 .label("Training")
                                 .build()
                 ))
+                .style("width: 100%;")
                 .build();
     }
 

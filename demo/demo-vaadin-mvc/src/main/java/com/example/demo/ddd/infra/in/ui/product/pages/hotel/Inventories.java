@@ -13,9 +13,9 @@ public class Inventories extends GenericCrud<Inventory> {
 
     final InventoryRepository inventoryRepository;
 
-
     @Override
     public Repository<Inventory, String> repository() {
         return inventoryRepository;
     }
+
 }

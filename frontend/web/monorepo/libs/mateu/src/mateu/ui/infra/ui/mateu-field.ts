@@ -942,7 +942,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             data-colspan="${this.field.colspan}"
-                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML(value)}</div></vaadin-custom-field>
+                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML('' + value)}</div></vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'image') {

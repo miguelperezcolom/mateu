@@ -61,6 +61,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
         return List.of(Action.builder()
                 .id("action")
                 .customEvent(new CustomEvent("my-event", new Detail("xxxx", 3535)))
+                        .js("state.count = state.count?state.count + 1:1;")
                 .build(),
                 Action.builder()
                         .id("to-server")
@@ -77,7 +78,7 @@ public class CustomEventActionPage implements ComponentTreeSupplier, ActionSuppl
     @Override
     public Form component(HttpRequest httpRequest) {
         return Form.builder()
-                .title("Run action in browser")
+                .title("Client side custom event")
                 .content(List.of(
                         new CustomEventActionComponent()
                         ))

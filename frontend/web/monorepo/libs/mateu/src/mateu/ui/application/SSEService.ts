@@ -66,8 +66,22 @@ export class SSEService implements Service {
                         const {value, done} = await reader.read();
                         if (done) break;
                         if (value.startsWith('data:')) {
-                            const increment = JSON.parse(value.substring('data:'.length));
-                            this.handleUIIncrement(increment, initiator)
+                            const uiIncrement = JSON.parse(value.substring('data:'.length));
+                            this.handleUIIncrement(uiIncrement, initiator)
+
+
+                            if (uiIncrement.messages && uiIncrement.messages.length == 1) {
+                                if (uiIncrement.messages[0].variant == 'error') {
+                                    initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
+                                        detail: {
+                                            actionId
+                                        },
+                                        bubbles: true,
+                                        composed: true
+                                    }))
+                                }
+                            }
+
                         } else {
                             let message = value;
                             try {
@@ -156,7 +170,6 @@ export class SSEService implements Service {
     }
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
-        console.log('increment', uiIncrement)
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):'bottom-end',
