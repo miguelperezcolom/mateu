@@ -28,7 +28,7 @@ public class TariffGenerator {
 
         List<Tariff> tariffs = new ArrayList<>();
 
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 1; i++) {
             var tariff = new Tariff(
                     UUID.randomUUID().toString(),
                     contract.id(),
