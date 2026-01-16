@@ -1,9 +1,7 @@
 package com.example.demo.ddd.infra.in.ui.product;
 
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Contracts;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Hotels;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Inventories;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Tariffs;
+import com.example.demo.ddd.infra.in.ui.product.pages.hotel.*;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.stopsales.StopSalesLine;
 import io.mateu.uidl.annotations.Menu;
 
 public class HotelSubmenu {
@@ -15,7 +13,11 @@ public class HotelSubmenu {
     Hotels hotels;
 
     @Menu
+    StopSales stopSales;
+    @Menu
     Inventories inventories;
+    @Menu
+    InventoryLines inventoryLines;
     @Menu
     Contracts contracts;
     @Menu

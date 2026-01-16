@@ -173,8 +173,8 @@ public class TariffGenerator {
 
     private List<Price> generatePrices(DataSet dataSet, List<Period> periods) {
         AtomicInteger pos = new AtomicInteger();
-        var precios = new HashMap<String, Double>();
-        dataSet.tiposHabitacion().forEach(t -> precios.put(t.codigo(), 10.31));
+        var precios = new ArrayList<PricePerRoom>();
+        dataSet.tiposHabitacion().forEach(t -> precios.add(new PricePerRoom(t.codigo(), 10.31)));
         return periods.stream()
                 .map(p -> new Price(pos.getAndIncrement(), p.number(), precios, "Generated"))
                 .toList();

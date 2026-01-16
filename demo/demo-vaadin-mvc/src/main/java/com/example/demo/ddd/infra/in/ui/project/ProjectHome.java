@@ -3,7 +3,7 @@ package com.example.demo.ddd.infra.in.ui.project;
 import com.example.demo.ddd.infra.in.ui.callcenter.CallCenterSubmenu;
 import com.example.demo.ddd.infra.in.ui.financial.FinancialSubmenu;
 import com.example.demo.ddd.infra.in.ui.masterdata.MasterDataMenu;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Agencies;
+import com.example.demo.ddd.infra.in.ui.crm.pages.Agencies;
 import com.example.demo.ddd.infra.in.ui.product.ProductSubmenu;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Logo;

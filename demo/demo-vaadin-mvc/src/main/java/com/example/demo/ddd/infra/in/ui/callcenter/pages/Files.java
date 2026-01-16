@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.product.pages.hotel;
+package com.example.demo.ddd.infra.in.ui.callcenter.pages;
 
 import io.mateu.core.infra.declarative.GenericCrud;
 import com.example.demo.ddd.infra.out.persistence.hotel.booking.File;

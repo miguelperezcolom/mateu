@@ -5,6 +5,7 @@ import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeOptio
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeLabelSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeOptionsSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.stopsales.StopSalesLine;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.stopsales.StopSalesLineRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.HotelRoomType;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationIdOptionsSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationLabelSupplier;

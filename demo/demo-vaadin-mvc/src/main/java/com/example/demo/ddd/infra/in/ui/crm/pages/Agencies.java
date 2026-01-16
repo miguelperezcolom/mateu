@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.product.pages.hotel;
+package com.example.demo.ddd.infra.in.ui.crm.pages;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.Agency;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;

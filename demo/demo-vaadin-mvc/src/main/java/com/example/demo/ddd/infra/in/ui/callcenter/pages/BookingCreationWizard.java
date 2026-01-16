@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.product.pages.hotel;
+package com.example.demo.ddd.infra.in.ui.callcenter.pages;
 
 import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Step1;
 import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Step2;

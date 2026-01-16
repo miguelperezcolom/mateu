@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.product.pages.hotel;
+package com.example.demo.ddd.infra.in.ui.masterdata.pages;
 
 import io.mateu.uidl.interfaces.Repository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Country;

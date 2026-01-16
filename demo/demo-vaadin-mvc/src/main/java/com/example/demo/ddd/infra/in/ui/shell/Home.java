@@ -1,10 +1,5 @@
 package com.example.demo.ddd.infra.in.ui.shell;
 
-import com.example.demo.ddd.infra.in.ui.callcenter.CallCenterSubmenu;
-import com.example.demo.ddd.infra.in.ui.financial.FinancialSubmenu;
-import com.example.demo.ddd.infra.in.ui.masterdata.MasterDataMenu;
-import com.example.demo.ddd.infra.in.ui.product.ProductSubmenu;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.Agencies;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.Logo;
 import io.mateu.uidl.annotations.MateuUI;
