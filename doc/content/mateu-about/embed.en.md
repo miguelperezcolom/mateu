@@ -14,8 +14,11 @@ Mateu frontend reference implementation uses web components, so you only need to
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo</title>
-  <script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/mateu-vaadin.js"></script>
-  <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/index.css">
+  <script type="module" crossorigin 
+          src="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/mateu-vaadin.js">
+  </script>
+  <link rel="stylesheet" crossorigin 
+        href="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/index.css">
 </head>
 <body>
 <mateu-ui baseUrl="https://demo.mateu.io/fluent"
@@ -55,8 +58,11 @@ That would embed the whole UI in any website, and control the browser url. If yo
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo</title>
-  <script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/mateu-vaadin.js"></script>
-  <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/index.css">
+  <script type="module" crossorigin 
+          src="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/mateu-vaadin.js">
+  </script>
+  <link rel="stylesheet" crossorigin 
+        href="https://cdn.jsdelivr.net/npm/mateu-vaadin@0.0.9/dist/assets/index.css">
 </head>
 <body>
 <mateu-ui baseUrl="https://demo.mateu.io/fluent"
