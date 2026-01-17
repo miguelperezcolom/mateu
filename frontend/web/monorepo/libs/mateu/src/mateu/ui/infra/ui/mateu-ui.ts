@@ -97,10 +97,10 @@ export class MateuUi extends LitElement {
 
         if (this.top == 'true') {
             this.loadUrl(window)
-        }
-
-        if (this.route) {
-            this.consumedRoute = ''
+        } else {
+            if (this.route) {
+                this.consumedRoute = ''
+            }
         }
 
         if (this.config) {
