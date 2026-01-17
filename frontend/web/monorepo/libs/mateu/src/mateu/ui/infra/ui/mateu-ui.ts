@@ -24,10 +24,16 @@ export class MateuUi extends LitElement {
     baseUrl = ''
 
     @property()
-    route: string | undefined = undefined;
+    route: string | undefined = undefined
 
     @property()
-    config: string | undefined = undefined;
+    consumedRoute: string | undefined = '_empty'
+
+    @property()
+    config: string | undefined = undefined
+
+    @property()
+    top: string | undefined = 'true'
 
     // state
 
@@ -41,25 +47,26 @@ export class MateuUi extends LitElement {
         e.stopPropagation()
 
         if (e instanceof CustomEvent) {
-            let route = e.detail.route
-            let baseUrl = this.baseUrl??''
-            if (baseUrl.indexOf('://') < 0) {
-                if (!baseUrl.startsWith('/')) {
-                    baseUrl = '/' + baseUrl
+            if (this.top == 'true') {
+                let route = e.detail.route
+                let baseUrl = this.baseUrl??''
+                if (baseUrl.indexOf('://') < 0) {
+                    if (!baseUrl.startsWith('/')) {
+                        baseUrl = '/' + baseUrl
+                    }
+                    baseUrl = window.location.origin + baseUrl
                 }
-                baseUrl = window.location.origin + baseUrl
-            }
-            if (baseUrl.endsWith('/') && route.startsWith('/')) {
-                route = route.substring(1)
-            }
-            let targetUrl = new URL(baseUrl + route)
-            if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
-                let pathname = targetUrl.pathname
-                if (pathname && !pathname.startsWith('/')) {
-                    pathname = '/' + pathname
+                if (baseUrl.endsWith('/') && route.startsWith('/')) {
+                    route = route.substring(1)
                 }
-
-                window.history.pushState({},"", pathname);
+                let targetUrl = new URL(baseUrl + route)
+                if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
+                    let pathname = targetUrl.pathname
+                    if (pathname && !pathname.startsWith('/')) {
+                        pathname = '/' + pathname
+                    }
+                    window.history.pushState({},"", pathname);
+                }
             }
         }
     }
@@ -88,7 +95,20 @@ export class MateuUi extends LitElement {
             this.loadUrl(w)
         };
 
-        this.loadUrl(window)
+        if (!this.route) {
+            this.loadUrl(window)
+        } else {
+            this.consumedRoute = ''
+        }
+
+        if (this.config) {
+            try {
+                const parsedConfig = JSON.parse(this.config)
+                appState.value = {...appState.value, ...parsedConfig}
+            } catch (e) {
+                appState.value = {...appState.value, config: this.config}
+            }
+        }
 
         this.addEventListener('url-update-requested', this.routeChangedListener)
         this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
@@ -110,6 +130,14 @@ export class MateuUi extends LitElement {
             const configParam = urlParams.get('overrides')
             if (configParam) {
                 this.config = configParam
+                if (this.config) {
+                    try {
+                        const parsedConfig = JSON.parse(this.config)
+                        appState.value = {...appState.value, ...parsedConfig}
+                    } catch (e) {
+                        appState.value = {...appState.value, config: this.config}
+                    }
+                }
             }
         }
     }
@@ -150,9 +178,9 @@ export class MateuUi extends LitElement {
                 <mateu-ux id="_ux" 
                           baseurl="${this.baseUrl}" 
                           route="${this.route}"
-                          consumedRoute="_empty"
+                          consumedRoute="${this.consumedRoute}"
                           instant="${this.instant}"
-                          top="true"
+                          top="${this.top}"
                           style="width: 100%;"
                           @app-data-updated="${() => this.requestUpdate()}"
                           .appData="${appData.value}"
