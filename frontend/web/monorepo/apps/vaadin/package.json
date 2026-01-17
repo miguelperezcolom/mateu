@@ -1,10 +1,12 @@
 {
   "name": "mateu-vaadin",
   "private": false,
-  "version": "0.0.2",
+  "version": "0.0.6",
   "type": "module",
   "license": "MIT",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -12,10 +14,10 @@
     "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/vaadin/assets"
   },
   "dependencies": {
+    "keycloak-js": "26.2.0",
     "lit": "^3.3.1",
     "mateu": "*",
-    "minimatch": "10.0.3",
-    "keycloak-js": "26.2.0"
+    "minimatch": "10.0.3"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
