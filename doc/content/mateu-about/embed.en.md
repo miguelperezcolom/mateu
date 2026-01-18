@@ -115,10 +115,12 @@ TBD vaadin, sapui5, redwood and redhat jsdeliver/unpkg urls.
 
 ## Performance considerations
 
-Please notice that the bundle weights something like 400KB which, at my home, takes 168ms to download but it can take more time when using a slow connection so you will perhaps want to preload it from a login page or similar, like below, in order to avoid blank page times. You can also add a spinner in the html and it would disappear when the javascript is loaded.
+Please notice that the bundle weights something like 400KB which, at my home, takes 168ms to download but it can take more time when using a slow connection so you will perhaps want to preload it from a login page or similar, like below, in order to avoid blank page times.
 
 ```html
 <link rel="prefetch" 
       href="https://app.unpkg.com/mateu-vaadin@0.0.2/files/dist/assets/mateu-vaadin.js" 
       as="script" />
 ```
+
+You can also add a spinner in the html and it would disappear when the javascript is loaded.
