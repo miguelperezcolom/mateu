@@ -11,7 +11,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/vaadin/assets"
+    "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static && cp -rf dist/assets/* ../../../../../demo/sites/vaadin/assets && cp -rf dist/assets/* ../../../../../doc/static/assets"
   },
   "dependencies": {
     "keycloak-js": "26.2.0",
