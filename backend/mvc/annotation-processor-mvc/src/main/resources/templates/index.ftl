@@ -29,14 +29,17 @@ public class ${simpleClassName}Controller {
         html = html.replaceAll("AQUIELTITULODELAPAGINA", "${pageTitle}");
 <#if keycloak??>
         String keycloakStuff = """
-<script src='${keycloak.jsUrl}'></script>
-<script>
-    function initKeycloak() {
-        const keycloak = new Keycloak({
-            url: '${keycloak.url}',
-            realm: '${keycloak.realm}',
-            clientId: '${keycloak.clientId}'
-        });
+<script type="module">
+    import Keycloak from '${keycloak.jsUrl}';
+
+    const keycloak = new Keycloak({
+        url: '${keycloak.url}',
+        realm: '${keycloak.realm}',
+        clientId: '${keycloak.clientId}'
+    });
+
+    async function initKeycloak() {
+
         keycloak.onTokenExpired = function () {
             console.log('token expired')
             keycloak.updateToken(30)
@@ -62,8 +65,7 @@ public class ${simpleClassName}Controller {
                 localStorage.setItem('__mateu_auth_subject', keycloak.subject);
                 const s = document.createElement('script');
                 s.setAttribute('type', 'module')
-                //s.setAttribute('src', 'https://unpkg.com/mateu-ui/dist/assets/mateu.js')
-                s.setAttribute('src', '${path}/dist/assets/mateu.js')
+                s.setAttribute('src', '${path}/assets/mateu-vaadin.js')
                 document.head.appendChild(s);
 
                 const u = document.createElement('mateu-ui');
@@ -76,10 +78,39 @@ public class ${simpleClassName}Controller {
             console.log('failed to initialize', e);
         });
     }
+
+    async function logout() {
+
+        console.log('logout');
+
+        // 1. Limpiamos local storage
+        localStorage.removeItem('__mateu_auth_token');
+        localStorage.removeItem('__mateu_auth_subject');
+
+        // 2. Ejecutamos el logout de Keycloak
+        keycloak.logout({
+            redirectUri: window.location.origin,
+            post_logout_redirect_uri: '${path}'
+        });
+    }
+
+    // EXPOSICIÓN GLOBAL:
+    window.logout = logout;
+
+    // Ejecutamos la función
+    initKeycloak();
 </script>
 """;
         html = html.replaceAll("<!-- AQUIKEYCLOAK -->", keycloakStuff);
-        html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
+        //html = html.replaceAll("<body>", "<body onload='initKeycloak()'>");
+        html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
+        + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
+html = html.substring(0, html.indexOf("<!-- AQUIJS -->"))
++ """
+<link rel="prefetch"
+           href="${path}/assets/mateu-vaadin.js"
+           as="script" />"""
++ html.substring(html.indexOf("<!-- HASTAAQUIJS -->"));
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
     + "<mateu-ui baseUrl=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"

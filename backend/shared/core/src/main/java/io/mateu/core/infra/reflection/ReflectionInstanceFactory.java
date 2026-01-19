@@ -146,6 +146,24 @@ public class ReflectionInstanceFactory implements InstanceFactory {
 
   @SneakyThrows
   private Object createInstance(Class type, Object data, HttpRequest httpRequest) {
+    if (data == null) {
+      if (int.class.equals(type)) {
+        return 0;
+      }
+      if (long.class.equals(type)) {
+        return 0L;
+      }
+      if (float.class.equals(type)) {
+        return 0f;
+      }
+      if (double.class.equals(type)) {
+        return 0d;
+      }
+      if (boolean.class.equals(type)) {
+        return false;
+      }
+      return null;
+    }
     if (isBasic(type)) {
       if (LocalDate.class.equals(type)) {
         if ("".equals(data)) {

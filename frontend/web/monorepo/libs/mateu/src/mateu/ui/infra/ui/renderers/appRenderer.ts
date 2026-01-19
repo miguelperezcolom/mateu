@@ -65,7 +65,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         >
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
-                            widgets
+                            <slot name="widgets"></slot>
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">   

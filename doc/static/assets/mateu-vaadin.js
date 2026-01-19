@@ -24208,7 +24208,7 @@ Let me know your thoughts!`,userName:"Sam Rivera"}]}"
                         >
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
-                            widgets
+                            <slot name="widgets"></slot>
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">   

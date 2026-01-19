@@ -1,8 +1,8 @@
 package com.example.demo.ddd.infra.in.ui.callcenter.pages;
 
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Step1;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Step2;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Step3;
+import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Dispo;
+import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.ChooseRooms;
+import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.CompleteBooking;
 import io.mateu.core.infra.declarative.GenericWizard;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.WizardCompletionAction;
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BookingCreationWizard extends GenericWizard {
 
-    Step1 step1;
-    Step2 step2;
-    Step3 step3;
+    Dispo dispo;
+    ChooseRooms chooseRooms;
+    CompleteBooking completeBooking;
 
     @WizardCompletionAction
     Object complete() {

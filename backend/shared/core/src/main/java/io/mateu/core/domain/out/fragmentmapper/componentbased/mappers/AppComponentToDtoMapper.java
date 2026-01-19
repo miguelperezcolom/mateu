@@ -2,14 +2,11 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.Humanizer.toCamelCase;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
 
-import io.mateu.dtos.AppDto;
-import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.GoToRouteDto;
-import io.mateu.dtos.MenuOptionDto;
+import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
@@ -19,6 +16,7 @@ import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HomeRouteSupplier;
@@ -35,6 +33,8 @@ public final class AppComponentToDtoMapper {
       App app,
       String baseUrl,
       String route,
+      String consumedRoute,
+      String initiatorComponentId,
       HttpRequest httpRequest) {
     if (componentSupplier != null && app.serverSideType() == null) {
       app = app.withServerSideType(componentSupplier.getClass().getName());
@@ -76,7 +76,37 @@ public final class AppComponentToDtoMapper {
             .home(null)
             .build();
     return new ClientSideComponentDto(
-        appDto, UUID.randomUUID().toString(), List.of(), app.style(), app.cssClasses(), null);
+        appDto,
+        UUID.randomUUID().toString(),
+        mapWidgets(app.widgets(), baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+        app.style(),
+        app.cssClasses(),
+        null);
+  }
+
+  private static List<ComponentDto> mapWidgets(
+      List<Component> widgets,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (widgets == null) {
+      return List.of();
+    }
+    return widgets.stream()
+        .map(
+            widget ->
+                mapComponentToDto(
+                        null,
+                        widget,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest)
+                    .setSlot("widgets"))
+        .toList();
   }
 
   @SneakyThrows

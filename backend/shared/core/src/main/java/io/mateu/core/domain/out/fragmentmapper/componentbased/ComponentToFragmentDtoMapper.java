@@ -215,7 +215,8 @@ public final class ComponentToFragmentDtoMapper {
           httpRequest);
     }
     if (component instanceof App app) {
-      return mapAppToDto(componentSupplier, app, baseUrl, route, httpRequest);
+      return mapAppToDto(
+          componentSupplier, app, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Form form) {
       return mapFormToDto(

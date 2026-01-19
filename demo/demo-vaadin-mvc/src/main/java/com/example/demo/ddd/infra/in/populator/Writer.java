@@ -106,7 +106,7 @@ public class Writer {
 
     private static void writeContracts(DataSet dataSet, ContractRepository contractRepository, SeasonRepository seasonRepository) {
         List<Contract> contracts = new ArrayList<>();
-        for (HotelDto hotel : dataSet.hoteles().stream().limit(1).toList()) {
+        for (HotelDto hotel : dataSet.hoteles().stream().toList()) {
             for (AgenciaDto agencia : dataSet.agencias()) {
                 for (Season season : seasonRepository.findAll()) {
                     contracts.add(new Contract(
@@ -153,7 +153,7 @@ public class Writer {
 
     private static void writeSeasons(SeasonRepository seasonRepository) {
         List<Season> seasons = new ArrayList<>();
-        for (int year = 2023; year <= 2026; year++) {
+        for (int year = 2026; year <= 2027; year++) {
             seasons.add(new Season("W" + (year % 100) + "-" + (year + 1) % 100, "WINTER " + year + "-" + (year + 1) % 100, LocalDate.of(year - 1, 11, 1), LocalDate.of(year, 4, 1).minusDays(1)));
             seasons.add(new Season("S" + (year % 100), "SUMMER " + year, LocalDate.of(year, 4, 1), LocalDate.of(year, 11, 1).minusDays(1)));
         }
