@@ -32,6 +32,13 @@ public class ${simpleClassName}Controller {
 <script type="module">
     import Keycloak from '${keycloak.jsUrl}';
 
+    // 1. Iniciamos la descarga del script de la UI inmediatamente,
+    // sin esperar al init de Keycloak
+    const mateuScript = document.createElement('link');
+    mateuScript.rel = 'modulepreload';
+    mateuScript.href = '${path}/assets/mateu-vaadin.js';
+    document.head.appendChild(mateuScript);
+
     const keycloak = new Keycloak({
         url: '${keycloak.url}',
         realm: '${keycloak.realm}',
@@ -107,10 +114,15 @@ public class ${simpleClassName}Controller {
         + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 html = html.substring(0, html.indexOf("<!-- AQUIJS -->"))
 + """
-<link rel="prefetch"
-           href="${path}/assets/mateu-vaadin.js"
-           as="script" />"""
+<link rel="modulepreload"
+           href="${path}/assets/mateu-vaadin.js" />"""
 + html.substring(html.indexOf("<!-- HASTAAQUIJS -->"));
+html = html.replaceAll(
+"<script type=\"module\" crossorigin src=\"/assets/mateu-vaadin.js\"></script>",
+"");
+html = html.replaceAll(
+"<link rel=\"stylesheet\" crossorigin href=\"/assets/index.css\">",
+"");
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
     + "<mateu-ui baseUrl=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
