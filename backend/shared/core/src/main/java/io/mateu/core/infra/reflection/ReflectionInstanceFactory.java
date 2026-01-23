@@ -2,6 +2,7 @@ package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
@@ -20,10 +21,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
@@ -104,13 +103,14 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         if (builderMethod != null) {
           Object builder = c.getMethod("builder").invoke(null);
           for (String key : data.keySet()) {
-            Method setter =
-                Arrays.stream(builder.getClass().getMethods())
-                    .filter(m -> m.getName().equals(key))
-                    .findFirst()
-                    .get();
-            setter.invoke(
-                builder, createInstance(setter.getParameterTypes()[0], data.get(key), httpRequest));
+              var found = Arrays.stream(builder.getClass().getMethods())
+                      .filter(m -> m.getName().equals(key))
+                      .findFirst();
+              if (found.isPresent()) {
+                  Method setter = found.get();
+                  setter.invoke(
+                          builder, createInstance(setter.getParameterTypes()[0], data.get(key), httpRequest, getGenericClass(setter.getGenericParameterTypes()[0])));
+              }
           }
           o = (T) builder.getClass().getMethod("build").invoke(builder);
         } else {
@@ -139,13 +139,13 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
-      params.add(createInstance(parameter.getType(), data.get(parameter.getName()), httpRequest));
+      params.add(createInstance(parameter.getType(), data.get(parameter.getName()), httpRequest, getGenericClass(parameter.getParameterizedType())));
     }
     return params.toArray();
   }
 
   @SneakyThrows
-  private Object createInstance(Class type, Object data, HttpRequest httpRequest) {
+  private Object createInstance(Class type, Object data, HttpRequest httpRequest, Class genericType) {
     if (data == null) {
       if (int.class.equals(type)) {
         return 0;
@@ -190,7 +190,11 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       }
       return array;
     } else if (Class.class.equals(type)) {
-      return Class.forName((String) data);
+        return Class.forName((String) data);
+    } else if (Collection.class.isAssignableFrom(type)) {
+        var list = new ArrayList();
+        ((List<Map<String, Object>>) data).forEach(map -> list.add(newInstance(genericType, map, httpRequest)));
+        return list;
     } else if (data instanceof Map) {
       return newInstance(type, (Map<String, Object>) data, httpRequest);
     } else {

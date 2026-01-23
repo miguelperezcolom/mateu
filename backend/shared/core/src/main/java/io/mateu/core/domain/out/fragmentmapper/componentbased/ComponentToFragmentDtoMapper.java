@@ -133,6 +133,7 @@ import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
@@ -166,8 +167,16 @@ public final class ComponentToFragmentDtoMapper {
             initiatorComponentId,
             httpRequest),
         getState(componentSupplier, httpRequest),
-        getData(httpRequest),
+        getData(httpRequest, componentSupplier),
         UIFragmentActionDto.Replace);
+  }
+
+
+  public static Object getData(HttpRequest httpRequest, Object instance) {
+      if (instance instanceof DataSupplier dataSupplier) {
+          return dataSupplier.data(httpRequest);
+      }
+      return getData(httpRequest);
   }
 
   public static Object getData(HttpRequest httpRequest) {

@@ -85,7 +85,7 @@ public class ReflectionObjectToComponentMapper {
               mapValidations(instance),
               null),
           instance,
-          getData(httpRequest),
+          getData(httpRequest, instance),
           UIFragmentActionDto.Replace);
     }
     return instance;

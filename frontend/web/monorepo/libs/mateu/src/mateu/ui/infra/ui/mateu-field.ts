@@ -543,11 +543,11 @@ export class MateuField extends LitElement {
                             }
                     };
 
+                    console.log('data', this.data)
                     if (this.data[this.id] && this.data[this.id].content) {
                         const selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                         if (!this.shadowRoot?.getElementById(fieldId)) {
                             const fieldId = this.field.fieldId
-                            console.log('setting combo value to', selectedItem)
                             setTimeout(() => {
                                 (this.shadowRoot?.getElementById(fieldId) as ComboBox).selectedItem = selectedItem
                             })
