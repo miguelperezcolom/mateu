@@ -40,6 +40,7 @@ export default defineConfig({
       '/mateu': 'http://localhost:8091',
       '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
+        '/assets': 'http://localhost:8091',
       '/sse': 'http://localhost:8091',
       '/upload': 'http://localhost:8091',
       '/master-data': 'http://localhost:8091',
@@ -47,6 +48,9 @@ export default defineConfig({
       '/call-center': 'http://localhost:8091',
       '/crm': 'http://localhost:8091',
       '/financial': 'http://localhost:8091',
+        '/_product': 'http://localhost:8091',
+        '/_crm': 'http://localhost:8091',
+        '/_financial': 'http://localhost:8091',
     },
   },
 })

@@ -8,7 +8,7 @@ import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 
-@MateuUI("/product")
+@MateuUI("/_product")
 @Style("width: 100%;")
 @Title("Product")
 @FavIcon("/images/favicon.png")

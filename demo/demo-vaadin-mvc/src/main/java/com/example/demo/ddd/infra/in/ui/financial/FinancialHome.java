@@ -8,7 +8,7 @@ import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 
-@MateuUI("/financial")
+@MateuUI("/_financial")
 @Style("width: 100%;")
 @Title("Financial")
 @FavIcon("/images/favicon.png")

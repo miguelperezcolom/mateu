@@ -103,7 +103,7 @@ export class HttpService implements Service {
             } as RunActionCommand)
             this.handleUIIncrement(uiIncrement, initiator)
             if (callback) {
-                callback()
+                callback(uiIncrement)
             }
 
             if (uiIncrement.messages && uiIncrement.messages.length == 1) {

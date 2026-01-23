@@ -8,32 +8,25 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.WizardCompletionAction;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.ButtonStyle;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.HorizontalLayout;
-import io.mateu.uidl.data.HorizontalLayoutJustification;
-import io.mateu.uidl.data.ProgressBar;
-import io.mateu.uidl.data.Text;
-import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.interfaces.ActionHandler;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.InstanceFactory;
-import io.mateu.uidl.interfaces.RouteHandler;
-import io.mateu.uidl.interfaces.StateSupplier;
-import io.mateu.uidl.interfaces.ValidationDtoSupplier;
+import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -116,6 +109,37 @@ public abstract class GenericWizard
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
+    if (actionId.startsWith("search-")) {
+      // search-field-childfield
+      String fieldName = actionId.substring(actionId.indexOf('-') + 1);
+      ForeignKeyOptionsSupplier optionsSupplier = null;
+      if (fieldName.contains("-")) {
+        var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
+        var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+        var rowClass =
+            getGenericClass(
+                (ParameterizedType)
+                    getFieldByName(currentStepField().getType(), parentFieldName).getGenericType(),
+                List.class,
+                "E");
+        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+      } else {
+        var fkAnnotation =
+            getFieldByName(currentStepField().getType(), fieldName).getAnnotation(ForeignKey.class);
+        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+      }
+
+      Pageable pageable = httpRequest.getParameters(Pageable.class);
+      String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
+      if (searchText == null) {
+        searchText = "";
+      }
+
+      var listingData = optionsSupplier.search(searchText, pageable, httpRequest);
+
+      return new Data(Map.of(fieldName, listingData.page()));
+    }
     if ("next".equals(actionId)) {
 
       var stepField = currentStepField();
@@ -177,6 +201,14 @@ public abstract class GenericWizard
                     .text(getLabel(currentStepField()))
                     .style("width: 100%;")
                     .build(),
+                /*
+                getContent(getStep(),
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().consumedRoute(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest)
+                 */
                 getForm(
                         getStep(),
                         "base_url",

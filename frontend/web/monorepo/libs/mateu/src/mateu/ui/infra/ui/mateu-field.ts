@@ -28,7 +28,7 @@ import "@ui5/webcomponents/dist/ColorPicker.js";
 import "@ui5/webcomponents/dist/RangeSlider.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { ComboBoxDataProvider } from "@vaadin/combo-box";
+import {ComboBox, ComboBoxDataProvider} from "@vaadin/combo-box";
 import './mateu-grid'
 import './mateu-choice'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
@@ -40,6 +40,7 @@ import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statu
 import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
+import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 
 interface FileLike {
     id: string
@@ -494,46 +495,64 @@ export class MateuField extends LitElement {
                     const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
                         const { filter, page, pageSize } = params;
                         if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                            this.data[this.id] = undefined
-                        }
-                        if (this.data[this.id]
-                            && this.data[this.id].content
-                            && (this.data[this.id].totalElements <= (page + 1) * pageSize
-                                ||
-                                this.data[this.id].content.length >= (page + 1) * pageSize)) {
-                            callback(this.data[this.id].content
-                                    .slice(page * pageSize, ((page + 1) * pageSize)),
-                                this.data[this.id].totalElements)
-                        } else {
-                            this.dispatchEvent(new CustomEvent('action-requested', {
-                                detail: {
-                                    actionId: coords.action,
-                                    parameters: {
-                                        searchText: filter,
-                                        fieldId: this.field?.fieldId,
-                                        size: pageSize,
-                                        page,
-                                        sort: undefined
-                                    },
-                                    callback: () => {
-                                        if (this.data[this.id] && this.data[this.id].content) {
-                                            callback(this.data[this.id].content
-                                                    .slice(page * pageSize, ((page + 1) * pageSize)),
-                                                this.data[this.id].totalElements)
+                            this.data[this.id].content = undefined
+                            this.data[this.id].totalElements = 0
+                            this.data[this.id].searchSignature = filter
+                            this.state[this.id] = undefined
+                            setTimeout(() => {
+                                const combo = this.shadowRoot?.getElementById(fieldId) as ComboBox
+                                if (combo.selectedItem) {
+                                    combo.selectedItem = undefined
+                                    const input = combo.querySelector('input')
+                                    setTimeout(() => {
+                                        if (input) {
+                                            input.value = filter
                                         }
-                                    }
-                                },
-                                bubbles: true,
-                                composed: true
-                            }))
+                                    })
+                                }
+                            })
                         }
+                            if (this.data[this.id]
+                                && this.data[this.id].content
+                                && (this.data[this.id].totalElements <= (page + 1) * pageSize
+                                    ||
+                                    this.data[this.id].content.length >= (page + 1) * pageSize)) {
+                                callback(this.data[this.id].content
+                                        .slice(page * pageSize, ((page + 1) * pageSize)),
+                                    this.data[this.id].totalElements)
+                            } else {
+                                    this.dispatchEvent(new CustomEvent('action-requested', {
+                                        detail: {
+                                            actionId: coords.action,
+                                            parameters: {
+                                                searchText: filter,
+                                                fieldId: this.field?.fieldId,
+                                                size: pageSize,
+                                                page,
+                                                sort: undefined
+                                            },
+                                            callback: (uiIncrement: UIIncrement) => {
+                                                const data = uiIncrement.fragments![0].data[this.id]
+                                                callback(data.content,
+                                                        data.totalElements);
+                                            }
+                                        },
+                                        bubbles: true,
+                                        composed: true
+                                    }))
+                            }
                     };
 
-                    let selectedItem = value
                     if (this.data[this.id] && this.data[this.id].content) {
-                        selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
+                        const selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
+                        if (!this.shadowRoot?.getElementById(fieldId)) {
+                            const fieldId = this.field.fieldId
+                            console.log('setting combo value to', selectedItem)
+                            setTimeout(() => {
+                                (this.shadowRoot?.getElementById(fieldId) as ComboBox).selectedItem = selectedItem
+                            })
+                        }
                     }
-
                     return html`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"
@@ -545,7 +564,6 @@ export class MateuField extends LitElement {
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required || nothing}"
-                            .selectedItem="${selectedItem}"
                             data-colspan="${this.field.colspan}"
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>

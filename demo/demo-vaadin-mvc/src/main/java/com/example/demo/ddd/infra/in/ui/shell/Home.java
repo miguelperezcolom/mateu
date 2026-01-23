@@ -34,16 +34,16 @@ public class Home implements WidgetSupplier {
     RemoteMenu masterData = new RemoteMenu("/master-data", "", "", "com.example.demo.ddd.infra.in.ui.masterdata.MasterDataHome", "", Map.of(), false, null, null);
 
     @Menu
-    RemoteMenu crm = new RemoteMenu("/crm");
+    RemoteMenu crm = new RemoteMenu("/_crm").withAppServerSideType("com.example.demo.ddd.infra.in.ui.crm.CrmHome");
 
     @Menu
-    RemoteMenu product = new RemoteMenu("/product");
+    RemoteMenu product = new RemoteMenu("/_product").withAppServerSideType("com.example.demo.ddd.infra.in.ui.product.ProductHome");
 
     @Menu
-    RemoteMenu callCenter = new RemoteMenu("/call-center");
+    RemoteMenu callCenter = new RemoteMenu("/call-center").withAppServerSideType("com.example.demo.ddd.infra.in.ui.callcenter.CallCenterHome");
 
     @Menu
-    RemoteMenu financial = new RemoteMenu("/financial");
+    RemoteMenu financial = new RemoteMenu("/_financial").withAppServerSideType("com.example.demo.ddd.infra.in.ui.financial.FinancialHome");
 
     String content = "Hola!";
 

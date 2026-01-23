@@ -188,7 +188,6 @@ export class MateuComponent extends ComponentElement {
                 const validation = validatons[validationIndex]
                 try {
                     const failed = validation.condition && !eval(validation.condition)
-                    console.log('validating', validation, !eval(validation.condition), state)
                     if (failed) {
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')

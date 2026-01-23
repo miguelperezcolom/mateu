@@ -69,6 +69,9 @@ export class SSEService implements Service {
                             const uiIncrement = JSON.parse(value.substring('data:'.length));
                             this.handleUIIncrement(uiIncrement, initiator)
 
+                            if (callback) {
+                                callback(uiIncrement)
+                            }
 
                             if (uiIncrement.messages && uiIncrement.messages.length == 1) {
                                 if (uiIncrement.messages[0].variant == 'error') {
@@ -137,10 +140,6 @@ export class SSEService implements Service {
 
 
             //console.log('closed')
-
-            if (callback) {
-                callback()
-            }
 
         } else {
             await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback)

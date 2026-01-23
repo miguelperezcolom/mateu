@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.BasicTypeChecker.isBasicArray;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
@@ -151,7 +152,8 @@ public class ReflectionFormFieldMapper {
         && !List.class.isAssignableFrom(field.getType())
         && !Map.class.isAssignableFrom(field.getType())
         && !Amount.class.equals(field.getType())
-        && !Status.class.equals(field.getType())) {
+        && !Status.class.equals(field.getType())
+        && !isBasicArray(field.getType())) {
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))

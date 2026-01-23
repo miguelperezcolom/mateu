@@ -1,4 +1,4 @@
-package com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard;
+package com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard;
 
 import io.mateu.core.infra.declarative.WizardStep;
 

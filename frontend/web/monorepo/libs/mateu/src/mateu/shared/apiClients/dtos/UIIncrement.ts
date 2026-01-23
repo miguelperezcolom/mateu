@@ -9,5 +9,5 @@ export default interface UIIncrement {
     fragments: UIFragment[] | undefined
     appData: Record<string, any> | undefined
     appState: Record<string, any> | undefined
-
+    
 }

@@ -14,59 +14,28 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.Humanizer;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
-import io.mateu.uidl.annotations.Composition;
-import io.mateu.uidl.annotations.CssClasses;
-import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
-import io.mateu.uidl.annotations.FavIcon;
-import io.mateu.uidl.annotations.Footer;
-import io.mateu.uidl.annotations.ForeignKey;
-import io.mateu.uidl.annotations.GeneratedValue;
-import io.mateu.uidl.annotations.Header;
-import io.mateu.uidl.annotations.Hidden;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.PageTitle;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Tab;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.Toolbar;
-import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.GridContent;
-import io.mateu.uidl.data.Status;
-import io.mateu.uidl.data.TabLayout;
+import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.UserTrigger;
-import io.mateu.uidl.interfaces.AvatarSupplier;
-import io.mateu.uidl.interfaces.ButtonsSupplier;
-import io.mateu.uidl.interfaces.ContentSupplier;
-import io.mateu.uidl.interfaces.FooterSupplier;
-import io.mateu.uidl.interfaces.Form;
-import io.mateu.uidl.interfaces.HeaderSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ListingBackend;
-import io.mateu.uidl.interfaces.PageTitleSupplier;
-import io.mateu.uidl.interfaces.Pair;
-import io.mateu.uidl.interfaces.ReactiveListingBackend;
-import io.mateu.uidl.interfaces.SubtitleSupplier;
-import io.mateu.uidl.interfaces.TitleSupplier;
-import io.mateu.uidl.interfaces.ToolbarSupplier;
+import io.mateu.uidl.interfaces.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
+import lombok.SneakyThrows;
 
 public class ReflectionPageMapper {
 
@@ -112,13 +81,20 @@ public class ReflectionPageMapper {
         .toList();
   }
 
+  @SneakyThrows
   public static Collection<? extends Component> getContent(
-      Object instance,
+      Object instanceOrType,
       String baseUrl,
       String route,
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    Object instance;
+    if (instanceOrType instanceof Class<?> type) {
+      instance = MateuBeanProvider.getBean(InstanceFactory.class).newInstance(type, httpRequest);
+    } else {
+      instance = instanceOrType;
+    }
     if (instance instanceof ContentSupplier contentSupplier) {
       return contentSupplier.content();
     }
@@ -402,6 +378,8 @@ public class ReflectionPageMapper {
         readOnly);
   }
 
+  record SectionFields(String label, List<Field> fields, int columns) {}
+
   public static Collection<? extends Component> getForm(
       String prefix,
       Object instance,
@@ -412,27 +390,146 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest,
       boolean forCreationForm,
       boolean readOnly) {
-    return List.of(
-        FormLayout.builder()
-            .content(
-                getAllEditableFields(getClass(instance)).stream()
-                    .filter(field -> filterField(field, forCreationForm))
-                    .map(
-                        field ->
-                            (Component)
-                                getFormField(
-                                    prefix,
-                                    field,
-                                    getInstance(instance),
-                                    baseUrl,
-                                    route,
-                                    consumedRoute,
-                                    initiatorComponentId,
-                                    httpRequest,
-                                    readOnly || isReadOnly(field, instance, forCreationForm),
-                                    forCreationForm))
-                    .toList())
-            .build());
+    Map<Section, SectionFields> fieldsPerSection = new HashMap<>();
+    List<Section> sections = new ArrayList<>();
+    Section sectionAnnotation = null;
+    SectionFields sectionFields = null;
+    for (Field field :
+        getAllEditableFields(getClass(instance)).stream()
+            .filter(field -> filterField(field, forCreationForm))
+            .toList()) {
+      if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
+        if (sectionFields != null) {
+          fieldsPerSection.put(sectionAnnotation, sectionFields);
+          sections.add(sectionAnnotation);
+        }
+        if (field.isAnnotationPresent(Section.class)) {
+          sectionAnnotation = field.getAnnotation(Section.class);
+        } else {
+          sectionAnnotation =
+              new Section() {
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                  return null;
+                }
+
+                @Override
+                public String value() {
+                  return "";
+                }
+
+                @Override
+                public int columns() {
+                  return 1;
+                }
+              };
+        }
+        sectionFields =
+            new SectionFields(getLabel(field), new ArrayList<>(), sectionAnnotation.columns());
+      }
+      sectionFields.fields.add(field);
+    }
+    if (sectionFields != null) {
+      sections.add(sectionAnnotation);
+      fieldsPerSection.put(sectionAnnotation, sectionFields);
+    }
+    if (sections.size() > 1) {
+      return List.of(
+          io.mateu.uidl.data.HorizontalLayout.builder()
+              .content(
+                  sections.stream()
+                      .map(
+                          section ->
+                              (Component)
+                                  VerticalLayout.builder()
+                                      .content(
+                                          List.of(
+                                              Text.builder()
+                                                  .text(section.value())
+                                                  .container(TextContainer.h4)
+                                                  .build(),
+                                              toFormLayout(
+                                                  fieldsPerSection.get(section),
+                                                  prefix,
+                                                  instance,
+                                                  baseUrl,
+                                                  route,
+                                                  consumedRoute,
+                                                  initiatorComponentId,
+                                                  httpRequest,
+                                                  forCreationForm,
+                                                  readOnly)))
+                                      .build())
+                      .toList())
+              .build());
+    }
+    return sections.stream()
+        .map(
+            section ->
+                toFormLayout(
+                    fieldsPerSection.get(section),
+                    prefix,
+                    instance,
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest,
+                    forCreationForm,
+                    readOnly))
+        .toList();
+  }
+
+  private static Component toFormLayout(
+      SectionFields section,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly) {
+    var fields =
+        section.fields.stream()
+            .map(
+                field ->
+                    (Component)
+                        getFormField(
+                            prefix,
+                            field,
+                            getInstance(instance),
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest,
+                            readOnly || isReadOnly(field, instance, forCreationForm),
+                            forCreationForm))
+            .toList();
+    var rows = new ArrayList<Component>();
+    int col = 0;
+    var pendingRow = new ArrayList<Component>();
+    for (Component field : fields) {
+      pendingRow.add(field);
+      col += (field instanceof FormField formField) ? formField.colspan() : 1;
+      if (col == section.columns) {
+        rows.add(FormRow.builder().content(pendingRow).build());
+        pendingRow = new ArrayList<>();
+        col = 0;
+      }
+    }
+    if (!pendingRow.isEmpty()) {
+      rows.add(FormRow.builder().content(pendingRow).build());
+    }
+    return FormLayout.builder()
+        .maxColumns(section.columns())
+        //              .columnWidth("10rem")
+        //              .columnSpacing("1rem")
+        .autoResponsive(true)
+        .content(rows)
+        .build();
   }
 
   private static Object getInstance(Object instance) {

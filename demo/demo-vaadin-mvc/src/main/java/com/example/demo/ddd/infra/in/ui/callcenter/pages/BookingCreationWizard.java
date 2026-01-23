@@ -1,8 +1,8 @@
 package com.example.demo.ddd.infra.in.ui.callcenter.pages;
 
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.Dispo;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.ChooseRooms;
-import com.example.demo.ddd.infra.in.ui.product.pages.hotel.bookingcreationwizard.CompleteBooking;
+import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.ChooseRooms;
+import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.CompleteBooking;
+import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.Dispo;
 import io.mateu.core.infra.declarative.GenericWizard;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.WizardCompletionAction;

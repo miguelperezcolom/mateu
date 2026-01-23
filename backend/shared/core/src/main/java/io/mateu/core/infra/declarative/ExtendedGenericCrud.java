@@ -79,8 +79,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class ExtendedGenericCrud<
-        EntityType, Filters, Row, CreationForm, ViewForm, EditForm>
+public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     implements ActionHandler,
         StateSupplier,
         TriggersSupplier,

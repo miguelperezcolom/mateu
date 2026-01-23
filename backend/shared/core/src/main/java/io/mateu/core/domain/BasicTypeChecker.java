@@ -39,4 +39,8 @@ public class BasicTypeChecker {
     }
     return isBasic(o.getClass());
   }
+
+  public static boolean isBasicArray(Class c) {
+    return c.isArray() && isBasic(c.getComponentType());
+  }
 }

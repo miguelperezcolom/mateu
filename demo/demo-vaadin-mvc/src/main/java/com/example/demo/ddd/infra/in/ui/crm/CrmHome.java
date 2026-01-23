@@ -9,7 +9,7 @@ import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 
-@MateuUI("/crm")
+@MateuUI("/_crm")
 @Style("width: 100%;")
 @Title("CRM")
 @FavIcon("/images/favicon.png")
