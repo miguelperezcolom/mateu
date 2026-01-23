@@ -9,6 +9,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.mateu.core.infra.declarative.WizardStep;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ListingData;
+import io.mateu.uidl.data.Option;
+import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.OptionsSupplier;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.With;
@@ -52,7 +57,7 @@ public record Dispo(
         @Section("Found")
         @ReadOnly
         List<HotelFound> results
-        ) implements WizardStep {
+        ) implements WizardStep, OptionsSupplier {
     public Dispo(
             @Colspan(4)
             @NotEmpty String destinationCode, int children1, int[] ages1, int rooms2, int adults2, int children2, int[] ages2, int rooms3, int adults3, int children3, int[] ages3, LocalDate bookingDate, boolean includeOnRequest, boolean ignoreClosedSales,
@@ -63,5 +68,10 @@ public record Dispo(
                         .actionId("search")
                         .build(), results);
 
+    }
+
+    @Override
+    public List<Option> options(String fieldName, HttpRequest httpRequest) {
+        return List.of();
     }
 }

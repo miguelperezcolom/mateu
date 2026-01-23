@@ -12,15 +12,7 @@ import io.mateu.core.infra.declarative.DynamicCrud;
 import io.mateu.core.infra.declarative.DynamicEditor;
 import io.mateu.core.infra.declarative.Entity;
 import io.mateu.dtos.ComponentDto;
-import io.mateu.uidl.annotations.Colspan;
-import io.mateu.uidl.annotations.Composition;
-import io.mateu.uidl.annotations.ForeignKey;
-import io.mateu.uidl.annotations.GeneratedValue;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Representation;
-import io.mateu.uidl.annotations.SliderMax;
-import io.mateu.uidl.annotations.SliderMin;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
@@ -44,6 +36,7 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -149,6 +142,7 @@ public class ReflectionFormFieldMapper {
       return createCrudForField(field, readOnly, httpRequest);
     }
     if (!isBasic(field.getType())
+            && !field.getType().isEnum()
         && !List.class.isAssignableFrom(field.getType())
         && !Map.class.isAssignableFrom(field.getType())
         && !Amount.class.equals(field.getType())
@@ -183,7 +177,7 @@ public class ReflectionFormFieldMapper {
         .sliderMax(getSliderMax(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
         .readOnly(readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
-        .options(getOptions(field))
+        .options(getOptions(field, instance, httpRequest))
         .colspan(getColspan(field))
         .build();
   }
@@ -345,7 +339,10 @@ public class ReflectionFormFieldMapper {
     return prefix + field.getName();
   }
 
-  private static List<Option> getOptions(Field field) {
+  private static List<Option> getOptions(Field field, Object instance, HttpRequest httpRequest) {
+      if (instance instanceof OptionsSupplier optionsSupplier) {
+          return optionsSupplier.options(field.getName(), httpRequest);
+      }
     List<Option> options = new ArrayList<>();
     if (field.getType().isEnum()) {
       for (Object enumConstant : field.getType().getEnumConstants()) {
@@ -447,6 +444,9 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return FieldStereotype.combobox;
     }
+      if (field.isAnnotationPresent(Select.class)) {
+          return FieldStereotype.select;
+      }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
     }
