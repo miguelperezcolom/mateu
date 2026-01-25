@@ -5,6 +5,7 @@ import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import Component from "@mateu/shared/apiClients/dtos/Component.ts";
+import KPI from "@mateu/shared/apiClients/dtos/componentmetadata/KPI.ts";
 
 export default interface Form extends ComponentMetadata {
 
@@ -15,6 +16,7 @@ export default interface Form extends ComponentMetadata {
     noHeader: boolean
     status: Status
     badges: Badge[]
+    kpis: KPI[]
     banners: Banner[]
     actions: Action[]
     toolbar: Button[]

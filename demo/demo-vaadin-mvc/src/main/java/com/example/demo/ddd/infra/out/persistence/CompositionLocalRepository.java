@@ -88,4 +88,8 @@ public abstract class CompositionLocalRepository<EntityType extends Entity<IdTyp
 
     public abstract boolean belongsToParent(EntityType entity, ParentIdType parentId);
 
+    public void reset() {
+        repository.clear();
+    }
+
 }

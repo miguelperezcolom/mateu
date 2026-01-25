@@ -15,6 +15,6 @@ public class AgencyLabelSupplier implements LabelSupplier {
     public String label(Object id, HttpRequest httpRequest) {
         return agencyRepository.findById((String) id)
                 .map(Agency::name)
-                .orElse("No hotel with id " + id);
+                .orElse("No agency with id " + id);
     }
 }

@@ -44,6 +44,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Gri
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.HorizontalLayoutComponentToDtoMapper.mapHorizontalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.IconComponentToDtoMapper.mapIconToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ImageComponentToDtoMapper.mapImageToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.KPIComponentToDtoMapper.mapKPIToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.MapComponentToDtoMapper.mapMapToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.MarkdownComponentToDtoMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.MasterDetailLayoutComponentToDtoMapper.mapMasterDetailLayoutToDto;
@@ -109,6 +110,7 @@ import io.mateu.uidl.data.GridGroupColumn;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Icon;
 import io.mateu.uidl.data.Image;
+import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MasterDetailLayout;
 import io.mateu.uidl.data.MessageInput;
@@ -171,12 +173,11 @@ public final class ComponentToFragmentDtoMapper {
         UIFragmentActionDto.Replace);
   }
 
-
   public static Object getData(HttpRequest httpRequest, Object instance) {
-      if (instance instanceof DataSupplier dataSupplier) {
-          return dataSupplier.data(httpRequest);
-      }
-      return getData(httpRequest);
+    if (instance instanceof DataSupplier dataSupplier) {
+      return dataSupplier.data(httpRequest);
+    }
+    return getData(httpRequest);
   }
 
   public static Object getData(HttpRequest httpRequest) {
@@ -339,6 +340,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof Badge badge) {
       return mapBadgeToDto(badge);
+    }
+    if (component instanceof KPI kpi) {
+      return mapKPIToDto(kpi);
     }
     if (component instanceof Anchor anchor) {
       return mapAnchorToDto(anchor);

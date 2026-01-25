@@ -10,6 +10,7 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.ContractRepository
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.users.UserRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
 import com.example.demo.ddd.infra.in.populator.dtos.AgenciaDto;
@@ -46,6 +47,7 @@ public class Populator {
     final FileRepository fileRepository;
     final BookingRepository bookingRepository;
     private final TariffGenerator tariffGenerator;
+    private final UserRepository userRepository;
 
     public DataSet create() {
         List<TipoHabitacionDto> tiposHabitacion = leerTiposHabitacion();
@@ -58,6 +60,20 @@ public class Populator {
 
     @PostConstruct
     public void populate() {
+        populate(10, 10, 2, 1);
+    }
+
+    public void reset() {
+        agencyRepository.reset();
+        hotelRepository.reset();
+        seasonRepository.reset();
+        contractRepository.reset();
+        tariffRepository.reset();
+        inventoryRepository.reset();
+
+    }
+
+    public void populate(int hotels, int agencies, int years, int tariffsPerContract) {
         var dataSet = create();
         write(dataSet,
                 agencyRepository,
@@ -73,8 +89,9 @@ public class Populator {
                 fileRepository,
                 bookingRepository,
                 locatorValueGenerator,
-                tariffGenerator
-);
+                tariffGenerator,
+                userRepository,
+                hotels, agencies, years, tariffsPerContract
+        );
     }
-
 }

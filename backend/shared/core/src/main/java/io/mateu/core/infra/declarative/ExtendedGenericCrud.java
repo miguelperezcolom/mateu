@@ -6,6 +6,8 @@ import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.getValidations;
 import static io.mateu.core.infra.JsonSerializer.*;
+import static io.mateu.core.infra.declarative.GenericForm.createBadges;
+import static io.mateu.core.infra.declarative.GenericForm.createKpis;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
@@ -537,7 +539,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
 
   private void reduce(String prefix, HashMap<String, Object> map, Class<?> type) {
     getAllFields(type).stream()
-        .filter(field -> !isBasic(field.getType()) && !List.class.isAssignableFrom(field.getType()))
+        .filter(field -> !isBasic(field.getType()) && !field.getType().isEnum() && !List.class.isAssignableFrom(field.getType()))
         .forEach(
             field -> {
               reduce(prefix + field.getName() + "-", map, field.getType());
@@ -595,6 +597,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
         Page.builder()
             .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
             .style("max-width:900px;margin: auto;")
+                .badges(createBadges(item))
             .content(
                 getView(
                         item,
@@ -641,6 +644,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     return Page.builder()
         .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
         .style("max-width:900px;margin: auto;")
+            .badges(createBadges(item))
+            .kpis(createKpis(item))
         .content(
             getView(
                     item,
@@ -688,12 +693,12 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             });
   }
 
-  private HttpRequest addData(EntityType item, HttpRequest httpRequest) {
+  public static HttpRequest addData(Object item, HttpRequest httpRequest) {
     if (item == null) {
       return httpRequest;
     }
     var data = new HashMap<String, Object>();
-    getAllFields(entityClass()).stream()
+    getAllFields(item.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(ForeignKey.class))
         .forEach(
             field -> {

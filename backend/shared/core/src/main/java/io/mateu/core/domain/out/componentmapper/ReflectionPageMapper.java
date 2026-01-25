@@ -16,6 +16,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.domain.Humanizer;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
+import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.data.*;
@@ -119,7 +120,8 @@ public class ReflectionPageMapper {
                     && !field.isAnnotationPresent(Header.class)
                     && !field.isAnnotationPresent(Footer.class)
                     && !field.isAnnotationPresent(Avatar.class)
-                    && !field.isAnnotationPresent(Menu.class))
+                    && !field.isAnnotationPresent(Menu.class)
+                        && !Status.class.equals(field.getType()))
         .map(
             field ->
                 mapToComponent(
@@ -186,6 +188,9 @@ public class ReflectionPageMapper {
   }
 
   private static boolean filterColumn(Field field) {
+    if (field.isAnnotationPresent(Hidden.class)) {
+      return false;
+    }
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }
@@ -333,6 +338,8 @@ public class ReflectionPageMapper {
     var filteredFields =
         getAllEditableFields(type).stream()
             .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
+                .filter(field -> !Status.class.equals(field.getType()))
+                .filter(field -> !field.isAnnotationPresent(KPI.class))
             .filter(
                 field ->
                     !field.isAnnotationPresent(Hidden.class)
@@ -547,6 +554,12 @@ public class ReflectionPageMapper {
   }
 
   private static boolean filterField(Field field, boolean forCreationForm) {
+    if (Status.class.equals(field.getType())) {
+      return false;
+    }
+    if (field.isAnnotationPresent(KPI.class)) {
+      return false;
+    }
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }

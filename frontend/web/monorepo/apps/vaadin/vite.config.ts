@@ -51,6 +51,7 @@ export default defineConfig({
         '/_product': 'http://localhost:8091',
         '/_crm': 'http://localhost:8091',
         '/_financial': 'http://localhost:8091',
+      '/control-plane': 'http://localhost:8091',
     },
   },
 })

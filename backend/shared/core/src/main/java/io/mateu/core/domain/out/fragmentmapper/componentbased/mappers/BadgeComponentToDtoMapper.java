@@ -10,18 +10,22 @@ public class BadgeComponentToDtoMapper {
 
   public static ClientSideComponentDto mapBadgeToDto(Badge badge) {
     return new ClientSideComponentDto(
-        new BadgeDto(
-            badge.text(),
-            badge.iconOnLeft(),
-            badge.iconOnRight(),
-            BadgeColorDto.valueOf(badge.color().name()),
-            badge.primary(),
-            badge.small(),
-            badge.pill()),
+        mapBadgeToBadgeDto(badge),
         "fieldId",
         List.of(),
         badge.style(),
         badge.cssClasses(),
         null);
+  }
+
+  public static BadgeDto mapBadgeToBadgeDto(Badge badge) {
+    return new BadgeDto(
+                    badge.text(),
+                    badge.iconOnLeft(),
+                    badge.iconOnRight(),
+                    BadgeColorDto.valueOf(badge.color().name()),
+                    badge.primary(),
+                    badge.small(),
+                    badge.pill());
   }
 }

@@ -271,10 +271,22 @@ export class MateuField extends LitElement {
         }))
     }
 
+    evalIfNecessary = (value: string) => {
+        console.log('evalIfNecessary', value, eval('`' + value + '`'))
+        if (value.includes('${')) {
+            console.log('eval', value)
+            return eval('`' + value + '`')
+        }
+        return value
+    }
+
     render() {
         const fieldId = this.field?.fieldId??''
         return html`<div style="display: block;">
             <div>${this.renderField()}</div>
+            ${this.field?.description?html`
+                <div>${this.evalIfNecessary(this.field?.description)}</div>
+            `:nothing}
             ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
                 <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
             `:nothing}
@@ -565,6 +577,7 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
+                            style="${this.field.style}"
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `
@@ -582,6 +595,7 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
+                            style="${this.field.style}"
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `
@@ -1190,7 +1204,9 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-custom-field
                             label="${label}"
-                            data-colspan="${this.field.colspan}">
+                            data-colspan="${this.field.colspan}"
+                            style="width: 100%;"
+                    >
                     <mateu-grid
                             id="${this.field.fieldId}"
                         .field="${this.field}"
@@ -1328,6 +1344,7 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             @selected-items-changed="${this.multiComboBoxValueChanged}"
                             data-colspan="${this.field.colspan}"
+                            style="${this.field.style}"
                     ></vaadin-multi-select-combo-box>
                     `
                 }
@@ -1343,6 +1360,7 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             @selected-items-changed="${this.multiComboBoxValueChanged}"
                             data-colspan="${this.field.colspan}"
+                            style="${this.field.style}"
                     ></vaadin-multi-select-combo-box>
                     `
             }

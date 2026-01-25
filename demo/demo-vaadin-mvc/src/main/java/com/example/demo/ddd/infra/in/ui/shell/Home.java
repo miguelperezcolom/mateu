@@ -20,9 +20,9 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 
 @MateuUI("")
 @Style("width: 100%;")
-@Title("App")
+@Title("Rumbo")
 @FavIcon("/images/riu.svg")
-@PageTitle("App")
+@PageTitle("Rumbo")
 @Logo("/images/riu.svg")
 @KeycloakSecured(url = "https://lemur-11.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
 public class Home implements WidgetSupplier {
@@ -44,6 +44,10 @@ public class Home implements WidgetSupplier {
 
     @Menu
     RemoteMenu financial = new RemoteMenu("/_financial").withAppServerSideType("com.example.demo.ddd.infra.in.ui.financial.FinancialHome");
+
+//    @Menu
+//    RemoteMenu controlPlane = new RemoteMenu("/control-plane", "", "", "com.example.demo.ddd.infra.in.ui.controlplane.ControlPlaneHome", "", Map.of(), false, null, null);
+
 
     String content = "Hola!";
 

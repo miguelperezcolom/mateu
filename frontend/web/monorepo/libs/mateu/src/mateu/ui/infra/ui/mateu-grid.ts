@@ -91,7 +91,7 @@ export class MateuGrid extends MetadataDrivenElement {
         return html`
             <vaadin-vertical-layout>
             <vaadin-master-detail-layout
-                    style="width: 100%; ${showDetail?'min-height: 20rem;':''}"
+                    style="overflow: unset; width: 100%; ${showDetail?'min-height: 20rem;':''}"
                     orientation="${orientation}"
             >
                 <vaadin-grid

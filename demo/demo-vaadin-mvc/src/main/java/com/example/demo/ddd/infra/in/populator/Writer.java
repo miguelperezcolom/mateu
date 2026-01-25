@@ -1,6 +1,5 @@
 package com.example.demo.ddd.infra.in.populator;
 
-import com.example.demo.ddd.infra.in.populator.dtos.AgenciaDto;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.Agency;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.booking.Booking;
@@ -23,11 +22,12 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Inventory;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Tariff;
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.users.User;
+import com.example.demo.ddd.infra.out.persistence.hotel.users.UserRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Country;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Destination;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
-import com.example.demo.ddd.infra.in.populator.dtos.HotelDto;
 import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Status;
@@ -54,41 +54,58 @@ public class Writer {
             BoardTypeCodeRepository boardTypeCodeRepository,
             ContractRepository contractRepository,
             TariffRepository tariffRepository,
-            InventoryRepository inventoryRepository, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator, TariffGenerator tariffGenerator) {
-        writeAgencies(dataSet, agencyRepository);
-        writeHotels(dataSet, hotelRepository);
+            InventoryRepository inventoryRepository,
+            FileRepository fileRepository,
+            BookingRepository bookingRepository,
+            LocatorValueGenerator locatorValueGenerator,
+            TariffGenerator tariffGenerator,
+            UserRepository userRepository,
+            int hotels, int agencies, int years, int tariffsPerContract) {
+        writeUsers(userRepository);
+        writeAgencies(dataSet, agencyRepository, agencies);
+        writeHotels(dataSet, hotelRepository, hotels);
         writeCountries(dataSet, countryRepository);
         writeDestinations(dataSet, destinationRepository);
-        writeSeasons(seasonRepository);
+        writeSeasons(seasonRepository, years);
         writeRooms(dataSet, roomTypeCodeRepository);
         writeBoards(dataSet, boardTypeCodeRepository);
-        writeContracts(dataSet, contractRepository, seasonRepository);
-        writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator, contractRepository);
+        writeContracts(hotelRepository, agencyRepository, contractRepository, seasonRepository);
+        writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator, contractRepository, tariffsPerContract);
         writeInventories(dataSet, inventoryRepository);
-        writeBookings(dataSet, fileRepository, bookingRepository, locatorValueGenerator);
+        writeBookings(dataSet, agencyRepository, hotelRepository, fileRepository, bookingRepository, locatorValueGenerator);
     }
 
-    private static void writeBookings(DataSet dataSet, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator) {
-        dataSet.agencias().forEach(agencia -> {
+    private static void writeUsers(UserRepository userRepository) {
+        userRepository.saveAll(List.of(
+                new User("miguel", "Miguel Pérez", "/images/users/miguel.jpg", new Status(StatusType.SUCCESS, "Active")),
+                new User("ivan", "Ivan Orpí", "/images/users/ivan.jpg", new Status(StatusType.SUCCESS, "Active")),
+                new User("ivanl", "Ivan López", "/images/users/ivanl.jpg", new Status(StatusType.SUCCESS, "Active")),
+                new User("marc", "Marc Bennassar", "/images/users/marc.jpg", new Status(StatusType.SUCCESS, "Active")),
+                new User("fernando", "Fernando Becerra", "/images/users/fernando.jpg", new Status(StatusType.SUCCESS, "Active"))
+        ));
+    }
+
+    private static void writeBookings(DataSet dataSet, AgencyRepository agencyRepository, HotelRepository hotelRepository, FileRepository fileRepository, BookingRepository bookingRepository, LocatorValueGenerator locatorValueGenerator) {
+        agencyRepository.findAll().forEach(agencia -> {
             String fileLocator = locatorValueGenerator.generate().toString();
             String bookingLocator = locatorValueGenerator.generate().toString();
             fileRepository.saveAll(List.of(new File(
                     fileLocator,
-                    agencia.codigo(),
+                    agencia.id(),
                     names.get(fileRepository.findAll().size() % names.size()),
                     LocalDate.now(),
                     new Amount("EUR", 10.2),
                     new Status(StatusType.SUCCESS, "Confirmed"),
                     List.of(bookingLocator)
             )));
-            var hotel = dataSet.hoteles().get(fileRepository.findAll().size() % dataSet.hoteles().size());
+            var hotel = hotelRepository.findAll().get(fileRepository.findAll().size() % hotelRepository.findAll().size());
             bookingRepository.saveAll(List.of(new Booking(
                     bookingLocator,
                     fileLocator,
-                    hotel.codigo(),
+                    hotel.id(),
                     LocalDate.now().plusDays(10),
                     LocalDate.now().plusDays(10 + 7),
-                    hotel.nombre(),
+                    hotel.name(),
                     "Populated"
             )));
         });
@@ -104,18 +121,17 @@ public class Writer {
                 .toList());
     }
 
-    private static void writeContracts(DataSet dataSet, ContractRepository contractRepository, SeasonRepository seasonRepository) {
+    private static void writeContracts(HotelRepository hotelRepository, AgencyRepository agencyRepository, ContractRepository contractRepository, SeasonRepository seasonRepository) {
         List<Contract> contracts = new ArrayList<>();
-        for (HotelDto hotel : dataSet.hoteles().stream().toList()) {
-            for (AgenciaDto agencia : dataSet.agencias()) {
+        for (Hotel hotel : hotelRepository.findAll()) {
+            for (Agency agencia : agencyRepository.findAll()) {
                 for (Season season : seasonRepository.findAll()) {
                     contracts.add(new Contract(
                             UUID.randomUUID().toString(),
-                            hotel.nombre() + " - " + agencia.nombre() + " - " + season.name(),
-                            hotel.codigo(),
-                            agencia.codigo(),
-                            season.id(),
-                            List.of()
+                            hotel.name() + " - " + agencia.name() + " - " + season.name(),
+                            hotel.id(),
+                            agencia.id(),
+                            season.id()
                     ));
                 }
             }
@@ -123,13 +139,15 @@ public class Writer {
         contractRepository.saveAll(contracts);
     }
 
-    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator, ContractRepository contractRepository) {
+    private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator, ContractRepository contractRepository, int tariffsPerContract) {
         List<Tariff> tariffs = new ArrayList<>();
         contractRepository.findAll().forEach(contract -> {
-            tariffs.addAll(tariffGenerator.generate(dataSet,
-                    dataSet.hoteles().stream().filter(hotel -> hotel.codigo().equals(contract.hotelId())).findFirst().get(),
-                    seasonRepository.findById(contract.seasonId()).get(),
-                    contract));
+            for (int i = 0; i < tariffsPerContract; i++) {
+                tariffs.addAll(tariffGenerator.generate(dataSet,
+                        dataSet.hoteles().stream().filter(hotel -> hotel.codigo().equals(contract.hotelId())).findFirst().get(),
+                        seasonRepository.findById(contract.seasonId()).get(),
+                        contract));
+            }
         });
         tariffRepository.saveAll(tariffs);
     }
@@ -151,9 +169,9 @@ public class Writer {
                 )).toList());
     }
 
-    private static void writeSeasons(SeasonRepository seasonRepository) {
+    private static void writeSeasons(SeasonRepository seasonRepository, int years) {
         List<Season> seasons = new ArrayList<>();
-        for (int year = 2026; year <= 2027; year++) {
+        for (int year = 2026; year <= 2026 + years - 1; year++) {
             seasons.add(new Season("W" + (year % 100) + "-" + (year + 1) % 100, "WINTER " + year + "-" + (year + 1) % 100, LocalDate.of(year - 1, 11, 1), LocalDate.of(year, 4, 1).minusDays(1)));
             seasons.add(new Season("S" + (year % 100), "SUMMER " + year, LocalDate.of(year, 4, 1), LocalDate.of(year, 11, 1).minusDays(1)));
         }
@@ -165,10 +183,10 @@ public class Writer {
                 .map(destino -> new Destination(
                         destino.codigo(),
                         destino.nombre(),
-                        destino.codigoPais(),
-                        dataSet.hoteles().stream()
-                                .filter(hotel -> destino.codigo().equals(hotel.idDestino()))
-                                .map(HotelDto::codigo).toList()
+                        destino.codigoPais()
+//                        dataSet.hoteles().stream()
+//                                .filter(hotel -> destino.codigo().equals(hotel.idDestino()))
+//                                .map(HotelDto::codigo).toList()
         )).toList());
     }
 
@@ -185,8 +203,9 @@ public class Writer {
                 )).toList());
     }
 
-    private static void writeHotels(DataSet dataSet, HotelRepository hotelRepository) {
+    private static void writeHotels(DataSet dataSet, HotelRepository hotelRepository, int hotels) {
         hotelRepository.saveAll(dataSet.hoteles().stream()
+                        .limit(hotels)
                 .map(hotel -> new Hotel(
                         hotel.codigo(),
                         hotel.nombre(),
@@ -200,8 +219,9 @@ public class Writer {
                 )).toList());
     }
 
-    private static void writeAgencies(DataSet dataSet, AgencyRepository agencyRepository) {
+    private static void writeAgencies(DataSet dataSet, AgencyRepository agencyRepository, int agencies) {
         agencyRepository.saveAll(dataSet.agencias().stream()
+                        .limit(agencies)
                 .map(agencia -> new Agency(
                         agencia.codigo(),
                         agencia.nombre()

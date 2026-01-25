@@ -7,6 +7,7 @@ import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
+import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Tab;
@@ -30,7 +31,7 @@ public record File(
         @ReadOnly
         LocalDate created,
         @NotNull
-        @ReadOnly
+        @KPI
         Amount total,
         @ReadOnly
         Status status,

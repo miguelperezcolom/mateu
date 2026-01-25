@@ -15,6 +15,7 @@ public record PageDto(
     String subtitle,
     StatusDto status,
     List<BadgeDto> badges,
+    List<KPIDto> kpis,
     List<BannerDto> banners,
     List<ActionDto> actions,
     List<ButtonDto> toolbar,

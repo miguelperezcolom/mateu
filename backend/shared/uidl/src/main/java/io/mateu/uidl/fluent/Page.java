@@ -1,6 +1,9 @@
 package io.mateu.uidl.fluent;
 
 import java.util.List;
+
+import io.mateu.uidl.data.Badge;
+import io.mateu.uidl.data.KPI;
 import lombok.Builder;
 import lombok.Singular;
 
@@ -17,6 +20,8 @@ public record Page(
     @Singular("footerItem") List<Component> footer,
     @Singular("toolbarItem") List<UserTrigger> toolbar,
     @Singular List<UserTrigger> buttons,
+    @Singular("badgeItem") List<Badge> badges,
+    @Singular("kpiItem") List<KPI> kpis,
     String style,
     String cssClasses)
     implements Component {}

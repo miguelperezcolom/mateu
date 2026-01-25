@@ -67,4 +67,8 @@ public class LocalRepository<EntityType extends Entity<IdType>, IdType> implemen
         }
         return value.toString();
     }
+
+    public void reset() {
+        repository.clear();
+    }
 }

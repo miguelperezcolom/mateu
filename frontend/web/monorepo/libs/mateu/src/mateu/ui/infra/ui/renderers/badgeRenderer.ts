@@ -8,3 +8,7 @@ export const renderBadge = (component: ClientSideComponent) => {
                       style="${component.style}" class="${component.cssClasses}"
                       slot="${component.slot??nothing}">${metadata.text}</span>`
 }
+
+export const renderBadgeMetadata = (metadata: Badge) => {
+    return html`<span theme="badge ${metadata.color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${metadata.text}</span>`
+}

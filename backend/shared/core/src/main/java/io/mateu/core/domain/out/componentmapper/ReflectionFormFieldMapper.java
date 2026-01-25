@@ -142,7 +142,7 @@ public class ReflectionFormFieldMapper {
       return createCrudForField(field, readOnly, httpRequest);
     }
     if (!isBasic(field.getType())
-            && !field.getType().isEnum()
+        && !field.getType().isEnum()
         && !List.class.isAssignableFrom(field.getType())
         && !Map.class.isAssignableFrom(field.getType())
         && !Amount.class.equals(field.getType())
@@ -171,6 +171,7 @@ public class ReflectionFormFieldMapper {
         .id(getFieldId(field, prefix, readOnly))
         .label(getLabel(field))
         .dataType(getDataType(field))
+            .style(getStyle(field))
         .stereotype(getStereotype(field))
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
@@ -179,7 +180,22 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
         .options(getOptions(field, instance, httpRequest))
         .colspan(getColspan(field))
+            .description(getDescription(field))
         .build();
+  }
+
+  private static String getDescription(Field field) {
+    if (field.isAnnotationPresent(Help.class)) {
+      return field.getAnnotation(Help.class).value();
+    }
+    return "";
+  }
+
+  private static String getStyle(Field field) {
+    if (field.isAnnotationPresent(Style.class)) {
+      return field.getAnnotation(Style.class).value();
+    }
+    return "";
   }
 
   private static Component createEditorForCompositionField(
@@ -276,7 +292,7 @@ public class ReflectionFormFieldMapper {
         .style("min-width: 10rem; width: 100%;")
         .colspan(getColspan(field))
         .itemIdPath("_rowNumber")
-        .onItemSelectionActionId(field.getName() + "_selected")
+        .onItemSelectionActionId(readOnly?null:field.getName() + "_selected")
         .formPosition(FormPosition.right)
         .createForm(
             Form.builder()
@@ -340,9 +356,9 @@ public class ReflectionFormFieldMapper {
   }
 
   private static List<Option> getOptions(Field field, Object instance, HttpRequest httpRequest) {
-      if (instance instanceof OptionsSupplier optionsSupplier) {
-          return optionsSupplier.options(field.getName(), httpRequest);
-      }
+    if (instance instanceof OptionsSupplier optionsSupplier) {
+      return optionsSupplier.options(field.getName(), httpRequest);
+    }
     List<Option> options = new ArrayList<>();
     if (field.getType().isEnum()) {
       for (Object enumConstant : field.getType().getEnumConstants()) {
@@ -444,11 +460,14 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return FieldStereotype.combobox;
     }
-      if (field.isAnnotationPresent(Select.class)) {
-          return FieldStereotype.select;
-      }
+    if (field.isAnnotationPresent(Select.class)) {
+      return FieldStereotype.select;
+    }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
+    }
+    if (field.isAnnotationPresent(SliderMin.class) || field.isAnnotationPresent(SliderMax.class)) {
+      return FieldStereotype.slider;
     }
     if (Amount.class.equals(field.getType())) {
       return FieldStereotype.money;

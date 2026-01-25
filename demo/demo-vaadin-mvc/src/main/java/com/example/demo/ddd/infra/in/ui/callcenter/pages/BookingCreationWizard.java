@@ -4,11 +4,18 @@ import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.C
 import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.CompleteBooking;
 import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.Dispo;
 import com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard.HotelFound;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.Destination;
+import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
 import io.mateu.core.infra.declarative.GenericWizard;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.WizardCompletionAction;
-import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.Option;
+import io.mateu.uidl.data.Page;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.fluent.OnValueChangeTrigger;
+import io.mateu.uidl.fluent.Trigger;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.StateSupplier;
@@ -24,17 +31,20 @@ import java.util.Map;
 @Title("Create booking wizard")
 @RequiredArgsConstructor
 @Scope("prototype")
-public class BookingCreationWizard extends GenericWizard implements DataSupplier {
+public class BookingCreationWizard extends GenericWizard implements DataSupplier, TriggersSupplier {
+
+    final DestinationRepository destinationRepository;
 
     Dispo dispo = Dispo.builder()
             .build()
+            .withDestinationCode("PMI")
             .withCheckin(LocalDate.now().plusDays(7))
             .withNights(7)
             .withCheckout(LocalDate.now().plusDays(14))
-            .withSearch(Button.builder()
-                    .label("Search")
-                    .actionId("search")
-                    .build());
+            .withRooms1(1)
+            .withAdults1(2)
+            ;
+
     ChooseRooms chooseRooms;
     CompleteBooking completeBooking;
 
@@ -68,7 +78,7 @@ public class BookingCreationWizard extends GenericWizard implements DataSupplier
         if (dispo != null && dispo.destinationCode() != null) {
             return Map.of(
                     "destinationCode", Page.builder()
-                                            .content(List.of(new Option(dispo.destinationCode(), dispo.destinationCode() + "yyyy")))
+                                            .content(List.of(new Option(dispo.destinationCode(), destinationRepository.findById(dispo.destinationCode()).map(Destination::name).orElse("Unknown Destination"))))
                                             .searchSignature("xxxx")
                                             .pageNumber(0)
                                             .pageSize(1)
@@ -77,5 +87,15 @@ public class BookingCreationWizard extends GenericWizard implements DataSupplier
                     "destinationCode-label",  dispo.destinationCode() + "xxxx");
         }
         return null;
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        if (currentStepNumber() == 0) {
+            return List.of(OnValueChangeTrigger.builder()
+                            .actionId("search")
+                    .build());
+        }
+        return List.of();
     }
 }

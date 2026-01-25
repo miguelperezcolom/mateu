@@ -93,14 +93,13 @@ public interface HttpRequest {
         .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
   }
 
-    default <T> List<T> getSelectedRows(String fieldName, Class<T> rowType) {
-        return ((List<Map<String, Object>>)
-                runActionRq().componentState().getOrDefault(fieldName + "_selected_items", List.of()))
-                .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
-    }
+  default <T> List<T> getSelectedRows(String fieldName, Class<T> rowType) {
+    return ((List<Map<String, Object>>)
+            runActionRq().componentState().getOrDefault(fieldName + "_selected_items", List.of()))
+        .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
+  }
 
-
-    default <T> T getClickedRow(Class<T> rowType) {
+  default <T> T getClickedRow(Class<T> rowType) {
     if (runActionRq().parameters() == null) {
       return null;
     }

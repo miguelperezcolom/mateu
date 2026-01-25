@@ -11,20 +11,28 @@ import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationIdOptio
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationLabelSupplier;
 import io.mateu.core.infra.declarative.Deleteable;
 import io.mateu.core.infra.declarative.GenericEntity;
+import io.mateu.core.infra.valuegenerators.UUIDValueGenerator;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.FormLayout;
+import io.mateu.uidl.annotations.GeneratedValue;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Image;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Tab;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Slf4j
 public record Hotel(
+        @GeneratedValue(UUIDValueGenerator.class)
+        @Hidden
         String id,
+        @NotEmpty
         String name,
         @ForeignKey(search = DestinationIdOptionsSupplier.class, label = DestinationLabelSupplier.class)
         String destinationId,
@@ -44,6 +52,7 @@ public record Hotel(
         @ForeignKey(search = BoardTypeCodeOptionsSupplier.class, label = BoardTypeCodeLabelSupplier.class)
         @Tab("Boards")
         @Label("")
+        @Style("width: 100%;")
         @Colspan(2)
         List<String> boardTypeCodes,
         @Tab("Inventories")

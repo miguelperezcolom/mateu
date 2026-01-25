@@ -12,15 +12,16 @@ public class HotelSubmenu {
     @Menu
     Hotels hotels;
 
-    @Menu
-    StopSales stopSales;
-    @Menu
-    Inventories inventories;
-    @Menu
-    InventoryLines inventoryLines;
+//    @Menu
+//    StopSales stopSales;
+//    @Menu
+//    Inventories inventories;
+//    @Menu
+//    InventoryLines inventoryLines;
     @Menu
     Contracts contracts;
     @Menu
     Tariffs tariffs;
-
+    @Menu
+    Tariffs offers;
 }

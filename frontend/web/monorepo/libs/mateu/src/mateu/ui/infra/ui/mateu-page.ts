@@ -18,6 +18,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { possiblyHtml } from "@infra/ui/mateu-form.ts";
+import {renderBadgeMetadata} from "@infra/ui/renderers/badgeRenderer.ts";
+import { badge } from "@vaadin/vaadin-lumo-styles";
 
 
 
@@ -67,6 +69,12 @@ export class MateuPage extends LitElement {
                             <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                         </vaadin-vertical-layout>
                         <vaadin-horizontal-layout theme="spacing" slot="end">
+                            ${metadata?.kpis?.map(kpi => html`
+                                <vaadin-vertical-layout style="align-items: center">
+                                    <div>${kpi.title}</div>
+                                    <div>${unsafeHTML(possiblyHtml(kpi.text, this.state, this.data))}</div>
+                                </vaadin-vertical-layout>
+                            `)}
                             ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                             ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
@@ -77,6 +85,11 @@ export class MateuPage extends LitElement {
 `)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
+                ${metadata.badges && metadata.badges.length > 0?html`
+                    <vaadin-horizontal-layout>
+                        ${metadata.badges.map(badge => renderBadgeMetadata(badge))}
+                    </vaadin-horizontal-layout>
+                `:nothing}
 
                 <div class="form-content">
                     <slot></slot>
@@ -95,7 +108,10 @@ export class MateuPage extends LitElement {
         .form-content {
             width: 100%;
         }
-  `
+
+        ${badge}
+
+    `
 }
 
 declare global {

@@ -22,7 +22,6 @@ import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
@@ -103,14 +102,20 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         if (builderMethod != null) {
           Object builder = c.getMethod("builder").invoke(null);
           for (String key : data.keySet()) {
-              var found = Arrays.stream(builder.getClass().getMethods())
-                      .filter(m -> m.getName().equals(key))
-                      .findFirst();
-              if (found.isPresent()) {
-                  Method setter = found.get();
-                  setter.invoke(
-                          builder, createInstance(setter.getParameterTypes()[0], data.get(key), httpRequest, getGenericClass(setter.getGenericParameterTypes()[0])));
-              }
+            var found =
+                Arrays.stream(builder.getClass().getMethods())
+                    .filter(m -> m.getName().equals(key))
+                    .findFirst();
+            if (found.isPresent()) {
+              Method setter = found.get();
+              setter.invoke(
+                  builder,
+                  createInstance(
+                      setter.getParameterTypes()[0],
+                      data.get(key),
+                      httpRequest,
+                      getGenericClass(setter.getGenericParameterTypes()[0])));
+            }
           }
           o = (T) builder.getClass().getMethod("build").invoke(builder);
         } else {
@@ -139,13 +144,19 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           NoSuchMethodException {
     List<Object> params = new ArrayList<>();
     for (Parameter parameter : con.getParameters()) {
-      params.add(createInstance(parameter.getType(), data.get(parameter.getName()), httpRequest, getGenericClass(parameter.getParameterizedType())));
+      params.add(
+          createInstance(
+              parameter.getType(),
+              data.get(parameter.getName()),
+              httpRequest,
+              getGenericClass(parameter.getParameterizedType())));
     }
     return params.toArray();
   }
 
   @SneakyThrows
-  private Object createInstance(Class type, Object data, HttpRequest httpRequest, Class genericType) {
+  private Object createInstance(
+      Class type, Object data, HttpRequest httpRequest, Class genericType) {
     if (data == null) {
       if (int.class.equals(type)) {
         return 0;
@@ -190,11 +201,12 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       }
       return array;
     } else if (Class.class.equals(type)) {
-        return Class.forName((String) data);
+      return Class.forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
-        var list = new ArrayList();
-        ((List<Map<String, Object>>) data).forEach(map -> list.add(newInstance(genericType, map, httpRequest)));
-        return list;
+      var list = new ArrayList();
+      ((List<Map<String, Object>>) data)
+          .forEach(map -> list.add(newInstance(genericType, map, httpRequest)));
+      return list;
     } else if (data instanceof Map) {
       return newInstance(type, (Map<String, Object>) data, httpRequest);
     } else {

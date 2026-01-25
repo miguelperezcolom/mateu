@@ -16,9 +16,7 @@ public record Destination(
         String name,
         @ForeignKey(search = CountryCodeOptionsSupplier.class, label = CountryLabelSupplier.class)
         @NotNull
-        String countryCode,
-        @ForeignKey(search = HotelIdOptionsSupplier.class, label = HotelLabelSupplier.class)
-        List<String> hotelIds
+        String countryCode
 ) implements GenericEntity {
 
     @Override

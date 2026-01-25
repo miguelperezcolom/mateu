@@ -48,10 +48,10 @@ public class GenericClassProvider {
     Class<?> gc = null;
     if (type instanceof ParameterizedType) {
       ParameterizedType pt = (ParameterizedType) type;
-        var actualTypeArgument = pt.getActualTypeArguments()[0];
-        if (actualTypeArgument instanceof Class) {
-            gc = (Class<?>) actualTypeArgument;
-        }
+      var actualTypeArgument = pt.getActualTypeArguments()[0];
+      if (actualTypeArgument instanceof Class) {
+        gc = (Class<?>) actualTypeArgument;
+      }
     } else {
       gc = (Class<?>) type;
     }
