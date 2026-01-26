@@ -18,5 +18,6 @@ export default interface GridColumn extends ComponentMetadata {
     tooltipPath: string
     actionId: string
     text: string
+    style: string
 
 }

@@ -539,7 +539,11 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
 
   private void reduce(String prefix, HashMap<String, Object> map, Class<?> type) {
     getAllFields(type).stream()
-        .filter(field -> !isBasic(field.getType()) && !field.getType().isEnum() && !List.class.isAssignableFrom(field.getType()))
+        .filter(
+            field ->
+                !isBasic(field.getType())
+                    && !field.getType().isEnum()
+                    && !List.class.isAssignableFrom(field.getType()))
         .forEach(
             field -> {
               reduce(prefix + field.getName() + "-", map, field.getType());
@@ -597,7 +601,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
         Page.builder()
             .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
             .style("max-width:900px;margin: auto;")
-                .badges(createBadges(item))
+            .badges(createBadges(item))
             .content(
                 getView(
                         item,
@@ -644,8 +648,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     return Page.builder()
         .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
         .style("max-width:900px;margin: auto;")
-            .badges(createBadges(item))
-            .kpis(createKpis(item))
+        .badges(createBadges(item))
+        .kpis(createKpis(item))
         .content(
             getView(
                     item,

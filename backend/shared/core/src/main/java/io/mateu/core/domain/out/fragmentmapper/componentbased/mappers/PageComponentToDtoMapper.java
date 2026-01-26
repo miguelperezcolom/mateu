@@ -1,9 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.BadgeComponentToDtoMapper.mapBadgeToDto;
 
-import io.mateu.dtos.BadgeDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.PageDto;
@@ -39,8 +37,16 @@ public class PageComponentToDtoMapper {
                             httpRequest)
                         .addStyle("width: 4rem;height: 4rem;")
                     : null)
-                .badges(page.badges() != null?page.badges().stream().map(BadgeComponentToDtoMapper::mapBadgeToBadgeDto).toList():null)
-                .kpis(page.kpis() != null?page.kpis().stream().map(KPIComponentToDtoMapper::mapKPIToKPIDto).toList():null)
+            .badges(
+                page.badges() != null
+                    ? page.badges().stream()
+                        .map(BadgeComponentToDtoMapper::mapBadgeToBadgeDto)
+                        .toList()
+                    : null)
+            .kpis(
+                page.kpis() != null
+                    ? page.kpis().stream().map(KPIComponentToDtoMapper::mapKPIToKPIDto).toList()
+                    : null)
             .header(
                 page.header() != null
                     ? page.header().stream()

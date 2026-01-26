@@ -1,6 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.users;
 
 import io.mateu.core.infra.declarative.GenericEntity;
+import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Image;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.Status;
@@ -11,9 +12,18 @@ public record User(
         String id,
         @NotEmpty
         String name,
-        @Image
+        @Image(style = "max-width: 100px; border-radius: 50%; object-fit: cover;", rowStyle = "border-radius: 50%; object-fit: cover;")
         String photo,
         @ReadOnly
-        Status status
+        Status status,
+
+        @HiddenInList
+        boolean admin,
+        @HiddenInList
+        boolean operator,
+        @HiddenInList
+        boolean manager,
+        @HiddenInList
+        boolean client
 ) implements GenericEntity {
 }

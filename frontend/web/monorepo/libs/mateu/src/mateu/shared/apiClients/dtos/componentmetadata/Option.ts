@@ -4,5 +4,6 @@ export default interface Option {
     label: string
     description: string
     image: string
+    imageStyle: string
 
 }

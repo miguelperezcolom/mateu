@@ -7,5 +7,4 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD}) // can use in method only.
-public @interface KPI {
-}
+public @interface KPI {}

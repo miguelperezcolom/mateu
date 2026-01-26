@@ -77,11 +77,11 @@ public class Writer {
 
     private static void writeUsers(UserRepository userRepository) {
         userRepository.saveAll(List.of(
-                new User("miguel", "Miguel Pérez", "/images/users/miguel.jpg", new Status(StatusType.SUCCESS, "Active")),
-                new User("ivan", "Ivan Orpí", "/images/users/ivan.jpg", new Status(StatusType.SUCCESS, "Active")),
-                new User("ivanl", "Ivan López", "/images/users/ivanl.jpg", new Status(StatusType.SUCCESS, "Active")),
-                new User("marc", "Marc Bennassar", "/images/users/marc.jpg", new Status(StatusType.SUCCESS, "Active")),
-                new User("fernando", "Fernando Becerra", "/images/users/fernando.jpg", new Status(StatusType.SUCCESS, "Active"))
+                new User("miguel", "Miguel Pérez", "/images/users/miguel.jpg", new Status(StatusType.SUCCESS, "Active"), true, false, false, false),
+                new User("ivan", "Ivan Orpí", "/images/users/ivan.jpg", new Status(StatusType.SUCCESS, "Active"), true, false, false, false),
+                new User("ivanl", "Ivan López", "/images/users/ivanl.jpg", new Status(StatusType.SUCCESS, "Active"), false, false, false, true),
+                new User("marc", "Marc Bennassar", "/images/users/marc.jpg", new Status(StatusType.SUCCESS, "Active"), false, true, false, false),
+                new User("fernando", "Fernando Becerra", "/images/users/fernando.jpg", new Status(StatusType.SUCCESS, "Active"), false, false, true, false)
         ));
     }
 

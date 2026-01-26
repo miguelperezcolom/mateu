@@ -24,6 +24,7 @@ export const renderButton = (component: ClientSideComponent) => {
         theme += ' ' + metadata.size
     }
     return html`<vaadin-button
+id="${component.id}"
             data-action-id="${metadata.actionId}"
             @click="${(e:any) => handleButtonClick(e, metadata)}"
             style="${component.style}" 

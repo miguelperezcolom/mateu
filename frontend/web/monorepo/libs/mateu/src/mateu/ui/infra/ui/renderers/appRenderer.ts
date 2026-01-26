@@ -131,7 +131,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-tabs>
                     </div>
                     <div class="app-content">
-                        <vaadin-scroller style="height: 40rem;">
+                        <vaadin-scroller>
                             <mateu-api-caller>
                                 <mateu-ux
                                         route="${container.selectedRoute??metadata.homeRoute}"

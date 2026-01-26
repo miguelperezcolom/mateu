@@ -8,10 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.mateu.core.infra.declarative.WizardStep;
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import jakarta.validation.constraints.NotEmpty;
@@ -20,6 +19,9 @@ import lombok.With;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
 
 @With@Builder
 public record Dispo(
@@ -48,6 +50,7 @@ public record Dispo(
 
         @Section("Found")
         @ReadOnly
+        @Style("min-width: 40rem; width: 100%;")
         List<HotelFound> results
         ) implements WizardStep, OptionsSupplier {
 
@@ -55,4 +58,38 @@ public record Dispo(
     public List<Option> options(String fieldName, HttpRequest httpRequest) {
         return List.of();
     }
+
+
+    @Toolbar
+    public Dispo search() {
+        return this.withResults(List.of(
+                new HotelFound(
+                        "1",
+                        "HOTEL RIU CONCORDIA",
+                        "/images/hotels/h-102.jpg",
+                        100.2,
+                        "oo",
+                        "cc",
+                        false,
+                        ColumnAction.builder()
+                                .label("Select")
+                                .methodNameInCrud("select")
+                                .build())
+                ,
+                new HotelFound(
+                        "2",
+                        "HOTEL RIU LA MOLA",
+                        "/images/hotels/h-105.jpg",
+                        200.32,
+                        "oo",
+                        "cc",
+                        false,
+                        ColumnAction.builder()
+                                .label("Select")
+                                .methodNameInCrud("select")
+                                .build())
+                )
+        );
+    }
+
 }

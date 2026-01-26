@@ -7,9 +7,5 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface Image {
-  String style() default "";
-
-  String rowStyle() default "";
-}
+@Target({ElementType.TYPE, ElementType.FIELD})
+public @interface HiddenInList {}

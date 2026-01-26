@@ -96,7 +96,7 @@ export const renderActionCell = (item: any,
         label: string
         icon: string
         disabled: boolean
-    } = item.action
+    } = item[_column.path!].methodNameInCrud?item[_column.path!]:item.action
     return html`
          <vaadin-button theme="tertiary" @click="${clicked}" .row="${item}" .action="${action}">
              ${action.label}

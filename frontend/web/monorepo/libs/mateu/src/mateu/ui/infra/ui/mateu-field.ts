@@ -271,10 +271,14 @@ export class MateuField extends LitElement {
         }))
     }
 
-    evalIfNecessary = (value: string) => {
-        console.log('evalIfNecessary', value, eval('`' + value + '`'))
-        if (value.includes('${')) {
-            console.log('eval', value)
+    // @ts-ignore
+    evalIfNecessary = (value: string, _state: any, _data: any) => {
+        if (value && value.includes && value.includes('${')) {
+            console.log('evalIfNecessary', value, _state, _data)
+            // @ts-ignore
+            const state = _state
+            // @ts-ignore
+            const data = _data
             return eval('`' + value + '`')
         }
         return value
@@ -285,7 +289,7 @@ export class MateuField extends LitElement {
         return html`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.field?.description?html`
-                <div>${this.evalIfNecessary(this.field?.description)}</div>
+                <div>${this.evalIfNecessary(this.field?.description, this.state, this.data)}</div>
             `:nothing}
             ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
                 <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
@@ -393,7 +397,17 @@ export class MateuField extends LitElement {
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
-            const valueToDisplay = value || this.data[fieldId]
+            const valueToDisplay = this.evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
+            if ('image' == this.field.stereotype) {
+                return html`<vaadin-custom-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        required="${this.field.required || nothing}"
+                        .helperText="${this.field.description}"
+                        data-colspan="${this.field.colspan}"
+                ><img src="${valueToDisplay}" id="${this.field.fieldId}_img" style="${this.field.style}">
+                </vaadin-custom-field>`
+            }
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
@@ -555,7 +569,6 @@ export class MateuField extends LitElement {
                             }
                     };
 
-                    console.log('data', this.data)
                     if (this.data[this.id] && this.data[this.id].content) {
                         const selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                         if (!this.shadowRoot?.getElementById(fieldId)) {

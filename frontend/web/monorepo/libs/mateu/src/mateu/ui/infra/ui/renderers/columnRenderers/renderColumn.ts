@@ -195,7 +195,6 @@ export const columnRenderer = (item: any,
                                                                 data: any,
                                appState: any,
                                appData: any) => {
-
     const type = vaadinColumn.dataset.dataType??''
     const stereotype = vaadinColumn.dataset.stereotype??''
     if ('status' == type) {
@@ -217,7 +216,7 @@ export const columnRenderer = (item: any,
         return renderHtmlCell(item, model, vaadinColumn, type, stereotype)
     }
     if ('image' == stereotype) {
-        return renderImageCell(item, model, vaadinColumn, type, stereotype)
+        return renderImageCell(item, model, vaadinColumn, type, stereotype, column)
     }
     if ('menu' == type) {
         return renderMenuCell(item, model, vaadinColumn)

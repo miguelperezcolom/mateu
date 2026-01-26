@@ -34,6 +34,7 @@ public class GridColumnComponentToDtoMapper {
             .tooltipPath(gridColumn.tooltipPath())
             .actionId(gridColumn.actionId())
             .text(gridColumn.text())
+            .style(gridColumn.style())
             .build(),
         gridColumn.id(),
         List.of(),

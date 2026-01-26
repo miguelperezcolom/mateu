@@ -18,11 +18,7 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplements
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplementsperday.SupplementPerDayPrice;
 import io.mateu.core.infra.declarative.GenericEntity;
 import io.mateu.core.infra.valuegenerators.UUIDValueGenerator;
-import io.mateu.uidl.annotations.Colspan;
-import io.mateu.uidl.annotations.ForeignKey;
-import io.mateu.uidl.annotations.GeneratedValue;
-import io.mateu.uidl.annotations.Hidden;
-import io.mateu.uidl.annotations.Tab;
+import io.mateu.uidl.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,6 +31,7 @@ public record Tariff(
         String contractId,
         String name,
         int version,
+        @HiddenInList
         boolean computesPMC,
         LocalDate stayFrom,
         LocalDate stayTo,

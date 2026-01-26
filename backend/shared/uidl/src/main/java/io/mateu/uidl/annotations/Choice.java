@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface Image {
-  String style() default "";
+public @interface Choice {
+  Option[] value() default {};
 
-  String rowStyle() default "";
+  String style() default "";
 }

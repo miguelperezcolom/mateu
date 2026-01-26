@@ -171,7 +171,7 @@ public class ReflectionFormFieldMapper {
         .id(getFieldId(field, prefix, readOnly))
         .label(getLabel(field))
         .dataType(getDataType(field))
-            .style(getStyle(field))
+        .style(getStyle(field))
         .stereotype(getStereotype(field))
         .required(isRequired(field))
         .sliderMin(getSliderMin(field))
@@ -180,8 +180,16 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
         .options(getOptions(field, instance, httpRequest))
         .colspan(getColspan(field))
-            .description(getDescription(field))
+        .description(getDescription(field))
+        .attributes(getAttributes(field))
         .build();
+  }
+
+  private static Map<String, String> getAttributes(Field field) {
+    if (field.isAnnotationPresent(Choice.class)) {
+      return Map.of("divStyle", field.getAnnotation(Choice.class).style());
+    }
+    return Map.of();
   }
 
   private static String getDescription(Field field) {
@@ -194,6 +202,9 @@ public class ReflectionFormFieldMapper {
   private static String getStyle(Field field) {
     if (field.isAnnotationPresent(Style.class)) {
       return field.getAnnotation(Style.class).value();
+    }
+    if (field.isAnnotationPresent(Image.class)) {
+      return field.getAnnotation(Image.class).style();
     }
     return "";
   }
@@ -272,12 +283,14 @@ public class ReflectionFormFieldMapper {
                             .label("Amount")
                             .build()
      */
-    getAllFields(getGenericClass(field, field.getType(), "E"))
+    getAllFields(getGenericClass(field, field.getType(), "E")).stream()
+        .filter(columnField -> !columnField.isAnnotationPresent(Hidden.class))
         .forEach(
             columnField -> {
               columns.add(
                   GridColumn.builder()
-                      .dataType(FieldDataType.string)
+                      .dataType(getDataTypeForColumn(columnField))
+                      .stereotype(getStereotypeForColumn(columnField))
                       .id(columnField.getName())
                       .label(getLabel(columnField))
                       .build());
@@ -289,10 +302,10 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly)
         .label(getLabel(field))
         .columns(columns)
-        .style("min-width: 10rem; width: 100%;")
+        .style(getStyleForArray(field))
         .colspan(getColspan(field))
         .itemIdPath("_rowNumber")
-        .onItemSelectionActionId(readOnly?null:field.getName() + "_selected")
+        .onItemSelectionActionId(readOnly ? null : field.getName() + "_selected")
         .formPosition(FormPosition.right)
         .createForm(
             Form.builder()
@@ -346,6 +359,31 @@ public class ReflectionFormFieldMapper {
                         Button.builder().label("Save").actionId(field.getName() + "_save").build()))
                 .build())
         .build();
+  }
+
+  private static FieldDataType getDataTypeForColumn(Field columnField) {
+    if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
+      return FieldDataType.component;
+    }
+    if (ColumnAction.class.isAssignableFrom(columnField.getType())) {
+      return FieldDataType.action;
+    }
+    return FieldDataType.string;
+  }
+
+  private static FieldStereotype getStereotypeForColumn(Field columnField) {
+    if (columnField.isAnnotationPresent(Image.class)) {
+      return FieldStereotype.image;
+    }
+    return FieldStereotype.regular;
+  }
+
+  private static String getStyleForArray(Field field) {
+    var style = getStyle(field);
+    if (style != null && !style.isEmpty()) {
+      return style;
+    }
+    return "min-width: 10rem; width: 100%;";
   }
 
   private static String getFieldId(Field field, String prefix, boolean readOnly) {
@@ -457,11 +495,17 @@ public class ReflectionFormFieldMapper {
     if (field.getType().isEnum()) {
       return FieldStereotype.select;
     }
+    if (field.isAnnotationPresent(Image.class)) {
+      return FieldStereotype.image;
+    }
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return FieldStereotype.combobox;
     }
     if (field.isAnnotationPresent(Select.class)) {
       return FieldStereotype.select;
+    }
+    if (field.isAnnotationPresent(Choice.class)) {
+      return FieldStereotype.choice;
     }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();

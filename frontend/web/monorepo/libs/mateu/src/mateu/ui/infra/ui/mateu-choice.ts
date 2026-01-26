@@ -74,8 +74,10 @@ export class MateuChoice extends LitElement {
             }
         }
 
+        const divStyle = this.field?.attributes?.find(pair => pair.key == 'divStyle')?.value??''
+
         return html`
-        <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap;">
+        <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${divStyle}">
                                     ${options?.map(option => html`
                             <div 
                                     class="choice ${(this.value == option.value || (this.value && this.value.indexOf && this.value.indexOf(option.value) >= 0))?'selected':''}"
@@ -90,7 +92,7 @@ export class MateuChoice extends LitElement {
                             >${option.description || option.image?html`
                                 <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
                                     ${option.image?html`
-                                            <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
+                                            <img src="${option.image}" alt="${option.label}" style="${option.imageStyle??'width: 2rem;'}" />
                                         `:nothing}
                                     <vaadin-vertical-layout>
                                         <span> ${option.label} </span>

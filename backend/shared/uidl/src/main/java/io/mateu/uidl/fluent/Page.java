@@ -1,9 +1,8 @@
 package io.mateu.uidl.fluent;
 
-import java.util.List;
-
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.KPI;
+import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
 

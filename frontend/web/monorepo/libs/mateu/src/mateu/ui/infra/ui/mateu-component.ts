@@ -141,7 +141,22 @@ export class MateuComponent extends ComponentElement {
                             eval(rule.value as string)
                         }
                         if (RuleAction.SetAttributeValue == rule.action) {
-                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, rule.value as string)
+                            // @ts-ignore
+                            const data = this.data
+                            // @ts-ignore
+                            const state = this.state
+                            // @ts-ignore
+                            const component = this.component
+                            const value = rule.expression?eval(rule.expression):rule.value
+                            if ('disabled' == rule.fieldAttribute) {
+                                if (value) {
+                                    this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, 'disabled')
+                                } else {
+                                    this.shadowRoot?.getElementById(rule.fieldName)?.removeAttribute(rule.fieldAttribute)
+                                }
+                                continue
+                            }
+                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, value)
                         }
                         if (RuleAction.SetCssClass == rule.action) {
                             this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute('class', rule.value as string)
@@ -172,10 +187,10 @@ export class MateuComponent extends ComponentElement {
         let dataUpdated = false
         // @ts-ignore
         const data = this.data??{}
+        // @ts-ignore
+        const state = this.state??{}
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
-            // @ts-ignore
-            const state = this.state
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
                 const fieldNames = (validation.fieldId??'_component').split(',')
@@ -187,7 +202,7 @@ export class MateuComponent extends ComponentElement {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
                 try {
-                    const failed = validation.condition && !eval(validation.condition)
+                    const failed = validation.condition && !eval('`' + validation.condition + '`')
                     if (failed) {
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')
@@ -201,7 +216,7 @@ export class MateuComponent extends ComponentElement {
                             if (!data[fieldName]) {
                                 let message = validation.message
                                 try {
-                                    message = eval(validation.message)
+                                    message = eval('`'  + validation.message + '`')
                                 } catch (ignored) {
 
                                 }
@@ -322,7 +337,6 @@ export class MateuComponent extends ComponentElement {
             if (action && action.validationRequired) {
                 this.checkValidations()
                 if (!this.data._valid) {
-                    console.log('data', this.data)
                     this.notify('There are validation errors')
                     return
                 }

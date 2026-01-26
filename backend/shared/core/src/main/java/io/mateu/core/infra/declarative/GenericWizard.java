@@ -16,6 +16,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -222,6 +223,7 @@ public abstract class GenericWizard
                     .next(),
                 HorizontalLayout.builder()
                     .justification(HorizontalLayoutJustification.END)
+                    .spacing(true)
                     .content(buttons)
                     .build()))
         .style("width: 100%")
@@ -230,9 +232,14 @@ public abstract class GenericWizard
 
   private List<Component> createButtons() {
     List<Component> buttons = new ArrayList<>();
-    buttons.add(Button.builder().label("Back").disabled(position == 0).build());
+    buttons.add(Button.builder().id("back").label("Back").disabled(position == 0).build());
     if (position < numberOfSteps() - 1) {
-      buttons.add(Button.builder().label("Next").disabled(position == numberOfSteps() - 1).build());
+      buttons.add(
+          Button.builder()
+              .id("next")
+              .label("Next")
+              .disabled(position == numberOfSteps() - 1)
+              .build());
     } else {
       getAllMethods(getClass()).stream()
           .filter(method -> method.isAnnotationPresent(WizardCompletionAction.class))
@@ -244,6 +251,12 @@ public abstract class GenericWizard
                           .buttonStyle(ButtonStyle.primary)
                           .build()));
     }
+    getAllMethods(currentStepField().getType()).stream()
+        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .forEach(
+            method ->
+                buttons.add(
+                    Button.builder().actionId(method.getName()).label(getLabel(method)).build()));
     return buttons;
   }
 

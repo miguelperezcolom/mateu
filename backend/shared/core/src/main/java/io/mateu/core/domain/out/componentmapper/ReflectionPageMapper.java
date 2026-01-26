@@ -14,8 +14,10 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.Humanizer;
+import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
+import io.mateu.uidl.annotations.Image;
 import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Tab;
@@ -121,7 +123,7 @@ public class ReflectionPageMapper {
                     && !field.isAnnotationPresent(Footer.class)
                     && !field.isAnnotationPresent(Avatar.class)
                     && !field.isAnnotationPresent(Menu.class)
-                        && !Status.class.equals(field.getType()))
+                    && !Status.class.equals(field.getType()))
         .map(
             field ->
                 mapToComponent(
@@ -191,6 +193,9 @@ public class ReflectionPageMapper {
     if (field.isAnnotationPresent(Hidden.class)) {
       return false;
     }
+    if (field.isAnnotationPresent(HiddenInList.class)) {
+      return false;
+    }
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }
@@ -224,7 +229,18 @@ public class ReflectionPageMapper {
         .label(getLabel(field))
         .dataType(getDataType(field))
         .stereotype(getStereotype(field))
+        .style(getColumnStyle(field))
         .build();
+  }
+
+  private static String getColumnStyle(Field field) {
+    if (field.isAnnotationPresent(Style.class)) {
+      return field.getAnnotation(Style.class).value();
+    }
+    if (field.isAnnotationPresent(Image.class)) {
+      return field.getAnnotation(Image.class).rowStyle();
+    }
+    return "";
   }
 
   public static Collection<FormField> getFilters(
@@ -271,6 +287,24 @@ public class ReflectionPageMapper {
         forCreationForm);
     var content = new ArrayList<Component>();
     if (!noTabFields.isEmpty()) {
+        aquí meter form row
+        /*
+                var rows = new ArrayList<Component>();
+    int col = 0;
+    var pendingRow = new ArrayList<Component>();
+    for (Component field : fields) {
+      pendingRow.add(field);
+      col += (field instanceof FormField formField) ? formField.colspan() : 1;
+      if (col == section.columns) {
+        rows.add(FormRow.builder().content(pendingRow).build());
+        pendingRow = new ArrayList<>();
+        col = 0;
+      }
+    }
+    if (!pendingRow.isEmpty()) {
+      rows.add(FormRow.builder().content(pendingRow).build());
+    }
+         */
       content.add(
           FormLayout.builder()
               .content(
@@ -338,8 +372,8 @@ public class ReflectionPageMapper {
     var filteredFields =
         getAllEditableFields(type).stream()
             .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
-                .filter(field -> !Status.class.equals(field.getType()))
-                .filter(field -> !field.isAnnotationPresent(KPI.class))
+            .filter(field -> !Status.class.equals(field.getType()))
+            .filter(field -> !field.isAnnotationPresent(KPI.class))
             .filter(
                 field ->
                     !field.isAnnotationPresent(Hidden.class)
@@ -443,6 +477,7 @@ public class ReflectionPageMapper {
     if (sections.size() > 1) {
       return List.of(
           io.mateu.uidl.data.HorizontalLayout.builder()
+              .spacing(true)
               .content(
                   sections.stream()
                       .map(
@@ -554,7 +589,13 @@ public class ReflectionPageMapper {
   }
 
   private static boolean filterField(Field field, boolean forCreationForm) {
+    if (ComponentDto.class.isAssignableFrom(field.getType())) {
+      return false;
+    }
     if (Status.class.equals(field.getType())) {
+      return false;
+    }
+    if (field.isAnnotationPresent(Hidden.class)) {
       return false;
     }
     if (field.isAnnotationPresent(KPI.class)) {

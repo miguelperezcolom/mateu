@@ -3,11 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.FormFieldDto;
-import io.mateu.dtos.FormPositionDto;
-import io.mateu.dtos.OptionDto;
-import io.mateu.dtos.RemoteCoordinatesDto;
+import io.mateu.dtos.*;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -40,7 +36,8 @@ public class FieldComponentToDtoMapper {
                                 option.value(),
                                 option.label(),
                                 option.description(),
-                                option.image()))
+                                option.image(),
+                                option.imageStyle()))
                     .toList())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
             .initialValue(formField.initialValue())
@@ -93,12 +90,22 @@ public class FieldComponentToDtoMapper {
                         httpRequest)
                     : null)
             .onItemSelectionActionId(formField.onItemSelectionActionId())
+            .attributes(mapAttributes(formField))
             .build(),
         formField.id(),
         List.of(),
         formField.style(),
         formField.cssClasses(),
         null);
+  }
+
+  private static List<PairDto> mapAttributes(FormField formField) {
+    if (formField.attributes() != null) {
+      return formField.attributes().entrySet().stream()
+          .map(e -> new PairDto(e.getKey(), e.getValue()))
+          .toList();
+    }
+    return null;
   }
 
   private static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {
