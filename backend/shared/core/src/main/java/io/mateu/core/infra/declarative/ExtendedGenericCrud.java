@@ -566,7 +566,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     return wrap(
         Page.builder()
             .title("New " + toUpperCaseFirst(entityClass().getSimpleName()))
-            .style("max-width:900px;margin: auto;")
+            .style(getFormColumns(entityClass()) > 2?"width: 100%;":"max-width:900px;margin: auto;")
             .content(
                 getView(
                         entityClass(),
@@ -600,7 +600,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     return wrap(
         Page.builder()
             .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
-            .style("max-width:900px;margin: auto;")
+            .style(getFormColumns(entityClass()) > 2?"width: 100%;":"max-width:900px;margin: auto;")
             .badges(createBadges(item))
             .content(
                 getView(
@@ -647,7 +647,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     var toolbar = createViewToolbar();
     return Page.builder()
         .title(toUpperCaseFirst(entityClass().getSimpleName()) + " " + getEntityName(item))
-        .style("max-width:900px;margin: auto;")
+            .style(getFormColumns(entityClass()) > 2?"width: 100%;":"max-width:900px;margin: auto;")
         .badges(createBadges(item))
         .kpis(createKpis(item))
         .content(

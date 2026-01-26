@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getLabel;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFormColumns;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.getValidations;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
@@ -218,7 +219,8 @@ public abstract class GenericWizard
                         httpRequest.runActionRq().initiatorComponentId(),
                         httpRequest,
                         false,
-                        false)
+                        false,
+                        getFormColumns(getStep().getClass()))
                     .iterator()
                     .next(),
                 HorizontalLayout.builder()

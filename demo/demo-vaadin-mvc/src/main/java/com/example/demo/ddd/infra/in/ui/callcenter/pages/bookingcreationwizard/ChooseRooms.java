@@ -2,6 +2,7 @@ package com.example.demo.ddd.infra.in.ui.callcenter.pages.bookingcreationwizard;
 
 import io.mateu.core.infra.declarative.WizardStep;
 import io.mateu.uidl.annotations.Choice;
+import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Select;
@@ -14,11 +15,15 @@ import java.util.Map;
 
 public record ChooseRooms(
         @Choice(style = "min-width: 80rem;")
+        @Colspan(2)
         String roomCode1,
         @Choice(style = "min-width: 80rem;")
+        @Colspan(2)
         String roomCode2,
         @Choice(style = "min-width: 80rem;")
+        @Colspan(2)
         String roomCode3,
+
         @ReadOnly
         String total,
         @Hidden

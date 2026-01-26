@@ -4,6 +4,7 @@ import io.mateu.core.infra.declarative.Entity;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyIdOptionsSupplier;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyLabelSupplier;
 import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
+import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
@@ -39,6 +40,7 @@ public record File(
         @Tab("Bookings")
         @Composition(targetClass = Booking.class, repositoryClass = BookingRepository.class, foreignKeyField = "fileId")
                 @Label("")
+        @Colspan(2)
         List<String> bookingIds
 ) implements Entity<String> {
 }

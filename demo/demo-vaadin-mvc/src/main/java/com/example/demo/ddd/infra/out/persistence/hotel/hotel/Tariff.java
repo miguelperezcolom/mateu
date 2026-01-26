@@ -23,6 +23,7 @@ import io.mateu.uidl.annotations.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@FormLayout(columns = 4)
 public record Tariff(
         @GeneratedValue(UUIDValueGenerator.class)
         @Hidden

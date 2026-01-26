@@ -1,6 +1,7 @@
 package com.example.demo.ddd.infra.out.persistence.hotel.users;
 
 import io.mateu.core.infra.declarative.GenericEntity;
+import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Image;
 import io.mateu.uidl.annotations.ReadOnly;
@@ -13,6 +14,7 @@ public record User(
         @NotEmpty
         String name,
         @Image(style = "max-width: 100px; border-radius: 50%; object-fit: cover;", rowStyle = "border-radius: 50%; object-fit: cover;")
+        @Colspan(2)
         String photo,
         @ReadOnly
         Status status,

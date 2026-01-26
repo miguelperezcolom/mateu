@@ -4,6 +4,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.BasicTypeChecker.isBasicArray;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFormColumns;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
@@ -66,7 +67,8 @@ public class ReflectionFormFieldMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest,
-      boolean forCreationForm) {
+      boolean forCreationForm,
+      int maxColumns) {
     return getFormField(
         field,
         instance,
@@ -76,7 +78,8 @@ public class ReflectionFormFieldMapper {
         initiatorComponentId,
         httpRequest,
         isReadOnly(field, instance),
-        forCreationForm);
+        forCreationForm,
+            maxColumns);
   }
 
   public static Component getFormField(
@@ -88,7 +91,8 @@ public class ReflectionFormFieldMapper {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean readOnly,
-      boolean forCreationForm) {
+      boolean forCreationForm,
+      int maxColumns) {
     return getFormField(
         "",
         field,
@@ -99,7 +103,8 @@ public class ReflectionFormFieldMapper {
         initiatorComponentId,
         httpRequest,
         readOnly,
-        forCreationForm);
+        forCreationForm,
+            maxColumns);
   }
 
   public static Component getFormField(
@@ -112,7 +117,8 @@ public class ReflectionFormFieldMapper {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean readOnly,
-      boolean forCreationForm) {
+      boolean forCreationForm,
+      int maxColumns) {
     if (Component.class.isAssignableFrom(field.getType())) {
       return CustomField.builder()
           .label(getLabel(field))
@@ -152,7 +158,7 @@ public class ReflectionFormFieldMapper {
       return CustomField.builder()
           .label(getLabel(field))
           .content(
-              getForm(
+              getForm( // todo: nested form layout!!!
                       ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
                       value != null ? value : field.getType(),
                       baseUrl,
@@ -161,10 +167,12 @@ public class ReflectionFormFieldMapper {
                       initiatorComponentId,
                       httpRequest,
                       forCreationForm,
-                      readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm))
+                      readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm),
+                      maxColumns)
                   .iterator()
                   .next())
-          .colspan(getColspan(field))
+          .colspan(maxColumns)
+              .style("width: 100%;")
           .build();
     }
     return FormField.builder()
@@ -220,7 +228,7 @@ public class ReflectionFormFieldMapper {
             ((Entity<?>) instance).id(),
             getLabel(field),
             true);
-    return new CustomField("", crud, "", "", 2);
+    return new CustomField("", crud, "width: 100%;", "", 2);
   }
 
   private static Component createCrudForCompositionField(
@@ -234,7 +242,7 @@ public class ReflectionFormFieldMapper {
             ((Entity<?>) instance).id(),
             getLabel(field),
             true);
-    return new CustomField("", crud, "", "", 2);
+    return new CustomField("", crud, "width: 100%;", "", 2);
   }
 
   private static int getColspan(Field field) {
@@ -320,7 +328,8 @@ public class ReflectionFormFieldMapper {
                             httpRequest.runActionRq().initiatorComponentId(),
                             httpRequest,
                             true,
-                            readOnly)
+                            readOnly,
+                            getFormColumns(getGenericClass(field, field.getType(), "E")))
                         .stream()
                         .toList())
                 .buttons(
@@ -347,7 +356,8 @@ public class ReflectionFormFieldMapper {
                             httpRequest.runActionRq().initiatorComponentId(),
                             httpRequest,
                             false,
-                            readOnly)
+                            readOnly,
+                            getFormColumns(getGenericClass(field, field.getType(), "E")))
                         .stream()
                         .toList())
                 .buttons(

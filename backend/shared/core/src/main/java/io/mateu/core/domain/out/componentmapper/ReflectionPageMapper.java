@@ -112,7 +112,7 @@ public class ReflectionPageMapper {
     }
     if (isForm(instance)) {
       return getForm(
-          instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false, false);
+          instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false, false, getFormColumns(instance.getClass()));
     }
     return getAllFields(instance.getClass()).stream()
         .filter(
@@ -264,7 +264,8 @@ public class ReflectionPageMapper {
                         consumedRoute,
                         initiatorComponentId,
                         httpRequest,
-                        false))
+                        false,
+                            2))
         .toList();
   }
 
@@ -279,50 +280,36 @@ public class ReflectionPageMapper {
       boolean forCreationForm) {
     List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
     List<Field> noTabFields = new ArrayList<>();
-    arrangeInTabs(
-        instance instanceof Class ? (Class) instance : instance.getClass(),
-        fieldsPerTab,
-        noTabFields,
-        readOnly,
-        forCreationForm);
+    var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
+    arrangeInTabs(instanceType, fieldsPerTab, noTabFields, readOnly, forCreationForm);
     var content = new ArrayList<Component>();
+    int maxColumns = getFormColumns(instanceType);
     if (!noTabFields.isEmpty()) {
-        aquí meter form row
-        /*
-                var rows = new ArrayList<Component>();
-    int col = 0;
-    var pendingRow = new ArrayList<Component>();
-    for (Component field : fields) {
-      pendingRow.add(field);
-      col += (field instanceof FormField formField) ? formField.colspan() : 1;
-      if (col == section.columns) {
-        rows.add(FormRow.builder().content(pendingRow).build());
-        pendingRow = new ArrayList<>();
-        col = 0;
-      }
-    }
-    if (!pendingRow.isEmpty()) {
-      rows.add(FormRow.builder().content(pendingRow).build());
-    }
-         */
+
       content.add(
           FormLayout.builder()
+              .expandColumns(true)
+              .maxColumns(maxColumns)
+              .autoResponsive(true)
               .content(
-                  noTabFields.stream()
-                      .map(
-                          field ->
-                              (Component)
-                                  getFormField(
-                                      field,
-                                      instance,
-                                      baseUrl,
-                                      route,
-                                      consumedRoute,
-                                      initiatorComponentId,
-                                      httpRequest,
-                                      readOnly,
-                                      forCreationForm))
-                      .toList())
+                  buildRows(
+                      noTabFields.stream()
+                          .map(
+                              field ->
+                                  (Component)
+                                      getFormField(
+                                          field,
+                                          instance,
+                                          baseUrl,
+                                          route,
+                                          consumedRoute,
+                                          initiatorComponentId,
+                                          httpRequest,
+                                          readOnly,
+                                          forCreationForm,
+                                              maxColumns))
+                          .toList(),
+                      maxColumns))
               .build());
     }
     if (fieldsPerTab.size() > 0) {
@@ -337,28 +324,60 @@ public class ReflectionPageMapper {
                                   .label(pair.first().value())
                                   .content(
                                       FormLayout.builder()
+                                          .expandColumns(true)
+                                          .maxColumns(maxColumns)
+                                          .autoResponsive(true)
                                           .content(
-                                              pair.second().stream()
-                                                  .map(
-                                                      field ->
-                                                          (Component)
-                                                              getFormField(
-                                                                  field,
-                                                                  instance,
-                                                                  baseUrl,
-                                                                  route,
-                                                                  consumedRoute,
-                                                                  initiatorComponentId,
-                                                                  httpRequest,
-                                                                  readOnly,
-                                                                  forCreationForm))
-                                                  .toList())
+                                              buildRows(
+                                                  pair.second().stream()
+                                                      .map(
+                                                          field ->
+                                                              (Component)
+                                                                  getFormField(
+                                                                      field,
+                                                                      instance,
+                                                                      baseUrl,
+                                                                      route,
+                                                                      consumedRoute,
+                                                                      initiatorComponentId,
+                                                                      httpRequest,
+                                                                      readOnly,
+                                                                      forCreationForm,
+                                                                          maxColumns))
+                                                      .toList(),
+                                                  maxColumns))
                                           .build())
                                   .build())
                       .toList())
               .build());
     }
     return content;
+  }
+
+  public static int getFormColumns(Class<?> instanceType) {
+    if (instanceType.isAnnotationPresent(io.mateu.uidl.annotations.FormLayout.class)) {
+      return instanceType.getAnnotation(io.mateu.uidl.annotations.FormLayout.class).columns();
+    }
+    return 2;
+  }
+
+  private static List<Component> buildRows(List<Component> fields, int columns) {
+    var rows = new ArrayList<Component>();
+    int col = 0;
+    var pendingRow = new ArrayList<Component>();
+    for (Component field : fields) {
+      pendingRow.add(field);
+      col += (field instanceof FormField formField) ? formField.colspan() : 1;
+      if (col == columns) {
+        rows.add(FormRow.builder().content(pendingRow).build());
+        pendingRow = new ArrayList<>();
+        col = 0;
+      }
+    }
+    if (!pendingRow.isEmpty()) {
+      rows.add(FormRow.builder().content(pendingRow).build());
+    }
+    return rows;
   }
 
   private static void arrangeInTabs(
@@ -406,7 +425,8 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      boolean readOnly) {
+      boolean readOnly,
+      int maxColumns) {
     return getForm(
         "",
         instance,
@@ -416,7 +436,8 @@ public class ReflectionPageMapper {
         initiatorComponentId,
         httpRequest,
         forCreationForm,
-        readOnly);
+        readOnly,
+            maxColumns);
   }
 
   record SectionFields(String label, List<Field> fields, int columns) {}
@@ -430,7 +451,8 @@ public class ReflectionPageMapper {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      boolean readOnly) {
+      boolean readOnly,
+      int maxColumns) {
     Map<Section, SectionFields> fieldsPerSection = new HashMap<>();
     List<Section> sections = new ArrayList<>();
     Section sectionAnnotation = null;
@@ -461,7 +483,7 @@ public class ReflectionPageMapper {
 
                 @Override
                 public int columns() {
-                  return 1;
+                  return maxColumns;
                 }
               };
         }
@@ -548,7 +570,8 @@ public class ReflectionPageMapper {
                             initiatorComponentId,
                             httpRequest,
                             readOnly || isReadOnly(field, instance, forCreationForm),
-                            forCreationForm))
+                            forCreationForm,
+                                section.columns))
             .toList();
     var rows = new ArrayList<Component>();
     int col = 0;
@@ -570,6 +593,7 @@ public class ReflectionPageMapper {
         //              .columnWidth("10rem")
         //              .columnSpacing("1rem")
         .autoResponsive(true)
+            .expandColumns(true)
         .content(rows)
         .build();
   }

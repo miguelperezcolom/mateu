@@ -2,7 +2,9 @@ package com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff;
 
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.PaxType;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SaleScope;
+import io.mateu.uidl.annotations.FormLayout;
 
+@FormLayout(columns = 4)
 public record TariffGeneralInfo(
         TariffStatus status,
         String hotelId,

@@ -236,6 +236,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return html`
         <mateu-field
                        id="${component.id}"
+                       .component="${component}"
                 .field="${component.metadata}"
                        .state="${state}"
                        .data="${data}"

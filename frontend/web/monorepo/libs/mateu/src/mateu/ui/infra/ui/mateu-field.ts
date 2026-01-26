@@ -41,6 +41,7 @@ import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 
 interface FileLike {
     id: string
@@ -50,6 +51,9 @@ interface FileLike {
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
+
+    @property()
+    component: ClientSideComponent | undefined = undefined
 
     @property()
     field: FormField | undefined = undefined
@@ -998,7 +1002,7 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     ><img 
                             src="${value}"
-                            style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;"></vaadin-custom-field>
+                            style="${this.component?.style}" class="${this.component?.cssClasses}"></vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'color') {
