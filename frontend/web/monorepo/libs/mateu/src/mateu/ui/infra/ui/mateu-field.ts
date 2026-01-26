@@ -278,12 +278,16 @@ export class MateuField extends LitElement {
     // @ts-ignore
     evalIfNecessary = (value: string, _state: any, _data: any) => {
         if (value && value.includes && value.includes('${')) {
-            console.log('evalIfNecessary', value, _state, _data)
             // @ts-ignore
             const state = _state
             // @ts-ignore
             const data = _data
-            return eval('`' + value + '`')
+            try {
+                return eval('`' + value + '`')
+            } catch (e) {
+                console.error('Error evaluating template string:', e)
+                return value
+            }
         }
         return value
     }
