@@ -12,9 +12,9 @@ public interface ComponentTreeSupplier extends Component {
   Component component(HttpRequest httpRequest);
 
   default String style() {
-      if (getClass().isAnnotationPresent(Style.class)) {
-          return getClass().getAnnotation(Style.class).value();
-      }
+    if (getClass().isAnnotationPresent(Style.class)) {
+      return getClass().getAnnotation(Style.class).value();
+    }
     return "max-width:900px;margin: auto;";
   }
 

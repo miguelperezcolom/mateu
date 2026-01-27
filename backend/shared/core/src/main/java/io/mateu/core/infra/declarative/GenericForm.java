@@ -23,7 +23,6 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -36,7 +35,8 @@ public class GenericForm
         ActionSupplier,
         ValidationDtoSupplier,
         ComponentTreeSupplier,
-        RuleSupplier, ActionHandler {
+        RuleSupplier,
+        ActionHandler {
 
   @Override
   public List<Action> actions() {
@@ -52,10 +52,10 @@ public class GenericForm
   public Component component(HttpRequest httpRequest) {
     return Page.builder()
         .title(title())
-        //.header(List.of(new Text("This in header")))
+        // .header(List.of(new Text("This in header")))
         .badges(createBadges(this))
         .kpis(createKpis(this))
-        //.subtitle("This is a subtitle")
+        // .subtitle("This is a subtitle")
         .style(style())
         .content(
             getView(
@@ -151,38 +151,38 @@ public class GenericForm
     return buttons;
   }
 
-    @Override
-    public Object handleAction(String actionId, HttpRequest httpRequest) {
-        if (actionId.startsWith("search-")) {
-            // search-field-childfield
-            String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-            ForeignKeyOptionsSupplier optionsSupplier = null;
-            if (fieldName.contains("-")) {
-                var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
-                var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
-                var rowClass =
-                        getGenericClass(
-                                (ParameterizedType) getFieldByName(getClass(), parentFieldName).getGenericType(),
-                                List.class,
-                                "E");
-                var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
-                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
-            } else {
-                var fkAnnotation = getFieldByName(getClass(), fieldName).getAnnotation(ForeignKey.class);
-                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
-            }
+  @Override
+  public Object handleAction(String actionId, HttpRequest httpRequest) {
+    if (actionId.startsWith("search-")) {
+      // search-field-childfield
+      String fieldName = actionId.substring(actionId.indexOf('-') + 1);
+      ForeignKeyOptionsSupplier optionsSupplier = null;
+      if (fieldName.contains("-")) {
+        var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
+        var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+        var rowClass =
+            getGenericClass(
+                (ParameterizedType) getFieldByName(getClass(), parentFieldName).getGenericType(),
+                List.class,
+                "E");
+        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+      } else {
+        var fkAnnotation = getFieldByName(getClass(), fieldName).getAnnotation(ForeignKey.class);
+        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+      }
 
-            Pageable pageable = httpRequest.getParameters(Pageable.class);
-            String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
-            if (searchText == null) {
-                searchText = "";
-            }
-            var cleanSearchText = searchText.toLowerCase();
+      Pageable pageable = httpRequest.getParameters(Pageable.class);
+      String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
+      if (searchText == null) {
+        searchText = "";
+      }
+      var cleanSearchText = searchText.toLowerCase();
 
-            var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
+      var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
 
-            return new Data(Map.of(fieldName, listingData.page()));
-        }
-        return null;
+      return new Data(Map.of(fieldName, listingData.page()));
     }
+    return null;
+  }
 }
