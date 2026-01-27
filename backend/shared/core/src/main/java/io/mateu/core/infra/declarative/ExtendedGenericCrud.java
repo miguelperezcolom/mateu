@@ -383,6 +383,9 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             return new State(newState);
           }
           if ((field.getName() + "_save").equals(actionId)) {
+            _show_detail.put(field.getName(), false);
+            _editing.put(field.getName(), false);
+
             var values =
                 ((List<Map<String, Object>>)
                         httpRequest
@@ -391,8 +394,10 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                             .get(field.getName() + "_selected_items"))
                     .get(0);
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+            List<Map<String, Object>> list = (List<Map<String, Object>>) newState.get(field.getName());
+            var row = list.stream().filter(l -> l.get("_rowNumber").equals(values.get("_rowNumber"))).findFirst().orElseThrow();
             for (String key : values.keySet()) {
-              newState.put(field.getName() + "-" + key, values.get(key));
+              row.put(key, newState.get(field.getName() + "-" + key));
             }
 
             return new State(newState);
