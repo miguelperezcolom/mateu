@@ -38,7 +38,6 @@ public class    InventoryCalendar extends GenericForm {
     String roomId;
 
     @Label("_")
-            @Colspan(4)
     Button search = Button.builder().label("Search").build();
 
     @Colspan(8)
