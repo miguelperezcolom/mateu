@@ -30,7 +30,6 @@ public class StopSalesCalendar extends GenericForm {
     String hotelId;
 
     @Label("_")
-            @Colspan(6)
     Button search = Button.builder().label("Search").build();
 
     @Colspan(8)
