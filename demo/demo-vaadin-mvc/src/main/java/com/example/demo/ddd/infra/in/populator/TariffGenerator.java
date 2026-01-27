@@ -176,7 +176,7 @@ public class TariffGenerator {
         var precios = new ArrayList<PricePerRoom>();
         dataSet.tiposHabitacion().forEach(t -> precios.add(new PricePerRoom(t.codigo(), 10.31)));
         return periods.stream()
-                .map(p -> new Price(pos.getAndIncrement(), p.number(), precios, "Generated"))
+                .map(p -> new Price(pos.getAndIncrement(), p.number(), precios, "", "Generated"))
                 .toList();
     }
 

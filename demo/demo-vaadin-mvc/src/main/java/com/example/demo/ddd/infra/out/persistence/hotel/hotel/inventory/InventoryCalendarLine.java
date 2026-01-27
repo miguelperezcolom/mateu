@@ -6,8 +6,11 @@ import lombok.With;
 
 @With
 public record InventoryCalendarLine(
+        @ColumnWidth("4rem")
         String year,
+        @ColumnWidth("3rem")
         String month,
+        @ColumnWidth("3rem")
         String roomTypeCode,
         @ColumnWidth("2rem")
         @Label("01")

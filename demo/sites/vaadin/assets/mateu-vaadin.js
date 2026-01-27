@@ -21674,7 +21674,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                         .selectedItems="${this.selectedItems}"
                         item-id-path="${this.field?.itemIdPath}"
                         @active-item-changed="${ie=>{if(this.field?.onItemSelectionActionId){const oe=ie.detail.value;this.selectedItems=oe?[oe]:[],this.state[this.id+"_selected_items"]=oe?[oe]:[],oe&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field?.onItemSelectionActionId},bubbles:!0,composed:!0}))}}}"
-                        all-rows-visible
+                        ?all-rows-visible=${te?.length<10}
                 >
                     <span slot="empty-state">Empty list.</span>
                     ${this.field?.columns?.map(ie=>renderColumnOrGroup(ie,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}

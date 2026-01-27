@@ -117,7 +117,7 @@ export class MateuGrid extends MetadataDrivenElement {
                                 }
                             }
                         }}"
-                        all-rows-visible
+                        ?all-rows-visible=${items?.length < 10}
                 >
                     <span slot="empty-state">Empty list.</span>
                     ${this.field?.columns?.map(column =>

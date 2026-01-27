@@ -295,7 +295,8 @@ public class ReflectionFormFieldMapper {
                             .build()
      */
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
-        .filter(columnField -> !columnField.isAnnotationPresent(Hidden.class))
+        .filter(columnField -> !columnField.isAnnotationPresent(Hidden.class)
+        && !columnField.isAnnotationPresent(HiddenInList.class))
         .forEach(
             columnField -> {
               columns.add(

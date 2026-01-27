@@ -468,6 +468,8 @@ public class ReflectionPageMapper {
     for (Field field :
         getAllEditableFields(getClass(instance)).stream()
             .filter(field -> filterField(field, forCreationForm))
+                .filter(field -> readOnly || (!readOnly && !field.isAnnotationPresent(HiddenInEditor.class)))
+                .filter(field -> !readOnly || (readOnly && !field.isAnnotationPresent(HiddenInView.class)))
             .toList()) {
       if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
         if (sectionFields != null) {
