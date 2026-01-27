@@ -79,7 +79,7 @@ public class ReflectionFormFieldMapper {
         httpRequest,
         isReadOnly(field, instance),
         forCreationForm,
-            maxColumns);
+        maxColumns);
   }
 
   public static Component getFormField(
@@ -104,7 +104,7 @@ public class ReflectionFormFieldMapper {
         httpRequest,
         readOnly,
         forCreationForm,
-            maxColumns);
+        maxColumns);
   }
 
   public static Component getFormField(
@@ -145,7 +145,7 @@ public class ReflectionFormFieldMapper {
         && !field.isAnnotationPresent(ForeignKey.class)
         && !field.isAnnotationPresent(Composition.class)
         && !isBasic(field.getType())) {
-      return createCrudForField(field, readOnly, httpRequest);
+      return createCrudForField(field,  readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm), httpRequest);
     }
     if (!isBasic(field.getType())
         && !field.getType().isEnum()
@@ -158,7 +158,7 @@ public class ReflectionFormFieldMapper {
       return CustomField.builder()
           .label(getLabel(field))
           .content(
-              getForm( // todo: nested form layout!!!
+              getForm(
                       ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
                       value != null ? value : field.getType(),
                       baseUrl,
@@ -172,7 +172,7 @@ public class ReflectionFormFieldMapper {
                   .iterator()
                   .next())
           .colspan(maxColumns)
-              .style("width: 100%;")
+          .style("width: 100%;")
           .build();
     }
     return FormField.builder()
@@ -301,6 +301,7 @@ public class ReflectionFormFieldMapper {
                       .stereotype(getStereotypeForColumn(columnField))
                       .id(columnField.getName())
                       .label(getLabel(columnField))
+                          .width(getColumnWidth(columnField))
                       .build());
             });
     return FormField.builder()
@@ -315,6 +316,7 @@ public class ReflectionFormFieldMapper {
         .itemIdPath("_rowNumber")
         .onItemSelectionActionId(readOnly ? null : field.getName() + "_selected")
         .formPosition(FormPosition.right)
+            .readOnly(readOnly)
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))
@@ -371,13 +373,23 @@ public class ReflectionFormFieldMapper {
         .build();
   }
 
-  private static FieldDataType getDataTypeForColumn(Field columnField) {
+    private static String getColumnWidth(Field columnField) {
+      if (columnField.isAnnotationPresent(ColumnWidth.class)) {
+          return columnField.getAnnotation(ColumnWidth.class).value();
+      }
+      return null;
+    }
+
+    private static FieldDataType getDataTypeForColumn(Field columnField) {
     if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.component;
     }
     if (ColumnAction.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.action;
     }
+        if (boolean.class.equals(columnField.getType()) || Boolean.class.equals(columnField.getType())) {
+            return FieldDataType.bool;
+        }
     return FieldDataType.string;
   }
 

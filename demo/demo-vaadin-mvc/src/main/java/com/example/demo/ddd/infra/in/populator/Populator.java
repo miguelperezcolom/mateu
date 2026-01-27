@@ -6,10 +6,10 @@ import com.example.demo.ddd.infra.out.persistence.hotel.booking.FileRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.BoardTypeCodeRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.ContractRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.financial.AccountRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.financial.InvoiceRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.financial.PaymentRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.*;
 import com.example.demo.ddd.infra.out.persistence.hotel.users.UserRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.CountryRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.DestinationRepository;
@@ -48,6 +48,10 @@ public class Populator {
     final BookingRepository bookingRepository;
     private final TariffGenerator tariffGenerator;
     private final UserRepository userRepository;
+    private final OfferRepository offerRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final PaymentRepository paymentRepository;
+    private final AccountRepository accountRepository;
 
     public DataSet create() {
         List<TipoHabitacionDto> tiposHabitacion = leerTiposHabitacion();
@@ -91,6 +95,10 @@ public class Populator {
                 locatorValueGenerator,
                 tariffGenerator,
                 userRepository,
+                offerRepository,
+                invoiceRepository,
+                paymentRepository,
+                accountRepository,
                 hotels, agencies, years, tariffsPerContract
         );
     }

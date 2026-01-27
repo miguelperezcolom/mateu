@@ -20,9 +20,9 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 
 @MateuUI("")
 @Style("width: 100%;")
-@Title("Rumbo")
+@Title("µRumbo")
 @FavIcon("/images/riu.svg")
-@PageTitle("Rumbo")
+@PageTitle("µRumbo")
 @Logo("/images/riu.svg")
 @KeycloakSecured(url = "https://lemur-11.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
 public class Home implements WidgetSupplier {

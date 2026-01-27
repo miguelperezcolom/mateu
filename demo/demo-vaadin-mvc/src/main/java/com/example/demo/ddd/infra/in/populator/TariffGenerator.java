@@ -32,7 +32,7 @@ public class TariffGenerator {
             var tariff = new Tariff(
                     UUID.randomUUID().toString(),
                     contract.id(),
-                    "name",
+                    hotel.nombre() + " - RACK",
                     0,
                     false,
                     season.from(),

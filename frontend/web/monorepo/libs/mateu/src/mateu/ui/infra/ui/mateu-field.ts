@@ -416,6 +416,16 @@ export class MateuField extends LitElement {
                 ><img src="${valueToDisplay}" id="${this.field.fieldId}_img" style="${this.field.style}">
                 </vaadin-custom-field>`
             }
+            if ('bool' == this.field.dataType) {
+                return html`<vaadin-custom-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        required="${this.field.required || nothing}"
+                        .helperText="${this.field.description}"
+                        data-colspan="${this.field.colspan}"
+                ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" style="height: 20px;"></vaadin-icon>
+                </vaadin-custom-field>`
+            }
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"

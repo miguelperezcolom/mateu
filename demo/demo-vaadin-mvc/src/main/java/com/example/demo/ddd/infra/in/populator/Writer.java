@@ -1,5 +1,11 @@
 package com.example.demo.ddd.infra.in.populator;
 
+import com.example.demo.ddd.infra.in.populator.dtos.TipoHabitacionDto;
+import com.example.demo.ddd.infra.out.persistence.hotel.financial.*;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.*;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.inventory.InventoryCalendarLine;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.release.ReleaseCalendarLine;
+import com.example.demo.ddd.infra.out.persistence.hotel.hotel.stopsales.StopSalesCalendarLine;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.Agency;
 import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.booking.Booking;
@@ -13,15 +19,6 @@ import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCode;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.RoomTypeCodeRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.Season;
 import com.example.demo.ddd.infra.out.persistence.hotel.codes.SeasonRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Address;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Contract;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.ContractRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Hotel;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.HotelRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Inventory;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.InventoryRepository;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.Tariff;
-import com.example.demo.ddd.infra.out.persistence.hotel.hotel.TariffRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.users.User;
 import com.example.demo.ddd.infra.out.persistence.hotel.users.UserRepository;
 import com.example.demo.ddd.infra.out.persistence.hotel.world.Country;
@@ -60,6 +57,10 @@ public class Writer {
             LocatorValueGenerator locatorValueGenerator,
             TariffGenerator tariffGenerator,
             UserRepository userRepository,
+            OfferRepository offerRepository,
+            InvoiceRepository invoiceRepository,
+            PaymentRepository paymentRepository,
+            AccountRepository accountRepository,
             int hotels, int agencies, int years, int tariffsPerContract) {
         writeUsers(userRepository);
         writeAgencies(dataSet, agencyRepository, agencies);
@@ -72,7 +73,75 @@ public class Writer {
         writeContracts(hotelRepository, agencyRepository, contractRepository, seasonRepository);
         writeTariffs(dataSet, tariffRepository, seasonRepository, tariffGenerator, contractRepository, tariffsPerContract);
         writeInventories(dataSet, inventoryRepository);
+        writeOffers(hotelRepository, agencyRepository, offerRepository);
         writeBookings(dataSet, agencyRepository, hotelRepository, fileRepository, bookingRepository, locatorValueGenerator);
+        writeInvoices(fileRepository, bookingRepository, invoiceRepository);
+        writeAccounts(agencyRepository, accountRepository);
+        writePayments(invoiceRepository, paymentRepository);
+    }
+
+    private static void writeAccounts(AgencyRepository agencyRepository, AccountRepository accountRepository) {
+        List<Account> accounts = new ArrayList<>();
+        for (Agency agency : agencyRepository.findAll()) {
+            accounts.add(new Account(
+                    UUID.randomUUID().toString(),
+                    agency.id(),
+                    agency.name(),
+                    new Amount("EUR", 50.24),
+                    "Generated"
+            ));
+        }
+        accountRepository.saveAll(accounts);
+    }
+
+    private static void writePayments(InvoiceRepository invoiceRepository, PaymentRepository paymentRepository) {
+        List<Payment> payments = new ArrayList<>();
+        for (Invoice invoice : invoiceRepository.findAll()) {
+            payments.add(new Payment(
+                    UUID.randomUUID().toString(),
+                    invoice.agencyId(),
+                    LocalDate.now(),
+                    new Amount("EUR", 200.12),
+                    "Invoice " + invoice.id()
+            ));
+        }
+        paymentRepository.saveAll(payments);
+    }
+
+    private static void writeInvoices(FileRepository fileRepository, BookingRepository bookingRepository, InvoiceRepository invoiceRepository) {
+        List<Invoice> invoices = new ArrayList<>();
+        for (Booking booking : bookingRepository.findAll()) {
+            invoices.add(new Invoice(
+                    UUID.randomUUID().toString(),
+                    fileRepository.findById(booking.fileId()).get().agencyId(),
+                    LocalDate.now(),
+                    new Amount("EUR", 200.12),
+                    new Status(StatusType.SUCCESS, "Paid"),
+                    List.of(new InvoiceLine("Booking " + booking.id() + " - " + booking.name(), 200.12))
+            ));
+        }
+        invoiceRepository.saveAll(invoices);
+    }
+
+    private static void writeOffers(HotelRepository hotelRepository, AgencyRepository agencyRepository, OfferRepository offerRepository) {
+        List<Offer> offers = new ArrayList<>();
+        for (Hotel hotel : hotelRepository.findAll()) {
+            offers.add(new Offer(
+                    UUID.randomUUID().toString(),
+                    hotel.name() + " - " + "15%",
+                    hotel.id(),
+                    null,
+                    true,
+                    LocalDate.now(),
+                    LocalDate.now().plusDays(60),
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new Benefit(BenefitType.DES, "15% discount", 15))
+            ));
+        }
+        offerRepository.saveAll(offers);
     }
 
     private static void writeUsers(UserRepository userRepository) {
@@ -214,9 +283,38 @@ public class Writer {
                         null,
                         List.of(),
                         List.of(),
-                        List.of(),
-                        List.of()
+                        createStopSalesCalendar(),
+                        createInventoryCalendar(dataSet),
+                        createReleaseCalendar(dataSet)
                 )).toList());
+    }
+
+    private static List<ReleaseCalendarLine> createReleaseCalendar(DataSet dataSet) {
+        List<ReleaseCalendarLine> calendar = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) {
+            for (TipoHabitacionDto habitacion : dataSet.tiposHabitacion()) {
+                calendar.add(new ReleaseCalendarLine("2026", "0" + i, habitacion.codigo(), 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7));
+            }
+        }
+        return calendar;
+    }
+
+    private static List<InventoryCalendarLine> createInventoryCalendar(DataSet dataSet) {
+        List<InventoryCalendarLine> calendar = new ArrayList<>();
+        for (int i = 7; i <= 6; i++) {
+            for (TipoHabitacionDto habitacion : dataSet.tiposHabitacion()) {
+                calendar.add(new InventoryCalendarLine("2026", "0" + i, habitacion.codigo(), 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
+            }
+        }
+        return calendar;
+    }
+
+    private static List<StopSalesCalendarLine> createStopSalesCalendar() {
+        List<StopSalesCalendarLine> calendar = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) {
+            calendar.add(new StopSalesCalendarLine("2026", "0" + i, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true));
+        }
+        return calendar;
     }
 
     private static void writeAgencies(DataSet dataSet, AgencyRepository agencyRepository, int agencies) {
@@ -224,7 +322,8 @@ public class Writer {
                         .limit(agencies)
                 .map(agencia -> new Agency(
                         agencia.codigo(),
-                        agencia.nombre()
+                        agencia.nombre(),
+                        true
                 )).toList());
 
     }

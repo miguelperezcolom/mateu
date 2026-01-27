@@ -9,19 +9,24 @@ import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
 import io.mateu.core.infra.valuegenerators.UUIDValueGenerator;
 import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
+import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.HiddenInList;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
 public record Booking(
+        @HiddenInList
         @GeneratedValue(LocatorValueGenerator.class)
         String id,
         @NotEmpty
         @ForeignKey(search = FileIdOptionsSupplier.class, label = FileLabelSupplier.class)
+        @HiddenInList
         String fileId,
         @NotEmpty
         @ForeignKey(search = HotelIdOptionsSupplier.class, label = HotelLabelSupplier.class)
+        @HiddenInList
         String hotelId,
         @NotNull
         LocalDate checkin,

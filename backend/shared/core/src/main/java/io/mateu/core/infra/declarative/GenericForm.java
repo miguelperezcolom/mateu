@@ -5,19 +5,16 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getView;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
-import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.Badge;
-import io.mateu.uidl.data.BadgeColor;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.KPI;
-import io.mateu.uidl.data.Rule;
-import io.mateu.uidl.data.Status;
-import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
@@ -25,13 +22,13 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.RuleSupplier;
-import io.mateu.uidl.interfaces.ValidationDtoSupplier;
+import io.mateu.uidl.interfaces.*;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class GenericForm
@@ -39,7 +36,7 @@ public class GenericForm
         ActionSupplier,
         ValidationDtoSupplier,
         ComponentTreeSupplier,
-        RuleSupplier {
+        RuleSupplier, ActionHandler {
 
   @Override
   public List<Action> actions() {
@@ -55,11 +52,11 @@ public class GenericForm
   public Component component(HttpRequest httpRequest) {
     return Page.builder()
         .title(title())
-        .header(List.of(new Text("This in header")))
+        //.header(List.of(new Text("This in header")))
         .badges(createBadges(this))
         .kpis(createKpis(this))
-        .subtitle("This is a subtitle")
-        .style("max-width:900px;margin: auto;")
+        //.subtitle("This is a subtitle")
+        .style(style())
         .content(
             getView(
                     this,
@@ -153,4 +150,39 @@ public class GenericForm
             });
     return buttons;
   }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if (actionId.startsWith("search-")) {
+            // search-field-childfield
+            String fieldName = actionId.substring(actionId.indexOf('-') + 1);
+            ForeignKeyOptionsSupplier optionsSupplier = null;
+            if (fieldName.contains("-")) {
+                var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
+                var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+                var rowClass =
+                        getGenericClass(
+                                (ParameterizedType) getFieldByName(getClass(), parentFieldName).getGenericType(),
+                                List.class,
+                                "E");
+                var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+            } else {
+                var fkAnnotation = getFieldByName(getClass(), fieldName).getAnnotation(ForeignKey.class);
+                optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+            }
+
+            Pageable pageable = httpRequest.getParameters(Pageable.class);
+            String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
+            if (searchText == null) {
+                searchText = "";
+            }
+            var cleanSearchText = searchText.toLowerCase();
+
+            var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
+
+            return new Data(Map.of(fieldName, listingData.page()));
+        }
+        return null;
+    }
 }

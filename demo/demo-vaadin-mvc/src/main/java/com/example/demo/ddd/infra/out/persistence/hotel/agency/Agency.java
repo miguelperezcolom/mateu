@@ -12,6 +12,7 @@ public record Agency(
         @NotEmpty
         String id,
         @NotEmpty
-        String name
+        String name,
+        boolean active
 ) implements GenericEntity, Deleteable {
 }

@@ -23,5 +23,14 @@ public class HotelSubmenu {
     @Menu
     Tariffs tariffs;
     @Menu
-    Tariffs offers;
+    Offers offers;
+
+    @Menu
+    StopSalesCalendar stopSalesCalendar;
+
+    @Menu
+    InventoryCalendar inventoryCalendar;
+
+    @Menu
+    ReleaseCalendar releaseCalendar;
 }

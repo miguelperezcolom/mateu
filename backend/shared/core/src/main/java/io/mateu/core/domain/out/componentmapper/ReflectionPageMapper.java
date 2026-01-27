@@ -112,7 +112,15 @@ public class ReflectionPageMapper {
     }
     if (isForm(instance)) {
       return getForm(
-          instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, false, false, getFormColumns(instance.getClass()));
+          instance,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest,
+          false,
+          false,
+          getFormColumns(instance.getClass()));
     }
     return getAllFields(instance.getClass()).stream()
         .filter(
@@ -265,7 +273,7 @@ public class ReflectionPageMapper {
                         initiatorComponentId,
                         httpRequest,
                         false,
-                            2))
+                        2))
         .toList();
   }
 
@@ -307,7 +315,7 @@ public class ReflectionPageMapper {
                                           httpRequest,
                                           readOnly,
                                           forCreationForm,
-                                              maxColumns))
+                                          maxColumns))
                           .toList(),
                       maxColumns))
               .build());
@@ -343,7 +351,7 @@ public class ReflectionPageMapper {
                                                                       httpRequest,
                                                                       readOnly,
                                                                       forCreationForm,
-                                                                          maxColumns))
+                                                                      maxColumns))
                                                       .toList(),
                                                   maxColumns))
                                           .build())
@@ -437,7 +445,7 @@ public class ReflectionPageMapper {
         httpRequest,
         forCreationForm,
         readOnly,
-            maxColumns);
+        maxColumns);
   }
 
   record SectionFields(String label, List<Field> fields, int columns) {}
@@ -571,7 +579,7 @@ public class ReflectionPageMapper {
                             httpRequest,
                             readOnly || isReadOnly(field, instance, forCreationForm),
                             forCreationForm,
-                                section.columns))
+                            section.columns))
             .toList();
     var rows = new ArrayList<Component>();
     int col = 0;
@@ -593,7 +601,7 @@ public class ReflectionPageMapper {
         //              .columnWidth("10rem")
         //              .columnSpacing("1rem")
         .autoResponsive(true)
-            .expandColumns(true)
+        .expandColumns(true)
         .content(rows)
         .build();
   }
