@@ -301,7 +301,7 @@ public class Writer {
 
     private static List<InventoryCalendarLine> createInventoryCalendar(DataSet dataSet) {
         List<InventoryCalendarLine> calendar = new ArrayList<>();
-        for (int i = 7; i <= 6; i++) {
+        for (int i = 1; i <= 6; i++) {
             for (TipoHabitacionDto habitacion : dataSet.tiposHabitacion()) {
                 calendar.add(new InventoryCalendarLine("2026", "0" + i, habitacion.codigo(), 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1));
             }

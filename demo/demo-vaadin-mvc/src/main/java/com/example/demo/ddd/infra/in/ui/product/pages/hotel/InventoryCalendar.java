@@ -21,7 +21,7 @@ import java.util.List;
 @FormLayout(columns = 8)
 @Style("width: 100%;")
 @RequiredArgsConstructor
-public class InventoryCalendar extends GenericForm {
+public class    InventoryCalendar extends GenericForm {
 
     final HotelRepository hotelRepository;
 
