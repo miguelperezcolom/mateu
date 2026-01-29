@@ -285,7 +285,7 @@ export class MateuField extends LitElement {
             try {
                 return eval('`' + value + '`')
             } catch (e) {
-                console.error('Error evaluating template string:', e)
+                console.error('Error evaluating template string:', e, state, data)
                 return value
             }
         }

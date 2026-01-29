@@ -24,6 +24,7 @@ import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
@@ -468,8 +469,11 @@ public class ReflectionPageMapper {
     for (Field field :
         getAllEditableFields(getClass(instance)).stream()
             .filter(field -> filterField(field, forCreationForm))
-                .filter(field -> readOnly || (!readOnly && !field.isAnnotationPresent(HiddenInEditor.class)))
-                .filter(field -> !readOnly || (readOnly && !field.isAnnotationPresent(HiddenInView.class)))
+            .filter(
+                field ->
+                    readOnly || (!readOnly && !field.isAnnotationPresent(HiddenInEditor.class)))
+            .filter(
+                field -> !readOnly || (readOnly && !field.isAnnotationPresent(HiddenInView.class)))
             .toList()) {
       if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
         if (sectionFields != null) {

@@ -178,6 +178,18 @@ public class ReflectionFormFieldMapper {
           .style("width: 100%;")
           .build();
     }
+    if (field.isAnnotationPresent(Text.class)) {
+      return CustomField.builder()
+          .label(getLabel(field))
+          .content(
+              io.mateu.uidl.data.Text.builder()
+                  .container(field.getAnnotation(Text.class).container())
+                  .text("${state." + prefix + field.getName() + "}")
+                  .build())
+          .colspan(maxColumns)
+          .style("width: 100%;")
+          .build();
+    }
     return FormField.builder()
         .id(getFieldId(field, prefix, readOnly))
         .label(getLabel(field))
@@ -295,8 +307,10 @@ public class ReflectionFormFieldMapper {
                             .build()
      */
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
-        .filter(columnField -> !columnField.isAnnotationPresent(Hidden.class)
-        && !columnField.isAnnotationPresent(HiddenInList.class))
+        .filter(
+            columnField ->
+                !columnField.isAnnotationPresent(Hidden.class)
+                    && !columnField.isAnnotationPresent(HiddenInList.class))
         .forEach(
             columnField -> {
               columns.add(
@@ -533,6 +547,12 @@ public class ReflectionFormFieldMapper {
     }
     if (field.isAnnotationPresent(Choice.class)) {
       return FieldStereotype.choice;
+    }
+    if (field.isAnnotationPresent(Html.class)) {
+      return FieldStereotype.html;
+    }
+    if (field.isAnnotationPresent(TextArea.class)) {
+      return FieldStereotype.textarea;
     }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();

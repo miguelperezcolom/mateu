@@ -100,6 +100,8 @@ export class MateuComponent extends ComponentElement {
             const appState = this.appState
             // @ts-ignore
             const appData = this.appData
+            // @ts-ignore
+            const component = this.component
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
@@ -141,12 +143,6 @@ export class MateuComponent extends ComponentElement {
                             eval(rule.value as string)
                         }
                         if (RuleAction.SetAttributeValue == rule.action) {
-                            // @ts-ignore
-                            const data = this.data
-                            // @ts-ignore
-                            const state = this.state
-                            // @ts-ignore
-                            const component = this.component
                             const value = rule.expression?eval(rule.expression):rule.value
                             if ('disabled' == rule.fieldAttribute) {
                                 if (value) {
@@ -169,7 +165,7 @@ export class MateuComponent extends ComponentElement {
                         }
                     }
                 } catch (e) {
-                    console.log('rule failed', rule, e)
+                    console.log('rule failed', rule, e, state, data, appState, appData, component)
                 }
             }
             if (stateUpdated) {
