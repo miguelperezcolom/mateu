@@ -193,19 +193,47 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       return Enum.valueOf(type, (String) data);
     } else if (type.isArray()) {
       List<Object> values = new ArrayList<>();
-      List<Map<String, Object>> datas = (List<Map<String, Object>>) data;
-      datas.forEach(map -> values.add(newInstance(type.componentType(), map, httpRequest)));
+      ((List<Object>) data)
+          .forEach(
+              v -> {
+                if (v instanceof Map<?, ?> map) {
+                  values.add(
+                      newInstance(type.componentType(), (Map<String, Object>) map, httpRequest));
+                } else if (v instanceof List<?> list) {
+                  values.add(list);
+                } else {
+                  values.add(v);
+                }
+              });
       var array = Array.newInstance(type.componentType(), values.size());
       for (var i = 0; i < values.size(); i++) {
-        ((Object[]) array)[i] = values.get(i);
+        var value = values.get(i);
+        if (value != null) {
+          if (array.getClass().componentType().isArray()) {
+            if (value instanceof List<?> list) {
+              var innerArray =
+                  Array.newInstance(array.getClass().componentType().componentType(), list.size());
+              for (var j = 0; j < list.size(); j++) {
+                Array.set(innerArray, j, list.get(j));
+              }
+              value = innerArray;
+            }
+          }
+        }
+        ((Object[]) array)[i] = value;
       }
       return array;
     } else if (Class.class.equals(type)) {
       return Class.forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
       var list = new ArrayList();
-      ((List<Map<String, Object>>) data)
-          .forEach(map -> list.add(newInstance(genericType, map, httpRequest)));
+      ((List<Object>) data)
+          .forEach(
+              item ->
+                  list.add(
+                      item instanceof Map<?, ?> map
+                          ? newInstance(genericType, (Map<String, Object>) map, httpRequest)
+                          : item));
       return list;
     } else if (data instanceof Map) {
       return newInstance(type, (Map<String, Object>) data, httpRequest);

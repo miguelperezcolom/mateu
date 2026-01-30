@@ -74,7 +74,7 @@ export class MateuChoice extends LitElement {
             }
         }
 
-        const divStyle = this.field?.attributes?.find(pair => pair.key == 'divStyle')?.value??''
+        const divStyle = this.field?.attributes?.divStyle
 
         return html`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${divStyle}">

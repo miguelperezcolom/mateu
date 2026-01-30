@@ -51,11 +51,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class ReflectionFormFieldMapper {
 
@@ -179,15 +176,16 @@ public class ReflectionFormFieldMapper {
           .build();
     }
     if (field.isAnnotationPresent(Text.class)) {
-      return CustomField.builder()
-          .label(getLabel(field))
-          .content(
-              io.mateu.uidl.data.Text.builder()
-                  .container(field.getAnnotation(Text.class).container())
-                  .text("${state." + prefix + field.getName() + "}")
-                  .build())
-          .colspan(maxColumns)
-          .style("width: 100%;")
+      var colspan = getColspan(field);
+      var attributes = new HashMap<String, String>();
+      if (colspan > 1) {
+        attributes.put("data-colspan", "" + colspan);
+      }
+      return io.mateu.uidl.data.Text.builder()
+          .id(getFieldId(field, prefix, readOnly))
+          .container(field.getAnnotation(Text.class).container())
+          .text("${state." + prefix + field.getName() + "}")
+          .attributes(attributes)
           .build();
     }
     return FormField.builder()

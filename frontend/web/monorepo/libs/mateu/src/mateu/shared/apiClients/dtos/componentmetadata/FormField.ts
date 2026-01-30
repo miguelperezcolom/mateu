@@ -1,5 +1,4 @@
 import Validation from "./Validation";
-import Pair from "./Pair";
 import Badge from "./Badge";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
@@ -19,7 +18,6 @@ export default interface FormField extends ComponentMetadata {
     description?: string | undefined
     badges?: Badge[] | undefined
     validations?: Validation[] | undefined
-    attributes?: Pair[] | undefined
     colspan?: number | undefined
     rightAligned?: boolean | undefined
     bold?: boolean | undefined
