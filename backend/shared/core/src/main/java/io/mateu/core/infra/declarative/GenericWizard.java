@@ -45,7 +45,8 @@ public abstract class GenericWizard
         ComponentTreeSupplier,
         StateSupplier,
         ValidationDtoSupplier,
-        ActionSupplier {
+        ActionSupplier,
+        PostHydrationHandler {
 
   int position = 0;
 
@@ -106,6 +107,20 @@ public abstract class GenericWizard
                 }
               }
             });
+  }
+
+  @Override
+  public void onHydrated(HttpRequest httpRequest) {
+    var state = httpRequest.runActionRq().componentState();
+    final InstanceFactory instanceFactory = MateuBeanProvider.getBean(InstanceFactory.class);
+    try {
+      setValue(
+          currentStepField(),
+          this,
+          instanceFactory.newInstance(currentStepField().getType(), state, httpRequest));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @SneakyThrows
