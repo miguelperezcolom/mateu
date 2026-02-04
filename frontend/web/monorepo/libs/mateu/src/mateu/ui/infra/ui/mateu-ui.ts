@@ -35,6 +35,9 @@ export class MateuUi extends LitElement {
     @property()
     top: string | undefined = 'true'
 
+    @property()
+    pathPrefix: string | undefined = undefined
+
     // state
 
     @state()
@@ -59,7 +62,7 @@ export class MateuUi extends LitElement {
                 if (baseUrl.endsWith('/') && route.startsWith('/')) {
                     route = route.substring(1)
                 }
-                let targetUrl = new URL(baseUrl + route)
+                let targetUrl = new URL(baseUrl + (this.pathPrefix??'') + route)
                 if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                     let pathname = targetUrl.pathname
                     if (pathname && !pathname.startsWith('/')) {
