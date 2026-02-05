@@ -1,6 +1,7 @@
 import { html } from "lit";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
+import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 
 const itemSelected = (e: CustomEvent) => {
     const obj = {
@@ -102,4 +103,43 @@ export const renderActionCell = (item: any,
              ${action.label}
          </vaadin-button>
     `
+}
+
+
+const handleButtonColumnClick = (vaadinColumn: VaadinGridColumn,column: GridColumn, item: any) => {
+    vaadinColumn.dispatchEvent(new CustomEvent('action-requested', {
+        detail: {
+            actionId: column.actionId,
+            parameters: item
+        },
+        bubbles: true,
+        composed: true
+    }))
+}
+
+export const renderButtonCell = (item: any,
+                                 _model: GridItemModel<any>,
+                                 vaadinColumn: VaadinGridColumn,
+                                 _type: string,
+                                 _stereotype: string,
+                                 _column: GridColumn
+) => {
+    // @ts-ignore
+    // @ts-ignore
+    const column = vaadinColumn.xcolumn??_column
+    if (column.text) {
+        if (column.actionId) {
+            return html`
+                <vaadin-button theme="tertiary" @click="${(_e: any) => handleButtonColumnClick(vaadinColumn, column, item)}" .row="${item}">
+                    ${column.text}
+                </vaadin-button>
+            `
+        }
+        // @ts-ignore
+        const href = item[vaadinColumn.path]
+        return html`<a href="${href}">${column.text}</a>`;
+    }
+    // @ts-ignore
+    const href = item[vaadinColumn.path]
+    return html`<a href="${href}">${column.text}</a>`;
 }

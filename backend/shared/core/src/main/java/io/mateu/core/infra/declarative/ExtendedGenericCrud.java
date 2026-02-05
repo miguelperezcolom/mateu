@@ -506,7 +506,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                     GridColumn.builder()
                         .label("Action")
                         .id("_action")
-                        .stereotype(FieldStereotype.link)
+                        .stereotype(FieldStereotype.button)
                         .actionId("view")
                         .text("View")
                         .build()))

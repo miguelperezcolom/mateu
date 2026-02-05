@@ -40,9 +40,9 @@ export const renderLinkCell = (item: any,
         }
         // @ts-ignore
         const href = item[vaadinColumn.path]
-        return html`<a href="${href}">yy${href}</a>`;
+        return html`<a href="${href}">${href}</a>`;
     }
     // @ts-ignore
     const link = item[vaadinColumn.path]
-    return html`<a href="${link.href}">xx${link.text}</a>`;
+    return html`<a href="${link.href}">${link.text}</a>`;
 }

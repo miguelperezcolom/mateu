@@ -23,5 +23,5 @@ public enum FieldStereotype {
   choice,
   popover,
   slider,
-  stars
+    button, stars
 }
