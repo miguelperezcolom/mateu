@@ -52,6 +52,7 @@ export class MateuUi extends LitElement {
         if (e instanceof CustomEvent) {
             if (this.top == 'true') {
                 let route = e.detail.route
+                route = (this.pathPrefix??'') + route
                 let baseUrl = this.baseUrl??''
                 if (baseUrl.indexOf('://') < 0) {
                     if (!baseUrl.startsWith('/')) {
@@ -62,7 +63,7 @@ export class MateuUi extends LitElement {
                 if (baseUrl.endsWith('/') && route.startsWith('/')) {
                     route = route.substring(1)
                 }
-                let targetUrl = new URL(baseUrl + (this.pathPrefix??'') + route)
+                let targetUrl = new URL(baseUrl + route)
                 if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                     let pathname = targetUrl.pathname
                     if (pathname && !pathname.startsWith('/')) {
@@ -149,6 +150,9 @@ export class MateuUi extends LitElement {
 
     extractRouteFromUrl(w: Window) {
         const route = this.extractGrossRouteFromUrl(w)
+        if (this.pathPrefix && route.startsWith(this.pathPrefix)) {
+            return route.substring(this.pathPrefix.length)
+        }
         if ('/' == route) {
             return ''
         }
