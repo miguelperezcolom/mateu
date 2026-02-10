@@ -214,6 +214,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
     return html`
         <vaadin-tabsheet
                 theme="${variant??nothing}"
+                style="${style}"
                 slot="${component.slot??nothing}"
         >
             <vaadin-tabs slot="tabs" 

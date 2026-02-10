@@ -357,10 +357,30 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
 
             return new State(this);
           }
+            if (actionId.endsWith("_select")) {
+                String fieldId = actionId.substring(0, actionId.indexOf('_'));
+                _show_detail.put(fieldId, true);
+                _editing.put(fieldId, true);
+
+                var rowNumber = httpRequest.runActionRq().parameters().get("_rowNumber");
+
+                var values =
+                        ((List<Map<String, Object>>)
+                                httpRequest
+                                        .runActionRq()
+                                        .componentState()
+                                        .get(fieldId)).stream()
+                                .filter(map -> rowNumber.equals(map.get("_rowNumber"))).toList()
+                                .get(0);
+                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                for (String key : values.keySet()) {
+                    newState.put(fieldId + "-" + key, values.get(key));
+                }
+
+                return new State(newState);
+            }
           if (actionId.endsWith("_selected")) {
               String fieldId = actionId.substring(0, actionId.indexOf('_'));
-            _show_detail.put(fieldId, true);
-            _editing.put(fieldId, true);
 
             var values =
                 ((List<Map<String, Object>>)

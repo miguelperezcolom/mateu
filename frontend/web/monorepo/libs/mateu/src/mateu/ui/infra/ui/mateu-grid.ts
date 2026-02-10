@@ -88,14 +88,12 @@ export class MateuGrid extends MetadataDrivenElement {
 
         const orientation = (this.field?.formPosition == 'left' || this.field?.formPosition == 'right')?'horizontal':'vertical'
 
-        console.log('items', items);
-
         return html`
-            <vaadin-vertical-layout>
             <vaadin-master-detail-layout
                     style="overflow: unset; width: 100%; ${showDetail?'min-height: 20rem;':''}"
                     orientation="${orientation}"
             >
+                <vaadin-vertical-layout>
                 <vaadin-grid
                         style="${this.field?.style}"
                         class="${this.field?.cssClasses}"
@@ -125,7 +123,26 @@ export class MateuGrid extends MetadataDrivenElement {
                     ${this.field?.columns?.map(column =>
                             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 </vaadin-grid>
-                <div slot="${showDetail?'detail':'detail-hidden'}" style="display: contents;">
+                ${(this.field?.readOnly)?nothing:html`
+                    <vaadin-horizontal-layout theme="spacing">
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: this.id + '_add'
+                    },
+                    bubbles: true,
+                    composed: true
+                }))}">Add</vaadin-button>
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: this.id + '_remove'
+                    },
+                    bubbles: true,
+                    composed: true
+                }))}">Remove</vaadin-button>
+                    </vaadin-horizontal-layout>
+                `}
+            </vaadin-vertical-layout>
+                <div slot="${showDetail?'detail':'detail-hidden'}" style="${this.field?.formStyle??'display: contents;'}">
                     <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
                     ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data, this.appState, this.appData)}
                     </div>
@@ -133,25 +150,8 @@ export class MateuGrid extends MetadataDrivenElement {
                 
                 
             </vaadin-master-detail-layout>
-                ${(this.field?.readOnly)?nothing:html`
-                    <vaadin-horizontal-layout theme="spacing">
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: this.id + '_add'
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))}">Add</vaadin-button>
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: this.id + '_remove'
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))}">Remove</vaadin-button>
-                    </vaadin-horizontal-layout>
-                `}
-            </vaadin-vertical-layout>
+                
+            
        `
     }
 

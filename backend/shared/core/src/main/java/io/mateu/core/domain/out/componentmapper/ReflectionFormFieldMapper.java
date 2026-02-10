@@ -309,7 +309,9 @@ public class ReflectionFormFieldMapper {
         .filter(
             columnField ->
                 !columnField.isAnnotationPresent(Hidden.class)
-                    && !columnField.isAnnotationPresent(HiddenInList.class))
+                    && !columnField.isAnnotationPresent(HiddenInList.class)
+                        && isBasic(columnField.getType())
+        )
         .forEach(
             columnField -> {
               columns.add(
@@ -321,6 +323,17 @@ public class ReflectionFormFieldMapper {
                       .width(getColumnWidth(columnField))
                       .build());
             });
+    if (!readOnly) {
+        columns.add(GridColumn.builder()
+                .dataType(FieldDataType.string)
+                .stereotype(FieldStereotype.button)
+                .id("_select")
+                .label("")
+                        .text("Edit")
+                .actionId(getFieldId(field, prefix, readOnly) + "_select")
+                .width("3rem")
+                .build());
+    }
     return FormField.builder()
         .id(getFieldId(field, prefix, readOnly))
         .dataType(FieldDataType.array)
@@ -332,7 +345,10 @@ public class ReflectionFormFieldMapper {
         .colspan(getColspan(field))
         .itemIdPath("_rowNumber")
         .onItemSelectionActionId(readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
-        .formPosition(FormPosition.right)
+        .formPosition(getFormPosition(field))
+            .formStyle(getFormStyle(field))
+            .formTheme(getFormTheme(field))
+            .formColumns(getDetailFormColumns(field))
         .readOnly(readOnly)
         .createForm(
             Form.builder()
@@ -348,10 +364,10 @@ public class ReflectionFormFieldMapper {
                             httpRequest,
                             true,
                             readOnly,
-                            getFormColumns(getGenericClass(field, field.getType(), "E")))
+                            getDetailFormColumns(field))
                         .stream()
                         .toList())
-                .buttons(
+                .toolbar(
                     List.of(
                         Button.builder()
                             .label("Cancel")
@@ -376,10 +392,10 @@ public class ReflectionFormFieldMapper {
                             httpRequest,
                             false,
                             readOnly,
-                            getFormColumns(getGenericClass(field, field.getType(), "E")))
+                            getDetailFormColumns(field))
                         .stream()
                         .toList())
-                .buttons(
+                .toolbar(
                     List.of(
                         Button.builder()
                             .label("Cancel")
@@ -390,7 +406,35 @@ public class ReflectionFormFieldMapper {
         .build();
   }
 
-  private static String getColumnWidth(Field columnField) {
+    private static int getDetailFormColumns(Field field) {
+        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+            return field.getAnnotation(DetailFormCustomisation.class).columns();
+        }
+        return getFormColumns(getGenericClass(field, field.getType(), "E"));
+    }
+
+    private static String getFormTheme(Field field) {
+        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+            return field.getAnnotation(DetailFormCustomisation.class).theme();
+        }
+        return null;
+    }
+
+    private static String getFormStyle(Field field) {
+        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+            return field.getAnnotation(DetailFormCustomisation.class).style();
+        }
+      return null;
+    }
+
+    private static FormPosition getFormPosition(Field field) {
+      if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+          return field.getAnnotation(DetailFormCustomisation.class).position();
+      }
+      return FormPosition.right;
+    }
+
+    private static String getColumnWidth(Field columnField) {
     if (columnField.isAnnotationPresent(ColumnWidth.class)) {
       return columnField.getAnnotation(ColumnWidth.class).value();
     }

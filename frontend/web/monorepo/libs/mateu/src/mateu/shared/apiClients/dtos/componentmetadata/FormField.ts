@@ -34,6 +34,9 @@ export default interface FormField extends ComponentMetadata {
     editor: ClientSideComponent
     onItemSelectionActionId: string | undefined
     formPosition: string
+    formStyle: string
+    formTheme: string
+    formColumns: number
     sliderMin: number
     sliderMax: number
     stepButtonsVisible: boolean
