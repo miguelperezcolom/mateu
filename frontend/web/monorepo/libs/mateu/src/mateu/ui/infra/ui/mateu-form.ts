@@ -94,7 +94,7 @@ export class MateuForm extends MetadataDrivenElement {
                     </vaadin-horizontal-layout>
                 `}
            
-                <div class="form-content">
+                <div class="form-content" style="width: 100%;">
                     <slot></slot>
                     <vaadin-horizontal-layout theme="spacing" class="form-buttons">
                         <slot name="buttons"></slot>

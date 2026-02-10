@@ -232,7 +232,6 @@ export const columnRenderer = (item: any,
         return renderActionCell(item, model, vaadinColumn)
     }
     if ('button' == stereotype) {
-        console.log('button', column);
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
     return html`${item[vaadinColumn.path!]}`

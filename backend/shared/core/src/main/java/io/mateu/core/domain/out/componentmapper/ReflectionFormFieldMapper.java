@@ -144,6 +144,7 @@ public class ReflectionFormFieldMapper {
         && !isBasic(field.getType())) {
       return createCrudForField(
           field,
+          prefix,
           readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm),
           httpRequest);
     }
@@ -266,7 +267,7 @@ public class ReflectionFormFieldMapper {
   }
 
   private static Component createCrudForField(
-      Field field, boolean readOnly, HttpRequest httpRequest) {
+      Field field, String prefix, boolean readOnly, HttpRequest httpRequest) {
     var columns = new ArrayList<GridContent>();
     /*
     List.of(
@@ -321,7 +322,7 @@ public class ReflectionFormFieldMapper {
                       .build());
             });
     return FormField.builder()
-        .id(field.getName())
+        .id(getFieldId(field, prefix, readOnly))
         .dataType(FieldDataType.array)
         .stereotype(FieldStereotype.grid)
         .readOnly(readOnly)
@@ -330,7 +331,7 @@ public class ReflectionFormFieldMapper {
         .style(getStyleForArray(field))
         .colspan(getColspan(field))
         .itemIdPath("_rowNumber")
-        .onItemSelectionActionId(readOnly ? null : field.getName() + "_selected")
+        .onItemSelectionActionId(readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
         .formPosition(FormPosition.right)
         .readOnly(readOnly)
         .createForm(
@@ -338,7 +339,7 @@ public class ReflectionFormFieldMapper {
                 .title("New " + getLabel(field))
                 .content(
                     getForm(
-                            field.getName() + "-",
+                            getFieldId(field, prefix, readOnly) + "-",
                             getGenericClass(field, field.getType(), "E"),
                             "base_url",
                             httpRequest.runActionRq().route(),
@@ -354,11 +355,11 @@ public class ReflectionFormFieldMapper {
                     List.of(
                         Button.builder()
                             .label("Cancel")
-                            .actionId(field.getName() + "_cancel")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
                             .build(),
                         Button.builder()
                             .label("Save")
-                            .actionId(field.getName() + "_create")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_create")
                             .build()))
                 .build())
         .editor(
@@ -366,7 +367,7 @@ public class ReflectionFormFieldMapper {
                 .title("Update " + getLabel(field))
                 .content(
                     getForm(
-                            field.getName() + "-",
+                            getFieldId(field, prefix, readOnly) + "-",
                             getGenericClass(field, field.getType(), "E"),
                             "base_url",
                             httpRequest.runActionRq().route(),
@@ -382,9 +383,9 @@ public class ReflectionFormFieldMapper {
                     List.of(
                         Button.builder()
                             .label("Cancel")
-                            .actionId(field.getName() + "_cancel")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
                             .build(),
-                        Button.builder().label("Save").actionId(field.getName() + "_save").build()))
+                        Button.builder().label("Save").actionId(getFieldId(field, prefix, readOnly) + "_save").build()))
                 .build())
         .build();
   }

@@ -88,6 +88,8 @@ export class MateuGrid extends MetadataDrivenElement {
 
         const orientation = (this.field?.formPosition == 'left' || this.field?.formPosition == 'right')?'horizontal':'vertical'
 
+        console.log('items', items);
+
         return html`
             <vaadin-vertical-layout>
             <vaadin-master-detail-layout

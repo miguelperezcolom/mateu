@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Com
 import static io.mateu.core.infra.JsonSerializer.*;
 import static io.mateu.core.infra.declarative.GenericForm.createBadges;
 import static io.mateu.core.infra.declarative.GenericForm.createKpis;
+import static io.mateu.core.infra.declarative.GenericWizard.addRowNumber;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
@@ -68,13 +69,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -116,17 +111,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                 var value = generator.generate();
                 data.put(field.getName(), value);
               });
-      addRowNumber(data);
+        addRowNumberForEntityClass(data);
       return data;
     }
     if (httpRequest.getAttribute("selectedItem") != null) {
       var data = toMap();
       data.putAll(toMap(httpRequest.getAttribute("selectedItem")));
-      addRowNumber(data);
+        addRowNumberForEntityClass(data);
       return data;
     }
     var data = toMap();
-    addRowNumber(data);
+      addRowNumberForEntityClass(data);
     return data;
   }
 
@@ -164,20 +159,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     return map;
   }
 
-  protected void addRowNumber(Map<String, Object> data) {
-    getAllFields(entityClass()).stream()
-        .filter(field -> Collection.class.isAssignableFrom(field.getType()))
-        .forEach(
-            field -> {
-              var list = (List<?>) data.get(field.getName());
-              if (list != null) {
-                for (int i = 0; i < list.size(); i++) {
-                  if (list.get(i) instanceof Map map) {
-                    map.put("_rowNumber", i);
-                  }
-                }
-              }
-            });
+  protected void addRowNumberForEntityClass(Map<String, Object> data) {
+    addRowNumber(entityClass(), data);
   }
 
   public abstract Repository<EntityType, String> repository();
@@ -330,22 +313,26 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             && !field.isAnnotationPresent(ForeignKey.class)
             && !field.isAnnotationPresent(Composition.class)
             && !isBasic(field.getType())) {
-          var rowClass =
-              getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-          if ((field.getName() + "_create").equals(actionId)) {
-            _show_detail.put(field.getName(), true);
-            _editing.put(field.getName(), false);
+          if (actionId.endsWith("_create")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, true);
+            _editing.put(fieldId, false);
 
-            var filteredState =
+              String rowClassName = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
+              var rowClassx =
+                      getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+              var rowClass = Class.forName(rowClassName);
+
+              var filteredState =
                 httpRequest.runActionRq().componentState().entrySet().stream()
-                    .filter(entry -> entry.getKey().startsWith(field.getName() + "-"))
+                    .filter(entry -> entry.getKey().startsWith(fieldId + "-"))
                     .collect(
                         Collectors.toMap(
-                            entry -> entry.getKey().substring((field.getName() + "-").length()),
+                            entry -> entry.getKey().substring((fieldId + "-").length()),
                             Map.Entry::getValue));
             var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
 
-            var list = (List) httpRequest.runActionRq().componentState().get(field.getName());
+            var list = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
             ;
             if (list == null) {
               list = List.of(fromJson(toJson(item)));
@@ -353,71 +340,80 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
               list = new ArrayList<>(list);
               list.add(fromJson(toJson(item)));
             }
+            list.forEach(map -> {
+                if (!map.containsKey("_rowNumber")) {
+                    map.put("_rowNumber", UUID.randomUUID().toString());
+                }
+            });
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-            newState.put(field.getName(), list);
-            addRowNumber(newState);
+            newState.put(fieldId, list);
+            addRowNumberForEntityClass(newState);
             return new State(newState);
           }
-          if ((field.getName() + "_add").equals(actionId)) {
-            _show_detail.put(field.getName(), true);
-            _editing.put(field.getName(), false);
+          if (actionId.endsWith("_add")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, true);
+            _editing.put(fieldId, false);
 
             return new State(this);
           }
-          if ((field.getName() + "_selected").equals(actionId)) {
-            _show_detail.put(field.getName(), true);
-            _editing.put(field.getName(), true);
+          if (actionId.endsWith("_selected")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, true);
+            _editing.put(fieldId, true);
 
             var values =
                 ((List<Map<String, Object>>)
                         httpRequest
                             .runActionRq()
                             .componentState()
-                            .get(field.getName() + "_selected_items"))
+                            .get(fieldId + "_selected_items"))
                     .get(0);
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
             for (String key : values.keySet()) {
-              newState.put(field.getName() + "-" + key, values.get(key));
+              newState.put(fieldId + "-" + key, values.get(key));
             }
 
             return new State(newState);
           }
-          if ((field.getName() + "_save").equals(actionId)) {
-            _show_detail.put(field.getName(), false);
-            _editing.put(field.getName(), false);
+          if (actionId.endsWith("_save")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, false);
+            _editing.put(fieldId, false);
 
             var values =
                 ((List<Map<String, Object>>)
                         httpRequest
                             .runActionRq()
                             .componentState()
-                            .get(field.getName() + "_selected_items"))
+                            .get(fieldId + "_selected_items"))
                     .get(0);
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
             List<Map<String, Object>> list =
-                (List<Map<String, Object>>) newState.get(field.getName());
+                (List<Map<String, Object>>) newState.get(fieldId);
             var row =
                 list.stream()
                     .filter(l -> l.get("_rowNumber").equals(values.get("_rowNumber")))
                     .findFirst()
                     .orElseThrow();
             for (String key : values.keySet()) {
-              row.put(key, newState.get(field.getName() + "-" + key));
+              row.put(key, newState.get(fieldId + "-" + key));
             }
 
             return new State(newState);
           }
-          if ((field.getName() + "_remove").equals(actionId)) {
-            _show_detail.put(field.getName(), false);
+          if (actionId.endsWith("_remove")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, false);
             var selectedLines =
                 (List)
                     httpRequest
                         .runActionRq()
                         .componentState()
-                        .get(field.getName() + "_selected_items");
+                        .get(fieldId + "_selected_items");
             if (selectedLines != null) {
               var list =
-                  ((List) httpRequest.runActionRq().componentState().get(field.getName()))
+                  ((List) httpRequest.runActionRq().componentState().get(fieldId))
                       .stream()
                           .filter(
                               line ->
@@ -427,13 +423,14 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                                       .isEmpty())
                           .toList();
               var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-              newState.put(field.getName(), list);
+              newState.put(fieldId, list);
               return new State(newState);
             }
             return new State(this);
           }
-          if ((field.getName() + "_cancel").equals(actionId)) {
-            _show_detail.put(field.getName(), false);
+          if (actionId.endsWith("_cancel")) {
+              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, false);
             return new State(this);
           }
         }
