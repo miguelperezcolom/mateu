@@ -1,7 +1,7 @@
 {
   "name": "mateu-vaadin",
   "private": false,
-  "version": "0.0.13",
+  "version": "0.0.14",
   "type": "module",
   "license": "MIT",
   "files": [
@@ -22,5 +22,8 @@
   "devDependencies": {
     "typescript": "~5.8.3",
     "vite": "^7.1.2"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
