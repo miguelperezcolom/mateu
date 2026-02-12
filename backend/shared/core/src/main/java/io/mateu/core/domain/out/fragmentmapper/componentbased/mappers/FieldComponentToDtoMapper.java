@@ -94,6 +94,8 @@ public class FieldComponentToDtoMapper {
                     : null)
             .onItemSelectionActionId(formField.onItemSelectionActionId())
             .attributes(mapAttributes(formField))
+            .detailPath(formField.detailPath())
+            .useButtonForDetail(formField.useButtonForDetail())
             .build(),
         formField.id(),
         List.of(),

@@ -54,7 +54,9 @@ public record FormFieldDto(
     int sliderMax,
     boolean stepButtonsVisible,
     double step,
-    String itemIdPath)
+    String itemIdPath,
+    String detailPath,
+    boolean useButtonForDetail)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

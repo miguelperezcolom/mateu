@@ -301,11 +301,14 @@ public class ReflectionFormFieldMapper {
               .width("3rem")
               .build());
     }
+    String detailPath = getDetailPath(field);
     return FormField.builder()
         .id(getFieldId(field, prefix, readOnly))
         .dataType(FieldDataType.array)
         .stereotype(FieldStereotype.grid)
         .readOnly(readOnly)
+        .detailPath(detailPath)
+        .useButtonForDetail(detailPath != null)
         .label(getLabel(field))
         .columns(columns)
         .style(getStyleForArray(field))
@@ -363,7 +366,11 @@ public class ReflectionFormFieldMapper {
                             getDetailFormColumns(field))
                         .stream()
                         .toList())
-                    .header(List.of(io.mateu.uidl.data.Text.builder().text("${state." + getFieldId(field, prefix, readOnly) + "_position}").build()))
+                .header(
+                    List.of(
+                        io.mateu.uidl.data.Text.builder()
+                            .text("${state['" + getFieldId(field, prefix, readOnly) + "_position']}")
+                            .build()))
                 .toolbar(
                     List.of(
                         Button.builder()
@@ -384,6 +391,14 @@ public class ReflectionFormFieldMapper {
                             .build()))
                 .build())
         .build();
+  }
+
+  private static String getDetailPath(Field field) {
+    return getAllFields(getGenericClass(field, field.getType(), "E")).stream()
+        .filter(columnField -> columnField.isAnnotationPresent(Details.class))
+        .map(Field::getName)
+        .findFirst()
+        .orElse(null);
   }
 
   private static int getDetailFormColumns(Field field) {

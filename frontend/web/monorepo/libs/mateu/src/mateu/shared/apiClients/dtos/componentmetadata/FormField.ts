@@ -42,5 +42,7 @@ export default interface FormField extends ComponentMetadata {
     stepButtonsVisible: boolean
     step: number
     itemIdPath: string | undefined
+    detailPath: string
+    useButtonForDetail: boolean
 
 }

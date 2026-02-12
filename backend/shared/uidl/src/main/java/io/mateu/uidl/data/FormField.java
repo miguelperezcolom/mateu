@@ -36,7 +36,9 @@ public record FormField(
     boolean stepButtonsVisible,
     double step,
     String itemIdPath,
-    Map<String, String> attributes)
+    Map<String, String> attributes,
+    String detailPath,
+    boolean useButtonForDetail)
     implements Component {
 
   public FormField {

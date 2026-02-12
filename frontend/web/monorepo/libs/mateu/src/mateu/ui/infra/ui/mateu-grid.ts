@@ -1,4 +1,4 @@
-import { customElement, property } from "lit/decorators.js";
+import {customElement, property, state} from "lit/decorators.js";
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -16,6 +16,8 @@ import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderC
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { GridActiveItemChangedEvent } from "@vaadin/grid/all-imports";
 import { badge } from "@vaadin/vaadin-lumo-styles";
+import {ifDefined} from "lit/directives/if-defined.js";
+import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
 
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
@@ -37,6 +39,9 @@ export class MateuGrid extends MetadataDrivenElement {
 
     @property()
     selectedItems: any[] | undefined
+
+    @state()
+    detailsOpenedItems: any[] = []
 
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -90,8 +95,9 @@ export class MateuGrid extends MetadataDrivenElement {
 
         return html`
             <vaadin-master-detail-layout
-                    style="overflow: unset; width: 100%; ${showDetail?'min-height: 20rem;':''}"
+                    style="overflow: unset; width: 100%; ${showDetail?'min-height: 43rem;':''}"
                     orientation="${orientation}"
+                    .forceOverlay="${true}"
             >
                 <vaadin-vertical-layout>
                 <vaadin-grid
@@ -100,7 +106,16 @@ export class MateuGrid extends MetadataDrivenElement {
                         .items="${items}"
                         .selectedItems="${this.selectedItems}"
                         item-id-path="${this.field?.itemIdPath}"
-                        @active-item-changed="${(e: GridActiveItemChangedEvent<any>) => {
+                        @active-item-changed="${ifDefined((this.field?.detailPath && !this.field?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
+                            if (this.field?.detailPath) {
+                                const row = event.detail.value
+                                if (row) {
+                                    this.detailsOpenedItems = [row]
+                                } else {
+                                    this.detailsOpenedItems = []
+                                }
+                            }
+                        }:(e: GridActiveItemChangedEvent<any>) => {
                             if (this.field?.onItemSelectionActionId) {
                                 const item = e.detail.value
                                 this.selectedItems = item ? [item] : []
@@ -116,12 +131,48 @@ export class MateuGrid extends MetadataDrivenElement {
 
                                 }
                             }
-                        }}"
+                        })}"
+                        .detailsOpenedItems="${this.detailsOpenedItems}"
+                        ${ifDefined(this.field?.detailPath?gridRowDetailsRenderer<any>((item) => html`${renderComponent(
+                                this,
+                                item[this.field?.detailPath!],
+                                this.baseUrl,
+                                this.state,
+                                this.data,
+                                this.appState,
+                                this.appData
+                        )}`):undefined)}
                         ?all-rows-visible=${items?.length < 10}
                 >
                     <span slot="empty-state">Empty list.</span>
                     ${this.field?.columns?.map(column =>
                             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+
+                    ${this.field?.useButtonForDetail?html`
+                    <vaadin-grid-column
+                            width="80px"
+                            flex-grow="0"
+                            ${columnBodyRenderer<any>(
+                            (person, { detailsOpened }) => html`
+              <vaadin-button
+                theme="tertiary icon"
+                aria-label="Toggle details"
+                aria-expanded="${detailsOpened ? 'true' : 'false'}"
+                @click="${() => {
+                                this.detailsOpenedItems = this.detailsOpenedItems.length?
+                                        (this.detailsOpenedItems[0]._rowNumber == person._rowNumber?[]:[person]):[person]
+                            }}"
+              >
+                <vaadin-icon
+                  .icon="${detailsOpened ? 'lumo:angle-down' : 'lumo:angle-right'}"
+                ></vaadin-icon>
+              </vaadin-button>
+            `,
+                            []
+                    )}
+                    ></vaadin-grid-column>
+                `:nothing}
+                    
                 </vaadin-grid>
                 ${(this.field?.readOnly)?nothing:html`
                     <vaadin-horizontal-layout theme="spacing">

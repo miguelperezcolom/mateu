@@ -122,7 +122,7 @@ public class ValueProvider {
 
         try {
           getter = o.getClass().getMethod(getGetter(f));
-          if (getter != null && getter.getReturnType().isAssignableFrom(f.getType())) {
+          if (!getter.getReturnType().isAssignableFrom(f.getType())) {
             getter = null;
           }
           if (getter != null) {
@@ -149,16 +149,18 @@ public class ValueProvider {
         Method getter = null;
         try {
           getter = o.getClass().getMethod(getGetter(f));
-          if (getter != null && getter.getReturnType().isAssignableFrom(f.getType())) {
-            getter = null;
+          if (!Modifier.isPublic(getter.getModifiers())) {
+            getter.setAccessible(true);
           }
-          if (getter != null) {
+        } catch (Exception e) {
+          try {
+            getter = o.getClass().getMethod(f.getName());
             if (!Modifier.isPublic(getter.getModifiers())) {
               getter.setAccessible(true);
             }
-          }
-        } catch (Exception e) {
+          } catch (Exception e1) {
 
+          }
         }
         try {
           if (getter != null) v = getter.invoke(o);

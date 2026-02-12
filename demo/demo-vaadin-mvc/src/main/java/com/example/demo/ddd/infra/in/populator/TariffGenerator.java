@@ -181,7 +181,8 @@ public class TariffGenerator {
                     generatePrices(dataSet),
                     generatePaxSupplements(dataSet),
                     generateRoomSupplements(dataSet),
-                    generateBoardSupplements(dataSet)
+                    generateBoardSupplements(dataSet),
+                    null
                     ));
             from = periodEnding.plusDays(1);
         }
@@ -190,7 +191,8 @@ public class TariffGenerator {
                     generatePrices(dataSet),
                     generatePaxSupplements(dataSet),
                     generateRoomSupplements(dataSet),
-                    generateBoardSupplements(dataSet)));
+                    generateBoardSupplements(dataSet),
+                    null));
         }
         return periods;
     }

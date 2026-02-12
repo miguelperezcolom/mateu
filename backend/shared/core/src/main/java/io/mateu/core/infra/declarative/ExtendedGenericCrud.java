@@ -148,6 +148,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                 } else {
                   var nestedMap =
                       toMap(value).entrySet().stream()
+                              .filter(entry -> entry.getValue() != null)
                           .collect(
                               Collectors.toMap(
                                   entry -> field.getName() + "-" + entry.getKey(),
@@ -241,12 +242,28 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
       return new Data(Map.of(fieldName, listingData.page()));
     }
 
+    Object savedId = null;
     if ("create".equals(actionId)) {
-      repository().saveAll(List.of(toEntity(httpRequest)));
-      actionId = "";
+      var entity = toEntity(httpRequest);
+      repository().saveAll(List.of(entity));
+      savedId = getValue(getIdField(entityClass()), entity);
+      actionId = "view";
     }
     if ("save".equals(actionId)) {
-      repository().saveAll(List.of(toEntity(httpRequest)));
+      var entity = toEntity(httpRequest);
+      repository().saveAll(List.of(entity));
+      savedId = getValue(getIdField(entityClass()), entity);
+      actionId = "view";
+    }
+    if ("cancel_edit".equals(actionId)) {
+      var entity = toEntity(httpRequest);
+      savedId = getValue(getIdField(entityClass()), entity);
+      actionId = "view";
+    }
+    if ("cancel_view".equals(actionId)) {
+      actionId = "";
+    }
+    if ("cancel_create".equals(actionId)) {
       actionId = "";
     }
     if ("delete".equals(actionId)) {
@@ -266,7 +283,10 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
       _show_detail = new HashMap<>();
       _editing = new HashMap<>();
       var idField = getIdField(entityClass());
-      var id = (String) httpRequest.runActionRq().parameters().get(idField);
+      var id =
+          savedId != null
+              ? "" + savedId
+              : (String) httpRequest.runActionRq().parameters().get(idField);
       var view = view(id, httpRequest);
       if (childCrud()) {
         return List.of(view);
@@ -378,13 +398,12 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             for (String key : values.keySet()) {
               newState.put(fieldId + "-" + key, values.get(key));
             }
-              var items = (List<Map<String, Object>>)
-                      httpRequest.runActionRq().componentState().get(fieldId);
-              var position = 0;
-              newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
+            var items =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var position = 0;
+            newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
 
-
-              return new State(newState);
+            return new State(newState);
           }
           if (actionId.endsWith("_selected")) {
             String fieldId = actionId.substring(0, actionId.indexOf('_'));
@@ -397,60 +416,67 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             for (String key : values.keySet()) {
               newState.put(fieldId + "-" + key, values.get(key));
             }
-              var items = (List<Map<String, Object>>)
-                      httpRequest.runActionRq().componentState().get(fieldId);
-              var position = getIndex(items, new HashMap<>(values).get("_rowNumber"));
-              newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
+            var items =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var position = getIndex(items, new HashMap<>(values).get("_rowNumber"));
+            newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
 
             return new State(newState);
           }
-            if (actionId.endsWith("_prev")) {
-                String fieldId = actionId.substring(0, actionId.indexOf('_'));
-                var items = (List<Map<String, Object>>)
-                        httpRequest.runActionRq().componentState().get(fieldId);
-                var position = getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+          if (actionId.endsWith("_prev")) {
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            var items =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var position =
+                getIndex(
+                    items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
 
-                if (position <= 0) {
-                    throw new RuntimeException("This is the first item. No previous item to select.");
-                }
-
-                var values = items.get(position - 1);
-                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-                for (String key : values.keySet()) {
-                    newState.put(fieldId + "-" + key, values.get(key));
-                }
-                newState.put("" + fieldId + "_position", "" + (position) + "/" + items.size());
-
-                return new State(newState);
+            if (position <= 0) {
+              throw new RuntimeException("This is the first item. No previous item to select.");
             }
-            if (actionId.endsWith("_next")) {
-                String fieldId = actionId.substring(0, actionId.indexOf('_'));
-                var items = (List<Map<String, Object>>)
-                        httpRequest.runActionRq().componentState().get(fieldId);
-                var position = getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
 
-                if (position >= items.size() - 1) {
-                    throw new RuntimeException("No more items");
-                }
-
-                var values = items.get(position + 1);
-                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-                for (String key : values.keySet()) {
-                    newState.put(fieldId + "-" + key, values.get(key));
-                }
-                newState.put("" + fieldId + "_position", "" + (position + 2) + "/" + items.size());
-
-                return new State(newState);
+            var values = items.get(position - 1);
+            var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+            for (String key : values.keySet()) {
+              newState.put(fieldId + "-" + key, values.get(key));
             }
+            newState.put("" + fieldId + "_position", "" + (position) + "/" + items.size());
+
+            return new State(newState);
+          }
+          if (actionId.endsWith("_next")) {
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            var items =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var position =
+                getIndex(
+                    items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+
+            if (position >= items.size() - 1) {
+              throw new RuntimeException("No more items");
+            }
+
+            var values = items.get(position + 1);
+            var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+            for (String key : values.keySet()) {
+              newState.put(fieldId + "-" + key, values.get(key));
+            }
+            newState.put("" + fieldId + "_position", "" + (position + 2) + "/" + items.size());
+
+            return new State(newState);
+          }
           if (actionId.endsWith("_save")) {
             String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, false);
             _editing.put(fieldId, false);
 
-            var values =
-                ((List<Map<String, Object>>)
-                        httpRequest.runActionRq().componentState().get(fieldId + "_selected_items"))
-                    .get(0);
+            var items =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var position =
+                getIndex(
+                    items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+            var values = items.get(position);
+
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
             List<Map<String, Object>> list = (List<Map<String, Object>>) newState.get(fieldId);
             var row =
@@ -534,16 +560,16 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     }
   }
 
-    private int getIndex(List<Map<String, Object>> list, Object rowNumber) {
-        for (int i = 0; i < list.size(); i++) {
-            if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
-                return i;
-            }
-        }
-        throw new RuntimeException("Item with row number " + rowNumber + " not found");
+  private int getIndex(List<Map<String, Object>> list, Object rowNumber) {
+    for (int i = 0; i < list.size(); i++) {
+      if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
+        return i;
+      }
     }
+    throw new RuntimeException("Item with row number " + rowNumber + " not found");
+  }
 
-    public ListingData<EntityType> search(String searchText, Pageable pageable) {
+  public ListingData<EntityType> search(String searchText, Pageable pageable) {
     return repository().search(searchText, pageable);
   }
 
@@ -656,7 +682,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                         true)
                     .stream()
                     .toList())
-            .toolbar(List.of(new Button("Create", "create")))
+            .toolbar(List.of(new Button("Cancel", "cancel_create"), new Button("Create", "create")))
             .build(),
         this,
         "base_url",
@@ -694,7 +720,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                         false)
                     .stream()
                     .toList())
-            .toolbar(List.of(new Button("Save", "save")))
+            .toolbar(List.of(new Button("Cancel", "cancel_edit"), new Button("Save", "save")))
             .build(),
         this,
         "base_url",
@@ -760,6 +786,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                   new Button(
                       toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
             });
+    toolbar.add(new Button("Cancel", "cancel_view"));
     toolbar.add(new Button("Edit", "edit"));
     return toolbar;
   }
@@ -879,6 +906,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     triggers.add(new OnSuccessTrigger("search", "create", ""));
     triggers.add(new OnSuccessTrigger("search", "delete", ""));
     triggers.add(new OnSuccessTrigger("search", "save", ""));
+    triggers.add(new OnSuccessTrigger("search", "cancel_view", ""));
+    triggers.add(new OnSuccessTrigger("search", "cancel_create", ""));
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
         .forEach(
