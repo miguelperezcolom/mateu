@@ -1,7 +1,6 @@
 package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.data.FormPosition;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,7 +15,7 @@ public @interface DetailFormCustomisation {
 
   String style() default "";
 
-    String theme() default "";
+  String theme() default "";
 
-    int columns() default 2;
+  int columns() default 2;
 }

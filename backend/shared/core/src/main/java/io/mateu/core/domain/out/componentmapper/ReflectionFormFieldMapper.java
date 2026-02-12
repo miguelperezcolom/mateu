@@ -269,49 +269,15 @@ public class ReflectionFormFieldMapper {
   private static Component createCrudForField(
       Field field, String prefix, boolean readOnly, HttpRequest httpRequest) {
     var columns = new ArrayList<GridContent>();
-    /*
-    List.of(
-                    GridColumn.builder()
-                            .dataType(FieldDataType.string)
-                            .id("productName")
-                            .label("Product")
-                            .build(),
-                    GridColumn.builder()
-                            .dataType(FieldDataType.string)
-                            .stereotype(FieldStereotype.link)
-                            .id("productId")
-                            .label("Product Number")
-                            .actionId("view-product")
-                            .build(),
-                    GridColumn.builder()
-                            .dataType(FieldDataType.string)
-                            .stereotype(FieldStereotype.image)
-                            .id("image")
-                            .label("Image")
-                            .build(),
-                    GridColumn.builder()
-                            .dataType(FieldDataType.money)
-                            .id("listPrice")
-                            .label("List Price")
-                            .build(),
-                    GridColumn.builder()
-                            .dataType(FieldDataType.number)
-                            .id("quantity")
-                            .label("Quantity")
-                            .build(),
-                    GridColumn.builder()
-                            .dataType(FieldDataType.money)
-                            .id("amount")
-                            .label("Amount")
-                            .build()
-     */
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
         .filter(
             columnField ->
                 !columnField.isAnnotationPresent(Hidden.class)
                     && !columnField.isAnnotationPresent(HiddenInList.class)
-                        && isBasic(columnField.getType())
-        )
+                    && (isBasic(columnField.getType())
+                        || columnField.getType().isEnum()
+                        || ColumnAction.class.equals(columnField.getType())
+                        || ColumnActionGroup.class.equals(columnField.getType())))
         .forEach(
             columnField -> {
               columns.add(
@@ -324,15 +290,16 @@ public class ReflectionFormFieldMapper {
                       .build());
             });
     if (!readOnly) {
-        columns.add(GridColumn.builder()
-                .dataType(FieldDataType.string)
-                .stereotype(FieldStereotype.button)
-                .id("_select")
-                .label("")
-                        .text("Edit")
-                .actionId(getFieldId(field, prefix, readOnly) + "_select")
-                .width("3rem")
-                .build());
+      columns.add(
+          GridColumn.builder()
+              .dataType(FieldDataType.string)
+              .stereotype(FieldStereotype.button)
+              .id("_select")
+              .label("")
+              .text("Edit")
+              .actionId(getFieldId(field, prefix, readOnly) + "_select")
+              .width("3rem")
+              .build());
     }
     return FormField.builder()
         .id(getFieldId(field, prefix, readOnly))
@@ -344,11 +311,12 @@ public class ReflectionFormFieldMapper {
         .style(getStyleForArray(field))
         .colspan(getColspan(field))
         .itemIdPath("_rowNumber")
-        .onItemSelectionActionId(readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
+        .onItemSelectionActionId(
+            readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
         .formPosition(getFormPosition(field))
-            .formStyle(getFormStyle(field))
-            .formTheme(getFormTheme(field))
-            .formColumns(getDetailFormColumns(field))
+        .formStyle(getFormStyle(field))
+        .formTheme(getFormTheme(field))
+        .formColumns(getDetailFormColumns(field))
         .readOnly(readOnly)
         .createForm(
             Form.builder()
@@ -395,46 +363,58 @@ public class ReflectionFormFieldMapper {
                             getDetailFormColumns(field))
                         .stream()
                         .toList())
+                    .header(List.of(io.mateu.uidl.data.Text.builder().text("${state." + getFieldId(field, prefix, readOnly) + "_position}").build()))
                 .toolbar(
                     List.of(
+                        Button.builder()
+                            .label("Prev")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_prev")
+                            .build(),
+                        Button.builder()
+                            .label("Next")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_next")
+                            .build(),
                         Button.builder()
                             .label("Cancel")
                             .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
                             .build(),
-                        Button.builder().label("Save").actionId(getFieldId(field, prefix, readOnly) + "_save").build()))
+                        Button.builder()
+                            .label("Save")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_save")
+                            .build()))
                 .build())
         .build();
   }
 
-    private static int getDetailFormColumns(Field field) {
-        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-            return field.getAnnotation(DetailFormCustomisation.class).columns();
-        }
-        return getFormColumns(getGenericClass(field, field.getType(), "E"));
+  private static int getDetailFormColumns(Field field) {
+    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+      return field.getAnnotation(DetailFormCustomisation.class).columns();
     }
+    return getFormColumns(getGenericClass(field, field.getType(), "E"));
+  }
 
-    private static String getFormTheme(Field field) {
-        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-            return field.getAnnotation(DetailFormCustomisation.class).theme();
-        }
-        return null;
+  private static String getFormTheme(Field field) {
+    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+      return field.getAnnotation(DetailFormCustomisation.class).theme();
     }
+    return null;
+  }
 
-    private static String getFormStyle(Field field) {
-        if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-            return field.getAnnotation(DetailFormCustomisation.class).style();
-        }
-      return null;
+  private static String getFormStyle(Field field) {
+    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+      return field.getAnnotation(DetailFormCustomisation.class).style();
     }
+    return null;
+  }
 
-    private static FormPosition getFormPosition(Field field) {
-      if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-          return field.getAnnotation(DetailFormCustomisation.class).position();
-      }
-      return FormPosition.right;
+  private static FormPosition getFormPosition(Field field) {
+    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
+      return field.getAnnotation(DetailFormCustomisation.class).position();
     }
+    return FormPosition.right;
+  }
 
-    private static String getColumnWidth(Field columnField) {
+  private static String getColumnWidth(Field columnField) {
     if (columnField.isAnnotationPresent(ColumnWidth.class)) {
       return columnField.getAnnotation(ColumnWidth.class).value();
     }

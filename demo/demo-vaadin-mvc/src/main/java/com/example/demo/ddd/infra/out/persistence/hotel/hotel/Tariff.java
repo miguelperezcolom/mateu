@@ -58,19 +58,8 @@ public record Tariff(
         List<TariffBoard> boards,
         @Tab("Periods")
         @Colspan(2)
+        @DetailFormCustomisation(style = "min-width: 80rem;", columns = 3)
         List<Period> periods,
-        @Tab("Prices")
-        @Colspan(2)
-        List<Price> prices,
-        @Tab("Pax supplements")
-        @Colspan(2)
-        List<PaxSupplement> paxSupplements,
-        @Tab("Room supplements")
-        @Colspan(2)
-        List<RoomSupplement> roomSupplements,
-        @Tab("Bard supplements")
-        @Colspan(2)
-        List<BoardSupplement> boardSupplements,
 
         @Tab("Supplements")
         @Colspan(2)

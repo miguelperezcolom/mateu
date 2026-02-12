@@ -287,9 +287,18 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest,
       boolean readOnly,
       boolean forCreationForm) {
-      var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
-      int maxColumns = getFormColumns(instanceType);
-      return getForm(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, forCreationForm, readOnly, maxColumns);
+    var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
+    int maxColumns = getFormColumns(instanceType);
+    return getForm(
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly,
+        maxColumns);
   }
 
   public static int getFormColumns(Class<?> instanceType) {
@@ -318,24 +327,24 @@ public class ReflectionPageMapper {
     return rows;
   }
 
-    private static void arrangeInTabs(
-            Class<?> type,
-            List<Pair<Tab, List<Field>>> fieldsPerTab,
-            List<Field> noTabFields,
-            boolean readOnly,
-            boolean forCreationForm) {
-        var filteredFields =
-                getAllEditableFields(type).stream()
-                        .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
-                        .filter(field -> !Status.class.equals(field.getType()))
-                        .filter(field -> !field.isAnnotationPresent(KPI.class))
-                        .filter(
-                                field ->
-                                        !field.isAnnotationPresent(Hidden.class)
-                                                || !"".equals(field.getAnnotation(Hidden.class).value()))
-                        .toList();
-        arrangeInTabs(filteredFields, fieldsPerTab, noTabFields, readOnly, forCreationForm);
-    }
+  private static void arrangeInTabs(
+      Class<?> type,
+      List<Pair<Tab, List<Field>>> fieldsPerTab,
+      List<Field> noTabFields,
+      boolean readOnly,
+      boolean forCreationForm) {
+    var filteredFields =
+        getAllEditableFields(type).stream()
+            .filter(field -> readOnly || !field.isAnnotationPresent(Composition.class))
+            .filter(field -> !Status.class.equals(field.getType()))
+            .filter(field -> !field.isAnnotationPresent(KPI.class))
+            .filter(
+                field ->
+                    !field.isAnnotationPresent(Hidden.class)
+                        || !"".equals(field.getAnnotation(Hidden.class).value()))
+            .toList();
+    arrangeInTabs(filteredFields, fieldsPerTab, noTabFields, readOnly, forCreationForm);
+  }
 
   private static void arrangeInTabs(
       List<Field> fields,
@@ -440,6 +449,11 @@ public class ReflectionPageMapper {
                 public int columns() {
                   return maxColumns;
                 }
+
+                @Override
+                public String style() {
+                  return "";
+                }
               };
         }
         sectionFields =
@@ -461,6 +475,7 @@ public class ReflectionPageMapper {
                           section ->
                               (Component)
                                   VerticalLayout.builder()
+                                      .style(section.style())
                                       .content(
                                           List.of(
                                               Text.builder()
@@ -478,7 +493,7 @@ public class ReflectionPageMapper {
                                                   httpRequest,
                                                   forCreationForm,
                                                   readOnly,
-                                                      section.columns())))
+                                                  section.columns())))
                                       .build())
                       .toList())
               .build());
@@ -497,99 +512,139 @@ public class ReflectionPageMapper {
                     httpRequest,
                     forCreationForm,
                     readOnly,
-                        section.columns()))
+                    section.columns()))
         .toList();
   }
 
-    public static Component toFormLayout(SectionFields section,
-                                         String prefix,
-                                         Object instance,
-                                         String baseUrl,
-                                         String route,
-                                         String consumedRoute,
-                                         String initiatorComponentId,
-                                         HttpRequest httpRequest,
-                                         boolean forCreationForm,
-                                         boolean readOnly) {
-        var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
-      return toFormLayout(section, prefix, instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, forCreationForm, readOnly, getFormColumns(instanceType));
-    }
+  public static Component toFormLayout(
+      SectionFields section,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly) {
+    var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
+    return toFormLayout(
+        section,
+        prefix,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly,
+        getFormColumns(instanceType));
+  }
 
-  public static Component toFormLayout(SectionFields section,
-            String prefix,
-            Object instance,
-            String baseUrl,
-            String route,
-            String consumedRoute,
-            String initiatorComponentId,
-            HttpRequest httpRequest,
-            boolean forCreationForm,
-            boolean readOnly,
-            int maxColumns) {
-      List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
-      List<Field> noTabFields = new ArrayList<>();
-      arrangeInTabs(section.fields(), fieldsPerTab, noTabFields, readOnly, forCreationForm);
-      var content = new ArrayList<Component>();
-      if (!noTabFields.isEmpty()) {
+  public static Component toFormLayout(
+      SectionFields section,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int maxColumns) {
+    return toFormLayout(
+        section,
+        prefix,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly,
+        maxColumns,
+        "");
+  }
 
-          content.add(
-                  FormLayout.builder()
-                          .expandColumns(true)
-                          .maxColumns(maxColumns)
-                          .autoResponsive(true)
-                          .content(
-                                  buildRows(
-                                          noTabFields.stream()
-                                                  .map(
-                                                          field ->
-                                                                  (Component)
-                                                                          getFormField(
-                                                                                  prefix,
-                                                                                  field,
-                                                                                  instance,
-                                                                                  baseUrl,
-                                                                                  route,
-                                                                                  consumedRoute,
-                                                                                  initiatorComponentId,
-                                                                                  httpRequest,
-                                                                                  readOnly,
-                                                                                  forCreationForm,
-                                                                                  maxColumns))
-                                                  .toList(),
+  public static Component toFormLayout(
+      SectionFields section,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int maxColumns,
+      String style) {
+    List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
+    List<Field> noTabFields = new ArrayList<>();
+    arrangeInTabs(section.fields(), fieldsPerTab, noTabFields, readOnly, forCreationForm);
+    var content = new ArrayList<Component>();
+    if (!noTabFields.isEmpty()) {
+
+      content.add(
+          FormLayout.builder()
+              .expandColumns(true)
+              .maxColumns(maxColumns)
+              .autoResponsive(true)
+              .content(
+                  buildRows(
+                      noTabFields.stream()
+                          .map(
+                              field ->
+                                  (Component)
+                                      getFormField(
+                                          prefix,
+                                          field,
+                                          instance,
+                                          baseUrl,
+                                          route,
+                                          consumedRoute,
+                                          initiatorComponentId,
+                                          httpRequest,
+                                          readOnly,
+                                          forCreationForm,
                                           maxColumns))
-                          .build());
-      }
-      if (fieldsPerTab.size() > 0) {
-          content.add(
-                  TabLayout.builder()
-                          .id("_tabs")
-                          .style("width: 100%;")
-                          .tabs(
-                                  fieldsPerTab.stream()
-                                          .map(
-                                                  pair ->
-                                                          io.mateu.uidl.data.Tab.builder()
-                                                                  .label(pair.first().value())
-                                                                  .content(
-                                                                          toFormLayout(
-                                                                                  new TabFields(
-                                                                                          pair.first().value(),
-                                                                                          pair.second(),
-                                                                                          maxColumns),
-                                                                                  prefix,
-                                                                                  instance,
-                                                                                  baseUrl,
-                                                                                  route,
-                                                                                  consumedRoute,
-                                                                                  initiatorComponentId,
-                                                                                  httpRequest,
-                                                                                  forCreationForm,
-                                                                                  readOnly))
-                                                                  .build())
-                                          .toList())
-                          .build());
-      }
-      return new VerticalLayout(content);
+                          .toList(),
+                      maxColumns))
+              .style(style)
+              .build());
+    }
+    if (fieldsPerTab.size() > 0) {
+      content.add(
+          TabLayout.builder()
+              .id("_tabs")
+              .style("width: 100%;" + style)
+              .tabs(
+                  fieldsPerTab.stream()
+                      .map(
+                          pair ->
+                              io.mateu.uidl.data.Tab.builder()
+                                  .label(pair.first().value())
+                                  .content(
+                                      toFormLayout(
+                                          new TabFields(
+                                              pair.first().value(), pair.second(), maxColumns),
+                                          prefix,
+                                          instance,
+                                          baseUrl,
+                                          route,
+                                          consumedRoute,
+                                          initiatorComponentId,
+                                          httpRequest,
+                                          forCreationForm,
+                                          readOnly))
+                                  .build())
+                      .toList())
+              .build());
+    }
+    return VerticalLayout.builder().content(content).style("width: 100%;").build();
   }
 
   private static Component toFormLayout(

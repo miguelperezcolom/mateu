@@ -15,22 +15,21 @@ import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplements
 import com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplementsperday.SupplementPerDayPrice;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TariffGenerator {
 
-    List<Tariff> generate(DataSet dataSet, HotelDto hotel, Season season, Contract contract) {
+    List<Tariff> generate(AtomicInteger tariffId, DataSet dataSet, HotelDto hotel, Season season, Contract contract) {
 
-        var periods = generatePeriods(season);
+        var periods = generatePeriods(dataSet, season);
 
         List<Tariff> tariffs = new ArrayList<>();
 
         for (int i = 0; i < 1; i++) {
             var tariff = new Tariff(
-                    UUID.randomUUID().toString(),
+                    tariffId.getAndIncrement() + "",
                     contract.id(),
                     hotel.nombre() + " - RACK",
                     0,
@@ -71,10 +70,6 @@ public class TariffGenerator {
                     new TariffChildAgeRange(1, 2, 12),
                     generateBoards(dataSet),
                     periods,
-                    generatePrices(dataSet, periods),
-                    generatePaxSupplements(dataSet, periods),
-                    generateRoomSupplements(dataSet, periods),
-                    generateBoardSupplements(dataSet, periods),
                     generateSupplements(dataSet),
                     generateCharges(dataSet, season),
                     generateApplicationTerms(season),
@@ -128,59 +123,51 @@ public class TariffGenerator {
         );
     }
 
-    private List<BoardSupplement> generateBoardSupplements(DataSet dataSet, List<Period> periods) {
-        return periods.stream().map(p -> dataSet.regimenes().stream()
+    private List<BoardSupplement> generateBoardSupplements(DataSet dataSet) {
+        return dataSet.regimenes().stream()
                         .map(t -> new BoardSupplement(
                                 t.codigo(),
-                                p.number(),
                                 PaxType.AD,
                                 0,
                                 t.codigo(),
                                 1.4,
                                 20d,
                                 "Generated"
-                        )).toList())
-                .flatMap(Collection::stream).toList();
+                        )).toList();
     }
 
-    private List<RoomSupplement> generateRoomSupplements(DataSet dataSet, List<Period> periods) {
-        return periods.stream().map(p -> dataSet.tiposHabitacion().stream()
+    private List<RoomSupplement> generateRoomSupplements(DataSet dataSet) {
+        return dataSet.tiposHabitacion().stream()
                         .map(t -> new RoomSupplement(
                                 t.codigo(),
-                                p.number(),
                                 null,
                                 1.23,
                                 15d,
                                 "Generated"
-                        )).toList())
-                .flatMap(Collection::stream).toList();
+                        )).toList();
     }
 
-    private List<PaxSupplement> generatePaxSupplements(DataSet dataSet, List<Period> periods) {
-        return periods.stream().map(p -> dataSet.tiposHabitacion().stream()
+    private List<PaxSupplement> generatePaxSupplements(DataSet dataSet) {
+        return dataSet.tiposHabitacion().stream()
                 .map(t -> new PaxSupplement(
                         t.codigo(),
-                        p.number(),
                         UseType.AD,
                         PaxType.AD,
                         0,
                         1.21,
                         10d,
                         "Generated"
-                        )).toList())
-                .flatMap(Collection::stream).toList();
+                        )).toList();
     }
 
-    private List<Price> generatePrices(DataSet dataSet, List<Period> periods) {
+    private List<PricePerRoom> generatePrices(DataSet dataSet) {
         AtomicInteger pos = new AtomicInteger();
         var precios = new ArrayList<PricePerRoom>();
         dataSet.tiposHabitacion().forEach(t -> precios.add(new PricePerRoom(t.codigo(), 10.31)));
-        return periods.stream()
-                .map(p -> new Price(pos.getAndIncrement(), p.number(), precios, "", "Generated"))
-                .toList();
+        return precios;
     }
 
-    private List<Period> generatePeriods(Season season) {
+    private List<Period> generatePeriods(DataSet dataSet, Season season) {
         var from = season.from();
         var to = season.to();
         var periods = new ArrayList<Period>();
@@ -190,11 +177,20 @@ public class TariffGenerator {
             if (periodEnding.isAfter(to)) {
                 periodEnding = to;
             }
-            periods.add(new Period(pos++, from, periodEnding, "Generated"));
+            periods.add(new Period(pos++, from, periodEnding, "Generated",
+                    generatePrices(dataSet),
+                    generatePaxSupplements(dataSet),
+                    generateRoomSupplements(dataSet),
+                    generateBoardSupplements(dataSet)
+                    ));
             from = periodEnding.plusDays(1);
         }
         if (!from.isAfter(to)) {
-            periods.add(new Period(pos++, from, to, "Generated"));
+            periods.add(new Period(pos++, from, to, "Generated",
+                    generatePrices(dataSet),
+                    generatePaxSupplements(dataSet),
+                    generateRoomSupplements(dataSet),
+                    generateBoardSupplements(dataSet)));
         }
         return periods;
     }

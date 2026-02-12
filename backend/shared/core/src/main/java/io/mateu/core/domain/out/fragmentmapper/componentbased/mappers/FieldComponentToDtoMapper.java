@@ -48,9 +48,9 @@ public class FieldComponentToDtoMapper {
                 formField.formPosition() != null
                     ? FormPositionDto.valueOf(formField.formPosition().name())
                     : null)
-                .formStyle(formField.formStyle())
-                .formTheme(formField.formTheme())
-                .formColumns(formField.formColumns())
+            .formStyle(formField.formStyle())
+            .formTheme(formField.formTheme())
+            .formColumns(formField.formColumns())
             .sliderMin(formField.sliderMin())
             .sliderMax(formField.sliderMax())
             .stepButtonsVisible(formField.stepButtonsVisible())

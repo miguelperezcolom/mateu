@@ -92,17 +92,20 @@ public abstract class GenericWizard
             });
     return map;
   }
-    public static void addRowNumber(Class type, Map<String, Object> data) {
-      addRowNumber(type, "", data, data);
-    }
 
-  public static void addRowNumber(Class type, String prefix, Map<String, Object> data, Map<String, Object> parentData) {
+  public static void addRowNumber(Class type, Map<String, Object> data) {
+    addRowNumber(type, "", data, data);
+  }
+
+  public static void addRowNumber(
+      Class type, String prefix, Map<String, Object> data, Map<String, Object> parentData) {
     getAllFields(type).stream()
         .filter(field -> Collection.class.isAssignableFrom(field.getType()))
         .forEach(
             field -> {
-                var rowType = getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-                parentData.put(prefix + field.getName() + "_rowClass", rowType.getName());
+              var rowType =
+                  getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+              parentData.put(prefix + field.getName() + "_rowClass", rowType.getName());
               var list = (List<?>) data.get(field.getName());
               if (list != null) {
                 for (int i = 0; i < list.size(); i++) {
@@ -115,7 +118,7 @@ public abstract class GenericWizard
             });
   }
 
-    @Override
+  @Override
   public void onHydrated(HttpRequest httpRequest) {
     var state = httpRequest.runActionRq().componentState();
     final InstanceFactory instanceFactory = MateuBeanProvider.getBean(InstanceFactory.class);

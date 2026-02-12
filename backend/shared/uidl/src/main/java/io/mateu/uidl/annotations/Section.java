@@ -13,4 +13,6 @@ public @interface Section {
   String value();
 
   int columns() default 1;
+
+  String style() default "";
 }

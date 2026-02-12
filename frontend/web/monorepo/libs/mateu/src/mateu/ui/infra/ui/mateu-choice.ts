@@ -80,7 +80,7 @@ export class MateuChoice extends LitElement {
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${divStyle}">
                                     ${options?.map(option => html`
                             <div 
-                                    class="choice ${(this.value == option.value || (this.value && this.value.indexOf && this.value.indexOf(option.value) >= 0))?'selected':''}"
+                                    class="choice ${(this.value == option.value || (Array.isArray(this.value) && this.value.includes(option.value)))?'selected':''}"
                                     @click="${() => this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value: this.getNewValue(option.value),

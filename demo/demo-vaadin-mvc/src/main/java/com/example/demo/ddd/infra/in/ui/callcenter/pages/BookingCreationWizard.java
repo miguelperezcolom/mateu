@@ -56,6 +56,11 @@ public class BookingCreationWizard extends GenericWizard implements DataSupplier
     }
 
     @Override
+    public boolean supportsAction(String actionId) {
+        return true;
+    }
+
+    @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         if ("results_selected".equals(actionId)) {
             var selection = httpRequest.getSelectedRows("results", HotelFound.class);

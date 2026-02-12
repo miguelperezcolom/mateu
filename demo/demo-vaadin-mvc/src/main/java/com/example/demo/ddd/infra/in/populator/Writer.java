@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Writer {
 
@@ -192,11 +193,12 @@ public class Writer {
 
     private static void writeContracts(HotelRepository hotelRepository, AgencyRepository agencyRepository, ContractRepository contractRepository, SeasonRepository seasonRepository) {
         List<Contract> contracts = new ArrayList<>();
+        int contractId = 1;
         for (Hotel hotel : hotelRepository.findAll()) {
             for (Agency agencia : agencyRepository.findAll()) {
                 for (Season season : seasonRepository.findAll()) {
                     contracts.add(new Contract(
-                            UUID.randomUUID().toString(),
+                            "" + contractId++,
                             hotel.name() + " - " + agencia.name() + " - " + season.name(),
                             hotel.id(),
                             agencia.id(),
@@ -210,9 +212,10 @@ public class Writer {
 
     private static void writeTariffs(DataSet dataSet, TariffRepository tariffRepository, SeasonRepository seasonRepository, TariffGenerator tariffGenerator, ContractRepository contractRepository, int tariffsPerContract) {
         List<Tariff> tariffs = new ArrayList<>();
+        var tariffId = new AtomicInteger(1);
         contractRepository.findAll().forEach(contract -> {
             for (int i = 0; i < tariffsPerContract; i++) {
-                tariffs.addAll(tariffGenerator.generate(dataSet,
+                tariffs.addAll(tariffGenerator.generate(tariffId, dataSet,
                         dataSet.hoteles().stream().filter(hotel -> hotel.codigo().equals(contract.hotelId())).findFirst().get(),
                         seasonRepository.findById(contract.seasonId()).get(),
                         contract));

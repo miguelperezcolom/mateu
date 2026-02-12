@@ -121,7 +121,7 @@ public class DynamicEditor extends GenericCrud implements ComponentTreeSupplier,
       var item = found.page().content().get(0);
       var data = toMap();
       data.putAll(toMap(item));
-        addRowNumberForEntityClass(data);
+      addRowNumberForEntityClass(data);
       return data;
     } else {
       var data = toMap();
@@ -130,7 +130,7 @@ public class DynamicEditor extends GenericCrud implements ComponentTreeSupplier,
       } else {
         data.put(foreignKeyField, parentId);
       }
-        addRowNumberForEntityClass(data);
+      addRowNumberForEntityClass(data);
       return data;
     }
     // return super.state(httpRequest);

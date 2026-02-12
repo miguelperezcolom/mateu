@@ -13,9 +13,19 @@ export const renderText = (component: ClientSideComponent, state: any, data: any
     if (content) {
         try {
             content = eval('`' + metadata.text + '`')
+            if (content.includes('${')) {
+                try {
+                    content = eval('`' + content + '`')
+                } catch (e) {
+                    content = 'when evaluating nested ' + metadata.text + ' :' +  e + ', where data is ' + data
+                        + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
+                    console.error(e, content, state, data, appState, appData)
+                }
+            }
         } catch (e) {
             content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data
                 + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
+            console.error(e, content, state, data, appState, appData)
         }
     }
     if (TextContainer.h1 == metadata.container) {

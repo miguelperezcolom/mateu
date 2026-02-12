@@ -111,17 +111,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                 var value = generator.generate();
                 data.put(field.getName(), value);
               });
-        addRowNumberForEntityClass(data);
+      addRowNumberForEntityClass(data);
       return data;
     }
     if (httpRequest.getAttribute("selectedItem") != null) {
       var data = toMap();
       data.putAll(toMap(httpRequest.getAttribute("selectedItem")));
-        addRowNumberForEntityClass(data);
+      addRowNumberForEntityClass(data);
       return data;
     }
     var data = toMap();
-      addRowNumberForEntityClass(data);
+    addRowNumberForEntityClass(data);
     return data;
   }
 
@@ -314,16 +314,17 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             && !field.isAnnotationPresent(Composition.class)
             && !isBasic(field.getType())) {
           if (actionId.endsWith("_create")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, true);
             _editing.put(fieldId, false);
 
-              String rowClassName = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
-              var rowClassx =
-                      getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-              var rowClass = Class.forName(rowClassName);
+            String rowClassName =
+                httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
+            var rowClassx =
+                getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+            var rowClass = Class.forName(rowClassName);
 
-              var filteredState =
+            var filteredState =
                 httpRequest.runActionRq().componentState().entrySet().stream()
                     .filter(entry -> entry.getKey().startsWith(fieldId + "-"))
                     .collect(
@@ -332,7 +333,8 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                             Map.Entry::getValue));
             var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
 
-            var list = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+            var list =
+                (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
             ;
             if (list == null) {
               list = List.of(fromJson(toJson(item)));
@@ -340,77 +342,117 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
               list = new ArrayList<>(list);
               list.add(fromJson(toJson(item)));
             }
-            list.forEach(map -> {
-                if (!map.containsKey("_rowNumber")) {
+            list.forEach(
+                map -> {
+                  if (!map.containsKey("_rowNumber")) {
                     map.put("_rowNumber", UUID.randomUUID().toString());
-                }
-            });
+                  }
+                });
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
             newState.put(fieldId, list);
             addRowNumberForEntityClass(newState);
             return new State(newState);
           }
           if (actionId.endsWith("_add")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, true);
             _editing.put(fieldId, false);
 
             return new State(this);
           }
-            if (actionId.endsWith("_select")) {
-                String fieldId = actionId.substring(0, actionId.indexOf('_'));
-                _show_detail.put(fieldId, true);
-                _editing.put(fieldId, true);
+          if (actionId.endsWith("_select")) {
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            _show_detail.put(fieldId, true);
+            _editing.put(fieldId, true);
 
-                var rowNumber = httpRequest.runActionRq().parameters().get("_rowNumber");
-
-                var values =
-                        ((List<Map<String, Object>>)
-                                httpRequest
-                                        .runActionRq()
-                                        .componentState()
-                                        .get(fieldId)).stream()
-                                .filter(map -> rowNumber.equals(map.get("_rowNumber"))).toList()
-                                .get(0);
-                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-                for (String key : values.keySet()) {
-                    newState.put(fieldId + "-" + key, values.get(key));
-                }
-
-                return new State(newState);
-            }
-          if (actionId.endsWith("_selected")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            var rowNumber = httpRequest.runActionRq().parameters().get("_rowNumber");
 
             var values =
                 ((List<Map<String, Object>>)
-                        httpRequest
-                            .runActionRq()
-                            .componentState()
-                            .get(fieldId + "_selected_items"))
+                        httpRequest.runActionRq().componentState().get(fieldId))
+                    .stream()
+                        .filter(map -> rowNumber.equals(map.get("_rowNumber")))
+                        .toList()
+                        .get(0);
+            var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+            for (String key : values.keySet()) {
+              newState.put(fieldId + "-" + key, values.get(key));
+            }
+              var items = (List<Map<String, Object>>)
+                      httpRequest.runActionRq().componentState().get(fieldId);
+              var position = 0;
+              newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
+
+
+              return new State(newState);
+          }
+          if (actionId.endsWith("_selected")) {
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
+
+            var values =
+                ((List<Map<String, Object>>)
+                        httpRequest.runActionRq().componentState().get(fieldId + "_selected_items"))
                     .get(0);
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
             for (String key : values.keySet()) {
               newState.put(fieldId + "-" + key, values.get(key));
             }
+              var items = (List<Map<String, Object>>)
+                      httpRequest.runActionRq().componentState().get(fieldId);
+              var position = getIndex(items, new HashMap<>(values).get("_rowNumber"));
+              newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
 
             return new State(newState);
           }
+            if (actionId.endsWith("_prev")) {
+                String fieldId = actionId.substring(0, actionId.indexOf('_'));
+                var items = (List<Map<String, Object>>)
+                        httpRequest.runActionRq().componentState().get(fieldId);
+                var position = getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+
+                if (position <= 0) {
+                    throw new RuntimeException("This is the first item. No previous item to select.");
+                }
+
+                var values = items.get(position - 1);
+                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                for (String key : values.keySet()) {
+                    newState.put(fieldId + "-" + key, values.get(key));
+                }
+                newState.put("" + fieldId + "_position", "" + (position) + "/" + items.size());
+
+                return new State(newState);
+            }
+            if (actionId.endsWith("_next")) {
+                String fieldId = actionId.substring(0, actionId.indexOf('_'));
+                var items = (List<Map<String, Object>>)
+                        httpRequest.runActionRq().componentState().get(fieldId);
+                var position = getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+
+                if (position >= items.size() - 1) {
+                    throw new RuntimeException("No more items");
+                }
+
+                var values = items.get(position + 1);
+                var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+                for (String key : values.keySet()) {
+                    newState.put(fieldId + "-" + key, values.get(key));
+                }
+                newState.put("" + fieldId + "_position", "" + (position + 2) + "/" + items.size());
+
+                return new State(newState);
+            }
           if (actionId.endsWith("_save")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, false);
             _editing.put(fieldId, false);
 
             var values =
                 ((List<Map<String, Object>>)
-                        httpRequest
-                            .runActionRq()
-                            .componentState()
-                            .get(fieldId + "_selected_items"))
+                        httpRequest.runActionRq().componentState().get(fieldId + "_selected_items"))
                     .get(0);
             var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-            List<Map<String, Object>> list =
-                (List<Map<String, Object>>) newState.get(fieldId);
+            List<Map<String, Object>> list = (List<Map<String, Object>>) newState.get(fieldId);
             var row =
                 list.stream()
                     .filter(l -> l.get("_rowNumber").equals(values.get("_rowNumber")))
@@ -423,14 +465,10 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             return new State(newState);
           }
           if (actionId.endsWith("_remove")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, false);
             var selectedLines =
-                (List)
-                    httpRequest
-                        .runActionRq()
-                        .componentState()
-                        .get(fieldId + "_selected_items");
+                (List) httpRequest.runActionRq().componentState().get(fieldId + "_selected_items");
             if (selectedLines != null) {
               var list =
                   ((List) httpRequest.runActionRq().componentState().get(fieldId))
@@ -449,7 +487,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             return new State(this);
           }
           if (actionId.endsWith("_cancel")) {
-              String fieldId = actionId.substring(0, actionId.indexOf('_'));
+            String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, false);
             return new State(this);
           }
@@ -496,7 +534,16 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
     }
   }
 
-  public ListingData<EntityType> search(String searchText, Pageable pageable) {
+    private int getIndex(List<Map<String, Object>> list, Object rowNumber) {
+        for (int i = 0; i < list.size(); i++) {
+            if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
+                return i;
+            }
+        }
+        throw new RuntimeException("Item with row number " + rowNumber + " not found");
+    }
+
+    public ListingData<EntityType> search(String searchText, Pageable pageable) {
     return repository().search(searchText, pageable);
   }
 
