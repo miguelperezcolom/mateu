@@ -21678,9 +21678,11 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                         @closed="${()=>{ee.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ee.field?.fieldId+"_cancel"},bubbles:!0,composed:!0}))}}"
                         ${dialogRenderer(()=>x$4`
                             <mateu-event-interceptor .target="${ee}">
-                            ${renderComponent(ee,X?ee.field?.editor:ee.field?.createForm,ee.baseUrl,ee.state,ee.data,ee.appState,ee.appData)}
+                                <div style="${this.field?.formStyle??"display: contents;"}">
+                                    ${renderComponent(ee,X?ee.field?.editor:ee.field?.createForm,ee.baseUrl,ee.state,ee.data,ee.appState,ee.appData)}
+                                </div>
                             </mateu-event-interceptor>
-                            `,[Q,X,ee.state[ee.field.fieldId]])}
+                            `,[()=>nanoid()])}
                 ></vaadin-dialog>
                 
             `}else{const ee=this.field?.formPosition=="left"||this.field?.formPosition=="right"?"horizontal":"vertical";return x$4`

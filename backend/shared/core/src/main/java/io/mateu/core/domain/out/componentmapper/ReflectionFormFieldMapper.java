@@ -412,7 +412,10 @@ public class ReflectionFormFieldMapper {
 
   private static int getDetailFormColumns(Field field) {
     if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-      return field.getAnnotation(DetailFormCustomisation.class).columns();
+      var columns = field.getAnnotation(DetailFormCustomisation.class).columns();
+      if (columns != 2) {
+        return columns;
+      }
     }
     return getFormColumns(getGenericClass(field, field.getType(), "E"));
   }

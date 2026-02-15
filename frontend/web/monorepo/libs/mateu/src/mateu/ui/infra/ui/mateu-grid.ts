@@ -19,6 +19,7 @@ import { badge } from "@vaadin/vaadin-lumo-styles";
 import {ifDefined} from "lit/directives/if-defined.js";
 import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
 import {dialogRenderer} from "@vaadin/dialog/lit";
+import {nanoid} from "nanoid";
 
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
@@ -111,14 +112,16 @@ export class MateuGrid extends MetadataDrivenElement {
                         ${dialogRenderer(() => {
                             return html`
                             <mateu-event-interceptor .target="${grid}">
-                            ${renderComponent(grid, editing?(grid.field?.editor!):grid.field?.createForm!,
-                                    grid.baseUrl,
-                                    grid.state,
-                                    grid.data,
-                                    grid.appState,
-                                    grid.appData)}
+                                <div style="${this.field?.formStyle??'display: contents;'}">
+                                    ${renderComponent(grid, editing?(grid.field?.editor!):grid.field?.createForm!,
+                                            grid.baseUrl,
+                                            grid.state,
+                                            grid.data,
+                                            grid.appState,
+                                            grid.appData)}
+                                </div>
                             </mateu-event-interceptor>
-                            `}, [showDetail, editing, grid.state[grid.field!.fieldId]])}
+                            `}, [() => nanoid()])}
                 ></vaadin-dialog>
                 
             `

@@ -524,6 +524,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
           if (actionId.endsWith("_cancel")) {
             String fieldId = actionId.substring(0, actionId.indexOf('_'));
             _show_detail.put(fieldId, false);
+            _editing.put(fieldId, false);
             return new State(this);
           }
         }
