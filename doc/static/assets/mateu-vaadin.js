@@ -21925,6 +21925,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?required="${this.field.required||E$5}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
+                            .value="${Q}"
                             ${comboBoxRenderer(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}return x$4`

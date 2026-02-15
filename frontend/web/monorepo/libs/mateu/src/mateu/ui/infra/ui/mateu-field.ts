@@ -609,6 +609,7 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
+                            .value="${value}"
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `
