@@ -321,6 +321,7 @@ public class ReflectionFormFieldMapper {
         .formTheme(getFormTheme(field))
         .formColumns(getDetailFormColumns(field))
         .readOnly(readOnly)
+        .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))
@@ -369,7 +370,8 @@ public class ReflectionFormFieldMapper {
                 .header(
                     List.of(
                         io.mateu.uidl.data.Text.builder()
-                            .text("${state['" + getFieldId(field, prefix, readOnly) + "_position']}")
+                            .text(
+                                "${state['" + getFieldId(field, prefix, readOnly) + "_position']}")
                             .build()))
                 .toolbar(
                     List.of(
@@ -391,6 +393,13 @@ public class ReflectionFormFieldMapper {
                             .build()))
                 .build())
         .build();
+  }
+
+  private static String getMinHeightWhenDetailVisible(Field field) {
+    if (field.isAnnotationPresent(MasterDetail.class)) {
+      return field.getAnnotation(MasterDetail.class).minHeightWhenDetailVisible();
+    }
+    return null;
   }
 
   private static String getDetailPath(Field field) {

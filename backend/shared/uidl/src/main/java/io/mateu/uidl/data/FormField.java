@@ -38,7 +38,8 @@ public record FormField(
     String itemIdPath,
     Map<String, String> attributes,
     String detailPath,
-    boolean useButtonForDetail)
+    boolean useButtonForDetail,
+    String minHeightWhenDetailVisible)
     implements Component {
 
   public FormField {

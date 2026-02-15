@@ -4,5 +4,8 @@ public enum FormPositionDto {
   top,
   right,
   bottom,
-  left
+  left,
+  modalLeft,
+  modalRight,
+  modal
 }

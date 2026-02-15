@@ -9,6 +9,7 @@ import static io.mateu.core.infra.JsonSerializer.*;
 import static io.mateu.core.infra.declarative.GenericForm.createBadges;
 import static io.mateu.core.infra.declarative.GenericForm.createKpis;
 import static io.mateu.core.infra.declarative.GenericWizard.addRowNumber;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
@@ -148,7 +149,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                 } else {
                   var nestedMap =
                       toMap(value).entrySet().stream()
-                              .filter(entry -> entry.getValue() != null)
+                          .filter(entry -> entry.getValue() != null)
                           .collect(
                               Collectors.toMap(
                                   entry -> field.getName() + "-" + entry.getKey(),
@@ -378,7 +379,15 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
             _show_detail.put(fieldId, true);
             _editing.put(fieldId, false);
 
-            return new State(this);
+            String rowClassName =
+                httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
+            var rowClass = Class.forName(rowClassName);
+
+            var newState = toMap(this);
+            getAllEditableFields(rowClass)
+                .forEach(f -> newState.put(fieldId + "-" + f.getName(), null));
+            addRowNumberForEntityClass(newState);
+            return new State(newState);
           }
           if (actionId.endsWith("_select")) {
             String fieldId = actionId.substring(0, actionId.indexOf('_'));

@@ -21665,54 +21665,31 @@ To prevent other runtimes from defining tags that you use, consider using scopin
 <g id="lumo:unordered-list"><path d="M146 325c-42 0-67-26-67-63 0-37 25-63 67-63 42 0 67 26 67 63 0 37-25 63-67 63z m0 250c-42 0-67-26-67-63 0-37 25-63 67-63 42 0 67 26 67 63 0 37-25 63-67 63z m0 250c-42 0-67-26-67-63 0-37 25-63 67-63 42 0 67 26 67 63 0 37-25 63-67 63zM333 258c0-18 15-33 34-33h516c18 0 33 15 34 33 0 18-15 33-34 34H367c-18 0-33-15-34-34z m0 250c0-18 15-33 34-33h516c18 0 33 15 34 33s-15 33-34 34H367c-18 0-33-15-34-34z m0 250c0-18 15-33 34-33h516c18 0 33 15 34 33s-15 33-34 34H367c-18 0-33-15-34-34z"></path></g>
 <g id="lumo:upload"><path d="M454 271V604c0 21-17 38-37 38s-38-17-38-38V271L254 382c-15 14-39 12-53-3-14-15-12-39 3-53L391 160c14-13 36-13 51-1 0 0 0 0 0 1l187 166c15 14 17 37 3 53-14 15-37 17-53 3L454 271zM675 704c0-21 17-38 37-37 21 0 38 17 38 37v92c0 21-17 38-38 37H121c-21 0-38-17-38-37v-92c0-21 17-38 38-37s38 17 37 37v54h517v-54z"></path></g>
 <g id="lumo:user"><path d="M500 500c-69 0-125-56-125-125s56-125 125-125 125 56 125 125-56 125-125 125z m-292 292c0-115 131-208 292-209s292 93 292 209H208z"></path></g>
-</defs></svg>`;Iconset$1.register("lumo",1e3,template$1);var __defProp$j=Object.defineProperty,__getOwnPropDesc$i=Object.getOwnPropertyDescriptor,__decorateClass$j=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$i(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$j(Q,X,ie),ie};let MateuGrid=class extends MetadataDrivenElement{constructor(){super(...arguments),this.appState={},this.appData={},this.detailsOpenedItems=[],this.handleButtonClick=te=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:te},bubbles:!0,composed:!0}))}}render(){let te=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(te=this.state[this.field.fieldId]);const Q=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId],X=this.state[this.field?.fieldId+"_editing"]||this.state._editing&&this.state._editing[this.field.fieldId];if(this.field?.remoteCoordinates){const ie=this.field.remoteCoordinates,oe="";this.data[this.id]&&(this.data[this.id].searchSignature||oe)&&this.data[this.id].searchSignature!=oe&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?te=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ie.action,parameters:{searchText:oe,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const ee=this.field?.formPosition=="left"||this.field?.formPosition=="right"?"horizontal":"vertical";return x$4`
+</defs></svg>`;Iconset$1.register("lumo",1e3,template$1);/**
+ * @license
+ * Copyright (c) 2017 - 2025 Vaadin Ltd.
+ * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
+ */const CONTENT_UPDATE_DEBOUNCER=Symbol("contentUpdateDebouncer");class AbstractDialogRendererDirective extends LitRendererDirective{get rendererProperty(){throw new Error("The `rendererProperty` getter must be implemented.")}addRenderer(){this.element[this.rendererProperty]=(Q,X)=>{this.renderRenderer(Q,X)}}runRenderer(){this.element[CONTENT_UPDATE_DEBOUNCER]=Debouncer$1.debounce(this.element[CONTENT_UPDATE_DEBOUNCER],microTask,()=>{this.element.requestContentUpdate()})}removeRenderer(){this.element[this.rendererProperty]=null,delete this.element[CONTENT_UPDATE_DEBOUNCER]}}class DialogRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"renderer"}}class DialogHeaderRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"headerRenderer"}}class DialogFooterRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"footerRenderer"}}const dialogRenderer=e$p(DialogRendererDirective),dialogHeaderRenderer=e$p(DialogHeaderRendererDirective),dialogFooterRenderer=e$p(DialogFooterRendererDirective);var __defProp$j=Object.defineProperty,__getOwnPropDesc$i=Object.getOwnPropertyDescriptor,__decorateClass$j=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$i(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$j(Q,X,ie),ie};let MateuGrid=class extends MetadataDrivenElement{constructor(){super(...arguments),this.appState={},this.appData={},this.detailsOpenedItems=[],this.handleButtonClick=te=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:te},bubbles:!0,composed:!0}))}}render(){let te=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(te=this.state[this.field.fieldId]);const Q=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId],X=this.state[this.field?.fieldId+"_editing"]||this.state._editing&&this.state._editing[this.field.fieldId];if(this.field?.remoteCoordinates){const ee=this.field.remoteCoordinates,ie="";this.data[this.id]&&(this.data[this.id].searchSignature||ie)&&this.data[this.id].searchSignature!=ie&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?te=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ee.action,parameters:{searchText:ie,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(this.field?.formPosition&&this.field?.formPosition.startsWith("modal")){const ee=this;return x$4`
+
+                ${this.renderMaster(te)}
+                
+                <vaadin-dialog
+                        .opened="${Q}"
+                        @closed="${()=>{ee.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ee.field?.fieldId+"_cancel"},bubbles:!0,composed:!0}))}}"
+                        ${dialogRenderer(()=>x$4`
+                            <mateu-event-interceptor .target="${ee}">
+                            ${renderComponent(ee,X?ee.field?.editor:ee.field?.createForm,ee.baseUrl,ee.state,ee.data,ee.appState,ee.appData)}
+                            </mateu-event-interceptor>
+                            `,[Q,X,ee.state[ee.field.fieldId]])}
+                ></vaadin-dialog>
+                
+            `}else{const ee=this.field?.formPosition=="left"||this.field?.formPosition=="right"?"horizontal":"vertical";return x$4`
             <vaadin-master-detail-layout
-                    style="overflow: unset; width: 100%; ${Q?"min-height: 43rem;":""}"
+                    style="overflow: unset; width: 100%; ${Q&&this.field?.minHeightWhenDetailVisible?"min-height: "+this.field?.minHeightWhenDetailVisible+";":""}"
                     orientation="${ee}"
                     .forceOverlay="${!0}"
             >
-                <vaadin-vertical-layout>
-                <vaadin-grid
-                        style="${this.field?.style}"
-                        class="${this.field?.cssClasses}"
-                        .items="${te}"
-                        .selectedItems="${this.selectedItems}"
-                        item-id-path="${this.field?.itemIdPath}"
-                        @active-item-changed="${o$q(this.field?.detailPath&&!this.field?.useButtonForDetail?ie=>{if(this.field?.detailPath){const oe=ie.detail.value;oe?this.detailsOpenedItems=[oe]:this.detailsOpenedItems=[]}}:ie=>{if(this.field?.onItemSelectionActionId){const oe=ie.detail.value;this.selectedItems=oe?[oe]:[],this.state[this.id+"_selected_items"]=oe?[oe]:[],oe&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field?.onItemSelectionActionId},bubbles:!0,composed:!0}))}})}"
-                        .detailsOpenedItems="${this.detailsOpenedItems}"
-                        ${o$q(this.field?.detailPath?gridRowDetailsRenderer(ie=>x$4`${renderComponent(this,ie[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
-                        ?all-rows-visible=${te?.length<10}
-                >
-                    <span slot="empty-state">Empty list.</span>
-                    ${this.field?.columns?.map(ie=>renderColumnOrGroup(ie,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
-
-                    ${this.field?.useButtonForDetail?x$4`
-                    <vaadin-grid-column
-                            width="80px"
-                            flex-grow="0"
-                            ${columnBodyRenderer((ie,{detailsOpened:oe})=>x$4`
-              <vaadin-button
-                theme="tertiary icon"
-                aria-label="Toggle details"
-                aria-expanded="${oe?"true":"false"}"
-                @click="${()=>{this.detailsOpenedItems=this.detailsOpenedItems.length?this.detailsOpenedItems[0]._rowNumber==ie._rowNumber?[]:[ie]:[ie]}}"
-              >
-                <vaadin-icon
-                  .icon="${oe?"lumo:angle-down":"lumo:angle-right"}"
-                ></vaadin-icon>
-              </vaadin-button>
-            `,[])}
-                    ></vaadin-grid-column>
-                `:E$5}
-                    
-                </vaadin-grid>
-                ${this.field?.readOnly?E$5:x$4`
-                    <vaadin-horizontal-layout theme="spacing">
-                        <vaadin-button @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_add"},bubbles:!0,composed:!0}))}">Add</vaadin-button>
-                        <vaadin-button @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_remove"},bubbles:!0,composed:!0}))}">Remove</vaadin-button>
-                    </vaadin-horizontal-layout>
-                `}
-            </vaadin-vertical-layout>
+                ${this.renderMaster(te)}
                 <div slot="${Q?"detail":"detail-hidden"}" style="${this.field?.formStyle??"display: contents;"}">
                     <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
                     ${renderComponent(this,X?this.field?.editor:this.field?.createForm,this.baseUrl,this.state,this.data,this.appState,this.appData)}
@@ -21720,10 +21697,48 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                 </div>
                 
                 
-            </vaadin-master-detail-layout>
-                
-            
-       `}};MateuGrid.styles=i$w`
+            </vaadin-master-detail-layout>`}}renderMaster(te){return x$4`<vaadin-vertical-layout>
+            <vaadin-grid
+                    style="${this.field?.style}"
+                    class="${this.field?.cssClasses}"
+                    .items="${te}"
+                    .selectedItems="${this.selectedItems}"
+                    item-id-path="${this.field?.itemIdPath}"
+                    @active-item-changed="${o$q(this.field?.detailPath&&!this.field?.useButtonForDetail?Q=>{if(this.field?.detailPath){const X=Q.detail.value;X?this.detailsOpenedItems=[X]:this.detailsOpenedItems=[]}}:Q=>{if(this.field?.onItemSelectionActionId){const X=Q.detail.value;this.selectedItems=X?[X]:[],this.state[this.id+"_selected_items"]=X?[X]:[],X&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field?.onItemSelectionActionId},bubbles:!0,composed:!0}))}})}"
+                    .detailsOpenedItems="${this.detailsOpenedItems}"
+                    ${o$q(this.field?.detailPath?gridRowDetailsRenderer(Q=>x$4`${renderComponent(this,Q[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
+                    ?all-rows-visible=${te?.length<10}
+            >
+                <span slot="empty-state">Empty list.</span>
+                ${this.field?.columns?.map(Q=>renderColumnOrGroup(Q,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
+
+                ${this.field?.useButtonForDetail?x$4`
+                    <vaadin-grid-column
+                            width="80px"
+                            flex-grow="0"
+                            ${columnBodyRenderer((Q,{detailsOpened:X})=>x$4`
+              <vaadin-button
+                theme="tertiary icon"
+                aria-label="Toggle details"
+                aria-expanded="${X?"true":"false"}"
+                @click="${()=>{this.detailsOpenedItems=this.detailsOpenedItems.length?this.detailsOpenedItems[0]._rowNumber==Q._rowNumber?[]:[Q]:[Q]}}"
+              >
+                <vaadin-icon
+                  .icon="${X?"lumo:angle-down":"lumo:angle-right"}"
+                ></vaadin-icon>
+              </vaadin-button>
+            `,[])}
+                    ></vaadin-grid-column>
+                `:E$5}
+
+            </vaadin-grid>
+            ${this.field?.readOnly?E$5:x$4`
+                    <vaadin-horizontal-layout theme="spacing">
+                        <vaadin-button @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_add"},bubbles:!0,composed:!0}))}">Add</vaadin-button>
+                        <vaadin-button @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_remove"},bubbles:!0,composed:!0}))}">Remove</vaadin-button>
+                    </vaadin-horizontal-layout>
+                `}
+        </vaadin-vertical-layout>`}};MateuGrid.styles=i$w`
         ${badge}
     `;__decorateClass$j([n$t()],MateuGrid.prototype,"field",2);__decorateClass$j([n$t()],MateuGrid.prototype,"state",2);__decorateClass$j([n$t()],MateuGrid.prototype,"data",2);__decorateClass$j([n$t()],MateuGrid.prototype,"appState",2);__decorateClass$j([n$t()],MateuGrid.prototype,"appData",2);__decorateClass$j([n$t()],MateuGrid.prototype,"selectedItems",2);__decorateClass$j([r$o()],MateuGrid.prototype,"detailsOpenedItems",2);MateuGrid=__decorateClass$j([t$o("mateu-grid")],MateuGrid);var __defProp$i=Object.defineProperty,__getOwnPropDesc$h=Object.getOwnPropertyDescriptor,__decorateClass$i=(te,Q,X,ee)=>{for(var ie=ee>1?void 0:ee?__getOwnPropDesc$h(Q,X):Q,oe=te.length-1,ne;oe>=0;oe--)(ne=te[oe])&&(ie=(ee?ne(Q,X,ie):ne(ie))||ie);return ee&&ie&&__defProp$i(Q,X,ie),ie};let MateuChoice=class extends i$s{constructor(){super(...arguments),this.getNewValue=te=>this.field?.dataType=="array"?this.value?this.value.indexOf(te)>=0?this.value.filter(Q=>Q!==te):[...this.value,te]:[te]:te}render(){let te=this.field?.options;if(this.field?.remoteCoordinates){const X=this.field.remoteCoordinates;this.data[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?te=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:X.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const Q=this.field?.attributes?.divStyle;return x$4`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${Q}">
@@ -21776,10 +21791,6 @@ To prevent other runtimes from defining tags that you use, consider using scopin
  * Copyright (c) 2017 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
  */class ComboBoxRendererDirective extends LitRendererDirective{addRenderer(){this.element.renderer=(Q,X,ee)=>{this.renderRenderer(Q,ee.item,ee,X)}}runRenderer(){this.element.requestContentUpdate()}removeRenderer(){this.element.renderer=null}}const comboBoxRenderer=e$p(ComboBoxRendererDirective);/**
- * @license
- * Copyright (c) 2017 - 2025 Vaadin Ltd.
- * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/
- */const CONTENT_UPDATE_DEBOUNCER=Symbol("contentUpdateDebouncer");class AbstractDialogRendererDirective extends LitRendererDirective{get rendererProperty(){throw new Error("The `rendererProperty` getter must be implemented.")}addRenderer(){this.element[this.rendererProperty]=(Q,X)=>{this.renderRenderer(Q,X)}}runRenderer(){this.element[CONTENT_UPDATE_DEBOUNCER]=Debouncer$1.debounce(this.element[CONTENT_UPDATE_DEBOUNCER],microTask,()=>{this.element.requestContentUpdate()})}removeRenderer(){this.element[this.rendererProperty]=null,delete this.element[CONTENT_UPDATE_DEBOUNCER]}}class DialogRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"renderer"}}class DialogHeaderRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"headerRenderer"}}class DialogFooterRendererDirective extends AbstractDialogRendererDirective{get rendererProperty(){return"footerRenderer"}}const dialogRenderer=e$p(DialogRendererDirective),dialogHeaderRenderer=e$p(DialogHeaderRendererDirective),dialogFooterRenderer=e$p(DialogFooterRendererDirective);/**
  * @license
  * Copyright (c) 2024 - 2025 Vaadin Ltd.
  * This program is available under Apache License Version 2.0, available at https://vaadin.com/license/

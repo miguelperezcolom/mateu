@@ -8,6 +8,7 @@ import io.mateu.core.infra.declarative.Entity;
 import io.mateu.core.infra.valuegenerators.LocatorValueGenerator;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.FormPosition;
 import io.mateu.uidl.data.Status;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +32,7 @@ public record Invoice(
         Status status,
 
         @Tab("Lines")
+        @DetailFormCustomisation(position = FormPosition.modal)
         List<InvoiceLine> lines
 ) implements Entity<String> {
 }

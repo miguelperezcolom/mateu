@@ -1,36 +1,5676 @@
 {
-  "fragments": [
-    {
-      "targetComponentId": "epjgtK5Q-5AzG7sLXvn72",
-      "component": {
-        "type": "ServerSide",
-        "id": "component_id",
-        "serverSideType": "com.example.demo.infra.in.ui.antonia.Home",
-        "children": [
-          {
-            "type": "ClientSide",
-            "children": [
-              {
-                "type": "ClientSide",
-                "metadata": {
-                  "type": "FormLayout"
-                }
-              }
-            ],
-            "metadata": {
-              "type": "Form",
-              "icon": "icon",
-              "title": "Home",
-              "readOnly": false,
-              "subtitle": "This is a simple subtitle"
-            }
-          }
-        ]
+  "serverSideType": "com.example.demo.ddd.infra.in.ui.product.pages.hotel.Tariffs",
+  "appState": {
+    "tenantId": "1111",
+    "profile": "dev"
+  },
+  "componentState": {
+    "_state": "edit",
+    "_show_detail": {
+      "periods": false,
+      "boards": false
+    },
+    "_editing": {
+      "periods": true,
+      "boards": true
+    },
+    "id": "1",
+    "contractId": "",
+    "name": "RIU PALACE LA MOLA - RACK",
+    "version": 0,
+    "computesPMC": false,
+    "stayFrom": "2026-04-01",
+    "stayTo": "2026-10-31",
+    "bookingWindowFrom": "",
+    "bookingWindowTo": "",
+    "generalInfo": {
+      "status": "G",
+      "hotelId": "143",
+      "currencyIsoCode": "EUR",
+      "seasonId": "S26",
+      "channelManager": false,
+      "nameInChannelManager": "name_in_channel_manager",
+      "type": "GEN",
+      "discountRPCPrices": false,
+      "averagePrice": 0,
+      "taxIncluded": true,
+      "baseRoomId": "SGL",
+      "occupationType": "AD1",
+      "basePaxType": "AD",
+      "position": 0,
+      "baseBoardType": "RO",
+      "active": true,
+      "version": 0,
+      "linkedToDispo": true,
+      "refCode": "ref_code",
+      "offersApply": true,
+      "extrasApply": true,
+      "defaultChildAgeFrom": 2,
+      "defaultChildAgeTo": 12,
+      "onlineSaleScope": "RPC"
+    },
+    "roomTypes": [
+      {
+        "assignPrices": true,
+        "roomTypeCode": "SGL",
+        "roomTypeDescription": "INDIVIDUAL",
+        "base": true,
+        "baseCapacity": 1,
+        "maxCapacity": 1,
+        "_rowNumber": 0,
+        "detailsOpened": false
       },
-      "data": {
-        "title": "Home",
-        "subtitle": "This is a simple subtitle"
+      {
+        "assignPrices": true,
+        "roomTypeCode": "DBL",
+        "roomTypeDescription": "DOBLE",
+        "base": true,
+        "baseCapacity": 2,
+        "maxCapacity": 3,
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "roomTypeCode": "DBLVM",
+        "roomTypeDescription": "DOBLE VISTA MAR",
+        "base": true,
+        "baseCapacity": 2,
+        "maxCapacity": 3,
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "roomTypeCode": "SUI",
+        "roomTypeDescription": "SUITE",
+        "base": true,
+        "baseCapacity": 2,
+        "maxCapacity": 3,
+        "_rowNumber": 3,
+        "detailsOpened": false
       }
-    }
-  ]
+    ],
+    "occupationTypes": [
+      {
+        "roomTypeCode": "SGL",
+        "active": true,
+        "production": true,
+        "occupationType": "AD1",
+        "useType": "AD",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "DBL",
+        "active": true,
+        "production": true,
+        "occupationType": "AD1",
+        "useType": "AD",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "DBLVM",
+        "active": true,
+        "production": true,
+        "occupationType": "AD1",
+        "useType": "AD",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "SUI",
+        "active": true,
+        "production": true,
+        "occupationType": "AD1",
+        "useType": "AD",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      }
+    ],
+    "roomPaxSupplements": [
+      {
+        "roomCode": "SGL",
+        "paxType": "AD",
+        "useType": "AD",
+        "ageFrom": 1,
+        "ageTo": 30,
+        "price": 2,
+        "baseBased": true,
+        "comments": "Generated",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBL",
+        "paxType": "AD",
+        "useType": "AD",
+        "ageFrom": 1,
+        "ageTo": 30,
+        "price": 2,
+        "baseBased": true,
+        "comments": "Generated",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBLVM",
+        "paxType": "AD",
+        "useType": "AD",
+        "ageFrom": 1,
+        "ageTo": 30,
+        "price": 2,
+        "baseBased": true,
+        "comments": "Generated",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "SUI",
+        "paxType": "AD",
+        "useType": "AD",
+        "ageFrom": 1,
+        "ageTo": 30,
+        "price": 2,
+        "baseBased": true,
+        "comments": "Generated",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      }
+    ],
+    "defaultChildAges": {
+      "number": 1,
+      "from": 2,
+      "to": 12
+    },
+    "boards": [
+      {
+        "assignPrices": true,
+        "boardCode": "RO",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "boardCode": "HB",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "boardCode": "FB",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "boardCode": "AI",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      },
+      {
+        "assignPrices": true,
+        "boardCode": "BB",
+        "_rowNumber": 4,
+        "detailsOpened": false
+      }
+    ],
+    "periods": [
+      {
+        "number": 0,
+        "from": "2026-04-01",
+        "to": "2026-04-08",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "85a1d434-a2e8-482b-8ecf-3606f9b12e32",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 0,
+        "detailsOpened": true
+      },
+      {
+        "number": 1,
+        "from": "2026-04-09",
+        "to": "2026-04-16",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "ca76a784-08e3-463e-82d8-13e47a37d585",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "number": 2,
+        "from": "2026-04-17",
+        "to": "2026-04-24",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "3a362b1f-69ac-45b5-a828-f11db98febf4",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "number": 3,
+        "from": "2026-04-25",
+        "to": "2026-05-02",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "0ec30ee7-4599-470b-8aad-06de3ff68f91",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 3,
+        "detailsOpened": false
+      },
+      {
+        "number": 4,
+        "from": "2026-05-03",
+        "to": "2026-05-10",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "ad3d0c1d-17bf-44e2-856d-1d46173c33c6",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 4,
+        "detailsOpened": false
+      },
+      {
+        "number": 5,
+        "from": "2026-05-11",
+        "to": "2026-05-18",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "ea2a3f04-19a8-4b4c-8c93-5d6296721382",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 5,
+        "detailsOpened": false
+      },
+      {
+        "number": 6,
+        "from": "2026-05-19",
+        "to": "2026-05-26",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "cf2b9c40-0825-4c06-a5c6-a4724b5cbee7",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 6,
+        "detailsOpened": false
+      },
+      {
+        "number": 7,
+        "from": "2026-05-27",
+        "to": "2026-06-03",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "5517afe4-df0e-4008-88e0-d94fc3af4e49",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 7,
+        "detailsOpened": false
+      },
+      {
+        "number": 8,
+        "from": "2026-06-04",
+        "to": "2026-06-11",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "c026d1eb-f35e-4abd-87a9-831e5d8421e7",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 8,
+        "detailsOpened": false
+      },
+      {
+        "number": 9,
+        "from": "2026-06-12",
+        "to": "2026-06-19",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "9a8862ab-5575-47cf-8c19-1e71667484f8",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 9,
+        "detailsOpened": false
+      },
+      {
+        "number": 10,
+        "from": "2026-06-20",
+        "to": "2026-06-27",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "5263d316-285a-4ce1-a645-c73cb1488bb0",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 10,
+        "detailsOpened": false
+      },
+      {
+        "number": 11,
+        "from": "2026-06-28",
+        "to": "2026-07-05",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "9084900a-22b6-40f0-b963-addb0de22c04",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 11,
+        "detailsOpened": false
+      },
+      {
+        "number": 12,
+        "from": "2026-07-06",
+        "to": "2026-07-13",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "333a4a91-e142-4af4-9470-0e6b93b71b00",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 12,
+        "detailsOpened": false
+      },
+      {
+        "number": 13,
+        "from": "2026-07-14",
+        "to": "2026-07-21",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "903252d8-821d-4cdb-9e44-5988edd5b3ae",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 13,
+        "detailsOpened": false
+      },
+      {
+        "number": 14,
+        "from": "2026-07-22",
+        "to": "2026-07-29",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "a69b71b0-b234-406e-8c50-125843234511",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 14,
+        "detailsOpened": false
+      },
+      {
+        "number": 15,
+        "from": "2026-07-30",
+        "to": "2026-08-06",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "1ec7fc48-1fe5-406c-98a1-e1069173c96b",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 15,
+        "detailsOpened": false
+      },
+      {
+        "number": 16,
+        "from": "2026-08-07",
+        "to": "2026-08-14",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "73720681-215c-4874-9113-789ca1c112c6",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 16,
+        "detailsOpened": false
+      },
+      {
+        "number": 17,
+        "from": "2026-08-15",
+        "to": "2026-08-22",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "793152cd-9265-45a3-aaf9-4e8ce39fa588",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 17,
+        "detailsOpened": false
+      },
+      {
+        "number": 18,
+        "from": "2026-08-23",
+        "to": "2026-08-30",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "5526e46d-482e-4761-9060-4e424db6cc96",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 18,
+        "detailsOpened": false
+      },
+      {
+        "number": 19,
+        "from": "2026-08-31",
+        "to": "2026-09-07",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "70a7d46e-8be8-485c-bd8b-96f7c88215cb",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 19,
+        "detailsOpened": false
+      },
+      {
+        "number": 20,
+        "from": "2026-09-08",
+        "to": "2026-09-15",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "7e752eea-1b54-41f1-ae22-89161288f0c4",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 20,
+        "detailsOpened": false
+      },
+      {
+        "number": 21,
+        "from": "2026-09-16",
+        "to": "2026-09-23",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "33895f55-a153-4d14-965e-64d246bceaa5",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 21,
+        "detailsOpened": false
+      },
+      {
+        "number": 22,
+        "from": "2026-09-24",
+        "to": "2026-10-01",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "81fc9c6e-a0ae-4cf3-8cb2-236ebbd94e6d",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 22,
+        "detailsOpened": false
+      },
+      {
+        "number": 23,
+        "from": "2026-10-02",
+        "to": "2026-10-09",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "eb79ba62-57c7-4ed5-bd6b-81b7b770eeef",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 23,
+        "detailsOpened": false
+      },
+      {
+        "number": 24,
+        "from": "2026-10-10",
+        "to": "2026-10-17",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "8301b95a-b783-4c0a-943f-37893e912edb",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 24,
+        "detailsOpened": false
+      },
+      {
+        "number": 25,
+        "from": "2026-10-18",
+        "to": "2026-10-25",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "346f3bc9-747a-4384-bb95-2dbd3999b787",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 25,
+        "detailsOpened": false
+      },
+      {
+        "number": 26,
+        "from": "2026-10-26",
+        "to": "2026-10-31",
+        "comments": "Generated",
+        "prices": [
+          {
+            "roomCode": "SGL",
+            "price": 10.31,
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "price": 10.31,
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "price": 10.31,
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "price": 10.31,
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "paxSupplements": [
+          {
+            "roomCode": "SGL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBL",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "DBLVM",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomCode": "SUI",
+            "useType": "AD",
+            "paxType": "AD",
+            "childAgeRangeNumber": 0,
+            "increment": 1.21,
+            "percent": 10,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "roomSupplements": [
+          {
+            "roomTypeCode": "SGL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBL",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "DBLVM",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "SUI",
+            "calculationBaseRoomTypeCode": null,
+            "increment": 1.23,
+            "percent": 15,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          }
+        ],
+        "boardSupplements": [
+          {
+            "roomTypeCode": "RO",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "RO",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 0,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "HB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "HB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 1,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "FB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "FB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 2,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "AI",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "AI",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 3,
+            "detailsOpened": false
+          },
+          {
+            "roomTypeCode": "BB",
+            "pax": "AD",
+            "childAgeRangeNumber": 0,
+            "boardTypeCode": "BB",
+            "increment": 1.4,
+            "percent": 20,
+            "comment": "Generated",
+            "_rowNumber": 4,
+            "detailsOpened": false
+          }
+        ],
+        "details": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Text",
+            "container": "div",
+            "attributes": {},
+            "text": "Hola"
+          },
+          "id": "0a4772d8-22e1-4ec1-864b-549269a93f14",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "_rowNumber": 26,
+        "detailsOpened": false
+      }
+    ],
+    "supplements": [
+      {
+        "code": "SV",
+        "name": "Vista mar",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "code": "SV",
+        "name": "Vista mar",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      }
+    ],
+    "charges": [
+      {
+        "from": "2026-04-01",
+        "to": "2026-10-31",
+        "chargeCode": "C01",
+        "chargeName": "Charge 01",
+        "roomTypeCode": "SGL",
+        "optional": false,
+        "increment": 32.1,
+        "percent": 5.3,
+        "comment": "Generated",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      }
+    ],
+    "applicationTerms": [
+      {
+        "from": "2026-04-01",
+        "to": "2026-10-31",
+        "type": "ANT",
+        "value": 4,
+        "_rowNumber": 0,
+        "detailsOpened": false
+      }
+    ],
+    "supplementPerDayPrices": [
+      {
+        "from": "2026-04-01",
+        "to": "2026-10-31",
+        "roomTypeCode": "SGL",
+        "increment": 3.1,
+        "percent": 2.2,
+        "appliesOnMonday": true,
+        "appliesOnTuesday": true,
+        "appliesOnWednesday": false,
+        "appliesOnThursday": false,
+        "appliesOnFriday": true,
+        "appliesOnSaturday": false,
+        "appliesOnSunday": false,
+        "_rowNumber": 0,
+        "detailsOpened": false
+      }
+    ],
+    "generalInfo-extrasApply": true,
+    "generalInfo-occupationType": "AD1",
+    "generalInfo-averagePrice": "0",
+    "generalInfo-defaultChildAgeTo": 12,
+    "generalInfo-baseRoomId": "SGL",
+    "generalInfo-type": "GEN",
+    "generalInfo-channelManager": false,
+    "generalInfo-status": "G",
+    "generalInfo-basePaxType": "AD",
+    "generalInfo-currencyIsoCode": "EUR",
+    "generalInfo-version": 0,
+    "generalInfo-refCode": "ref_code",
+    "generalInfo-position": 0,
+    "generalInfo-taxIncluded": true,
+    "generalInfo-offersApply": true,
+    "generalInfo-defaultChildAgeFrom": 2,
+    "generalInfo-hotelId": "143",
+    "generalInfo-active": true,
+    "generalInfo-nameInChannelManager": "name_in_channel_manager",
+    "generalInfo-onlineSaleScope": "RPC",
+    "generalInfo-seasonId": "S26",
+    "generalInfo-linkedToDispo": true,
+    "generalInfo-discountRPCPrices": false,
+    "generalInfo-baseBoardType": "RO",
+    "defaultChildAges-number": 1,
+    "defaultChildAges-to": 12,
+    "defaultChildAges-from": 2,
+    "roomTypes_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffRoomType",
+    "occupationTypes_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffRoomOccupationType",
+    "roomPaxSupplements_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffRoomPaxSupplement",
+    "boards_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.TariffBoard",
+    "periods_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.Period",
+    "periods-prices_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.PricePerRoom",
+    "periods-paxSupplements_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.PaxSupplement",
+    "periods-roomSupplements_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.RoomSupplement",
+    "periods-boardSupplements_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.periods.BoardSupplement",
+    "supplements_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplements.Supplement",
+    "charges_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.charges.ChargePrice",
+    "applicationTerms_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.applicationterms.ApplicationTerm",
+    "supplementPerDayPrices_rowClass": "com.example.demo.ddd.infra.out.persistence.hotel.hotel.tariff.supplementsperday.SupplementPerDayPrice",
+    "roomTypes-roomTypeCode": "",
+    "roomTypes-roomTypeDescription": "",
+    "roomTypes-baseCapacity": null,
+    "roomTypes-maxCapacity": null,
+    "occupationTypes-roomTypeCode": "",
+    "occupationTypes-occupationType": null,
+    "occupationTypes-useType": null,
+    "roomPaxSupplements-roomCode": "",
+    "roomPaxSupplements-paxType": null,
+    "roomPaxSupplements-useType": null,
+    "roomPaxSupplements-ageFrom": null,
+    "roomPaxSupplements-ageTo": null,
+    "roomPaxSupplements-price": "",
+    "roomPaxSupplements-comments": "",
+    "boards-boardCode": "",
+    "periods-from": "",
+    "periods-to": "",
+    "periods-comments": "",
+    "supplements-code": "",
+    "supplements-name": "",
+    "charges-from": "",
+    "charges-to": "",
+    "charges-chargeCode": "",
+    "charges-chargeName": "",
+    "charges-roomTypeCode": "",
+    "charges-increment": "",
+    "charges-percent": "",
+    "charges-comment": "",
+    "applicationTerms-from": "",
+    "applicationTerms-to": "",
+    "applicationTerms-type": null,
+    "applicationTerms-value": null,
+    "supplementPerDayPrices-from": "",
+    "supplementPerDayPrices-to": "",
+    "supplementPerDayPrices-roomTypeCode": "",
+    "supplementPerDayPrices-increment": "",
+    "supplementPerDayPrices-percent": "",
+    "periods-prices-roomCode": "",
+    "periods-prices-price": "",
+    "periods-paxSupplements-roomCode": "",
+    "periods-paxSupplements-useType": null,
+    "periods-paxSupplements-paxType": null,
+    "periods-paxSupplements-childAgeRangeNumber": null,
+    "periods-paxSupplements-increment": "",
+    "periods-paxSupplements-percent": "",
+    "periods-paxSupplements-comment": "",
+    "periods-roomSupplements-roomTypeCode": "",
+    "periods-roomSupplements-calculationBaseRoomTypeCode": "",
+    "periods-roomSupplements-increment": "",
+    "periods-roomSupplements-percent": "",
+    "periods-roomSupplements-comment": "",
+    "periods-boardSupplements-roomTypeCode": "",
+    "periods-boardSupplements-pax": null,
+    "periods-boardSupplements-childAgeRangeNumber": null,
+    "periods-boardSupplements-boardTypeCode": "",
+    "periods-boardSupplements-increment": "",
+    "periods-boardSupplements-percent": "",
+    "periods-boardSupplements-comment": "",
+    "size": 10,
+    "page": 0,
+    "sort": []
+  },
+  "parameters": {
+    "number": 0,
+    "from": "2026-04-01",
+    "to": "2026-04-08",
+    "comments": "Generated",
+    "prices": [
+      {
+        "roomCode": "SGL",
+        "price": 10.31,
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBL",
+        "price": 10.31,
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBLVM",
+        "price": 10.31,
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "SUI",
+        "price": 10.31,
+        "_rowNumber": 3,
+        "detailsOpened": false
+      }
+    ],
+    "paxSupplements": [
+      {
+        "roomCode": "SGL",
+        "useType": "AD",
+        "paxType": "AD",
+        "childAgeRangeNumber": 0,
+        "increment": 1.21,
+        "percent": 10,
+        "comment": "Generated",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBL",
+        "useType": "AD",
+        "paxType": "AD",
+        "childAgeRangeNumber": 0,
+        "increment": 1.21,
+        "percent": 10,
+        "comment": "Generated",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "DBLVM",
+        "useType": "AD",
+        "paxType": "AD",
+        "childAgeRangeNumber": 0,
+        "increment": 1.21,
+        "percent": 10,
+        "comment": "Generated",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomCode": "SUI",
+        "useType": "AD",
+        "paxType": "AD",
+        "childAgeRangeNumber": 0,
+        "increment": 1.21,
+        "percent": 10,
+        "comment": "Generated",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      }
+    ],
+    "roomSupplements": [
+      {
+        "roomTypeCode": "SGL",
+        "calculationBaseRoomTypeCode": null,
+        "increment": 1.23,
+        "percent": 15,
+        "comment": "Generated",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "DBL",
+        "calculationBaseRoomTypeCode": null,
+        "increment": 1.23,
+        "percent": 15,
+        "comment": "Generated",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "DBLVM",
+        "calculationBaseRoomTypeCode": null,
+        "increment": 1.23,
+        "percent": 15,
+        "comment": "Generated",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "SUI",
+        "calculationBaseRoomTypeCode": null,
+        "increment": 1.23,
+        "percent": 15,
+        "comment": "Generated",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      }
+    ],
+    "boardSupplements": [
+      {
+        "roomTypeCode": "RO",
+        "pax": "AD",
+        "childAgeRangeNumber": 0,
+        "boardTypeCode": "RO",
+        "increment": 1.4,
+        "percent": 20,
+        "comment": "Generated",
+        "_rowNumber": 0,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "HB",
+        "pax": "AD",
+        "childAgeRangeNumber": 0,
+        "boardTypeCode": "HB",
+        "increment": 1.4,
+        "percent": 20,
+        "comment": "Generated",
+        "_rowNumber": 1,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "FB",
+        "pax": "AD",
+        "childAgeRangeNumber": 0,
+        "boardTypeCode": "FB",
+        "increment": 1.4,
+        "percent": 20,
+        "comment": "Generated",
+        "_rowNumber": 2,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "AI",
+        "pax": "AD",
+        "childAgeRangeNumber": 0,
+        "boardTypeCode": "AI",
+        "increment": 1.4,
+        "percent": 20,
+        "comment": "Generated",
+        "_rowNumber": 3,
+        "detailsOpened": false
+      },
+      {
+        "roomTypeCode": "BB",
+        "pax": "AD",
+        "childAgeRangeNumber": 0,
+        "boardTypeCode": "BB",
+        "increment": 1.4,
+        "percent": 20,
+        "comment": "Generated",
+        "_rowNumber": 4,
+        "detailsOpened": false
+      }
+    ],
+    "details": {
+      "type": "ClientSide",
+      "metadata": {
+        "type": "Text",
+        "container": "div",
+        "attributes": {},
+        "text": "Hola"
+      },
+      "id": "85a1d434-a2e8-482b-8ecf-3606f9b12e32",
+      "children": [],
+      "style": null,
+      "cssClasses": null,
+      "slot": null
+    },
+    "_rowNumber": 0,
+    "detailsOpened": true
+  },
+  "initiatorComponentId": "4db0e9c4-3f3d-45d8-a657-dbfa53365631",
+  "consumedRoute": "",
+  "route": "/tariffs/1/edit",
+  "actionId": "periods_select"
 }
