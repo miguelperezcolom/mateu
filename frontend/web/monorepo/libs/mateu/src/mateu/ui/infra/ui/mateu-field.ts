@@ -538,7 +538,11 @@ export class MateuField extends LitElement {
 
                     const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
                         const { filter, page, pageSize } = params;
-                        if (this.data[this.id].searched && this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature?.toLowerCase() != filter?.toLowerCase())) {
+                        if (this.data[this.id]
+                            && this.data[this.id].searched
+                            && this.data[this.id]
+                            && ((this.data[this.id].searchSignature || filter)
+                                && this.data[this.id].searchSignature?.toLowerCase() != filter?.toLowerCase())) {
                             this.data[this.id].content = undefined
                             this.data[this.id].totalElements = 0
                             this.data[this.id].searchSignature = filter
@@ -578,14 +582,9 @@ export class MateuField extends LitElement {
                             }
                     };
 
+                    let selectedItem:any = undefined
                     if (this.data[this.id] && this.data[this.id].content) {
-                        const selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
-                        if (!this.shadowRoot?.getElementById(fieldId)) {
-                            const fieldId = this.field.fieldId
-                            setTimeout(() => {
-                                (this.shadowRoot?.getElementById(fieldId) as ComboBox).selectedItem = selectedItem
-                            })
-                        }
+                        selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                     }
 
                     return html`
@@ -612,6 +611,7 @@ export class MateuField extends LitElement {
                                     }
                                 }
                             }}"
+                            .selectedItem=${selectedItem}
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `

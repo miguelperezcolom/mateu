@@ -21912,7 +21912,7 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             .content="${Q}"
                     ></vaadin-markdown>
                     </vaadin-custom-field>
-                `;if(this.field?.stereotype=="combobox"){if(this.field?.remoteCoordinates){const ie=this.field.remoteCoordinates,oe=(ne,ae)=>{const{filter:se,page:le,pageSize:de}=ne;this.data[this.id].searched&&this.data[this.id]&&(this.data[this.id].searchSignature||se)&&this.data[this.id].searchSignature?.toLowerCase()!=se?.toLowerCase()&&(this.data[this.id].content=void 0,this.data[this.id].totalElements=0,this.data[this.id].searchSignature=se,this.state[this.id]=void 0),this.data[this.id]&&(this.data[this.id].searched=!0),this.data[this.id]&&this.data[this.id].content&&(this.data[this.id].totalElements<=(le+1)*de||this.data[this.id].content.length>=(le+1)*de)?ae(this.data[this.id].content.slice(le*de,(le+1)*de),this.data[this.id].totalElements):this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ie.action,parameters:{searchText:se,fieldId:this.field?.fieldId,size:de,page:le,sort:void 0},callback:ce=>{const he=ce.fragments[0].data[this.id];ae(he.content,he.totalElements)}},bubbles:!0,composed:!0}))};if(this.data[this.id]&&this.data[this.id].content){const ne=this.data[this.id].content.find(ae=>ae.value==Q);if(!this.shadowRoot?.getElementById(te)){const ae=this.field.fieldId;setTimeout(()=>{(this.shadowRoot?.getElementById(ae)).selectedItem=ne})}}return x$4`
+                `;if(this.field?.stereotype=="combobox"){if(this.field?.remoteCoordinates){const ie=this.field.remoteCoordinates,oe=(ae,se)=>{const{filter:le,page:de,pageSize:ce}=ae;this.data[this.id]&&this.data[this.id].searched&&this.data[this.id]&&(this.data[this.id].searchSignature||le)&&this.data[this.id].searchSignature?.toLowerCase()!=le?.toLowerCase()&&(this.data[this.id].content=void 0,this.data[this.id].totalElements=0,this.data[this.id].searchSignature=le,this.state[this.id]=void 0),this.data[this.id]&&(this.data[this.id].searched=!0),this.data[this.id]&&this.data[this.id].content&&(this.data[this.id].totalElements<=(de+1)*ce||this.data[this.id].content.length>=(de+1)*ce)?se(this.data[this.id].content.slice(de*ce,(de+1)*ce),this.data[this.id].totalElements):this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:ie.action,parameters:{searchText:le,fieldId:this.field?.fieldId,size:ce,page:de,sort:void 0},callback:he=>{const ue=he.fragments[0].data[this.id];se(ue.content,ue.totalElements)}},bubbles:!0,composed:!0}))};let ne;return this.data[this.id]&&this.data[this.id].content&&(ne=this.data[this.id].content.find(ae=>ae.value==Q)),x$4`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"
                             label="${ee}"
@@ -21925,7 +21925,8 @@ To prevent other runtimes from defining tags that you use, consider using scopin
                             ?required="${this.field.required||E$5}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
-                            @keyup="${ne=>{if(ne.key=="Backspace"){const ae=ne.currentTarget;ae.inputElement.value||(ae.value=void 0)}}}"
+                            @keyup="${ae=>{if(ae.key=="Backspace"){const se=ae.currentTarget;se.inputElement.value||(se.value=void 0)}}}"
+                            .selectedItem=${ne}
                             ${comboBoxRenderer(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}return x$4`
