@@ -796,7 +796,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                   new Button(
                       toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
             });
-    toolbar.add(new Button("Cancel", "cancel_view"));
+    toolbar.add(new Button("List", "cancel_view"));
     toolbar.add(new Button("Edit", "edit"));
     return toolbar;
   }
@@ -848,7 +848,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                   data.put(
                       field.getName(),
                       new io.mateu.uidl.data.Page<>(
-                          "xxxx", 1, 0, 1, List.of(new Option(id, label))));
+                          label, 1, 0, 1, List.of(new Option(id, label))));
                 }
               }
             });

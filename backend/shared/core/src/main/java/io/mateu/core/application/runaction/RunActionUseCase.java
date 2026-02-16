@@ -71,8 +71,7 @@ public class RunActionUseCase {
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
-    log.info("run action {} for {}", command.actionId(), command);
-    // todo: use path somehow
+    log.info("run action {}", command.actionId());
     return (Mono.just(command)
             // get the target instance
             .flatMap(ignored -> createInstance(command))

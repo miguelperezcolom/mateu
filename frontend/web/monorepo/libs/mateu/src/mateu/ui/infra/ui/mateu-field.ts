@@ -538,25 +538,16 @@ export class MateuField extends LitElement {
 
                     const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
                         const { filter, page, pageSize } = params;
-                        if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
+                        if (this.data[this.id].searched && this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature?.toLowerCase() != filter?.toLowerCase())) {
                             this.data[this.id].content = undefined
                             this.data[this.id].totalElements = 0
                             this.data[this.id].searchSignature = filter
                             this.state[this.id] = undefined
-                            setTimeout(() => {
-                                const combo = this.shadowRoot?.getElementById(fieldId) as ComboBox
-                                if (combo.selectedItem) {
-                                    combo.selectedItem = undefined
-                                    const input = combo.querySelector('input')
-                                    setTimeout(() => {
-                                        if (input) {
-                                            input.value = filter
-                                        }
-                                    })
-                                }
-                            })
                         }
-                            if (this.data[this.id]
+                        if (this.data[this.id]) {
+                            this.data[this.id].searched = true
+                        }
+                        if (this.data[this.id]
                                 && this.data[this.id].content
                                 && (this.data[this.id].totalElements <= (page + 1) * pageSize
                                     ||
@@ -596,6 +587,7 @@ export class MateuField extends LitElement {
                             })
                         }
                     }
+
                     return html`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"
@@ -609,7 +601,17 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
-                            .value="${value}"
+                            @keyup="${(z: KeyboardEvent) => {
+                                if (z.key == 'Backspace') {
+                                    const combo = z.currentTarget as ComboBox
+                                    const input = combo.inputElement as HTMLInputElement
+                                    const filter = input.value
+                                    if (!filter) {
+                                        // @ts-ignore
+                                        combo.value = undefined
+                                    }
+                                }
+                            }}"
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `

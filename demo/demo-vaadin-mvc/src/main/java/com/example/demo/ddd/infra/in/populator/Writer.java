@@ -111,9 +111,10 @@ public class Writer {
 
     private static void writeInvoices(FileRepository fileRepository, BookingRepository bookingRepository, InvoiceRepository invoiceRepository) {
         List<Invoice> invoices = new ArrayList<>();
+        var invoiceId = 1;
         for (Booking booking : bookingRepository.findAll()) {
             invoices.add(new Invoice(
-                    UUID.randomUUID().toString(),
+                    "" + invoiceId++,
                     fileRepository.findById(booking.fileId()).get().agencyId(),
                     LocalDate.now(),
                     new Amount("EUR", 200.12),
