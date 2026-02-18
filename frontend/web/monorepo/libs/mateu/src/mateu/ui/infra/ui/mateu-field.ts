@@ -82,6 +82,8 @@ export class MateuField extends LitElement {
     @state()
     colorPickerValue : string | undefined = undefined
 
+    comboData: any[] = []
+
 
     renderColorPicker = () => {
         const fieldId = this.field?.fieldId!
@@ -147,15 +149,17 @@ export class MateuField extends LitElement {
     }
 
     valueChanged = (e: CustomEvent) => {
-        this.dispatchEvent(new CustomEvent('value-changed', {
-            detail: {
-                value: this.convert(e.detail.value),
-                //@ts-ignore
-                fieldId: this.field?.fieldId
-            },
-            bubbles: true,
-            composed: true
-        }))
+        if (e.detail.value != this.state[this.field!.fieldId]) {
+            this.dispatchEvent(new CustomEvent('value-changed', {
+                detail: {
+                    value: this.convert(e.detail.value),
+                    //@ts-ignore
+                    fieldId: this.field?.fieldId
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
     }
 
     selectedItems = (value: any[]) => {
@@ -536,56 +540,36 @@ export class MateuField extends LitElement {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
 
-                    const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
-                        const { filter, page, pageSize } = params;
-                        if (this.data[this.id]
-                            && this.data[this.id].searched
-                            && this.data[this.id]
-                            && ((this.data[this.id].searchSignature || filter)
-                                && this.data[this.id].searchSignature?.toLowerCase() != filter?.toLowerCase())) {
-                            this.data[this.id].content = undefined
-                            this.data[this.id].totalElements = 0
-                            this.data[this.id].searchSignature = filter
-                            this.state[this.id] = undefined
-                        }
-                        if (this.data[this.id]) {
-                            this.data[this.id].searched = true
-                        }
-                        if (this.data[this.id]
-                                && this.data[this.id].content
-                                && (this.data[this.id].totalElements <= (page + 1) * pageSize
-                                    ||
-                                    this.data[this.id].content.length >= (page + 1) * pageSize)) {
-                                callback(this.data[this.id].content
-                                        .slice(page * pageSize, ((page + 1) * pageSize)),
-                                    this.data[this.id].totalElements)
-                            } else {
-                                    this.dispatchEvent(new CustomEvent('action-requested', {
-                                        detail: {
-                                            actionId: coords.action,
-                                            parameters: {
-                                                searchText: filter,
-                                                fieldId: this.field?.fieldId,
-                                                size: pageSize,
-                                                page,
-                                                sort: undefined
-                                            },
-                                            callback: (uiIncrement: UIIncrement) => {
-                                                const data = uiIncrement.fragments![0].data[this.id]
-                                                callback(data.content,
-                                                        data.totalElements);
-                                            }
-                                        },
-                                        bubbles: true,
-                                        composed: true
-                                    }))
-                            }
-                    };
-
                     let selectedItem:any = undefined
                     if (this.data[this.id] && this.data[this.id].content) {
                         selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                     }
+                    if (!selectedItem && this.comboData) {
+                        selectedItem = this.comboData.find((item:any) => item.value == value)
+                    }
+
+                    const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
+                        const { filter, page, pageSize } = params;
+                        this.dispatchEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: coords.action,
+                                    parameters: {
+                                        searchText: filter,
+                                        fieldId: this.field?.fieldId,
+                                        size: pageSize,
+                                        page,
+                                        sort: undefined
+                                    },
+                                    callback: (uiIncrement: UIIncrement) => {
+                                        const data = uiIncrement.fragments![0].data[this.id]
+                                        this.comboData = data.content
+                                        callback(data.content, data.totalElements);
+                                    }
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                    };
 
                     return html`
                     <vaadin-combo-box
@@ -594,6 +578,7 @@ export class MateuField extends LitElement {
                             item-label-path="label"
                             item-id-path="value"
                             .dataProvider="${dataProvider}"
+                            .selectedItem="${selectedItem}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -611,7 +596,6 @@ export class MateuField extends LitElement {
                                     }
                                 }
                             }}"
-                            .selectedItem=${selectedItem}
                             ${comboBoxRenderer(this.comboRenderer, [])}
                     ></vaadin-combo-box>
                     `

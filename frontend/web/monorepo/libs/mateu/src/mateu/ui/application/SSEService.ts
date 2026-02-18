@@ -67,10 +67,11 @@ export class SSEService implements Service {
                         if (done) break;
                         if (value.startsWith('data:')) {
                             const uiIncrement = JSON.parse(value.substring('data:'.length));
-                            this.handleUIIncrement(uiIncrement, initiator)
 
                             if (callback) {
                                 callback(uiIncrement)
+                            } else {
+                                this.handleUIIncrement(uiIncrement, initiator)
                             }
 
                             if (uiIncrement.messages && uiIncrement.messages.length == 1) {
