@@ -160,6 +160,7 @@ export class MateuUx extends ConnectedElement {
         background: boolean
         sse: boolean
         callback: any
+        callbackonly: boolean
     } | undefined = undefined
 
     manageActionEvent = (e: CustomEvent) => {
@@ -178,6 +179,7 @@ export class MateuUx extends ConnectedElement {
             background: boolean
             sse: boolean
             callback: any
+            callbackonly: boolean
         };
         const detail = this.detail1
         if (e.type == 'server-side-action-requested') {
@@ -197,7 +199,8 @@ export class MateuUx extends ConnectedElement {
                     detail.parameters,
                     detail.initiator,
                 detail.background,
-                detail.callback);
+                detail.callback,
+                    detail.callbackonly);
         }
     }
 

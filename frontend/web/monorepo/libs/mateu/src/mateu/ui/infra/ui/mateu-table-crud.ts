@@ -95,6 +95,7 @@ export class MateuTableCrud extends LitElement {
     }
 
     fetchMoreElements = (e: CustomEvent) => {
+        console.log('fetchMoreElements', e.detail)
         const {params, callback} = e.detail
         this.state.size = params.pageSize
         this.state.page = params.page

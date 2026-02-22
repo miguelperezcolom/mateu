@@ -82,7 +82,7 @@ export class HttpService implements Service {
                     parameters: any,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: any) {
+    callback: any, callbackonly: boolean) {
         if (false && !route) {
             return
         }
@@ -101,9 +101,12 @@ export class HttpService implements Service {
                 initiator,
                 background
             } as RunActionCommand)
+
             if (callback) {
                 callback(uiIncrement)
-            } else {
+            }
+
+            if (!callbackonly) {
                 this.handleUIIncrement(uiIncrement, initiator)
             }
 

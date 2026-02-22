@@ -16,7 +16,7 @@ export interface Service {
                     parameters: any,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: any): void
+    callback: any, callbackonly: boolean): void
 
 }
 

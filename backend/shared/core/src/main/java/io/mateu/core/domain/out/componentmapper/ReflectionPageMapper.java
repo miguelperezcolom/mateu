@@ -397,9 +397,9 @@ public class ReflectionPageMapper {
         maxColumns);
   }
 
-  record SectionFields(String label, List<Field> fields, int columns) {}
+  public record SectionFields(String label, List<Field> fields, int columns) {}
 
-  record TabFields(String label, List<Field> fields, int columns) {}
+  public record TabFields(String label, List<Field> fields, int columns) {}
 
   public static Collection<? extends Component> getForm(
       String prefix,

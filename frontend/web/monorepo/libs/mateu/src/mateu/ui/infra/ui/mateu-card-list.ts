@@ -85,8 +85,10 @@ export class MateuCardList extends LitElement {
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         this.respondToVisibility(this.askForMore, (x:any) => {
+            console.log('askForMore visible? ' + x);
             this.keepAsking = x
             if (x) {
+                console.log('asking for more...');
                 this.askToUpper()
             }
         })
@@ -102,6 +104,7 @@ export class MateuCardList extends LitElement {
                     pageSize: this.metadata?.pageSize
                 },
                 callback: () => {
+                    console.log('callback', this.keepAsking);
                     if (this.keepAsking) {
                         this.askToUpper()
                     }

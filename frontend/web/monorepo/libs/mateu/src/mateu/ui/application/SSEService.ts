@@ -8,7 +8,7 @@ import { LitElement } from "lit";
 
 export class SSEService implements Service {
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, appServerSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, appServerSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any, callbackonly: boolean): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -70,7 +70,9 @@ export class SSEService implements Service {
 
                             if (callback) {
                                 callback(uiIncrement)
-                            } else {
+                            }
+
+                            if (!callbackonly) {
                                 this.handleUIIncrement(uiIncrement, initiator)
                             }
 
@@ -143,7 +145,7 @@ export class SSEService implements Service {
             //console.log('closed')
 
         } else {
-            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback)
+            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback, callbackonly)
         }
     }
 

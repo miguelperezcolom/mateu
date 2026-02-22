@@ -564,7 +564,8 @@ export class MateuField extends LitElement {
                                         const data = uiIncrement.fragments![0].data[this.id]
                                         this.comboData = data.content
                                         callback(data.content, data.totalElements);
-                                    }
+                                    },
+                                    callbackonly: true
                                 },
                                 bubbles: true,
                                 composed: true

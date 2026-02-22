@@ -314,6 +314,7 @@ export class MateuComponent extends ComponentElement {
             actionId: string,
             parameters: any,
             callback: any,
+            callbackonly: boolean,
             initiatorComponentId: any
         }
         if (e.type == 'action-requested') {
@@ -385,6 +386,7 @@ export class MateuComponent extends ComponentElement {
         actionId: string,
         parameters: any,
         callback: any,
+        callbackonly: boolean,
         initiatorComponentId: any
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
@@ -442,7 +444,8 @@ export class MateuComponent extends ComponentElement {
                 initiator: this,
                 background: action?.background,
                 sse: action?.sse,
-                callback: detail.callback
+                callback: detail.callback,
+                callbackonly: detail.callbackonly,
             },
             bubbles: true,
             composed: true
