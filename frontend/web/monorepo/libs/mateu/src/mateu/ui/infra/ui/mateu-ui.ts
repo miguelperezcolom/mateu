@@ -53,8 +53,8 @@ export class MateuUi extends LitElement {
             if (this.top == 'true') {
                 let route = e.detail.route
                 let baseUrl = this.baseUrl??''
-                if (route.startsWith('/')) {
-                    baseUrl = window.location.origin
+                if (!route || route.startsWith('/')) {
+                    baseUrl = window.location.origin + (this.pathPrefix??'')
                 } else {
                     route = (this.pathPrefix??'') + route
                     if (baseUrl.indexOf('://') < 0) {

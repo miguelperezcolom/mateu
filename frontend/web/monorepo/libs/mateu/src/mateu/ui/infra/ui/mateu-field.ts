@@ -1314,18 +1314,6 @@ export class MateuField extends LitElement {
 
                     const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
                         const { filter, page, pageSize } = params;
-                        if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                            this.data[this.id] = undefined
-                        }
-                        if (this.data[this.id]
-                            && this.data[this.id].content
-                            && (this.data[this.id].totalElements <= (page + 1) * pageSize
-                                ||
-                                this.data[this.id].content.length >= (page + 1) * pageSize)) {
-                            callback(this.data[this.id].content
-                                    .slice(page * pageSize, ((page + 1) * pageSize)),
-                                this.data[this.id].totalElements)
-                        } else {
                             this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
                                     actionId: coords.action,
@@ -1336,18 +1324,16 @@ export class MateuField extends LitElement {
                                         page,
                                         sort: undefined
                                     },
-                                    callback: () => {
-                                        if (this.data[this.id] && this.data[this.id].content) {
-                                            callback(this.data[this.id].content
-                                                    .slice(page * pageSize, ((page + 1) * pageSize)),
-                                                this.data[this.id].totalElements)
-                                        }
-                                    }
+                                    callback: (uiIncrement: UIIncrement) => {
+                                        const data = uiIncrement.fragments![0].data[this.id]
+                                        this.comboData = data.content
+                                        callback(data.content, data.totalElements);
+                                    },
+                                    callbackonly: true
                                 },
                                 bubbles: true,
                                 composed: true
                             }))
-                        }
                     };
 
 
