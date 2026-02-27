@@ -551,7 +551,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnValueChangeTrigger("load-customer", "customer", ""),
                 new OnValueChangeTrigger("load-new-product", "new_product", ""),

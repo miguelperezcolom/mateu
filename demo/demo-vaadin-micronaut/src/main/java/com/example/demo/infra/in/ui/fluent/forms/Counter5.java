@@ -33,7 +33,7 @@ public class Counter5 implements ComponentTreeSupplier, ActionSupplier, Triggers
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnLoadTrigger("increment")
         );

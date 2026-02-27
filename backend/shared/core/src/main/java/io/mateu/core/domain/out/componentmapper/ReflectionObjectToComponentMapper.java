@@ -80,7 +80,7 @@ public class ReflectionObjectToComponentMapper {
               "",
               "",
               mapActions(instance),
-              mapTriggers(instance),
+              mapTriggers(instance, httpRequest),
               mapRules(instance),
               mapValidations(instance),
               null),

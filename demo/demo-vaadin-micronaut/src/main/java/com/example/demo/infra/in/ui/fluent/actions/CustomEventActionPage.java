@@ -94,7 +94,7 @@ public class CustomEventActionPage implements ComponentTreeSupplier, ActionSuppl
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnCustomEventTrigger("wrapper-action", "my-event"),
                 new OnCustomEventTrigger("server-action", "my-event-to-server")

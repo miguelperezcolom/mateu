@@ -110,7 +110,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, Acti
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("onload_action"));
     }
 }

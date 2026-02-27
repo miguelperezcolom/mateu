@@ -42,7 +42,7 @@ public class OnSuccessTriggerPage implements ComponentTreeSupplier, ActionSuppli
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnSuccessTrigger("action", "server-call", null)
         );

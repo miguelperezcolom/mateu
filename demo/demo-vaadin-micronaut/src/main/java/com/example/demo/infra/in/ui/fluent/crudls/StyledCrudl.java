@@ -109,7 +109,7 @@ public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, Act
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 OnValueChangeTrigger.builder()
                         .actionId("update")

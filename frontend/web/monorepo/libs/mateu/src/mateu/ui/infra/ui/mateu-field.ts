@@ -133,9 +133,25 @@ export class MateuField extends LitElement {
     multiComboBoxValueChanged = (e: CustomEvent) => {
         const fieldId = this.field?.fieldId!
         const oldValue = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
-        let value = undefined
+        let value: any = undefined
         if (e.detail.value) {
             value = e.detail.value.map((option: any) => option.value)
+            if (value && value.length > 0) {
+                if (!this.data[this.id]) {
+                    this.data[this.id] = {}
+                }
+                if (!this.data[this.id].content) {
+                    this.data[this.id].content = []
+                }
+                if (this.data[this.id]
+                    && this.data[this.id].content) {
+                    e.detail.value.forEach((item: any) => {
+                        if (!this.data[this.id].content?.find((option: any) => item.value == option.value)) {
+                            this.data[this.id].content.push(item)
+                        }
+                    })
+                }
+            }
         }
         if (!this.compareArrays(value, oldValue)) this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {

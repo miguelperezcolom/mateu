@@ -86,7 +86,7 @@ public class FutureComponentToDtoMapper {
         "",
         "",
         mapActions(futureComponent.instance()),
-        mapTriggers(futureComponent.instance()),
+        mapTriggers(futureComponent.instance(), httpRequest),
         mapRules(futureComponent.instance()),
         mapValidations(futureComponent.instance()),
         null);
@@ -261,9 +261,9 @@ public class FutureComponentToDtoMapper {
         .build();
   }
 
-  public static List<TriggerDto> mapTriggers(Object serverSideObject) {
+  public static List<TriggerDto> mapTriggers(Object serverSideObject, HttpRequest httpRequest) {
     if (serverSideObject instanceof TriggersSupplier hasTriggers) {
-      return hasTriggers.triggers().stream()
+      return hasTriggers.triggers(httpRequest).stream()
           .map(
               trigger ->
                   switch (trigger) {

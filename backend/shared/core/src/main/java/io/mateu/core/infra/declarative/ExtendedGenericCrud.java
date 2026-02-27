@@ -910,9 +910,11 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
   }
 
   @Override
-  public List<Trigger> triggers() {
+  public List<Trigger> triggers(HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
-    triggers.add(new OnLoadTrigger("search"));
+    if (httpRequest.getAttribute("selectedItem") == null) {
+        triggers.add(new OnLoadTrigger("search"));
+    }
     triggers.add(new OnSuccessTrigger("search", "create", ""));
     triggers.add(new OnSuccessTrigger("search", "delete", ""));
     triggers.add(new OnSuccessTrigger("search", "save", ""));

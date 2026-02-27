@@ -91,7 +91,7 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("onload_action"));
     }
 }

@@ -30,7 +30,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          style="${component.style}" 
                          class="${component.cssClasses}"
                          .state="${{...component.initialData, ...state}}"
-                         .data="${{}}"
+                         .data="${{...data}}"
                          .appState="${appState}"
                          .appData="${appData}"
         >

@@ -108,7 +108,7 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("search"));
     }
 

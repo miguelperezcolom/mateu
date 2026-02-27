@@ -34,7 +34,7 @@ public class OnLoadTriggerPage implements ComponentTreeSupplier, ActionSupplier,
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnLoadTrigger("action", 0, 0, null)
         );

@@ -44,7 +44,7 @@ public class GenericForm
   }
 
   @Override
-  public List<Trigger> triggers() {
+  public List<Trigger> triggers(HttpRequest httpRequest) {
     return List.of();
   }
 

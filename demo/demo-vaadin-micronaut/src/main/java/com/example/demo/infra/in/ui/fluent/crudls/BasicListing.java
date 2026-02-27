@@ -246,7 +246,7 @@ public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filte
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("search"));
     }
 

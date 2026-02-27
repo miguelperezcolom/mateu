@@ -65,7 +65,7 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("search"));
     }
 

@@ -43,7 +43,7 @@ public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnErrorTrigger("action", "server-call", null)
         );

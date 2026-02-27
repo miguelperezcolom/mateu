@@ -95,7 +95,7 @@ public class WebComponentComponentPage implements ComponentTreeSupplier, ActionH
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(OnValueChangeTrigger.builder()
                         .propertyName("src")
                         .actionId("src-changed")

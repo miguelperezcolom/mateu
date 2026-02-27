@@ -390,7 +390,7 @@ public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplie
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(
                 new OnValueChangeTrigger("load-new-product", "new_product", ""),
                 new OnValueChangeTrigger("load-edit-product", "edit_product", ""),

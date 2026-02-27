@@ -79,7 +79,7 @@ public class ComponentTreeSupplierToDtoMapper {
         componentTreeSupplier.style(),
         componentTreeSupplier.cssClasses(),
         mapActions(componentTreeSupplier),
-        mapTriggers(componentTreeSupplier),
+        mapTriggers(componentTreeSupplier, httpRequest),
         mapRules(componentTreeSupplier),
         mapValidations(componentTreeSupplier),
         null);
@@ -263,9 +263,9 @@ public class ComponentTreeSupplierToDtoMapper {
         .build();
   }
 
-  public static List<TriggerDto> mapTriggers(Object serverSideObject) {
+  public static List<TriggerDto> mapTriggers(Object serverSideObject, HttpRequest httpRequest) {
     if (serverSideObject instanceof TriggersSupplier hasTriggers) {
-      return hasTriggers.triggers().stream()
+      return hasTriggers.triggers(httpRequest).stream()
           .map(
               trigger ->
                   switch (trigger) {

@@ -118,7 +118,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("search"));
     }
 

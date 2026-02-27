@@ -229,7 +229,7 @@ public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend
     }
 
     @Override
-    public List<Trigger> triggers() {
+    public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("search"));
     }
 }
