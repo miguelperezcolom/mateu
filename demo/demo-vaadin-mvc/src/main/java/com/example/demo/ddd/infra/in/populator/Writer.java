@@ -127,9 +127,10 @@ public class Writer {
 
     private static void writeOffers(HotelRepository hotelRepository, AgencyRepository agencyRepository, OfferRepository offerRepository) {
         List<Offer> offers = new ArrayList<>();
+        var offerId = 1;
         for (Hotel hotel : hotelRepository.findAll()) {
             offers.add(new Offer(
-                    UUID.randomUUID().toString(),
+                    "" + offerId++,
                     hotel.name() + " - " + "15%",
                     hotel.id(),
                     null,

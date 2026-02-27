@@ -838,7 +838,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
                 }
                 data.put(
                     field.getName() + "-label",
-                    options.stream().map(Option::label).collect(Collectors.joining()));
+                    options.stream().map(Option::label).collect(Collectors.joining(", ")));
                 data.put(field.getName(), new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1, options));
               } else {
                 var id = getValue(field, item);
