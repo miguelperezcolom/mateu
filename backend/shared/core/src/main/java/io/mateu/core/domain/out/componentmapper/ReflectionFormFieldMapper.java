@@ -287,7 +287,7 @@ public class ReflectionFormFieldMapper {
                       .id(columnField.getName())
                       .label(getLabel(columnField))
                       .width(getColumnWidth(columnField))
-                          .filterable(getFilterable(columnField))
+                      .filterable(getFilterable(columnField))
                       .build());
             });
     if (!readOnly) {
@@ -396,11 +396,11 @@ public class ReflectionFormFieldMapper {
         .build();
   }
 
-    private static boolean getFilterable(Field columnField) {
-      return columnField.isAnnotationPresent(Filterable.class);
-    }
+  private static boolean getFilterable(Field columnField) {
+    return columnField.isAnnotationPresent(Filterable.class);
+  }
 
-    private static String getMinHeightWhenDetailVisible(Field field) {
+  private static String getMinHeightWhenDetailVisible(Field field) {
     if (field.isAnnotationPresent(MasterDetail.class)) {
       return field.getAnnotation(MasterDetail.class).minHeightWhenDetailVisible();
     }

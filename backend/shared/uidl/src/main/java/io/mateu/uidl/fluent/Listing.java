@@ -3,8 +3,6 @@ package io.mateu.uidl.fluent;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import java.util.List;
-
-import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.Builder;
 import lombok.Singular;
 

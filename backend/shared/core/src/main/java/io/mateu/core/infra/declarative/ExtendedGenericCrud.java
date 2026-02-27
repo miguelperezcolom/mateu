@@ -913,7 +913,7 @@ public abstract class ExtendedGenericCrud<EntityType, Filters, Row>
   public List<Trigger> triggers(HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
     if (httpRequest.getAttribute("selectedItem") == null) {
-        triggers.add(new OnLoadTrigger("search"));
+      triggers.add(new OnLoadTrigger("search"));
     }
     triggers.add(new OnSuccessTrigger("search", "create", ""));
     triggers.add(new OnSuccessTrigger("search", "delete", ""));
