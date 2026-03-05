@@ -26,11 +26,13 @@ import '@vaadin/item'
 import '@polymer/paper-toggle-button'
 import "@ui5/webcomponents/dist/ColorPicker.js";
 import "@ui5/webcomponents/dist/RangeSlider.js";
+import "@vaadin-component-factory/vcf-date-range-picker"
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import {ComboBox, ComboBoxDataProvider} from "@vaadin/combo-box";
 import './mateu-grid'
 import './mateu-choice'
+import './mateu-money-field'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
@@ -1181,6 +1183,26 @@ export class MateuField extends LitElement {
                 </vaadin-custom-field>
             `
         }
+        if (this.field?.dataType == 'dateRange') {
+            const drValue = value?value.from + ';' + value.to:undefined;
+            return html`<vcf-date-range-picker
+                    id="${this.field.fieldId}"
+                    label="${label}"
+                    @value-changed="${(e: CustomEvent) => {
+                        if (e.detail.value) {
+                            e.detail.value = {
+                                from: e.detail.value.split(';')[0],
+                                to: e.detail.value.split(';')[1]
+                            }
+                        }
+                        this.valueChanged(e)
+                    }}"
+                    value="${drValue}"
+                    ?autofocus="${this.field.wantsFocus}"
+                    ?required="${this.field.required || nothing}"
+                    data-colspan="${this.field.colspan}"
+            ></vcf-date-range-picker>`
+        }
         if (this.field?.dataType == 'date') {
             return html`<vaadin-date-picker
                         id="${this.field.fieldId}"
@@ -1481,31 +1503,15 @@ export class MateuField extends LitElement {
                         data-colspan="${this.field.colspan}"
                 ><div style="width: 186px; text-align: right;">${formatted}</div></vaadin-custom-field>`
             }
-            return html`<vaadin-number-field
+            return html`<mateu-money-field
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
-                        value="${value}"
+                        .value="${value}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
-            ><div slot="prefix"><vaadin-select
-                            item-label-path="label"
-                            item-value-path="value"
-                            .items="${[
-                                {
-                                    label: 'Euro',
-                                    value: 'EUR'
-                                },
-                                {
-                                    label: 'US Dollar',
-                                    value: 'USD'
-                                }
-                            ]}"
-                            @value-changed="${this.valueChanged}"
-                            .value="${value}"
-                            style="max-width: 100px;"
-                    ></vaadin-select></div></vaadin-number-field>`
+            ></mateu-money-field>`
         }
         if (this.field?.dataType == 'status') {
             const status = value as Status

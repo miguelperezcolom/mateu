@@ -16,5 +16,6 @@ public enum FieldDataType {
   menu,
   range,
   action,
-  actionGroup
+  actionGroup,
+    dateRange
 }

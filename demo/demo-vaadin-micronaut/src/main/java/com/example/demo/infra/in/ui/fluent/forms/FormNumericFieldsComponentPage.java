@@ -1,14 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.Range;
-import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
@@ -22,6 +15,8 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 public class FormNumericFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     Range range = new Range(10, 30);
+
+    Amount money = new Amount("EUR", 20.66);
 
     @Override
     public Form component(HttpRequest httpRequest) {

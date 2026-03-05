@@ -46,6 +46,15 @@ public class FormDateFieldsComponentPage implements ComponentTreeSupplier {
                                                                         .dataType(FieldDataType.time)
                                                                         .build()
                                                         ))
+                                                        .build(),
+                                                FormRow.builder()
+                                                        .content(List.of(
+                                                                FormField.builder()
+                                                                        .id("dateRange")
+                                                                        .label("Date range")
+                                                                        .dataType(FieldDataType.dateRange)
+                                                                        .build()
+                                                        ))
                                                         .build()
                                         )
                                 )

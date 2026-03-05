@@ -8,6 +8,7 @@ import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
@@ -226,17 +227,20 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     } else if (Class.class.equals(type)) {
       return Class.forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
-      var list = new ArrayList();
-      ((List<Object>) data)
-          .forEach(
-              item ->
-                  list.add(
-                      item instanceof Map<?, ?> map
-                          ? newInstance(genericType, (Map<String, Object>) map, httpRequest)
-                          : item));
-      return list;
-    } else if (data instanceof Map) {
-      return newInstance(type, (Map<String, Object>) data, httpRequest);
+        var list = new ArrayList();
+        ((List<Object>) data)
+                .forEach(
+                        item ->
+                                list.add(
+                                        item instanceof Map<?, ?> map
+                                                ? newInstance(genericType, (Map<String, Object>) map, httpRequest)
+                                                : item));
+        return list;
+    } else if (data instanceof Map map) {
+        if (Amount.class.equals(type)) {
+            return new Amount((String) map.get("currency"), (Double) map.get("value"), (String) map.get("locale"));
+        }
+        return newInstance(type, map, httpRequest);
     } else {
       return data;
     }
