@@ -227,20 +227,21 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     } else if (Class.class.equals(type)) {
       return Class.forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
-        var list = new ArrayList();
-        ((List<Object>) data)
-                .forEach(
-                        item ->
-                                list.add(
-                                        item instanceof Map<?, ?> map
-                                                ? newInstance(genericType, (Map<String, Object>) map, httpRequest)
-                                                : item));
-        return list;
+      var list = new ArrayList();
+      ((List<Object>) data)
+          .forEach(
+              item ->
+                  list.add(
+                      item instanceof Map<?, ?> map
+                          ? newInstance(genericType, (Map<String, Object>) map, httpRequest)
+                          : item));
+      return list;
     } else if (data instanceof Map map) {
-        if (Amount.class.equals(type)) {
-            return new Amount((String) map.get("currency"), (Double) map.get("value"), (String) map.get("locale"));
-        }
-        return newInstance(type, map, httpRequest);
+      if (Amount.class.equals(type)) {
+        return new Amount(
+            (String) map.get("currency"), (Double) map.get("value"), (String) map.get("locale"));
+      }
+      return newInstance(type, map, httpRequest);
     } else {
       return data;
     }

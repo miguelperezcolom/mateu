@@ -65,6 +65,7 @@
     "@vaadin/vaadin-lumo-styles": "^24.8.0",
     "@vaadin/vertical-layout": "^24.8.0",
     "@vaadin/virtual-list": "^24.8.0",
+    "@vaadin/component-base": "^24.8.0",
     "@web-comp/core": "^1.0.2",
     "@web-comp/json-viewer": "^1.0.2",
     "axios": "^1.7.7",
@@ -81,7 +82,7 @@
     "@ui5/webcomponents": "^2.13.2",
     "@ui5/webcomponents-ai": "^2.13.2",
     "@ui5/webcomponents-fiori": "^2.13.2",
-    "@vaadin-component-factory/vcf-date-range-picker": "^6.0.0"
+    "@vaadin-component-factory/vcf-date-range-picker": "^5.0.2"
   },
   "devDependencies": {
     "lit": "^3.3.1",

@@ -15,12 +15,12 @@ import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Logo;
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Widget;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.App;
@@ -401,7 +401,7 @@ public class ReflectionAppMapper {
     if (instance.getClass().isAnnotationPresent(PageTitle.class)) {
       return instance.getClass().getAnnotation(PageTitle.class).value();
     }
-    if (instance.getClass().isAnnotationPresent(MateuUI.class)
+    if (instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
       return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
     }

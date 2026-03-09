@@ -1,10 +1,9 @@
 package com.example.demo.infra.in.ui.declarative;
 
 import io.mateu.uidl.annotations.HomeRoute;
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.PageTitle;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Text;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.MenuSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Submenu;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -76,7 +74,7 @@ class MyNestedSubmenu implements Submenu {
 }
 
 
-@MateuUI("/declarative")
+@UI("/declarative")
 @PageTitle("Antonia")
 @HomeRoute("/home")
 @Slf4j

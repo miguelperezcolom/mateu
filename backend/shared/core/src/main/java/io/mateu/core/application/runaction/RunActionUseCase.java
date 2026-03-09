@@ -18,8 +18,8 @@ import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.BaseRoute;
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
@@ -418,7 +418,7 @@ public class RunActionUseCase {
           }
         }
         if (resolver.getClass().getSimpleName().endsWith("UIRouteResolver")) {
-          if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
+          if (!type.getAnnotation(UI.class).value().equals(command.baseUrl())) {
             continue;
           }
         }
@@ -481,7 +481,7 @@ public class RunActionUseCase {
         }
         var type = Class.forName(instanceTypeName);
         if (resolver.getClass().getSimpleName().endsWith("UIRouteResolver")) {
-          if (!type.getAnnotation(MateuUI.class).value().equals(command.baseUrl())) {
+          if (!type.getAnnotation(UI.class).value().equals(command.baseUrl())) {
             continue;
           }
         }
@@ -550,8 +550,8 @@ public class RunActionUseCase {
                   return AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
                       || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
-                      || (resolved.isAnnotationPresent(MateuUI.class)
-                          && resolved.getAnnotation(MateuUI.class).value().equals(baseUrl));
+                      || (resolved.isAnnotationPresent(UI.class)
+                          && resolved.getAnnotation(UI.class).value().equals(baseUrl));
                 })
             .toList()) {
       if (resolver.supportsRoute(route, consumedRoute)
@@ -568,7 +568,7 @@ public class RunActionUseCase {
                   return !(AppSupplier.class.isAssignableFrom(resolved)
                       || App.class.isAssignableFrom(resolved)
                       || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
-                      || resolved.isAnnotationPresent(MateuUI.class));
+                      || resolved.isAnnotationPresent(UI.class));
                 })
             .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute, consumedRoute)))
             .toList()
@@ -812,8 +812,8 @@ public class RunActionUseCase {
   }
 
   private String getAppRoute(Object potentialApp) {
-    if (potentialApp.getClass().isAnnotationPresent(MateuUI.class)) {
-      return potentialApp.getClass().getAnnotation(MateuUI.class).value();
+    if (potentialApp.getClass().isAnnotationPresent(UI.class)) {
+      return potentialApp.getClass().getAnnotation(UI.class).value();
     }
     if (potentialApp.getClass().isAnnotationPresent(Route.class)) {
       return potentialApp.getClass().getAnnotation(Route.class).value();

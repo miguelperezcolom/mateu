@@ -416,12 +416,16 @@ public class ReflectionPageMapper {
     List<Section> sections = new ArrayList<>();
     Section sectionAnnotation = null;
     SectionFields sectionFields = null;
-    for (Field field :
-        getAllEditableFields(getClass(instance)).stream()
-            .filter(field -> filterField(field, forCreationForm))
+    for (Field field : getFormFields(instance)
+        .stream()
+            .filter(field -> filterField(field, forCreationForm, readOnly))
             .filter(
                 field ->
-                    readOnly || (!readOnly && !field.isAnnotationPresent(HiddenInEditor.class)))
+                    readOnly
+                        || (!readOnly
+                            && !field.isAnnotationPresent(HiddenInEditor.class)
+                            && (!forCreationForm
+                                || !field.isAnnotationPresent(HiddenInCreate.class))))
             .filter(
                 field -> !readOnly || (readOnly && !field.isAnnotationPresent(HiddenInView.class)))
             .toList()) {
@@ -514,6 +518,16 @@ public class ReflectionPageMapper {
                     readOnly,
                     section.columns()))
         .toList();
+  }
+
+  private static Collection<Field> getFormFields(Object instance) {
+    if (instance instanceof EditableFieldsProvider editableFieldsProvider) {
+      return editableFieldsProvider.allEditableFields();
+    }
+    if (instance instanceof Class<?> type) {
+      return getAllEditableFields(type);
+    }
+    return getAllEditableFields(getClass(instance));
   }
 
   public static Component toFormLayout(
@@ -715,7 +729,7 @@ public class ReflectionPageMapper {
     return instance.getClass();
   }
 
-  private static boolean filterField(Field field, boolean forCreationForm) {
+  private static boolean filterField(Field field, boolean forCreationForm, boolean readOnly) {
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;
     }
@@ -736,7 +750,7 @@ public class ReflectionPageMapper {
     }
     if (Collection.class.isAssignableFrom(field.getType())
         && field.isAnnotationPresent(Composition.class)) {
-      return false;
+      return readOnly;
     }
     if (forCreationForm) {}
     return true;
@@ -881,7 +895,7 @@ public class ReflectionPageMapper {
     return null;
   }
 
-  private static String getTitle(Object instance) {
+  public static String getTitle(Object instance) {
     if (instance instanceof TitleSupplier titleSupplier) {
       return titleSupplier.title();
     }
@@ -898,7 +912,7 @@ public class ReflectionPageMapper {
     if (instance.getClass().isAnnotationPresent(PageTitle.class)) {
       return instance.getClass().getAnnotation(PageTitle.class).value();
     }
-    if (instance.getClass().isAnnotationPresent(MateuUI.class)
+    if (instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
       return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
     }

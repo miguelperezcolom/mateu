@@ -1,8 +1,8 @@
 package io.mateu.core.domain.out.fragmentmapper.reflectionbased;
 
 import io.mateu.dtos.MenuOptionDto;
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -66,8 +66,8 @@ public class ReflectionAppMapper {
       }
     }
     if (pattern == null && instance != null) {
-      if (instance.getClass().isAnnotationPresent(MateuUI.class)) {
-        for (MateuUI routeAnnotation : instance.getClass().getAnnotationsByType(MateuUI.class)) {
+      if (instance.getClass().isAnnotationPresent(UI.class)) {
+        for (UI routeAnnotation : instance.getClass().getAnnotationsByType(UI.class)) {
           String patternString = "";
           pattern = returnPatternIfMatches(patternString, route);
         }

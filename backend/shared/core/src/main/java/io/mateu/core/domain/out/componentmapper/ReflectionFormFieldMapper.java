@@ -9,9 +9,6 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.infra.declarative.DynamicCrud;
-import io.mateu.core.infra.declarative.DynamicEditor;
-import io.mateu.core.infra.declarative.Entity;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
@@ -36,6 +33,7 @@ import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.interfaces.Entity;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.reflection.ComponentMapper;
@@ -234,6 +232,7 @@ public class ReflectionFormFieldMapper {
   private static Component createEditorForCompositionField(
       Field field, HttpRequest httpRequest, Object instance) {
     var composition = field.getAnnotation(Composition.class);
+    /*
     var crud =
         new DynamicEditor(
             composition.targetClass(),
@@ -243,13 +242,16 @@ public class ReflectionFormFieldMapper {
             getLabel(field),
             true);
     return new CustomField("", crud, "width: 100%;", "", 2);
+     */
+    return new io.mateu.uidl.data.Text(field.getName(), "Pending");
   }
 
   private static Component createCrudForCompositionField(
       Field field, HttpRequest httpRequest, Object instance) {
     var composition = field.getAnnotation(Composition.class);
+    /*
     var crud =
-        new DynamicCrud(
+        new DynamicCrudOrchestrator(
             composition.targetClass(),
             composition.repositoryClass(),
             composition.foreignKeyField(),
@@ -257,6 +259,8 @@ public class ReflectionFormFieldMapper {
             getLabel(field),
             true);
     return new CustomField("", crud, "width: 100%;", "", 2);
+     */
+    return new io.mateu.uidl.data.Text(field.getName(), "Pending");
   }
 
   private static int getColspan(Field field) {

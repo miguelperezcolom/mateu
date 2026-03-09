@@ -17,5 +17,5 @@ public enum FieldDataType {
   range,
   action,
   actionGroup,
-    dateRange
+  dateRange
 }

@@ -1,11 +1,9 @@
 package com.example.demo.infra.in.ui;
 
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.ActionType;
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 
-@MateuUI("/anothercounter")
+@UI("/anothercounter")
 public class AnotherCounter {
 
     int count;

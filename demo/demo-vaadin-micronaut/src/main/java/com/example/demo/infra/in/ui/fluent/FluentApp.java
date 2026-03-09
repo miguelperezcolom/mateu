@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent;
 
-import io.mateu.uidl.annotations.MateuUI;
-import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
@@ -14,7 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@MateuUI("/fluent")
+@UI("/fluent")
 public class FluentApp implements AppSupplier {
 
     @Override

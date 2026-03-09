@@ -3,7 +3,7 @@ package com.example.demo;
 import com.example.demo.jsonschemabased.Scanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.domain.Humanizer;
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
@@ -24,7 +24,7 @@ import static com.example.demo.jsonschemabased.Mapper.getInitialValue;
 import static com.example.demo.jsonschemabased.Mapper.getOptions;
 import static com.example.demo.jsonschemabased.Mapper.getStereotype;
 
-@MateuUI("/json-schema")
+@UI("/json-schema")
 public class JsonSchemaBased implements ComponentTreeSupplier, RouteHandler {
 
     private String route = "";

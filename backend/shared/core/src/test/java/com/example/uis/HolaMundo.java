@@ -1,9 +1,9 @@
 package com.example.uis;
 
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.PageTitleSupplier;
 
-@MateuUI("/holamundo")
+@UI("/holamundo")
 public record HolaMundo(String title) implements PageTitleSupplier {
   @Override
   public String pageTitle() {

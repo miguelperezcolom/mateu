@@ -36,7 +36,7 @@ public class ${simpleClassName}Controller {
     // sin esperar al init de Keycloak
     const mateuScript = document.createElement('link');
     mateuScript.rel = 'modulepreload';
-    mateuScript.href = '${path}/assets/mateu-vaadin.js';
+    mateuScript.href = '/assets/mateu-vaadin.js';
     document.head.appendChild(mateuScript);
 
     const keycloak = new Keycloak({
@@ -72,11 +72,12 @@ public class ${simpleClassName}Controller {
                 localStorage.setItem('__mateu_auth_subject', keycloak.subject);
                 const s = document.createElement('script');
                 s.setAttribute('type', 'module')
-                s.setAttribute('src', '${path}/assets/mateu-vaadin.js')
+                s.setAttribute('src', '/assets/mateu-vaadin.js')
                 document.head.appendChild(s);
 
                 const u = document.createElement('mateu-ui');
                 u.setAttribute('baseUrl', '${path}');
+                u.setAttribute('pathPrefix', '${path}');
                 u.setAttribute('style', 'width:100%;height:100vh;');
                 document.body.appendChild(u);
 
@@ -125,7 +126,7 @@ html = html.replaceAll(
 "");
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-    + "<mateu-ui baseUrl=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
+    + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
     + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;

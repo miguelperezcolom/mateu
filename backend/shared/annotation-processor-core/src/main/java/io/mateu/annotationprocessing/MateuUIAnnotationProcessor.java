@@ -16,7 +16,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes({"io.mateu.uidl.annotations.MateuUI"})
+@SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
@@ -28,7 +28,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       for (Element e : annotatedElements) {
         String className = ((TypeElement) e).getQualifiedName().toString();
         String simpleClassName = e.getSimpleName().toString();
-        String path = e.getAnnotation(MateuUI.class).value();
+        String path = e.getAnnotation(UI.class).value();
 
         System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
@@ -139,12 +139,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
       String indexHtmlPath = "/index/index.html";
       String frontendPath = path + "/dist/assets/mateu.js";
-      if (e.getAnnotation(MateuUI.class) != null) {
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).indexHtmlPath())) {
-          indexHtmlPath = e.getAnnotation(MateuUI.class).indexHtmlPath();
+      if (e.getAnnotation(UI.class) != null) {
+        if (!Strings.isNullOrEmpty(e.getAnnotation(UI.class).indexHtmlPath())) {
+          indexHtmlPath = e.getAnnotation(UI.class).indexHtmlPath();
         }
-        if (!Strings.isNullOrEmpty(e.getAnnotation(MateuUI.class).frontendComponentPath())) {
-          frontendPath = e.getAnnotation(MateuUI.class).frontendComponentPath();
+        if (!Strings.isNullOrEmpty(e.getAnnotation(UI.class).frontendComponentPath())) {
+          frontendPath = e.getAnnotation(UI.class).frontendComponentPath();
           if (!frontendPath.startsWith("http:") && !frontendPath.startsWith("https:")) {
             frontendPath = path + frontendPath;
           }

@@ -1,11 +1,10 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
@@ -13,7 +12,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 
-@MateuUI("/counter6")
+@UI("/counter6")
 @Route(value="/forms/counter6", parentRoute="^$")
 @Serdeable
 public class Counter6 implements ComponentTreeSupplier {

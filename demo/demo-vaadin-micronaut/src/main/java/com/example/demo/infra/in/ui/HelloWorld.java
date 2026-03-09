@@ -1,6 +1,6 @@
 package com.example.demo.infra.in.ui;
 
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.Page;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
@@ -10,7 +10,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@MateuUI("")
+@UI("")
 public class HelloWorld implements RouteHandler, ActionHandler, TitleSupplier, SubtitleSupplier, Page {
     @Override
     public Mono<?> handleRoute(String route, HttpRequest httpRequest) {

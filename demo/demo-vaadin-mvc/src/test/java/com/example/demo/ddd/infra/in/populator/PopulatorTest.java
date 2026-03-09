@@ -1,6 +1,6 @@
 package com.example.demo.ddd.infra.in.populator;
 
-import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyRepository;
+import com.example.demo.ddd.infra.out.persistence.hotel.agency.AgencyCrudAdapter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +13,7 @@ class PopulatorTest {
     @Autowired
     Populator populator;
     @Autowired
-    AgencyRepository agencyRepository;
+    AgencyCrudAdapter agencyRepository;
 
     @Test
     void works() {

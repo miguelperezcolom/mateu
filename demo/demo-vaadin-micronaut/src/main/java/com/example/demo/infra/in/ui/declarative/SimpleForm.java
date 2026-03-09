@@ -1,10 +1,10 @@
 package com.example.demo.infra.in.ui.declarative;
 
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Message;
 
-@MateuUI("/simpleform")
+@UI("/simpleform")
 public class SimpleForm {
 
     String name;

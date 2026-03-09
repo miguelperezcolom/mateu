@@ -16,9 +16,9 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.HomeRoute;
-import io.mateu.uidl.annotations.MateuUI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Data;
@@ -139,7 +139,7 @@ public class ReflectionObjectToComponentMapper {
     }
     return instance instanceof Page
         || instance instanceof ListingBackend<?, ?>
-        || instance.getClass().isAnnotationPresent(MateuUI.class)
+        || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
         || !isBasic(instance);
   }

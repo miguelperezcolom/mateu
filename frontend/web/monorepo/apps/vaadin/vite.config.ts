@@ -50,6 +50,7 @@ export default defineConfig({
             '/anothercounter/mateu': 'http://localhost:8091',
             '/mateu': 'http://localhost:8091',
             '/images': 'http://localhost:8091',
+            '/assets': 'http://localhost:8091',
             '/myassets': 'http://localhost:8091',
             '/sse': 'http://localhost:8091',
             '/upload': 'http://localhost:8091',
@@ -59,6 +60,7 @@ export default defineConfig({
             '/_crm': 'http://localhost:8091',
             '/_financial': 'http://localhost:8091',
             '/control-plane': 'http://localhost:8091',
+            '/workflow': 'http://localhost:8091',
         },
     },
     optimizeDeps: {

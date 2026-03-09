@@ -72,6 +72,9 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
         @Override
         public Flux<?> run(Object instance, RunActionCommand command) {
+          if (instance instanceof ActionHandler handlesActions) {
+            return asFlux(handlesActions.handleAction(actionId, httpRequest), instance);
+          }
           return Flux.just(instance);
         }
       };

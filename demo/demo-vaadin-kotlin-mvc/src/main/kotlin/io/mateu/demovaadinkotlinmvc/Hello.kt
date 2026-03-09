@@ -1,7 +1,7 @@
 package io.mateu.demovaadinkotlinmvc
 
-import io.mateu.uidl.annotations.MateuUI
+import io.mateu.uidl.annotations.UI
 
-@MateuUI("")
+@UI("")
 class Hello {
 }
