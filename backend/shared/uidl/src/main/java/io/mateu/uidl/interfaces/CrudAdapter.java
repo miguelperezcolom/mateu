@@ -2,10 +2,7 @@ package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
 
@@ -18,5 +15,4 @@ public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
   Editor getEditor(IdType id);
 
   CreationForm getCreationForm();
-
 }

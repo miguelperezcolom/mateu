@@ -416,8 +416,8 @@ public class ReflectionPageMapper {
     List<Section> sections = new ArrayList<>();
     Section sectionAnnotation = null;
     SectionFields sectionFields = null;
-    for (Field field : getFormFields(instance)
-        .stream()
+    for (Field field :
+        getFormFields(instance).stream()
             .filter(field -> filterField(field, forCreationForm, readOnly))
             .filter(
                 field ->

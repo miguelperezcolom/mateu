@@ -84,7 +84,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdType>, CreationForm extends CrudCreationForm<IdType>, Filters, Row, IdType>
+public abstract class CrudOrchestrator<
+        View,
+        Editor extends CrudEditorForm<IdType>,
+        CreationForm extends CrudCreationForm<IdType>,
+        Filters,
+        Row,
+        IdType>
     implements ActionHandler,
         StateSupplier,
         TriggersSupplier,
@@ -118,14 +124,14 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
       }
       if (httpRequest.getAttribute("new") != null) {
         getAllFields(viewClass()).stream()
-                .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
-                .forEach(
-                        field -> {
-                          var generator =
-                                  MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
-                          var value = generator.generate();
-                          data.put(field.getName(), value);
-                        });
+            .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
+            .forEach(
+                field -> {
+                  var generator =
+                      MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
+                  var value = generator.generate();
+                  data.put(field.getName(), value);
+                });
       }
       addRowNumberForEntityClass(data);
       return data;
@@ -174,8 +180,7 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
     addRowNumber(viewClass(), data);
   }
 
-  public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType>
-      adapter();
+  public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
 
   @SneakyThrows
   @Override
@@ -252,7 +257,7 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
     }
     if ("save".equals(actionId)) {
       savedId = save(httpRequest);
-      //savedId = getValue(getIdField(viewClass()), entity);
+      // savedId = getValue(getIdField(viewClass()), entity);
       actionId = "view";
     }
     if ("cancel_edit".equals(actionId)) {
@@ -688,7 +693,6 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
     return toUpperCaseFirst(getClass().getSimpleName());
   }
 
-
   private Object create(HttpRequest httpRequest) {
     httpRequest.setAttribute("new", true);
     _state = "create";
@@ -722,11 +726,11 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
 
   private Object edit(IdType id, HttpRequest httpRequest) {
     var editor = adapter().getEditor(id);
-//    var found = adapter().findById(id);
-//    if (found.isEmpty()) {
-//      throw new RuntimeException("No item found with id " + id);
-//    }
-//    var item = found.get();
+    //    var found = adapter().findById(id);
+    //    if (found.isEmpty()) {
+    //      throw new RuntimeException("No item found with id " + id);
+    //    }
+    //    var item = found.get();
     httpRequest.setAttribute("selectedItem", editor);
     _state = "edit";
     return wrap(
@@ -758,14 +762,14 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
 
   protected Object view(IdType id, HttpRequest httpRequest) {
     var view = adapter().getView(id);
-//    if (found.isEmpty()) {
-//      throw new RuntimeException("No item found with id " + id);
-//    }
-//    var item = found.get();
+    //    if (found.isEmpty()) {
+    //      throw new RuntimeException("No item found with id " + id);
+    //    }
+    //    var item = found.get();
     httpRequest.setAttribute("selectedItem", view);
     _state = "view";
     return wrap(
-            viewComponent(view, httpRequest),
+        viewComponent(view, httpRequest),
         this,
         "base_url",
         httpRequest.runActionRq().route(),
@@ -884,9 +888,6 @@ public abstract class CrudOrchestrator<View, Editor extends CrudEditorForm<IdTyp
             });
     return data;
   }
-
-
-
 
   public Class<?> entityClass() {
     return getGenericClass(this.getClass(), CrudOrchestrator.class, "EntityType");

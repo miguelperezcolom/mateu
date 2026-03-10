@@ -1,5 +1,8 @@
 package io.mateu.core.infra.declarative;
 
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -9,17 +12,14 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import io.mateu.uidl.interfaces.SimpleEntity;
 import io.mateu.uidl.interfaces.SimpleEntityView;
-import lombok.SneakyThrows;
-
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
-
-import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+import lombok.SneakyThrows;
 
 public abstract class SimpleCrudAdapter<T extends SimpleEntity>
-        implements CrudAdapter<SimpleEntityView<T>, SimpleEntityView<T>, SimpleEntityView<T>,T,T, String> {
+    implements CrudAdapter<
+        SimpleEntityView<T>, SimpleEntityView<T>, SimpleEntityView<T>, T, T, String> {
 
   @Override
   public ListingData<T> search(String searchText, T t, Pageable pageable) {
@@ -116,7 +116,8 @@ public abstract class SimpleCrudAdapter<T extends SimpleEntity>
       @SneakyThrows
       @Override
       public Object state(HttpRequest httpRequest) {
-        return MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), httpRequest);
+        return MateuBeanProvider.getBean(InstanceFactory.class)
+            .newInstance(entityClass(), httpRequest);
       }
 
       @Override
@@ -154,5 +155,4 @@ public abstract class SimpleCrudAdapter<T extends SimpleEntity>
   T toEntity(HttpRequest httpRequest) {
     return httpRequest.getComponentState(entityClass());
   }
-
 }

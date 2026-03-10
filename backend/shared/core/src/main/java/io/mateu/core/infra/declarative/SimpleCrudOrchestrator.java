@@ -1,23 +1,13 @@
 package io.mateu.core.infra.declarative;
 
+import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
+
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.SimpleEntity;
 
-import java.util.Map;
-
-import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
-import static io.mateu.core.infra.declarative.CrudAdapterHelper.toView;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
-
 public abstract class SimpleCrudOrchestrator<T extends SimpleEntity>
-    extends CrudOrchestrator<
-        SimpleView<T>,
-        SimpleView<T>,
-        SimpleView<T>,
-            T,
-            T,
-            String> {
+    extends CrudOrchestrator<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String> {
 
   @Override
   public String toId(String id) {
@@ -29,10 +19,7 @@ public abstract class SimpleCrudOrchestrator<T extends SimpleEntity>
     return (CrudAdapter) simpleAdapter();
   }
 
-
-
   public abstract SimpleCrudAdapter<T> simpleAdapter();
-
 
   public Class filtersClass() {
     return entityClass();

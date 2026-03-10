@@ -2,7 +2,6 @@ package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.interfaces.CompositionCrudRepository;
 import io.mateu.uidl.interfaces.SimpleEntity;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -18,5 +17,4 @@ public @interface Composition {
   Class<? extends CompositionCrudRepository> repositoryClass();
 
   String foreignKeyField();
-
 }

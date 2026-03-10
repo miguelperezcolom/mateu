@@ -2,8 +2,7 @@ package io.mateu.uidl.interfaces;
 
 public interface SimpleEntity {
 
-    String id();
+  String id();
 
-    String name();
-
+  String name();
 }
