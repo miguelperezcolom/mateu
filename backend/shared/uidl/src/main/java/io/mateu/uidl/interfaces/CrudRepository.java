@@ -3,7 +3,7 @@ package io.mateu.uidl.interfaces;
 import java.util.List;
 import java.util.Optional;
 
-public interface CrudRepository<T extends SimpleEntity> {
+public interface CrudRepository<T extends Named> {
   Optional<T> findById(String id);
 
   String save(T entity);

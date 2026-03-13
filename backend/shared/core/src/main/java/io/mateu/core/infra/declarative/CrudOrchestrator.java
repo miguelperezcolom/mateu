@@ -58,21 +58,8 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
-import io.mateu.uidl.interfaces.ActionHandler;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.CompositionCrudRepository;
-import io.mateu.uidl.interfaces.CrudAdapter;
-import io.mateu.uidl.interfaces.CrudCreationForm;
-import io.mateu.uidl.interfaces.CrudEditorForm;
-import io.mateu.uidl.interfaces.Deleteable;
-import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.LabelSupplier;
-import io.mateu.uidl.interfaces.MateuInstanceFactory;
-import io.mateu.uidl.interfaces.RouteHandler;
-import io.mateu.uidl.interfaces.RuleSupplier;
-import io.mateu.uidl.interfaces.StateSupplier;
-import io.mateu.uidl.interfaces.ValidationDtoSupplier;
+import io.mateu.uidl.interfaces.*;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -696,7 +683,7 @@ public abstract class CrudOrchestrator<
   private Object create(HttpRequest httpRequest) {
     httpRequest.setAttribute("new", true);
     _state = "create";
-    var view = adapter().getCreationForm();
+    var view = adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", view);
     return wrap(
         Page.builder()
@@ -916,7 +903,7 @@ public abstract class CrudOrchestrator<
   @Override
   public List<Trigger> triggers(HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
-    if (httpRequest.getAttribute("selectedItem") == null) {
+    if (!isViewing(httpRequest)) {
       triggers.add(new OnLoadTrigger("search"));
     }
     triggers.add(new OnSuccessTrigger("search", "create", ""));
@@ -933,7 +920,18 @@ public abstract class CrudOrchestrator<
     return triggers;
   }
 
-  @Override
+    private boolean isViewing(HttpRequest httpRequest) {
+      var selectedItem = httpRequest.getAttribute("selectedItem");
+      if (selectedItem == null) {
+          return false;
+      }
+      if (selectedItem instanceof ModelSupplier modelSupplier) {
+          selectedItem = modelSupplier.model();
+      }
+      return selectedItem.getClass().equals(viewClass());
+    }
+
+    @Override
   public List<Action> actions() {
     var actions = new ArrayList<Action>();
     actions.add(

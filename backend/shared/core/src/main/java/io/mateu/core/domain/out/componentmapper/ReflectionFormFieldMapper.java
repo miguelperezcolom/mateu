@@ -34,6 +34,7 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ModelSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.validation.constraints.NotEmpty;
@@ -50,6 +51,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class ReflectionFormFieldMapper {
 
@@ -113,7 +115,15 @@ public class ReflectionFormFieldMapper {
       boolean readOnly,
       boolean forCreationForm,
       int maxColumns) {
-    if (Component.class.isAssignableFrom(field.getType())) {
+      if (instance instanceof ModelSupplier modelSupplier) {
+          instance = modelSupplier.model();
+      }
+      var fieldType = field.getType();
+      if (Callable.class.isAssignableFrom(field.getType())) {
+          var value = getValue(field, instance);
+          fieldType = value.getClass();
+      }
+    if (Component.class.isAssignableFrom(fieldType)) {
       return CustomField.builder()
           .label(getLabel(field))
           .content((Component) getValue(field, instance))
@@ -128,14 +138,14 @@ public class ReflectionFormFieldMapper {
           .colspan(getColspan(field))
           .build();
     }
-    if (List.class.isAssignableFrom(field.getType())
+    if (List.class.isAssignableFrom(fieldType)
         && field.isAnnotationPresent(Composition.class)) {
       return createCrudForCompositionField(field, httpRequest, instance);
     }
     if (field.isAnnotationPresent(Composition.class)) {
       return createEditorForCompositionField(field, httpRequest, instance);
     }
-    if (List.class.isAssignableFrom(field.getType())
+    if (List.class.isAssignableFrom(fieldType)
         && !field.isAnnotationPresent(ForeignKey.class)
         && !field.isAnnotationPresent(Composition.class)
         && !isBasic(field.getType())) {
@@ -145,20 +155,23 @@ public class ReflectionFormFieldMapper {
           readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm),
           httpRequest);
     }
-    if (!isBasic(field.getType())
-        && !field.getType().isEnum()
-        && !List.class.isAssignableFrom(field.getType())
-        && !Map.class.isAssignableFrom(field.getType())
-        && !Amount.class.equals(field.getType())
-        && !Status.class.equals(field.getType())
-        && !isBasicArray(field.getType())) {
+    if (!isBasic(fieldType)
+        && !fieldType.isEnum()
+        && !List.class.isAssignableFrom(fieldType)
+        && !Map.class.isAssignableFrom(fieldType)
+        && !Amount.class.equals(fieldType)
+        && !Status.class.equals(fieldType)
+        && !isBasicArray(fieldType)) {
+        if (instance instanceof ModelSupplier modelSupplier) {
+            instance = modelSupplier.model();
+        }
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))
           .content(
               getForm(
                       ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
-                      value != null ? value : field.getType(),
+                      value != null ? value : fieldType,
                       baseUrl,
                       route,
                       consumedRoute,

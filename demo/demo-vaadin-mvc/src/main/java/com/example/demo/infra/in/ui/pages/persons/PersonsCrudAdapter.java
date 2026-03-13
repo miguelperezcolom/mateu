@@ -4,6 +4,7 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.CrudAdapter;
+import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ public class PersonsCrudAdapter implements CrudAdapter<PersonDetailView, PersonE
     }
 
     @Override
-    public PersonCreationForm getCreationForm() {
+    public PersonCreationForm getCreationForm(HttpRequest httpRequest) {
         return new PersonCreationForm("Antonia", 50);
     }
 }

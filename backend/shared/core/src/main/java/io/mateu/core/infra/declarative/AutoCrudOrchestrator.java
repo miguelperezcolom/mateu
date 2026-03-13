@@ -4,9 +4,9 @@ import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.SimpleEntity;
+import io.mateu.uidl.interfaces.Named;
 
-public abstract class SimpleCrudOrchestrator<T extends SimpleEntity>
+public abstract class AutoCrudOrchestrator<T extends Named>
     extends CrudOrchestrator<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String> {
 
   @Override
@@ -19,7 +19,7 @@ public abstract class SimpleCrudOrchestrator<T extends SimpleEntity>
     return (CrudAdapter) simpleAdapter();
   }
 
-  public abstract SimpleCrudAdapter<T> simpleAdapter();
+  public abstract AutoCrudAdapter<T> simpleAdapter();
 
   public Class filtersClass() {
     return entityClass();
@@ -52,7 +52,7 @@ public abstract class SimpleCrudOrchestrator<T extends SimpleEntity>
 
   @Override
   public Object saveNew(HttpRequest httpRequest) {
-    return simpleAdapter().getCreationForm().create(httpRequest);
+    return simpleAdapter().getCreationForm(httpRequest).create(httpRequest);
   }
 
   @Override

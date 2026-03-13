@@ -1,7 +1,7 @@
 package io.mateu.uidl.interfaces;
 
-public interface SimpleEntityView<T extends SimpleEntity>
-    extends SimpleEntity,
+public interface NamedView<T extends Named>
+    extends Named,
         CrudEditorForm<String>,
         CrudCreationForm<String>,
         EditableFieldsProvider,

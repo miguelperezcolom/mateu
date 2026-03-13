@@ -1,8 +1,6 @@
 package io.mateu.uidl.interfaces;
 
-public interface SimpleEntity {
-
-  String id();
+public interface Named extends Identifiable {
 
   String name();
 }

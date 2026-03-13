@@ -1,7 +1,7 @@
 package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.interfaces.CompositionCrudRepository;
-import io.mateu.uidl.interfaces.SimpleEntity;
+import io.mateu.uidl.interfaces.Named;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface Composition {
 
-  Class<? extends SimpleEntity> targetClass();
+  Class<? extends Named> targetClass();
 
   Class<? extends CompositionCrudRepository> repositoryClass();
 

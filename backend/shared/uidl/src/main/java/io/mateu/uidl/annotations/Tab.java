@@ -7,8 +7,10 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Tab {
 
-  String value();
+  String value() default "";
+
+  int order() default 0;
 }

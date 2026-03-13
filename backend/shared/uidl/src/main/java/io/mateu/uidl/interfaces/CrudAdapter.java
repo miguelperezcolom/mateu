@@ -14,5 +14,5 @@ public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
 
   Editor getEditor(IdType id);
 
-  CreationForm getCreationForm();
+  CreationForm getCreationForm(HttpRequest httpRequest);
 }

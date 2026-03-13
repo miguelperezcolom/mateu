@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.pages.countries;
 
-import io.mateu.core.infra.declarative.SimpleCrudAdapter;
-import io.mateu.core.infra.declarative.SimpleCrudOrchestrator;
+import io.mateu.core.infra.declarative.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.uidl.interfaces.CrudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,9 +11,9 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class Countries extends SimpleCrudOrchestrator<Country> {
+public class Countries extends AutoCrudOrchestrator<Country> {
 
-    final SimpleCrudAdapter<Country> adapter = new SimpleCrudAdapter<Country>() {
+    final AutoCrudAdapter<Country> adapter = new AutoCrudAdapter<Country>() {
         @Override
         public CrudRepository<Country> repository() {
             return new CrudRepository<Country>() {
@@ -41,7 +41,7 @@ public class Countries extends SimpleCrudOrchestrator<Country> {
     };
 
     @Override
-    public SimpleCrudAdapter<Country> simpleAdapter() {
+    public AutoCrudAdapter<Country> simpleAdapter() {
         return adapter;
     }
 }

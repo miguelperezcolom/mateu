@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
@@ -13,7 +14,6 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.domain.Humanizer;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
@@ -33,11 +33,13 @@ import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 
@@ -242,7 +244,7 @@ public class ReflectionPageMapper {
         .build();
   }
 
-  private static String getColumnStyle(Field field) {
+  private static String getColumnStyle(AccessibleObject field) {
     if (field.isAnnotationPresent(Style.class)) {
       return field.getAnnotation(Style.class).value();
     }
@@ -422,12 +424,9 @@ public class ReflectionPageMapper {
             .filter(
                 field ->
                     readOnly
-                        || (!readOnly
-                            && !field.isAnnotationPresent(HiddenInEditor.class)
-                            && (!forCreationForm
-                                || !field.isAnnotationPresent(HiddenInCreate.class))))
+                        || !hiddenInEditor(field, forCreationForm))
             .filter(
-                field -> !readOnly || (readOnly && !field.isAnnotationPresent(HiddenInView.class)))
+                field -> !readOnly || !hiddenInView(field))
             .toList()) {
       if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
         if (sectionFields != null) {
@@ -520,7 +519,21 @@ public class ReflectionPageMapper {
         .toList();
   }
 
-  private static Collection<Field> getFormFields(Object instance) {
+    private static boolean hiddenInView(Field field) {
+      return field.isAnnotationPresent(HiddenInView.class);
+    }
+
+    private static boolean hiddenInEditor(Field field, boolean forCreationForm) {
+      if (Component.class.isAssignableFrom(field.getType()) || Callable.class.isAssignableFrom(field.getType())) {
+          return true;
+      }
+      if (forCreationForm) {
+          return field.isAnnotationPresent(HiddenInCreate.class);
+      }
+      return field.isAnnotationPresent(HiddenInEditor.class);
+    }
+
+    private static Collection<Field> getFormFields(Object instance) {
     if (instance instanceof EditableFieldsProvider editableFieldsProvider) {
       return editableFieldsProvider.allEditableFields();
     }
@@ -640,7 +653,7 @@ public class ReflectionPageMapper {
                       .map(
                           pair ->
                               io.mateu.uidl.data.Tab.builder()
-                                  .label(pair.first().value())
+                                  .label(getTabName(pair))
                                   .content(
                                       toFormLayout(
                                           new TabFields(
@@ -661,7 +674,15 @@ public class ReflectionPageMapper {
     return VerticalLayout.builder().content(content).style("width: 100%;").build();
   }
 
-  private static Component toFormLayout(
+    private static String getTabName(Pair<Tab, List<Field>> pair) {
+        var label = pair.first().value();
+        if (label == null || "".equals(label)) {
+            label = toUpperCaseFirst(pair.second().get(0).getName());
+        }
+        return label;
+    }
+
+    private static Component toFormLayout(
       TabFields tab,
       String prefix,
       Object instance,
@@ -878,7 +899,7 @@ public class ReflectionPageMapper {
     if (method.isAnnotationPresent(Label.class)) {
       return method.getAnnotation(Label.class).value();
     }
-    return Humanizer.toUpperCaseFirst(method.getName());
+    return toUpperCaseFirst(method.getName());
   }
 
   private static String getLabel(Field field) {
@@ -914,7 +935,7 @@ public class ReflectionPageMapper {
     }
     if (instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
-      return Humanizer.toUpperCaseFirst(instance.getClass().getSimpleName());
+      return toUpperCaseFirst(instance.getClass().getSimpleName());
     }
     return null;
   }
