@@ -64,7 +64,7 @@ if you enable extensions for the plugin -->
 Other than that, you just need your java classes with Mateu's annotations:
 
 ```kotlin
-  @MateuUI("")
+  @UI("")
   class Hello {
   }
 ```

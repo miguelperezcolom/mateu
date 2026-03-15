@@ -5,7 +5,7 @@ Mateu is a framework for creating awesome **responsive web applications** from *
 In essence, with Mateu
 
 ```java
-@MateuUI("")
+@UI("")
 public class DemoApp {
 
     @MenuOption

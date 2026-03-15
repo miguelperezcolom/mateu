@@ -116,5 +116,5 @@ if (there is a matching route){ //a class annotated with @Route
   }
   return the class matching the route;
 }
-return the class matching the UI; // the class annotated with @MateuUI mathing the base route 
+return the class matching the UI; // the class annotated with @UI mathing the base route 
 ```

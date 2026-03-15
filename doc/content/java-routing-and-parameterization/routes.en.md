@@ -20,7 +20,7 @@ public class Home {
 Please notice that the route is always relative to the UI context path. It would be absolute for a UI defined like this:
 
 ```java
-@MateuUI("")
+@UI("")
 public class MyUI {
 }
 ```

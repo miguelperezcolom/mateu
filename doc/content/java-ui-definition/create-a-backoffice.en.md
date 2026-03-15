@@ -157,7 +157,7 @@ but we choose this implementation as our goal is only to showcase the UI pattern
 The first thing is to define the home and the main menu. This means, an app with some menus for accessing the different CRUDs:
 
 ```java
-@MateuUI("")
+@UI("")
 @Style("width: 100%;")
 @Title("App")
 @FavIcon("/images/favicon.png")

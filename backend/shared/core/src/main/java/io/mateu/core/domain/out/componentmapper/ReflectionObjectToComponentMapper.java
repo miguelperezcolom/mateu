@@ -115,7 +115,7 @@ public class ReflectionObjectToComponentMapper {
   private boolean isPage(Object instance, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
-    // está anotado con @MateuUI o con @Route
+    // está anotado con @UI o con @Route
     // implementa Page
     if (instance instanceof Data) {
       return false;

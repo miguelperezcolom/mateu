@@ -24,7 +24,7 @@ the [Model-View-ViewModel (**MVVM**) pattern](https://martinfowler.com/eaaDev/Pr
 So, the following java code:
 
 ```java
-@MateuUI("")
+@UI("")
 public class Counter {
 
     @Output
@@ -43,7 +43,7 @@ Becomes this in the browser:
 Or, you can say the same in a fluent imperative way:
 
 ```java
-@MateuUI("")
+@UI("")
 public class Counter implements ComponentTreeSupplier {
 
   int count = 0;
@@ -66,7 +66,7 @@ on every api request. It does not survive between api calls. Mateu server side i
 
 In **Mateu** any class can be a server side component. You link that class to the frontend by:
 
-- Annotating the class with **@MateuUI**.
+- Annotating the class with **@UI**.
 - Annotating the class with **@Route**.
 - Fron a class which is already linked to the frontend, return an object as response to some event in the browser.
 

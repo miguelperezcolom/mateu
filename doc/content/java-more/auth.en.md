@@ -23,7 +23,7 @@ If you are using the default frontend from Mateu you just need to use the `@Keyc
 
 ```java
 
-  @MateuUI("")
+  @UI("")
   @KeycloakSecured(url = "https://lemur-11.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
   public class Home {
 

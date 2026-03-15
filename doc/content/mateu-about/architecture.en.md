@@ -72,7 +72,7 @@ inside the browser like in the diagram below:
 
 ## What happens in the server side
 
-Mateu basically generates controllers for your server side classes annotated with **@MateuUI**, which mainly provide 3 things:
+Mateu basically generates controllers for your server side classes annotated with **@UI**, which mainly provide 3 things:
 
 - Serve the static content (index.html and mateu.js) for instantiating the renderer web component in the browser.
 - Implement the API the frontend consumes, connecting it to your server-side objects which define your UI.

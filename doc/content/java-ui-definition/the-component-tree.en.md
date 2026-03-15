@@ -14,7 +14,7 @@ some interfaces or in an imperative way using fluent code. You can obviously com
 So, this is a simple example which illustrates a component tree creation the imperative way:
 
 ```java
-@MateuUI("")
+@UI("")
 public class Counter implements ComponentTreeSupplier {
 
   int count = 0;
@@ -46,7 +46,7 @@ will try to infer it using java reflection.
 So, the code below generate the same component tree as the aforementioned code:
 
 ```java
-@MateuUI("")
+@UI("")
 public class Counter {
 
     @Output

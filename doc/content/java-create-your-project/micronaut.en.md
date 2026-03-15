@@ -95,7 +95,7 @@ micronaut.router.static-resources.assets.paths=classpath\:static
 
 ## Step 4: Create your Mateu UI
 
-Nothing special is required. Just annotate your class with `@MateuUI`:
+Nothing special is required. Just annotate your class with `@UI`:
 
 ```java
 
@@ -103,7 +103,7 @@ package com.example.demo;
 
 import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
 
-@MateuUI("")
+@UI("")
 public class HelloWorld {
 
 }
