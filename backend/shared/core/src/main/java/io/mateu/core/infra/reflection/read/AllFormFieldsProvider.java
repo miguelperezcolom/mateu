@@ -1,8 +1,5 @@
 package io.mateu.core.infra.reflection.read;
 
-import org.slf4j.Logger;
-
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
@@ -10,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.slf4j.Logger;
 
 public final class AllFormFieldsProvider {
 

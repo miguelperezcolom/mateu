@@ -111,7 +111,7 @@ public class ReflectionAppMapper {
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {
     if (route != null && !route.isEmpty() && !appRoute.equals(route)) {
-      return actionable.path() != null && actionable.path().equals(route);
+      return actionable.path() != null && (actionable.path().equals(route) || route.startsWith(actionable.path() + "/"));
     }
     return actionable.selected();
   }

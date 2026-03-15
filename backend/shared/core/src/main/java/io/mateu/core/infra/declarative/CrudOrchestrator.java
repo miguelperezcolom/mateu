@@ -59,7 +59,6 @@ import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -624,25 +623,31 @@ public abstract class CrudOrchestrator<
                 .build());
       }
     }
-    var columns =
-        Stream.concat(
-                getColumns(
-                    rowClass(),
-                    this,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest)
-                    .stream(),
-                Stream.of(
-                    GridColumn.builder()
-                        .label("Action")
-                        .id("_action")
-                        .stereotype(FieldStereotype.button)
-                        .actionId("view")
-                        .text("View")
-                        .build()))
-            .toList();
+    List<GridContent> columns = readOnly()? (List<GridContent>) getColumns(
+            rowClass(),
+            this,
+            "base_url",
+            httpRequest.runActionRq().route(),
+            httpRequest.runActionRq().initiatorComponentId(),
+            httpRequest) :
+            Stream.concat(
+                            getColumns(
+                                    rowClass(),
+                                    this,
+                                    "base_url",
+                                    httpRequest.runActionRq().route(),
+                                    httpRequest.runActionRq().initiatorComponentId(),
+                                    httpRequest)
+                                    .stream(),
+                    Stream.of(
+                        GridColumn.builder()
+                            .label("Action")
+                            .id("_action")
+                            .stereotype(FieldStereotype.button)
+                            .actionId("view")
+                            .text("View")
+                            .build()))
+                .toList();
     return Page.builder()
         .title(title())
         .style(getStyleForList(columns))
@@ -651,8 +656,8 @@ public abstract class CrudOrchestrator<
                 Listing.builder()
                     .listingType(ListingType.table)
                     .title("Xxx")
-                    .searchable(true)
-                    .rowsSelectionEnabled(true)
+                    .searchable(searchable())
+                    .rowsSelectionEnabled(selectionEnabled())
                     .columns(columns)
                     .filters(
                         getFilters(
@@ -667,6 +672,14 @@ public abstract class CrudOrchestrator<
                     .build()))
         .toolbar(toolbar)
         .build();
+  }
+
+  public boolean selectionEnabled() {
+    return true;
+  }
+
+  public boolean searchable() {
+    return true;
   }
 
   private String getStyleForList(List<GridContent> columns) {
@@ -766,7 +779,7 @@ public abstract class CrudOrchestrator<
   }
 
   protected Component viewComponent(View item, HttpRequest httpRequest) {
-    var toolbar = createViewToolbar();
+    var toolbar = createViewToolbar(item);
     return Page.builder()
         .title(getTitle(item))
         .style(getStyleForView())
@@ -799,7 +812,7 @@ public abstract class CrudOrchestrator<
     return "/" + httpRequest.runActionRq().route().split("/")[1];
   }
 
-  private List<UserTrigger> createViewToolbar() {
+  private List<UserTrigger> createViewToolbar(View item) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
@@ -809,11 +822,24 @@ public abstract class CrudOrchestrator<
                   new Button(
                       toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
             });
-    toolbar.add(new Button("List", "cancel_view"));
-    if (!readOnly()) {
+    toolbar.add(new Button("Back to list", "cancel_view"));
+    if (!readOnly(item)) {
       toolbar.add(new Button("Edit", "edit"));
     }
     return toolbar;
+  }
+
+  private boolean readOnly(View item) {
+    if (readOnly()) {
+      return true;
+    }
+    if (viewClass().isAnnotationPresent(ReadOnly.class)) {
+      return true;
+    }
+    if (item instanceof ModelSupplier modelSupplier) {
+      return modelSupplier.model().getClass().isAnnotationPresent(ReadOnly.class);
+    }
+    return false;
   }
 
   private void addButtons(ArrayList<UserTrigger> toolbar) {
@@ -920,18 +946,18 @@ public abstract class CrudOrchestrator<
     return triggers;
   }
 
-    private boolean isViewing(HttpRequest httpRequest) {
-      var selectedItem = httpRequest.getAttribute("selectedItem");
-      if (selectedItem == null) {
-          return false;
-      }
-      if (selectedItem instanceof ModelSupplier modelSupplier) {
-          selectedItem = modelSupplier.model();
-      }
-      return selectedItem.getClass().equals(viewClass());
+  private boolean isViewing(HttpRequest httpRequest) {
+    var selectedItem = httpRequest.getAttribute("selectedItem");
+    if (selectedItem == null) {
+      return false;
     }
+    if (selectedItem instanceof ModelSupplier modelSupplier) {
+      selectedItem = modelSupplier.model();
+    }
+    return selectedItem.getClass().equals(viewClass());
+  }
 
-    @Override
+  @Override
   public List<Action> actions() {
     var actions = new ArrayList<Action>();
     actions.add(

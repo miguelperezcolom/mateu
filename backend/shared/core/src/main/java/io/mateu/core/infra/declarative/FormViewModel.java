@@ -103,6 +103,9 @@ public class FormViewModel
   }
 
   public static List<KPI> createKpis(Object instance) {
+    if (instance instanceof ModelSupplier modelSupplier) {
+      instance = modelSupplier.model();
+    }
     return getAllEditableFields(instance.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
         .map(field -> KPI.builder().title(getLabel(field)).text(getKpiText(field)).build())
@@ -117,9 +120,13 @@ public class FormViewModel
   }
 
   public static List<Badge> createBadges(Object instance) {
+    if (instance instanceof ModelSupplier modelSupplier) {
+      instance = modelSupplier.model();
+    }
+    Object finalInstance = instance;
     return getAllEditableFields(instance.getClass()).stream()
         .filter(field -> Status.class.equals(field.getType()))
-        .map(field -> mapStatusToBadge((Status) getValue(field, instance)))
+        .map(field -> mapStatusToBadge((Status) getValue(field, finalInstance)))
         .filter(Objects::nonNull)
         .toList();
   }
@@ -133,7 +140,7 @@ public class FormViewModel
         .color(
             switch (value.type()) {
               case SUCCESS -> BadgeColor.success;
-              case WARNING -> BadgeColor.contrast;
+              case WARNING -> BadgeColor.warning;
               case DANGER -> BadgeColor.error;
               default -> BadgeColor.normal;
             })

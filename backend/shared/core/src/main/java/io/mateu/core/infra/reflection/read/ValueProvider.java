@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,14 +74,14 @@ public class ValueProvider {
       if (getter != null) v = getter.invoke(o);
       else {
         if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
-          v = f.get(o);
+        v = f.get(o);
       }
     } catch (IllegalAccessException | InvocationTargetException e) {
       log.error("when getting initialValue for field " + f.getName(), e);
     }
-      if (v instanceof Callable callable) {
-          v = callable.call();
-      }
+    if (v instanceof Callable callable) {
+      v = callable.call();
+    }
     return v;
   }
 

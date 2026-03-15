@@ -4,5 +4,6 @@ public enum BadgeColor {
   success,
   error,
   contrast,
-  normal
+  normal,
+  warning
 }

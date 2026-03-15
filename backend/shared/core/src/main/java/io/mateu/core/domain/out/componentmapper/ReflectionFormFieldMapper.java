@@ -115,18 +115,19 @@ public class ReflectionFormFieldMapper {
       boolean readOnly,
       boolean forCreationForm,
       int maxColumns) {
-      if (instance instanceof ModelSupplier modelSupplier) {
-          instance = modelSupplier.model();
-      }
-      var fieldType = field.getType();
-      if (Callable.class.isAssignableFrom(field.getType())) {
-          var value = getValue(field, instance);
-          fieldType = value.getClass();
-      }
+    if (instance instanceof ModelSupplier modelSupplier) {
+      instance = modelSupplier.model();
+    }
+    var fieldType = field.getType();
+    if (Callable.class.isAssignableFrom(field.getType())) {
+      var value = getValue(field, instance);
+      fieldType = value.getClass();
+    }
     if (Component.class.isAssignableFrom(fieldType)) {
+      var component = (Component) getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))
-          .content((Component) getValue(field, instance))
+          .content(component)
           //          .content(
           //              resolveFutureComponents(
           //                  (Component) getValue(field, instance),
@@ -136,10 +137,10 @@ public class ReflectionFormFieldMapper {
           //                  initiatorComponentId,
           //                  httpRequest))
           .colspan(getColspan(field))
+              .style(component.style())
           .build();
     }
-    if (List.class.isAssignableFrom(fieldType)
-        && field.isAnnotationPresent(Composition.class)) {
+    if (List.class.isAssignableFrom(fieldType) && field.isAnnotationPresent(Composition.class)) {
       return createCrudForCompositionField(field, httpRequest, instance);
     }
     if (field.isAnnotationPresent(Composition.class)) {
@@ -162,9 +163,9 @@ public class ReflectionFormFieldMapper {
         && !Amount.class.equals(fieldType)
         && !Status.class.equals(fieldType)
         && !isBasicArray(fieldType)) {
-        if (instance instanceof ModelSupplier modelSupplier) {
-            instance = modelSupplier.model();
-        }
+      if (instance instanceof ModelSupplier modelSupplier) {
+        instance = modelSupplier.model();
+      }
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
           .label(getLabel(field))

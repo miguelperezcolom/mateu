@@ -1,38 +1,29 @@
 package com.example.demo.infra.in.ui.pages.processes;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.core.infra.declarative.AutoListAdapter;
 import io.mateu.core.infra.declarative.AutoListOrchestrator;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.interfaces.CrudRepository;
-import io.mateu.uidl.interfaces.ListAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Style("width: 100%;")
 @ReadOnly
-public class Steps extends AutoListOrchestrator<Step> {
+public class Resources extends AutoListOrchestrator<Resource> {
 
     private String processId;
 
-    public Steps withProcessId(String processId) {
+    public Resources withProcessId(String processId) {
         this.processId = processId;
         return this;
     }
 
-    final AutoListAdapter<Step> adapter;
+    final AutoListAdapter<Resource> adapter;
 
     @Override
-    public AutoListAdapter<Step> simpleListAdapter() {
+    public AutoListAdapter<Resource> simpleListAdapter() {
         return adapter;
     }
 }

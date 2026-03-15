@@ -421,12 +421,8 @@ public class ReflectionPageMapper {
     for (Field field :
         getFormFields(instance).stream()
             .filter(field -> filterField(field, forCreationForm, readOnly))
-            .filter(
-                field ->
-                    readOnly
-                        || !hiddenInEditor(field, forCreationForm))
-            .filter(
-                field -> !readOnly || !hiddenInView(field))
+            .filter(field -> readOnly || !hiddenInEditor(field, forCreationForm))
+            .filter(field -> !readOnly || !hiddenInView(field))
             .toList()) {
       if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
         if (sectionFields != null) {
@@ -519,21 +515,22 @@ public class ReflectionPageMapper {
         .toList();
   }
 
-    private static boolean hiddenInView(Field field) {
-      return field.isAnnotationPresent(HiddenInView.class);
-    }
+  private static boolean hiddenInView(Field field) {
+    return field.isAnnotationPresent(HiddenInView.class);
+  }
 
-    private static boolean hiddenInEditor(Field field, boolean forCreationForm) {
-      if (Component.class.isAssignableFrom(field.getType()) || Callable.class.isAssignableFrom(field.getType())) {
-          return true;
-      }
-      if (forCreationForm) {
-          return field.isAnnotationPresent(HiddenInCreate.class);
-      }
-      return field.isAnnotationPresent(HiddenInEditor.class);
+  private static boolean hiddenInEditor(Field field, boolean forCreationForm) {
+    if (Component.class.isAssignableFrom(field.getType())
+        || Callable.class.isAssignableFrom(field.getType())) {
+      return true;
     }
+    if (forCreationForm) {
+      return field.isAnnotationPresent(HiddenInCreate.class);
+    }
+    return field.isAnnotationPresent(HiddenInEditor.class);
+  }
 
-    private static Collection<Field> getFormFields(Object instance) {
+  private static Collection<Field> getFormFields(Object instance) {
     if (instance instanceof EditableFieldsProvider editableFieldsProvider) {
       return editableFieldsProvider.allEditableFields();
     }
@@ -674,15 +671,15 @@ public class ReflectionPageMapper {
     return VerticalLayout.builder().content(content).style("width: 100%;").build();
   }
 
-    private static String getTabName(Pair<Tab, List<Field>> pair) {
-        var label = pair.first().value();
-        if (label == null || "".equals(label)) {
-            label = toUpperCaseFirst(pair.second().get(0).getName());
-        }
-        return label;
+  private static String getTabName(Pair<Tab, List<Field>> pair) {
+    var label = pair.first().value();
+    if (label == null || "".equals(label)) {
+      label = toUpperCaseFirst(pair.second().get(0).getName());
     }
+    return label;
+  }
 
-    private static Component toFormLayout(
+  private static Component toFormLayout(
       TabFields tab,
       String prefix,
       Object instance,
@@ -922,6 +919,15 @@ public class ReflectionPageMapper {
     }
     if (instance.getClass().isAnnotationPresent(Title.class)) {
       return instance.getClass().getAnnotation(Title.class).value();
+    }
+    if (instance instanceof NamedView namedView) {
+      return namedView.name();
+    }
+    if (instance instanceof Named named) {
+      return named.name();
+    }
+    if (instance != null) {
+      return instance.toString();
     }
     return null;
   }
