@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 
@@ -68,6 +69,12 @@ public final class JsonSerializer {
   public static <T> T pojoFromJson(String json, Class<T> c) {
     if (json == null || json.isEmpty()) json = "{}";
     return mapper.readValue(json, c);
+  }
+
+  @SneakyThrows
+  public static <T> List<T> listFromJson(String json, Class<T> c) {
+    if (json == null || json.isEmpty()) json = "[]";
+    return mapper.readerForListOf(c).readValue(json);
   }
 
   @SneakyThrows

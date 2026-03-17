@@ -3,18 +3,11 @@ package io.mateu.core.infra.declarative;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.CrudAdapter;
-import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
-import io.mateu.uidl.interfaces.ListAdapter;
-import io.mateu.uidl.interfaces.Named;
-
 import java.util.List;
 
-import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
-
-public abstract class AutoListOrchestrator<T extends Identifiable>
-    extends AutoCrudOrchestrator<T> {
+public abstract class AutoListOrchestrator<T extends Identifiable> extends AutoCrudOrchestrator<T> {
 
   @Override
   public CrudAdapter<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String> adapter() {

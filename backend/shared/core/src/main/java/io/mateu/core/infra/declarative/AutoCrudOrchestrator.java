@@ -2,11 +2,9 @@ package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 
-import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
-import io.mateu.uidl.interfaces.Named;
 
 public abstract class AutoCrudOrchestrator<T extends Identifiable>
     extends CrudOrchestrator<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String> {
@@ -61,5 +59,4 @@ public abstract class AutoCrudOrchestrator<T extends Identifiable>
   public String getIdFieldForRow() {
     return getIdField(entityClass());
   }
-
 }

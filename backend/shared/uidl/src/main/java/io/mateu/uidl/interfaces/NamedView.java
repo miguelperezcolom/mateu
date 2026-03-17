@@ -8,5 +8,4 @@ public interface NamedView<T extends Identifiable>
         StateSupplier {
 
   String name();
-
 }

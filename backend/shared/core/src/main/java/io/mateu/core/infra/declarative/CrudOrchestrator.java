@@ -109,7 +109,7 @@ public abstract class CrudOrchestrator<
         data.putAll(toMap(selectedItem));
       }
       if (httpRequest.getAttribute("new") != null) {
-        getAllFields(viewClass()).stream()
+        getAllFields(entityClass()).stream()
             .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
             .forEach(
                 field -> {
@@ -163,7 +163,7 @@ public abstract class CrudOrchestrator<
   }
 
   protected void addRowNumberForEntityClass(Map<String, Object> data) {
-    addRowNumber(viewClass(), data);
+    addRowNumber(entityClass(), data);
   }
 
   public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
@@ -220,7 +220,7 @@ public abstract class CrudOrchestrator<
         var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       } else {
-        var fkAnnotation = getFieldByName(viewClass(), fieldName).getAnnotation(ForeignKey.class);
+        var fkAnnotation = getFieldByName(entityClass(), fieldName).getAnnotation(ForeignKey.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       }
 
@@ -320,7 +320,7 @@ public abstract class CrudOrchestrator<
     }
     if (!"".equals(actionId)) {
       log.info("state is {}", _state);
-      for (Field field : getAllFields(viewClass())) {
+      for (Field field : getAllFields(entityClass())) {
         if (List.class.isAssignableFrom(field.getType())
             && !field.isAnnotationPresent(ForeignKey.class)
             && !field.isAnnotationPresent(Composition.class)
@@ -623,22 +623,25 @@ public abstract class CrudOrchestrator<
                 .build());
       }
     }
-    List<GridContent> columns = readOnly()? (List<GridContent>) getColumns(
-            rowClass(),
-            this,
-            "base_url",
-            httpRequest.runActionRq().route(),
-            httpRequest.runActionRq().initiatorComponentId(),
-            httpRequest) :
-            Stream.concat(
-                            getColumns(
-                                    rowClass(),
-                                    this,
-                                    "base_url",
-                                    httpRequest.runActionRq().route(),
-                                    httpRequest.runActionRq().initiatorComponentId(),
-                                    httpRequest)
-                                    .stream(),
+    List<GridContent> columns =
+        readOnly()
+            ? (List<GridContent>)
+                getColumns(
+                    rowClass(),
+                    this,
+                    "base_url",
+                    httpRequest.runActionRq().route(),
+                    httpRequest.runActionRq().initiatorComponentId(),
+                    httpRequest)
+            : Stream.concat(
+                    getColumns(
+                        rowClass(),
+                        this,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest)
+                        .stream(),
                     Stream.of(
                         GridColumn.builder()
                             .label("Action")

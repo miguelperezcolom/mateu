@@ -35,7 +35,6 @@ class AutoNamedView<T extends Identifiable> implements NamedView<T>, ModelSuppli
     return getAllEditableFields(entityClass);
   }
 
-
   @Override
   public String create(HttpRequest httpRequest) {
     T entity = (T) toEntity(httpRequest);

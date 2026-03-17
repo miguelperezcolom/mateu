@@ -137,7 +137,7 @@ public class ReflectionFormFieldMapper {
           //                  initiatorComponentId,
           //                  httpRequest))
           .colspan(getColspan(field))
-              .style(component.style())
+          .style(component.style())
           .build();
     }
     if (List.class.isAssignableFrom(fieldType) && field.isAnnotationPresent(Composition.class)) {
