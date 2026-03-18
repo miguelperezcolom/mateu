@@ -624,7 +624,7 @@ public abstract class CrudOrchestrator<
       }
     }
     List<GridContent> columns =
-        readOnly()
+        getClass().isAnnotationPresent(ReadOnly.class)
             ? (List<GridContent>)
                 getColumns(
                     rowClass(),
@@ -949,7 +949,7 @@ public abstract class CrudOrchestrator<
     return triggers;
   }
 
-  private boolean isViewing(HttpRequest httpRequest) {
+  public boolean isViewing(HttpRequest httpRequest) {
     var selectedItem = httpRequest.getAttribute("selectedItem");
     if (selectedItem == null) {
       return false;
@@ -1020,7 +1020,7 @@ public abstract class CrudOrchestrator<
   public List<ValidationDto> validationDtos() {
     if ("edit".equals(_state) || "create".equals(_state)) {
       List<ValidationDto> fieldLevelValidations = new ArrayList<>();
-      getAllFields(viewClass()).stream()
+      getAllFields(entityClass()).stream()
           .flatMap(field -> getValidations(field).stream())
           .filter(Objects::nonNull)
           .forEach(fieldLevelValidations::add);

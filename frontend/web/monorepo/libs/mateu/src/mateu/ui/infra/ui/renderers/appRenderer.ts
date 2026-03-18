@@ -116,19 +116,34 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.variant == AppVariant.TABS?html`
+                <!--
+                
+                box-shadow: inset 0 -1px 0 0 var(--lumo-contrast-10pct);
+                
+                -->
                 
                 <div>
                     <div>
-                        <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
-                                     class="${container.component?.cssClasses}">
-                            ${metadata.menu.map(option => {
-                                return html`
+                        <vaadin-horizontal-layout style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" theme="spacing">
+                            <vaadin-horizontal-layout style="align-items: center;">
+                                ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
+                                ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
+                            </vaadin-horizontal-layout>
+                            <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
+                                         style="box-shadow: unset;"
+                                         class="${container.component?.cssClasses}">
+                                ${metadata.menu.map(option => {
+                                    return html`
                                 <vaadin-tab 
                                         @click="${() => container.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
                                 >${option.label}</vaadin-tab>
                             `
-                            })}
-                        </vaadin-tabs>
+                                })}
+                            </vaadin-tabs>
+                            <vaadin-horizontal-layout>
+                                <slot name="widgets"></slot>
+                            </vaadin-horizontal-layout>
+                        </vaadin-horizontal-layout>
                     </div>
                     <div class="app-content">
                         <vaadin-scroller>

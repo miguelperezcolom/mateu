@@ -22,5 +22,6 @@ public record Page(
     @Singular("badgeItem") List<Badge> badges,
     @Singular("kpiItem") List<KPI> kpis,
     String style,
-    String cssClasses)
-    implements Component {}
+    String cssClasses,
+    @Singular("actionItem") List<Action> actions)
+    implements Component, ActionSupplier {}

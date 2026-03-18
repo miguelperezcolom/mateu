@@ -120,18 +120,56 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
+                console.log('triggering onload', trigger)
                 if (!trigger.condition || eval(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
-                    (trigger as OnLoadTrigger).triggered = true
+                    const onloadTrigger = trigger as OnLoadTrigger
+                    onloadTrigger.triggered = true
+                    var times = onloadTrigger.times - 1;
+                    if (onloadTrigger.timeoutMillis > 0) {
+                        this.scheduleOnload(onloadTrigger, times, this.id);
+                    } else {
+                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: onloadTrigger.actionId
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                }
+            })
+
+    }
+
+    scheduleOnload = (onloadTrigger: OnLoadTrigger, times: number, componentId: string) => {
+        if (componentId != this.component?.id) {
+            return
+        }
+        setTimeout(() => {
+            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: onloadTrigger.actionId
+                },
+                bubbles: true,
+                composed: true
+            }))
+            if (onloadTrigger.times != 0) {
+                if (onloadTrigger.times < 0 || times > 0) {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
-                            actionId: trigger.actionId
+                            actionId: onloadTrigger.actionId
                         },
                         bubbles: true,
                         composed: true
                     }))
+                    if (onloadTrigger.times != 0) {
+                        if (onloadTrigger.times < 0 || times > 0) {
+                            this.scheduleOnload(onloadTrigger, times - 1, componentId);
+                        }
+                    }
                 }
-            })
-
+            }
+        }, onloadTrigger.timeoutMillis);
     }
 
     customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
