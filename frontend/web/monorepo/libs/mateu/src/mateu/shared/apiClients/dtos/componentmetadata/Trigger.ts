@@ -8,5 +8,6 @@ export default interface Trigger {
     eventName: string
     propertyName: string
     calledActionId: string
+    timeoutMillis: number
 
 }

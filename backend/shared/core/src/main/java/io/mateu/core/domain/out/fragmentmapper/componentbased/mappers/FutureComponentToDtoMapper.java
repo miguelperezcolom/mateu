@@ -282,7 +282,8 @@ public class FutureComponentToDtoMapper {
                         new OnSuccessTriggerDto(
                             onSuccessTrigger.actionId(),
                             onSuccessTrigger.calledActionId(),
-                            onSuccessTrigger.condition());
+                            onSuccessTrigger.condition(),
+                            onSuccessTrigger.timeoutMillis());
                     case OnErrorTrigger onErrorTrigger ->
                         new OnErrorTriggerDto(
                             onErrorTrigger.actionId(),

@@ -456,6 +456,11 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendSucceeded = (e: Event) => {
         const customEvent = e as CustomEvent
+        // @ts-ignore
+        const state = this.state
+        // @ts-ignore
+        const data = this.data
+        console.log('backend succeeded', state, data)
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)
@@ -464,13 +469,25 @@ export class MateuComponent extends ComponentElement {
                     if (!trigger.condition || eval(trigger.condition)) {
                         e.preventDefault()
                         e.stopPropagation()
-                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: trigger.actionId
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
+                        if (trigger.timeoutMillis > 0) {
+                            setTimeout(() => {
+                                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                                    detail: {
+                                        actionId: trigger.actionId
+                                    },
+                                    bubbles: true,
+                                    composed: true
+                                }))
+                            }, trigger.timeoutMillis)
+                        } else {
+                            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: trigger.actionId
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }
                     }
                 })
         }

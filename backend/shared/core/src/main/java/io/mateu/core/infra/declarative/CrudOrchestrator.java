@@ -275,10 +275,7 @@ public abstract class CrudOrchestrator<
       _show_detail = new HashMap<>();
       _editing = new HashMap<>();
       var idField = getIdFieldForRow();
-      var id =
-          savedId != null
-              ? "" + savedId
-              : (String) httpRequest.runActionRq().parameters().get(idField);
+      var id = savedId != null ? "" + savedId : getIdForView(httpRequest, idField);
       var view = view(toId(id), httpRequest);
       if (childCrud()) {
         return List.of(view);
@@ -564,6 +561,18 @@ public abstract class CrudOrchestrator<
       }
       return List.of(list, pushStateToHistory(getCrudRoute(httpRequest)));
     }
+  }
+
+  private String getIdForView(HttpRequest httpRequest, String idField) {
+    if (httpRequest.runActionRq().parameters() != null
+        && httpRequest.runActionRq().parameters().get(idField) != null) {
+      return (String) httpRequest.runActionRq().parameters().get(idField);
+    }
+    if (httpRequest.runActionRq().componentState().get("id") != null) {
+      return (String) httpRequest.runActionRq().componentState().get("id");
+    }
+    var path = httpRequest.path().replaceAll("/view", "");
+    return path.substring(path.lastIndexOf("/") + 1);
   }
 
   public String getIdFieldForRow() {

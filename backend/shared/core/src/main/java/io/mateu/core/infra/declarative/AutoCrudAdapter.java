@@ -76,7 +76,18 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
 
   @Override
   public ListingData<T> search(String searchText, T t, Pageable pageable) {
-    return ListingData.of(repository().findAll());
+    return ListingData.of(
+        repository().findAll().stream()
+            .filter(
+                item ->
+                    searchText == null
+                        || searchText.isEmpty()
+                        || (item instanceof Searchable searchable
+                                ? searchable.searchableText()
+                                : item.toString())
+                            .toLowerCase()
+                            .contains(searchText.toLowerCase()))
+            .toList());
   }
 
   @Override

@@ -3,5 +3,6 @@ package io.mateu.dtos;
 import lombok.Builder;
 
 @Builder
-public record OnSuccessTriggerDto(String actionId, String calledActionId, String condition)
+public record OnSuccessTriggerDto(
+    String actionId, String calledActionId, String condition, int timeoutMillis)
     implements TriggerDto {}
