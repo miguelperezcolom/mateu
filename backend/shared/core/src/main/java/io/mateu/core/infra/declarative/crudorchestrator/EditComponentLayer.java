@@ -31,7 +31,7 @@ public abstract class EditComponentLayer<
     //    }
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", editor);
-    _state = "edit";
+    setStateTo("edit");
     return wrap(
         Page.builder()
             .title(getTitle(editor))

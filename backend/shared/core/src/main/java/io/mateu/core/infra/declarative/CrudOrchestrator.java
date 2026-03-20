@@ -36,6 +36,16 @@ public abstract class CrudOrchestrator<
   Map<String, Object> _show_detail = new HashMap<>();
   Map<String, Object> _editing = new HashMap<>();
 
+  @Override
+  public String state() {
+    return _state;
+  }
+
+  @Override
+  public void setStateTo(String state) {
+    _state = state;
+  }
+
   public boolean oneToOne() {
     return false;
   }

@@ -25,7 +25,7 @@ public abstract class RuleSupplierLayer<
 
   @Override
   public List<Rule> rules() {
-    if ("edit".equals(_state) || "create".equals(_state)) {
+    if ("edit".equals(state()) || "create".equals(state())) {
       List<Rule> rules = new ArrayList<>();
       getAllFields(viewClass()).stream()
           .filter(field -> field.isAnnotationPresent(Disabled.class))

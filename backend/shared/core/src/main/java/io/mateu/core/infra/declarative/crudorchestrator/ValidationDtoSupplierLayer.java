@@ -26,7 +26,7 @@ public abstract class ValidationDtoSupplierLayer<
 
   @Override
   public List<ValidationDto> validationDtos() {
-    if ("edit".equals(_state) || "create".equals(_state)) {
+    if ("edit".equals(state()) || "create".equals(state())) {
       List<ValidationDto> fieldLevelValidations = new ArrayList<>();
       getAllFields(entityClass()).stream()
           .flatMap(field -> getValidations(field).stream())

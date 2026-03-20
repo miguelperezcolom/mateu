@@ -40,7 +40,7 @@ public abstract class ViewComponentLayer<
     //    }
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", view);
-    _state = "view";
+    setStateTo("view");
     return wrap(
         viewComponent(view, httpRequest),
         this,
@@ -74,7 +74,7 @@ public abstract class ViewComponentLayer<
         .build();
   }
 
-  private String getStyleForView() {
+  public String getStyleForView() {
     if (viewClass().isAnnotationPresent(Style.class)) {
       return viewClass().getAnnotation(Style.class).value();
     }
@@ -111,7 +111,7 @@ public abstract class ViewComponentLayer<
     return false;
   }
 
-  private void addButtons(ArrayList<UserTrigger> toolbar) {
+  public void addButtons(ArrayList<UserTrigger> toolbar) {
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
         .forEach(

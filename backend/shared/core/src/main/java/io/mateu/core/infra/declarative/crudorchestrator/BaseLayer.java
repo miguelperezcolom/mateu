@@ -77,4 +77,8 @@ public abstract class BaseLayer<
   public boolean childCrud() {
     return false;
   }
+
+  public abstract String state();
+
+  public abstract void setStateTo(String state);
 }

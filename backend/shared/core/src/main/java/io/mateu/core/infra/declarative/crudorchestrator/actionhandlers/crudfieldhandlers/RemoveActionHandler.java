@@ -19,7 +19,6 @@ public class RemoveActionHandler {
       Map<String, Object> _editing,
       Field field,
       String fieldId) {
-    String fieldId = actionId.substring(0, actionId.indexOf('_'));
     _show_detail.put(fieldId, false);
     var selectedLines =
         (List) httpRequest.runActionRq().componentState().get(fieldId + "_selected_items");

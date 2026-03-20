@@ -25,7 +25,7 @@ public abstract class ListComponentLayer<
     extends CreateComponentLayer<View, Editor, CreationForm, Filters, Row, IdType> {
 
   public Component list(HttpRequest httpRequest) {
-    _state = "list";
+    setStateTo("list");
     var toolbar = new ArrayList<UserTrigger>();
     addButtons(toolbar);
     if (!readOnly()) {

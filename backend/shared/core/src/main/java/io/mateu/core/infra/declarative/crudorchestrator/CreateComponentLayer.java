@@ -24,7 +24,7 @@ public abstract class CreateComponentLayer<
   @Override
   public Object create(HttpRequest httpRequest) {
     httpRequest.setAttribute("new", true);
-    _state = "create";
+    setStateTo("create");
     var view = adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", view);
     return wrap(

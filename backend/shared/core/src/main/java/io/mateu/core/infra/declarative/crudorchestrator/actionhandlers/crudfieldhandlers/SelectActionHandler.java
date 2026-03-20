@@ -17,7 +17,6 @@ public class SelectActionHandler {
       Map<String, Object> _editing,
       Field field,
       String fieldId) {
-    String fieldId = actionId.substring(0, actionId.indexOf('_'));
     _show_detail.put(fieldId, true);
     _editing.put(fieldId, true);
 
