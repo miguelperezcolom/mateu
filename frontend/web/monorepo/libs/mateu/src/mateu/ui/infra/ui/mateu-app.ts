@@ -186,7 +186,7 @@ export class MateuApp extends ComponentElement {
                 return menu.indexOf(selectedOption)
             }
         }
-        return undefined
+        return NaN
     }
 
     renderOptionOnLeftMenu = (option: MenuOption): any => {

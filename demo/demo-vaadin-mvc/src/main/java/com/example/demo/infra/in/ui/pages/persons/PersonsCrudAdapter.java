@@ -30,7 +30,7 @@ public class PersonsCrudAdapter implements CrudAdapter<PersonDetailView, PersonE
 
     @Override
     public PersonEditorView getEditor(String id) {
-        return new PersonEditorView(id, "Mateu", 17);
+        return new PersonEditorView(id, "Mateu", 17, List.of());
     }
 
     @Override
