@@ -93,6 +93,6 @@ public abstract class StateSupplierLayer<
   }
 
   public void addRowNumberForEntityClass(Map<String, Object> data) {
-    addRowNumber(entityClass(), data);
+    addRowNumber(viewModelClass(), data);
   }
 }

@@ -3,7 +3,9 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.core.infra.declarative.SimpleView;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -17,6 +19,31 @@ public abstract class BaseLayer<
     Filters,
     Row,
     IdType> {
+
+  public Class<?> viewModelClass() {
+    if ("edit".equals(state())) {
+      var type = editorClass();
+      if (AutoNamedView.class.isAssignableFrom(type) || SimpleView.class.isAssignableFrom(type)) {
+        return entityClass();
+      }
+      return type;
+    }
+    if ("create".equals(state())) {
+      var type = creationFormClass();
+      if (AutoNamedView.class.isAssignableFrom(type) || SimpleView.class.isAssignableFrom(type)) {
+        return entityClass();
+      }
+      return type;
+    }
+    if ("view".equals(state())) {
+      var type = viewClass();
+      if (AutoNamedView.class.isAssignableFrom(type)) {
+        return entityClass();
+      }
+      return type;
+    }
+    return entityClass();
+  }
 
   public Class<?> entityClass() {
     return getGenericClass(this.getClass(), CrudOrchestrator.class, "EntityType");

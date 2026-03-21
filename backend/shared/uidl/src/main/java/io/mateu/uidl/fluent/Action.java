@@ -15,4 +15,5 @@ public record Action(
     CustomEvent customEvent,
     String href,
     String js,
-    boolean sse) {}
+    boolean sse,
+    String fieldsToValidate) {}

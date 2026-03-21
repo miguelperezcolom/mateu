@@ -106,10 +106,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
 
     triggerOnLoad = () => {
-        // @ts-ignore
         const state = this.state
-        // @ts-ignore
         const data = this.data
+        void state
+        void data
         const serverSideComponent = this.component as ServerSideComponent
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
@@ -120,7 +120,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
-                console.log('triggering onload', trigger, state, data)
                 if (!trigger.condition || eval(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
                     const onloadTrigger = trigger as OnLoadTrigger
                     onloadTrigger.triggered = true

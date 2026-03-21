@@ -31,7 +31,7 @@ public class FieldCrudActionHandler {
       String _state,
       Map<String, Object> _show_detail,
       Map<String, Object> _editing) {
-    for (Field field : getAllFields(crudOrchestrator.entityClass())) {
+    for (Field field : getAllFields(crudOrchestrator.viewModelClass())) {
       if (List.class.isAssignableFrom(field.getType())
           && !field.isAnnotationPresent(ForeignKey.class)
           && !field.isAnnotationPresent(Composition.class)

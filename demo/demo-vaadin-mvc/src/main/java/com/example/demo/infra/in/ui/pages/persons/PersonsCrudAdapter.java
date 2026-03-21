@@ -35,6 +35,6 @@ public class PersonsCrudAdapter implements CrudAdapter<PersonDetailView, PersonE
 
     @Override
     public PersonCreationForm getCreationForm(HttpRequest httpRequest) {
-        return new PersonCreationForm("Antonia", 50);
+        return new PersonCreationForm("", 50, List.of());
     }
 }

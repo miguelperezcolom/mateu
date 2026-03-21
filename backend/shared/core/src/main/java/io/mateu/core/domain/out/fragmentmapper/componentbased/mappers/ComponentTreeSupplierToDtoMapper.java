@@ -115,6 +115,10 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   public static List<ValidationDto> getValidations(Field field) {
+    return getValidationsWithFieldPrefix("", field);
+  }
+
+  public static List<ValidationDto> getValidationsWithFieldPrefix(String prefix, Field field) {
     List<ValidationDto> validations = new ArrayList<>();
     if (field.isAnnotationPresent(Size.class)) {
       Arrays.stream(field.getAnnotationsByType(Size.class))
@@ -123,13 +127,15 @@ public class ComponentTreeSupplierToDtoMapper {
                 if (annotation.min() > 0) {
                   validations.add(
                       ValidationDto.builder()
-                          .fieldId(field.getName())
+                          .fieldId(prefix + field.getName())
                           .condition(
-                              "state."
+                              "state['"
+                                  + prefix
                                   + field.getName()
-                                  + " && state."
+                                  + "'] && state['"
+                                  + prefix
                                   + field.getName()
-                                  + ".length < "
+                                  + "'].length < "
                                   + annotation.min())
                           .message(annotation.message())
                           .build());
@@ -137,13 +143,15 @@ public class ComponentTreeSupplierToDtoMapper {
                 if (annotation.max() < Integer.MAX_VALUE) {
                   validations.add(
                       ValidationDto.builder()
-                          .fieldId(field.getName())
+                          .fieldId(prefix + field.getName())
                           .condition(
-                              "state."
+                              "state['"
+                                  + prefix
                                   + field.getName()
-                                  + " && state."
+                                  + "'] && state['"
+                                  + prefix
                                   + field.getName()
-                                  + ".length > "
+                                  + "'].length > "
                                   + annotation.max())
                           .message(annotation.message())
                           .build());
@@ -153,39 +161,48 @@ public class ComponentTreeSupplierToDtoMapper {
     if (field.isAnnotationPresent(Min.class)) {
       validations.add(
           ValidationDto.builder()
-              .fieldId(field.getName())
+              .fieldId(prefix + field.getName())
               .condition(
-                  "state." + field.getName() + " < " + field.getAnnotation(Min.class).value())
+                  "state['"
+                      + prefix
+                      + field.getName()
+                      + "'] < "
+                      + field.getAnnotation(Min.class).value())
               .message(field.getAnnotation(Min.class).message())
               .build());
     }
     if (field.isAnnotationPresent(Max.class)) {
       validations.add(
           ValidationDto.builder()
-              .fieldId(field.getName())
+              .fieldId(prefix + field.getName())
               .condition(
-                  "state." + field.getName() + " > " + field.getAnnotation(Max.class).value())
+                  "state['"
+                      + prefix
+                      + field.getName()
+                      + "'] > "
+                      + field.getAnnotation(Max.class).value())
               .message(field.getAnnotation(Max.class).message())
               .build());
     }
     if (field.isAnnotationPresent(Pattern.class)) {
       validations.add(
           ValidationDto.builder()
-              .fieldId(field.getName())
+              .fieldId(prefix + field.getName())
               .condition(
                   "/"
                       + field.getAnnotation(Pattern.class).regexp()
-                      + "/.test(state."
+                      + "/.test(state['"
+                      + prefix
                       + field.getName()
-                      + ")")
+                      + "'])")
               .message(field.getAnnotation(Pattern.class).message())
               .build());
     }
     if (field.isAnnotationPresent(NotEmpty.class)) {
       validations.add(
           ValidationDto.builder()
-              .fieldId(field.getName())
-              .condition("state." + field.getName())
+              .fieldId(prefix + field.getName())
+              .condition("state['" + prefix + field.getName() + "']")
               .message(
                   field
                       .getAnnotation(NotEmpty.class)
@@ -197,8 +214,8 @@ public class ComponentTreeSupplierToDtoMapper {
     if (field.isAnnotationPresent(NotNull.class)) {
       validations.add(
           ValidationDto.builder()
-              .fieldId(field.getName())
-              .condition("state." + field.getName())
+              .fieldId(prefix + field.getName())
+              .condition("state['" + prefix + field.getName() + "']")
               .message(
                   field
                       .getAnnotation(NotNull.class)
@@ -390,6 +407,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return ActionDto.builder()
         .id(annotation.id())
         .validationRequired(annotation.validationRequired())
+        .fieldsToValidate(annotation.fieldsToValidate())
         .confirmationRequired(annotation.confirmationRequired())
         .rowsSelectedRequired(annotation.rowsSelectedRequired())
         .confirmationTexts(
@@ -433,6 +451,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .id(action.id())
         .confirmationRequired(action.confirmationRequired())
         .validationRequired(action.validationRequired())
+        .fieldsToValidate(action.fieldsToValidate())
         .background(action.background())
         .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
         .rowsSelectedRequired(action.rowsSelectedRequired())

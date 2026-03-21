@@ -20,5 +20,5 @@ export default interface Action {
     background: boolean
     js: string
     sse: boolean
-
+    fieldsToValidate: string
 }

@@ -67,6 +67,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { RuleAction } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import { RuleFieldAttribute } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
+import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
@@ -91,7 +92,7 @@ export class MateuComponent extends ComponentElement {
 
     applyRules = () => {
         const rules = (this.component as ServerSideComponent).rules
-        if (rules) {
+        if (rules && rules.length > 0) {
             // @ts-ignore
             const state = this.state
             // @ts-ignore
@@ -174,21 +175,30 @@ export class MateuComponent extends ComponentElement {
             if (dataUpdated) {
                 this.data = newData
             }
+            this.checkValidations()
         }
     }
 
-    checkValidations = () => {
+    skipValidation = (fieldsToValidate: string[] | undefined, validation: Validation) => {
+        return (fieldsToValidate && validation.fieldId && !fieldsToValidate.includes(validation.fieldId))
+            || (!fieldsToValidate && validation.fieldId && validation.fieldId.includes('-'))
+    }
+
+    checkValidations = (fieldsToValidateString?: string) => {
+        const fieldsToValidate = fieldsToValidateString?fieldsToValidateString.split(','):undefined
         const validatons = (this.component as ServerSideComponent).validations
         let valid = true
         let dataUpdated = false
-        // @ts-ignore
         const data = this.data??{}
-        // @ts-ignore
         const state = this.state??{}
+        void state
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
+                if (this.skipValidation(fieldsToValidate, validation)) {
+                    continue
+                }
                 const fieldNames = (validation.fieldId??'_component').split(',')
                 for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
                     const fieldName = fieldNames[fieldIndex]
@@ -197,10 +207,14 @@ export class MateuComponent extends ComponentElement {
             }
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
+                if (this.skipValidation(fieldsToValidate, validation)) {
+                    continue
+                }
                 try {
                     const result = (validation.condition && validation.condition.includes('${'))?eval('`' + validation.condition + '`'):eval('' + validation.condition + '')
                     const failed = validation.condition && !result
                     if (failed) {
+                        console.log('validation failed', validation, validation.fieldId, state, data)
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')
                         for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
@@ -227,6 +241,10 @@ export class MateuComponent extends ComponentElement {
             }
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
+                if (this.skipValidation(fieldsToValidate, validation)) {
+                    continue
+                }
+
                 const fieldNames = (validation.fieldId??'_component').split(',')
                 for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
                     const fieldName = fieldNames[fieldIndex]
@@ -251,7 +269,6 @@ export class MateuComponent extends ComponentElement {
 
     onChange = () => {
         this.applyRules()
-        this.checkValidations()
     }
 
 
@@ -333,7 +350,7 @@ export class MateuComponent extends ComponentElement {
             }
 
             if (action && action.validationRequired) {
-                this.checkValidations()
+                this.checkValidations(action.fieldsToValidate)
                 if (!this.data._valid) {
                     this.notify('There are validation errors')
                     return
@@ -456,11 +473,10 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendSucceeded = (e: Event) => {
         const customEvent = e as CustomEvent
-        // @ts-ignore
         const state = this.state
-        // @ts-ignore
         const data = this.data
-        console.log('backend succeeded', state, data)
+        void data
+        void state
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)

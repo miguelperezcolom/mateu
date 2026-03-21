@@ -386,6 +386,7 @@ public class FutureComponentToDtoMapper {
     return ActionDto.builder()
         .id(annotation.id())
         .validationRequired(annotation.validationRequired())
+        .fieldsToValidate(annotation.fieldsToValidate())
         .confirmationRequired(annotation.confirmationRequired())
         .rowsSelectedRequired(annotation.rowsSelectedRequired())
         .confirmationTexts(
@@ -429,6 +430,7 @@ public class FutureComponentToDtoMapper {
         .id(action.id())
         .confirmationRequired(action.confirmationRequired())
         .validationRequired(action.validationRequired())
+        .fieldsToValidate(action.fieldsToValidate())
         .background(action.background())
         .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
         .rowsSelectedRequired(action.rowsSelectedRequired())

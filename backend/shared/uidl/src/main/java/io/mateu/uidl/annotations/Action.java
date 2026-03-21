@@ -39,4 +39,6 @@ public @interface Action {
   String js();
 
   boolean sse();
+
+  String fieldsToValidate();
 }

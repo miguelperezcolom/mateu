@@ -30,4 +30,5 @@ public record ActionDto(
     String href,
     String js,
     boolean background,
-    boolean sse) {}
+    boolean sse,
+    String fieldsToValidate) {}
