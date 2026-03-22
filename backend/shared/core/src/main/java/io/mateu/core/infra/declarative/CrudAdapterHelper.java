@@ -1,14 +1,14 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.infra.JsonSerializer.pojoFromJson;
-import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.uidl.annotations.PrimaryKey;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -20,13 +20,15 @@ public class CrudAdapterHelper {
   public static <T> T toView(HttpRequest httpRequest, Class<T> viewClass) {
     var map = new HashMap<>(httpRequest.runActionRq().componentState());
     reduce("", map, viewClass);
-    return pojoFromJson(toJson(map), viewClass);
+    return MateuBeanProvider.getBean(MateuInstanceFactory.class)
+        .newInstance(viewClass, map, httpRequest);
   }
 
   public static <T> T toEntity(HttpRequest httpRequest, Class<?> viewClass, Class<T> entityClass) {
     var map = new HashMap<>(httpRequest.runActionRq().componentState());
     reduce("", map, viewClass);
-    return pojoFromJson(toJson(map), entityClass);
+    return MateuBeanProvider.getBean(MateuInstanceFactory.class)
+        .newInstance(entityClass, map, httpRequest);
   }
 
   public static void reduce(String prefix, HashMap<String, Object> map, Class<?> type) {

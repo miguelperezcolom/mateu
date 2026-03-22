@@ -191,7 +191,7 @@ export class MateuComponent extends ComponentElement {
         let dataUpdated = false
         const data = this.data??{}
         const state = this.state??{}
-        void state
+        console.log(state, data)
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
@@ -475,8 +475,7 @@ export class MateuComponent extends ComponentElement {
         const customEvent = e as CustomEvent
         const state = this.state
         const data = this.data
-        void data
-        void state
+        console.log(state, data)
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)

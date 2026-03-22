@@ -7,6 +7,7 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.core.infra.declarative.SimpleView;
 import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -98,6 +99,9 @@ public abstract class BaseLayer<
   }
 
   public String title() {
+    if (getClass().isAnnotationPresent(Title.class)) {
+      return getClass().getAnnotation(Title.class).value();
+    }
     return toUpperCaseFirst(getClass().getSimpleName());
   }
 

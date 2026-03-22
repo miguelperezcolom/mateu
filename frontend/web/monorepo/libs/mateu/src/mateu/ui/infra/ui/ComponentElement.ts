@@ -108,8 +108,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     triggerOnLoad = () => {
         const state = this.state
         const data = this.data
-        void state
-        void data
+        console.log(state, data)
         const serverSideComponent = this.component as ServerSideComponent
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)

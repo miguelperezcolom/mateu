@@ -1,6 +1,5 @@
 package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
 
-
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
