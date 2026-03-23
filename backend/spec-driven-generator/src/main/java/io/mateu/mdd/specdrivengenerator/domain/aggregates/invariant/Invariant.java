@@ -11,10 +11,17 @@ public class Invariant {
     private InvariantName name;
 
     public static Invariant of(InvariantId id, InvariantName name) {
-        var aggregate = new Invariant();
-        aggregate.id = id;
-        aggregate.name = name;
-        return aggregate;
+        var invariant = new Invariant();
+        invariant.id = id;
+        invariant.name = name;
+        return invariant;
+    }
+
+    public static Invariant load(String id, String name) {
+        var invariant = new Invariant();
+        invariant.id = new InvariantId(id);
+        invariant.name = new InvariantName(name);
+        return invariant;
     }
 
     public void update(InvariantName name) {

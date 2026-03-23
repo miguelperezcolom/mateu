@@ -11,10 +11,17 @@ public class Entity {
     private EntityName name;
 
     public static Entity of(EntityId id, EntityName name) {
-        var aggregate = new Entity();
-        aggregate.id = id;
-        aggregate.name = name;
-        return aggregate;
+        var entity = new Entity();
+        entity.id = id;
+        entity.name = name;
+        return entity;
+    }
+
+    public static Entity load(String id, String name) {
+        var entity = new Entity();
+        entity.id = new EntityId(id);
+        entity.name = new EntityName(name);
+        return entity;
     }
 
     public void update(EntityName name) {

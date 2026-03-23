@@ -11,10 +11,17 @@ public class Project {
     private ProjectName name;
 
     public static Project of(ProjectId id, ProjectName name) {
-        var aggregate = new Project();
-        aggregate.id = id;
-        aggregate.name = name;
-        return aggregate;
+        var project = new Project();
+        project.id = id;
+        project.name = name;
+        return project;
+    }
+
+    public static Project load(String id, String name) {
+        var project = new Project();
+        project.id = new ProjectId(id);
+        project.name = new ProjectName(name);
+        return project;
     }
 
     public void update(ProjectName name) {

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Scope("prototype")
-@Title("Entitys")
+@Title("Entities")
 public class EntityCrudOrchestrator extends CrudOrchestrator<
         EntityViewModel,
         EntityViewModel,

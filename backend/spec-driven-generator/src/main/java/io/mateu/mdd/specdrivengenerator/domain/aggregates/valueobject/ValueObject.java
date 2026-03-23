@@ -11,10 +11,17 @@ public class ValueObject {
     private ValueObjectName name;
 
     public static ValueObject of(ValueObjectId id, ValueObjectName name) {
-        var aggregate = new ValueObject();
-        aggregate.id = id;
-        aggregate.name = name;
-        return aggregate;
+        var valueObject = new ValueObject();
+        valueObject.id = id;
+        valueObject.name = name;
+        return valueObject;
+    }
+
+    public static ValueObject load(String id, String name) {
+        var valueObject = new ValueObject();
+        valueObject.id = new ValueObjectId(id);
+        valueObject.name = new ValueObjectName(name);
+        return valueObject;
     }
 
     public void update(ValueObjectName name) {

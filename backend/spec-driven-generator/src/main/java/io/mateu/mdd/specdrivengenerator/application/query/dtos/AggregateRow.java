@@ -1,4 +1,6 @@
 package io.mateu.mdd.specdrivengenerator.application.query.dtos;
 
-public record AggregateRow(String id, String name) {
+import io.mateu.uidl.annotations.Hidden;
+
+public record AggregateRow(@Hidden String id, String name) {
 }

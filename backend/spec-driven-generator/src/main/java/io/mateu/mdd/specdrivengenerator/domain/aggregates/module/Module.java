@@ -11,10 +11,17 @@ public class Module {
     private ModuleName name;
 
     public static Module of(ModuleId id, ModuleName name) {
-        var aggregate = new Module();
-        aggregate.id = id;
-        aggregate.name = name;
-        return aggregate;
+        var module = new Module();
+        module.id = id;
+        module.name = name;
+        return module;
+    }
+
+    public static Module load(String id, String name) {
+        var module = new Module();
+        module.id = new ModuleId(id);
+        module.name = new ModuleName(name);
+        return module;
     }
 
     public void update(ModuleName name) {

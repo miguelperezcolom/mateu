@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Scope("prototype")
-@Title("Roles")
+@Title("Projects")
 public class ProjectCrudOrchestrator extends CrudOrchestrator<
         ProjectViewModel,
         ProjectViewModel,

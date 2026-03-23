@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Scope("prototype")
-@Title("Roles")
+@Title("Value Objects")
 public class ValueObjectCrudOrchestrator extends CrudOrchestrator<
         ValueObjectViewModel,
         ValueObjectViewModel,

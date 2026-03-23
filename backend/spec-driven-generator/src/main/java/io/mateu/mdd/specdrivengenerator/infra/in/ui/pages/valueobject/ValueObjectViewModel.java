@@ -1,11 +1,14 @@
 package io.mateu.mdd.specdrivengenerator.infra.in.ui.pages.valueobject;
 
+import io.mateu.core.infra.valuegenerators.UUIDValueGenerator;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.ValueObjectDto;
 import io.mateu.mdd.specdrivengenerator.application.usecases.valueobject.create.CreateValueObjectCommand;
 import io.mateu.mdd.specdrivengenerator.application.usecases.valueobject.create.CreateValueObjectUseCase;
 import io.mateu.mdd.specdrivengenerator.application.usecases.valueobject.save.SaveValueObjectCommand;
 import io.mateu.mdd.specdrivengenerator.application.usecases.valueobject.save.SaveValueObjectUseCase;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import io.mateu.uidl.annotations.GeneratedValue;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -19,8 +22,8 @@ import org.springframework.stereotype.Service;
 @Scope("prototype")
 @RequiredArgsConstructor
 public class ValueObjectViewModel implements Identifiable, CrudEditorForm<String>, CrudCreationForm<String> {
-    @EditableOnlyWhenCreating
-    @NotEmpty
+    @GeneratedValue(UUIDValueGenerator.class)
+            @Hidden
     String id;
     @NotEmpty String name;
 

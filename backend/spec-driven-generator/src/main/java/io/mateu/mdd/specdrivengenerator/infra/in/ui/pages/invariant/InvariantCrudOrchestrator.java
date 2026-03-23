@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Scope("prototype")
-@Title("Roles")
+@Title("Invariants")
 public class InvariantCrudOrchestrator extends CrudOrchestrator<
         InvariantViewModel,
         InvariantViewModel,

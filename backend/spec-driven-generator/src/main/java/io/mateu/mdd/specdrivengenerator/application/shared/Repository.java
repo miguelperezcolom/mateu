@@ -6,7 +6,7 @@ import java.util.Optional;
 public interface Repository<T, IdType> {
     Optional<T> findById(IdType id);
 
-    IdType save(T entity);
+    T save(T entity);
 
     void deleteAllById(List<IdType> selectedIds);
 }

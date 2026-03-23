@@ -1,4 +1,6 @@
 package io.mateu.mdd.specdrivengenerator.application.query.dtos;
 
-public record ProjectRow(String id, String name) {
+import io.mateu.uidl.annotations.Hidden;
+
+public record ProjectRow(@Hidden String id, String name) {
 }

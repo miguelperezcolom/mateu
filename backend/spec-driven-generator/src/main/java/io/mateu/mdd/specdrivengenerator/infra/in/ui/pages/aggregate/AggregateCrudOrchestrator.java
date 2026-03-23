@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Scope("prototype")
-@Title("Roles")
+@Title("Aggregates")
 public class AggregateCrudOrchestrator extends CrudOrchestrator<
         AggregateViewModel,
         AggregateViewModel,
