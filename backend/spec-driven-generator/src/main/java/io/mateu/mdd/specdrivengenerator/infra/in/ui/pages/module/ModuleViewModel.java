@@ -6,7 +6,12 @@ import io.mateu.mdd.specdrivengenerator.application.usecases.module.create.Creat
 import io.mateu.mdd.specdrivengenerator.application.usecases.module.create.CreateModuleUseCase;
 import io.mateu.mdd.specdrivengenerator.application.usecases.module.save.SaveModuleCommand;
 import io.mateu.mdd.specdrivengenerator.application.usecases.module.save.SaveModuleUseCase;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.AggregateIdLabelSupplier;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.AggregateIdOptionsSupplier;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.ModuleIdLabelSupplier;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.ModuleIdOptionsSupplier;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -18,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -26,19 +33,21 @@ public class ModuleViewModel implements Identifiable, CrudEditorForm<String>, Cr
     @Hidden
     String id;
     @NotEmpty String name;
+    @ForeignKey(search = AggregateIdOptionsSupplier.class, label = AggregateIdLabelSupplier.class)
+    List<String> aggregates;
 
     final CreateModuleUseCase createUseCase;
     final SaveModuleUseCase saveUseCase;
 
     @Override
     public String create(HttpRequest httpRequest) {
-        createUseCase.handle(new CreateModuleCommand(id, name));
+        createUseCase.handle(new CreateModuleCommand(id, name, aggregates));
         return id;
     }
 
     @Override
     public void save(HttpRequest httpRequest) {
-        saveUseCase.handle(new SaveModuleCommand(id, name));
+        saveUseCase.handle(new SaveModuleCommand(id, name, aggregates));
     }
 
     @Override
@@ -49,6 +58,7 @@ public class ModuleViewModel implements Identifiable, CrudEditorForm<String>, Cr
     public ModuleViewModel load(ModuleDto model) {
         id = model.id();
         name = model.name();
+        aggregates = model.aggregateIds();
         return this;
     }
 

@@ -1,0 +1,48 @@
+{
+  "projects" : [ {
+    "id" : "a0ac607c-11ab-40f4-bd92-7452b079ba0c",
+    "name" : "Proyecto 1",
+    "modules" : [ {
+      "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
+      "name" : "Módulo 1",
+      "aggregates" : [ ]
+    } ]
+  } ],
+  "modules" : [ {
+    "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
+    "name" : "Módulo 1",
+    "aggregates" : [ ]
+  }, {
+    "id" : "123ab7f3-5ff6-418f-a2cf-fbecb5566c3d",
+    "name" : "Módulo 2",
+    "aggregates" : [ {
+      "id" : "5ced3b15-b96d-4be2-b0f7-de3909e6647b",
+      "name" : "Aggregate 1",
+      "valueObjects" : [ ],
+      "entities" : [ ],
+      "invariants" : [ ]
+    } ]
+  } ],
+  "aggregates" : [ {
+    "id" : "5ced3b15-b96d-4be2-b0f7-de3909e6647b",
+    "name" : "Aggregate 1",
+    "valueObjects" : [ ],
+    "entities" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "57161fb0-6d69-4e2b-80a5-6dd41fe1cd7f",
+    "name" : "Aggregate 2",
+    "valueObjects" : [ ],
+    "entities" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "c6284fda-1111-4525-b4a5-44f10e653731",
+    "name" : "Aggregate 3",
+    "valueObjects" : [ ],
+    "entities" : [ ],
+    "invariants" : [ ]
+  } ],
+  "entities" : [ ],
+  "valueObjects" : [ ],
+  "invariants" : [ ]
+}

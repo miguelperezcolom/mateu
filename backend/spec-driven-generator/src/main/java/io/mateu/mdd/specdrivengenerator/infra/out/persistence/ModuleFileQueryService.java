@@ -6,6 +6,7 @@ import io.mateu.mdd.specdrivengenerator.application.query.dtos.EntityDto;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.EntityRow;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.ModuleDto;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.ModuleRow;
+import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.AggregateEntity;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.CommonFileRepository;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.EntityEntity;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.ModuleEntity;
@@ -44,6 +45,7 @@ public class ModuleFileQueryService implements ModuleQueryService {
     @Override
     public Optional<ModuleDto> getById(String id) {
         return repository.findById(id, ModuleEntity.class)
-                .map(entity -> new ModuleDto(entity.id(), entity.name()));
+                .map(entity -> new ModuleDto(entity.id(), entity.name(),
+                        entity.aggregates().stream().map(AggregateEntity::id).toList()));
     }
 }

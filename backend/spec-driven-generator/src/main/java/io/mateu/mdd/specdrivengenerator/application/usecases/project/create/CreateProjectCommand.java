@@ -1,5 +1,7 @@
 package io.mateu.mdd.specdrivengenerator.application.usecases.project.create;
 
-public record CreateProjectCommand(String id, String name) {
+import java.util.List;
+
+public record CreateProjectCommand(String id, String name, List<String> moduleIds) {
 
 }

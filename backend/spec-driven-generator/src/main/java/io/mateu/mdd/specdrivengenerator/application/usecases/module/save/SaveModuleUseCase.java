@@ -1,6 +1,7 @@
 package io.mateu.mdd.specdrivengenerator.application.usecases.module.save;
 
 import io.mateu.mdd.specdrivengenerator.application.out.ModuleRepository;
+import io.mateu.mdd.specdrivengenerator.domain.aggregates.aggregate.vo.AggregateId;
 import io.mateu.mdd.specdrivengenerator.domain.aggregates.module.vo.ModuleId;
 import io.mateu.mdd.specdrivengenerator.domain.aggregates.module.vo.ModuleName;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ public class SaveModuleUseCase {
 
     public void handle(SaveModuleCommand command) {
         var role = repository.findById(new ModuleId(command.id())).orElseThrow();
-        role.update(new ModuleName(command.name()));
+        role.update(new ModuleName(command.name()), command.aggregates().stream().map(AggregateId::new).toList());
         repository.save(role);
     }
 

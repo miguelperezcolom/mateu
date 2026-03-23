@@ -6,7 +6,10 @@ import io.mateu.mdd.specdrivengenerator.application.usecases.project.create.Crea
 import io.mateu.mdd.specdrivengenerator.application.usecases.project.create.CreateProjectUseCase;
 import io.mateu.mdd.specdrivengenerator.application.usecases.project.save.SaveProjectCommand;
 import io.mateu.mdd.specdrivengenerator.application.usecases.project.save.SaveProjectUseCase;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.ModuleIdLabelSupplier;
+import io.mateu.mdd.specdrivengenerator.infra.in.ui.suppliers.ModuleIdOptionsSupplier;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -18,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Scope("prototype")
 @RequiredArgsConstructor
@@ -26,19 +31,21 @@ public class ProjectViewModel implements Identifiable, CrudEditorForm<String>, C
     @Hidden
     String id;
     @NotEmpty String name;
+    @ForeignKey(search = ModuleIdOptionsSupplier.class, label = ModuleIdLabelSupplier.class)
+    List<String> modules;
 
     final CreateProjectUseCase createUseCase;
     final SaveProjectUseCase saveUseCase;
 
     @Override
     public String create(HttpRequest httpRequest) {
-        createUseCase.handle(new CreateProjectCommand(id, name));
+        createUseCase.handle(new CreateProjectCommand(id, name, modules));
         return id;
     }
 
     @Override
     public void save(HttpRequest httpRequest) {
-        saveUseCase.handle(new SaveProjectCommand(id, name));
+        saveUseCase.handle(new SaveProjectCommand(id, name, modules));
     }
 
     @Override
@@ -49,11 +56,12 @@ public class ProjectViewModel implements Identifiable, CrudEditorForm<String>, C
     public ProjectViewModel load(ProjectDto model) {
         id = model.id();
         name = model.name();
+        modules = model.moduleIds();
         return this;
     }
 
     @Override
     public String toString() {
-        return id != null ? name : "New aggregate";
+        return id != null ? name : "New project";
     }
 }

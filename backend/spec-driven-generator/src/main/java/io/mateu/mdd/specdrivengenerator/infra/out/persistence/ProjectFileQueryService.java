@@ -44,6 +44,7 @@ public class ProjectFileQueryService implements ProjectQueryService {
     @Override
     public Optional<ProjectDto> getById(String id) {
         return repository.findById(id, ProjectEntity.class)
-                .map(entity -> new ProjectDto(entity.id(), entity.name()));
+                .map(entity -> new ProjectDto(entity.id(), entity.name(),
+                        entity.modules().stream().map(ModuleEntity::id).toList()));
     }
 }

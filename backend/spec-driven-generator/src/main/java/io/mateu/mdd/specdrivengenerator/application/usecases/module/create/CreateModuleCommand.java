@@ -1,5 +1,11 @@
 package io.mateu.mdd.specdrivengenerator.application.usecases.module.create;
 
-public record CreateModuleCommand(String id, String name) {
+import java.util.List;
+
+public record CreateModuleCommand(String id, String name, List<String> aggregates) {
+
+    public CreateModuleCommand {
+        if (aggregates == null) aggregates = List.of();
+    }
 
 }
