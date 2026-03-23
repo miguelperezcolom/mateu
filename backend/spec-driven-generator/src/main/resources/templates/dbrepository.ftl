@@ -33,7 +33,7 @@ public Optional<${aggregate.name}> findById(${aggregate.name}Id id) {
 
     private ${aggregate.name}Entity toEntity(${aggregate.name} ${aggregate.name?lower_case}) {
     return new ${aggregate.name}Entity(
-${aggregate.name?lower_case}.getId().id(),
+${aggregate.name?lower_case}.getId() != null?Long.valueOf(${aggregate.name?lower_case}.getId().id()):null,
 ${aggregate.name?lower_case}.getName().name()
     );
     }
