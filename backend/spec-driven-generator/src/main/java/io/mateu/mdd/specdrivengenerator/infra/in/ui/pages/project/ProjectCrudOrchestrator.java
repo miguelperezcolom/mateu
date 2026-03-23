@@ -27,6 +27,7 @@ public class ProjectCrudOrchestrator extends CrudOrchestrator<
         > {
 
     final ProjectCrudAdapter adapter;
+    final GenerateBoilerplateCodeForm form;
 
     @Override
     public CrudAdapter<ProjectViewModel,
@@ -41,7 +42,11 @@ public class ProjectCrudOrchestrator extends CrudOrchestrator<
     }
 
     @ViewToolbarButton
-    public void generateCode(ProjectViewModel hotel, HttpRequest httpRequest) {
+    public GenerateBoilerplateCodeForm generateCode(ProjectViewModel project, HttpRequest httpRequest) {
         log.info("hola!");
+        form.projectId = project.id;
+        form.outputPath = project.outputPath;
+        form.packageName = project.packageName;
+        return form;
     }
 }
