@@ -1,4 +1,6 @@
 package io.mateu.mdd.specdrivengenerator.application.query.dtos;
 
-public record AggregateDto(String id, String name) {
+import java.util.List;
+
+public record AggregateDto(String id, String name, List<FieldDto> fields, List<InvariantDto> invariants) {
 }

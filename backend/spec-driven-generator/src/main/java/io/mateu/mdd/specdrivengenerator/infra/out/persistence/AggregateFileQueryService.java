@@ -3,6 +3,8 @@ package io.mateu.mdd.specdrivengenerator.infra.out.persistence;
 import io.mateu.mdd.specdrivengenerator.application.query.AggregateQueryService;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.AggregateDto;
 import io.mateu.mdd.specdrivengenerator.application.query.dtos.AggregateRow;
+import io.mateu.mdd.specdrivengenerator.application.query.dtos.FieldDto;
+import io.mateu.mdd.specdrivengenerator.application.query.dtos.InvariantDto;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.AggregateEntity;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.CommonFileRepository;
 import io.mateu.uidl.data.ListingData;
@@ -40,6 +42,23 @@ public class AggregateFileQueryService implements AggregateQueryService {
     @Override
     public Optional<AggregateDto> getById(String id) {
         return repository.findById(id, AggregateEntity.class)
-                .map(entity -> new AggregateDto(entity.id(), entity.name()));
+                .map(entity -> new AggregateDto(entity.id(), entity.name(),
+                        entity.fields().stream().map(field -> new FieldDto(
+                                field.name(),
+                                field.label(),
+                                field.type(),
+                                field.help(),
+                                field.valueObjectId(),
+                                field.entityId(),
+                                field.mandatory(),
+                                field.readonly(),
+                                field.visible(),
+                                field.editable(),
+                                field.searchable(),
+                                field.filterable()
+                        )).toList(),
+                        entity.invariants().stream()
+                                .map(invariant -> new InvariantDto(invariant.id(), invariant.name()))
+                                .toList()));
     }
 }

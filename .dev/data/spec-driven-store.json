@@ -9,40 +9,76 @@
     } ]
   } ],
   "modules" : [ {
-    "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
-    "name" : "Módulo 1",
-    "aggregates" : [ ]
-  }, {
     "id" : "123ab7f3-5ff6-418f-a2cf-fbecb5566c3d",
     "name" : "Módulo 2",
     "aggregates" : [ {
       "id" : "5ced3b15-b96d-4be2-b0f7-de3909e6647b",
       "name" : "Aggregate 1",
-      "valueObjects" : [ ],
-      "entities" : [ ],
+      "fields" : [ ],
       "invariants" : [ ]
     } ]
+  }, {
+    "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
+    "name" : "Módulo 1",
+    "aggregates" : [ ]
   } ],
   "aggregates" : [ {
-    "id" : "5ced3b15-b96d-4be2-b0f7-de3909e6647b",
-    "name" : "Aggregate 1",
-    "valueObjects" : [ ],
-    "entities" : [ ],
-    "invariants" : [ ]
-  }, {
     "id" : "57161fb0-6d69-4e2b-80a5-6dd41fe1cd7f",
     "name" : "Aggregate 2",
-    "valueObjects" : [ ],
-    "entities" : [ ],
+    "fields" : [ ],
     "invariants" : [ ]
   }, {
     "id" : "c6284fda-1111-4525-b4a5-44f10e653731",
     "name" : "Aggregate 3",
-    "valueObjects" : [ ],
-    "entities" : [ ],
-    "invariants" : [ ]
+    "fields" : [ ],
+    "invariants" : [ {
+      "id" : "wed",
+      "name" : "wedew"
+    } ]
+  }, {
+    "id" : "5ced3b15-b96d-4be2-b0f7-de3909e6647b",
+    "name" : "Aggregate 1",
+    "fields" : [ {
+      "name" : "wed",
+      "label" : "eewde",
+      "type" : "Entity",
+      "help" : "wedew",
+      "valueObjectId" : "4fb5e517-4bf8-4656-8586-d3f78325d3ad",
+      "entityId" : "87ad8d98-c152-4964-a7e3-2989e5a3eb9b",
+      "mandatory" : true,
+      "readonly" : true,
+      "visible" : false,
+      "editable" : false,
+      "searchable" : false,
+      "filterable" : false
+    } ],
+    "invariants" : [ {
+      "id" : "dwed",
+      "name" : "wedewdew"
+    } ]
   } ],
-  "entities" : [ ],
-  "valueObjects" : [ ],
-  "invariants" : [ ]
+  "entities" : [ {
+    "id" : "87ad8d98-c152-4964-a7e3-2989e5a3eb9b",
+    "name" : "Entity 1"
+  }, {
+    "id" : "dc9e1165-8b8e-442a-94f1-5d200cc5e084",
+    "name" : "Entity 2"
+  } ],
+  "valueObjects" : [ {
+    "id" : "4fb5e517-4bf8-4656-8586-d3f78325d3ad",
+    "name" : "VO 2"
+  }, {
+    "id" : "5fc4cd33-9811-4cb5-a74c-b23cf1d56548",
+    "name" : "VO 3"
+  }, {
+    "id" : "ae6cee14-6858-4440-a338-4b149185de36",
+    "name" : "VO 1"
+  } ],
+  "invariants" : [ {
+    "id" : "84e13ae0-c3cd-4b0e-8497-91be7dfd4548",
+    "name" : "Invariant 1"
+  }, {
+    "id" : "e73f5f5a-fa2c-4126-99bc-d28f552e5494",
+    "name" : "Invariant 2"
+  } ]
 }
