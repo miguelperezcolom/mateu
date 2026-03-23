@@ -7,6 +7,8 @@ import java.util.List;
 public record ProjectEntity(
         String id,
         String name,
+        String outputPath,
+        String packageName,
         List<ModuleEntity> modules
 ) implements Identifiable {
 }

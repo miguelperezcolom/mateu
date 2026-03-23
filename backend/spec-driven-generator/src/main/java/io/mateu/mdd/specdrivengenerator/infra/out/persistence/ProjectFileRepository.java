@@ -24,7 +24,11 @@ public class ProjectFileRepository implements ProjectRepository {
     @Override
     public Optional<Project> findById(ProjectId id) {
         return repository.findById(id.id(), ProjectEntity.class)
-                .map(entity -> Project.load(entity.id(), entity.name(),
+                .map(entity -> Project.load(
+                        entity.id(),
+                        entity.name(),
+                        entity.outputPath(),
+                        entity.packageName(),
                         entity.modules().stream()
                                 .map(ModuleEntity::id)
                                 .toList()));
@@ -32,7 +36,11 @@ public class ProjectFileRepository implements ProjectRepository {
 
     @Override
     public Project save(Project entity) {
-        repository.save(new ProjectEntity(entity.getId().id(), entity.getName().name(),
+        repository.save(new ProjectEntity(
+                entity.getId().id(),
+                entity.getName().name(),
+                entity.getOutputPath().path(),
+                entity.getPackageName().packageName(),
                 entity.getModules().stream()
                         .map(moduleId -> repository.findById(moduleId.id(), ModuleEntity.class).orElseThrow())
                         .toList()));

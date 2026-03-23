@@ -2,10 +2,25 @@
   "projects" : [ {
     "id" : "a0ac607c-11ab-40f4-bd92-7452b079ba0c",
     "name" : "Proyecto 1",
+    "outputPath" : "rferf",
+    "packageName" : "dew",
     "modules" : [ {
       "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
       "name" : "Módulo 1",
-      "aggregates" : [ ]
+      "aggregates" : [ {
+        "id" : "57161fb0-6d69-4e2b-80a5-6dd41fe1cd7f",
+        "name" : "Aggregate 2",
+        "fields" : [ ],
+        "invariants" : [ ]
+      }, {
+        "id" : "c6284fda-1111-4525-b4a5-44f10e653731",
+        "name" : "Aggregate 3",
+        "fields" : [ ],
+        "invariants" : [ {
+          "id" : "wed",
+          "name" : "wedew"
+        } ]
+      } ]
     } ]
   } ],
   "modules" : [ {
@@ -20,7 +35,20 @@
   }, {
     "id" : "a8038d01-c9a5-4120-bac4-95a0fda7de63",
     "name" : "Módulo 1",
-    "aggregates" : [ ]
+    "aggregates" : [ {
+      "id" : "57161fb0-6d69-4e2b-80a5-6dd41fe1cd7f",
+      "name" : "Aggregate 2",
+      "fields" : [ ],
+      "invariants" : [ ]
+    }, {
+      "id" : "c6284fda-1111-4525-b4a5-44f10e653731",
+      "name" : "Aggregate 3",
+      "fields" : [ ],
+      "invariants" : [ {
+        "id" : "wed",
+        "name" : "wedew"
+      } ]
+    } ]
   } ],
   "aggregates" : [ {
     "id" : "57161fb0-6d69-4e2b-80a5-6dd41fe1cd7f",

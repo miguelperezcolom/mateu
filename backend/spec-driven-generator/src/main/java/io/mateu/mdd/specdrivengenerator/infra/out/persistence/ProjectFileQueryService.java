@@ -32,7 +32,7 @@ public class ProjectFileQueryService implements ProjectQueryService {
                 data.page().pageNumber(),
                 data.page().totalElements(),
                 data.page().content().stream()
-                        .map(entity -> new ProjectRow(entity.id(), entity.name()))
+                        .map(entity -> new ProjectRow(entity.id(), entity.name(), entity.outputPath(), entity.packageName()))
                         .toList()));
     }
 
@@ -44,7 +44,11 @@ public class ProjectFileQueryService implements ProjectQueryService {
     @Override
     public Optional<ProjectDto> getById(String id) {
         return repository.findById(id, ProjectEntity.class)
-                .map(entity -> new ProjectDto(entity.id(), entity.name(),
+                .map(entity -> new ProjectDto(
+                        entity.id(),
+                        entity.name(),
+                        entity.outputPath(),
+                        entity.packageName(),
                         entity.modules().stream().map(ModuleEntity::id).toList()));
     }
 }
