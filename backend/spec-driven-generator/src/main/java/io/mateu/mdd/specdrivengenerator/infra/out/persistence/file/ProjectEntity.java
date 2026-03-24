@@ -15,4 +15,5 @@ public record ProjectEntity(
     public ProjectEntity {
         if (moduleIds == null) moduleIds = List.of();
     }
+
 }

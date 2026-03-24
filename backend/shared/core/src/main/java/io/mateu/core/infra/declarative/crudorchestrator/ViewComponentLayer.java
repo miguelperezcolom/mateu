@@ -93,6 +93,7 @@ public abstract class ViewComponentLayer<
             });
     toolbar.add(new Button("Back to list", "cancel_view"));
     if (!readOnly(item)) {
+      toolbar.add(new Button("Add another", "new"));
       toolbar.add(new Button("Edit", "edit"));
     }
     return toolbar;
