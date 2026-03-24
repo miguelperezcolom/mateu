@@ -13,11 +13,17 @@ import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 
 import io.mateu.core.infra.declarative.crudorchestrator.ListComponentLayer;
 import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
+
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,12 +74,15 @@ public abstract class CrudOrchestrator<
     }
 
     Object savedId = null;
+    List<Message> messages = new ArrayList<>();
     if ("create".equals(actionId)) {
       savedId = saveNew(httpRequest);
+      messages.add(Message.builder().variant(NotificationVariant.success).text("Item saved successfully").build());
       actionId = "view";
     }
     if ("save".equals(actionId)) {
       savedId = save(httpRequest);
+      messages.add(Message.builder().variant(NotificationVariant.success).text("Item saved successfully").build());
       // savedId = getValue(getIdField(viewClass()), entity);
       actionId = "view";
     }
@@ -103,7 +112,7 @@ public abstract class CrudOrchestrator<
       adapter().deleteAllById(selectedIds);
     }
     if ("view".equals(actionId)) {
-      return handleView(httpRequest, savedId);
+      return Stream.concat(handleView(httpRequest, savedId).stream(), messages.stream()).toList();
     }
     if ("edit".equals(actionId)) {
       return handleEdit(httpRequest);
@@ -173,7 +182,7 @@ public abstract class CrudOrchestrator<
     return new Data(Map.of("crud", search(searchText, null, pageable)));
   }
 
-  private Object handleNew(HttpRequest httpRequest) {
+  private List<?> handleNew(HttpRequest httpRequest) {
     _show_detail = new HashMap<>();
     _editing = new HashMap<>();
     var create = create(httpRequest);
@@ -183,7 +192,7 @@ public abstract class CrudOrchestrator<
     return List.of(create, pushStateToHistory(getCrudRoute(httpRequest) + "/new"));
   }
 
-  private Object handleEdit(HttpRequest httpRequest) {
+  private List<?> handleEdit(HttpRequest httpRequest) {
     _show_detail = new HashMap<>();
     _editing = new HashMap<>();
     var idField = getIdFieldForRow();
@@ -196,7 +205,7 @@ public abstract class CrudOrchestrator<
     return List.of(edit, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id + "/edit"));
   }
 
-  private Object handleView(HttpRequest httpRequest, Object savedId) {
+  private List<?> handleView(HttpRequest httpRequest, Object savedId) {
     _show_detail = new HashMap<>();
     _editing = new HashMap<>();
     var idField = getIdFieldForRow();
