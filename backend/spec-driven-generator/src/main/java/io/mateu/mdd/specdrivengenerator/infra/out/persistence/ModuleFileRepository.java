@@ -2,6 +2,7 @@ package io.mateu.mdd.specdrivengenerator.infra.out.persistence;
 
 import io.mateu.mdd.specdrivengenerator.application.out.InvariantRepository;
 import io.mateu.mdd.specdrivengenerator.application.out.ModuleRepository;
+import io.mateu.mdd.specdrivengenerator.domain.aggregates.aggregate.vo.AggregateId;
 import io.mateu.mdd.specdrivengenerator.domain.aggregates.invariant.Invariant;
 import io.mateu.mdd.specdrivengenerator.domain.aggregates.invariant.vo.InvariantId;
 import io.mateu.mdd.specdrivengenerator.domain.aggregates.module.Module;
@@ -26,16 +27,13 @@ public class ModuleFileRepository implements ModuleRepository {
     public Optional<Module> findById(ModuleId id) {
         return repository.findById(id.id(), ModuleEntity.class)
                 .map(entity -> Module.load(entity.id(), entity.name(),
-                        entity.aggregates().stream().map(AggregateEntity::id).toList()));
+                        entity.aggregateIds()));
     }
 
     @Override
     public Module save(Module entity) {
         repository.save(new ModuleEntity(entity.getId().id(), entity.getName().name(),
-                entity.getAggregateIds().stream()
-                        .map(aggregateId -> repository
-                                .findById(aggregateId.id(), AggregateEntity.class)
-                                .orElseThrow()).toList()));
+                entity.getAggregateIds().stream().map(AggregateId::id).toList()));
         return entity;
     }
 

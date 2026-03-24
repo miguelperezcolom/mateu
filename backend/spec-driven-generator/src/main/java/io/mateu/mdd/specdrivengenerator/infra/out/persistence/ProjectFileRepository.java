@@ -29,9 +29,7 @@ public class ProjectFileRepository implements ProjectRepository {
                         entity.name(),
                         entity.outputPath(),
                         entity.packageName(),
-                        entity.modules().stream()
-                                .map(ModuleEntity::id)
-                                .toList()));
+                        entity.moduleIds()));
     }
 
     @Override
@@ -42,7 +40,7 @@ public class ProjectFileRepository implements ProjectRepository {
                 entity.getOutputPath().path(),
                 entity.getPackageName().packageName(),
                 entity.getModules().stream()
-                        .map(moduleId -> repository.findById(moduleId.id(), ModuleEntity.class).orElseThrow())
+                        .map(ModuleId::id)
                         .toList()));
         return entity;
     }

@@ -7,6 +7,6 @@ import java.util.List;
 public record ModuleEntity(
         String id,
         String name,
-        List<AggregateEntity> aggregates
+        List<String> aggregateIds
 ) implements Identifiable {
 }

@@ -49,6 +49,6 @@ public class ProjectFileQueryService implements ProjectQueryService {
                         entity.name(),
                         entity.outputPath(),
                         entity.packageName(),
-                        entity.modules().stream().map(ModuleEntity::id).toList()));
+                        entity.moduleIds()));
     }
 }

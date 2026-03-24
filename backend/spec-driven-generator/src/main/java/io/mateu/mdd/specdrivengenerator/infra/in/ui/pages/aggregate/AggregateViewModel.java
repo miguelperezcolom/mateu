@@ -45,6 +45,12 @@ public class AggregateViewModel implements Identifiable, CrudEditorForm<String>,
 
     @Override
     public String create(HttpRequest httpRequest) {
+        if (fields == null) {
+            fields = List.of();
+        }
+        if (invariants == null) {
+            invariants = List.of();
+        }
         createUseCase.handle(new CreateAggregateCommand(id, name,
                 fields.stream().map(field -> new FieldDto(
                         field.name(),
@@ -72,6 +78,12 @@ public class AggregateViewModel implements Identifiable, CrudEditorForm<String>,
 
     @Override
     public void save(HttpRequest httpRequest) {
+        if (fields == null) {
+            fields = List.of();
+        }
+        if (invariants == null) {
+            invariants = List.of();
+        }
         saveUseCase.handle(new SaveAggregateCommand(id, name,
                 fields.stream().map(field -> new FieldDto(
                         field.name(),

@@ -9,6 +9,10 @@ public record ProjectEntity(
         String name,
         String outputPath,
         String packageName,
-        List<ModuleEntity> modules
+        List<String> moduleIds
 ) implements Identifiable {
+
+    public ProjectEntity {
+        if (moduleIds == null) moduleIds = List.of();
+    }
 }

@@ -4,6 +4,7 @@ import freemarker.template.TemplateException;
 import io.mateu.annotationprocessing.Formatter;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.AggregateEntity;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.CommonFileRepository;
+import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.ModuleEntity;
 import io.mateu.mdd.specdrivengenerator.infra.out.persistence.file.ProjectEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.mateu.core.infra.JsonSerializer.fromJson;
@@ -54,8 +56,8 @@ public class GenerateCodeUseCase {
         createFile(project.outputPath(), project, "queryservice.ftl", "src/main/java/" + packageDir + "/application/query/QueryService.java");
         createFile(project.outputPath(), project, "home.ftl", "src/main/java/" + packageDir + "/infra/in/ui/Home.java");
 
-        project.modules().forEach(module -> {
-            module.aggregates().forEach(aggregate -> {
+        project.moduleIds().stream().map(moduleId -> repository.findById(moduleId, ModuleEntity.class).orElseThrow()).forEach(module -> {
+            module.aggregateIds().stream().map(aggregateId -> repository.findById(aggregateId, AggregateEntity.class).orElseThrow()).forEach(aggregate -> {
                 var aggregatePackageName = aggregate.name().toLowerCase();
                 createDir(project.outputPath(), "src/main/java/" + packageDir + "/application/usecases/" + aggregatePackageName + "/create");
                 createFile(project.outputPath(), project, aggregate, "aggregate-repository.ftl", "src/main/java/" + packageDir + "/application/out/" + aggregate.name() + "Repository.java");
@@ -101,10 +103,30 @@ public class GenerateCodeUseCase {
     @SneakyThrows
     private void createFile(String baseDir, ProjectEntity project, String template, String destFile) {
         Map<String, Object> model = new HashMap<>();
-        model.put("project", fromJson(toJson(project)));
+        model.put("project", projectToMap(project));
         createFile(baseDir, model, template, destFile);
     }
 
+    private Map<String, Object> projectToMap(ProjectEntity project) {
+        var map = new HashMap<String, Object>();
+        map.putAll(fromJson(toJson(project)));
+        map.put("modules", ((List<String>)map.get("moduleIds")).stream().map(moduleId -> moduleToMap(repository.findById(moduleId, ModuleEntity.class).orElseThrow())).toList());
+        return map;
+    }
+
+    private Map<String, Object> moduleToMap(ModuleEntity module) {
+        var map = new HashMap<String, Object>();
+        map.putAll(fromJson(toJson(module)));
+        map.put("aggregates", ((List<String>)map.get("aggregateIds")).stream().map(aggregateId -> aggregateToMap(repository.findById(aggregateId, AggregateEntity.class).orElseThrow())).toList());
+        return map;
+    }
+
+    private Map<String, Object> aggregateToMap(AggregateEntity aggregate) {
+        var map = new HashMap<String, Object>();
+        map.putAll(fromJson(toJson(aggregate)));
+        //map.put("aggregates", ((List<String>)map.get("aggregateIds")).stream().map(aggregateId -> toMap(repository.findById(aggregateId, AggregateEntity.class)))).toList();
+        return map;
+    }
 
     @SneakyThrows
     private void createFile(String baseDir, Map<String, Object> model, String template, String destFile) {

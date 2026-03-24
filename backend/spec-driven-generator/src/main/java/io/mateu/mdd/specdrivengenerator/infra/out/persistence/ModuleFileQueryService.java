@@ -46,6 +46,6 @@ public class ModuleFileQueryService implements ModuleQueryService {
     public Optional<ModuleDto> getById(String id) {
         return repository.findById(id, ModuleEntity.class)
                 .map(entity -> new ModuleDto(entity.id(), entity.name(),
-                        entity.aggregates().stream().map(AggregateEntity::id).toList()));
+                        entity.aggregateIds()));
     }
 }
