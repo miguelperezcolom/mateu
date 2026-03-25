@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.Authorizer.isAuthorized;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.Humanizer.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
@@ -10,19 +11,9 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 import io.mateu.core.domain.Humanizer;
-import io.mateu.uidl.annotations.CssClasses;
-import io.mateu.uidl.annotations.DrawerClosed;
-import io.mateu.uidl.annotations.FavIcon;
-import io.mateu.uidl.annotations.HomeRoute;
-import io.mateu.uidl.annotations.Logo;
-import io.mateu.uidl.annotations.PageTitle;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Subtitle;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.annotations.Widget;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
@@ -39,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jdk.jfr.Label;
@@ -243,11 +235,17 @@ public class ReflectionAppMapper {
       String appRoute, Object instance, String route, HttpRequest httpRequest) {
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
-                .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                .filter(
+                    field ->
+                        field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
+                            && isAuthorized(field.getAnnotation(EyesOnly.class), httpRequest))
                 .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
                 .filter(Objects::nonNull),
             getAllMethods(instance.getClass()).stream()
-                .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
+                .filter(
+                    field ->
+                        field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
+                            && isAuthorized(field.getAnnotation(EyesOnly.class), httpRequest))
                 .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
                 .filter(Objects::nonNull))
         .toList();
@@ -297,7 +295,9 @@ public class ReflectionAppMapper {
     if (!isBasic(field.getType())) {
       if (getAllFields(field.getType()).stream()
           .anyMatch(
-              childField -> childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))) {
+              childField ->
+                  childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
+                      && isAuthorized(childField.getAnnotation(EyesOnly.class), httpRequest))) {
         return new Menu(
             getLabel(field),
             getActionables(appRoute, getValueOrNewInstance(field, instance), route, httpRequest));

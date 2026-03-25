@@ -17,13 +17,11 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,12 +75,20 @@ public abstract class CrudOrchestrator<
     List<Message> messages = new ArrayList<>();
     if ("create".equals(actionId)) {
       savedId = saveNew(httpRequest);
-      messages.add(Message.builder().variant(NotificationVariant.success).text("Item saved successfully").build());
+      messages.add(
+          Message.builder()
+              .variant(NotificationVariant.success)
+              .text("Item saved successfully")
+              .build());
       actionId = "view";
     }
     if ("save".equals(actionId)) {
       savedId = save(httpRequest);
-      messages.add(Message.builder().variant(NotificationVariant.success).text("Item saved successfully").build());
+      messages.add(
+          Message.builder()
+              .variant(NotificationVariant.success)
+              .text("Item saved successfully")
+              .build());
       // savedId = getValue(getIdField(viewClass()), entity);
       actionId = "view";
     }

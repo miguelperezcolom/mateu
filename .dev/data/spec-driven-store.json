@@ -3,41 +3,71 @@
     "id" : "a0ac607c-11ab-40f4-bd92-7452b079ba0c",
     "name" : "Proyecto 1",
     "outputPath" : ".dev/proyecto",
-    "packageName" : "io.mateu.proyecto",
+    "packageName" : "io.mateu.workflow.controlplaneservice",
     "moduleIds" : [ "8e194886-f0e4-4181-838f-945ef9be9606" ]
   } ],
   "modules" : [ {
     "id" : "8e194886-f0e4-4181-838f-945ef9be9606",
     "name" : "modulo 1",
-    "aggregateIds" : [ "7b7e1850-cbcb-489e-ab25-77259074f5dc", "d9f3316c-99ed-4fab-9163-23d2452f07af", "b576e4bc-fe86-40ed-8507-2585b2c62173", "5f75e1a0-a655-4b16-8583-664009779c86" ]
+    "aggregateIds" : [ "db2e0661-6d6b-4af7-b46e-4028b96f45c5", "ab811a46-105f-43ab-b3d1-62a2f24d9d8c", "dfddb38d-b8cb-4932-941f-1ad3046ec312", "1a08c1d0-e2e8-4bab-b3bd-73050ab47b6b", "68325ffc-e0e3-47a0-945b-f1bc5044899b", "b4ba3cde-4101-427b-9499-56d5d8ed231c", "6aa30eb8-a1c5-4898-91c9-6f7b11d98e68", "78b45c0a-d403-470d-a563-9d913daab231", "c598a189-8309-4e98-b401-649a5eadf008", "5dabf61c-9ed3-4845-b484-1359d3c8bf57" ]
   } ],
   "aggregates" : [ {
-    "id" : "5f75e1a0-a655-4b16-8583-664009779c86",
-    "name" : "Poblacion",
+    "id" : "1a08c1d0-e2e8-4bab-b3bd-73050ab47b6b",
+    "name" : "Page",
     "fields" : [ ],
     "invariants" : [ ]
   }, {
-    "id" : "d9f3316c-99ed-4fab-9163-23d2452f07af",
-    "name" : "Provincia",
+    "id" : "68325ffc-e0e3-47a0-945b-f1bc5044899b",
+    "name" : "AssetVersion",
     "fields" : [ ],
     "invariants" : [ ]
   }, {
-    "id" : "b576e4bc-fe86-40ed-8507-2585b2c62173",
-    "name" : "Pais",
+    "id" : "ab811a46-105f-43ab-b3d1-62a2f24d9d8c",
+    "name" : "Language",
     "fields" : [ ],
     "invariants" : [ ]
   }, {
-    "id" : "7b7e1850-cbcb-489e-ab25-77259074f5dc",
-    "name" : "Persona",
+    "id" : "b4ba3cde-4101-427b-9499-56d5d8ed231c",
+    "name" : "Site",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "6aa30eb8-a1c5-4898-91c9-6f7b11d98e68",
+    "name" : "Release",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "db2e0661-6d6b-4af7-b46e-4028b96f45c5",
+    "name" : "Environment",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "78b45c0a-d403-470d-a563-9d913daab231",
+    "name" : "Route",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "dfddb38d-b8cb-4932-941f-1ad3046ec312",
+    "name" : "Country",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "c598a189-8309-4e98-b401-649a5eadf008",
+    "name" : "Resource",
+    "fields" : [ ],
+    "invariants" : [ ]
+  }, {
+    "id" : "5dabf61c-9ed3-4845-b484-1359d3c8bf57",
+    "name" : "Asset",
     "fields" : [ ],
     "invariants" : [ ]
   } ],
   "entities" : [ {
-    "id" : "0083103e-292a-458a-b24a-71a42ed36767",
-    "name" : "Entidad1"
-  }, {
     "id" : "4931b85d-5c66-4d6e-ada5-99e12d9f26b3",
     "name" : "Entidad2"
+  }, {
+    "id" : "0083103e-292a-458a-b24a-71a42ed36767",
+    "name" : "Entidad1"
   } ],
   "valueObjects" : [ {
     "id" : "5b4a2dc7-f5dd-4c1d-a428-e3a123c52541",
