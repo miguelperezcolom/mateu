@@ -605,6 +605,9 @@ public class ReflectionFormFieldMapper {
   }
 
   public static FieldStereotype getStereotype(Field field) {
+    if (field.isAnnotationPresent(Stereotype.class)) {
+      return field.getAnnotation(Stereotype.class).value();
+    }
     if (field.getType().isEnum()) {
       return FieldStereotype.select;
     }

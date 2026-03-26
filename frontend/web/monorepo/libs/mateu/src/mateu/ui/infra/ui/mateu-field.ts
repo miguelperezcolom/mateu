@@ -183,6 +183,8 @@ export class MateuField extends LitElement {
     selectedItems = (value: any[]) => {
         if (value && value.length > 0) {
             if (this.field?.remoteCoordinates) {
+                console.log('remoteCoordinates', this.field?.remoteCoordinates, this.data[this.id], this.data[this.id]?.content), this.data[this.id]?.content?.filter((option: any) =>
+                    value.indexOf(option.value) >= 0)
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     return this.data[this.id].content?.filter((option: any) =>
@@ -1374,7 +1376,7 @@ export class MateuField extends LitElement {
                             }))
                     };
 
-
+                    console.log('value', value)
                     return html`
                         <vaadin-multi-select-combo-box
                             label="${label}"
@@ -1440,6 +1442,7 @@ export class MateuField extends LitElement {
                     }))
                 }
 
+                console.log('value', value)
                 return html`
                     <vaadin-checkbox-group
                         id="${this.field.fieldId}"
