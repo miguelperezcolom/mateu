@@ -148,7 +148,8 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest) {
     return List.of(
         Listing.builder()
-            .searchable(true)
+            .searchable(isSearchable(instance))
+            .rowsSelectionEnabled(isRowSelectionEnabled(instance))
             .filters(
                 getFilters(
                     getFiltersClass(instance),
@@ -168,6 +169,18 @@ public class ReflectionPageMapper {
                     httpRequest))
             .style("min-width: 30rem; display: block;")
             .build());
+  }
+
+  private static boolean isRowSelectionEnabled(Object instance) {
+    if (instance != null) {
+      return getAllMethods(instance.getClass()).stream()
+          .anyMatch(method -> method.isAnnotationPresent(Toolbar.class));
+    }
+    return false;
+  }
+
+  private static boolean isSearchable(Object instance) {
+    return true;
   }
 
   private static Class getRowClass(Object instance) {
