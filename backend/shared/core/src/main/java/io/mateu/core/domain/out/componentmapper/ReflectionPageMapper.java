@@ -4,9 +4,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDataType;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFormField;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getStereotype;
+import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
@@ -17,7 +15,6 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
-import io.mateu.uidl.annotations.Image;
 import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Tab;
@@ -247,9 +244,6 @@ public class ReflectionPageMapper {
   private static String getColumnStyle(AccessibleObject field) {
     if (field.isAnnotationPresent(Style.class)) {
       return field.getAnnotation(Style.class).value();
-    }
-    if (field.isAnnotationPresent(Image.class)) {
-      return field.getAnnotation(Image.class).rowStyle();
     }
     return "";
   }

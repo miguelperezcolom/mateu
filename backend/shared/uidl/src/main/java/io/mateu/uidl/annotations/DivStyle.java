@@ -7,5 +7,8 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface Html {}
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
+public @interface DivStyle {
+
+  String value();
+}

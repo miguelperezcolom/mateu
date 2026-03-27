@@ -219,8 +219,8 @@ public class ReflectionFormFieldMapper {
   }
 
   private static Map<String, String> getAttributes(Field field) {
-    if (field.isAnnotationPresent(Choice.class)) {
-      return Map.of("divStyle", field.getAnnotation(Choice.class).style());
+    if (field.isAnnotationPresent(DivStyle.class)) {
+      return Map.of("divStyle", field.getAnnotation(DivStyle.class).value());
     }
     return Map.of();
   }
@@ -235,9 +235,6 @@ public class ReflectionFormFieldMapper {
   private static String getStyle(Field field) {
     if (field.isAnnotationPresent(Style.class)) {
       return field.getAnnotation(Style.class).value();
-    }
-    if (field.isAnnotationPresent(Image.class)) {
-      return field.getAnnotation(Image.class).style();
     }
     return "";
   }
@@ -485,8 +482,8 @@ public class ReflectionFormFieldMapper {
   }
 
   private static FieldStereotype getStereotypeForColumn(Field columnField) {
-    if (columnField.isAnnotationPresent(Image.class)) {
-      return FieldStereotype.image;
+    if (columnField.isAnnotationPresent(Stereotype.class)) {
+      return columnField.getAnnotation(Stereotype.class).value();
     }
     return FieldStereotype.regular;
   }
@@ -611,23 +608,8 @@ public class ReflectionFormFieldMapper {
     if (field.getType().isEnum()) {
       return FieldStereotype.select;
     }
-    if (field.isAnnotationPresent(Image.class)) {
-      return FieldStereotype.image;
-    }
     if (field.isAnnotationPresent(ForeignKey.class)) {
       return FieldStereotype.combobox;
-    }
-    if (field.isAnnotationPresent(Select.class)) {
-      return FieldStereotype.select;
-    }
-    if (field.isAnnotationPresent(Choice.class)) {
-      return FieldStereotype.choice;
-    }
-    if (field.isAnnotationPresent(Html.class)) {
-      return FieldStereotype.html;
-    }
-    if (field.isAnnotationPresent(TextArea.class)) {
-      return FieldStereotype.textarea;
     }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
