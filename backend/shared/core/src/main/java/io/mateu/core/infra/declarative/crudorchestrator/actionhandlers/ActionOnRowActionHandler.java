@@ -1,7 +1,9 @@
 package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
+import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Method;
@@ -18,12 +20,21 @@ public class ActionOnRowActionHandler {
     for (Method method : getAllMethods(crudOrchestrator.getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
         method.setAccessible(true);
-        Object result = null;
-        if (method.getParameterCount() == 0) {
-          result = method.invoke(crudOrchestrator);
-        } else {
-          result = method.invoke(crudOrchestrator, httpRequest);
-        }
+        var rq = httpRequest.runActionRq();
+        var command =
+            new RunActionCommand(
+                "base_url",
+                "uiId",
+                rq.route(),
+                rq.consumedRoute(),
+                rq.actionId(),
+                rq.componentState(),
+                rq.appState(),
+                rq.initiatorComponentId(),
+                httpRequest,
+                rq.serverSideType(),
+                rq.appServerSideType());
+        Object result = invoke(method, crudOrchestrator, command);
         if (result != null) {
           return result;
         }

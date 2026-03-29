@@ -288,10 +288,11 @@ public class ReflectionFormFieldMapper {
             columnField ->
                 !columnField.isAnnotationPresent(Hidden.class)
                     && !columnField.isAnnotationPresent(HiddenInList.class)
-                    && (isBasic(columnField.getType())
-                        || columnField.getType().isEnum()
-                        || ColumnAction.class.equals(columnField.getType())
-                        || ColumnActionGroup.class.equals(columnField.getType())))
+            //                    && (isBasic(columnField.getType())
+            //                        || columnField.getType().isEnum()
+            //                        || ColumnAction.class.equals(columnField.getType())
+            //                        || ColumnActionGroup.class.equals(columnField.getType()))
+            )
         .forEach(
             columnField -> {
               columns.add(
@@ -468,6 +469,9 @@ public class ReflectionFormFieldMapper {
   }
 
   private static FieldDataType getDataTypeForColumn(Field columnField) {
+    if (Status.class.isAssignableFrom(columnField.getType())) {
+      return FieldDataType.status;
+    }
     if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.component;
     }

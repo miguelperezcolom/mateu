@@ -233,7 +233,7 @@ public class ReflectionPageMapper {
       return true;
     }
     if (!isBasic(field.getType())) {
-      return false;
+      return true;
     }
     return true;
   }

@@ -4,6 +4,7 @@ import static io.mateu.core.domain.act.DefaultActionRunnerProvider.asFlux;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
@@ -11,6 +12,8 @@ import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +39,7 @@ public class RunMethodActionRunner implements ActionRunner {
     Method m = getMethod(instance.getClass(), command.actionId());
     if (m != null) {
       if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
-      Object result = m.invoke(instance);
+      Object result = invoke(m, instance, command);
       return asFlux(result, instance);
     }
     Field f = getFieldByName(instance.getClass(), command.actionId());
@@ -65,5 +68,29 @@ public class RunMethodActionRunner implements ActionRunner {
       return asFlux(result, instance);
     }
     return Flux.empty();
+  }
+
+  public static Object invoke(Method m, Object instance, RunActionCommand command)
+      throws InvocationTargetException, IllegalAccessException {
+    if (m.getParameterCount() > 0) {
+      return m.invoke(instance, createParameters(m, command));
+    } else {
+      return m.invoke(instance);
+    }
+  }
+
+  public static Object[] createParameters(Method m, RunActionCommand command) {
+    List<Object> params = new ArrayList<>();
+    for (Parameter p : m.getParameters()) {
+      if (List.class.isAssignableFrom(p.getType())) {
+        var type = getGenericClass(p.getParameterizedType());
+        params.add(command.httpRequest().getSelectedRows(type));
+      } else if (HttpRequest.class.equals(p.getType())) {
+        params.add(command.httpRequest());
+      } else {
+        params.add(null); // tipo no reconocido → null para no desalinear el array
+      }
+    }
+    return params.toArray();
   }
 }
