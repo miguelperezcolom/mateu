@@ -172,6 +172,12 @@ public class ReflectionPageMapper {
   }
 
   private static boolean isRowSelectionEnabled(Object instance) {
+    if (instance instanceof ListingBackend<?, ?> listingBackend) {
+      return listingBackend.selectionEnabled();
+    }
+    if (instance instanceof ReactiveListingBackend<?, ?> reactiveListingBackend) {
+      return reactiveListingBackend.selectionEnabled();
+    }
     if (instance != null) {
       return getAllMethods(instance.getClass()).stream()
           .anyMatch(method -> method.isAnnotationPresent(Toolbar.class));

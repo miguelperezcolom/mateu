@@ -61,4 +61,8 @@ public interface ListingBackend<Filters, Row> extends ActionHandler {
 
   ListingData<Row> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
+
+  default boolean selectionEnabled() {
+    return false;
+  }
 }

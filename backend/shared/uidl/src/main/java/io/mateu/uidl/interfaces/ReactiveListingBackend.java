@@ -50,4 +50,8 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
 
   Mono<ListingData<Row>> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
+
+  default boolean selectionEnabled() {
+    return false;
+  }
 }
