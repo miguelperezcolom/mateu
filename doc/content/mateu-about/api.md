@@ -7,5 +7,5 @@ Mateu api is a very simple one. There is only 1 method to implement:
 
 - run action
 
-You can find the full spec at https://editor.swagger.io/?import=https://mateu.io/openapi/mateu.yaml
+You can find the full spec at https://editor.swagger.io/?url=https://mateu.io/openapi/mateu.yaml
 
