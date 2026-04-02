@@ -11,7 +11,7 @@ title: Spec-driven development. Build full apps with minimal code.
 
 ## Build full web apps with minimal code
 
-Define your application once — and get a complete UI automatically.
+Define your app once. Mateu builds the UI and wires everything together.
 
 **No HTML. No CSS. No JavaScript.**
 
