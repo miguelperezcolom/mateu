@@ -2,16 +2,18 @@
 header_alt: true
 title: Spec-driven development. Build full apps with minimal code.
 ---
-<meta name="description" content="Mateu lets you build complete web apps from a single spec. Less code, fewer moving parts, no frontend required.">
+<meta name="description" content="Mateu lets you build complete web apps with minimal code. Define your UI in Java and let Mateu render and wire everything automatically.">
 <meta property="og:title" content="Mateu – Spec-driven development">
-<meta property="og:description" content="Define your app once. Get UI, workflows, and logic automatically.">
+<meta property="og:description" content="Define your UI in Java. Mateu renders it and connects it to your backend automatically.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
 # Spec-driven development
 
+Define your UI as code — not build it by hand.
+
 ## Build full web apps with minimal code
 
-Define your app once. Mateu builds the UI and wires everything together.
+Define your UI once. Mateu builds it and wires everything together.
 
 **No HTML. No CSS. No JavaScript.**
 
@@ -45,18 +47,22 @@ You end up building the same app twice — and spending your time maintaining th
 
 **What if your app wasn’t split at all?**
 
-With Mateu, you define a single specification of your application:
+With Mateu, you define your UI in plain Java using classes and annotations.
 
-- data
-- actions
-- workflows
-- UI structure
+No templates. No markup. No frontend code.
 
-And Mateu turns it into a complete, working web application.
+- classes
+- fields (state)
+- annotations
+- actions (methods)
+
+Mateu renders the UI automatically and connects it to your backend.
 
 ---
 
 ## Less code. Fewer moving parts.
+
+Instead of splitting your app across layers:
 
 - one source of truth
 - no duplication
@@ -101,21 +107,19 @@ public class Home {
 
 ## Not backend-driven. Not frontend-driven.
 
-**Spec-driven.**
-
-Your app is defined once — not split across layers.
+**Defined once. Rendered automatically.**
 
 ---
 
 ## Mateu vs traditional stack
 
-| Traditional stack              | Mateu                    |
-|------------------------------|--------------------------|
-| Backend + frontend           | Single spec              |
-| API layer                    | No API needed            |
-| Duplicated models            | Single source of truth   |
-| State sync issues            | No sync problems         |
-| More moving parts            | Minimal architecture     |
+| Traditional stack              | Mateu                      |
+|------------------------------|----------------------------|
+| Backend + frontend           | Backend + generated UI     |
+| API layer                    | No manual API needed       |
+| Duplicated models            | Single source of truth     |
+| State sync issues            | No sync problems           |
+| More moving parts            | Minimal architecture       |
 
 ---
 
