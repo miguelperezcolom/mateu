@@ -9,7 +9,6 @@ title: Spec-driven UI for distributed systems
 <meta property="og:description" content="Define your app once. Get UI, behavior, navigation, and validation automatically.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Spec-driven UI for distributed systems
 
 ## Build full web apps with minimal code
 

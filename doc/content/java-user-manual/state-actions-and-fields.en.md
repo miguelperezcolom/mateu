@@ -15,20 +15,21 @@ Fields represent UI state.
 
 Actions represent behavior triggered by the user.
 
+They can be defined as:
+
+- methods annotated with `@Toolbar`
+- methods annotated with `@Button`
+- `Runnable` fields annotated with `@Button`
+
+## Buttons and placement
+
+- `@Toolbar` → top toolbar  
+- `@Button` on methods → bottom form actions  
+- `@Button` on fields → inline buttons  
+
 ## Action behavior
 
 Actions can be configured declaratively using `@Action`.
-
-This includes:
-
-- validation  
-- confirmation  
-- execution mode  
-- UI behavior  
-
-## Buttons and actions
-
-Actions can be declared as methods or fields.
 
 ## Validation
 
@@ -38,17 +39,23 @@ Bean validation is automatically enforced in the UI.
 
 Triggers define when actions run.
 
-## Dynamic client-side behavior
+## Dynamic behavior
 
-Rules define how the UI changes dynamically.
+Rules define how the UI changes dynamically in the browser.
+
+## UI effects
+
+Actions can return:
+
+- `Message` → user feedback  
+- `UICommand` → browser control  
 
 ## Mental model
 
 - state → fields  
 - actions → methods or buttons  
 - action behavior → `@Action`  
-- relationships → foreign keys  
-- presentation → stereotypes  
 - reactions → triggers  
 - rules → dynamic behavior  
 - validation → bean validation  
+- effects → UI feedback  

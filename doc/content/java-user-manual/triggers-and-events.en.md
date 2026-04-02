@@ -7,12 +7,19 @@ weight: 8
 
 Triggers define when actions run.
 
-## Triggers vs actions
+## Example
 
-- triggers define when actions run  
-- `@Action` defines how actions behave  
+```java
+@Trigger(type = TriggerType.OnLoad, actionId = "loadData")
+```
 
-## Triggers vs rules
+## Triggers vs rules vs actions
 
-- triggers → when  
+- actions → what happens  
+- triggers → when it happens  
 - rules → how UI changes  
+- effects → what the user sees  
+
+## Mental model
+
+Triggers orchestrate behavior without imperative frontend code.

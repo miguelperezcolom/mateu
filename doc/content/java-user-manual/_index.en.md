@@ -16,4 +16,5 @@ weight: 2
 - Action behavior  
 - Navigation and menus  
 - Layout and composition  
+- UI effects  
 - CRUD patterns  
