@@ -1,29 +1,35 @@
 ---
 header_alt: true
-title: Spec-driven UI for distributed systems
+title: Stop building the same app twice
 ---
 
-<meta name="description" content="Build full web apps from a single model. Define UI, behavior, navigation, validation, and browser effects in Java. No frontend layer. No duplicated models.">
+<meta name="description" content="Build real backoffice apps without a frontend. Define everything in Java. No duplicated models. No API glue.">
 
-<meta property="og:title" content="Mateu – Spec-driven UI for distributed systems">
-<meta property="og:description" content="Define UI, behavior, navigation, validation, and browser effects in Java. No frontend layer. No duplicated models.">
+<meta property="og:title" content="Mateu – Stop building the same app twice">
+<meta property="og:description" content="Build real backoffice apps without a frontend. One model. Full app.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Spec-driven UI for distributed systems
+# Stop building the same app twice
 
-## Build full web apps without a frontend layer
+## Build real backoffice apps without a frontend
 
 Define your app once in Java.  
-Mateu renders the UI, wires the interaction model, and keeps everything connected to your backend.
+Mateu renders the UI, wires interactions, and connects everything to your backend.
 
 **No HTML. No CSS. No JavaScript.**  
-**No duplicated models. No API glue. No fragmented architecture.**
+**No duplicated models. No API glue. No sync issues.**
 
 <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
-  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
-  <a href="/java-user-manual/">Read the docs</a>
+  <a href="/build-a-full-backoffice-in-10-minutes"><strong>Build a backoffice →</strong></a>
+  <a href="https://github.com/miguelperezcolom/mateu">GitHub</a>
 </div>
+
+---
+
+<p align="center">
+  <img src="/images/workflow-edit.png" width="1000"/>
+</p>
 
 ---
 
@@ -33,32 +39,31 @@ With Mateu, you define:
 
 - state
 - actions
-- action behavior
+- behavior
 - relationships
 - navigation
 - layout
-- rendering intent
-- reactions
-- rules
 - validation
-- UI effects
+- UI reactions
 
 Everything else is generated.
 
 ---
 
-## 🚀 Build something real
+## This is a real app
 
-👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
+<p align="center">
+  <img src="/images/workflow-list.png" width="900"/>
+</p>
 
-See how Mateu is used to build a real admin app with:
+<p align="center">
+  <img src="/images/processes.png" width="900"/>
+</p>
 
-- forms
-- validation
-- CRUD
-- relationships
-- navigation
-- browser feedback
+You’re not wiring components.  
+You’re not syncing frontend and backend.
+
+You’re just defining your application.
 
 ---
 
@@ -77,15 +82,15 @@ public class Home {
 }
 ```
 
-## Get this
+---
 
-<p align="center"><img src="../../../images/counter.png" width="700"/></p>
+## And get a working UI
+
+No templates. No controllers. No frontend layer.
 
 ---
 
-## A real app model
-
-A typical CRUD can include validation, relationships, rendering intent, and browser feedback in one place:
+## A real CRUD
 
 ```java
 @NotEmpty
@@ -109,91 +114,56 @@ Mateu handles:
 - interaction
 - user feedback
 
-👉 [See the CRUD example →](/java-user-manual/crud-example)
-
 ---
 
-## Navigation is just your object model
+## Navigation is your object model
 
 ```java
 @Menu
 MasterDataMenu masterData;
-
-public class MasterDataMenu {
-
-  @Menu EnvironmentCrudOrchestrator environments;
-  @Menu LanguageCrudOrchestrator languages;
-
-}
 ```
 
-No routing config. No menu config. Just classes.
+Menus, routing, and structure come from your classes.
 
 ---
 
 ## One shell. Many services.
 
-Each service can own its UI and expose its own menu tree.
+Each microservice can expose its own UI.
 
-A shell can compose them with `RemoteMenu`:
+Compose them with `RemoteMenu`:
 
-- independent services
+- independent deployment
 - unified navigation
-- centralized auth and branding
 - no frontend integration layer
-
-👉 [Learn about UI federation →](/mateu-about/ui-federation)
-
----
-
-## Why this is different
-
-Traditional apps split the same product into multiple layers:
-
-- backend
-- frontend
-- API
-- duplicated validation
-- duplicated routing
-- duplicated models
-
-Mateu keeps all of that in one model.
-
-👉 [See the Mateu model →](/mateu-about/mental-model)
 
 ---
 
 ## Built for
 
 - internal tools
+- admin panels
+- microservice backoffices
 - CRUD-heavy systems
-- enterprise apps
-- microservice architectures
-- platform backoffices
-
-👉 [Build a full backoffice →](/build-a-full-backoffice-in-10-minutes)
 
 ---
 
 ## Why Mateu
 
-- ⚡ Build apps faster
-- 🧠 One language, one mental model
-- 🔥 No frontend bugs or sync issues
-- 🧩 High-level abstraction by default
-- 🌐 Designed for distributed systems
-- 🔌 UI as embeddable web components
+- ⚡ Less code
+- 🧠 One mental model
+- 🔥 No frontend bugs
+- 🧩 No duplication
+- 🌐 Distributed-ready
 
 ---
 
-## Stop building the same app twice.
+## Start building
 
-Define it once.
-
-👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
-👉 [**Explore the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
-👉 [**Read the docs**](/java-user-manual/)
+👉 [Try the demo](https://vaadin.mateu.io/fluent/use-cases/rra)  
+👉 [Build a backoffice](/build-a-full-backoffice-in-10-minutes)  
+👉 [Read the docs](/java-user-manual/)
 
 ---
 
-_Built by developers who got tired of building the same app twice._
+_Built by developers who got tired of writing useless code._
