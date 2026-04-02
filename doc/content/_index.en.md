@@ -3,66 +3,38 @@ header_alt: true
 title: Spec-driven UI for distributed systems
 ---
 
-<meta name="description" content="Mateu lets you build complete web applications from a single spec. Minimal code, no frontend, no duplication.">
+<meta name="description" content="Build full web apps from a single model. Define UI, behavior, navigation, validation, and browser effects in Java. No frontend layer. No duplicated models.">
 
-<meta property="og:title" content="Mateu – Spec-driven UI framework">
-<meta property="og:description" content="Define your app once. Get UI, behavior, navigation, and validation automatically.">
+<meta property="og:title" content="Mateu – Spec-driven UI for distributed systems">
+<meta property="og:description" content="Define UI, behavior, navigation, validation, and browser effects in Java. No frontend layer. No duplicated models.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
+# Spec-driven UI for distributed systems
 
-## Build full web apps with minimal code
+## Build full web apps without a frontend layer
 
-Define your app once. Mateu builds the UI and wires everything together.
+Define your app once in Java.  
+Mateu renders the UI, wires the interaction model, and keeps everything connected to your backend.
 
-**No HTML. No CSS. No JavaScript.**
-
-No duplicated models. No API glue. No fragmented architecture.
+**No HTML. No CSS. No JavaScript.**  
+**No duplicated models. No API glue. No fragmented architecture.**
 
 ---
 
 <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
   <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
-  <a href="https://mateu.io/java-create-your-project/springboot-mvc/">Read the docs</a>
+  <a href="/java-user-manual/">Read the docs</a>
 </div>
 
 ---
 
-## The problem
-
-Modern applications are split across too many layers:
-
-- backend
-- frontend
-- APIs
-- duplicated models
-- state synchronization
-
-You end up building the same app twice — and maintaining the gaps between them.
-
----
-
-## The shift
-
-**What if your app wasn’t split at all?**
-
-With Mateu, you define your UI using plain Java:
-
-- classes
-- fields (state)
-- annotations
-- actions (methods or buttons)
-
-Mateu renders the UI automatically and connects it to your backend.
-
----
-
-## What you actually write
+## One model. Full app.
 
 With Mateu, you define:
 
 - state
-- actions (methods or buttons)
+- actions
 - action behavior
 - relationships
 - navigation
@@ -71,19 +43,9 @@ With Mateu, you define:
 - reactions
 - rules
 - validation
+- UI effects
 
 Everything else is generated.
-
----
-
-## Less code. Fewer moving parts.
-
-- one source of truth
-- no duplication
-- no glue code
-- no sync issues
-
-**Build the same apps with a fraction of the complexity.**
 
 ---
 
@@ -108,9 +70,9 @@ public class Home {
 
 ---
 
-## A real example
+## A real app model
 
-A typical CRUD with relationships, validation, and behavior:
+A typical CRUD can include validation, relationships, rendering intent, and browser feedback in one place:
 
 ```java
 @NotEmpty
@@ -121,18 +83,20 @@ String name;
 List<String> permissions;
 
 @Button
-public void save() {
-  // application logic
+public Message save() {
+  return new Message("Saved successfully");
 }
 ```
 
 Mateu handles:
 
-- UI rendering
+- rendering
 - validation in the browser
-- data binding
 - option loading
 - interaction
+- user feedback
+
+👉 [See the CRUD example →](/java-user-manual/crud-example)
 
 ---
 
@@ -154,57 +118,68 @@ No routing config. No menu config. Just classes.
 
 ---
 
-## Works with microservices
+## One shell. Many services.
 
-Each service owns its UI and exposes a menu.
+Each service can own its UI and expose its own menu tree.
 
-The shell composes them:
+A shell can compose them with `RemoteMenu`:
 
 - independent services
 - unified navigation
-- no frontend duplication
+- centralized auth and branding
+- no frontend integration layer
+
+👉 [Learn about UI federation →](/mateu-about/ui-federation)
+
+---
+
+## Why this is different
+
+Traditional apps split the same product into multiple layers:
+
+- backend
+- frontend
+- API
+- duplicated validation
+- duplicated routing
+- duplicated models
+
+Mateu keeps all of that in one model.
+
+👉 [See the Mateu model →](/mateu-about/mental-model)
+
+---
+
+## Built for
+
+- internal tools
+- CRUD-heavy systems
+- enterprise apps
+- microservice architectures
+- platform backoffices
+
+👉 [Explore use cases →](/use-cases)
 
 ---
 
 ## Why Mateu
 
-- ⚡ Build apps **10x faster**
+- ⚡ Build apps faster
 - 🧠 One language, one mental model
 - 🔥 No frontend bugs or sync issues
-- 🧩 High-level building blocks
+- 🧩 High-level abstraction by default
 - 🌐 Designed for distributed systems
 - 🔌 UI as embeddable web components
 
 ---
 
-## Not backend-driven. Not frontend-driven.
-
-**Spec-driven.**
-
-Your app is defined once — not split across layers.
-
----
-
-## Status
-
-🚧 **Mateu v3 is in active development**
-
-- cleaner architecture
-- better components
-- more flexibility
-- improved docs
-
-Early adopters welcome.
-
----
-
-## Stop splitting your app.
+## Stop building the same app twice.
 
 Define it once.
 
 👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
 👉 [**Explore the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
-👉 [**Read the docs**](https://mateu.io/java-create-your-project/springboot-mvc/)
+👉 [**Read the docs**](/java-user-manual/)
 
 ---
 
