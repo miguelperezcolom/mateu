@@ -20,6 +20,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -28,8 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route(value="/forms/data-sourced-fields-2", parentRoute="^$")
-@Singleton
-public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplier, ActionHandler {
+public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplier, ActionHandler, DataSupplier {
 
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
@@ -41,6 +41,9 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
     }
+
+    List<String> array = List.of("P0000000004","P0000000006");
+    List<String> array2 = List.of("P0000000004","P0000000006");
 
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -64,7 +67,7 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
                                                                                 .build())
                                                                         .build(),
                                                                 FormField.builder()
-                                                                        .id("array")
+                                                                        .id("array2")
                                                                         .label("Array/Combobox")
                                                                         .dataType(FieldDataType.array)
                                                                         .stereotype(FieldStereotype.combobox)
@@ -127,6 +130,7 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
                                                                                 .action("get-lines")
                                                                                 .build())
                                                                         .build()
+
 
                                                         ))
                                                         .build()
@@ -199,5 +203,12 @@ public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplie
             )));
         }
         return null;
+    }
+
+    @Override
+    public Object data(HttpRequest httpRequest) {
+        return Map.of("array2", Map.of("content", List.of(
+                Map.of("value", "P0000000004", "label", "Nexon"),
+                Map.of("value", "P0000000006", "label", "Triber"))));
     }
 }

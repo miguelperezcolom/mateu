@@ -475,7 +475,7 @@ export class MateuComponent extends ComponentElement {
         const customEvent = e as CustomEvent
         const state = this.state
         const data = this.data
-        console.log(state, data)
+        if (state === data) console.log(state, data)
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)

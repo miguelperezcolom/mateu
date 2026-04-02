@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 
+import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.*;
@@ -97,6 +98,6 @@ public abstract class ListComponentLayer<
     if (getClass().isAnnotationPresent(Style.class)) {
       return getClass().getAnnotation(Style.class).value();
     }
-    return columns.size() > 5 ? "width: 100%;" : "max-width:900px;margin: auto;";
+    return columns.size() > 5 ? "width: 100%;" : StyleConstants.CONTAINER;
   }
 }

@@ -17,6 +17,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -25,8 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route(value="/forms/data-sourced-fields-1", parentRoute="^$")
-@Singleton
-public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, ActionHandler {
+public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, ActionHandler, DataSupplier {
 
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
@@ -38,6 +38,8 @@ public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplie
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
     }
+
+    String string = "P0000000003";
 
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -57,7 +59,7 @@ public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplie
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.combobox)
                                                                         .remoteCoordinates(RemoteCoordinates.builder()
-                                                                                .action("search-customers")
+                                                                                .action("get-options")
                                                                                 .build())
                                                                         .build(),
                                                                 FormField.builder()
@@ -145,5 +147,10 @@ public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplie
             )));
         }
         return null;
+    }
+
+    @Override
+    public Object data(HttpRequest httpRequest) {
+        return Map.of("string-label", "Urban Cruiser Hyryder");
     }
 }

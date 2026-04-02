@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, nothing, TemplateResult } from "lit";
+import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -86,6 +86,7 @@ export class MateuField extends LitElement {
 
     comboData: any[] = []
 
+    rendered = false
 
     renderColorPicker = () => {
         const fieldId = this.field?.fieldId!
@@ -183,8 +184,6 @@ export class MateuField extends LitElement {
     selectedItems = (value: any[]) => {
         if (value && value.length > 0) {
             if (this.field?.remoteCoordinates) {
-                console.log('remoteCoordinates', this.field?.remoteCoordinates, this.data[this.id], this.data[this.id]?.content), this.data[this.id]?.content?.filter((option: any) =>
-                    value.indexOf(option.value) >= 0)
                 if (this.data[this.id]
                     && this.data[this.id].content) {
                     return this.data[this.id].content?.filter((option: any) =>
@@ -247,26 +246,28 @@ export class MateuField extends LitElement {
         const fieldId = this.field?.fieldId!
         const oldValue = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
         let value = undefined
-        if (e.detail.value) {
-            if (this.field?.remoteCoordinates) {
-                if (this.data[this.id]
-                    && this.data[this.id].content) {
-                    value = e.detail.value.map((index:any) => this.data[this.id].content[index].value)
+        if (this.rendered) {
+            if (e.detail.value) {
+                if (this.field?.remoteCoordinates) {
+                    if (this.data[this.id]
+                        && this.data[this.id].content) {
+                        value = e.detail.value.map((index:any) => this.data[this.id].content[index].value)
+                    }
+                } else {
+                    value = e.detail.value.map((index:any) => this.field!.options![index].value)
                 }
-            } else {
-                value = e.detail.value.map((index:any) => this.field!.options![index].value)
             }
-        }
-        if (!this.compareArrays(value, oldValue)) {
-            this.dispatchEvent(new CustomEvent('value-changed', {
-                detail: {
-                    value,
-                    //@ts-ignore
-                    fieldId: this.field?.fieldId
-                },
-                bubbles: true,
-                composed: true
-            }))
+            if (!this.compareArrays(value, oldValue)) {
+                this.dispatchEvent(new CustomEvent('value-changed', {
+                    detail: {
+                        value,
+                        //@ts-ignore
+                        fieldId: this.field?.fieldId
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
         }
     }
 
@@ -316,8 +317,14 @@ export class MateuField extends LitElement {
         return value
     }
 
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.rendered = false
+    }
+
     render() {
         const fieldId = this.field?.fieldId??''
+        setTimeout(() => this.rendered = true)
         return html`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.field?.description?html`
@@ -567,6 +574,12 @@ export class MateuField extends LitElement {
                     if (!selectedItem && this.comboData) {
                         selectedItem = this.comboData.find((item:any) => item.value == value)
                     }
+                    if (!selectedItem && value) {
+                        selectedItem = {
+                            value: value,
+                            label: this.data[this.id + '-label']??value
+                        }
+                    }
 
                     const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
                         const { filter, page, pageSize } = params;
@@ -781,7 +794,7 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         ${this.data[this.id]?.content?.map((option: any) => html`
-                            <vaadin-radio-button value="${option.value}" label="${option.label}">
+                            <vaadin-radio-button value="${option.value}" label="${option.label}" ?checked="${option && value && option.value === value}">
                                 ${option.description || option.image?html`
                                     <label slot="label">
                                         <vaadin-horizontal-layout theme="spacing">
@@ -1376,7 +1389,6 @@ export class MateuField extends LitElement {
                             }))
                     };
 
-                    console.log('value', value)
                     return html`
                         <vaadin-multi-select-combo-box
                             label="${label}"
@@ -1390,6 +1402,9 @@ export class MateuField extends LitElement {
                             @selected-items-changed="${this.multiComboBoxValueChanged}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
+                            auto-expand-horizontally
+                            auto-expand-vertically
+                            selected-items-on-top
                     ></vaadin-multi-select-combo-box>
                     `
                 }
@@ -1406,6 +1421,9 @@ export class MateuField extends LitElement {
                             @selected-items-changed="${this.multiComboBoxValueChanged}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
+                            auto-expand-horizontally
+                            auto-expand-vertically
+                            selected-items-on-top
                     ></vaadin-multi-select-combo-box>
                     `
             }
@@ -1442,7 +1460,6 @@ export class MateuField extends LitElement {
                     }))
                 }
 
-                console.log('value', value)
                 return html`
                     <vaadin-checkbox-group
                         id="${this.field.fieldId}"
@@ -1452,14 +1469,16 @@ export class MateuField extends LitElement {
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
+                        .value="${value}"
                 >
                         ${this.data[this.id]?.content?.map((option: any) => html`
+                                ${value?.indexOf(option.value) >= 0}
                             <vaadin-checkbox
                                     value="${option.value}"
                                     label="${option.label}"
-                                    checked="${value?.indexOf(option.value) >= 0 || nothing}"
                             ></vaadin-checkbox>
-                        `)}
+                        `
+                        )}
                 </vaadin-checkbox-group>
                     `
             }
