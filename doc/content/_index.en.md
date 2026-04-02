@@ -9,6 +9,7 @@ With Mateu, you define:
 
 - state  
 - actions (methods or buttons)  
+- action behavior  
 - relationships  
 - rendering intent  
 - reactions  

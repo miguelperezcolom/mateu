@@ -5,11 +5,14 @@ weight: 8
 
 # Triggers and events
 
-Mateu lets you define reactions declaratively with `@Trigger`.
+Triggers define when actions run.
+
+## Triggers vs actions
+
+- triggers define when actions run  
+- `@Action` defines how actions behave  
 
 ## Triggers vs rules
 
-- triggers define when actions run  
-- rules define how the UI changes dynamically  
-
-Both are declarative and live in the same model.
+- triggers → when  
+- rules → how UI changes  

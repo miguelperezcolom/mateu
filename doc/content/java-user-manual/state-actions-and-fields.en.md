@@ -15,48 +15,20 @@ Fields represent UI state.
 
 Actions represent behavior triggered by the user.
 
+## Action behavior
+
+Actions can be configured declaratively using `@Action`.
+
+This includes:
+
+- validation  
+- confirmation  
+- execution mode  
+- UI behavior  
+
 ## Buttons and actions
 
-Mateu actions are not limited to `Runnable` fields.
-
-You can declare actions as methods or as fields, depending on how you want them rendered.
-
-### Toolbar actions
-
-Methods annotated with `@Toolbar` are rendered in the toolbar (typically top-right).
-
-```java
-@Toolbar
-public void refresh() {
-  // ...
-}
-```
-
-### Form buttons
-
-Methods annotated with `@Button` are rendered at the bottom of the form.
-
-```java
-@Button
-public void save() {
-  // ...
-}
-```
-
-### Inline buttons
-
-If you annotate a `Runnable` field with `@Button`, it behaves like a field in the form.
-
-This means it can be positioned anywhere in the layout.
-
-```java
-@Button
-Runnable generate = () -> {};
-```
-
-## Behavior and rendering
-
-Annotations define structure and presentation.
+Actions can be declared as methods or fields.
 
 ## Validation
 
@@ -68,12 +40,13 @@ Triggers define when actions run.
 
 ## Dynamic client-side behavior
 
-Rules define how the UI changes dynamically in the browser.
+Rules define how the UI changes dynamically.
 
 ## Mental model
 
 - state → fields  
 - actions → methods or buttons  
+- action behavior → `@Action`  
 - relationships → foreign keys  
 - presentation → stereotypes  
 - reactions → triggers  

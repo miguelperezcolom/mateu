@@ -13,6 +13,5 @@ weight: 2
 - Triggers and events  
 - Rules  
 - Validation  
+- Action behavior  
 - CRUD patterns  
-
-Mateu lets you define both state and actions declaratively, including buttons placed in toolbars, forms, or inline.
