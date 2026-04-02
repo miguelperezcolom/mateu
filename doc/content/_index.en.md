@@ -104,6 +104,29 @@ public class Home {
 
 ---
 
+## Use cases
+
+Mateu works especially well for:
+
+### Internal tools
+Admin panels, dashboards, and back-office apps.
+
+### CRUD applications
+Data-heavy systems with forms, tables, and actions.
+
+### Enterprise apps
+Complex business applications with many screens and workflows.
+
+### Microservice UIs
+Distributed systems where multiple services contribute to the UI.
+
+### Embedded UIs
+Integrate Mateu UIs into existing applications as web components.
+
+👉 [Explore use cases →](/use-cases)
+
+---
+
 ## Why Mateu
 
 - ⚡ Build apps faster
