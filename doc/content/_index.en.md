@@ -73,6 +73,14 @@ public class Home {
 
 ---
 
+## Proven in microservices
+
+Mateu can be used in systems where each service owns its own UI routes and screens, keeping UI definition close to backend ownership.
+
+👉 [See how Mateu fits microservices →](/mateu-about/microservices)
+
+---
+
 ## Stop splitting your app.
 
 Define it once.

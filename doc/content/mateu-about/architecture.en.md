@@ -53,6 +53,14 @@ That means you can:
 - embed Mateu UIs in other applications
 - compose UIs from multiple backends
 
+## A real microservices pattern
+
+A practical way to use Mateu is to let each microservice own both its domain logic and the UIs related to that domain.
+
+For example, a users service can expose its own routes, menus, and CRUD screens, while other services expose different UI fragments.
+
+Those services can still communicate through protocols such as gRPC, while Mateu keeps the UI definition close to the backend that owns the behavior.
+
 ## One sentence summary
 
 Mateu turns backend objects into real UIs through a simple API and a pluggable renderer.

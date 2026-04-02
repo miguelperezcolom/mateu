@@ -3,6 +3,8 @@ title: "Philosophy"
 weight: 3
 ---
 
+# Philosophy
+
 Modern web development often creates accidental complexity.
 
 A simple business application gets split into:
