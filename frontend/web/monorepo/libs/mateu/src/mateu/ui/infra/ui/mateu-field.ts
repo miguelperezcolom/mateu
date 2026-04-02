@@ -1404,7 +1404,7 @@ export class MateuField extends LitElement {
                             style="${this.field.style}"
                             auto-expand-horizontally
                             auto-expand-vertically
-                            selected-items-on-top
+                            xselected-items-on-top
                     ></vaadin-multi-select-combo-box>
                     `
                 }
@@ -1423,7 +1423,7 @@ export class MateuField extends LitElement {
                             style="${this.field.style}"
                             auto-expand-horizontally
                             auto-expand-vertically
-                            selected-items-on-top
+                            xselected-items-on-top
                     ></vaadin-multi-select-combo-box>
                     `
             }
@@ -1472,7 +1472,6 @@ export class MateuField extends LitElement {
                         .value="${value}"
                 >
                         ${this.data[this.id]?.content?.map((option: any) => html`
-                                ${value?.indexOf(option.value) >= 0}
                             <vaadin-checkbox
                                     value="${option.value}"
                                     label="${option.label}"
