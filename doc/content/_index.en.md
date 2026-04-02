@@ -1,19 +1,23 @@
 ---
 header_alt: true
-title: Build full web apps from your backend code
+title: Skip the frontend. Build full apps in your backend.
 ---
-<meta name="description" content="Mateu is an open-source backend-driven UI framework that lets you build complete web apps using only Java — no HTML, CSS, or JavaScript.">
-<meta property="og:title" content="Mateu – Build full web apps from your backend code">
-<meta property="og:description" content="Create complete, responsive UIs with Java. No HTML, CSS, or JavaScript required.">
-<meta property="og:image" content="https://mateu.io/og-image.png">
+  <meta name="description" content="Mateu lets you build complete web apps from your backend. No frontend, no JavaScript, no complexity.">
+  <meta property="og:title" content="Mateu – Skip the frontend">
+  <meta property="og:description" content="Build complete UIs from your backend code. No HTML, CSS, or JavaScript required.">
+  <meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Build full web apps from your backend code
+# Skip the frontend.
 
-**Mateu** is an open-source framework that lets backend developers build complete, responsive web applications using only backend code.
+## Build full apps in your backend.
+
+**Mateu** is an open-source framework that lets you build complete web applications — UI, workflows, and logic — using only backend code.
 
 **No HTML. No CSS. No JavaScript.**
 
-Design screens, define workflows, and ship production-ready UIs directly from Java — with support for C# and Python planned.
+No React. No Angular. No frontend team required.
+
+---
 
 <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
@@ -23,34 +27,39 @@ Design screens, define workflows, and ship production-ready UIs directly from Ja
 
 ---
 
-## Why developers like Mateu
+## The problem
 
-- 🚀 **Build faster** with less code
-- 🧠 **Stay in the backend** and avoid context switching
-- 🎯 **Focus on business logic**, not frontend plumbing
-- 🧩 **Use high-level UI components** instead of building screens by hand
-- 🌐 **Designed for stateless and distributed architectures**
-- 🔌 **Deliver UIs as web components** and embed them anywhere
+Modern web development is broken.
+
+To build a simple business app, you need:
+
+- a backend (Java, Spring, etc.)
+- a frontend (React, Vue…)
+- APIs in between
+- duplicated models
+- constant context switching
+- endless glue code
+
+You spend more time wiring things together than building actual features.
 
 ---
 
-## Write backend code. Get a real UI.
+## The idea
 
-With Mateu, you define your UI using plain Java classes, annotations, and familiar backend patterns.
+**What if your backend *was* the UI?**
 
-This code:
+Mateu lets you define screens, actions, and workflows directly in your backend code — and turns them into real, responsive web interfaces.
+
+No API layer.
+No frontend duplication.
+No complexity.
+
+---
+
+## Write this
 
 ```java
-package com.example.demo.infra.in.ui;
-
-import io.mateu.uidl.StyleConstants;
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.UI;
-
 @UI("")
-@Style(StyleConstants.CONTAINER)
 public class Home {
 
   @ReadOnly
@@ -62,82 +71,99 @@ public class Home {
 }
 ```
 
-Becomes this:
+## Get this
 
 <p align="center"><img src="../../../images/counter.png" width="700"/></p>
 
 ---
 
-## What makes Mateu different
+## Why Mateu
 
-Most frameworks help you build UI components.
+- ⚡ Build apps **10x faster**
+- 🧠 Stay in one language, one stack, one mental model
+- 🔥 No frontend bugs, no state sync issues
+- 🧩 High-level components instead of low-level UI work
+- 🌐 Built for stateless, distributed systems
+- 🔌 Embed anywhere as web components
 
-**Mateu helps you build the whole application from the backend.**
+---
 
-It gives backend developers a simple way to define screens, actions, navigation, workflows, and application structure without creating a separate frontend layer.
+## Not just UI components
 
-That means:
+Most tools help you build UI pieces.
 
-- fewer moving parts
-- less duplicated logic
-- faster iteration
-- simpler maintenance
+**Mateu lets you build the whole app.**
+
+- screens
+- navigation
+- actions
+- workflows
+- state
+
+All from your backend.
+
+---
+
+## Mateu vs traditional approach
+
+| Traditional stack              | Mateu                    |
+|------------------------------|--------------------------|
+| Backend + frontend           | Backend only             |
+| API layer                    | No API needed            |
+| Duplicated models            | Single source of truth   |
+| State sync issues            | No sync problems         |
+| Slower development           | Faster iteration         |
 
 ---
 
 ## Mateu vs Vaadin
 
-Vaadin is a great framework, and Mateu actually builds on ideas we like from its design system. But the goal is different.
+Vaadin is great — but it's still UI-first.
 
-| Feature                    | Vaadin                           | Mateu                                              |
-|----------------------------|----------------------------------|----------------------------------------------------|
-| **Primary focus**          | UI components                    | Full application structure                         |
-| **Architecture**           | Stateful                         | Stateless                                          |
-| **Microservices fit**      | Limited                          | Designed for distributed systems                   |
-| **Frontend model**         | Coupled                          | Decoupled and swappable                            |
-| **Microfrontend support**  | Indirect                         | First-class                                        |
-| **Language support**       | Java only                        | Java now, C# and Python planned                    |
+Mateu is **application-first**.
 
-If you want to build modern business applications from the backend with minimal frontend overhead, Mateu takes a different path.
+| Feature          | Vaadin        | Mateu                  |
+|------------------|--------------|------------------------|
+| Focus            | UI           | Full app               |
+| Architecture     | Stateful     | Stateless              |
+| Microservices    | Limited      | Native fit             |
+| Frontend         | Coupled      | Fully decoupled        |
 
 ---
 
-## Built for modern backend teams
+## Who is this for?
 
-Mateu is a strong fit if you want to:
+Mateu is built for:
 
-- build internal tools faster
-- create CRUD-heavy business apps
-- keep UI logic close to domain logic
-- work with stateless services and microservices
-- avoid maintaining a separate frontend stack
-
----
-
-## Current status
-
-## Mateu v3 is in development
-
-Since May 2024, Mateu v3 has been evolving toward a cleaner and more flexible architecture, including:
-
-- a more modular design
-- improved UX components
-- more extension points
-- updated documentation
-- support for alternate design systems
-
-Mateu is actively evolving, and early adopters are welcome.
+- backend developers tired of frontend
+- teams building internal tools
+- startups that need to move fast
+- microservice architectures
+- CRUD-heavy business apps
 
 ---
 
-## Ready to build smarter UIs?
+## Status
 
-Build complete web apps from your backend code — faster, with less complexity, and without a separate frontend layer.
+🚧 **Mateu v3 is in active development**
+
+- cleaner architecture
+- better components
+- more flexibility
+- improved docs
+
+Early adopters welcome.
+
+---
+
+## Stop building frontends.
+
+Start building products.
 
 👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
-👉 [**Check out the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
-👉 [**Explore the documentation**](https://mateu.io/java-create-your-project/springboot-mvc/)
+👉 [**Explore the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
+👉 [**Read the docs**](https://mateu.io/java-create-your-project/springboot-mvc/)
 
 ---
 
-_Built by backend developers who got tired of writing frontend._
+_Built by backend developers who got tired of frontend._
