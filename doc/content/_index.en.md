@@ -9,77 +9,24 @@ title: Spec-driven development. Build full web apps with minimal code.
 
 # Spec-driven development
 
-Define your UI as code — not build it by hand.
-
 ## Build full web apps with minimal code
 
-Define your UI once. Mateu builds it and wires everything together.
+Define your UI in Java. Mateu renders it and connects it to your backend automatically.
 
 **No HTML. No CSS. No JavaScript.**
 
-No duplicated models. No manual API glue. No fragmented architecture.
-
----
-
-<div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+<div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
-  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
-  <a href="https://mateu.io/java-create-your-project/springboot-mvc/">Read the docs</a>
+  <a href="https://github.com/miguelperezcolom/mateu">GitHub</a>
+  <a href="https://mateu.io/java-create-your-project/springboot-mvc/">Docs</a>
 </div>
 
 ---
 
-## The problem
-
-Modern apps are split across too many layers:
-
-- backend
-- frontend
-- APIs
-- duplicated models
-- state synchronization
-
-You end up building the same app twice — and spending your time maintaining the gaps between them.
-
----
-
-## What Mateu changes
-
-With Mateu, you define your UI in plain Java using classes and annotations.
-
-No templates. No markup. No frontend code.
-
-- classes
-- fields (state)
-- annotations
-- actions (methods)
-
-Mateu renders the UI automatically and connects it to your backend.
-
----
-
-## What you actually get
-
-- forms
-- tables
-- layouts
-- actions
-- navigation
-
-All generated from your backend code.
-
----
-
-## Less code. Fewer moving parts.
-
-Instead of splitting your app across layers:
-
-- one source of truth
-- no duplication
-- no glue code
-- no sync issues
-
-**Build the same apps with a fraction of the complexity.**
+- One source of truth
+- No frontend duplication
+- No manual API glue
+- Stateless by design
 
 ---
 
@@ -104,24 +51,13 @@ public class Home {
 
 ---
 
-## Use cases
+## Built for
 
-Mateu works especially well for:
-
-### Internal tools
-Admin panels, dashboards, and back-office apps.
-
-### CRUD applications
-Data-heavy systems with forms, tables, and actions.
-
-### Enterprise apps
-Complex business applications with many screens and workflows.
-
-### Microservice UIs
-Distributed systems where multiple services contribute to the UI.
-
-### Embedded UIs
-Integrate Mateu UIs into existing applications as web components.
+- internal tools
+- CRUD applications
+- enterprise apps
+- microservice UIs
+- embedded UIs
 
 👉 [Explore use cases →](/use-cases)
 
@@ -132,40 +68,8 @@ Integrate Mateu UIs into existing applications as web components.
 - ⚡ Build apps faster
 - 🧠 One language, one mental model
 - 🔥 No frontend duplication
-- 🌐 Designed for stateless, distributed systems
-- 🔌 Deliver UIs as embeddable web components
-- 🎨 Keep frontend and backend decoupled
-
----
-
-## Not backend-driven. Not frontend-driven.
-
-**Defined once. Rendered automatically.**
-
----
-
-## Mateu vs traditional stack
-
-| Traditional stack              | Mateu                      |
-|------------------------------|----------------------------|
-| Backend + frontend           | Backend + generated UI     |
-| API layer                    | No manual API needed       |
-| Duplicated models            | Single source of truth     |
-| State sync issues            | No sync problems           |
-| More moving parts            | Minimal architecture       |
-
----
-
-## Status
-
-🚧 **Mateu v3 is in active development**
-
-- cleaner architecture
-- better components
-- more flexibility
-- improved docs
-
-Early adopters welcome.
+- 🌐 Designed for distributed systems
+- 🔌 Embeddable as web components
 
 ---
 
@@ -173,9 +77,7 @@ Early adopters welcome.
 
 Define it once.
 
-👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
-👉 [**Explore the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
-👉 [**Read the docs**](https://mateu.io/java-create-your-project/springboot-mvc/)
+👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)
 
 ---
 
