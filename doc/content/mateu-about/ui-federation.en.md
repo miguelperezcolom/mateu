@@ -5,49 +5,90 @@ weight: 22
 
 # UI federation
 
-Mateu allows you to compose UIs from multiple backend services.
+Mateu lets you build a shell UI that federates menus and UI modules from multiple backend services.
 
 ## The idea
 
-Instead of a single frontend aggregating everything, each service can expose its own UI — and those UIs can be composed together.
+Instead of a central frontend application reimplementing every module, each service exposes its own UI entry point.
 
-## Example
+A shell application composes those modules into a single console.
 
-A service can integrate UI exposed by another service.
+## Shell example
 
 ```java
-@MicroFrontend("/orders")
-Object orders;
+@UI("")
+@Title("Console")
+@KeycloakSecured(url = "...", realm = "mateu", clientId = "demo")
+@FavIcon("/images/riu.svg")
+@PageTitle("Console")
+@Logo("/images/riu.svg")
+public class ShellHome implements WidgetSupplier {
+
+    @EyesOnly(roles = "admin")
+    @Menu
+    RemoteMenu users = new RemoteMenu("/_users")
+        .withAppServerSideType("io.mateu.workflow.usersservice.infra.in.ui.UsersHome");
+
+    @EyesOnly(roles = {"admin", "operator"})
+    @Menu
+    RemoteMenu content = new RemoteMenu("/_content-service")
+        .withAppServerSideType("io.mateu.workflow.contentservice.infra.in.ui.ContentServiceHome");
+
+    @EyesOnly(scopes = {"workflow:read"})
+    @Menu
+    RemoteMenu workflow = new RemoteMenu("/_workflow")
+        .withAppServerSideType("io.mateu.workflow.infra.in.ui.WorkflowHome");
+}
 ```
 
-## What this enables
+## What this shows
 
-- UI owned by each service
-- independent deployment
-- no central frontend bottleneck
+The shell owns:
 
-## Compared to traditional micro frontends
+- branding
+- authentication
+- page metadata
+- top-level navigation
+- shared widgets
 
-Traditional micro frontend architectures usually require:
+Each microservice owns:
 
-- a frontend application shell
-- a micro frontend integration framework
-- explicit client-side composition
+- its own UI root
+- its own menus
+- its own CRUDs and screens
+- its own backend behavior
 
-With Mateu:
+## Remote menus
 
-- the backend defines the UI
-- the UI is exposed as a service
-- composition happens without a separate frontend application layer
+A `RemoteMenu` lets the shell include UI modules exposed by another service.
+
+This means UI composition happens at the backend level — not in a separate frontend application.
+
+## Security and visibility
+
+Menus can be controlled declaratively:
+
+- `@EyesOnly(roles = ...)`
+- `@EyesOnly(scopes = ...)`
+
+## Shared widgets
+
+The shell can render shared UI elements:
+
+```java
+@Override
+public List<Component> widgets(HttpRequest httpRequest) {
+    return List.of(/* user info, logout, etc. */);
+}
+```
 
 ## Why this matters
 
-This aligns naturally with microservices:
-
-- service owns data
-- service owns logic
-- service owns UI
+- one shell
+- many service-owned modules
+- centralized auth and branding
+- decentralized ownership
 
 ## One sentence
 
-UI federation without a frontend application.
+A backend-defined shell that federates UI modules from multiple services.
