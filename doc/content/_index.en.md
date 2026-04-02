@@ -1,21 +1,21 @@
 ---
 header_alt: true
-title: Skip the frontend. Build full apps in your backend.
+title: Spec-driven development. Build full apps with minimal code.
 ---
-  <meta name="description" content="Mateu lets you build complete web apps from your backend. No frontend, no JavaScript, no complexity.">
-  <meta property="og:title" content="Mateu – Skip the frontend">
-  <meta property="og:description" content="Build complete UIs from your backend code. No HTML, CSS, or JavaScript required.">
-  <meta property="og:image" content="https://mateu.io/og-image.png">
+<meta name="description" content="Mateu lets you build complete web apps from a single spec. Less code, fewer moving parts, no frontend required.">
+<meta property="og:title" content="Mateu – Spec-driven development">
+<meta property="og:description" content="Define your app once. Get UI, workflows, and logic automatically.">
+<meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Skip the frontend.
+# Spec-driven development
 
-## Build full apps in your backend.
+## Build full web apps with minimal code
 
-**Mateu** is an open-source framework that lets you build complete web applications — UI, workflows, and logic — using only backend code.
+Define your application once — and get UI, workflows, and logic automatically.
 
 **No HTML. No CSS. No JavaScript.**
 
-No React. No Angular. No frontend team required.
+No duplicated models. No API glue. No fragmented architecture.
 
 ---
 
@@ -29,30 +29,41 @@ No React. No Angular. No frontend team required.
 
 ## The problem
 
-Modern web development is broken.
+Modern apps are split across too many layers:
 
-To build a simple business app, you need:
-
-- a backend (Java, Spring, etc.)
-- a frontend (React, Vue…)
-- APIs in between
+- backend
+- frontend
+- APIs
 - duplicated models
-- constant context switching
-- endless glue code
+- state synchronization
 
-You spend more time wiring things together than building actual features.
+You end up building the same app twice — and spending your time maintaining the gaps between them.
 
 ---
 
-## The idea
+## The shift
 
-**What if your backend *was* the UI?**
+**What if your app wasn’t split at all?**
 
-Mateu lets you define screens, actions, and workflows directly in your backend code — and turns them into real, responsive web interfaces.
+With Mateu, you define a single specification of your application:
 
-No API layer.
-No frontend duplication.
-No complexity.
+- data
+- actions
+- workflows
+- UI structure
+
+And Mateu turns it into a complete, working web application.
+
+---
+
+## Less code. Fewer moving parts.
+
+- one source of truth
+- no duplication
+- no glue code
+- no sync issues
+
+**Build the same apps with a fraction of the complexity.**
 
 ---
 
@@ -80,64 +91,39 @@ public class Home {
 ## Why Mateu
 
 - ⚡ Build apps **10x faster**
-- 🧠 Stay in one language, one stack, one mental model
-- 🔥 No frontend bugs, no state sync issues
-- 🧩 High-level components instead of low-level UI work
-- 🌐 Built for stateless, distributed systems
-- 🔌 Embed anywhere as web components
+- 🧠 One language, one mental model
+- 🔥 No frontend bugs or sync issues
+- 🧩 High-level building blocks instead of low-level UI code
+- 🌐 Designed for stateless, distributed systems
+- 🔌 Deliver UIs as embeddable web components
 
 ---
 
-## Not just UI components
+## Not backend-driven. Not frontend-driven.
 
-Most tools help you build UI pieces.
+**Spec-driven.**
 
-**Mateu lets you build the whole app.**
-
-- screens
-- navigation
-- actions
-- workflows
-- state
-
-All from your backend.
+Your app is defined once — not split across layers.
 
 ---
 
-## Mateu vs traditional approach
+## Mateu vs traditional stack
 
 | Traditional stack              | Mateu                    |
 |------------------------------|--------------------------|
-| Backend + frontend           | Backend only             |
+| Backend + frontend           | Single spec              |
 | API layer                    | No API needed            |
 | Duplicated models            | Single source of truth   |
 | State sync issues            | No sync problems         |
-| Slower development           | Faster iteration         |
-
----
-
-## Mateu vs Vaadin
-
-Vaadin is great — but it's still UI-first.
-
-Mateu is **application-first**.
-
-| Feature          | Vaadin        | Mateu                  |
-|------------------|--------------|------------------------|
-| Focus            | UI           | Full app               |
-| Architecture     | Stateful     | Stateless              |
-| Microservices    | Limited      | Native fit             |
-| Frontend         | Coupled      | Fully decoupled        |
+| More moving parts            | Minimal architecture     |
 
 ---
 
 ## Who is this for?
 
-Mateu is built for:
-
-- backend developers tired of frontend
+- backend developers who want to move faster
 - teams building internal tools
-- startups that need to move fast
+- startups reducing complexity
 - microservice architectures
 - CRUD-heavy business apps
 
@@ -156,9 +142,9 @@ Early adopters welcome.
 
 ---
 
-## Stop building frontends.
+## Stop splitting your app.
 
-Start building products.
+Define it once.
 
 👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
 👉 [**Explore the GitHub repo**](https://github.com/miguelperezcolom/mateu)  
@@ -166,4 +152,4 @@ Start building products.
 
 ---
 
-_Built by backend developers who got tired of frontend._
+_Built by developers who got tired of building the same app twice._
