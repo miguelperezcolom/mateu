@@ -1,6 +1,6 @@
 ---
 title: "Microservices example"
-weight: 8
+weight: 9
 ---
 
 # Microservices example
