@@ -5,8 +5,30 @@ weight: 22
 
 # UI federation
 
-Each service can expose its own UI and menu tree using `@Menu`.
+Mateu lets multiple services contribute to a single UI.
 
-The shell composes these menus using `RemoteMenu`.
+Each service can expose:
 
-This allows multiple services to contribute to a single navigation structure.
+- its own UI root
+- its own menu tree
+- its own CRUDs and screens
+
+A shell application can compose those modules using `RemoteMenu`.
+
+## What this gives you
+
+- decentralized ownership
+- centralized navigation
+- no frontend integration layer
+- microfrontends without a traditional frontend application
+
+## What the shell can own
+
+The shell can also centralize concerns such as:
+
+- branding
+- authentication
+- page metadata
+- shared widgets
+
+This makes it possible to compose a distributed UI while still keeping a consistent application shell.
