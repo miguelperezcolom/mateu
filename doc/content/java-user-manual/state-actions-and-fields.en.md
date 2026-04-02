@@ -31,17 +31,38 @@ Runnable save = () -> {
 
 Mateu renders them as buttons or actions in the UI.
 
-## Behavior (annotations)
+## Behavior and rendering
 
-Annotations define how things are rendered.
+Annotations define how things are rendered and behave.
 
 Examples:
 
 - `@ReadOnly`
 - `@Button`
 - `@UI`
+- `@EditableOnlyWhenCreating`
+- `@Stereotype`
 
 They control how fields and actions appear in the UI.
+
+## Field rendering with stereotypes
+
+By default, Mateu infers how a field should be rendered.
+
+When you want more control, you can use `@Stereotype` to define the presentation intent explicitly.
+
+```java
+@Stereotype(FieldStereotype.textarea)
+String description;
+
+@Stereotype(FieldStereotype.email)
+String email;
+
+@Stereotype(FieldStereotype.checkbox)
+List<String> permissions;
+```
+
+This lets you keep the UI definition in Java while still controlling the rendering of specific fields.
 
 ## Mental model
 
@@ -50,5 +71,6 @@ Think of your class as:
 - state → fields
 - behavior → annotations
 - interaction → actions
+- presentation intent → stereotypes
 
 Mateu takes care of rendering and wiring everything.

@@ -23,7 +23,7 @@ In Java, Mateu UIs are typically built with:
 - classes
 - fields for state
 - methods or callables for actions
-- annotations for UI behavior
+- annotations for UI behavior and presentation
 
 ## Two ways to build UIs
 
@@ -51,6 +51,8 @@ From your Java definition, Mateu can render:
 
 - Getting started
 - Declarative vs fluent
+- State, actions and fields
+- Field stereotypes
 - Examples
 - Supported components
 

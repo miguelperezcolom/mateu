@@ -161,7 +161,7 @@ This example shows several important things at once:
 - creation-only fields with `@EditableOnlyWhenCreating`
 - layout hints such as `@Colspan`
 - foreign keys with option and label suppliers
-- checkbox-style multi-selection
+- checkbox-style multi-selection through `@Stereotype(FieldStereotype.checkbox)`
 - use cases for create and save
 
 ## Another example: users with relationships
@@ -232,6 +232,7 @@ It shows a Mateu CRUD integrated with:
 
 - typed view models
 - validation
+- field stereotypes
 - foreign key selection
 - query services
 - application use cases
