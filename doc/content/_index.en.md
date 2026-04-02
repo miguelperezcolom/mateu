@@ -1,11 +1,11 @@
 ---
 header_alt: true
 title: Build full web apps from your backend code
+---
 <meta name="description" content="Mateu is an open-source backend-driven UI framework that lets you build complete web apps using only Java — no HTML, CSS, or JavaScript.">
 <meta property="og:title" content="Mateu – Build full web apps from your backend code">
 <meta property="og:description" content="Create complete, responsive UIs with Java. No HTML, CSS, or JavaScript required.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
----
 
 # Build full web apps from your backend code
 
