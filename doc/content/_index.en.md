@@ -12,7 +12,9 @@ With just Java (and soon C# and Python), you can design powerful user interfaces
 
 ---
 
-In a nutshell, the code below:
+## 🎯 In a nutshell
+
+Long story short, the code below:
 
 ```java
 package com.example.demo.infra.in.ui;
