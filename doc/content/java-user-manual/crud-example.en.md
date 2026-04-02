@@ -8,31 +8,18 @@ weight: 11
 ## View model excerpt
 
 ```java
-@EditableOnlyWhenCreating
-@NotEmpty
-String id;
-
 @NotEmpty
 String name;
-```
 
-Validation annotations such as `@NotEmpty` are automatically enforced in the UI, without writing any frontend code.
-
-## Relationships
-
-```java
-@ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
-@Stereotype(FieldStereotype.checkbox)
-List<String> permissions;
+@Button
+public Message save() {
+  return new Message("Saved successfully");
+}
 ```
 
 Mateu handles:
 
-- option loading  
-- label resolution  
-- rendering  
+- UI rendering  
+- validation  
 - interaction  
-
-## Why this matters
-
-Mateu lets you define UI, behavior, relationships, and validation in one place.
+- user feedback  
