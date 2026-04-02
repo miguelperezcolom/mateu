@@ -35,6 +35,12 @@ Annotations define structure and presentation:
 - `@Stereotype`
 - `@ForeignKey`
 
+## Validation
+
+Mateu supports standard Bean Validation annotations.
+
+These are automatically enforced in the UI.
+
 ## Reactions
 
 UI flow can also be described declaratively with triggers.
@@ -61,5 +67,6 @@ Think in terms of:
 - relationships → foreign keys  
 - presentation → stereotypes  
 - reactions → triggers  
+- validation → bean validation  
 
 Mateu handles the rest.

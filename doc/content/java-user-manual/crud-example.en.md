@@ -5,44 +5,34 @@ weight: 11
 
 # A real CRUD example
 
-This example shows how a Mateu CRUD can fit inside a hexagonal, DDD-style service.
-
-## Entry point
+## View model excerpt
 
 ```java
-@UI("/_users")
-@Title("Users")
-public class UsersHome {
+@EditableOnlyWhenCreating
+@NotEmpty
+String id;
 
-    @Menu
-    UsersMenu users;
-}
+@NotEmpty
+String name;
 ```
 
-## View model (excerpt)
+Validation annotations such as `@NotEmpty` are automatically enforced in the UI, without writing any frontend code.
+
+## Relationships
 
 ```java
 @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
-@Colspan(2)
-@Style("width: 100%;")
 @Stereotype(FieldStereotype.checkbox)
 List<String> permissions;
 ```
 
-The `permissions` field is not just a list.
+Mateu handles:
 
-It is a backend-resolved foreign key relationship with:
-
-- dynamic option search
-- label resolution
-- declarative rendering
+- option loading  
+- label resolution  
+- rendering  
+- interaction  
 
 ## Why this matters
 
-Mateu lets you define rich forms with relationships while keeping:
-
-- query logic in query services
-- write logic in use cases
-- UI definition in view models
-
-No frontend glue required.
+Mateu lets you define UI, behavior, relationships, and validation in one place.
