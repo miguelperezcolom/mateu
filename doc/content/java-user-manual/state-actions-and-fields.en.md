@@ -42,6 +42,7 @@ Examples:
 - `@UI`
 - `@EditableOnlyWhenCreating`
 - `@Stereotype`
+- `@ForeignKey`
 
 They control how fields and actions appear in the UI.
 
@@ -64,6 +65,15 @@ List<String> permissions;
 
 This lets you keep the UI definition in Java while still controlling the rendering of specific fields.
 
+## Relationships with foreign keys
+
+Relationships can be declared with `@ForeignKey`, which delegates option search and label resolution to backend suppliers.
+
+```java
+@ForeignKey(search = RoleIdOptionsSupplier.class, label = RoleIdLabelSupplier.class)
+List<String> roles;
+```
+
 ## Mental model
 
 Think of your class as:
@@ -72,5 +82,6 @@ Think of your class as:
 - behavior → annotations
 - interaction → actions
 - presentation intent → stereotypes
+- relationships → foreign keys
 
 Mateu takes care of rendering and wiring everything.

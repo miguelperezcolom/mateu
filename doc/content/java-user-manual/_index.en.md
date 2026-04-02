@@ -14,61 +14,17 @@ _build:
 
 Mateu lets you define UIs in plain Java.
 
-Instead of building a separate frontend, you describe the UI in backend code and Mateu renders it automatically.
+## Core concepts
 
-## What you use
-
-In Java, Mateu UIs are typically built with:
-
-- classes
-- fields for state
-- methods or callables for actions
-- annotations for UI behavior and presentation
-
-## Two ways to build UIs
-
-### Declarative
-
-Use classes, fields, methods, and annotations.
-
-This is the simplest way to start and the recommended approach for most screens.
-
-### Fluent
-
-Use Mateu's Java API when you want more control over the generated UI.
-
-## What Mateu generates
-
-From your Java definition, Mateu can render:
-
-- forms
-- tables
-- layouts
-- actions
-- navigation
+- State, actions and fields
+- Field stereotypes
+- Foreign keys and options
+- CRUD patterns
 
 ## Start here
 
 - Getting started
-- Declarative vs fluent
 - State, actions and fields
 - Field stereotypes
+- Foreign keys and options
 - Examples
-- Supported components
-
-## A minimal example
-
-```java
-@UI("")
-public class Counter {
-
-  @ReadOnly
-  int count = 0;
-
-  @Button
-  Runnable increment = () -> count++;
-
-}
-```
-
-Mateu turns that into a working UI.
