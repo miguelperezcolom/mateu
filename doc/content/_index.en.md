@@ -2,18 +2,18 @@
 header_alt: true
 title: Spec-driven development. Build full web apps with minimal code.
 ---
-<meta name="description" content="Mateu lets you build complete web apps with minimal code. Define your UI in Java and let Mateu render and wire everything automatically.">
+<meta name="description" content="Mateu lets you build complete web apps with minimal code. Define your UI in Java and get a working app instantly.">
 <meta property="og:title" content="Mateu – Spec-driven development">
-<meta property="og:description" content="Define your UI in Java. Mateu renders it and connects it to your backend automatically.">
+<meta property="og:description" content="Define your UI in Java. Get a working web app instantly. No frontend. No APIs. No duplication.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
 # Spec-driven development
 
 ## Build full web apps with minimal code
 
-Define your UI in Java. Mateu renders it and connects it to your backend automatically.
+Define your UI in Java — and get a working web app instantly.
 
-**No HTML. No CSS. No JavaScript.**
+**No frontend. No APIs. No duplicated models.**
 
 <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
@@ -23,10 +23,11 @@ Define your UI in Java. Mateu renders it and connects it to your backend automat
 
 ---
 
-- One source of truth
-- No frontend duplication
-- No manual API glue
-- Stateless by design
+## Built for modern architectures
+
+Each service can own its UI.
+
+No central frontend. No coordination bottlenecks.
 
 ---
 
@@ -51,15 +52,38 @@ public class Home {
 
 ---
 
-## Built for
+## A real example
 
-- internal tools
-- CRUD applications
-- enterprise apps
-- microservice UIs
-- embedded UIs
+```java
+@UI("/users")
+public class Users {
 
-👉 [Explore use cases →](/use-cases)
+  List<User> users = userService.findAll();
+
+  @Button
+  Runnable create = () -> {};
+
+}
+```
+
+Mateu generates a full CRUD UI automatically:
+
+- tables
+- forms
+- actions
+- navigation
+
+---
+
+## UI federation
+
+Compose UIs across services — without a frontend application.
+
+- each service owns its UI
+- independent deployment
+- no frontend integration layer
+
+👉 [Learn about UI federation →](/mateu-about/ui-federation)
 
 ---
 
@@ -73,11 +97,15 @@ public class Home {
 
 ---
 
-## Proven in microservices
+## Built for
 
-Mateu can be used in systems where each service owns its own UI routes and screens, keeping UI definition close to backend ownership.
+- internal tools
+- CRUD applications
+- enterprise apps
+- microservice UIs
+- embedded UIs
 
-👉 [See how Mateu fits microservices →](/mateu-about/microservices)
+👉 [Explore use cases →](/use-cases)
 
 ---
 
