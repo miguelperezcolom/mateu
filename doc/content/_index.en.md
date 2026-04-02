@@ -11,6 +11,7 @@ With Mateu, you define:
 - actions (methods or buttons)  
 - action behavior  
 - relationships  
+- navigation (menus)  
 - rendering intent  
 - reactions  
 - rules  

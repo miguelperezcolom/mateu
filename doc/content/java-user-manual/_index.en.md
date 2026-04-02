@@ -14,4 +14,5 @@ weight: 2
 - Rules  
 - Validation  
 - Action behavior  
+- Navigation and menus  
 - CRUD patterns  
