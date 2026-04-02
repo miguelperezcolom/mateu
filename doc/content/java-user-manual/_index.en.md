@@ -15,4 +15,5 @@ weight: 2
 - Validation  
 - Action behavior  
 - Navigation and menus  
+- Layout and composition  
 - CRUD patterns  
