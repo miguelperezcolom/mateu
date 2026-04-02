@@ -29,6 +29,21 @@ Mateu renders the UI, wires the interaction model, and keeps everything connecte
 
 ---
 
+## 🚀 Build something real
+
+👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
+
+See how Mateu is used to build a real admin app with:
+
+- forms
+- validation
+- CRUD
+- relationships
+- navigation
+- browser feedback
+
+---
+
 ## One model. Full app.
 
 With Mateu, you define:
@@ -158,7 +173,7 @@ Mateu keeps all of that in one model.
 - microservice architectures
 - platform backoffices
 
-👉 [Explore use cases →](/use-cases)
+👉 [Build a full backoffice →](/build-a-full-backoffice-in-10-minutes)
 
 ---
 

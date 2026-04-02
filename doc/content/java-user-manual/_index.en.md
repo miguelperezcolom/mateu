@@ -7,17 +7,7 @@ weight: 2
 
 ## Tutorials
 
-- Your first Mateu app
-- Build a real CRUD with relationships
-- Compose a shell with multiple services
-
-## Core concepts
-
-- State, actions and fields
-- Action behavior
-- Rules
-- Triggers
-- Validation
-- Navigation
-- Layout
-- UI effects
+- [Your first Mateu app with Spring Boot →](/java-user-manual/your-first-mateu-app)
+- [Build a real CRUD with relationships →](/java-user-manual/build-a-real-crud-with-relationships)
+- [Compose a shell with multiple services →](/java-user-manual/shell-and-federation-tutorial)
+- [Build a full backoffice in 10 minutes →](/build-a-full-backoffice-in-10-minutes)
