@@ -9,8 +9,6 @@ title: Stop building the same app twice
 <meta property="og:description" content="Build real backoffice apps without a frontend. One model. Full app.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Stop building the same app twice
-
 ## Build real backoffice apps without a frontend
 
 Define your app once in Java.  
