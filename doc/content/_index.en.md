@@ -54,24 +54,23 @@ public class Home {
 
 ## A real example
 
+Mateu is not limited to toy examples.
+
+A real `users-service` can expose its own UI root and multiple CRUD areas from the same service:
+
 ```java
-@UI("/users")
-public class Users {
+@UI("/_users")
+@Title("Users")
+public class UsersHome {
 
-  List<User> users = userService.findAll();
-
-  @Button
-  Runnable create = () -> {};
-
+    @Menu
+    UsersMenu users;
 }
 ```
 
-Mateu generates a full CRUD UI automatically:
+Inside that service, Mateu can expose CRUD screens for users, roles, permissions, and user groups.
 
-- tables
-- forms
-- actions
-- navigation
+👉 [See the real CRUD example →](/java-user-manual/crud-example)
 
 ---
 

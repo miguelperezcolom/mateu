@@ -61,6 +61,19 @@ For example, a users service can expose its own routes, menus, and CRUD screens,
 
 Those services can still communicate through protocols such as gRPC, while Mateu keeps the UI definition close to the backend that owns the behavior.
 
+## Works with hexagonal and DDD-style services
+
+Mateu does not require flattening your backend into UI-driven code.
+
+A CRUD can sit on top of:
+
+- query services for reads
+- use cases for writes
+- repositories behind application ports
+- aggregates and value objects in the domain
+
+That means you can keep a clean architectural separation while still generating the UI declaratively.
+
 ## One sentence summary
 
 Mateu turns backend objects into real UIs through a simple API and a pluggable renderer.
