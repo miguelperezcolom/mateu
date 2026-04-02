@@ -1,6 +1,5 @@
 ---
 title: "Java"
-description: "Build Mateu UIs in Java with classes, fields, annotations, actions, triggers and validation."
 weight: 2
 ---
 
@@ -12,5 +11,8 @@ weight: 2
 - Field stereotypes  
 - Foreign keys and options  
 - Triggers and events  
+- Rules  
 - Validation  
 - CRUD patterns  
+
+Mateu lets you define both state and actions declaratively, including buttons placed in toolbars, forms, or inline.

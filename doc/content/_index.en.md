@@ -8,10 +8,11 @@ title: Spec-driven UI for distributed systems
 With Mateu, you define:
 
 - state  
-- actions  
+- actions (methods or buttons)  
 - relationships  
 - rendering intent  
 - reactions  
+- rules  
 - validation  
 
 Everything else is generated.

@@ -11,62 +11,71 @@ Mateu UIs are built from a small set of concepts.
 
 Fields represent UI state.
 
-```java
-String name;
-int age;
-```
-
 ## Actions
 
-Actions represent user-triggered behavior.
+Actions represent behavior triggered by the user.
+
+## Buttons and actions
+
+Mateu actions are not limited to `Runnable` fields.
+
+You can declare actions as methods or as fields, depending on how you want them rendered.
+
+### Toolbar actions
+
+Methods annotated with `@Toolbar` are rendered in the toolbar (typically top-right).
+
+```java
+@Toolbar
+public void refresh() {
+  // ...
+}
+```
+
+### Form buttons
+
+Methods annotated with `@Button` are rendered at the bottom of the form.
 
 ```java
 @Button
-Runnable save = () -> {};
+public void save() {
+  // ...
+}
+```
+
+### Inline buttons
+
+If you annotate a `Runnable` field with `@Button`, it behaves like a field in the form.
+
+This means it can be positioned anywhere in the layout.
+
+```java
+@Button
+Runnable generate = () -> {};
 ```
 
 ## Behavior and rendering
 
-Annotations define structure and presentation:
-
-- `@UI`
-- `@Button`
-- `@ReadOnly`
-- `@Stereotype`
-- `@ForeignKey`
+Annotations define structure and presentation.
 
 ## Validation
 
-Mateu supports standard Bean Validation annotations.
-
-These are automatically enforced in the UI.
+Bean validation is automatically enforced in the UI.
 
 ## Reactions
 
-UI flow can also be described declaratively with triggers.
+Triggers define when actions run.
 
-Triggers let Mateu react to:
+## Dynamic client-side behavior
 
-- load  
-- success  
-- error  
-- value changes  
-- Enter  
-- custom events  
-
-```java
-@Trigger(type = TriggerType.OnLoad, actionId = "loadData")
-```
+Rules define how the UI changes dynamically in the browser.
 
 ## Mental model
 
-Think in terms of:
-
 - state → fields  
-- behavior → actions  
+- actions → methods or buttons  
 - relationships → foreign keys  
 - presentation → stereotypes  
 - reactions → triggers  
+- rules → dynamic behavior  
 - validation → bean validation  
-
-Mateu handles the rest.
