@@ -19,28 +19,11 @@ Mateu renders the UI, wires the interaction model, and keeps everything connecte
 **No HTML. No CSS. No JavaScript.**  
 **No duplicated models. No API glue. No fragmented architecture.**
 
----
-
-<div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+<div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
   <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
   <a href="/java-user-manual/">Read the docs</a>
 </div>
-
----
-
-## 🚀 Build something real
-
-👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
-
-See how Mateu is used to build a real admin app with:
-
-- forms
-- validation
-- CRUD
-- relationships
-- navigation
-- browser feedback
 
 ---
 
@@ -61,6 +44,21 @@ With Mateu, you define:
 - UI effects
 
 Everything else is generated.
+
+---
+
+## 🚀 Build something real
+
+👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
+
+See how Mateu is used to build a real admin app with:
+
+- forms
+- validation
+- CRUD
+- relationships
+- navigation
+- browser feedback
 
 ---
 
