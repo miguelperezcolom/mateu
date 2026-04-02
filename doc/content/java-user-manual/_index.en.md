@@ -1,48 +1,23 @@
 ---
 title: "Java"
-description: "Build Mateu UIs in Java with classes, fields, annotations, actions, routing, validation, layout, and browser effects."
 weight: 2
-
-type: "docs"
-_build:
-  list: always
-  publishResources: true
-  render: always
 ---
 
 # Java
 
-Mateu lets you define complete UIs in plain Java.
+## Tutorials
+
+- Your first Mateu app
+- Build a real CRUD with relationships
+- Compose a shell with multiple services
 
 ## Core concepts
 
-- Getting started
-- Apps and pages
-- Declarative vs fluent
 - State, actions and fields
-- Field stereotypes
-- Foreign keys and options
-- Triggers and events
-- Rules
-- Validation
 - Action behavior
-- Routing and parameters
-- Navigation and menus
-- Layout and composition
+- Rules
+- Triggers
+- Validation
+- Navigation
+- Layout
 - UI effects
-- CRUD patterns
-
-## A minimal example
-
-```java
-@UI("")
-public class Counter {
-
-  @ReadOnly
-  int count = 0;
-
-  @Button
-  Runnable increment = () -> count++;
-
-}
-```
