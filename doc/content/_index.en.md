@@ -1,6 +1,6 @@
 ---
 header_alt: true
-title: Spec-driven development. Build full apps with minimal code.
+title: Spec-driven development. Build full web apps with minimal code.
 ---
 <meta name="description" content="Mateu lets you build complete web apps with minimal code. Define your UI in Java and let Mateu render and wire everything automatically.">
 <meta property="og:title" content="Mateu – Spec-driven development">
@@ -17,7 +17,7 @@ Define your UI once. Mateu builds it and wires everything together.
 
 **No HTML. No CSS. No JavaScript.**
 
-No duplicated models. No API glue. No fragmented architecture.
+No duplicated models. No manual API glue. No fragmented architecture.
 
 ---
 
@@ -43,9 +43,7 @@ You end up building the same app twice — and spending your time maintaining th
 
 ---
 
-## The shift
-
-**What if your app wasn’t split at all?**
+## What Mateu changes
 
 With Mateu, you define your UI in plain Java using classes and annotations.
 
@@ -57,6 +55,18 @@ No templates. No markup. No frontend code.
 - actions (methods)
 
 Mateu renders the UI automatically and connects it to your backend.
+
+---
+
+## What you actually get
+
+- forms
+- tables
+- layouts
+- actions
+- navigation
+
+All generated from your backend code.
 
 ---
 
@@ -96,12 +106,12 @@ public class Home {
 
 ## Why Mateu
 
-- ⚡ Build apps **10x faster**
+- ⚡ Build apps faster
 - 🧠 One language, one mental model
-- 🔥 No frontend bugs or sync issues
-- 🧩 High-level building blocks instead of low-level UI code
+- 🔥 No frontend duplication
 - 🌐 Designed for stateless, distributed systems
 - 🔌 Deliver UIs as embeddable web components
+- 🎨 Keep frontend and backend decoupled
 
 ---
 
@@ -120,16 +130,6 @@ public class Home {
 | Duplicated models            | Single source of truth     |
 | State sync issues            | No sync problems           |
 | More moving parts            | Minimal architecture       |
-
----
-
-## Who is this for?
-
-- backend developers who want to move faster
-- teams building internal tools
-- startups reducing complexity
-- microservice architectures
-- CRUD-heavy business apps
 
 ---
 
