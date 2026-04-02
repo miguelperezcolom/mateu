@@ -26,7 +26,7 @@ Mateu renders the UI, wires interactions, and connects everything to your backen
 ---
 
 <p align="center">
-  <img src="/images/workflow-edit.png" width="1000"/>
+  <img src="/images/proccess.png" width="1000"/>
 </p>
 
 ---
