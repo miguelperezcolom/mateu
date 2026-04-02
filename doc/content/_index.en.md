@@ -12,6 +12,27 @@ With just Java (and soon C# and Python), you can design powerful user interfaces
 
 ---
 
+In a nutshell, the code below:
+
+```java
+@UI("")
+public class Counter {
+
+  @Output
+  int count = 0;
+
+  @Button
+  Runnable increment = () -> count++;
+
+}
+```
+
+Becomes:
+
+<p align="center"><img src="../../../images/counter.png" width="500"/></p>
+
+---
+
 ## 🎯 Why Mateu?
 
 Mateu introduces a simple yet powerful UI Domain-Specific Language (DSL) through familiar Java constructs—interfaces, annotations, and classes. The goal: **build your UI with the fewest lines of code possible**, and let backend developers own the entire application lifecycle.
