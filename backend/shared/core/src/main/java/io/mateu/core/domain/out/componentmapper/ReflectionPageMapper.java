@@ -926,6 +926,7 @@ public class ReflectionPageMapper {
     return null;
   }
 
+  @SneakyThrows
   public static String getTitle(Object instance) {
     if (instance instanceof TitleSupplier titleSupplier) {
       return titleSupplier.title();
@@ -940,6 +941,9 @@ public class ReflectionPageMapper {
       return named.name();
     }
     if (instance != null) {
+      if (instance.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
+        return getPageTitle(instance);
+      }
       return instance.toString();
     }
     return null;

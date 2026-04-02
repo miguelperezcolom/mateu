@@ -1,20 +1,19 @@
 package com.example.demo.infra.in.ui;
 
-import com.example.demo.infra.in.ui.pages.countries.Countries;
-import com.example.demo.infra.in.ui.pages.persons.Persons;
-import com.example.demo.infra.in.ui.pages.processes.Processes;
-import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.UI;
 
 @UI("")
+@Style(StyleConstants.CONTAINER)
 public class Home {
 
-    @Menu
-    Persons persons;
+    @ReadOnly
+    int count = 0;
 
-    @Menu
-    Countries countries;
+    @Button
+    Runnable increment = () -> count++;
 
-    @Menu
-    Processes processes;
 }

@@ -168,7 +168,7 @@ public class ReflectionFormFieldMapper {
       }
       var value = instance instanceof Class ? null : getValue(field, instance);
       return CustomField.builder()
-          .label(getLabel(field))
+          .label(getLabelForNonBasic(field))
           .content(
               getForm(
                       ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
@@ -181,8 +181,7 @@ public class ReflectionFormFieldMapper {
                       forCreationForm,
                       readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm),
                       maxColumns)
-                  .iterator()
-                  .next())
+                  .stream().findFirst().orElse(null))
           .colspan(maxColumns)
           .style("width: 100%;")
           .build();
@@ -216,6 +215,13 @@ public class ReflectionFormFieldMapper {
         .description(getDescription(field))
         .attributes(getAttributes(field))
         .build();
+  }
+
+  private static String getLabelForNonBasic(Field field) {
+   if (Runnable.class.isAssignableFrom(field.getType())) {
+        return "";
+      }
+   return getLabel(field);
   }
 
   private static Map<String, String> getAttributes(Field field) {

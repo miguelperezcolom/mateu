@@ -15,10 +15,19 @@ With just Java (and soon C# and Python), you can design powerful user interfaces
 In a nutshell, the code below:
 
 ```java
-@UI("")
-public class Counter {
+package com.example.demo.infra.in.ui;
 
-  @Output
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.UI;
+
+@UI("")
+@Style(StyleConstants.CONTAINER)
+public class Home {
+
+  @ReadOnly
   int count = 0;
 
   @Button
