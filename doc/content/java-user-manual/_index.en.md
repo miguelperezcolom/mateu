@@ -1,13 +1,20 @@
 ---
-title: "Java"
-weight: 2
+title: Java
 ---
 
 # Java
 
+## Before you start
+
+👉 [How to think in Mateu →](/mateu-about/how-to-think-in-mateu)
+
+Mateu is not a traditional UI framework.  
+Understanding the model will make everything much simpler.
+
+---
+
 ## Tutorials
 
-- [Your first Mateu app with Spring Boot →](/java-user-manual/your-first-mateu-app)
-- [Build a real CRUD with relationships →](/java-user-manual/build-a-real-crud-with-relationships)
-- [Compose a shell with multiple services →](/java-user-manual/shell-and-federation-tutorial)
-- [Build a full backoffice in 10 minutes →](/build-a-full-backoffice-in-10-minutes)
+- Your first Mateu app
+- Build a real CRUD
+- Compose a shell

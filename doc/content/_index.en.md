@@ -9,6 +9,8 @@ title: Stop building the same app twice
 <meta property="og:description" content="Build real backoffice apps without a frontend. One model. Full app.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
+# Stop building the same app twice
+
 ## Build real backoffice apps without a frontend
 
 Define your app once in Java.  
@@ -20,14 +22,22 @@ Mateu renders the UI, wires interactions, and connects everything to your backen
 <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
   <a href="/build-a-full-backoffice-in-10-minutes"><strong>Build a backoffice →</strong></a>
-  <a href="https://github.com/miguelperezcolom/mateu">GitHub</a>
+  <a href="/java-user-manual/">Read the docs</a>
 </div>
 
 ---
 
 <p align="center">
-  <img src="/images/proccess.png" width="1000"/>
+  <img src="/images/workflow-edit.png" width="1000"/>
 </p>
+
+---
+
+## 🧠 Understand the model
+
+Mateu is simple — once you understand the model.
+
+👉 [Understand the Mateu mental model →](/mateu-about/how-to-think-in-mateu)
 
 ---
 
@@ -45,6 +55,21 @@ With Mateu, you define:
 - UI reactions
 
 Everything else is generated.
+
+---
+
+## 🚀 Build something real
+
+👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
+
+See how Mateu is used to build a real admin app with:
+
+- forms
+- validation
+- CRUD
+- relationships
+- navigation
+- browser feedback
 
 ---
 
@@ -156,11 +181,13 @@ Compose them with `RemoteMenu`:
 
 ---
 
-## Start building
+## Stop building the same app twice.
 
-👉 [Try the demo](https://vaadin.mateu.io/fluent/use-cases/rra)  
-👉 [Build a backoffice](/build-a-full-backoffice-in-10-minutes)  
-👉 [Read the docs](/java-user-manual/)
+Define it once.
+
+👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
+👉 [**Build a backoffice**](/build-a-full-backoffice-in-10-minutes)  
+👉 [**Read the docs**](/java-user-manual/)
 
 ---
 
