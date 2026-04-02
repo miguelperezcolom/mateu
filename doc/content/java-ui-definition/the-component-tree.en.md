@@ -1,0 +1,89 @@
+---
+title: "The component tree"
+weight: 20
+---
+
+You create the UIs by composing any of the 44 available components together. With **Mateu**, you use plain java classes for 
+declaring those components and how they are combined to create your UIs.
+
+You can indeed do it using a declarative way using annotations, in a declarative though more dynamic way implementing 
+some interfaces or in an imperative way using fluent code. You can obviously combine all those ways as you want.
+
+## An example
+
+So, this is a simple example which illustrates a component tree creation the imperative way:
+
+```java
+@UI("")
+public class Counter implements ComponentTreeSupplier {
+
+  int count = 0;
+
+  @Override
+  public Component getComponent(HttpRequest httpRequest) {
+    return new VerticalLayout(
+      new Text("" + count),
+      new Button("Increment", (Runnable) () -> count++)
+    );
+  }
+
+}
+```
+
+The example above will create the following component tree, in the browser:
+
+<p align="center"><img src="../../../images/arch-client-5.svg" width="500"/></p>
+
+Which, in the end, becomes this:
+
+<p align="center"><img src="../../../images/counter.png" width="500"/></p>
+
+## The declarative way
+
+If your java class (the ViewModel of the MVVM pattern) does not implement the ComponentTreeSupplier interface then **Mateu**
+will try to infer it using java reflection.
+
+So, the code below generate the same component tree as the aforementioned code:
+
+```java
+@UI("")
+public class Counter {
+
+    @Output
+    int count = 0;
+
+    @Button
+    Runnable increment = () -> count++;
+
+}
+```
+
+## The state
+
+Please notice that, in the example above, the Counter object (the ViewModel of the MVVM pattern) is serialized and sent 
+to the frontend as the state for that component. Later, on each request (e.g. when the user clicks the "Increment" button), 
+the state is sent back to the backend in the request payload so the Counter object can be initialized and hydrated in 
+order to restore its state. 
+
+Please notice that for Java you can use the Jackson annotations (e.g. @JsonIgnore) for controlling how the state is 
+serialized and deserialized. 
+
+## Inheritance, dependency injection and packaging
+
+Please notice that, as it's just plain java, you can also leverage java inheritance and maven dependencies for building 
+your UIs with Mateu, so you can create components which extend other components, create libraries with sets of components, 
+and even use dependency injection inside your components.
+
+## Reusing components
+
+As you are defining your UI using plain java classes, inheritance, dependency injection and maven packages can be
+used.
+
+This means that you can extend existing UIs, forms or cruds, or create artifacts which contain component libraries
+which can be used in another UI built with Mateu.
+
+You can also integrate components from other microservices as micro frontends in your own UI.
+
+## Bring your own components
+
+You can easily create your own web components and use them, just like any other html element.

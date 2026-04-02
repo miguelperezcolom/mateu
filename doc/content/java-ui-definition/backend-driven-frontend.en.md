@@ -1,0 +1,90 @@
+---
+title: "Backend-driven frontend"
+weight: 10
+---
+
+Backend-driven frontend means that the frontend is a simple renderer which paints whatever the backend tells it to paint.
+
+You do not write frontend code (javascript, html, css) but just backend code (java, kotlin, c#, ...) which runs on a server.
+With that code, at runtime, you tell the renderer which is running in the browser what to paint, either explicitly when 
+using the fluent interfaces or declaratively when using annotations.
+
+This means that you are empowering the backend team to contribute the UI without any frontend team needed, enabling them to own 
+the features end-to-end. That means a huge saving, indeed.
+
+## How it works
+
+In **Mateu** the frontend is backed by an ephemeral java object in the server side, like illustrated in the following diagram:
+
+<p align="center"><img src="../../../images/arch-overall-4.svg" width="500"/></p>
+
+The component at the bottom right of the diagram above is what you write when using **Mateu**. It's the ViewModel in 
+the [Model-View-ViewModel (**MVVM**) pattern](https://martinfowler.com/eaaDev/PresentationModel.html).
+
+So, the following java code:
+
+```java
+@UI("")
+public class Counter {
+
+    @Output
+    int count = 0;
+
+    @Button
+    Runnable increment = () -> count++;
+
+}
+```
+
+Becomes this in the browser:
+
+<p align="center"><img src="../../../images/counter.png" width="400"/></p>
+
+Or, you can say the same in a fluent imperative way:
+
+```java
+@UI("")
+public class Counter implements ComponentTreeSupplier {
+
+  int count = 0;
+
+  @Override
+  public Component getComponent(HttpRequest httpRequest) {
+    return new VerticalLayout(
+      new Text("" + count),
+      new Button("Increment", (Runnable) () -> count++)
+    );
+  }
+
+}
+```
+
+Please notice that, unless you defined your java class as a singleton bean, the java object is instantiated and hydrated
+on every api request. It does not survive between api calls. Mateu server side is stateless.
+
+## Binding backend and frontend
+
+In **Mateu** any class can be a server side component. You link that class to the frontend by:
+
+- Annotating the class with **@UI**.
+- Annotating the class with **@Route**.
+- Fron a class which is already linked to the frontend, return an object as response to some event in the browser.
+
+## Interact with the frontend
+
+That java class can interact with the frontend by:
+
+- Handling requests from the frontend.
+- Supplying frontend content.
+- Supplying data to the frontend.
+
+## Singletons
+
+You can declare your java class as a singleton according to the java framework you use, e.g. by annotating it with 
+**@Singleton** or **@Service**.
+
+If you do that your java class will be shared among all your requests, but please notice that it could lead to undesired
+effects, e.g. all users seeing the same values in the input fields.
+
+If you do not want a singleton but create a new instance for each request just use **@Named** only or, if you are using 
+Spring, just add the appropriate scope annotation, e.g. **@Scope("prototype")** (or **@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)**). 
