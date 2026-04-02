@@ -40,7 +40,7 @@ public class Home {
 
 Becomes:
 
-<p align="center"><img src="../../../images/counter.png" width="500"/></p>
+<p align="center"><img src="../../../images/counter.png" width="700"/></p>
 
 ---
 
