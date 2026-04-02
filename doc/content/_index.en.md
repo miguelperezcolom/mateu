@@ -61,31 +61,51 @@ public class Home {
 
 ---
 
-## A real system
+## A real CRUD
 
-A real service exposes its own UI:
-
-```java
-@UI("/_users")
-@Title("Users")
-public class UsersHome {
-
-    @Menu
-    UsersMenu users;
-}
-```
-
-And a shell composes multiple services:
+Define a form with relationships, validation, and behavior:
 
 ```java
-@Menu
-RemoteMenu users = new RemoteMenu("/_users");
-
-@Menu
-RemoteMenu content = new RemoteMenu("/_content-service");
+@ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+@Stereotype(FieldStereotype.checkbox)
+List<String> permissions;
 ```
 
-👉 Each service owns its UI. The shell just composes.
+Mateu handles:
+
+- option loading
+- label resolution
+- rendering
+- interaction
+
+👉 [See full example →](/java-user-manual/crud-example)
+
+---
+
+## What you actually write
+
+With Mateu, you define:
+
+- state (fields)
+- actions
+- relationships
+- rendering intent
+
+Everything else is generated.
+
+---
+
+## Not a framework. A model.
+
+Mateu is not about UI components.
+
+It’s about defining your app once.
+
+- no duplicated models
+- no frontend logic
+- no API glue
+
+Just one definition.
 
 ---
 
@@ -98,7 +118,7 @@ Mateu defines a UI DSL in Java:
 - actions → behavior
 - annotations → rendering and structure
 
-Relationships and rendering are also declarative:
+Relationships and rendering are declarative:
 
 - `@ForeignKey` → relationships
 - `@Stereotype` → presentation
@@ -130,9 +150,11 @@ The shell composes them.
 
 ---
 
-## Stop splitting your app.
+## Stop building the same app twice.
 
-Define it once.
+Backend. Frontend. API.
+
+Or just one model.
 
 👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)
 
