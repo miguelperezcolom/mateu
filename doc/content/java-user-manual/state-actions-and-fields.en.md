@@ -5,83 +5,61 @@ weight: 5
 
 # State, actions and fields
 
-Mateu UIs are built from three main concepts.
+Mateu UIs are built from a small set of concepts.
 
 ## State (fields)
 
-Fields in your class represent UI state.
+Fields represent UI state.
 
 ```java
 String name;
 int age;
 ```
 
-Mateu automatically generates inputs or displays for them.
-
 ## Actions
 
-Actions are methods or callables that the user can trigger.
+Actions represent user-triggered behavior.
 
 ```java
 @Button
-Runnable save = () -> {
-  // logic
-};
+Runnable save = () -> {};
 ```
-
-Mateu renders them as buttons or actions in the UI.
 
 ## Behavior and rendering
 
-Annotations define how things are rendered and behave.
+Annotations define structure and presentation:
 
-Examples:
-
-- `@ReadOnly`
-- `@Button`
 - `@UI`
-- `@EditableOnlyWhenCreating`
+- `@Button`
+- `@ReadOnly`
 - `@Stereotype`
 - `@ForeignKey`
 
-They control how fields and actions appear in the UI.
+## Reactions
 
-## Field rendering with stereotypes
+UI flow can also be described declaratively with triggers.
 
-By default, Mateu infers how a field should be rendered.
+Triggers let Mateu react to:
 
-When you want more control, you can use `@Stereotype` to define the presentation intent explicitly.
-
-```java
-@Stereotype(FieldStereotype.textarea)
-String description;
-
-@Stereotype(FieldStereotype.email)
-String email;
-
-@Stereotype(FieldStereotype.checkbox)
-List<String> permissions;
-```
-
-This lets you keep the UI definition in Java while still controlling the rendering of specific fields.
-
-## Relationships with foreign keys
-
-Relationships can be declared with `@ForeignKey`, which delegates option search and label resolution to backend suppliers.
+- load  
+- success  
+- error  
+- value changes  
+- Enter  
+- custom events  
 
 ```java
-@ForeignKey(search = RoleIdOptionsSupplier.class, label = RoleIdLabelSupplier.class)
-List<String> roles;
+@Trigger(type = TriggerType.OnLoad, actionId = "loadData")
 ```
 
 ## Mental model
 
-Think of your class as:
+Think in terms of:
 
-- state → fields
-- behavior → annotations
-- interaction → actions
-- presentation intent → stereotypes
-- relationships → foreign keys
+- state → fields  
+- behavior → actions  
+- relationships → foreign keys  
+- presentation → stereotypes  
+- reactions → triggers  
 
-Mateu takes care of rendering and wiring everything.
+Mateu handles the rest.

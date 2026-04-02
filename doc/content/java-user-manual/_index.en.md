@@ -1,6 +1,6 @@
 ---
 title: "Java"
-description: "Build Mateu UIs in Java with classes, fields, annotations, and actions."
+description: "Build Mateu UIs in Java with classes, fields, annotations, actions and triggers."
 weight: 2
 
 type: "docs"
@@ -16,15 +16,25 @@ Mateu lets you define UIs in plain Java.
 
 ## Core concepts
 
-- State, actions and fields
-- Field stereotypes
-- Foreign keys and options
-- CRUD patterns
+- State, actions and fields  
+- Field stereotypes  
+- Foreign keys and options  
+- Triggers and events  
+- CRUD patterns  
 
-## Start here
+## A minimal example
 
-- Getting started
-- State, actions and fields
-- Field stereotypes
-- Foreign keys and options
-- Examples
+```java
+@UI("")
+public class Counter {
+
+  @ReadOnly
+  int count = 0;
+
+  @Button
+  Runnable increment = () -> count++;
+
+}
+```
+
+Mateu turns that into a working UI.
