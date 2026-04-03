@@ -72,7 +72,7 @@ public class ReflectionAppMapper {
 
   public static Optional<Actionable> getSelectedOption(
       String appRoute, String route, Collection<? extends Actionable> menu) {
-    if (!appRoute.equals(route)) {
+    if (!appRoute.equals(route) && route.startsWith(appRoute)) {
       var effectiveRoute = route.substring(appRoute.length()); // /masterData/countries
       return getSelectedOption(effectiveRoute, menu);
     }
