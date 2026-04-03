@@ -7,7 +7,7 @@ The fastest way to understand Mateu is to try the live demos.
 
 ## Live demos
 
-- https://vaadin.mateu.io/fluent/use-cases/rra
+- https://vaadin.mateu.io/fluent/use-cases/rra/home
 - https://redhat.mateu.io/fluent/use-cases/rra (WIP)
 - https://sapui5.mateu.io/fluent/use-cases/rra (WIP)
 - https://redwood.mateu.io/fluent/use-cases/rra (WIP)
