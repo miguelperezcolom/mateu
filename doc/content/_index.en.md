@@ -1,6 +1,6 @@
 ---
 header_alt: true
-title: Spec-driven development. Build full apps with minimal code.
+title: Spec-driven development.
 ---
 
 <meta name="description" content="Mateu lets you build full web apps from a single spec in Java. No frontend, no duplication, minimal code.">
