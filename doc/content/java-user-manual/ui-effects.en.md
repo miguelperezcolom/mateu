@@ -5,7 +5,7 @@ weight: 14
 
 # UI effects (messages and commands)
 
-Mateu allows backend methods to return UI effects executed in the browser.
+Mateu allows backend methods to return UI effects executed directly in the browser.
 
 ## Messages
 
@@ -13,7 +13,7 @@ Mateu allows backend methods to return UI effects executed in the browser.
 return new Message("Saved successfully");
 ```
 
-## Commands
+## UI commands
 
 ```java
 return UICommand.navigateTo("/users");
@@ -21,7 +21,7 @@ return UICommand.navigateTo("/users");
 
 ## Mental model
 
-- Message → feedback  
-- UICommand → control  
+- `Message` → user feedback
+- `UICommand` → browser control
 
-These effects are returned from backend actions.
+👉 See the full [Interaction model in Mateu →](/java-user-manual/interaction-model)

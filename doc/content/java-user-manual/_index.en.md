@@ -21,6 +21,9 @@ Mateu lets you define complete UIs in plain Java.
 - Declarative vs fluent
 - State, actions and fields
 - UI model in Mateu
+- Navigation model in Mateu
+- Application shell in Mateu
+- Interaction model in Mateu
 - Field stereotypes
 - Foreign keys and options
 - Triggers and events

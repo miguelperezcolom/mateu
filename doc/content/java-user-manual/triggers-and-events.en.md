@@ -5,21 +5,26 @@ weight: 8
 
 # Triggers and events
 
-Triggers define when actions run.
+Mateu lets you define UI reactions declaratively with `@Trigger`.
 
-## Example
+Triggers define **when** actions should run.
+
+## Trigger types
+
+- OnLoad
+- OnSuccess
+- OnError
+- OnValueChange
+- OnCustomEvent
+- OnEnter
 
 ```java
 @Trigger(type = TriggerType.OnLoad, actionId = "loadData")
 ```
 
-## Triggers vs rules vs actions
-
-- actions → what happens  
-- triggers → when it happens  
-- rules → how UI changes  
-- effects → what the user sees  
-
 ## Mental model
 
-Triggers orchestrate behavior without imperative frontend code.
+- actions → what happens
+- triggers → when it happens
+
+👉 See the full [Interaction model in Mateu →](/java-user-manual/interaction-model)
