@@ -1,61 +1,54 @@
 ---
 title: "State, actions and fields"
-weight: 5
+weight: 3
 ---
 
 # State, actions and fields
 
-Mateu UIs are built from a small set of concepts.
+In Mateu, your UI is defined by:
 
-## State (fields)
+- fields → state  
+- methods → actions  
 
-Fields represent UI state.
+---
+
+## Fields
+
+Fields define the state of your UI.
+
+```java
+String name;
+boolean active;
+```
+
+By default, Mateu infers the rendered control from the field type.
+
+Use `@Stereotype` when you want to override that default.
+
+---
 
 ## Actions
 
-Actions represent behavior triggered by the user.
+Methods represent actions.
 
-They can be defined as:
+```java
+@Button
+public void save() {}
+```
 
-- methods annotated with `@Toolbar`
-- methods annotated with `@Button`
-- `Runnable` fields annotated with `@Button`
+Mateu handles interaction and wiring automatically.
 
-## Buttons and placement
-
-- `@Toolbar` → top toolbar  
-- `@Button` on methods → bottom form actions  
-- `@Button` on fields → inline buttons  
-
-## Action behavior
-
-Actions can be configured declaratively using `@Action`.
-
-## Validation
-
-Bean validation is automatically enforced in the UI.
-
-## Reactions
-
-Triggers define when actions run.
-
-## Dynamic behavior
-
-Rules define how the UI changes dynamically in the browser.
-
-## UI effects
-
-Actions can return:
-
-- `Message` → user feedback  
-- `UICommand` → browser control  
+---
 
 ## Mental model
 
-- state → fields  
-- actions → methods or buttons  
-- action behavior → `@Action`  
-- reactions → triggers  
-- rules → dynamic behavior  
-- validation → bean validation  
-- effects → UI feedback  
+You define:
+
+- state
+- actions
+
+Mateu handles:
+
+- rendering
+- interaction
+- updates
