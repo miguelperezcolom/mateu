@@ -1,5 +1,6 @@
 ---
-title: Java
+title: "Java"
+weight: 2
 ---
 
 # Java
@@ -8,13 +9,17 @@ title: Java
 
 👉 [How to think in Mateu →](/mateu-about/how-to-think-in-mateu)
 
-Mateu is not a traditional UI framework.  
-Understanding the model will make everything much simpler.
+---
+
+## Core concepts
+
+- [Navigation model →](/java-user-manual/navigation-model)
 
 ---
 
 ## Tutorials
 
 - Your first Mateu app
-- Build a real CRUD
-- Compose a shell
+- Build a real CRUD with relationships
+- Compose a shell with multiple services
+- Build a full backoffice in 10 minutes
