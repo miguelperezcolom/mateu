@@ -12,7 +12,7 @@ You don’t assemble components manually.
 Instead, the UI emerges from:
 
 - field types (inference)
-- stereotypes (rendering intent)
+- stereotypes (**rendering type**)
 - layout annotations (structure)
 - style (fine control)
 
@@ -22,15 +22,15 @@ Instead, the UI emerges from:
 
 Mateu infers UI controls from Java types.
 
-- `String` → text field  
-- `enum` → combobox  
-- `boolean` → checkbox  
+- `String` → text field
+- `enum` → combobox
+- `boolean` → checkbox-like control
 
 You usually don’t need to think about components.
 
 ---
 
-## 2. Stereotypes
+## 2. Stereotypes = rendering type
 
 Use `@Stereotype` to override rendering.
 
@@ -39,7 +39,9 @@ Use `@Stereotype` to override rendering.
 Status status;
 ```
 
-You don’t choose components — you express intent.
+In practical terms, a stereotype is the rendering type for a field.
+
+You don’t choose low-level components — you express presentation intent.
 
 ---
 
@@ -73,7 +75,7 @@ Use `@Style` when you need full control.
 String description;
 ```
 
-This maps directly to the HTML style attribute.
+This maps directly to the HTML `style` attribute.
 
 ---
 
@@ -83,18 +85,18 @@ Mateu UI is:
 
 > inferred → structured → refined
 
-1. inference chooses defaults  
-2. layout organizes structure  
-3. stereotypes adjust rendering  
-4. style fine-tunes appearance  
+1. inference chooses defaults
+2. layout organizes structure
+3. stereotypes adjust rendering type
+4. style fine-tunes appearance
 
 ---
 
 ## Summary
 
-- no manual UI composition  
-- no component wiring  
-- no duplicated frontend  
+- no manual UI composition
+- no component wiring
+- no duplicated frontend
 
 You define data and intent.  
 Mateu renders the UI.
