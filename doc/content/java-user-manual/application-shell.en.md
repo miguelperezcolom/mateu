@@ -62,17 +62,35 @@ You can define branding elements:
 
 ## Security
 
-Mateu integrates with security providers.
+Mateu allows you to secure your UI declaratively.
 
 Example:
 
 ```java
+@UI("")
+@Title("Console")
 @KeycloakSecured(
-  url = "...",
-  realm = "...",
-  clientId = "..."
+  url = "https://lemur-11.cloud-iam.com/auth",
+  realm = "mateu",
+  clientId = "demo"
 )
+public class ShellHome {
+}
 ```
+
+This secures the application using Keycloak.
+
+### Fine-grained security
+
+You can also restrict access to specific parts of the UI.
+
+```java
+@EyesOnly(roles = "admin")
+@Menu
+RemoteMenu users;
+```
+
+You can use roles or scopes to control visibility and access.
 
 ---
 
@@ -93,8 +111,10 @@ The application shell is not configured separately.
 It is derived from your model:
 
 - menus → structure
-- @App → presentation
+- `@App` → presentation
 - annotations → branding and behavior
+- `@KeycloakSecured` → authentication
+- `@EyesOnly` → authorization
 
 ---
 

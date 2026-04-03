@@ -8,8 +8,6 @@ title: Spec-driven development. Build full apps with minimal code.
 <meta property="og:description" content="Define your app once. Mateu builds the UI automatically.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
-# Spec-driven development
-
 ## Build full web apps with minimal code
 
 Define your app once.  
@@ -24,7 +22,7 @@ No duplicated models. No API glue. No fragmented architecture.
 <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
   <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
-  <a href="/java-user-manual/build-a-real-app/">Build a real app →</a>
+  <a href="/java-user-manual/build-a-real-app/"><strong>Build a real app →</strong></a>
 </div>
 
 ---
@@ -37,7 +35,7 @@ With Mateu, your application is defined as a single model:
 - methods → actions
 - annotations → behavior and rendering
 
-Mateu uses that model to generate:
+Mateu generates:
 
 - UI
 - navigation
@@ -47,7 +45,26 @@ Mateu uses that model to generate:
 
 ---
 
-## This
+## 🔐 Built-in security
+
+Secure your entire app declaratively.
+
+```java
+@UI("")
+@KeycloakSecured(
+  url = "https://your-auth-server",
+  realm = "your-realm",
+  clientId = "your-client"
+)
+public class App {}
+```
+
+No separate frontend auth layer.  
+No duplicated security logic.
+
+---
+
+## From this
 
 ```java
 @UI("")
@@ -62,7 +79,7 @@ public class Home {
 }
 ```
 
-## Becomes
+## To this
 
 <p align="center"><img src="../../../images/counter.png" width="700"/></p>
 
@@ -121,6 +138,7 @@ Your app is defined once — not split across layers.
 - 🧩 High-level building blocks
 - 🌐 Stateless, microservice-friendly
 - 🔌 Embeddable UI (web components)
+- 🔐 Secure your UI declaratively
 
 ---
 
@@ -133,18 +151,6 @@ Your app is defined once — not split across layers.
 <p align="center">
   <img src="../../../images/workflow-edit.png" width="800"/>
 </p>
-
----
-
-## Real use cases
-
-Mateu works especially well for:
-
-- backoffice applications
-- admin panels
-- CRUD-heavy systems
-- internal tools
-- microservice architectures
 
 ---
 
