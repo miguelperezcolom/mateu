@@ -13,27 +13,27 @@ Mateu supports breadcrumbs in two ways:
 ## Declarative breadcrumbs
 
 ```java
-@Route("/breadcrumbs")
-@io.mateu.uidl.annotations.Breadcrumbs({
+@Route("/users/123")
+@Breadcrumbs({
     @Breadcrumb(label = "Home", url = "/"),
     @Breadcrumb(label = "Users", url = "/users"),
     @Breadcrumb(label = "Detail", url = "/users/123")
 })
-public class Breadcrumbs {}
+public class UserDetail {}
 ```
 
 ## Imperative breadcrumbs
 
 ```java
-@Route("/breadcrumbs")
-public class Breadcrumbs implements BreadcrumbsSupplier {
+@Route("/users/123")
+public class UserDetail implements BreadcrumbsSupplier {
 
     @Override
-    public List<io.mateu.uidl.data.Breadcrumb> breadcrumbs(HttpRequest httpRequest) {
+    public List<Breadcrumb> breadcrumbs(HttpRequest httpRequest) {
         return List.of(
-            new io.mateu.uidl.data.Breadcrumb("Home", "/"),
-            new io.mateu.uidl.data.Breadcrumb("Users", "/users"),
-            new io.mateu.uidl.data.Breadcrumb("Miguel", "")
+            new Breadcrumb("Home", "/"),
+            new Breadcrumb("Users", "/users"),
+            new Breadcrumb("Miguel", "")
         );
     }
 }
