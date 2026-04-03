@@ -1,6 +1,7 @@
 package io.mateu.uidl.fluent;
 
 import io.mateu.uidl.data.Badge;
+import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.KPI;
 import java.util.List;
 import lombok.Builder;
@@ -13,6 +14,7 @@ public record Page(
     String favicon,
     String title,
     String subtitle,
+    List<Breadcrumb> breadcrumbs,
     Component avatar,
     @Singular("contentItem") List<Component> content,
     @Singular("headerItem") List<Component> header,

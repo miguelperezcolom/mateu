@@ -14,6 +14,7 @@ public record PageDto(
     boolean readOnly,
     String subtitle,
     StatusDto status,
+    List<BreadcrumbDto> breadcrumbs,
     List<BadgeDto> badges,
     List<KPIDto> kpis,
     List<BannerDto> banners,

@@ -6,6 +6,7 @@ import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import KPI from "@mateu/shared/apiClients/dtos/componentmetadata/KPI.ts";
+import {Breadcrumb} from "@mateu/shared/apiClients/dtos/componentmetadata/Breadcrumbs.ts";
 
 export default interface Form extends ComponentMetadata {
 
@@ -13,6 +14,7 @@ export default interface Form extends ComponentMetadata {
     title: string
     readOnly: boolean
     subtitle: string
+    breadcrumbs: Breadcrumb[]
     noHeader: boolean
     status: Status
     badges: Badge[]

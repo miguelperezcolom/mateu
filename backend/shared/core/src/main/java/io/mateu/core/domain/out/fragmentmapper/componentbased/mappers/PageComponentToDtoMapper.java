@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 
+import io.mateu.dtos.BreadcrumbDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.PageDto;
@@ -25,6 +26,9 @@ public class PageComponentToDtoMapper {
             .favicon(page.favicon())
             .title(page.title())
             .subtitle(page.subtitle())
+                .breadcrumbs(page.breadcrumbs() != null ? page.breadcrumbs().stream()
+                        .map(breadcrumb -> new BreadcrumbDto(breadcrumb.text(), breadcrumb.link()))
+                        .toList() : null)
             .avatar(
                 page.avatar() != null
                     ? mapComponentToDto(

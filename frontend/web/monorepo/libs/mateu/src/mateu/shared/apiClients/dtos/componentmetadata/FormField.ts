@@ -45,5 +45,6 @@ export default interface FormField extends ComponentMetadata {
     detailPath: string
     useButtonForDetail: boolean
     minHeightWhenDetailVisible: string
+    optionsColumns: number
 
 }

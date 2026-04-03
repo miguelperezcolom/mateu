@@ -62,6 +62,16 @@ export class MateuPage extends LitElement {
 
         return html`
             <vaadin-vertical-layout style="width: 100%;">
+                ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0?html`
+                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
+                        ${metadata.breadcrumbs.map((breadcrumb, index) => html`
+                            ${index > 0?html`<span>/</span>`:nothing}
+                            ${breadcrumb.link?html`<vaadin-button theme="tertiary" 
+                                                                  @click="${() => window.location.href=`${breadcrumb.link}`}">${breadcrumb.text}</vaadin-button>`:html`
+                            <span>${breadcrumb.text}</span>`}
+                        `)}
+                    </vaadin-horizontal-layout>
+                `:nothing}
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                         ${metadata.avatar?renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}
                         <vaadin-vertical-layout>

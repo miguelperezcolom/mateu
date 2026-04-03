@@ -1,6 +1,6 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 
-interface Breadcrumb {
+export interface Breadcrumb {
 
     text: string
     link: string | undefined

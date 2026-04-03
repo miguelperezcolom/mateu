@@ -168,16 +168,19 @@ export class MateuField extends LitElement {
     }
 
     valueChanged = (e: CustomEvent) => {
-        if (e.detail.value != this.state[this.field!.fieldId]) {
-            this.dispatchEvent(new CustomEvent('value-changed', {
-                detail: {
-                    value: this.convert(e.detail.value),
-                    //@ts-ignore
-                    fieldId: this.field?.fieldId
-                },
-                bubbles: true,
-                composed: true
-            }))
+        console.log('value changed', e.detail.value)
+        if (this.rendered) {
+            if (e.detail.value != this.state[this.field!.fieldId]) {
+                this.dispatchEvent(new CustomEvent('value-changed', {
+                    detail: {
+                        value: this.convert(e.detail.value),
+                        //@ts-ignore
+                        fieldId: this.field?.fieldId
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
         }
     }
 
@@ -1470,6 +1473,7 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
                         .value="${value}"
+                        class="mateu-checkbox-group-${this.field.optionsColumns > 1?'multi-column':''}"
                 >
                         ${this.data[this.id]?.content?.map((option: any) => html`
                             <vaadin-checkbox
@@ -1490,14 +1494,15 @@ export class MateuField extends LitElement {
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
+                        class="mateu-checkbox-group-${this.field.optionsColumns > 1?'multi-column':''}"
+                        .value="${value}"
                 >
-                    ${this.field.options?.map(option => html`
+                        ${this.field.options?.map(option => html`
                         <vaadin-checkbox 
                                 value="${option.value}" 
                                 label="${option.label}"
-                                ?checked="${value?.indexOf(option.value) >= 0}"
                         ></vaadin-checkbox>
-                    `)}
+                        `)}
                 </vaadin-checkbox-group>
             `
         }
@@ -1588,6 +1593,12 @@ export class MateuField extends LitElement {
 
     static styles = css`
         ${badge}
+        
+        .mateu-checkbox-group-multi-column::part(group-field) {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem 3rem;
+        }
         
   `
 }

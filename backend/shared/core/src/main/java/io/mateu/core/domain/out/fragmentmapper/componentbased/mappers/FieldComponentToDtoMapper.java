@@ -97,6 +97,7 @@ public class FieldComponentToDtoMapper {
             .detailPath(formField.detailPath())
             .useButtonForDetail(formField.useButtonForDetail())
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
+                .optionsColumns(formField.optionsColumns())
             .build(),
         formField.id(),
         List.of(),

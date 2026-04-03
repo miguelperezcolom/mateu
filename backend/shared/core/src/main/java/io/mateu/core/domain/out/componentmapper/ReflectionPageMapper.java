@@ -15,10 +15,12 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
+import io.mateu.uidl.annotations.Breadcrumbs;
 import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Text;
@@ -51,6 +53,7 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest) {
     return Page.builder()
         .pageTitle(getPageTitle(instance))
+            .breadcrumbs(getBreadcrumbs(instance, httpRequest))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
@@ -64,6 +67,21 @@ public class ReflectionPageMapper {
             getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
         .footer(getFooter(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
+  }
+
+  private static List<Breadcrumb> getBreadcrumbs(Object instance, HttpRequest httpRequest) {
+    if (instance == null) {
+      return null;
+    }
+    if (instance instanceof BreadcrumbsSupplier breadcrumbsSupplier) {
+      return breadcrumbsSupplier.breadcrumbs(httpRequest);
+    }
+    if (instance.getClass().isAnnotationPresent(Breadcrumbs.class)) {
+      return Arrays.stream(instance.getClass().getAnnotation(Breadcrumbs.class).value())
+              .map(breadcrumb -> new Breadcrumb(breadcrumb.label(), breadcrumb.url()))
+              .toList();
+    }
+    return null;
   }
 
   private static Collection<? extends Component> getFooter(

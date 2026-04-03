@@ -149,7 +149,7 @@ public class ReflectionFormFieldMapper {
     if (List.class.isAssignableFrom(fieldType)
         && !field.isAnnotationPresent(ForeignKey.class)
         && !field.isAnnotationPresent(Composition.class)
-        && !isBasic(field.getType())) {
+        && !isBasic(getGenericClass(field, List.class, "E"))) {
       return createCrudForField(
           field,
           prefix,
@@ -216,6 +216,7 @@ public class ReflectionFormFieldMapper {
         .colspan(getColspan(field))
         .description(getDescription(field))
         .attributes(getAttributes(field))
+            .optionsColumns(getOptionsColumns(field))
         .build();
   }
 
@@ -346,6 +347,7 @@ public class ReflectionFormFieldMapper {
         .formColumns(getDetailFormColumns(field))
         .readOnly(readOnly)
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
+            .optionsColumns(getOptionsColumns(field))
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))
@@ -417,6 +419,13 @@ public class ReflectionFormFieldMapper {
                             .build()))
                 .build())
         .build();
+  }
+
+  private static int getOptionsColumns(Field field) {
+    if (field.isAnnotationPresent(OptionsLayout.class)) {
+      return field.getAnnotation(OptionsLayout.class).columns();
+    }
+    return 1;
   }
 
   private static boolean getFilterable(Field columnField) {
