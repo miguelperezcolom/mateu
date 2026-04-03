@@ -71,7 +71,7 @@ public class Home {
 ## Real app. No frontend.
 
 <p align="center">
-  <img src="../../../images/screenshot1.png" width="800"/>
+  <img src="../../../images/processes.png" width="800"/>
 </p>
 
 <p align="center"><em>Built entirely from Java classes. No frontend code.</em></p>
@@ -127,11 +127,11 @@ Your app is defined once — not split across layers.
 ## More examples
 
 <p align="center">
-  <img src="../../../images/screenshot2.png" width="800"/>
+  <img src="../../../images/workflow-list.png" width="800"/>
 </p>
 
 <p align="center">
-  <img src="../../../images/screenshot3.png" width="800"/>
+  <img src="../../../images/workflow-edit.png" width="800"/>
 </p>
 
 ---
