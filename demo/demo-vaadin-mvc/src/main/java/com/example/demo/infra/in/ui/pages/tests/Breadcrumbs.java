@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.pages.tests;
 
 import io.mateu.uidl.annotations.Breadcrumb;
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.OptionsLayout;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
@@ -31,4 +32,13 @@ public class Breadcrumbs implements BreadcrumbsSupplier {
                 new io.mateu.uidl.data.Breadcrumb("Miguel", "")
         );
     }
+
+    @Footer
+    String footer = "You could also be interested in " +
+            "<a href=\"/roles\">Roles</a>, " +
+            "<a href=\"/permissions\">Permissions</a> " +
+            "or <a href=\"/user-groups\">User Groups</a>";
+
+    @Footer
+    String alsoInFooter = "Copyright - Mateu 2026";
 }

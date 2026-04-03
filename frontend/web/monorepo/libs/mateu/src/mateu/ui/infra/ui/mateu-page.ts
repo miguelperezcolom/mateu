@@ -107,6 +107,10 @@ export class MateuPage extends LitElement {
                         <slot name="buttons"></slot>
                     </vaadin-horizontal-layout>
                 </div>
+                
+                <div class="form-footer">
+                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                </div>
             </vaadin-vertical-layout>            `
     }
 

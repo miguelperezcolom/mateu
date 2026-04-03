@@ -12,70 +12,20 @@ You don’t assemble components manually.
 Instead, the UI emerges from:
 
 - field types (inference)
-- stereotypes (**rendering type**)
+- stereotypes (rendering type)
 - layout annotations (structure)
 - style (fine control)
+- UI regions (placement)
 
 ---
 
-## 1. Inference
+## UI regions
 
-Mateu infers UI controls from Java types.
+Mateu can project content into specific UI regions, such as the footer.
 
-- `String` → text field
-- `enum` → combobox
-- `boolean` → checkbox-like control
+This is done declaratively using annotations like `@Footer`.
 
-You usually don’t need to think about components.
-
----
-
-## 2. Stereotypes = rendering type
-
-Use `@Stereotype` to override rendering.
-
-```java
-@Stereotype(FieldStereotype.radio)
-Status status;
-```
-
-In practical terms, a stereotype is the rendering type for a field.
-
-You don’t choose low-level components — you express presentation intent.
-
----
-
-## 3. Layout
-
-Layout is also declarative.
-
-- `@VerticalLayout` (default)
-- `@HorizontalLayout`
-- `@FormLayout`
-- `@SplitLayout`
-- `@Accordion`
-- `@Tab`
-
-Example:
-
-```java
-@FormLayout(columns = 2)
-public class UserForm {
-}
-```
-
----
-
-## 4. Style
-
-Use `@Style` when you need full control.
-
-```java
-@Style("width: 100%;")
-String description;
-```
-
-This maps directly to the HTML `style` attribute.
+👉 See layout and composition for details.
 
 ---
 
@@ -83,20 +33,10 @@ This maps directly to the HTML `style` attribute.
 
 Mateu UI is:
 
-> inferred → structured → refined
+> inferred → structured → placed → refined
 
-1. inference chooses defaults
-2. layout organizes structure
-3. stereotypes adjust rendering type
-4. style fine-tunes appearance
-
----
-
-## Summary
-
-- no manual UI composition
-- no component wiring
-- no duplicated frontend
-
-You define data and intent.  
-Mateu renders the UI.
+- inference chooses defaults  
+- layout organizes structure  
+- regions define placement  
+- stereotypes adjust rendering  
+- style fine-tunes appearance  

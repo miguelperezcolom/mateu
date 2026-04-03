@@ -1,86 +1,85 @@
 ---
 title: "Layout and composition"
-weight: 13
+weight: 8
 ---
 
 # Layout and composition
 
-Mateu provides a sensible default layout so you can build UIs without thinking about structure first.
+Mateu organizes UI declaratively using layouts and regions.
 
-## Default layout
+---
 
-By default, all elements in a view model are rendered in a vertical layout.
+## Layouts
 
-This means:
+Layout defines how elements are arranged:
 
-- no layout configuration is required  
-- forms work out of the box  
-- you can focus on behavior first  
+- `@VerticalLayout` (default)
+- `@HorizontalLayout`
+- `@FormLayout`
+- `@SplitLayout`
+- `@Accordion`
+- `@Tab`
 
-## Declarative layouts
-
-When you need more control, Mateu lets you define layout using annotations.
-
-### Vertical layout
-
-Use `@VerticalLayout` to group content vertically.
-
-### Horizontal layout
-
-Use `@HorizontalLayout` to place elements side by side.
-
-### Form layout
-
-Use `@FormLayout` for structured forms.
+Example:
 
 ```java
 @FormLayout(columns = 2)
-class Details {
+public class UserForm {}
+```
+
+---
+
+## Page regions
+
+In addition to layout, Mateu supports **UI regions**.
+
+These are predefined areas of the page where content can be projected.
+
+---
+
+## Footer
+
+Use `@Footer` to define content that appears in the page footer.
+
+```java
+public class UserDetail {
+
+    @Footer
+    String footer = "You could also be interested in " +
+        "<a href=\"/roles\">Roles</a>, " +
+        "<a href=\"/permissions\">Permissions</a> " +
+        "or <a href=\"/user-groups\">User Groups</a>";
+
+    @Footer
+    String alsoInFooter = "Copyright - Mateu 2026";
 }
 ```
 
-### Split layout
+---
 
-Use `@SplitLayout` to divide the screen into two areas.
+## Key ideas
 
-### Accordion
+- footer content is part of the ViewModel  
+- multiple `@Footer` fields are supported  
+- content is rendered in a dedicated footer region  
+- HTML can be used when needed  
 
-Use `@Accordion` for collapsible sections.
-
-## Tabs
-
-Use `@Tab` to organize fields and actions into tabbed sections.
-
-```java
-@Tab(value = "General", order = 0)
-String name;
-
-@Tab(value = "Security", order = 1)
-String password;
-```
-
-## Styling
-
-Layout annotations support a `style` attribute.
-
-This allows fine-grained visual control using CSS.
-
-```java
-@HorizontalLayout(style = "gap: 1rem; align-items: center;")
-class Header {
-}
-```
-
-You can also apply styles at field level:
-
-```java
-@Style("width: 100%;")
-String name;
-```
+---
 
 ## Mental model
 
-- no layout → vertical by default  
-- layout annotations → structure  
-- `@Tab` → grouping  
-- `style` → visual fine-tuning  
+Footer is not a separate layout system.
+
+It is:
+
+> another projection of your model into a specific UI region
+
+---
+
+## Summary
+
+- layout → structure  
+- regions → placement  
+- model → source of truth  
+
+Mateu combines all three to generate the UI.
