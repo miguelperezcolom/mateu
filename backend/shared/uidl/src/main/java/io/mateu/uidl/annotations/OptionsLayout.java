@@ -1,6 +1,5 @@
 package io.mateu.uidl.annotations;
 
-import io.mateu.uidl.data.FieldStereotype;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,5 +12,4 @@ import java.lang.annotation.Target;
 public @interface OptionsLayout {
 
   int columns() default 1;
-
 }

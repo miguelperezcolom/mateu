@@ -26,9 +26,12 @@ public class PageComponentToDtoMapper {
             .favicon(page.favicon())
             .title(page.title())
             .subtitle(page.subtitle())
-                .breadcrumbs(page.breadcrumbs() != null ? page.breadcrumbs().stream()
+            .breadcrumbs(
+                page.breadcrumbs() != null
+                    ? page.breadcrumbs().stream()
                         .map(breadcrumb -> new BreadcrumbDto(breadcrumb.text(), breadcrumb.link()))
-                        .toList() : null)
+                        .toList()
+                    : null)
             .avatar(
                 page.avatar() != null
                     ? mapComponentToDto(

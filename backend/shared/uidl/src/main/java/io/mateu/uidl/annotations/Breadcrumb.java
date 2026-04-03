@@ -5,6 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Breadcrumb {
-    String label();
-    String url();
+  String label();
+
+  String url();
 }

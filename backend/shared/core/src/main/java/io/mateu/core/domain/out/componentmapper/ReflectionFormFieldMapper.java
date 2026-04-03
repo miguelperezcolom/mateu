@@ -216,7 +216,7 @@ public class ReflectionFormFieldMapper {
         .colspan(getColspan(field))
         .description(getDescription(field))
         .attributes(getAttributes(field))
-            .optionsColumns(getOptionsColumns(field))
+        .optionsColumns(getOptionsColumns(field))
         .build();
   }
 
@@ -347,7 +347,7 @@ public class ReflectionFormFieldMapper {
         .formColumns(getDetailFormColumns(field))
         .readOnly(readOnly)
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
-            .optionsColumns(getOptionsColumns(field))
+        .optionsColumns(getOptionsColumns(field))
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))

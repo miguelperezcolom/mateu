@@ -53,7 +53,7 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest) {
     return Page.builder()
         .pageTitle(getPageTitle(instance))
-            .breadcrumbs(getBreadcrumbs(instance, httpRequest))
+        .breadcrumbs(getBreadcrumbs(instance, httpRequest))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
@@ -78,8 +78,8 @@ public class ReflectionPageMapper {
     }
     if (instance.getClass().isAnnotationPresent(Breadcrumbs.class)) {
       return Arrays.stream(instance.getClass().getAnnotation(Breadcrumbs.class).value())
-              .map(breadcrumb -> new Breadcrumb(breadcrumb.label(), breadcrumb.url()))
-              .toList();
+          .map(breadcrumb -> new Breadcrumb(breadcrumb.label(), breadcrumb.url()))
+          .toList();
     }
     return null;
   }
