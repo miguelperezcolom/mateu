@@ -5,16 +5,44 @@ weight: 21
 
 # Working with domain models
 
-Mateu integrates naturally with DDD and hexagonal architectures.
+Mateu is designed to work with **DDD and hexagonal architectures**.
 
-## Separation of concerns
+---
 
-- domain → business logic
-- application → use cases
-- UI (Mateu) → representation
+## Separation
+
+- Domain → business rules
+- Application → use cases
+- Mateu → UI layer
+
+---
+
+## Recommended flow
+
+UI → Use case → Domain → Repository
+
+---
+
+## ViewModel vs Domain
+
+- ViewModel → UI representation
+- Domain → business logic
+
+They are not the same.
+
+---
+
+## Mapping
+
+You usually map:
+
+- DTO → ViewModel
+- ViewModel → Command
+
+---
 
 ## Mental model
 
-Mateu does not replace your domain.
+Mateu sits on top of your backend.
 
-It sits on top of it.
+It does not replace it.
