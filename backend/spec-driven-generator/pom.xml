@@ -13,19 +13,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>spec-driven-generator</name>
     <description>spec-driven-generator</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+    <url>https://mateu.io</url>
     <properties>
         <java.version>21</java.version>
     </properties>
