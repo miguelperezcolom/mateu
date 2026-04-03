@@ -50,7 +50,6 @@
     <module>quarkus</module>
     <module>mvc</module>
     <module>helidon-mp</module>
-    <module>spec-driven-generator</module>
       <module>shared/frontend/redhat-lit</module>
     <module>shared/frontend/redwood-lit</module>
     <module>shared/frontend/sapui5-lit</module>
