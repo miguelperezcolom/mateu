@@ -5,38 +5,30 @@ weight: 5
 
 # UI model in Mateu
 
-Mateu does not build UIs the traditional way.
+Mateu UI emerges from:
 
-You don’t assemble components manually.
-
-Instead, the UI emerges from:
-
-- field types (inference)
-- stereotypes (rendering type)
-- layout annotations (structure)
-- style (fine control)
-- UI regions (placement)
+- inference
+- layout
+- regions
+- stereotypes
+- style
 
 ---
 
-## UI regions
+## Style
 
-Mateu can project content into specific UI regions, such as the footer.
+`@Style` provides fine control.
 
-This is done declaratively using annotations like `@Footer`.
+It can be used for:
 
-👉 See layout and composition for details.
+- individual fields
+- layout tweaks
+- page-level constraints
 
 ---
 
 ## Mental model
 
-Mateu UI is:
-
 > inferred → structured → placed → refined
 
-- inference chooses defaults  
-- layout organizes structure  
-- regions define placement  
-- stereotypes adjust rendering  
-- style fine-tunes appearance  
+Style is the final refinement layer.

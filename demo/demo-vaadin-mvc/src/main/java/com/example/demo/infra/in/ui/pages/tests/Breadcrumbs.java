@@ -1,11 +1,13 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
+import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Breadcrumb;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.OptionsLayout;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Option;
@@ -22,6 +24,7 @@ import java.util.List;
         @Breadcrumb(label = "Users", url = "/users"),
         @Breadcrumb(label = "Detail", url = "/users/123")
 })
+@Style(StyleConstants.CONTAINER)
 public class Breadcrumbs implements BreadcrumbsSupplier {
 
     @Override

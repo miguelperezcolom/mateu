@@ -5,13 +5,11 @@ weight: 8
 
 # Layout and composition
 
-Mateu organizes UI declaratively using layouts and regions.
+Mateu organizes UI declaratively using layouts, regions and style.
 
 ---
 
 ## Layouts
-
-Layout defines how elements are arranged:
 
 - `@VerticalLayout` (default)
 - `@HorizontalLayout`
@@ -20,66 +18,51 @@ Layout defines how elements are arranged:
 - `@Accordion`
 - `@Tab`
 
-Example:
-
-```java
-@FormLayout(columns = 2)
-public class UserForm {}
-```
-
 ---
 
-## Page regions
+## Page-level styling
 
-In addition to layout, Mateu supports **UI regions**.
-
-These are predefined areas of the page where content can be projected.
-
----
-
-## Footer
-
-Use `@Footer` to define content that appears in the page footer.
+You can control page layout using `@Style` at class level.
 
 ```java
-public class UserDetail {
-
-    @Footer
-    String footer = "You could also be interested in " +
-        "<a href=\"/roles\">Roles</a>, " +
-        "<a href=\"/permissions\">Permissions</a> " +
-        "or <a href=\"/user-groups\">User Groups</a>";
-
-    @Footer
-    String alsoInFooter = "Copyright - Mateu 2026";
+public class StyleConstants {
+  public static final String CONTAINER = "max-width:900px;margin: auto;";
 }
 ```
 
+```java
+@Route("/users/:id")
+@Style(StyleConstants.CONTAINER)
+public class UserDetail {}
+```
+
+### What this does
+
+- constrains width  
+- centers content  
+- improves readability  
+
 ---
 
-## Key ideas
+## Reusable layout constraints
 
-- footer content is part of the ViewModel  
-- multiple `@Footer` fields are supported  
-- content is rendered in a dedicated footer region  
-- HTML can be used when needed  
+Instead of repeating styles, define reusable constants:
+
+```java
+public class StyleConstants {
+  public static final String CONTAINER = "max-width:900px;margin:auto;";
+  public static final String WIDE = "max-width:1200px;margin:auto;";
+}
+```
+
+This enables consistency across pages.
 
 ---
 
 ## Mental model
 
-Footer is not a separate layout system.
-
-It is:
-
-> another projection of your model into a specific UI region
-
----
-
-## Summary
-
 - layout → structure  
 - regions → placement  
-- model → source of truth  
+- style → constraints + fine control  
 
 Mateu combines all three to generate the UI.
