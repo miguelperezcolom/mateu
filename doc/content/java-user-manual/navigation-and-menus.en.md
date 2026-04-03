@@ -7,6 +7,8 @@ weight: 10
 
 Navigation in Mateu comes from your object model.
 
+---
+
 ## Menus
 
 ```java
@@ -14,17 +16,26 @@ Navigation in Mateu comes from your object model.
 Users users;
 ```
 
-Nested classes create nested menus.
+---
 
-## Remote menus (microservices)
+## App variants
+
+Mateu can infer the navigation UI automatically.
+
+Use `@App` when you want to force a specific variant:
+
+- hamburger menu  
+- menu on the left  
+- menu on the top  
+- tabs  
+- auto  
 
 ```java
-@Menu
-RemoteMenu users = new RemoteMenu("/_users");
+@App(AppVariant.MENU_ON_LEFT)
 ```
 
-## Breadcrumbs
+---
 
-Mateu supports both static and dynamic breadcrumbs.
+## Breadcrumbs
 
 👉 [Learn about breadcrumbs →](/java-user-manual/breadcrumbs)

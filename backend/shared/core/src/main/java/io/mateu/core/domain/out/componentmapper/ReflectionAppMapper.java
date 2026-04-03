@@ -149,6 +149,12 @@ public class ReflectionAppMapper {
   }
 
   private static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
+    if (instance != null && instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+      var appVariant = instance.getClass().getAnnotation(io.mateu.uidl.annotations.App.class).value();
+      if (appVariant != AppVariant.AUTO) {
+        return appVariant;
+      }
+    }
     for (Actionable actionable : menu) {
       if (isMenu(actionable)) {
         return AppVariant.MENU_ON_TOP;
