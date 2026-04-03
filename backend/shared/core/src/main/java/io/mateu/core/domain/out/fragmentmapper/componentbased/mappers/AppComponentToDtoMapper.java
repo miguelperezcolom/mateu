@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.Reflection
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.HomeRoute;
+import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
@@ -28,6 +29,7 @@ import lombok.SneakyThrows;
 
 public final class AppComponentToDtoMapper {
 
+  @SneakyThrows
   public static ClientSideComponentDto mapAppToDto(
       ComponentTreeSupplier componentSupplier,
       App app,
@@ -44,7 +46,18 @@ public final class AppComponentToDtoMapper {
     if (appRoute == null) {
       appRoute = route;
     }
-    var menu = getMenu(app, route, appRoute);
+    var appRouteForMenu = appRoute;
+    if (app.serverSideType() != null) {
+      var appType = Class.forName(app.serverSideType());
+      if (appType.isAnnotationPresent(Route.class)) {
+        // app route has already been added to the links
+        appRouteForMenu = "";
+        if (route.equals(appType.getAnnotation(Route.class).value())) {
+          route = "/_page";
+        }
+      }
+    }
+    var menu = getMenu(app, route, appRouteForMenu);
     var selectedOption = getSelectedOption(appRoute, route, app.menu());
     var appDto =
         AppDto.builder()
