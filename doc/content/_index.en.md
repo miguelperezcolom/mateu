@@ -1,94 +1,53 @@
 ---
 header_alt: true
-title: Stop building the same app twice
+title: Spec-driven development. Build full apps with minimal code.
 ---
 
-<meta name="description" content="Build real backoffice apps without a frontend. Define everything in Java. No duplicated models. No API glue.">
-
-<meta property="og:title" content="Mateu – Stop building the same app twice">
-<meta property="og:description" content="Build real backoffice apps without a frontend. One model. Full app.">
+<meta name="description" content="Mateu lets you build full web apps from a single spec in Java. No frontend, no duplication, minimal code.">
+<meta property="og:title" content="Mateu – Spec-driven development">
+<meta property="og:description" content="Define your app once. Mateu builds the UI automatically.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
-## Build real backoffice apps without a frontend
+# Spec-driven development
 
-Define your app once in Java.  
-Mateu renders the UI, wires interactions, and connects everything to your backend.
+## Build full web apps with minimal code
 
-**No HTML. No CSS. No JavaScript.**  
-**No duplicated models. No API glue. No sync issues.**
+Define your app once.  
+Mateu builds the UI and wires everything together.
 
-<div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+**No HTML. No CSS. No JavaScript.**
+
+No duplicated models. No API glue. No fragmented architecture.
+
+---
+
+<div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
-  <a href="/build-a-full-backoffice-in-10-minutes"><strong>Build a backoffice →</strong></a>
-  <a href="/java-user-manual/">Read the docs</a>
+  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
+  <a href="/java-user-manual/build-a-real-app/">Build a real app →</a>
 </div>
-
----
-
-<p align="center">
-  <img src="/images/proccess.png" width="1000"/>
-</p>
-
----
-
-## 🧠 Understand the model
-
-Mateu is simple — once you understand the model.
-
-👉 [Understand the Mateu mental model →](/mateu-about/how-to-think-in-mateu)
 
 ---
 
 ## One model. Full app.
 
-With Mateu, you define:
+With Mateu, your application is defined as a single model:
 
-- state
-- actions
-- behavior
-- relationships
+- fields → state
+- methods → actions
+- annotations → behavior and rendering
+
+Mateu uses that model to generate:
+
+- UI
 - navigation
-- layout
+- interaction
 - validation
-- UI reactions
-
-Everything else is generated.
+- browser behavior
 
 ---
 
-## 🚀 Build something real
-
-👉 [**Build a full backoffice in 10 minutes →**](/build-a-full-backoffice-in-10-minutes)
-
-See how Mateu is used to build a real admin app with:
-
-- forms
-- validation
-- CRUD
-- relationships
-- navigation
-- browser feedback
-
----
-
-## This is a real app
-
-<p align="center">
-  <img src="/images/workflow-list.png" width="900"/>
-</p>
-
-<p align="center">
-  <img src="/images/processes.png" width="900"/>
-</p>
-
-You’re not wiring components.  
-You’re not syncing frontend and backend.
-
-You’re just defining your application.
-
----
-
-## Write this
+## This
 
 ```java
 @UI("")
@@ -103,89 +62,94 @@ public class Home {
 }
 ```
 
----
+## Becomes
 
-## And get a working UI
-
-No templates. No controllers. No frontend layer.
+<p align="center"><img src="../../../images/counter.png" width="700"/></p>
 
 ---
 
-## A real CRUD
+## Why this matters
 
-```java
-@NotEmpty
-String name;
+Modern apps are split across:
 
-@ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
-@Stereotype(FieldStereotype.checkbox)
-List<String> permissions;
+- backend
+- frontend
+- APIs
+- duplicated models
+- synchronization layers
 
-@Button
-public Message save() {
-  return new Message("Saved successfully");
-}
-```
-
-Mateu handles:
-
-- rendering
-- validation in the browser
-- option loading
-- interaction
-- user feedback
+You build the same app twice — and maintain the gap forever.
 
 ---
 
-## Navigation is your object model
+## Mateu removes that gap
 
-```java
-@Menu
-MasterDataMenu masterData;
-```
-
-Menus, routing, and structure come from your classes.
+- one source of truth
+- no duplication
+- no glue code
+- no sync problems
 
 ---
 
-## One shell. Many services.
+## Spec-driven
 
-Each microservice can expose its own UI.
+Mateu is not backend-driven or frontend-driven.
 
-Compose them with `RemoteMenu`:
+It is:
 
-- independent deployment
-- unified navigation
-- no frontend integration layer
+> **spec-driven**
 
----
-
-## Built for
-
-- internal tools
-- admin panels
-- microservice backoffices
-- CRUD-heavy systems
+Your app is defined once — not split across layers.
 
 ---
 
-## Why Mateu
+## What Mateu gives you
 
-- ⚡ Less code
-- 🧠 One mental model
+- ⚡ Build apps **10x faster**
+- 🧠 One language, one mental model
 - 🔥 No frontend bugs
-- 🧩 No duplication
-- 🌐 Distributed-ready
+- 🧩 High-level building blocks
+- 🌐 Stateless, microservice-friendly
+- 🔌 Embeddable UI (web components)
 
 ---
 
-## Stop building the same app twice.
+## Real use cases
+
+Mateu works especially well for:
+
+- backoffice applications
+- admin panels
+- CRUD-heavy systems
+- internal tools
+- microservice architectures
+
+---
+
+## Built for real architectures
+
+Mateu fits naturally with:
+
+- Spring Boot
+- DDD
+- Hexagonal architecture
+
+It does not replace your backend.  
+It sits on top of it.
+
+---
+
+## Learn by building
+
+👉 [Build a full backoffice in 10 minutes →](/java-user-manual/build-a-real-app/)  
+👉 [Explore the documentation →](/java-user-manual/)  
+👉 [View GitHub →](https://github.com/miguelperezcolom/mateu)
+
+---
+
+## Stop splitting your app
 
 Define it once.
-
-👉 [**Try the live demo**](https://vaadin.mateu.io/fluent/use-cases/rra)  
-👉 [**Build a backoffice**](/build-a-full-backoffice-in-10-minutes)  
-👉 [**Read the docs**](/java-user-manual/)
 
 ---
 
