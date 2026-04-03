@@ -978,6 +978,6 @@ public class ReflectionPageMapper {
         || instance.getClass().isAnnotationPresent(Route.class)) {
       return toUpperCaseFirst(instance.getClass().getSimpleName());
     }
-    return null;
+    return toUpperCaseFirst(instance.getClass().getSimpleName());
   }
 }

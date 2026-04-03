@@ -13,8 +13,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route("/app")
-@App(AppVariant.TABS)
+@Route("")
+@App(AppVariant.HAMBURGUER_MENU)
 public class Home {
 
     @Menu
