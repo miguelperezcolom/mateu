@@ -181,7 +181,9 @@ public class ReflectionFormFieldMapper {
                       forCreationForm,
                       readOnly || ReflectionPageMapper.isReadOnly(field, instance, forCreationForm),
                       maxColumns)
-                  .stream().findFirst().orElse(null))
+                  .stream()
+                  .findFirst()
+                  .orElse(null))
           .colspan(maxColumns)
           .style("width: 100%;")
           .build();
@@ -218,10 +220,10 @@ public class ReflectionFormFieldMapper {
   }
 
   private static String getLabelForNonBasic(Field field) {
-   if (Runnable.class.isAssignableFrom(field.getType())) {
-        return "";
-      }
-   return getLabel(field);
+    if (Runnable.class.isAssignableFrom(field.getType())) {
+      return "";
+    }
+    return getLabel(field);
   }
 
   private static Map<String, String> getAttributes(Field field) {

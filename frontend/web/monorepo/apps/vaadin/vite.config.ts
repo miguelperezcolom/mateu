@@ -61,6 +61,11 @@ export default defineConfig({
             '/_financial': 'http://localhost:8091',
             '/control-plane': 'http://localhost:8091',
             '/workflow': 'http://localhost:8091',
+            '/_users': 'http://localhost:8091',
+            '/_shell': 'http://localhost:8091',
+            '/_content': 'http://localhost:8091',
+            '/_control-plane': 'http://localhost:8091',
+            '/_workflow': 'http://localhost:8091',
         },
     },
     optimizeDeps: {
