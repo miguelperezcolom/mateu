@@ -99,7 +99,7 @@ export class MateuApp extends ComponentElement {
             if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
                 if (targetUrl.search) {
-                    pathname += '?' + targetUrl.search
+                    pathname += targetUrl.search
                 }
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
