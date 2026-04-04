@@ -64,6 +64,10 @@ export class MateuUi extends LitElement {
                         baseUrl = window.location.origin + baseUrl
                     }
                 }
+                console.log('route', route, baseUrl)
+                if (route.startsWith(this.pathPrefix + '/')) {
+                    route = route.substring(this.pathPrefix?.length)
+                }
                 if (baseUrl.endsWith('/') && route.startsWith('/')) {
                     route = route.substring(1)
                 }
