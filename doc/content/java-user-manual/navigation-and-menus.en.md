@@ -16,6 +16,8 @@ Navigation in Mateu comes from your object model.
 Users users;
 ```
 
+Nested classes create nested menus.
+
 ---
 
 ## App variants
@@ -24,15 +26,23 @@ Mateu can infer the navigation UI automatically.
 
 Use `@App` when you want to force a specific variant:
 
-- hamburger menu  
-- menu on the left  
-- menu on the top  
-- tabs  
-- auto  
+- hamburger menu
+- menu on the left
+- menu on the top
+- tabs
+- auto
 
 ```java
 @App(AppVariant.MENU_ON_LEFT)
 ```
+
+---
+
+## Routing
+
+Routes are resolved relative to the current UI and can be explicit (`@Route`) or implicit (`@Menu`).
+
+👉 [Learn about routing and parameters →](/java-user-manual/routing-and-parameters)
 
 ---
 

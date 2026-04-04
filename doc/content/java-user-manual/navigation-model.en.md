@@ -11,12 +11,29 @@ It **emerges from your object model**.
 
 ---
 
+## Core idea
+
+You don’t define:
+
+- routes separately
+- menus separately
+- breadcrumbs separately
+
+You define a model.
+
+Mateu builds navigation from it.
+
+---
+
 ## Routes
 
-```java
-@Route("/users")
-public class UsersPage {}
-```
+Routes live inside a UI context defined by `@UI`.
+
+Explicit routes are declared with `@Route`.
+
+Implicit routes can be inferred from `@Menu`.
+
+👉 [Learn about routing and parameters →](/java-user-manual/routing-and-parameters)
 
 ---
 
@@ -31,51 +48,32 @@ Nested classes create nested menus.
 
 ---
 
-## Navigation presentation
+## Microservices navigation
 
-Mateu not only infers navigation structure from `@Menu`.
+```java
+@Menu
+RemoteMenu users = new RemoteMenu("/_users");
+```
 
-It also infers how navigation should be rendered.
+Each service exposes its own UI.
 
-By default:
-
-- flat menu structures may be rendered as tabs  
-- nested menu structures may be rendered as menus  
+A shell composes them.
 
 ---
 
-## App variants
+## Breadcrumbs
 
-When you want explicit control, use `@App`.
+Breadcrumbs can be:
 
-```java
-@Route("/app")
-@App(AppVariant.HAMBURGUER_MENU)
-public class Home {
+- static → annotations
+- dynamic → supplier
 
-    @Menu
-    UsersCrud users;
-
-    @Menu
-    GroupsCrud groups;
-
-}
-```
-
-```java
-public enum AppVariant {
-  HAMBURGUER_MENU,
-  MENU_ON_LEFT,
-  MENU_ON_TOP,
-  TABS,
-  AUTO
-}
-```
+👉 [See breadcrumbs →](/java-user-manual/breadcrumbs)
 
 ---
 
 ## Mental model
 
-- `@Menu` → navigation tree  
-- Mateu → infers navigation UI  
-- `@App` → overrides the app variant  
+Navigation is not something you configure.
+
+It is something that **falls out of your application structure**.

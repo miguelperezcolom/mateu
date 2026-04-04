@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
@@ -35,7 +36,9 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
             Arrays.stream(e.getAnnotationsByType(Route.class))
                 .map(
                     routeAnnotation ->
-                        new Pair(routeAnnotation.value(), routeAnnotation.parentRoute()))
+                        new Pair(
+                            toRegex(routeAnnotation.value()),
+                            toRegex(routeAnnotation.parentRoute())))
                 .map(pair -> (Pair<String, String>) pair)
                 .toList();
 
@@ -69,6 +72,12 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
     }
 
     return true;
+  }
+
+  private String toRegex(String route) {
+    return Arrays.stream(route.split("/"))
+        .map(token -> token.startsWith(":") ? ".*" : token)
+        .collect(Collectors.joining("/"));
   }
 
   private String removeTrailingSlash(String path) {
