@@ -25,4 +25,7 @@ public class Home {
     @Menu
     UsersCrud users2;
 
+    @Menu
+    String users3 = "/users2/xxx?version=2772";
+
 }

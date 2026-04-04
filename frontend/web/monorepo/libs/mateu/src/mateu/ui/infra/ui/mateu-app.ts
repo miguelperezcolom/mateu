@@ -80,7 +80,6 @@ export class MateuApp extends ComponentElement {
     selectRoute = (route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
 
         if (route) {
-
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
             this.selectedAppServerSideType = appServerSideType
@@ -99,12 +98,16 @@ export class MateuApp extends ComponentElement {
             let targetUrl = new URL(baseUrl + route)
             if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
+                if (targetUrl.search) {
+                    pathname += '?' + targetUrl.search
+                }
                 if (pathname && !pathname.startsWith('/')) {
                     pathname = '/' + pathname
                 }
                 if (this.baseUrl && pathname.startsWith(this.baseUrl)) {
                     pathname = pathname.substring(this.baseUrl.length)
                 }
+
 
                 let effectiveRoute = pathname
                 if (this.selectedUriPrefix) {

@@ -102,6 +102,7 @@ export class MateuUx extends ConnectedElement {
             e.stopPropagation()
 
             let effectiveRoute = e.detail.route
+
             if (this.uriPrefix) {
                 if (effectiveRoute.startsWith('/') && this.uriPrefix.endsWith('/')) {
                     effectiveRoute = this.uriPrefix + effectiveRoute.substring(1)
