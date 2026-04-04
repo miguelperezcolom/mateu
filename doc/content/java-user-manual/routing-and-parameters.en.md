@@ -72,6 +72,42 @@ This makes it easy to define shortcuts and deep links directly from the menu.
 
 ---
 
+## Navigation from actions
+
+Actions can also trigger navigation by returning a `URI`.
+
+```java
+@Route("/home")
+public class Home {
+
+    @SneakyThrows
+    @Button
+    URI adminUser() {
+        return new URI("/users/admin?version=2772");
+    }
+
+}
+```
+
+When a method returns a `URI`, Mateu navigates to that route.
+
+This is useful for:
+
+- redirects after create or update
+- navigation based on user input
+- dynamic routing
+- multi-step flows
+
+### Mental model
+
+Navigation can happen in three ways:
+
+- menus pointing to ViewModels
+- menus pointing to routes
+- actions returning `URI`
+
+---
+
 ## Route parameters
 
 Mateu supports path parameters:

@@ -5,47 +5,66 @@ weight: 22
 
 # Build a real app
 
-This is the **reference implementation** for building a backoffice with Mateu.
+This tutorial shows how to build a real backoffice application with Mateu and Spring Boot.
 
----
+We will model a small admin application with:
 
-## Steps
-
-1. Define domain
-2. Create query services
-3. Create use cases
-4. Build ViewModels
-5. Create CRUD adapters
-6. Expose with orchestrators
-7. Add navigation
-8. Add UI feedback
-
----
-
-## What you get
-
-- full UI
-- navigation
-- validation
-- CRUD flows
+- users
+- roles
+- permissions
 - relationships
-- browser interaction
+- navigation
+- feedback in the browser
+
+The goal is not to show every feature.
+
+The goal is to show the **default way to build a real app** with Mateu.
 
 ---
 
-## Key idea
+## Navigation after actions
 
-You are not building:
+Actions can also navigate directly by returning a `URI`.
 
-- backend + frontend
+```java
+@Route("/home")
+public class Home {
 
-You are building:
+    @SneakyThrows
+    @Button
+    URI adminUser() {
+        return new URI("/users/admin?version=2772");
+    }
 
-> one model → full app
+}
+```
+
+This is useful for:
+
+- redirect after create
+- send user to detail page
+- jump to filtered or versioned routes
 
 ---
 
-## Mental model
+## Summary
 
-- model → everything
-- Mateu → rendering + wiring
+A real Mateu application usually consists of:
+
+- one application model
+- multiple view models
+- CRUD orchestrators
+- adapters
+- query services
+- use cases
+- suppliers for relationships
+- browser feedback through UI effects
+- navigation through menus, routes or returned `URI`
+
+This is what Mateu is for.
+
+---
+
+## Next step
+
+👉 [Compose a shell with multiple services →](/java-user-manual/shell-and-federation-tutorial)
