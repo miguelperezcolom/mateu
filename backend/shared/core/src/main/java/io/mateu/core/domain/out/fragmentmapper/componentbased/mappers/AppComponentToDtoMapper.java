@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 
 public final class AppComponentToDtoMapper {
@@ -161,7 +160,11 @@ public final class AppComponentToDtoMapper {
     if (httpRequest.getParameterNames().isEmpty()) {
       return route;
     }
-    return route + "?" + httpRequest.getParameterNames().stream().map(name -> name + "=" + httpRequest.getParameterValue(name)).collect(Collectors.joining("&"));
+    return route
+        + "?"
+        + httpRequest.getParameterNames().stream()
+            .map(name -> name + "=" + httpRequest.getParameterValue(name))
+            .collect(Collectors.joining("&"));
   }
 
   @SneakyThrows

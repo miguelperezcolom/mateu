@@ -44,13 +44,11 @@ import io.mateu.uidl.interfaces.RouteSupplier;
 import io.mateu.uidl.interfaces.StateSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -61,7 +59,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @Slf4j
 @Named
@@ -182,7 +179,6 @@ public class RunActionUseCase {
     }
   }
 
-
   private String getLongestMatcher(Pattern patten, String route) {
     while (!route.isEmpty() && !patten.matcher(route).matches()) {
       route = route.substring(0, route.length() - 1);
@@ -202,15 +198,20 @@ public class RunActionUseCase {
     return Mono.just(instance);
   }
 
-  private Mono<?> resolveMenuIfApp(RunActionCommand command, Object instance, HttpRequest httpRequest) {
+  private Mono<?> resolveMenuIfApp(
+      RunActionCommand command, Object instance, HttpRequest httpRequest) {
     return resolveMenuIfAppBeforeParameters(command, instance)
-            .map(object ->  {
-              httpRequest.getParameterNames().forEach(paramName -> {
-                try {
-                  setValue(paramName, object, httpRequest.getParameterValue(paramName));
-                } catch (Exception ignored) {
-                }
-              });
+        .map(
+            object -> {
+              httpRequest
+                  .getParameterNames()
+                  .forEach(
+                      paramName -> {
+                        try {
+                          setValue(paramName, object, httpRequest.getParameterValue(paramName));
+                        } catch (Exception ignored) {
+                        }
+                      });
               return object;
             });
   }
@@ -311,9 +312,11 @@ public class RunActionUseCase {
       if (command.route().startsWith("/_page")) {
         return createInstanceAndPostHydrate(command.appServerSideType(), command);
       }
-      return resolveRoute(command).switchIfEmpty(createInstanceAndPostHydrate(command.appServerSideType(), command)
-          .flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()))
-          .switchIfEmpty((Mono) resolveRoute(command)));
+      return resolveRoute(command)
+          .switchIfEmpty(
+              createInstanceAndPostHydrate(command.appServerSideType(), command)
+                  .flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()))
+                  .switchIfEmpty((Mono) resolveRoute(command)));
     }
 
     // si hay una ruta --> esa clase
@@ -354,9 +357,7 @@ public class RunActionUseCase {
             .reversed()) {
       if (resolver.supportsRoute(route, command.consumedRoute())) {
         var instanceTypeName =
-            resolver
-                .resolveRoute(route, command.consumedRoute(), command.httpRequest())
-                .getName();
+            resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();
         var type = Class.forName(instanceTypeName);
         var isApp = false;
         if (App.class.isAssignableFrom(type)

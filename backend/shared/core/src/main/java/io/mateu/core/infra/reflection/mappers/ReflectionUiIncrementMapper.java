@@ -6,7 +6,6 @@ import static io.mateu.core.domain.out.messagemapper.MessageMapper.mapToMessageD
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;

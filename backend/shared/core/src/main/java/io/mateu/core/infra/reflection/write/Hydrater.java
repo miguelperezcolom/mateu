@@ -29,12 +29,15 @@ public class Hydrater {
                   }
                 });
       }
-      httpRequest.getParameterNames().forEach(paramName -> {
-          try {
-              setValue(paramName, object, httpRequest.getParameterValue(paramName));
-          } catch (Exception ignored) {
-          }
-      });
+      httpRequest
+          .getParameterNames()
+          .forEach(
+              paramName -> {
+                try {
+                  setValue(paramName, object, httpRequest.getParameterValue(paramName));
+                } catch (Exception ignored) {
+                }
+              });
     }
     return object;
   }
