@@ -70,6 +70,7 @@ String keycloakStuff = """
 
             const u = document.createElement('mateu-ui');
             u.setAttribute('baseUrl', '${path}');
+            u.setAttribute('pathPrefix', '${path}');
             u.setAttribute('style', 'width:100%;height:100vh;');
             document.body.appendChild(u);
 
@@ -81,7 +82,7 @@ String keycloakStuff = """
 """);
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-    + "<mateu-ui baseUrl=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
+    + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
     + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;

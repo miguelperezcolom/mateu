@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.fluent.routes;
 
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Pair;
@@ -31,7 +32,7 @@ public class CustomRouteResolverPage implements ComponentTreeSupplier, RouteReso
     }
 
     @Override
-    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-        return List.of(new Pair(Pattern.compile("/routes/custom-route-resolver"), Pattern.compile("")));
+    public List<CompiledRouteValue> supportedRoutesPatterns() {
+        return List.of(new CompiledRouteValue("/routes/custom-route-resolver", "", Pattern.compile("/routes/custom-route-resolver"), Pattern.compile("")));
     }
 }

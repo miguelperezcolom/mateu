@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
@@ -39,7 +40,7 @@ public class OrderDetailRouter implements RouteResolver {
     }
 
     @Override
-    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-        return List.of(new Pair(pattern, Pattern.compile("/use-cases/rra")));
+    public List<CompiledRouteValue> supportedRoutesPatterns() {
+        return List.of(new CompiledRouteValue(pattern.pattern(), "_empty", pattern, Pattern.compile("/use-cases/rra")));
     }
 }
