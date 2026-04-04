@@ -2,7 +2,6 @@ package io.mateu.annotationprocessing;
 
 import freemarker.template.TemplateException;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.interfaces.Pair;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -32,14 +31,15 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
       for (Element e : annotatedElements) {
         String className = ((TypeElement) e).getQualifiedName().toString();
         String simpleClassName = e.getSimpleName().toString();
-        List<Pair<String, String>> routes =
+        List<io.mateu.uidl.interfaces.RouteValue> routes =
             Arrays.stream(e.getAnnotationsByType(Route.class))
                 .map(
                     routeAnnotation ->
-                        new Pair(
+                        new io.mateu.uidl.interfaces.RouteValue(
+                            routeAnnotation.value(),
+                            routeAnnotation.parentRoute(),
                             toRegex(routeAnnotation.value()),
                             toRegex(routeAnnotation.parentRoute())))
-                .map(pair -> (Pair<String, String>) pair)
                 .toList();
 
         System.out.println("RouteAnnotationProcessor running on " + simpleClassName);
@@ -115,7 +115,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
       Element e,
       String generatedClassName,
       String caption,
-      List<Pair<String, String>> paths,
+      List<io.mateu.uidl.interfaces.RouteValue> paths,
       Filer filer)
       throws IOException {
     JavaFileObject builderFile = filer.createSourceFile(generatedFullClassName);

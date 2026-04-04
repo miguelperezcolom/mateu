@@ -45,4 +45,9 @@ public class MicronautHttpRequest implements HttpRequest {
   public String path() {
     return delegate.getPath();
   }
+
+  @Override
+  public List<String> getParameterNames() {
+    return delegate.getParameters().names().stream().toList();
+  }
 }

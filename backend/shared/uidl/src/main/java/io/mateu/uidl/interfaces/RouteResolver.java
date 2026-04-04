@@ -3,7 +3,6 @@ package io.mateu.uidl.interfaces;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 public interface RouteResolver {
 
@@ -11,18 +10,18 @@ public interface RouteResolver {
     return matchingPattern(route, consumedRoute).isPresent();
   }
 
-  default Optional<Pattern> matchingPattern(String route, String consumedRoute) {
+  default Optional<CompiledRouteValue> matchingPattern(String route, String consumedRoute) {
     // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ", consumedRoute:
     // " + consumedRoute);
-    for (Pair<Pattern, Pattern> pattern :
+    for (CompiledRouteValue pattern :
         supportedRoutesPatterns().stream()
-            .sorted(Comparator.comparingInt(pattern -> pattern.first().pattern().length()))
+            .sorted(Comparator.comparingInt(pattern -> pattern.routeRegex().pattern().length()))
             .toList()) {
-      if (pattern.first().matcher(route).matches()
-          && (pattern.second().matcher(consumedRoute).matches())) {
+      if (pattern.routeRegex().matcher(route).matches()
+          && (pattern.parentRouteRegex().matcher(consumedRoute).matches())) {
         // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ",
         // consumedRoute: " + consumedRoute + " MATCHED");
-        return Optional.of(pattern.first());
+        return Optional.of(pattern);
       }
     }
     // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ", consumedRoute:
@@ -34,7 +33,7 @@ public interface RouteResolver {
     if (route != null) {
       var matchingPattern = matchingPattern(route, consumedRoute);
       if (matchingPattern.isPresent()) {
-        return matchingPattern.get().pattern().length();
+        return matchingPattern.get().routeRegex().pattern().length();
       }
     }
     return Integer.MAX_VALUE;
@@ -42,5 +41,5 @@ public interface RouteResolver {
 
   Class<?> resolveRoute(String route, String consumedRoute, HttpRequest httpRequest);
 
-  List<Pair<Pattern, Pattern>> supportedRoutesPatterns();
+  List<CompiledRouteValue> supportedRoutesPatterns();
 }

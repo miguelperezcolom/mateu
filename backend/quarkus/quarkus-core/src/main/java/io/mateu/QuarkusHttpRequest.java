@@ -49,4 +49,9 @@ public class QuarkusHttpRequest implements HttpRequest {
   public String path() {
     return delegate.path();
   }
+
+  @Override
+  public List<String> getParameterNames() {
+    return delegate.params().names().stream().toList();
+  }
 }

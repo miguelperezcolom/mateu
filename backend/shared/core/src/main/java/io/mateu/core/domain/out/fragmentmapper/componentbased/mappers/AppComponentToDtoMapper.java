@@ -25,6 +25,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import lombok.SneakyThrows;
 
 public final class AppComponentToDtoMapper {
@@ -133,7 +135,7 @@ public final class AppComponentToDtoMapper {
       if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
         return route.substring(remoteMenu.path().length());
       }
-      return route;
+      return addQueryParams(route, httpRequest);
     }
     String homeRoute = getHomeRouteInternal(instance, route);
     if (instance instanceof App app) {
@@ -153,6 +155,13 @@ public final class AppComponentToDtoMapper {
       return route;
     }
     return homeRoute;
+  }
+
+  public static String addQueryParams(String route, HttpRequest httpRequest) {
+    if (httpRequest.getParameterNames().isEmpty()) {
+      return route;
+    }
+    return route + "?" + httpRequest.getParameterNames().stream().map(name -> name + "=" + httpRequest.getParameterValue(name)).collect(Collectors.joining("&"));
   }
 
   @SneakyThrows

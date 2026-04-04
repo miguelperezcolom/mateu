@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Arrays;
@@ -46,7 +47,11 @@ public class ReflectionAppMapper {
     }
     Pattern pattern = null;
     if (componentSupplier instanceof RouteResolver routeResolver) {
-      pattern = routeResolver.matchingPattern(route, consumedRoute).orElse(null);
+      pattern =
+          routeResolver
+              .matchingPattern(route, consumedRoute)
+              .map(CompiledRouteValue::routeRegex)
+              .orElse(null);
     }
     if (pattern == null && instance != null) {
       if (instanceClass.isAnnotationPresent(Route.class)) {

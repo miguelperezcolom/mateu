@@ -5,10 +5,12 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToCompone
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
+import static io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
+import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
@@ -32,6 +34,7 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
@@ -58,6 +61,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @Named
@@ -75,20 +79,8 @@ public class RunActionUseCase {
     return (Mono.just(command)
             // get the target instance
             .flatMap(ignored -> createInstance(command))
-            .doOnNext(
-                instance ->
-                    log.info(
-                        "for {}#{}, resolved '{}' to {}",
-                        command.route(),
-                        command.consumedRoute(),
-                        command.httpRequest().getAttribute("resolvedRoute"),
-                        instance.getClass().getSimpleName()))
-            // if the target instance is an app, resolve the menu to get the real target instance
-            //            .flatMapMany(instance -> resolveMenuIfApp(command, instance))
-            // here I have the target instance
             .flatMap(instance -> routeIfNeeded(command, instance))
             .doOnNext(instance -> updateResolvedRoute(command, instance))
-            // .map(instance -> setRouteIfApp(command, instance))
             .flatMapMany(
                 instance ->
                     actionRunnerProvider
@@ -190,13 +182,6 @@ public class RunActionUseCase {
     }
   }
 
-  private String getShortestMatcher(Pattern patten, String route) {
-    var matchingRoute = "";
-    while (!route.equals(route) && !patten.matcher(matchingRoute).find()) {
-      matchingRoute = matchingRoute.substring(0, matchingRoute.length() + 1);
-    }
-    return matchingRoute;
-  }
 
   private String getLongestMatcher(Pattern patten, String route) {
     while (!route.isEmpty() && !patten.matcher(route).matches()) {
@@ -217,10 +202,25 @@ public class RunActionUseCase {
     return Mono.just(instance);
   }
 
-  private Mono<?> resolveMenuIfApp(RunActionCommand command, Object instance) {
+  private Mono<?> resolveMenuIfApp(RunActionCommand command, Object instance, HttpRequest httpRequest) {
+    return resolveMenuIfAppBeforeParameters(command, instance)
+            .map(object ->  {
+              httpRequest.getParameterNames().forEach(paramName -> {
+                try {
+                  setValue(paramName, object, httpRequest.getParameterValue(paramName));
+                } catch (Exception ignored) {
+                }
+              });
+              return object;
+            });
+  }
+
+  private Mono<?> resolveMenuIfAppBeforeParameters(RunActionCommand command, Object instance) {
+    var rawRoute = command.route();
+    var route = removeQueryParamsFromRoute(rawRoute);
     if (instance instanceof App app) {
       return resolveInApp(
-          command.route(),
+          route,
           command.consumedRoute(),
           command.componentState(),
           command.httpRequest(),
@@ -237,7 +237,7 @@ public class RunActionUseCase {
               .getApp(command.httpRequest())
               .withServerSideType(instance.getClass().getName());
       return resolveInApp(
-          command.route(),
+          route,
           command.consumedRoute(),
           command.componentState(),
           command.httpRequest(),
@@ -248,17 +248,17 @@ public class RunActionUseCase {
           command.actionId(),
           command);
     }
-    if (isApp(instance, command.route())) {
+    if (isApp(instance, route)) {
       var app =
           mapToAppComponent(
               instance,
               command.baseUrl(),
-              command.route(),
+              route,
               command.consumedRoute(),
               command.initiatorComponentId(),
               command.httpRequest());
       return resolveInApp(
-          command.route(),
+          route,
           command.consumedRoute(),
           command.componentState(),
           command.httpRequest(),
@@ -308,12 +308,12 @@ public class RunActionUseCase {
     }
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-      if ("/_page".equals(command.route())) {
+      if (command.route().startsWith("/_page")) {
         return createInstanceAndPostHydrate(command.appServerSideType(), command);
       }
-      return createInstanceAndPostHydrate(command.appServerSideType(), command)
-          .flatMap(app -> resolveMenuIfApp(command, app))
-          .switchIfEmpty((Mono) resolveRoute(command));
+      return resolveRoute(command).switchIfEmpty(createInstanceAndPostHydrate(command.appServerSideType(), command)
+          .flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()))
+          .switchIfEmpty((Mono) resolveRoute(command)));
     }
 
     // si hay una ruta --> esa clase
@@ -342,27 +342,11 @@ public class RunActionUseCase {
                 Flux.fromIterable(routes)
                     .flatMap(route -> resolveNonAppRoute(route, command))
                     .next());
-    /*
-    for (String route : routes) {
-      var instanceCreationPipe = resolveAppRoute(route, command);
-      if (instanceCreationPipe.em) {
-
-        return instanceCreationPipe;
-      }
-    }
-    for (String route : routes) {
-      var instanceCreationPipe = resolveNonAppRoute(route, command);
-      if (instanceCreationPipe != null) {
-        return instanceCreationPipe;
-      }
-    }
-    return Mono.empty();
-
-     */
   }
 
   @SneakyThrows
-  private Mono<?> resolveNonAppRoute(String route, RunActionCommand command) {
+  private Mono<?> resolveNonAppRoute(String rawRoute, RunActionCommand command) {
+    var route = removeQueryParamsFromRoute(rawRoute);
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
             .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
@@ -371,7 +355,7 @@ public class RunActionUseCase {
       if (resolver.supportsRoute(route, command.consumedRoute())) {
         var instanceTypeName =
             resolver
-                .resolveRoute(command.route(), command.consumedRoute(), command.httpRequest())
+                .resolveRoute(route, command.consumedRoute(), command.httpRequest())
                 .getName();
         var type = Class.forName(instanceTypeName);
         var isApp = false;
@@ -386,22 +370,61 @@ public class RunActionUseCase {
           command.httpRequest().setAttribute("resolvedRoute", route);
           var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
           return createInstance(
-              instanceTypeName,
-              instanceFactory,
-              command.baseUrl(),
-              command.route(),
-              command.initiatorComponentId(),
-              command.consumedRoute(),
-              command.componentState(),
-              command.httpRequest());
+                  instanceTypeName,
+                  instanceFactory,
+                  command.baseUrl(),
+                  route,
+                  command.initiatorComponentId(),
+                  command.consumedRoute(),
+                  command.componentState(),
+                  command.httpRequest())
+              .map(
+                  instance ->
+                      resolver
+                          .matchingPattern(route, command.consumedRoute())
+                          .map(
+                              compiledRouteValue ->
+                                  setParameterValues(
+                                      instance, route, compiledRouteValue, command.httpRequest()))
+                          .orElse(instance));
         }
       }
     }
     return Mono.empty();
   }
 
+  private Object setParameterValues(
+      Object instance, String route, CompiledRouteValue matchingRoute, HttpRequest httpRequest) {
+    var tokens = matchingRoute.route().split("/");
+    var slugs = route.split("/");
+    for (int i = 0; i < tokens.length && i < slugs.length; i++) {
+      var token = tokens[i];
+      var slug = slugs[i];
+      if (token.startsWith(":")) {
+        var fieldName = token.substring(1);
+        try {
+          setValue(fieldName, instance, slug);
+        } catch (Exception ignored) {
+        }
+      }
+    }
+    if (httpRequest != null) {
+      httpRequest
+          .getParameterNames()
+          .forEach(
+              fieldName -> {
+                try {
+                  setValue(fieldName, instance, httpRequest.getParameterValue(fieldName));
+                } catch (Exception ignored) {
+                }
+              });
+    }
+    return instance;
+  }
+
   @SneakyThrows
-  private Mono<?> resolveAppRoute(String route, RunActionCommand command) {
+  private Mono<?> resolveAppRoute(String rawRoute, RunActionCommand command) {
+    var route = removeQueryParamsFromRoute(rawRoute);
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
             .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
@@ -438,7 +461,7 @@ public class RunActionUseCase {
               instanceTypeName,
               instanceFactory,
               command.baseUrl(),
-              command.route(),
+              route,
               command.initiatorComponentId(),
               command.consumedRoute(),
               command.componentState(),
@@ -460,56 +483,6 @@ public class RunActionUseCase {
       currentRoute.append(token).append("/");
     }
     return routes;
-  }
-
-  @SneakyThrows
-  private Mono<?> resolveRoute(RunActionCommand command, boolean appsOnly) {
-    for (RouteResolver resolver :
-        beanProvider.getBeans(RouteResolver.class).stream()
-            .sorted(
-                Comparator.comparingInt(a -> a.weight(command.route(), command.consumedRoute())))
-            .toList()) {
-      if (resolver.supportsRoute(command.route(), command.consumedRoute())) {
-        var instanceTypeName =
-            resolver
-                .resolveRoute(command.route(), command.consumedRoute(), command.httpRequest())
-                .getName();
-        if (command.appServerSideType() != null
-            && !command.appServerSideType().isEmpty()
-            && command.appServerSideType().equals(instanceTypeName)) {
-          continue;
-        }
-        var type = Class.forName(instanceTypeName);
-        if (resolver.getClass().getSimpleName().endsWith("UIRouteResolver")) {
-          if (!type.getAnnotation(UI.class).value().equals(command.baseUrl())) {
-            continue;
-          }
-        }
-        var ok = !appsOnly;
-        if (appsOnly) {
-          if (App.class.isAssignableFrom(type)
-              || AppSupplier.class.isAssignableFrom(type)
-              || getAllFields(type).stream()
-                  .anyMatch(
-                      field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))) {
-            ok = true;
-          }
-        }
-        if (ok) {
-          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-          return createInstance(
-              instanceTypeName,
-              instanceFactory,
-              command.baseUrl(),
-              command.route(),
-              command.initiatorComponentId(),
-              command.consumedRoute(),
-              command.componentState(),
-              command.httpRequest());
-        }
-      }
-    }
-    return null;
   }
 
   private Mono<?> createInstance(String className, RunActionCommand command) {
@@ -535,70 +508,6 @@ public class RunActionUseCase {
       Map<String, Object> data,
       HttpRequest httpRequest) {
     return instanceFactory.createInstance(instanceTypeName, data, httpRequest);
-  }
-
-  private String getInstanceNameUsingResolvers(
-      String baseUrl, String route, String consumedRoute, HttpRequest httpRequest) {
-    var cleanRoute = "/_page".equals(route) ? "" : route;
-    for (RouteResolver resolver :
-        beanProvider.getBeans(RouteResolver.class).stream()
-            .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute, consumedRoute)))
-            .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute, consumedRoute))
-            .filter(
-                resolver -> {
-                  var resolved = resolver.resolveRoute(cleanRoute, consumedRoute, httpRequest);
-                  return AppSupplier.class.isAssignableFrom(resolved)
-                      || App.class.isAssignableFrom(resolved)
-                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
-                      || (resolved.isAnnotationPresent(UI.class)
-                          && resolved.getAnnotation(UI.class).value().equals(baseUrl));
-                })
-            .toList()) {
-      if (resolver.supportsRoute(route, consumedRoute)
-          && ("".equals(consumedRoute) || !resolver.supportsRoute(consumedRoute, consumedRoute))) {
-        return resolver.resolveRoute(route, consumedRoute, httpRequest).getName();
-      }
-    }
-    for (RouteResolver resolver :
-        beanProvider.getBeans(RouteResolver.class).stream()
-            .filter(routeResolver -> routeResolver.supportsRoute(cleanRoute, consumedRoute))
-            .filter(
-                resolver -> {
-                  var resolved = resolver.resolveRoute(cleanRoute, consumedRoute, httpRequest);
-                  return !(AppSupplier.class.isAssignableFrom(resolved)
-                      || App.class.isAssignableFrom(resolved)
-                      || io.mateu.uidl.interfaces.App.class.isAssignableFrom(resolved)
-                      || resolved.isAnnotationPresent(UI.class));
-                })
-            .sorted(Comparator.comparingInt(a -> a.weight(cleanRoute, consumedRoute)))
-            .toList()
-            .reversed()) {
-      if (resolver.supportsRoute(route, consumedRoute)) {
-        return resolver.resolveRoute(route, consumedRoute, httpRequest).getName();
-      }
-    }
-    return null;
-  }
-
-  private String getInstanceTypeName(RunActionCommand command) {
-    if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
-      return command.serverSiteType();
-    }
-    if ("".equals(command.route())) {
-      return command.uiId();
-    }
-    if ("/_page".equals(command.route())) {
-      if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-        return command.appServerSideType();
-      }
-    }
-    var fromRoute =
-        getInstanceNameUsingResolvers(
-            command.baseUrl(), command.route(), command.consumedRoute(), command.httpRequest());
-    if (fromRoute == null && ("".equals(command.route()) || "/_page".equals(command.route()))) {
-      return command.uiId();
-    }
-    return fromRoute;
   }
 
   public Mono<?> resolveInApp(
@@ -716,36 +625,6 @@ public class RunActionUseCase {
       }
     }
     return Mono.empty();
-  }
-
-  private Mono<?> resolveMenuInDeclarativeApp(Object instance, String actionId) {
-    return Mono.just(instance)
-        .map(app -> findContainer(app, actionId))
-        .map(optional -> optional.orElse(Mono.empty()));
-  }
-
-  private Optional<Object> findContainer(Object app, String route) {
-    var fieldInClass = getFieldByName(app.getClass(), route);
-    if (fieldInClass != null) {
-      return Optional.of(getValueOrNewInstance(fieldInClass, app));
-    }
-    for (Field field :
-        getAllFields(app.getClass()).stream()
-            .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))
-            .toList()) {
-      if (isDeclarativeApp(field.getType())) {
-        var optionInMenu = findContainer(getValueOrNewInstance(field, app), route);
-        if (optionInMenu.isPresent()) {
-          return optionInMenu;
-        }
-      }
-    }
-    return Optional.empty();
-  }
-
-  public static boolean isDeclarativeApp(Class type) {
-    return getAllFields(type).stream()
-        .anyMatch(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class));
   }
 
   public static Object wrap(

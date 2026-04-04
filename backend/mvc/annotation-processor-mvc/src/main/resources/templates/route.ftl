@@ -2,6 +2,7 @@ package ${pkgName};
 
 import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import reactor.core.publisher.Mono;
@@ -13,10 +14,10 @@ import java.util.regex.Pattern;
 @Named
 public class ${generatedClassName} implements RouteResolver {
 
-    private final List<Pair<Pattern, Pattern>> patterns = List.of(
+    private final List<CompiledRouteValue> patterns = List.of(
     <#list routes>
         <#items as route>
-            new Pair(Pattern.compile("${route.first()}"), Pattern.compile("${route.second()}"))<#sep>,
+            new CompiledRouteValue("${route.route()}", "${route.parentRoute()}", Pattern.compile("${route.routeRegex()}"), Pattern.compile("${route.parentRouteRegex()}"))<#sep>,
         </#items>
     </#list>
     );
@@ -27,7 +28,7 @@ public class ${generatedClassName} implements RouteResolver {
     }
 
     @Override
-    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
+    public List<CompiledRouteValue> supportedRoutesPatterns() {
         return patterns;
     }
 

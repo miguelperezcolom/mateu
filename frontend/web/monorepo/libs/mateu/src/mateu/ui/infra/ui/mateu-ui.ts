@@ -153,6 +153,10 @@ export class MateuUi extends LitElement {
     }
 
     extractRouteFromUrl(w: Window) {
+       return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(w), w.location)
+    }
+
+    extractRouteWithoutParamsFromUrl(w: Window) {
         const route = this.extractGrossRouteFromUrl(w)
         if (this.pathPrefix && route.startsWith(this.pathPrefix)) {
             return route.substring(this.pathPrefix.length)
@@ -161,6 +165,10 @@ export class MateuUi extends LitElement {
             return ''
         }
         return route
+    }
+
+    private addQueryParams(route: string, location: Location) {
+        return route + (location.search?'' + location.search:'')
     }
 
     extractGrossRouteFromUrl(w: Window) {

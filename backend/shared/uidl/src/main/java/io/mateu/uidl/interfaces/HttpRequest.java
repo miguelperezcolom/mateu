@@ -140,4 +140,6 @@ public interface HttpRequest {
     var items = path().split("/");
     return items[items.length - 2];
   }
+
+  List<String> getParameterNames();
 }

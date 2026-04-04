@@ -10,9 +10,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -25,8 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ValueWriter {
 
-  public static void setValue(String fn, Object o, Object v)
-      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+  public static void setValue(String fn, Object o, Object v) throws Exception {
     if (Map.class.isAssignableFrom(o.getClass())) {
       ((Map) o).put(fn, v);
     } else {
@@ -46,11 +47,11 @@ public class ValueWriter {
     }
   }
 
-  public static void setValue(Field f, Object o, Object v)
-      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+  public static void setValue(Field f, Object o, Object v) throws Exception {
     if (f == null) {
       return;
     }
+    v = convert(v, f.getType());
     try {
       Method setter = o.getClass().getMethod(getSetter(f), f.getType());
       try {
@@ -106,6 +107,65 @@ public class ValueWriter {
         f.set(o, null);
       }
     }
+  }
+
+  private static Object convert(Object value, Class<?> targetType) throws Exception {
+    if (value == null) {
+      return null;
+    }
+    if (targetType.equals(value.getClass())) {
+      return value;
+    }
+    if (String.class.equals(targetType)) {
+      return value.toString();
+    }
+    if (value instanceof String string) {
+      if (int.class.equals(targetType)) {
+        return Integer.valueOf(string).intValue();
+      }
+      if (long.class.equals(targetType)) {
+        return Long.valueOf(string).longValue();
+      }
+      if (float.class.equals(targetType)) {
+        return Float.valueOf(string).floatValue();
+      }
+      if (double.class.equals(targetType)) {
+        return Double.valueOf(string).doubleValue();
+      }
+
+      if (Integer.class.equals(targetType)) {
+        return Integer.valueOf(string);
+      }
+      if (Long.class.equals(targetType)) {
+        return Long.valueOf(string);
+      }
+      if (Float.class.equals(targetType)) {
+        return Float.valueOf(string);
+      }
+      if (Double.class.equals(targetType)) {
+        return Double.valueOf(string);
+      }
+
+      if (boolean.class.equals(targetType)) {
+        return Boolean.valueOf(string).booleanValue();
+      }
+      if (Boolean.class.equals(targetType)) {
+        return Boolean.valueOf(string);
+      }
+
+      if (LocalDate.class.equals(targetType)) {
+        return LocalDate.parse(string, DateTimeFormatter.ISO_LOCAL_DATE);
+      }
+      if (LocalDateTime.class.equals(targetType)) {
+        return LocalDateTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+      }
+    }
+    throw new Exception(
+        "Conversion from "
+            + value.getClass().getSimpleName()
+            + " to "
+            + targetType.getSimpleName()
+            + " is not supported.");
   }
 
   private static Object getInstance(Object o, String fn)

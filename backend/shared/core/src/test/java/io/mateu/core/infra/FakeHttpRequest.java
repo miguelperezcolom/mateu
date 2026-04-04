@@ -43,4 +43,9 @@ public class FakeHttpRequest implements HttpRequest {
   public String path() {
     return "";
   }
+
+  @Override
+  public List<String> getParameterNames() {
+    return List.of();
+  }
 }

@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.messagemapper.MessageMapper.mapToMessageD
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
@@ -49,10 +50,11 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
   public Mono<UIIncrementDto> map(
       Object instance,
       String baseUrl,
-      String route,
+      String rawRoute,
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var route = removeQueryParamsFromRoute(rawRoute);
     if (instance == null) {
       return Mono.empty();
     }
@@ -74,6 +76,14 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
                 instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
             mapToAppData(instance, baseUrl, httpRequest),
             mapToAppState(instance, baseUrl, httpRequest)));
+  }
+
+  public static String removeQueryParamsFromRoute(String rawRoute) {
+    var route = rawRoute.contains("?") ? rawRoute.substring(0, rawRoute.indexOf("?")) : rawRoute;
+    if ("/".equals(route)) {
+      route = "";
+    }
+    return route;
   }
 
   private Object mapToAppData(Object instance, String baseUrl, HttpRequest httpRequest) {

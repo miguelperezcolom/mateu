@@ -15,8 +15,8 @@ import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper;
 import io.mateu.core.infra.reflection.write.RunMethodActionRunner;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +45,9 @@ public class Mocks {
                     }
 
                     @Override
-                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-                      return List.of(new Pair(Pattern.compile("xx"), null));
+                    public List<CompiledRouteValue> supportedRoutesPatterns() {
+                      return List.of(
+                          new CompiledRouteValue("xx", "_empty", Pattern.compile("xx"), null));
                     }
                   },
                   new RouteResolver() {
@@ -58,8 +59,9 @@ public class Mocks {
                     }
 
                     @Override
-                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-                      return List.of(new Pair(Pattern.compile("/app"), null));
+                    public List<CompiledRouteValue> supportedRoutesPatterns() {
+                      return List.of(
+                          new CompiledRouteValue("/app", "_empty", Pattern.compile("/app"), null));
                     }
                   },
                   new RouteResolver() {
@@ -71,8 +73,10 @@ public class Mocks {
                     }
 
                     @Override
-                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-                      return List.of(new Pair(Pattern.compile("/app/crud"), null));
+                    public List<CompiledRouteValue> supportedRoutesPatterns() {
+                      return List.of(
+                          new CompiledRouteValue(
+                              "/app/crud", "_empty", Pattern.compile("/app/crud"), null));
                     }
                   },
                   new RouteResolver() {
@@ -84,8 +88,10 @@ public class Mocks {
                     }
 
                     @Override
-                    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-                      return List.of(new Pair(Pattern.compile("/app/crud/.*"), null));
+                    public List<CompiledRouteValue> supportedRoutesPatterns() {
+                      return List.of(
+                          new CompiledRouteValue(
+                              "/app/crud/:id", "_empty", Pattern.compile("/app/crud/.*"), null));
                     }
                   });
         }

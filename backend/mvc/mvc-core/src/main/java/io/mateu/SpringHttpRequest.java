@@ -47,4 +47,9 @@ public class SpringHttpRequest implements HttpRequest {
   public String path() {
     return delegate.getServletPath();
   }
+
+  @Override
+  public List<String> getParameterNames() {
+    return Collections.list(delegate.getParameterNames());
+  }
 }

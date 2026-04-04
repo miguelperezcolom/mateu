@@ -21,8 +21,8 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
+import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.Pair;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -196,8 +196,8 @@ class AppComponentToDtoMapperTest {
     }
 
     @Override
-    public List<Pair<Pattern, Pattern>> supportedRoutesPatterns() {
-      return List.of(new Pair(Pattern.compile(".*"), null));
+    public List<CompiledRouteValue> supportedRoutesPatterns() {
+      return List.of(new CompiledRouteValue("", "_empty", Pattern.compile(".*"), null));
     }
 
     @Override

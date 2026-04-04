@@ -50,4 +50,9 @@ public class HelidonMPHttpRequest implements HttpRequest {
   public String path() {
     return delegate.path().rawPath();
   }
+
+  @Override
+  public List<String> getParameterNames() {
+    return List.of();
+  }
 }

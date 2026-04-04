@@ -1,11 +1,11 @@
 package io.mateu.core.infra.reflection.write;
 
 import static io.mateu.core.infra.reflection.read.ActualValueExtractor.getActualValue;
+import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class Hydrater {
@@ -29,12 +29,17 @@ public class Hydrater {
                   }
                 });
       }
+      httpRequest.getParameterNames().forEach(paramName -> {
+          try {
+              setValue(paramName, object, httpRequest.getParameterValue(paramName));
+          } catch (Exception ignored) {
+          }
+      });
     }
     return object;
   }
 
-  public static void setValue(String fn, Object o, Object v)
-      throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+  public static void setValue(String fn, Object o, Object v) throws Exception {
     ValueWriter.setValue(fn, o, v);
   }
 }
