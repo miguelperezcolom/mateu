@@ -17,15 +17,12 @@ import java.util.List;
 public class Home {
 
     @Menu
-    UsersCrud users;
+    String users = "/users";
 
     @Menu
     GroupsCrud groups;
 
     @Menu
-    UsersCrud users2;
-
-    @Menu
-    String users3 = "/users2/xxx?version=2772";
+    String adminUser = "/users/admin?version=2772";
 
 }

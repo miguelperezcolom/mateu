@@ -46,6 +46,18 @@ Users users;
 
 Nested classes create nested menus.
 
+Menu entries can also be direct navigation links:
+
+```java
+@Menu
+String users = "/users";
+```
+
+This means a menu entry can either:
+
+- point to a ViewModel
+- or navigate directly to a route
+
 ---
 
 ## Microservices navigation
@@ -77,3 +89,6 @@ Breadcrumbs can be:
 Navigation is not something you configure.
 
 It is something that **falls out of your application structure**.
+
+Sometimes it is inferred from ViewModels.  
+Sometimes it is declared as a direct route link.

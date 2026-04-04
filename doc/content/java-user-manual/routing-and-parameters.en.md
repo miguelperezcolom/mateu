@@ -50,6 +50,28 @@ The final route will be:
 
 ---
 
+## Routes from menus
+
+Routes do not always need to come from `@Route`.
+
+Menu entries can also point directly to routes:
+
+```java
+@Menu
+String users = "/users";
+```
+
+And they can include query parameters:
+
+```java
+@Menu
+String adminUser = "/users/admin?version=2772";
+```
+
+This makes it easy to define shortcuts and deep links directly from the menu.
+
+---
+
 ## Route parameters
 
 Mateu supports path parameters:
@@ -119,7 +141,7 @@ version = 5;
 
 You don’t always need to define routes explicitly.
 
-Fields annotated with `@Menu` generate routes automatically:
+Fields annotated with `@Menu` can generate routes automatically:
 
 ```java
 public class AdminHome {
