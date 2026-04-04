@@ -1,47 +1,48 @@
 ---
 header_alt: true
-title: Spec-driven development.
+title: Stop building the same app twice
 ---
 
-<meta name="description" content="Mateu lets you build full web apps from a single spec in Java. No frontend, no duplication, minimal code.">
-<meta property="og:title" content="Mateu – Spec-driven development">
-<meta property="og:description" content="Define your app once. Mateu builds the UI automatically.">
+<meta name="description" content="Build real web apps from a single Java model. No frontend, no duplication, no API glue. Mateu generates the UI automatically.">
+<meta property="og:title" content="Mateu – Stop building the same app twice">
+<meta property="og:description" content="Define your app once. Mateu builds UI, routing, interaction and security automatically.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
 ## Build full web apps with minimal code
 
 Define your app once.  
-Mateu builds the UI and wires everything together.
+Mateu builds the UI, routing, interaction and security.
 
 **No HTML. No CSS. No JavaScript.**
 
-No duplicated models. No API glue. No fragmented architecture.
+No duplicated models. No API glue. No sync issues.
 
 ---
 
 <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
   <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
-  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
   <a href="/java-user-manual/build-a-real-app/"><strong>Build a real app →</strong></a>
+  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
 </div>
 
 ---
 
 ## One model. Full app.
 
-With Mateu, your application is defined as a single model:
+With Mateu, your application is a single model:
 
 - fields → state
 - methods → actions
-- annotations → behavior and rendering
+- annotations → UI, routing, behavior, security
 
 Mateu generates:
 
 - UI
 - navigation
+- routing
 - interaction
 - validation
-- browser behavior
+- security
 
 ---
 
@@ -59,7 +60,7 @@ Secure your entire app declaratively.
 public class App {}
 ```
 
-No separate frontend auth layer.  
+No frontend auth.  
 No duplicated security logic.
 
 ---
@@ -92,6 +93,27 @@ public class Home {
 </p>
 
 <p align="center"><em>Built entirely from Java classes. No frontend code.</em></p>
+
+---
+
+## Routing without a router
+
+Routing is part of your model.
+
+```java
+@Route("/users/:id")
+public class UserDetail {
+
+  String id;
+
+}
+```
+
+- automatic parameter binding
+- nested routes
+- implicit routes from menus
+
+No route config. No duplication.
 
 ---
 
@@ -137,8 +159,8 @@ Your app is defined once — not split across layers.
 - 🔥 No frontend bugs
 - 🧩 High-level building blocks
 - 🌐 Stateless, microservice-friendly
-- 🔌 Embeddable UI (web components)
-- 🔐 Secure your UI declaratively
+- 🔐 Built-in security
+- 🧭 Routing without configuration
 
 ---
 
@@ -175,7 +197,7 @@ It sits on top of it.
 
 ---
 
-## Stop splitting your app
+## Stop building the same app twice
 
 Define it once.
 
