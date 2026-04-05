@@ -5,7 +5,7 @@ title: Stop building the same app twice
 
 <meta name="description" content="Build real web apps from a single Java model. No frontend, no duplication, no API glue. Mateu generates the UI automatically.">
 <meta property="og:title" content="Mateu – Stop building the same app twice">
-<meta property="og:description" content="Define your app once. Mateu builds UI, routing, interaction and security automatically.">
+<meta property="og:description" content="Define your app once. Mateu builds UI, routing, interaction, security and more from a single model.">
 <meta property="og:image" content="https://mateu.io/og-image.png">
 
 ## Build full web apps with minimal code
@@ -161,6 +161,9 @@ Your app is defined once — not split across layers.
 - 🌐 Stateless, microservice-friendly
 - 🔐 Built-in security
 - 🧭 Routing without configuration
+- 🔌 Bring your own web components
+- 🏗 Decoupled backend and renderer
+- 🛠 Override built-in behavior with your own beans
 
 ---
 
@@ -186,6 +189,12 @@ Mateu fits naturally with:
 
 It does not replace your backend.  
 It sits on top of it.
+
+It is also extensible by design:
+
+- backend and renderer are decoupled
+- many behaviors can be overridden with Spring beans
+- custom web components can be integrated directly into your ViewModels
 
 ---
 
