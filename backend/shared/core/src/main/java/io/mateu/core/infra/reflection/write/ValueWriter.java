@@ -3,6 +3,7 @@ package io.mateu.core.infra.reflection.write;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.GetterProvider.getGetterByFieldName;
 import static io.mateu.core.infra.reflection.read.SetterProvider.getSetter;
+import static io.mateu.uidl.data.FieldDataType.integer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -114,6 +115,36 @@ public class ValueWriter {
       return null;
     }
     if (targetType.equals(value.getClass())) {
+      return value;
+    }
+    if (int.class.equals(targetType) && value instanceof Integer integer) {
+      return integer.intValue();
+    }
+    if (long.class.equals(targetType) && value instanceof Long aLong) {
+      return aLong.longValue();
+    }
+    if (float.class.equals(targetType) && value instanceof Float aFloat) {
+      return aFloat.floatValue();
+    }
+    if (double.class.equals(targetType) && value instanceof Double aDouble) {
+      return aDouble.doubleValue();
+    }
+    if (boolean.class.equals(targetType) && value instanceof Boolean aBoolean) {
+      return aBoolean.booleanValue();
+    }
+    if (Integer.class.equals(targetType) && int.class.equals(value.getClass()) ) {
+      return value;
+    }
+    if (Long.class.equals(targetType) && long.class.equals(value.getClass()) ) {
+      return value;
+    }
+    if (Float.class.equals(targetType) && float.class.equals(value.getClass()) ) {
+      return value;
+    }
+    if (Double.class.equals(targetType) && double.class.equals(value.getClass()) ) {
+      return value;
+    }
+    if (Boolean.class.equals(targetType) && boolean.class.equals(value.getClass()) ) {
       return value;
     }
     if (String.class.equals(targetType)) {
