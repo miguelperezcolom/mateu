@@ -132,19 +132,19 @@ public class ValueWriter {
     if (boolean.class.equals(targetType) && value instanceof Boolean aBoolean) {
       return aBoolean.booleanValue();
     }
-    if (Integer.class.equals(targetType) && int.class.equals(value.getClass()) ) {
+    if (Integer.class.equals(targetType) && int.class.equals(value.getClass())) {
       return value;
     }
-    if (Long.class.equals(targetType) && long.class.equals(value.getClass()) ) {
+    if (Long.class.equals(targetType) && long.class.equals(value.getClass())) {
       return value;
     }
-    if (Float.class.equals(targetType) && float.class.equals(value.getClass()) ) {
+    if (Float.class.equals(targetType) && float.class.equals(value.getClass())) {
       return value;
     }
-    if (Double.class.equals(targetType) && double.class.equals(value.getClass()) ) {
+    if (Double.class.equals(targetType) && double.class.equals(value.getClass())) {
       return value;
     }
-    if (Boolean.class.equals(targetType) && boolean.class.equals(value.getClass()) ) {
+    if (Boolean.class.equals(targetType) && boolean.class.equals(value.getClass())) {
       return value;
     }
     if (String.class.equals(targetType)) {
@@ -191,6 +191,17 @@ public class ValueWriter {
         return LocalDateTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
       }
     }
+    if (List.class.equals(targetType)) {
+      if (value instanceof List list) {
+        return list;
+      }
+    }
+    if (Map.class.equals(targetType)) {
+      if (value instanceof Map map) {
+        return map;
+      }
+    }
+
     throw new Exception(
         "Conversion from "
             + value.getClass().getSimpleName()

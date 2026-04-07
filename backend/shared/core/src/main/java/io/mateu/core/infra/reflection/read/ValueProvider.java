@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -33,10 +34,10 @@ public class ValueProvider {
   }
 
   @SneakyThrows
-  public static Object getValueOrNewInstance(Field f, Object o) {
+  public static Object getValueOrNewInstance(Field f, Object o, HttpRequest httpRequest) {
     var value = getValue(f, o);
     if (value == null) {
-      value = MateuInstanceFactory.newInstance(f.getType(), Map.of(), null);
+      value = MateuInstanceFactory.newInstance(f.getType(), Map.of(), httpRequest);
     }
     if (value == null) {
       var constructor = f.getType().getDeclaredConstructor();
