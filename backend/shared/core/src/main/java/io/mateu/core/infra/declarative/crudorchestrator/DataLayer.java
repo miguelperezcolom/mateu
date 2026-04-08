@@ -3,7 +3,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -28,11 +28,11 @@ public class DataLayer {
   public static HashMap<String, Object> createData(Object item, HttpRequest httpRequest) {
     var data = new HashMap<String, Object>();
     getAllFields(item.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(ForeignKey.class))
+        .filter(field -> field.isAnnotationPresent(Lookup.class))
         .forEach(
             field -> {
               LabelSupplier labelSupplier =
-                  MateuBeanProvider.getBean(field.getAnnotation(ForeignKey.class).label());
+                  MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
               if (Collection.class.isAssignableFrom(field.getType())) {
                 var options = new ArrayList<Option>();
 

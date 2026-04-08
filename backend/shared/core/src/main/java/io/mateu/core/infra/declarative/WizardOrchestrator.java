@@ -16,7 +16,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
 import io.mateu.dtos.ValidationDto;
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.*;
@@ -138,7 +138,7 @@ public abstract class WizardOrchestrator
     if (actionId.startsWith("search-")) {
       // search-field-childfield
       String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-      ForeignKeyOptionsSupplier optionsSupplier = null;
+      LookupOptionsSupplier optionsSupplier = null;
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
         var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
@@ -148,11 +148,11 @@ public abstract class WizardOrchestrator
                     getFieldByName(currentStepField().getType(), parentFieldName).getGenericType(),
                 List.class,
                 "E");
-        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       } else {
         var fkAnnotation =
-            getFieldByName(currentStepField().getType(), fieldName).getAnnotation(ForeignKey.class);
+            getFieldByName(currentStepField().getType(), fieldName).getAnnotation(Lookup.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       }
 

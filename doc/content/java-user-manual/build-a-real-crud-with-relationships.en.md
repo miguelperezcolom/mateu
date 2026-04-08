@@ -70,7 +70,7 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
   @Style("width: 100%;")
   String description;
 
-  @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+  @Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
   @Colspan(2)
   @Style("width: 100%;")
   @Stereotype(FieldStereotype.checkbox)
@@ -97,7 +97,7 @@ This already gives you several important things:
 - state through fields
 - validation through Bean Validation
 - layout hints through `@Colspan` and `@Style`
-- relationships through `@ForeignKey`
+- relationships through `@Lookup`
 - rendering intent through `@Stereotype`
 
 ---
@@ -120,7 +120,7 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
   @Style("width: 100%;")
   String description;
 
-  @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+  @Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
   @Colspan(2)
   @Style("width: 100%;")
   @Stereotype(FieldStereotype.checkbox)
@@ -304,10 +304,10 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
+import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-public class PermissionIdOptionsSupplier implements ForeignKeyOptionsSupplier {
+public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
 
   final PermissionQueryService queryService;
 
@@ -426,7 +426,7 @@ In one CRUD, you used:
 - `CrudOrchestrator`
 - `CrudAdapter`
 - Bean Validation
-- `@ForeignKey`
+- `@Lookup`
 - options supplier
 - label supplier
 - `@Stereotype`

@@ -17,7 +17,7 @@ public class UsersPage {
   String name;
 
   @Tab("Security")
-  @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+  @Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
   @Stereotype(FieldStereotype.checkbox)
   List<String> permissions;
 
@@ -42,7 +42,7 @@ public class UsersPage {
 - page metadata with `@Title`
 - tabs with `@Tab`
 - validation with `@NotEmpty`
-- relationships with `@ForeignKey`
+- relationships with `@Lookup`
 - rendering intent with `@Stereotype`
 - action behavior with `@Action`
 - browser feedback with `Message`

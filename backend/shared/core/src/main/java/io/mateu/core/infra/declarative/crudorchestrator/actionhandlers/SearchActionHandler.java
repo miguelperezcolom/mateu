@@ -4,12 +4,12 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
-import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class SearchActionHandler {
       HttpRequest httpRequest) {
     // search-field-childfield
     String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-    ForeignKeyOptionsSupplier optionsSupplier = null;
+    LookupOptionsSupplier optionsSupplier = null;
     if (fieldName.contains("-")) {
       var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
       var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
@@ -34,11 +34,11 @@ public class SearchActionHandler {
                   getFieldByName(crudOrchestrator.viewClass(), parentFieldName).getGenericType(),
               List.class,
               "E");
-      var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+      var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     } else {
       var fkAnnotation =
-          getFieldByName(crudOrchestrator.entityClass(), fieldName).getAnnotation(ForeignKey.class);
+          getFieldByName(crudOrchestrator.entityClass(), fieldName).getAnnotation(Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     }
 

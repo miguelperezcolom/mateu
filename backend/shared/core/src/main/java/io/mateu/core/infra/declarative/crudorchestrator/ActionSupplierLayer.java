@@ -6,8 +6,8 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.annotations.Composition;
-import io.mateu.uidl.annotations.ForeignKey;
 import io.mateu.uidl.annotations.ListToolbarButton;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -60,7 +60,7 @@ public abstract class ActionSupplierLayer<
         .filter(
             field ->
                 List.class.isAssignableFrom(field.getType())
-                    && !field.isAnnotationPresent(ForeignKey.class)
+                    && !field.isAnnotationPresent(Lookup.class)
                     && !field.isAnnotationPresent(Composition.class)
                     && !isBasic(field.getType()))
         .forEach(

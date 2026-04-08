@@ -5,14 +5,14 @@ weight: 7
 
 # Foreign keys and options
 
-Mateu lets you declare relationships in your view models with `@ForeignKey`.
+Mateu lets you declare relationships in your view models with `@Lookup`.
 
 Instead of hardcoding options in the UI, Mateu delegates option search and label resolution to backend services.
 
 ## A field with a foreign key
 
 ```java
-@ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+@Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
 @Colspan(2)
 @Style("width: 100%;")
 @Stereotype(FieldStereotype.checkbox)
@@ -27,12 +27,12 @@ This tells Mateu:
 
 ## Options supplier
 
-The `ForeignKeyOptionsSupplier` provides searchable and pageable options:
+The `LookupOptionsSupplier` provides searchable and pageable options:
 
 ```java
 @Service
 @RequiredArgsConstructor
-public class PermissionIdOptionsSupplier implements ForeignKeyOptionsSupplier {
+public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
 
     final PermissionQueryService queryService;
 
@@ -81,7 +81,7 @@ It also means:
 
 ## Rendering
 
-`@ForeignKey` defines the relationship.
+`@Lookup` defines the relationship.
 
 Other annotations can define presentation:
 
@@ -95,7 +95,7 @@ This means data resolution and visual rendering stay separate but composable.
 
 Use:
 
-- `@ForeignKey` to define a relationship
+- `@Lookup` to define a relationship
 - an `OptionsSupplier` to search candidates
 - a `LabelSupplier` to render labels
 - a `@Stereotype` to choose how the field is presented

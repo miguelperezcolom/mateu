@@ -85,7 +85,7 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
   @Style("width: 100%;")
   String description;
 
-  @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+  @Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
   @Colspan(2)
   @Style("width: 100%;")
   @Stereotype(FieldStereotype.checkbox)
@@ -136,7 +136,7 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
   @Style("width: 100%;")
   String description;
 
-  @ForeignKey(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
+  @Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
   @Colspan(2)
   @Style("width: 100%;")
   @Stereotype(FieldStereotype.checkbox)
@@ -272,7 +272,7 @@ Mateu can resolve foreign keys dynamically through backend suppliers.
 ### Options supplier
 
 ```java
-public class PermissionIdOptionsSupplier implements ForeignKeyOptionsSupplier {
+public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
 
   final PermissionQueryService queryService;
 

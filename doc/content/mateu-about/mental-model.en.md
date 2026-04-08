@@ -14,7 +14,7 @@ It is a **spec-driven application model**.
 - state (fields)
 - actions (methods / buttons)
 - action behavior (`@Action`)
-- relationships (`@ForeignKey`)
+- relationships (`@Lookup`)
 - navigation (`@Menu`)
 - routing (`@UI`, `@Route`)
 - layout (annotations)

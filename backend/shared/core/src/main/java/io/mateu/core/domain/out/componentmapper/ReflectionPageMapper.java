@@ -794,7 +794,7 @@ public class ReflectionPageMapper {
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }
-    if (field.isAnnotationPresent(ForeignKey.class)) {
+    if (field.isAnnotationPresent(Lookup.class)) {
       return true;
     }
     if (Collection.class.isAssignableFrom(field.getType())

@@ -5,12 +5,12 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
-import io.mateu.uidl.interfaces.ForeignKeyOptionsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -39,7 +39,7 @@ public class SearchFieldActionRunner implements ActionRunner {
       var httpRequest = command.httpRequest();
       // search-field-childfield
       String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-      ForeignKeyOptionsSupplier optionsSupplier = null;
+      LookupOptionsSupplier optionsSupplier = null;
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
         var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
@@ -50,12 +50,12 @@ public class SearchFieldActionRunner implements ActionRunner {
                         .getGenericType(),
                 List.class,
                 "E");
-        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(ForeignKey.class);
+        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       } else {
         var fkAnnotation =
             getFieldByName(getViewModelClass(instance, httpRequest), fieldName)
-                .getAnnotation(ForeignKey.class);
+                .getAnnotation(Lookup.class);
         optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
       }
 

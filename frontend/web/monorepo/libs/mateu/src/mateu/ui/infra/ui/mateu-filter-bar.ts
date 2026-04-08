@@ -1,5 +1,5 @@
-import { customElement, property, state } from "lit/decorators.js";
-import { css, html, LitElement, nothing, TemplateResult } from "lit";
+import {customElement, property, state} from "lit/decorators.js";
+import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -89,7 +89,6 @@ export class MateuFilterBar extends LitElement {
         }
     }
 
-
     valueChanged = (e: CustomEvent) => {
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
@@ -131,7 +130,7 @@ export class MateuFilterBar extends LitElement {
                     <vaadin-text-field
                             id="searchText"
                             @value-changed="${this.valueChanged}"
-                            value=""
+                            value="${this.state.searchText}"
                             autofocus="${this.metadata?.autoFocusOnSearchText?true:nothing}"
                             style="flex-grow: 1;"
                     ></vaadin-text-field>

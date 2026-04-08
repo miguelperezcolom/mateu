@@ -6,7 +6,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -28,7 +28,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
     if (actionId.startsWith("search-")) {
       var field = getFieldByName(instance.getClass(), actionId.substring("search-".length()));
       if (field != null) {
-        return field.isAnnotationPresent(ForeignKey.class);
+        return field.isAnnotationPresent(Lookup.class);
       }
     }
     return false;
@@ -39,7 +39,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
   public Flux<?> run(Object instance, RunActionCommand command) {
     var fieldName = command.actionId().substring("search-".length());
     var field = getFieldByName(instance.getClass(), fieldName);
-    var fkAnnotation = field.getAnnotation(ForeignKey.class);
+    var fkAnnotation = field.getAnnotation(Lookup.class);
     var optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     var httpRequest = command.httpRequest();
     Pageable pageable = httpRequest.getParameters(Pageable.class);

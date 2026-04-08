@@ -147,7 +147,7 @@ public class ReflectionFormFieldMapper {
       return createEditorForCompositionField(field, httpRequest, instance);
     }
     if (List.class.isAssignableFrom(fieldType)
-        && !field.isAnnotationPresent(ForeignKey.class)
+        && !field.isAnnotationPresent(Lookup.class)
         && !field.isAnnotationPresent(Composition.class)
         && !isBasic(getGenericClass(field, List.class, "E"))) {
       return createCrudForField(
@@ -522,7 +522,7 @@ public class ReflectionFormFieldMapper {
   }
 
   private static String getFieldId(Field field, String prefix, boolean readOnly) {
-    if (readOnly && field.isAnnotationPresent(ForeignKey.class)) {
+    if (readOnly && field.isAnnotationPresent(Lookup.class)) {
       return prefix + field.getName() + "-label";
     }
     return prefix + field.getName();
@@ -552,7 +552,7 @@ public class ReflectionFormFieldMapper {
   }
 
   private static RemoteCoordinates getRemoteCoordinates(String prefix, Field field) {
-    if (field.isAnnotationPresent(ForeignKey.class)) {
+    if (field.isAnnotationPresent(Lookup.class)) {
       return RemoteCoordinates.builder().action("search-" + prefix + field.getName()).build();
     }
     return null;
@@ -633,7 +633,7 @@ public class ReflectionFormFieldMapper {
     if (field.getType().isEnum()) {
       return FieldStereotype.select;
     }
-    if (field.isAnnotationPresent(ForeignKey.class)) {
+    if (field.isAnnotationPresent(Lookup.class)) {
       return FieldStereotype.combobox;
     }
     if (field.isAnnotationPresent(Representation.class)) {

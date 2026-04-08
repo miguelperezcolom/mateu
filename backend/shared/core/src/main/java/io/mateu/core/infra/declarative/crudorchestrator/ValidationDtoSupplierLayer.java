@@ -10,7 +10,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Composition;
-import io.mateu.uidl.annotations.ForeignKey;
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
@@ -43,7 +43,7 @@ public abstract class ValidationDtoSupplierLayer<
           .filter(
               field ->
                   List.class.isAssignableFrom(field.getType())
-                      && !field.isAnnotationPresent(ForeignKey.class)
+                      && !field.isAnnotationPresent(Lookup.class)
                       && !field.isAnnotationPresent(Composition.class)
                       && !isBasic(field.getType()))
           .forEach(
