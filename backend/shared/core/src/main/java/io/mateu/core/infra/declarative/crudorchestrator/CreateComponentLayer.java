@@ -43,7 +43,7 @@ public abstract class CreateComponentLayer<
                         true)
                     .stream()
                     .toList())
-            .toolbar(List.of(new Button("Cancel", "cancel_create"), new Button("Create", "create")))
+            .toolbar(List.of(new Button("Cancel", "cancel-create"), new Button("Create", "create")))
             .build(),
         this,
         "base_url",

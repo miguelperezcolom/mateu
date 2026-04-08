@@ -1,6 +1,8 @@
 package io.mateu.core.domain.act;
 
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLabelSupplier;
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLookupOptionsSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
@@ -40,6 +42,7 @@ public class SearchFieldActionRunner implements ActionRunner {
       // search-field-childfield
       String fieldName = actionId.substring(actionId.indexOf('-') + 1);
       LookupOptionsSupplier optionsSupplier = null;
+      Lookup fkAnnotation = null;
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
         var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
@@ -50,13 +53,9 @@ public class SearchFieldActionRunner implements ActionRunner {
                         .getGenericType(),
                 List.class,
                 "E");
-        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
-        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+        optionsSupplier = getLookupOptionsSupplier(instance, getFieldByName(rowClass, childFieldName));
       } else {
-        var fkAnnotation =
-            getFieldByName(getViewModelClass(instance, httpRequest), fieldName)
-                .getAnnotation(Lookup.class);
-        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+          optionsSupplier = getLookupOptionsSupplier(instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
       }
 
       Pageable pageable = httpRequest.getParameters(Pageable.class);
@@ -66,7 +65,10 @@ public class SearchFieldActionRunner implements ActionRunner {
       }
       var cleanSearchText = searchText.toLowerCase();
 
-      var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
+      var listingData = optionsSupplier.search(fieldName, cleanSearchText, pageable, httpRequest);
+      if (listingData == null || listingData.page() == null) {
+          throw new RuntimeException("no data returned when searching for " + fieldName + " with " + cleanSearchText + "");
+      }
 
       return Flux.just(new Data(Map.of(fieldName, listingData.page())));
     }

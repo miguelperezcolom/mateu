@@ -166,7 +166,7 @@ public class ComponentTreeSupplierToDtoMapper {
                   "state['"
                       + prefix
                       + field.getName()
-                      + "'] < "
+                      + "'] > "
                       + field.getAnnotation(Min.class).value())
               .message(field.getAnnotation(Min.class).message())
               .build());
@@ -179,7 +179,7 @@ public class ComponentTreeSupplierToDtoMapper {
                   "state['"
                       + prefix
                       + field.getName()
-                      + "'] > "
+                      + "'] < "
                       + field.getAnnotation(Max.class).value())
               .message(field.getAnnotation(Max.class).message())
               .build());

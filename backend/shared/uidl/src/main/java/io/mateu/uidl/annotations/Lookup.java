@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface Lookup {
 
-  Class<? extends LookupOptionsSupplier> search();
+  Class<? extends LookupOptionsSupplier> search() default LookupOptionsSupplier.class;
 
-  Class<? extends LabelSupplier> label();
+  Class<? extends LabelSupplier> label() default LabelSupplier.class;
 }

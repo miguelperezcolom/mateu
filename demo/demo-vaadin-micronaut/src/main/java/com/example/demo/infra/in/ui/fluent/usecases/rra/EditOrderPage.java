@@ -247,11 +247,11 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
                                                                 .buttons(List.of(
                                                                         Button.builder()
                                                                                 .label("Cancel")
-                                                                                .actionId("cancel_line")
+                                                                                .actionId("cancel-line")
                                                                                 .build(),
                                                                         Button.builder()
                                                                                 .label("Save")
-                                                                                .actionId("add_line")
+                                                                                .actionId("add-line")
                                                                                 .build()
                                                                 ))
                                                                 .build())
@@ -294,15 +294,15 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
                                                                 .buttons(List.of(
                                                                         Button.builder()
                                                                                 .label("Cancel")
-                                                                                .actionId("cancel_line")
+                                                                                .actionId("cancel-line")
                                                                                 .build(),
                                                                         Button.builder()
                                                                                 .label("Save")
-                                                                                .actionId("save_line")
+                                                                                .actionId("save-line")
                                                                                 .build()
                                                                 ))
                                                                 .build())
-                                                        .onItemSelectionActionId("line_selected")
+                                                        .onItemSelectionActionId("line-selected")
                                                         .style("width: 100%;")
                                                         .build()))
                                         .build(),
@@ -409,7 +409,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
             }
             return new State(this);
         }
-        if ("line_selected".equals(actionId)) {
+        if ("line-selected".equals(actionId)) {
             lines_show_detail = true;
             lines_editing = true;
             lines_selected_items.forEach(line -> {
@@ -431,12 +431,12 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
                         .build();
                 return dialog;
         }
-        if ("lines_add".equals(actionId)) {
+        if ("lines-add".equals(actionId)) {
             lines_show_detail = true;
             lines_editing = false;
             return new State(this);
         }
-        if ("lines_remove".equals(actionId)) {
+        if ("lines-remove".equals(actionId)) {
             lines_show_detail = false;
             lines = lines.stream()
                     .filter(line -> lines_selected_items.stream()
@@ -446,11 +446,11 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
             totalAmount = calculateTotal();
             return new State(this);
         }
-        if ("cancel_line".equals(actionId)) {
+        if ("cancel-line".equals(actionId)) {
             lines_show_detail = false;
             return new State(this);
         }
-        if ("add_line".equals(actionId)) {
+        if ("add-line".equals(actionId)) {
             String productId = new_product;
             var product = productRepository.findById(productId).get();
             lines.add(new OrderDetailLine(
@@ -465,7 +465,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
             totalAmount = calculateTotal();
             return new State(this);
         }
-        if ("save_line".equals(actionId)) {
+        if ("save-line".equals(actionId)) {
             String productId = edit_product;
             var product = productRepository.findById(productId).get();
             var selectedLineIds = lines_selected_items.stream()

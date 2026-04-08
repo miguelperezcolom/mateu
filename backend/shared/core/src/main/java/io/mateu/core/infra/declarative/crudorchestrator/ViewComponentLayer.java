@@ -91,7 +91,7 @@ public abstract class ViewComponentLayer<
                   new Button(
                       toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
             });
-    toolbar.add(new Button("Back to list", "cancel_view"));
+    toolbar.add(new Button("Back to list", "cancel-view"));
     if (!readOnly(item)) {
       toolbar.add(new Button("Add another", "new"));
       toolbar.add(new Button("Edit", "edit"));

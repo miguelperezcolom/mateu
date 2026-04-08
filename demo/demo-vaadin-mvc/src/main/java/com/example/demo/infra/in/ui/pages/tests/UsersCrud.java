@@ -4,6 +4,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.interfaces.Page;
 
+@Route(value = "/users/:id", parentRoute = "")
 @Route(value = "/users2/:id", parentRoute = "")
 @Route(value = "/users3", parentRoute = "")
 public class UsersCrud implements Page {

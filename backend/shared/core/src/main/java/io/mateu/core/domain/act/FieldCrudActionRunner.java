@@ -12,6 +12,7 @@ import static io.mateu.core.domain.act.crudfieldhandlers.SelectedActionHandler.h
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -38,7 +39,7 @@ public class FieldCrudActionRunner implements ActionRunner {
     if (actionId.contains("_")) {
       String fieldId = actionId.substring(0, actionId.indexOf('_'));
       var field = getFieldByName(getViewModelClass(instance, httpRequest), fieldId);
-      if (List.class.isAssignableFrom(field.getType())) {
+      if (field != null && List.class.isAssignableFrom(field.getType())) {
         if (actionId.endsWith("_create")
             || actionId.endsWith("_create-and-stay")
             || actionId.endsWith("_add")
@@ -57,6 +58,9 @@ public class FieldCrudActionRunner implements ActionRunner {
   }
 
   public static Class getViewModelClass(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof AutoCrudOrchestrator<?> autoCrudOrchestrator) {
+      return autoCrudOrchestrator.entityClass();
+    }
     if (instance instanceof FormViewModel formViewModel) {
       return formViewModel.entityClass();
     }

@@ -1,6 +1,7 @@
 package io.mateu.core.infra.reflection.write;
 
 import static io.mateu.core.domain.act.DefaultActionRunnerProvider.asFlux;
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLookupOptionsSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
 import io.mateu.core.application.runaction.RunActionCommand;
@@ -39,8 +40,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
   public Flux<?> run(Object instance, RunActionCommand command) {
     var fieldName = command.actionId().substring("search-".length());
     var field = getFieldByName(instance.getClass(), fieldName);
-    var fkAnnotation = field.getAnnotation(Lookup.class);
-    var optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+    var optionsSupplier = getLookupOptionsSupplier(instance, field);
     var httpRequest = command.httpRequest();
     Pageable pageable = httpRequest.getParameters(Pageable.class);
     String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
@@ -49,7 +49,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
     }
     var cleanSearchText = searchText.toLowerCase();
 
-    var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
+    var listingData = optionsSupplier.search(fieldName, cleanSearchText, pageable, httpRequest);
 
     var result = new Data(Map.of(fieldName, listingData.page()));
     return asFlux(result, instance);

@@ -44,6 +44,7 @@ import { badge } from "@vaadin/vaadin-lumo-styles";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import {Notification, NotificationPosition} from "@vaadin/notification";
 
 interface FileLike {
     id: string
@@ -134,41 +135,43 @@ export class MateuField extends LitElement {
         return value
     }
     multiComboBoxValueChanged = (e: CustomEvent) => {
-        const fieldId = this.field?.fieldId!
-        const oldValue = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
-        let value: any = undefined
-        if (e.detail.value) {
-            value = e.detail.value.map((option: any) => option.value)
-            if (value && value.length > 0) {
-                if (!this.data[this.id]) {
-                    this.data[this.id] = {}
-                }
-                if (!this.data[this.id].content) {
-                    this.data[this.id].content = []
-                }
-                if (this.data[this.id]
-                    && this.data[this.id].content) {
-                    e.detail.value.forEach((item: any) => {
-                        if (!this.data[this.id].content?.find((option: any) => item.value == option.value)) {
-                            this.data[this.id].content.push(item)
-                        }
-                    })
+        if (this.rendered) {
+            console.log('multiComboBoxValueChanged', e.detail.value)
+            const fieldId = this.field?.fieldId!
+            const oldValue = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
+            let value: any = undefined
+            if (e.detail.value) {
+                value = e.detail.value.map((option: any) => option.value)
+                if (value && value.length > 0) {
+                    if (!this.data[this.id]) {
+                        this.data[this.id] = {}
+                    }
+                    if (!this.data[this.id].content) {
+                        this.data[this.id].content = []
+                    }
+                    if (this.data[this.id]
+                        && this.data[this.id].content) {
+                        e.detail.value.forEach((item: any) => {
+                            if (!this.data[this.id].content?.find((option: any) => item.value == option.value)) {
+                                this.data[this.id].content.push(item)
+                            }
+                        })
+                    }
                 }
             }
+            if (!this.compareArrays(value, oldValue)) this.dispatchEvent(new CustomEvent('value-changed', {
+                detail: {
+                    value: value,
+                    //@ts-ignore
+                    fieldId: this.field?.fieldId
+                },
+                bubbles: true,
+                composed: true
+            }))
         }
-        if (!this.compareArrays(value, oldValue)) this.dispatchEvent(new CustomEvent('value-changed', {
-            detail: {
-                value: value,
-                //@ts-ignore
-                fieldId: this.field?.fieldId
-            },
-            bubbles: true,
-            composed: true
-        }))
     }
 
     valueChanged = (e: CustomEvent) => {
-        console.log('value changed', e.detail.value)
         if (this.rendered) {
             if (e.detail.value != this.state[this.field!.fieldId]) {
                 this.dispatchEvent(new CustomEvent('value-changed', {
@@ -187,10 +190,17 @@ export class MateuField extends LitElement {
     selectedItems = (value: any[]) => {
         if (value && value.length > 0) {
             if (this.field?.remoteCoordinates) {
-                if (this.data[this.id]
-                    && this.data[this.id].content) {
-                    return this.data[this.id].content?.filter((option: any) =>
+                if (this.comboData
+                    && this.comboData.length > 0) {
+                    return this.comboData?.filter((option: any) =>
                         value.indexOf(option.value) >= 0)
+                }
+                if (this.data[this.id]
+                    && this.data[this.id].content
+                    && this.data[this.id].content.length > 0) {
+                    return this.data[this.id].content
+                        .filter((option: any) => value.indexOf(option.value) >= 0)
+//                        .map(option => this.data[this.id].content.indexOf(option))
                 }
             } else {
                 return this.field?.options?.filter(option =>
@@ -301,6 +311,21 @@ export class MateuField extends LitElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    mapPosition = (position: string): NotificationPosition => {
+        switch(position) {
+            case 'topStretch': return 'top-stretch'
+            case 'topStart': return 'top-start'
+            case 'topCenter': return 'top-center'
+            case 'topEnd': return 'top-end'
+            case 'middle': return 'middle'
+            case 'bottomStart': return 'bottom-start'
+            case 'bottomEnd': return 'bottom-end'
+            case 'bottomStretch': return 'bottom-stretch'
+            case 'bottomCenter': return 'bottom-center'
+        }
+        return 'bottom-end'
     }
 
     // @ts-ignore
@@ -1381,9 +1406,21 @@ export class MateuField extends LitElement {
                                         sort: undefined
                                     },
                                     callback: (uiIncrement: UIIncrement) => {
-                                        const data = uiIncrement.fragments![0].data[this.id]
-                                        this.comboData = data.content
-                                        callback(data.content, data.totalElements);
+                                        uiIncrement?.messages?.forEach(message => {
+                                            Notification.show(message.text, {
+                                                position: message.position?this.mapPosition(message.position):undefined,
+                                                theme: message.variant,
+                                                duration: message.duration
+                                            });
+                                        })
+                                        if (!uiIncrement.fragments || uiIncrement.fragments.length == 0) {
+                                            this.comboData = []
+                                            callback([], 0);
+                                        } else {
+                                            const data = uiIncrement.fragments![0].data[this.id]
+                                            this.comboData = data.content
+                                            callback(data.content, data.totalElements);
+                                        }
                                     },
                                     callbackonly: true
                                 },
@@ -1396,6 +1433,7 @@ export class MateuField extends LitElement {
                         <vaadin-multi-select-combo-box
                             label="${label}"
                             item-label-path="label"
+                            item-id-path="value"
                             item-value-path="value"
                             .dataProvider="${dataProvider}"
                             .helperText="${this.field.description}"

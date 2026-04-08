@@ -33,8 +33,8 @@ public abstract class TriggersSupplierLayer<
     triggers.add(new OnSuccessTrigger("search", "create", ""));
     triggers.add(new OnSuccessTrigger("search", "delete", ""));
     triggers.add(new OnSuccessTrigger("search", "save", ""));
-    triggers.add(new OnSuccessTrigger("search", "cancel_view", ""));
-    triggers.add(new OnSuccessTrigger("search", "cancel_create", ""));
+    triggers.add(new OnSuccessTrigger("search", "cancel-view", ""));
+    triggers.add(new OnSuccessTrigger("search", "cancel-create", ""));
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
         .forEach(

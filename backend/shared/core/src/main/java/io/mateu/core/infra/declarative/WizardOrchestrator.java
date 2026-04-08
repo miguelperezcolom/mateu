@@ -162,7 +162,7 @@ public abstract class WizardOrchestrator
         searchText = "";
       }
 
-      var listingData = optionsSupplier.search(searchText, pageable, httpRequest);
+      var listingData = optionsSupplier.search(fieldName, searchText, pageable, httpRequest);
 
       return new Data(Map.of(fieldName, listingData.page()));
     }

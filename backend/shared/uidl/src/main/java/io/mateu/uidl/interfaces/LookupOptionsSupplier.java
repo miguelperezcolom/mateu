@@ -6,5 +6,6 @@ import io.mateu.uidl.data.Pageable;
 
 public interface LookupOptionsSupplier {
 
-  ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest);
+  ListingData<Option> search(
+      String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest);
 }

@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLookupOptionsSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
@@ -34,12 +35,9 @@ public class SearchActionHandler {
                   getFieldByName(crudOrchestrator.viewClass(), parentFieldName).getGenericType(),
               List.class,
               "E");
-      var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
-      optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+        optionsSupplier = getLookupOptionsSupplier(crudOrchestrator, getFieldByName(rowClass, childFieldName));
     } else {
-      var fkAnnotation =
-          getFieldByName(crudOrchestrator.entityClass(), fieldName).getAnnotation(Lookup.class);
-      optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
+        optionsSupplier = getLookupOptionsSupplier(crudOrchestrator, getFieldByName(crudOrchestrator.entityClass(), fieldName));
     }
 
     Pageable pageable = httpRequest.getParameters(Pageable.class);
@@ -49,7 +47,7 @@ public class SearchActionHandler {
     }
     var cleanSearchText = searchText.toLowerCase();
 
-    var listingData = optionsSupplier.search(cleanSearchText, pageable, httpRequest);
+    var listingData = optionsSupplier.search(fieldName, cleanSearchText, pageable, httpRequest);
 
     return new Data(Map.of(fieldName, listingData.page()));
   }

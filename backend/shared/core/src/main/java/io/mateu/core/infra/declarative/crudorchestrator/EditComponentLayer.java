@@ -49,7 +49,7 @@ public abstract class EditComponentLayer<
                         false)
                     .stream()
                     .toList())
-            .toolbar(List.of(new Button("Cancel", "cancel_edit"), new Button("Save", "save")))
+            .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
             .build(),
         this,
         "base_url",

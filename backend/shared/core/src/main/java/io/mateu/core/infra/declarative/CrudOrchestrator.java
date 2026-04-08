@@ -90,16 +90,16 @@ public abstract class CrudOrchestrator<
       // savedId = getValue(getIdField(viewClass()), entity);
       actionId = "view";
     }
-    if ("cancel_edit".equals(actionId)) {
+    if ("cancel-edit".equals(actionId)) {
       var idField = getIdFieldForRow();
       savedId = httpRequest.getComponentState(Map.class).get(idField);
       var view = adapter().getEditor((IdType) savedId);
       actionId = "view";
     }
-    if ("cancel_view".equals(actionId)) {
+    if ("cancel-view".equals(actionId)) {
       actionId = "";
     }
-    if ("cancel_create".equals(actionId)) {
+    if ("cancel-create".equals(actionId)) {
       actionId = "";
     }
     if ("delete".equals(actionId)) {
