@@ -1,6 +1,7 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
+import static io.mateu.core.infra.declarative.CrudOrchestrator.getIndex;
+
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
@@ -8,10 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PrevActionHandler {
+public class SaveActionHandler {
 
-  public static Object handlePrev(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+  public static Object handleSave(
+      Object crudOrchestrator,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -19,10 +20,12 @@ public class PrevActionHandler {
       Map<String, Object> _editing,
       Field field,
       String fieldId) {
+    _show_detail.put(fieldId, false);
+    _editing.put(fieldId, false);
+
     var items = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
     var position =
-        crudOrchestrator.getIndex(
-            items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+        getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
     var values = items.get(position);
 
     var newState = new HashMap<>(httpRequest.runActionRq().componentState());
@@ -36,17 +39,8 @@ public class PrevActionHandler {
       row.put(key, newState.get(fieldId + "-" + key));
     }
 
-    if (position <= 0) {
-      throw new RuntimeException("This is the first item. No previous item to select.");
-    }
-
-    var values2 = items.get(position - 1);
-    newState = new HashMap<>(httpRequest.runActionRq().componentState());
-    for (String key : values2.keySet()) {
-      newState.put(fieldId + "-" + key, values2.get(key));
-    }
-    newState.put("" + fieldId + "_position", "" + (position) + "/" + items.size());
-
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
     return new State(newState);
   }
 }

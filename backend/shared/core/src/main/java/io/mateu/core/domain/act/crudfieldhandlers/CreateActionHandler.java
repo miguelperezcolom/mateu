@@ -1,10 +1,10 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
+import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
@@ -18,7 +18,7 @@ public class CreateActionHandler {
 
   @SneakyThrows
   public static Object handleCreate(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+      Object crudOrchestrator,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -60,7 +60,9 @@ public class CreateActionHandler {
         });
     var newState = new HashMap<>(httpRequest.runActionRq().componentState());
     newState.put(fieldId, list);
-    crudOrchestrator.addRowNumberForEntityClass(newState);
+    addRowNumber(getGenericClass(field, List.class, "E"), newState);
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
     return new State(newState);
   }
 }

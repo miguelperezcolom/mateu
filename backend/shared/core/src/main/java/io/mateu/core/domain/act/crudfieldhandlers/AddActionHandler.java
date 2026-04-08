@@ -1,17 +1,18 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.*;
 import lombok.SneakyThrows;
 
+import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+
 public class AddActionHandler {
 
   @SneakyThrows
   public static Object handleAdd(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+      Object instance,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -22,6 +23,10 @@ public class AddActionHandler {
     _show_detail.put(fieldId, true);
     _editing.put(fieldId, false);
 
-    return new State(crudOrchestrator);
+    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
+      addRowNumber(instance.getClass(), newState);
+    return new State(newState);
   }
 }

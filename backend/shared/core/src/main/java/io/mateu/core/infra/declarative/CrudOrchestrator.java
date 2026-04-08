@@ -5,7 +5,6 @@ import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.toView;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnRowActionHandler.handleActionOnRow;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnViewActionHandler.handleActionOnView;
-import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.FieldCrudActionHandler.handleFieldCrudAction;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SearchActionHandler.handleSearchOnField;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -13,12 +12,11 @@ import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 
 import io.mateu.core.infra.declarative.crudorchestrator.ListComponentLayer;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -128,9 +126,6 @@ public abstract class CrudOrchestrator<
     }
     if ("search".equals(actionId)) {
       return handleSearch(httpRequest);
-    }
-    if (!"".equals(actionId)) {
-      return handleFieldCrudAction(this, actionId, httpRequest, _state, _show_detail, _editing);
     }
 
     if (oneToOne()) {
@@ -254,7 +249,7 @@ public abstract class CrudOrchestrator<
     return savedId;
   }
 
-  public int getIndex(List<Map<String, Object>> list, Object rowNumber) {
+  public static int getIndex(List<Map<String, Object>> list, Object rowNumber) {
     for (int i = 0; i < list.size(); i++) {
       if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
         return i;

@@ -1,15 +1,15 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 public class CancelActionHandler {
 
   public static Object handleCancel(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+      Object crudOrchestrator,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -19,6 +19,9 @@ public class CancelActionHandler {
       String fieldId) {
     _show_detail.put(fieldId, false);
     _editing.put(fieldId, false);
-    return new State(crudOrchestrator);
+    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
+    return new State(newState);
   }
 }

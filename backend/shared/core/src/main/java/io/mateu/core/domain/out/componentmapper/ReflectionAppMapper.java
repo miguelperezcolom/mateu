@@ -293,7 +293,8 @@ public class ReflectionAppMapper {
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
           getLabel(field),
-          getActionables(appRoute, getValueOrNewInstance(field, instance), route, httpRequest));
+          getActionables(
+              appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));
     }
     if (MenuSupplier.class.isAssignableFrom(field.getType())) {
       var menuSupplier = (MenuSupplier) getValue(field, instance);
@@ -308,7 +309,8 @@ public class ReflectionAppMapper {
                       && isAuthorized(childField.getAnnotation(EyesOnly.class), httpRequest))) {
         return new Menu(
             getLabel(field),
-            getActionables(appRoute, getValueOrNewInstance(field, instance), route, httpRequest));
+            getActionables(
+                appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));
       }
     }
     return new FieldLink(

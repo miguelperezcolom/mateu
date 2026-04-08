@@ -1,6 +1,5 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
@@ -11,7 +10,7 @@ import java.util.Map;
 public class RemoveActionHandler {
 
   public static Object handleRemove(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+      Object crudOrchestrator,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -35,8 +34,13 @@ public class RemoveActionHandler {
                   .toList();
       var newState = new HashMap<>(httpRequest.runActionRq().componentState());
       newState.put(fieldId, list);
+      newState.put("_show_detail", _show_detail);
+      newState.put("_editing", _editing);
       return new State(newState);
     }
-    return new State(crudOrchestrator);
+    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
+    return new State(newState);
   }
 }

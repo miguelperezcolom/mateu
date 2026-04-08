@@ -1,6 +1,7 @@
-package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.crudfieldhandlers;
+package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
+import static io.mateu.core.infra.declarative.CrudOrchestrator.getIndex;
+
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
@@ -11,7 +12,7 @@ import java.util.Map;
 public class NextActionHandler {
 
   public static Object handleNext(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator,
+      Object crudOrchestrator,
       String actionId,
       HttpRequest httpRequest,
       String _state,
@@ -22,8 +23,7 @@ public class NextActionHandler {
 
     var items = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
     var position =
-        crudOrchestrator.getIndex(
-            items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
+        getIndex(items, httpRequest.runActionRq().componentState().get(fieldId + "-_rowNumber"));
     var values = items.get(position);
 
     var newState = new HashMap<>(httpRequest.runActionRq().componentState());
@@ -48,6 +48,8 @@ public class NextActionHandler {
     }
     newState.put("" + fieldId + "_position", "" + (position + 2) + "/" + items.size());
 
+    newState.put("_show_detail", _show_detail);
+    newState.put("_editing", _editing);
     return new State(newState);
   }
 }
