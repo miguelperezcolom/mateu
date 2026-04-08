@@ -29,8 +29,13 @@ public class CommandMapper {
     }
 
     if (isPage(instance, httpRequest.runActionRq().route())) {
-      result.add(
-          new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
+        if (httpRequest.getAttribute("windowTitle") == null) {
+            result.add(
+                    new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
+        } else {
+            result.add(
+                    new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, httpRequest.getAttribute("windowTitle")));
+        }
     }
 
     if (instance instanceof CommandSupplier commandSupplier) {

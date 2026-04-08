@@ -3,6 +3,8 @@ package com.example.demo.infra.in.ui.pages.tests;
 import io.mateu.core.infra.declarative.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.uidl.annotations.Colspan;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.interfaces.CrudRepository;
@@ -14,7 +16,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-record Grupo(@NotEmpty String id, @NotEmpty String nombre) implements Identifiable {}
+record Miembro(@NotEmpty String id, @NotEmpty String nombre, @Hidden("console.log(state)") String email) {
+
+}
+
+record Grupo(@NotEmpty String id, @NotEmpty String nombre, @Colspan(2)@Hidden("console.log(state)") String email, @Colspan(2) List<Miembro> miembros) implements Identifiable {
+
+    @Override
+    public String toString() {
+        return nombre != null?nombre:"Nuevo grupo";
+    }
+}
 
 class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
 
