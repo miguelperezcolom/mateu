@@ -6,6 +6,7 @@ public interface ActionHandler {
     return actionId != null
         && !"".equals(actionId)
         && !actionId.endsWith("_create")
+        && !actionId.endsWith("_create-and-stay")
         && !actionId.endsWith("_add")
         && !actionId.endsWith("_select")
         && !actionId.endsWith("_selected")
@@ -13,7 +14,8 @@ public interface ActionHandler {
         && !actionId.endsWith("_next")
         && !actionId.endsWith("_save")
         && !actionId.endsWith("_remove")
-        && !actionId.endsWith("_cancel");
+        && !actionId.endsWith("_cancel")
+        && !actionId.startsWith("search-");
   }
 
   Object handleAction(String actionId, HttpRequest httpRequest);

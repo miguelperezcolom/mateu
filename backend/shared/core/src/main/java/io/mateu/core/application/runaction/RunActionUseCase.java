@@ -1,12 +1,12 @@
 package io.mateu.core.application.runaction;
 
+import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
-import static io.mateu.core.infra.JsonSerializer.fromJson;
-import static io.mateu.core.infra.JsonSerializer.toJson;
+import static io.mateu.core.infra.declarative.FormViewModel.toMap;
 import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
@@ -23,9 +23,11 @@ import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.BaseRoute;
+import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.*;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
@@ -684,7 +686,16 @@ public class RunActionUseCase {
             ? stateSupplier.state(httpRequest)
             : modelView;
     if (!(state instanceof Map<?, ?>)) {
-      var newState = fromJson(toJson(state));
+      var newState = toMap(state);
+      getAllFields(getViewModelClass(modelView, httpRequest)).stream()
+          .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
+          .forEach(
+              field -> {
+                var generator =
+                    MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
+                var value = generator.generate();
+                newState.put(field.getName(), value);
+              });
       addRowNumber(modelView.getClass(), newState);
       return newState;
     }

@@ -13,6 +13,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ public class FieldCrudActionRunner implements ActionRunner {
       var field = getFieldByName(getViewModelClass(instance, httpRequest), fieldId);
       if (List.class.isAssignableFrom(field.getType())) {
         if (actionId.endsWith("_create")
+            || actionId.endsWith("_create-and-stay")
             || actionId.endsWith("_add")
             || actionId.endsWith("_select")
             || actionId.endsWith("_selected")
@@ -54,7 +56,10 @@ public class FieldCrudActionRunner implements ActionRunner {
     return false;
   }
 
-  private Class getViewModelClass(Object instance, HttpRequest httpRequest) {
+  public static Class getViewModelClass(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof FormViewModel formViewModel) {
+      return formViewModel.entityClass();
+    }
     if (instance instanceof CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator) {
       var _state = httpRequest.runActionRq().componentState().get("_state");
       if ("create".equals(_state)) {
@@ -92,6 +97,11 @@ public class FieldCrudActionRunner implements ActionRunner {
     }
 
     if (actionId.endsWith("_create")) {
+      return Flux.just(
+          handleCreate(
+              instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
+    }
+    if (actionId.endsWith("_create-and-stay")) {
       return Flux.just(
           handleCreate(
               instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));

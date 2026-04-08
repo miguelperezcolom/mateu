@@ -26,8 +26,8 @@ public class CreateActionHandler {
       Map<String, Object> _editing,
       Field field,
       String fieldId) {
-    _show_detail.put(fieldId, true);
-    _editing.put(fieldId, false);
+    _show_detail.put(fieldId, actionId.endsWith("and-stay"));
+    _editing.put(fieldId, !actionId.endsWith("and-stay"));
 
     String rowClassName =
         httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();

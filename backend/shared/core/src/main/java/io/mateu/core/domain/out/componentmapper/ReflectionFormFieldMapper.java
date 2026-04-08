@@ -374,6 +374,10 @@ public class ReflectionFormFieldMapper {
                         Button.builder()
                             .label("Save")
                             .actionId(getFieldId(field, prefix, readOnly) + "_create")
+                            .build(),
+                        Button.builder()
+                            .label("Save and Add Another")
+                            .actionId(getFieldId(field, prefix, readOnly) + "_create-and-stay")
                             .build()))
                 .build())
         .editor(
