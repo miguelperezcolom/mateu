@@ -12,9 +12,9 @@ import static io.mateu.core.domain.act.crudfieldhandlers.SelectedActionHandler.h
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,22 +36,39 @@ public class FieldCrudActionRunner implements ActionRunner {
     }
     if (actionId.contains("_")) {
       String fieldId = actionId.substring(0, actionId.indexOf('_'));
-        var field = getFieldByName(instance.getClass(), fieldId);
-        if (List.class.isAssignableFrom(field.getType())) {
-          if (actionId.endsWith("_create")
-              || actionId.endsWith("_add")
-              || actionId.endsWith("_select")
-              || actionId.endsWith("_selected")
-              || actionId.endsWith("_prev")
-              || actionId.endsWith("_next")
-              || actionId.endsWith("_save")
-              || actionId.endsWith("_remove")
-              || actionId.endsWith("_cancel")) {
-            return true;
-          }
+      var field = getFieldByName(getViewModelClass(instance, httpRequest), fieldId);
+      if (List.class.isAssignableFrom(field.getType())) {
+        if (actionId.endsWith("_create")
+            || actionId.endsWith("_add")
+            || actionId.endsWith("_select")
+            || actionId.endsWith("_selected")
+            || actionId.endsWith("_prev")
+            || actionId.endsWith("_next")
+            || actionId.endsWith("_save")
+            || actionId.endsWith("_remove")
+            || actionId.endsWith("_cancel")) {
+          return true;
         }
+      }
     }
     return false;
+  }
+
+  private Class getViewModelClass(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator) {
+      var _state = httpRequest.runActionRq().componentState().get("_state");
+      if ("create".equals(_state)) {
+        return crudOrchestrator.creationFormClass();
+      }
+      if ("edit".equals(_state)) {
+        return crudOrchestrator.editorClass();
+      }
+      if ("view".equals(_state)) {
+        return crudOrchestrator.viewClass();
+      }
+      return crudOrchestrator.viewModelClass();
+    }
+    return instance.getClass();
   }
 
   @SneakyThrows
@@ -59,7 +76,7 @@ public class FieldCrudActionRunner implements ActionRunner {
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();
     var fieldId = actionId.substring(0, actionId.indexOf('_'));
-    var field = getFieldByName(instance.getClass(), fieldId);
+    var field = getFieldByName(getViewModelClass(instance, command.httpRequest()), fieldId);
 
     var httpRequest = command.httpRequest();
     var _state = (String) httpRequest.runActionRq().componentState().get("_state");
@@ -68,11 +85,11 @@ public class FieldCrudActionRunner implements ActionRunner {
     var _editing = (Map<String, Object>) httpRequest.runActionRq().componentState().get("_editing");
 
     if (_show_detail == null) {
-        _show_detail = new HashMap<>();
+      _show_detail = new HashMap<>();
     }
-      if (_editing == null) {
-          _editing = new HashMap<>();
-      }
+    if (_editing == null) {
+      _editing = new HashMap<>();
+    }
 
     if (actionId.endsWith("_create")) {
       return Flux.just(

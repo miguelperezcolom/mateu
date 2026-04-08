@@ -676,13 +676,19 @@ public class RunActionUseCase {
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {
-      var state = (modelView instanceof StateSupplier stateSupplier)?stateSupplier.state(httpRequest):modelView;
-      if (!(state instanceof Map<?,?>)) {
-          var newState = fromJson(toJson(state));
-          addRowNumber(modelView.getClass(), newState);
-          return newState;
-      }
-      return state;
+    if (modelView == null) {
+      return null;
+    }
+    var state =
+        (modelView instanceof StateSupplier stateSupplier)
+            ? stateSupplier.state(httpRequest)
+            : modelView;
+    if (!(state instanceof Map<?, ?>)) {
+      var newState = fromJson(toJson(state));
+      addRowNumber(modelView.getClass(), newState);
+      return newState;
+    }
+    return state;
   }
 
   @SneakyThrows

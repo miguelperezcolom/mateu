@@ -436,7 +436,7 @@ public class ReflectionFormFieldMapper {
     if (field.isAnnotationPresent(MasterDetail.class)) {
       return field.getAnnotation(MasterDetail.class).minHeightWhenDetailVisible();
     }
-    return null;
+    return "16rem;";
   }
 
   private static String getDetailPath(Field field) {

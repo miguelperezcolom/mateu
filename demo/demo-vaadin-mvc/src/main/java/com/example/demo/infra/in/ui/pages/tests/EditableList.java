@@ -1,7 +1,9 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
+import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
@@ -18,6 +20,7 @@ record Row(String name, String email) {}
 
 @Slf4j
 @Route("/editable-list")
+@Style(StyleConstants.CONTAINER)
 public class EditableList implements ActionHandler {
 
     List<Row> rows = new ArrayList<>();

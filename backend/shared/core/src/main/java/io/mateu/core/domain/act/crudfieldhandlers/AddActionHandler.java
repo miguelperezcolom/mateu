@@ -1,12 +1,12 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
+import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.*;
 import lombok.SneakyThrows;
-
-import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 
 public class AddActionHandler {
 
@@ -26,7 +26,7 @@ public class AddActionHandler {
     var newState = new HashMap<>(httpRequest.runActionRq().componentState());
     newState.put("_show_detail", _show_detail);
     newState.put("_editing", _editing);
-      addRowNumber(instance.getClass(), newState);
+    addRowNumber(instance.getClass(), newState);
     return new State(newState);
   }
 }
