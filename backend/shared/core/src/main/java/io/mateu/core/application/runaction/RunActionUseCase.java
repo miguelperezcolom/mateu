@@ -5,6 +5,9 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToCompone
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
+import static io.mateu.core.infra.JsonSerializer.fromJson;
+import static io.mateu.core.infra.JsonSerializer.toJson;
+import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
@@ -673,10 +676,13 @@ public class RunActionUseCase {
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {
-    if (modelView instanceof StateSupplier stateSupplier) {
-      return stateSupplier.state(httpRequest);
-    }
-    return modelView;
+      var state = (modelView instanceof StateSupplier stateSupplier)?stateSupplier.state(httpRequest):modelView;
+      if (!(state instanceof Map<?,?>)) {
+          var newState = fromJson(toJson(state));
+          addRowNumber(modelView.getClass(), newState);
+          return newState;
+      }
+      return state;
   }
 
   @SneakyThrows
