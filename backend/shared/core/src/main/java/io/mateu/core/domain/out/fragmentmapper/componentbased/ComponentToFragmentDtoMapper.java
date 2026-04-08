@@ -65,6 +65,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Tex
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TooltipComponentToDtoMapper.mapTooltipToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VirtualListComponentToDtoMapper.mapVirtualListToDto;
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.createData;
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -177,7 +178,11 @@ public final class ComponentToFragmentDtoMapper {
     if (instance instanceof DataSupplier dataSupplier) {
       return dataSupplier.data(httpRequest);
     }
-    return getData(httpRequest);
+    var data = getData(httpRequest);
+    if (data == null && instance != null) {
+      return createData(instance, httpRequest);
+    }
+    return data;
   }
 
   public static Object getData(HttpRequest httpRequest) {
