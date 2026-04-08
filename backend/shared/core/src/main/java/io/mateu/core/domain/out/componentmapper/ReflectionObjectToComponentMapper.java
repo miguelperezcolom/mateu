@@ -112,7 +112,7 @@ public class ReflectionObjectToComponentMapper {
     return instance instanceof App;
   }
 
-  private boolean isPage(Object instance, String route) {
+  public static boolean isPage(Object instance, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
     // está anotado con @UI o con @Route

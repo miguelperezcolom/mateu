@@ -8,8 +8,12 @@ import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 
 public class CommandMapper {
 
@@ -17,28 +21,33 @@ public class CommandMapper {
       Object instance, String baseUrl, HttpRequest httpRequest) {
     String targetComponentId = httpRequest.runActionRq().initiatorComponentId();
 
+    List<UICommandDto> result = new ArrayList<>();
+
+    if (isPage(instance, httpRequest.runActionRq().route())) {
+        result.add(new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
+    }
+
     if (instance instanceof CommandSupplier commandSupplier) {
-      return commandSupplier.commands(httpRequest).stream()
+      result.addAll(commandSupplier.commands(httpRequest).stream()
           .map(command -> mapCommand(targetComponentId, (UICommand) command))
-          .toList();
+          .toList());
     }
     if (instance instanceof URI uri) {
-      return List.of(mapCommand(targetComponentId, UICommand.navigateTo(uri.toString())));
+      result.add(mapCommand(targetComponentId, UICommand.navigateTo(uri.toString())));
     }
     if (instance instanceof URL url) {
-      return List.of(
-          mapCommand(targetComponentId, new UICommand(UICommandType.NavigateTo, url.toString())));
+      result.add(mapCommand(targetComponentId, new UICommand(UICommandType.NavigateTo, url.toString())));
     }
     if (instance instanceof UICommand command) {
-      return List.of(mapCommand(targetComponentId, command));
+      result.add(mapCommand(targetComponentId, command));
     }
     if (instance instanceof Collection<?> collection) {
-      return collection.stream()
+      result.addAll(collection.stream()
           .filter(o -> o instanceof UICommand)
           .map(command -> mapCommand(targetComponentId, (UICommand) command))
-          .toList();
+          .toList());
     }
-    return List.of();
+    return result;
   }
 
   private static UICommandDto mapCommand(String targetComponentId, UICommand command) {

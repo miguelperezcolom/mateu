@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface RouteResolver {
 
   default boolean supportsRoute(String route, String consumedRoute) {
-    return matchingPattern(route, "_empty".equals(consumedRoute)?"":consumedRoute).isPresent();
+    return matchingPattern(route, consumedRoute).isPresent();
   }
 
   default Optional<CompiledRouteValue> matchingPattern(String route, String consumedRoute) {
@@ -18,7 +18,7 @@ public interface RouteResolver {
             .sorted(Comparator.comparingInt(pattern -> pattern.routeRegex().pattern().length()))
             .toList()) {
       if (pattern.routeRegex().matcher(route).matches()
-          && (pattern.parentRouteRegex().matcher(consumedRoute).matches())) {
+          && (("_empty".equals(consumedRoute) && "".equals(pattern.parentRoute())) || pattern.parentRouteRegex().matcher(consumedRoute).matches())) {
         // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ",
         // consumedRoute: " + consumedRoute + " MATCHED");
         return Optional.of(pattern);
