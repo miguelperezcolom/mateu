@@ -1,5 +1,8 @@
 package io.mateu.core.domain.out.commandmapper;
 
+import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
+
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UICommandTypeDto;
 import io.mateu.uidl.data.UICommand;
@@ -12,9 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
-
 public class CommandMapper {
 
   public static List<UICommandDto> mapToCommandDtos(
@@ -23,29 +23,38 @@ public class CommandMapper {
 
     List<UICommandDto> result = new ArrayList<>();
 
+    if (httpRequest.getAttribute("windowTitle") != null) {
+        result.add(
+                new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, httpRequest.getAttribute("windowTitle")));
+    }
+
     if (isPage(instance, httpRequest.runActionRq().route())) {
-        result.add(new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
+      result.add(
+          new UICommandDto(targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
     }
 
     if (instance instanceof CommandSupplier commandSupplier) {
-      result.addAll(commandSupplier.commands(httpRequest).stream()
-          .map(command -> mapCommand(targetComponentId, (UICommand) command))
-          .toList());
+      result.addAll(
+          commandSupplier.commands(httpRequest).stream()
+              .map(command -> mapCommand(targetComponentId, (UICommand) command))
+              .toList());
     }
     if (instance instanceof URI uri) {
       result.add(mapCommand(targetComponentId, UICommand.navigateTo(uri.toString())));
     }
     if (instance instanceof URL url) {
-      result.add(mapCommand(targetComponentId, new UICommand(UICommandType.NavigateTo, url.toString())));
+      result.add(
+          mapCommand(targetComponentId, new UICommand(UICommandType.NavigateTo, url.toString())));
     }
     if (instance instanceof UICommand command) {
       result.add(mapCommand(targetComponentId, command));
     }
     if (instance instanceof Collection<?> collection) {
-      result.addAll(collection.stream()
-          .filter(o -> o instanceof UICommand)
-          .map(command -> mapCommand(targetComponentId, (UICommand) command))
-          .toList());
+      result.addAll(
+          collection.stream()
+              .filter(o -> o instanceof UICommand)
+              .map(command -> mapCommand(targetComponentId, (UICommand) command))
+              .toList());
     }
     return result;
   }

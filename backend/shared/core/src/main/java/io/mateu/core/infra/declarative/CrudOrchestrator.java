@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.toView;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnRowActionHandler.handleActionOnRow;
@@ -151,12 +152,14 @@ public abstract class CrudOrchestrator<
         if (childCrud()) {
           return List.of(view);
         }
-        return List.of(view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id));
+        return List.of(
+            view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id), setWindowTitle(httpRequest));
       }
     } else {
-      var list =
+      var list = list(httpRequest);
+      var listDto =
           wrap(
-              list(httpRequest),
+              list,
               this,
               "base_url",
               httpRequest.runActionRq().route(),
@@ -164,9 +167,9 @@ public abstract class CrudOrchestrator<
               httpRequest.runActionRq().initiatorComponentId(),
               httpRequest);
       if (childCrud()) {
-        return list;
+        return listDto;
       }
-      return List.of(list, pushStateToHistory(getCrudRoute(httpRequest)));
+      return List.of(listDto, pushStateToHistory(getCrudRoute(httpRequest)), setWindowTitle(httpRequest));
     }
   }
 
@@ -190,7 +193,12 @@ public abstract class CrudOrchestrator<
     if (childCrud()) {
       return List.of(create);
     }
-    return List.of(create, pushStateToHistory(getCrudRoute(httpRequest) + "/new"));
+    return List.of(
+        create, pushStateToHistory(getCrudRoute(httpRequest) + "/new"), setWindowTitle(httpRequest));
+  }
+
+  private UICommand setWindowTitle(HttpRequest httpRequest) {
+    return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
   }
 
   private List<?> handleEdit(HttpRequest httpRequest) {
@@ -203,7 +211,10 @@ public abstract class CrudOrchestrator<
     if (childCrud()) {
       return List.of(edit);
     }
-    return List.of(edit, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id + "/edit"));
+    return List.of(
+        edit,
+        pushStateToHistory(getCrudRoute(httpRequest) + "/" + id + "/edit"),
+        setWindowTitle(httpRequest));
   }
 
   private List<?> handleView(HttpRequest httpRequest, Object savedId) {
@@ -215,7 +226,8 @@ public abstract class CrudOrchestrator<
     if (childCrud()) {
       return List.of(view);
     }
-    return List.of(view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id));
+    return List.of(
+        view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id), setWindowTitle(httpRequest));
   }
 
   private String getIdForView(HttpRequest httpRequest, String idField) {

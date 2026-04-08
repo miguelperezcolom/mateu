@@ -5,10 +5,8 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
-import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import java.lang.reflect.ParameterizedType;
@@ -35,9 +33,12 @@ public class SearchActionHandler {
                   getFieldByName(crudOrchestrator.viewClass(), parentFieldName).getGenericType(),
               List.class,
               "E");
-        optionsSupplier = getLookupOptionsSupplier(crudOrchestrator, getFieldByName(rowClass, childFieldName));
+      optionsSupplier =
+          getLookupOptionsSupplier(crudOrchestrator, getFieldByName(rowClass, childFieldName));
     } else {
-        optionsSupplier = getLookupOptionsSupplier(crudOrchestrator, getFieldByName(crudOrchestrator.entityClass(), fieldName));
+      optionsSupplier =
+          getLookupOptionsSupplier(
+              crudOrchestrator, getFieldByName(crudOrchestrator.entityClass(), fieldName));
     }
 
     Pageable pageable = httpRequest.getParameters(Pageable.class);

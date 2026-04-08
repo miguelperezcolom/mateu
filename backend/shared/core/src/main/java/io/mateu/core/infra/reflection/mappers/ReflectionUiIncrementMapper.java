@@ -67,12 +67,13 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return mono.flatMap(
           object -> map(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
+      var fragments = mapToFragments(
+              instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     return Mono.just(
         new UIIncrementDto(
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
-            mapToFragments(
-                instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+            fragments,
             mapToAppData(instance, baseUrl, httpRequest),
             mapToAppState(instance, baseUrl, httpRequest)));
   }

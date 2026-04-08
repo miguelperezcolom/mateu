@@ -673,7 +673,7 @@ public class RunActionUseCase {
         mapActions(modelView),
         mapTriggers(modelView, httpRequest),
         mapRules(modelView),
-        mapValidations(modelView),
+        mapValidations(modelView, route),
         null);
   }
 

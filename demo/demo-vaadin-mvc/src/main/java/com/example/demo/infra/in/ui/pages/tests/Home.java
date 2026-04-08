@@ -25,4 +25,8 @@ public class Home {
         return new URI("/users/admin?version=2772");
     }
 
+    @Menu
+    String grupos = "/home/grupos";
+
+
 }

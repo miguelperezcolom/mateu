@@ -18,7 +18,8 @@ public interface RouteResolver {
             .sorted(Comparator.comparingInt(pattern -> pattern.routeRegex().pattern().length()))
             .toList()) {
       if (pattern.routeRegex().matcher(route).matches()
-          && (("_empty".equals(consumedRoute) && "".equals(pattern.parentRoute())) || pattern.parentRouteRegex().matcher(consumedRoute).matches())) {
+          && (("_empty".equals(consumedRoute) && "".equals(pattern.parentRoute()))
+              || pattern.parentRouteRegex().matcher(consumedRoute).matches())) {
         // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ",
         // consumedRoute: " + consumedRoute + " MATCHED");
         return Optional.of(pattern);

@@ -68,8 +68,10 @@ public abstract class ListComponentLayer<
                             .text("View")
                             .build()))
                 .toList();
-    return Page.builder()
-        .title(title())
+      String title;
+      httpRequest.setAttribute("windowTitle", title = title());
+      return Page.builder()
+        .title(title)
         .style(getStyleForList(columns))
         .content(
             List.of(

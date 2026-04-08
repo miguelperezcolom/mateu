@@ -10,15 +10,13 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Com
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.annotations.HomeRoute;
-import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Data;
@@ -30,6 +28,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.Page;
 import jakarta.inject.Named;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,7 +82,7 @@ public class ReflectionObjectToComponentMapper {
               mapActions(instance),
               mapTriggers(instance, httpRequest),
               mapRules(instance),
-              mapValidations(instance),
+              mapValidations(instance, route),
               null),
           instance,
           getData(httpRequest, instance),
@@ -141,6 +141,29 @@ public class ReflectionObjectToComponentMapper {
         || instance instanceof ListingBackend<?, ?>
         || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
-        || !isBasic(instance);
+        || (!isBasic(instance) && (hasSomething(instance)));
+  }
+
+  private static boolean hasSomething(Object instance) {
+    for (Method method : getAllMethods(instance.getClass())) {
+      if (method.isAnnotationPresent(Toolbar.class)) {
+        return true;
+      }
+      if (method.isAnnotationPresent(Button.class)) {
+        return true;
+      }
+    }
+    for (Field field : getAllFields(instance.getClass())) {
+      if (field.isAnnotationPresent(Toolbar.class)) {
+        return true;
+      }
+      if (field.isAnnotationPresent(Button.class)) {
+        return true;
+      }
+      if (field.isAnnotationPresent(KPI.class)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

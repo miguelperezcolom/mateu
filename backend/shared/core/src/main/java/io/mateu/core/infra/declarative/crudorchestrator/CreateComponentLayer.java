@@ -27,9 +27,11 @@ public abstract class CreateComponentLayer<
     setStateTo("create");
     var view = adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", view);
+      String title;
+      httpRequest.setAttribute("windowTitle", title = getTitle(view));
     return wrap(
         Page.builder()
-            .title(getTitle(view))
+            .title(title)
             .style(getStyleForView())
             .content(
                 getView(

@@ -1,7 +1,6 @@
 package io.mateu.core.domain.act;
 
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
-import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLabelSupplier;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLookupOptionsSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
@@ -10,7 +9,6 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
@@ -53,9 +51,12 @@ public class SearchFieldActionRunner implements ActionRunner {
                         .getGenericType(),
                 List.class,
                 "E");
-        optionsSupplier = getLookupOptionsSupplier(instance, getFieldByName(rowClass, childFieldName));
+        optionsSupplier =
+            getLookupOptionsSupplier(instance, getFieldByName(rowClass, childFieldName));
       } else {
-          optionsSupplier = getLookupOptionsSupplier(instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
+        optionsSupplier =
+            getLookupOptionsSupplier(
+                instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
       }
 
       Pageable pageable = httpRequest.getParameters(Pageable.class);
@@ -67,7 +68,8 @@ public class SearchFieldActionRunner implements ActionRunner {
 
       var listingData = optionsSupplier.search(fieldName, cleanSearchText, pageable, httpRequest);
       if (listingData == null || listingData.page() == null) {
-          throw new RuntimeException("no data returned when searching for " + fieldName + " with " + cleanSearchText + "");
+        throw new RuntimeException(
+            "no data returned when searching for " + fieldName + " with " + cleanSearchText + "");
       }
 
       return Flux.just(new Data(Map.of(fieldName, listingData.page())));

@@ -9,7 +9,6 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,25 +103,25 @@ public class DataLayer {
     return data;
   }
 
-    public static LabelSupplier getLabelSupplier(Object instance, Field field) {
-      var lookup = field.getAnnotation(Lookup.class);
-        if (LabelSupplier.class.equals(lookup.label())) {
-            if (instance instanceof LabelSupplier supplier) {
-                return supplier;
-            }
-            return null;
-        }
-        return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
+  public static LabelSupplier getLabelSupplier(Object instance, Field field) {
+    var lookup = field.getAnnotation(Lookup.class);
+    if (LabelSupplier.class.equals(lookup.label())) {
+      if (instance instanceof LabelSupplier supplier) {
+        return supplier;
+      }
+      return null;
     }
+    return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
+  }
 
-    public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
-        var lookup = field.getAnnotation(Lookup.class);
-        if (LookupOptionsSupplier.class.equals(lookup.search())) {
-            if (instance instanceof LookupOptionsSupplier supplier) {
-                return supplier;
-            }
-            return null;
-        }
-        return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+  public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
+    var lookup = field.getAnnotation(Lookup.class);
+    if (LookupOptionsSupplier.class.equals(lookup.search())) {
+      if (instance instanceof LookupOptionsSupplier supplier) {
+        return supplier;
+      }
+      return null;
     }
+    return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+  }
 }

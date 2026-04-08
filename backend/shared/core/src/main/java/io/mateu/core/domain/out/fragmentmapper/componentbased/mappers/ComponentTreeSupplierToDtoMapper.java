@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.getState;
+import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
@@ -33,7 +34,6 @@ import io.mateu.uidl.fluent.OnErrorTrigger;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
-import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -81,11 +81,11 @@ public class ComponentTreeSupplierToDtoMapper {
         mapActions(componentTreeSupplier),
         mapTriggers(componentTreeSupplier, httpRequest),
         mapRules(componentTreeSupplier),
-        mapValidations(componentTreeSupplier),
+        mapValidations(componentTreeSupplier, route),
         null);
   }
 
-  public static List<ValidationDto> mapValidations(Object serverSideObject) {
+  public static List<ValidationDto> mapValidations(Object serverSideObject, String route) {
     if (serverSideObject instanceof ValidationDtoSupplier validationSupplier) {
       return validationSupplier.validationDtos();
     }
@@ -101,8 +101,8 @@ public class ComponentTreeSupplierToDtoMapper {
           .toList();
     }
     List<ValidationDto> fieldLevelValidations = new ArrayList<>();
-    if (serverSideObject instanceof Page page) {
-      getAllFields(page.getClass()).stream()
+    if (isPage(serverSideObject, route)) {
+      getAllFields(serverSideObject.getClass()).stream()
           .flatMap(field -> getValidations(field).stream())
           .filter(Objects::nonNull)
           .forEach(fieldLevelValidations::add);
