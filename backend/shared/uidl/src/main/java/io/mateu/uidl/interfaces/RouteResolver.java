@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface RouteResolver {
 
   default boolean supportsRoute(String route, String consumedRoute) {
-    return matchingPattern(route, consumedRoute).isPresent();
+    return matchingPattern(route, "_empty".equals(consumedRoute)?"":consumedRoute).isPresent();
   }
 
   default Optional<CompiledRouteValue> matchingPattern(String route, String consumedRoute) {

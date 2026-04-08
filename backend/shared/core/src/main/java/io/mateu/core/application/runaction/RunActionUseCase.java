@@ -380,7 +380,7 @@ public class RunActionUseCase {
               .map(
                   instance ->
                       resolver
-                          .matchingPattern(route, command.consumedRoute())
+                          .matchingPattern(route, "_empty".equals(command.consumedRoute())?"":command.consumedRoute())
                           .map(
                               compiledRouteValue ->
                                   setParameterValues(
