@@ -10,7 +10,14 @@ public class MicroFrontendComponentToDtoMapper {
   public static ClientSideComponentDto mapMicroFrontendToDto(MicroFrontend microFrontend) {
     return new ClientSideComponentDto(
         new MicroFrontendDto(
-            microFrontend.baseUrl(), microFrontend.route(), microFrontend.consumedRoute()),
+            microFrontend.baseUrl(),
+            microFrontend.route(),
+            microFrontend.consumedRoute(),
+            microFrontend.style(),
+            microFrontend.cssClasses(),
+            microFrontend.appServerSideType(),
+            microFrontend.appState(),
+            microFrontend.actionId()),
         "fieldId",
         List.of(),
         microFrontend.style(),

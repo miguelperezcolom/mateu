@@ -5,5 +5,12 @@ import lombok.Builder;
 
 @Builder
 public record MicroFrontend(
-    String baseUrl, String route, String consumedRoute, String style, String cssClasses)
+    String baseUrl,
+    String route,
+    String consumedRoute,
+    String style,
+    String cssClasses,
+    String appServerSideType,
+    Object appState,
+    String actionId)
     implements Component {}

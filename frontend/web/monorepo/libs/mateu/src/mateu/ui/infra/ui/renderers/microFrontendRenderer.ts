@@ -12,6 +12,8 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   route="${metadata.route}" 
                   consumedRoute="${metadata.consumedRoute}" 
                   id="${nanoid()}"
+                  appServerSideType="${metadata.appServerSideType}"
+                  .appState="${metadata.appState}"
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"
         ></mateu-ux>
