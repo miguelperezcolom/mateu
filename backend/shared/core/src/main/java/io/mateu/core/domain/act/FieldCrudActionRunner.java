@@ -3,6 +3,8 @@ package io.mateu.core.domain.act;
 import static io.mateu.core.domain.act.crudfieldhandlers.AddActionHandler.handleAdd;
 import static io.mateu.core.domain.act.crudfieldhandlers.CancelActionHandler.handleCancel;
 import static io.mateu.core.domain.act.crudfieldhandlers.CreateActionHandler.handleCreate;
+import static io.mateu.core.domain.act.crudfieldhandlers.MoveDownActionHandler.handleMoveDown;
+import static io.mateu.core.domain.act.crudfieldhandlers.MoveUpActionHandler.handleMoveUp;
 import static io.mateu.core.domain.act.crudfieldhandlers.NextActionHandler.handleNext;
 import static io.mateu.core.domain.act.crudfieldhandlers.PrevActionHandler.handlePrev;
 import static io.mateu.core.domain.act.crudfieldhandlers.RemoveActionHandler.handleRemove;
@@ -49,7 +51,9 @@ public class FieldCrudActionRunner implements ActionRunner {
             || actionId.endsWith("_next")
             || actionId.endsWith("_save")
             || actionId.endsWith("_remove")
-            || actionId.endsWith("_cancel")) {
+            || actionId.endsWith("_cancel")
+                || actionId.endsWith("_move-up")
+                || actionId.endsWith("_move-down")) {
           return true;
         }
       }
@@ -142,9 +146,19 @@ public class FieldCrudActionRunner implements ActionRunner {
     }
     if (actionId.endsWith("_remove")) {
       return Flux.just(
-          handleRemove(
+              handleRemove(
               instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
     }
+      if (actionId.endsWith("_move-up")) {
+          return Flux.just(
+                  handleMoveUp(
+                          instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
+      }
+      if (actionId.endsWith("_move-down")) {
+          return Flux.just(
+                  handleMoveDown(
+                          instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
+      }
     if (actionId.endsWith("_cancel")) {
       return Flux.just(
           handleCancel(

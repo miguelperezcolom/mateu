@@ -14,6 +14,8 @@ public interface ActionHandler {
         && !actionId.endsWith("_next")
         && !actionId.endsWith("_save")
         && !actionId.endsWith("_remove")
+            && !actionId.endsWith("_move-up")
+            && !actionId.endsWith("_move-down")
         && !actionId.endsWith("_cancel")
         && !actionId.startsWith("search-");
   }

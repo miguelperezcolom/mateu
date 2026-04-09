@@ -14,7 +14,7 @@ import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { GridActiveItemChangedEvent } from "@vaadin/grid/all-imports";
+import {GridActiveItemChangedEvent, GridItemToggleEvent, GridSelectedItemsChangedEvent} from "@vaadin/grid/all-imports";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import {ifDefined} from "lit/directives/if-defined.js";
 import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
@@ -54,6 +54,47 @@ export class MateuGrid extends MetadataDrivenElement {
             composed: true
         }))
     }
+
+    private rangeStartItem?: any;
+
+    handleItemToggle(event: GridItemToggleEvent<any>) {
+        const { item, selected, shiftKey } = event.detail;
+
+        // If the anchor point isn't set, set it to the current item
+        this.rangeStartItem ??= item;
+
+        if (shiftKey) {
+
+            let items = []
+            if (this.field?.fieldId && this.state && this.state[this.field.fieldId]) {
+                items = this.state[this.field.fieldId]
+            }
+
+            // Calculcate the range of items between the anchor point and
+            // the current item
+            const [rangeStart, rangeEnd] = [this.rangeStartItem, item]
+                .map((i) => items.indexOf(i))
+                .sort((a, b) => a - b);
+            const rangeItems = items.slice(rangeStart, rangeEnd + 1);
+
+            // Update the selection state of items within the range
+            // based on the state of the current item
+            const newSelectedItems = new Set(this.selectedItems);
+            rangeItems.forEach((rangeItem: any) => {
+                if (selected) {
+                    newSelectedItems.add(rangeItem);
+                } else {
+                    newSelectedItems.delete(rangeItem);
+                }
+            });
+            this.selectedItems = [...newSelectedItems]
+            this.state[this.id + '_selected_items'] = this.selectedItems
+        }
+
+        // Update the anchor point to the current item
+        this.rangeStartItem = item;
+    }
+
 
     render():TemplateResult {
         let items = []
@@ -149,14 +190,23 @@ export class MateuGrid extends MetadataDrivenElement {
     }
 
     public renderMaster(items: any) {
+        const selectedItems = this.selectedItems || []
+
         return html`<vaadin-vertical-layout>
             <vaadin-grid
                     style="${this.field?.style}"
                     class="${this.field?.cssClasses}"
                     .items="${items}"
-                    .selectedItems="${this.selectedItems}"
+                    .selectedItems="${selectedItems}"
                     item-id-path="${this.field?.itemIdPath}"
+                    @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
+                        this.selectedItems = e.detail.value;
+                        this.state[this.id + '_selected_items'] = this.selectedItems
+                    }}"
+                    @item-toggle="${this.handleItemToggle}"
                     @active-item-changed="${ifDefined((this.field?.detailPath && !this.field?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
+
+                        console.log('item', event.detail.value, this.selectedItems)
             if (this.field?.detailPath) {
                 const row = event.detail.value
                 if (row) {
@@ -195,6 +245,9 @@ export class MateuGrid extends MetadataDrivenElement {
                     ?all-rows-visible=${items?.length < 10}
             >
                 <span slot="empty-state">Empty list.</span>
+                ${(this.field?.readOnly)?nothing:html`
+                    <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
+                `}
                 ${this.field?.columns?.map(column =>
             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
 
@@ -240,6 +293,20 @@ export class MateuGrid extends MetadataDrivenElement {
             bubbles: true,
             composed: true
         }))}">Remove</vaadin-button>
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: this.id + '_move-up'
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))}">Move up</vaadin-button>
+                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: this.id + '_move-down'
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))}">Move down</vaadin-button>
                     </vaadin-horizontal-layout>
                 `}
         </vaadin-vertical-layout>`;

@@ -193,7 +193,6 @@ export class MateuComponent extends ComponentElement {
         let dataUpdated = false
         const data = this.data??{}
         const state = this.state??{}
-        console.log(state, data)
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
@@ -352,7 +351,6 @@ export class MateuComponent extends ComponentElement {
             }
 
             if (action && action.validationRequired) {
-                console.log('validating because of action', action)
                 this.checkValidations(action.fieldsToValidate)
                 if (!this.data._valid) {
                     this.notify('There are validation errors')
