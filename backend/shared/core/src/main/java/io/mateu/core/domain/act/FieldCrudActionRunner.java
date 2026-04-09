@@ -52,8 +52,8 @@ public class FieldCrudActionRunner implements ActionRunner {
             || actionId.endsWith("_save")
             || actionId.endsWith("_remove")
             || actionId.endsWith("_cancel")
-                || actionId.endsWith("_move-up")
-                || actionId.endsWith("_move-down")) {
+            || actionId.endsWith("_move-up")
+            || actionId.endsWith("_move-down")) {
           return true;
         }
       }
@@ -146,19 +146,19 @@ public class FieldCrudActionRunner implements ActionRunner {
     }
     if (actionId.endsWith("_remove")) {
       return Flux.just(
-              handleRemove(
+          handleRemove(
               instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
     }
-      if (actionId.endsWith("_move-up")) {
-          return Flux.just(
-                  handleMoveUp(
-                          instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
-      }
-      if (actionId.endsWith("_move-down")) {
-          return Flux.just(
-                  handleMoveDown(
-                          instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
-      }
+    if (actionId.endsWith("_move-up")) {
+      return Flux.just(
+          handleMoveUp(
+              instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
+    }
+    if (actionId.endsWith("_move-down")) {
+      return Flux.just(
+          handleMoveDown(
+              instance, actionId, httpRequest, _state, _show_detail, _editing, field, fieldId));
+    }
     if (actionId.endsWith("_cancel")) {
       return Flux.just(
           handleCancel(

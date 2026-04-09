@@ -77,12 +77,12 @@ public abstract class ActionSupplierLayer<
                       .validationRequired(true)
                       .fieldsToValidate(fieldsToValidate)
                       .build());
-                actions.add(
-                        Action.builder()
-                                .id(field.getName() + "_create-and-stay")
-                                .validationRequired(true)
-                                .fieldsToValidate(fieldsToValidate)
-                                .build());
+              actions.add(
+                  Action.builder()
+                      .id(field.getName() + "_create-and-stay")
+                      .validationRequired(true)
+                      .fieldsToValidate(fieldsToValidate)
+                      .build());
               actions.add(
                   Action.builder()
                       .id(field.getName() + "_save")
