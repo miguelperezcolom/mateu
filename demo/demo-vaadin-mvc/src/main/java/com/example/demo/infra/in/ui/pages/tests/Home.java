@@ -26,7 +26,9 @@ public class Home {
     }
 
     @Menu
-    String grupos = "/home/grupos";
+    String grupos;
 
+    @Menu
+    String gruposx = "/home/grupos";
 
 }
