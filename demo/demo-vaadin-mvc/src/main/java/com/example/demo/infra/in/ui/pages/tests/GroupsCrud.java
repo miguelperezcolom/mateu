@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-record Miembro(@NotEmpty String id, @NotEmpty String nombre, @Hidden("console.log(state)") String email) {
+record Miembro(@NotEmpty String id, @NotEmpty String nombre, @Hidden("!state['miembros-nombre']") String email) {
 
 }
 
-record Grupo(@NotEmpty String id, @NotEmpty String nombre, @Colspan(2)@Hidden("console.log(state)") String email, @Colspan(2) List<Miembro> miembros) implements Identifiable {
+record Grupo(@NotEmpty String id, @NotEmpty String nombre, @Colspan(2)@Hidden("!state.nombre") String email, @Colspan(2) List<Miembro> miembros) implements Identifiable {
 
     @Override
     public String toString() {

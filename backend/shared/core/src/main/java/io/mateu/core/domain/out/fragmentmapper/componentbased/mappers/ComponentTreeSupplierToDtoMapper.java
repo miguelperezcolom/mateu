@@ -260,7 +260,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .toList();
   }
 
-  private static RuleDto mapToRule(Rule annotation) {
+  public static RuleDto mapToRule(Rule annotation) {
     return RuleDto.builder()
         .filter(annotation.filter())
         .action(

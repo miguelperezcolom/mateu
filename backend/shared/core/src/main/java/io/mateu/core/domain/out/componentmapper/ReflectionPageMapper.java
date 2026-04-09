@@ -785,7 +785,7 @@ public class ReflectionPageMapper {
     if (Status.class.equals(field.getType())) {
       return false;
     }
-    if (field.isAnnotationPresent(Hidden.class)) {
+    if (field.isAnnotationPresent(Hidden.class) && field.getAnnotation(Hidden.class).value().isEmpty()) {
       return false;
     }
     if (field.isAnnotationPresent(KPI.class)) {

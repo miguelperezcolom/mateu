@@ -175,7 +175,9 @@ export class MateuComponent extends ComponentElement {
             if (dataUpdated) {
                 this.data = newData
             }
-            this.checkValidations()
+            if (stateUpdated) {
+                this.checkValidations()
+            }
         }
     }
 
@@ -350,6 +352,7 @@ export class MateuComponent extends ComponentElement {
             }
 
             if (action && action.validationRequired) {
+                console.log('validating because of action', action)
                 this.checkValidations(action.fieldsToValidate)
                 if (!this.data._valid) {
                     this.notify('There are validation errors')
