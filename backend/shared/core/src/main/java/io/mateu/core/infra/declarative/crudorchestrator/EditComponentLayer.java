@@ -32,10 +32,10 @@ public abstract class EditComponentLayer<
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", editor);
     setStateTo("edit");
-      String title;
-      httpRequest.setAttribute("windowTitle", title = getTitle(editor));
+    String title;
+    httpRequest.setAttribute("windowTitle", title = getTitle(editor));
 
-      return wrap(
+    return wrap(
         Page.builder()
             .title(title)
             .style(getStyleForView())

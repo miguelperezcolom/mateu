@@ -53,9 +53,9 @@ public abstract class ViewComponentLayer<
 
   protected Component viewComponent(Object item, HttpRequest httpRequest) {
     var toolbar = createViewToolbar(item);
-      String title;
-      httpRequest.setAttribute("windowTitle", title = getTitle(item));
-      return Page.builder()
+    String title;
+    httpRequest.setAttribute("windowTitle", title = getTitle(item));
+    return Page.builder()
         .title(title)
         .style(getStyleForView())
         .badges(createBadges(item))

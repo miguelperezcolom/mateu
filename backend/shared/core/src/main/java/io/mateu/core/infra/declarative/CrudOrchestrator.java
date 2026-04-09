@@ -1,7 +1,6 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.toView;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnRowActionHandler.handleActionOnRow;
@@ -153,7 +152,9 @@ public abstract class CrudOrchestrator<
           return List.of(view);
         }
         return List.of(
-            view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id), setWindowTitle(httpRequest));
+            view,
+            pushStateToHistory(getCrudRoute(httpRequest) + "/" + id),
+            setWindowTitle(httpRequest));
       }
     } else {
       var list = list(httpRequest);
@@ -169,7 +170,8 @@ public abstract class CrudOrchestrator<
       if (childCrud()) {
         return listDto;
       }
-      return List.of(listDto, pushStateToHistory(getCrudRoute(httpRequest)), setWindowTitle(httpRequest));
+      return List.of(
+          listDto, pushStateToHistory(getCrudRoute(httpRequest)), setWindowTitle(httpRequest));
     }
   }
 
@@ -194,7 +196,9 @@ public abstract class CrudOrchestrator<
       return List.of(create);
     }
     return List.of(
-        create, pushStateToHistory(getCrudRoute(httpRequest) + "/new"), setWindowTitle(httpRequest));
+        create,
+        pushStateToHistory(getCrudRoute(httpRequest) + "/new"),
+        setWindowTitle(httpRequest));
   }
 
   private UICommand setWindowTitle(HttpRequest httpRequest) {
@@ -227,7 +231,9 @@ public abstract class CrudOrchestrator<
       return List.of(view);
     }
     return List.of(
-        view, pushStateToHistory(getCrudRoute(httpRequest) + "/" + id), setWindowTitle(httpRequest));
+        view,
+        pushStateToHistory(getCrudRoute(httpRequest) + "/" + id),
+        setWindowTitle(httpRequest));
   }
 
   private String getIdForView(HttpRequest httpRequest, String idField) {

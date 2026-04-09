@@ -54,7 +54,7 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
     }
 }
 
-@Route(value = "/home/grupos", parentRoute = "/home")
+@Route(value = "/home/grupos")
 public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
     @Override
     public AutoCrudAdapter<Grupo> simpleAdapter() {

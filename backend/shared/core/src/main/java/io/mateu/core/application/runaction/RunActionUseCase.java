@@ -22,6 +22,7 @@ import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.annotations.BaseRoute;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
@@ -336,14 +337,64 @@ public class RunActionUseCase {
   private Mono<?> resolveRoute(RunActionCommand command) {
     List<String> routes = createRoutes(command).reversed();
     return Flux.fromIterable(routes)
-        .flatMap(route -> resolveAppRoute(route, command))
+            .flatMap(route -> resolveAbsoluteRoute(route, command))
+            .next()
+            .switchIfEmpty(Flux.fromIterable(routes).flatMap(route -> resolveAppRoute(route, command))
         .next()
         .switchIfEmpty(
             (Mono)
                 Flux.fromIterable(routes)
                     .flatMap(route -> resolveNonAppRoute(route, command))
-                    .next());
+                    .next()));
   }
+
+  @SneakyThrows
+  private Mono<?> resolveAbsoluteRoute(String rawRoute, RunActionCommand command) {
+    var route = removeQueryParamsFromRoute(rawRoute);
+    for (RouteResolver resolver :
+            beanProvider.getBeans(RouteResolver.class).stream()
+                    .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
+                    .toList()
+                    .reversed()) {
+      if (resolver.supportsRoute(route, "_exact_route")) {
+        var instanceTypeName =
+                resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();
+        var type = Class.forName(instanceTypeName);
+        var isApp = false;
+        if (App.class.isAssignableFrom(type)
+                || AppSupplier.class.isAssignableFrom(type)
+                || getAllFields(type).stream()
+                .anyMatch(
+                        field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))) {
+          isApp = true;
+        }
+        if (!isApp) {
+          command.httpRequest().setAttribute("resolvedRoute", route);
+          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+          return createInstance(
+                  instanceTypeName,
+                  instanceFactory,
+                  command.baseUrl(),
+                  route,
+                  command.initiatorComponentId(),
+                  command.consumedRoute(),
+                  command.componentState(),
+                  command.httpRequest())
+                  .map(
+                          instance ->
+                                  resolver
+                                          .matchingPattern(route, command.consumedRoute())
+                                          .map(
+                                                  compiledRouteValue ->
+                                                          setParameterValues(
+                                                                  instance, route, compiledRouteValue, command.httpRequest()))
+                                          .orElse(instance));
+        }
+      }
+    }
+    return Mono.empty();
+  }
+
 
   @SneakyThrows
   private Mono<?> resolveNonAppRoute(String rawRoute, RunActionCommand command) {
@@ -424,6 +475,9 @@ public class RunActionUseCase {
   @SneakyThrows
   private Mono<?> resolveAppRoute(String rawRoute, RunActionCommand command) {
     var route = removeQueryParamsFromRoute(rawRoute);
+    if (route.equals(command.consumedRoute())) {
+      return Mono.empty();
+    }
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
             .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
