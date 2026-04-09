@@ -35,6 +35,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,7 @@ public class ReflectionPageMapper {
           getFormColumns(instance.getClass()));
     }
     return getAllFields(instance.getClass()).stream()
+        .filter(field -> !Modifier.isFinal(field.getModifiers()))
         .filter(
             field ->
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
