@@ -1,7 +1,6 @@
 package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.RouteConstants;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +19,11 @@ public interface RouteResolver {
             .sorted(Comparator.comparingInt(pattern -> pattern.routeRegex().pattern().length()))
             .toList()) {
       if (pattern.routeRegex().matcher(route).matches()
-              && (("_exact_route".equals(consumedRoute) && pattern.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE))
-              || (!"_exact_route".equals(consumedRoute) && (("_empty".equals(consumedRoute) && "".equals(pattern.parentRoute()))
-              || pattern.parentRouteRegex().matcher(consumedRoute).matches())))) {
+          && (("_exact_route".equals(consumedRoute)
+                  && pattern.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE))
+              || (!"_exact_route".equals(consumedRoute)
+                  && (("_empty".equals(consumedRoute) && "".equals(pattern.parentRoute()))
+                      || pattern.parentRouteRegex().matcher(consumedRoute).matches())))) {
         // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ",
         // consumedRoute: " + consumedRoute + " MATCHED");
         return Optional.of(pattern);

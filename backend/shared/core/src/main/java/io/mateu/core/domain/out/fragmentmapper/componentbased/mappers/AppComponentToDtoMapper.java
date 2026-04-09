@@ -54,7 +54,7 @@ public final class AppComponentToDtoMapper {
         // app route has already been added to the links
         appRouteForMenu = "";
         if (route.equals(appType.getAnnotation(Route.class).value())
-        || route.equals(appType.getAnnotation(Route.class).value() + "/")) {
+            || route.equals(appType.getAnnotation(Route.class).value() + "/")) {
           route = "/_page";
         }
       }
