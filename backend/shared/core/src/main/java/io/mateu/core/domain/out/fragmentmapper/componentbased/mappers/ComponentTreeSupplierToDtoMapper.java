@@ -329,7 +329,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .toList();
   }
 
-  private static TriggerDto mapToTrigger(io.mateu.uidl.annotations.Trigger annotation) {
+  public static TriggerDto mapToTrigger(io.mateu.uidl.annotations.Trigger annotation) {
     return switch (annotation.type()) {
       case OnCustomEvent ->
           OnCustomEventTriggerDto.builder()

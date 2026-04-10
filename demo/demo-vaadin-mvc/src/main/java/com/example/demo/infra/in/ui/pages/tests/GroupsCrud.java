@@ -72,10 +72,4 @@ public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
         System.out.println("refresh!");
     }
 
-    @Override
-    public List<io.mateu.uidl.fluent.Trigger> triggers(HttpRequest httpRequest) {
-        List<io.mateu.uidl.fluent.Trigger> triggers = new ArrayList<>(super.triggers(httpRequest));
-        triggers.add(new OnLoadTrigger("search", 6000, 1, ""));
-        return triggers;
-    }
 }
