@@ -8,7 +8,7 @@ import { LitElement } from "lit";
 
 export class SSEService implements Service {
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, appServerSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any, callbackonly: boolean): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, appServerSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any, callbackonly: boolean, callbackToken: string): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -73,7 +73,7 @@ export class SSEService implements Service {
                             }
 
                             if (!callbackonly) {
-                                this.handleUIIncrement(uiIncrement, initiator)
+                                this.handleUIIncrement(uiIncrement, initiator, callbackToken)
                             }
 
                             if (uiIncrement.messages && uiIncrement.messages.length == 1) {
@@ -145,7 +145,7 @@ export class SSEService implements Service {
             //console.log('closed')
 
         } else {
-            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback, callbackonly)
+            await httpService.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId, initiatorComponentId, appState, serverSideType, appServerSideType, componentState, parameters, initiator, background, callback, callbackonly, callbackToken)
         }
     }
 
@@ -171,7 +171,7 @@ export class SSEService implements Service {
         return 'bottom-end'
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
         uiIncrement?.messages?.forEach(message => {
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):'bottom-end',
@@ -185,7 +185,8 @@ export class SSEService implements Service {
                 command,
                 fragment: undefined,
                 ui: undefined,
-                error: undefined
+                error: undefined,
+                callbackToken
             })
         })
         uiIncrement?.fragments?.forEach(fragment => {
@@ -193,7 +194,8 @@ export class SSEService implements Service {
                 command: undefined,
                 fragment,
                 ui: undefined,
-                error: undefined
+                error: undefined,
+                callbackToken
             })
         })
         if (uiIncrement?.appState) {

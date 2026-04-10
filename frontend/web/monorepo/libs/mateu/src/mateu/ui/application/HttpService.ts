@@ -24,7 +24,7 @@ export class HttpService implements Service {
         return 'bottom-end'
     }
 
-    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement) => {
+    handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
 
 
         uiIncrement?.fragments?.forEach(fragment => {
@@ -32,7 +32,8 @@ export class HttpService implements Service {
                 command: undefined,
                 fragment,
                 ui: undefined,
-                error: undefined
+                error: undefined,
+                callbackToken
             })
         })
         if (uiIncrement?.appState) {
@@ -64,7 +65,8 @@ export class HttpService implements Service {
                 command,
                 fragment: undefined,
                 ui: undefined,
-                error: undefined
+                error: undefined,
+                callbackToken
             })
         })
     }
@@ -82,10 +84,7 @@ export class HttpService implements Service {
                     parameters: any,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: any, callbackonly: boolean) {
-        if (false && !route) {
-            return
-        }
+    callback: any, callbackonly: boolean, callbackToken: string) {
         try {
             const uiIncrement = await runActionCommandHandler.handle(mateuApiClient, {
                 baseUrl,
@@ -107,7 +106,7 @@ export class HttpService implements Service {
             }
 
             if (!callbackonly) {
-                this.handleUIIncrement(uiIncrement, initiator)
+                this.handleUIIncrement(uiIncrement, initiator, callbackToken)
             }
 
             if (uiIncrement.messages && uiIncrement.messages.length == 1) {

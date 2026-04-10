@@ -1,5 +1,5 @@
-import { customElement, property, state } from "lit/decorators.js";
-import { css, html, nothing, PropertyValues, TemplateResult } from "lit";
+import {customElement, property, state} from "lit/decorators.js";
+import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -9,18 +9,18 @@ import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import './mateu-component'
-import { parseOverrides } from "@infra/ui/common";
+import {parseOverrides} from "@infra/ui/common";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
-import { service } from "@application/service";
-import { mateuApiClient } from "@infra/http/AxiosMateuApiClient";
-import { appState } from "@domain/state";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
-import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
-import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import { sseService } from "@application/SSEService.ts";
+import {service} from "@application/service";
+import {mateuApiClient} from "@infra/http/AxiosMateuApiClient";
+import {appState} from "@domain/state";
+import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
+import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
+import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
+import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import {sseService} from "@application/SSEService.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -66,17 +66,6 @@ export class MateuUx extends ConnectedElement {
 
     @state()
     fragment: UIFragment | undefined = undefined;
-
-    /*
-                    userData: this.values,
-                actionId,
-                serverSideType: this.serverSideType,
-                initiatorComponentId: this.id
-
-
-    service.loadUi(mateuApiClient, this.baseUrl, parseOverrides(this.overrides), this, upstream).then();
-     */
-
 
     actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
         if (e instanceof CustomEvent) {
@@ -162,6 +151,7 @@ export class MateuUx extends ConnectedElement {
         sse: boolean
         callback: any
         callbackonly: boolean
+        callbackToken: string
     } | undefined = undefined
 
     manageActionEvent = (e: CustomEvent) => {
@@ -181,6 +171,7 @@ export class MateuUx extends ConnectedElement {
             sse: boolean
             callback: any
             callbackonly: boolean
+            callbackToken: string
         };
         const detail = this.detail1
         if (e.type == 'server-side-action-requested') {
@@ -201,7 +192,8 @@ export class MateuUx extends ConnectedElement {
                     detail.initiator,
                 detail.background,
                 detail.callback,
-                    detail.callbackonly);
+                    detail.callbackonly,
+                    detail.callbackToken);
         }
     }
 
@@ -258,6 +250,7 @@ export class MateuUx extends ConnectedElement {
                         appServerSideType: this.appServerSideType,
                         initiatorComponentId: this.id,
                         initiator: this,
+                        callbackToken: this.callbackToken
                     },
                     bubbles: true,
                     composed: true

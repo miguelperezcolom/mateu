@@ -7,10 +7,15 @@ import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
+import io.mateu.uidl.annotations.Trigger;
+import io.mateu.uidl.annotations.TriggerType;
+import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +57,25 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
     public List<Grupo> findAll() {
         return db.values().stream().toList();
     }
+
 }
 
 @Route(value = "/home/grupos")
+@Trigger(type = TriggerType.OnLoad, actionId = "refresh", timeoutMillis = 4000)
 public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
     @Override
     public AutoCrudAdapter<Grupo> simpleAdapter() {
         return new Adapter();
+    }
+
+    public void refresh() {
+        System.out.println("refresh!");
+    }
+
+    @Override
+    public List<io.mateu.uidl.fluent.Trigger> triggers(HttpRequest httpRequest) {
+        List<io.mateu.uidl.fluent.Trigger> triggers = new ArrayList<>(super.triggers(httpRequest));
+        triggers.add(new OnLoadTrigger("search", 6000, 1, ""));
+        return triggers;
     }
 }

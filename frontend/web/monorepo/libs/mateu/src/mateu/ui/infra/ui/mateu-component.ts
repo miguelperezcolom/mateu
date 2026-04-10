@@ -1,6 +1,6 @@
-import { customElement, property } from "lit/decorators.js";
-import { css, html, nothing, PropertyValues, TemplateResult, unsafeCSS } from "lit";
-import { badge } from '@vaadin/vaadin-lumo-styles/badge.js';
+import {customElement, property} from "lit/decorators.js";
+import {css, html, nothing, PropertyValues, TemplateResult, unsafeCSS} from "lit";
+import {badge} from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -56,17 +56,17 @@ import './mateu-dialog'
 import './mateu-page'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
-import { TriggerType } from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
+import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
+import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
+import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
-import { Notification } from "@vaadin/notification"
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
-import { RuleAction } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
-import { RuleFieldAttribute } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
-import { RuleResult } from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
+import {Notification} from "@vaadin/notification"
+import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
+import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
+import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 
 @customElement('mateu-component')
@@ -334,7 +334,8 @@ export class MateuComponent extends ComponentElement {
             parameters: any,
             callback: any,
             callbackonly: boolean,
-            initiatorComponentId: any
+            initiatorComponentId: any,
+            callbackToken: string
         }
         if (e.type == 'action-requested') {
             e.preventDefault()
@@ -406,7 +407,8 @@ export class MateuComponent extends ComponentElement {
         parameters: any,
         callback: any,
         callbackonly: boolean,
-        initiatorComponentId: any
+        initiatorComponentId: any,
+        callbackToken: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
         if (action && action.href) {
@@ -447,7 +449,8 @@ export class MateuComponent extends ComponentElement {
                 this.state.sort = []
             }
             if (this.state.page == 0) {
-                this.data = {...this.data, crud: {}}
+                // miguel
+                //this.data = {...this.data, crud: {}}
             }
         }
 
@@ -465,6 +468,7 @@ export class MateuComponent extends ComponentElement {
                 sse: action?.sse,
                 callback: detail.callback,
                 callbackonly: detail.callbackonly,
+                callbackToken: detail.callbackToken??this.callbackToken
             },
             bubbles: true,
             composed: true
@@ -486,10 +490,13 @@ export class MateuComponent extends ComponentElement {
                         e.preventDefault()
                         e.stopPropagation()
                         if (trigger.timeoutMillis > 0) {
+                            console.log('xxx', this.callbackToken)
+                            const callbackToken = this.callbackToken
                             setTimeout(() => {
                                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                     detail: {
-                                        actionId: trigger.actionId
+                                        actionId: trigger.actionId,
+                                        callbackToken
                                     },
                                     bubbles: true,
                                     composed: true

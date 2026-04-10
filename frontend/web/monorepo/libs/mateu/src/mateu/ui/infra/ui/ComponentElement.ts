@@ -8,6 +8,7 @@ import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCompone
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import OnLoadTrigger from "@mateu/shared/apiClients/dtos/componentmetadata/OnLoadTrigger.ts";
+import {nanoid} from "nanoid";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -34,6 +35,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         this.component.children?.push(fragment.component)
                     }
                 } else {
+                    this.callbackToken = nanoid()
                     if (fragment.component?.type == ComponentType.ServerSide) {
                         const c0 = this.component as ServerSideComponent
                         const c1 = fragment.component as ServerSideComponent
@@ -143,10 +145,12 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         if (componentId != this.component?.id) {
             return
         }
+        const callbackToken = this.callbackToken
         setTimeout(() => {
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
-                    actionId: onloadTrigger.actionId
+                    actionId: onloadTrigger.actionId,
+                    callbackToken
                 },
                 bubbles: true,
                 composed: true
@@ -155,7 +159,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 if (onloadTrigger.times < 0 || times > 0) {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
-                            actionId: onloadTrigger.actionId
+                            actionId: onloadTrigger.actionId,
+                            callbackToken
                         },
                         bubbles: true,
                         composed: true

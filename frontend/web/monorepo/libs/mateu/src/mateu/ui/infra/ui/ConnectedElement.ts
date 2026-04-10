@@ -23,23 +23,33 @@ export default abstract class ConnectedElement extends LitElement {
     @property()
     baseUrl = ''
 
+    callbackToken = ''
+
     private upstreamSubscription: Subscription | undefined;
 
     connectedCallback() {
         super.connectedCallback()
         this.upstreamSubscription = upstream.subscribe((message: Message) => {
-            if (message.command) {
-                const command = message.command
-                if (this.id == command.targetComponentId) {
-                    this.applyCommand(command)
+            let applies = false;
+            if (message.callbackToken === this.callbackToken) {
+                if (message.command) {
+                    const command = message.command
+                    if (this.id == command.targetComponentId) {
+                        applies = true
+                        this.applyCommand(command)
+                    }
+                }
+                if (message.fragment) {
+                    const fragment = message.fragment
+                    if (this.id == fragment.targetComponentId) {
+                        applies = true
+                        this.applyFragment(fragment)
+                        this.completeMenu(fragment)
+                    }
                 }
             }
-            if (message.fragment) {
-                const fragment = message.fragment
-                if (this.id == fragment.targetComponentId) {
-                    this.applyFragment(fragment)
-                    this.completeMenu(fragment)
-                }
+            if (applies) {
+                //this.callbackToken = nanoid()
             }
         })
     }
@@ -81,7 +91,8 @@ export default abstract class ConnectedElement extends LitElement {
                                 state: undefined,
                                 action: UIFragmentAction.Replace,
                                 targetComponentId: this.id
-                            } as UIFragment
+                            } as UIFragment,
+                            callbackToken: this.callbackToken
                         } as Message)
                     })
                 }

@@ -6,5 +6,6 @@ export default interface Message {
     command: UICommand | undefined,
     fragment: UIFragment | undefined,
     ui:UI | undefined,
-    error: undefined
+    error: undefined,
+    callbackToken: string
 }
