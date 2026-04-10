@@ -157,14 +157,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             }))
             if (onloadTrigger.times != 0) {
                 if (onloadTrigger.times < 0 || times > 0) {
-                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: onloadTrigger.actionId,
-                            callbackToken
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
                     if (onloadTrigger.times != 0) {
                         if (onloadTrigger.times < 0 || times > 0) {
                             this.scheduleOnload(onloadTrigger, times - 1, componentId);
