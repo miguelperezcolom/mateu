@@ -2,12 +2,7 @@ package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
-import io.mateu.uidl.interfaces.CrudRepository;
-import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.Identifiable;
-import io.mateu.uidl.interfaces.ModelSupplier;
-import io.mateu.uidl.interfaces.Named;
-import io.mateu.uidl.interfaces.NamedView;
+import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import lombok.SneakyThrows;
@@ -67,5 +62,13 @@ public class AutoNamedView<T extends Identifiable> implements NamedView<T>, Mode
       return named.name();
     }
     return entity.toString();
+  }
+
+  public Class<T> entityClass() {
+    return entityClass;
+  }
+
+  public T entity() {
+    return entity;
   }
 }

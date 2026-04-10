@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -21,6 +22,9 @@ public class DataLayer {
   public static HttpRequest addData(Object item, HttpRequest httpRequest) {
     if (item == null) {
       return httpRequest;
+    }
+    if (item instanceof AutoNamedView<?> autoNamedView) {
+      item = autoNamedView.entity();
     }
     var data = createData(item, httpRequest);
     httpRequest.setAttribute("data", data);

@@ -10,35 +10,35 @@ public @interface Action {
 
   String id();
 
-  boolean background();
+  boolean background() default false;
 
-  boolean validationRequired();
+  boolean validationRequired() default false;
 
-  boolean confirmationRequired();
+  boolean confirmationRequired() default false;
 
-  boolean rowsSelectedRequired();
+  boolean rowsSelectedRequired() default false;
 
-  String confirmationTitle();
+  String confirmationTitle() default "";
 
-  String confirmationMessage();
+  String confirmationMessage() default "";
 
-  String confirmationText();
+  String confirmationText() default "";
 
-  String confirmationDenialText();
+  String confirmationDenialText() default "";
 
-  String modalStyle();
+  String modalStyle() default "";
 
-  String modalTitle();
+  String modalTitle() default "";
 
-  String customEventName();
+  String customEventName() default "";
 
-  String customEventDetail();
+  String customEventDetail() default "";
 
-  String href();
+  String href() default "";
 
-  String js();
+  String js() default "";
 
-  boolean sse();
+  boolean sse() default false;
 
-  String fieldsToValidate();
+  String fieldsToValidate() default "";
 }

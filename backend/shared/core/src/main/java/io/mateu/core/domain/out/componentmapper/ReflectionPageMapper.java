@@ -12,6 +12,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
@@ -23,6 +24,7 @@ import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -322,6 +324,9 @@ public class ReflectionPageMapper {
       HttpRequest httpRequest,
       boolean readOnly,
       boolean forCreationForm) {
+    if (instance instanceof AutoNamedView<?> autoNamedView) {
+      instance = autoNamedView.entity();
+    }
     var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
     int maxColumns = getFormColumns(instanceType);
     return getForm(

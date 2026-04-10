@@ -72,6 +72,7 @@ export class MateuPage extends LitElement {
                         `)}
                     </vaadin-horizontal-layout>
                 `:nothing}
+                ${(metadata.avatar || metadata.title || metadata.subtitle || metadata.kpis?.length > 0 || metadata.header?.length > 0 || metadata.toolbar?.length > 0)?html`
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                         ${metadata.avatar?renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}
                         <vaadin-vertical-layout>
@@ -95,6 +96,7 @@ export class MateuPage extends LitElement {
 `)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
+                `:nothing}                 
                 ${metadata.badges && metadata.badges.length > 0?html`
                     <vaadin-horizontal-layout>
                         ${metadata.badges.map(badge => renderBadgeMetadata(badge))}

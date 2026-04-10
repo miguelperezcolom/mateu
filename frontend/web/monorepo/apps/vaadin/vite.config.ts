@@ -66,6 +66,7 @@ export default defineConfig({
             '/_content': 'http://localhost:8091',
             '/_control-plane': 'http://localhost:8091',
             '/_workflow': 'http://localhost:8091',
+            '/_forms': 'http://localhost:8091',
         },
     },
     optimizeDeps: {

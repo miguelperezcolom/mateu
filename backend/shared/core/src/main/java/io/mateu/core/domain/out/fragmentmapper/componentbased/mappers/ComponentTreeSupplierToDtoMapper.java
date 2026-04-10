@@ -436,14 +436,14 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   private static boolean isCustomEventNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return annotation.customEventName() != null || annotation.customEventDetail() != null;
+    return !annotation.customEventName().isEmpty() || !annotation.customEventDetail().isEmpty();
   }
 
   private static boolean isConfirmationTextNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return annotation.confirmationText() != null
-        || annotation.confirmationMessage() != null
-        || annotation.confirmationTitle() != null
-        || annotation.confirmationDenialText() != null;
+    return !annotation.confirmationText().isEmpty()
+        || !annotation.confirmationMessage().isEmpty()
+        || !annotation.confirmationTitle().isEmpty()
+        || !annotation.confirmationDenialText().isEmpty();
   }
 
   public static ActionDto mapAction(Action action) {

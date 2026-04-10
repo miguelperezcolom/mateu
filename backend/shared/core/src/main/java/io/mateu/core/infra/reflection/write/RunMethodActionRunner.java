@@ -88,7 +88,11 @@ public class RunMethodActionRunner implements ActionRunner {
       } else if (HttpRequest.class.equals(p.getType())) {
         params.add(command.httpRequest());
       } else {
-        params.add(null); // tipo no reconocido → null para no desalinear el array
+        try {
+          params.add(command.httpRequest().getClickedRow(p.getType()));
+        } catch (Exception ignored) {
+          params.add(null); // tipo no reconocido → null para no desalinear el array
+        }
       }
     }
     return params.toArray();
