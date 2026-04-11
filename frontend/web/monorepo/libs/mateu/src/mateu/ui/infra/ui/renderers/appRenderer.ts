@@ -51,12 +51,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
+                        <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                         <vaadin-horizontal-layout style="align-items: center;">
-                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
-                            </a>
                         </vaadin-horizontal-layout>
+                        </a>
                         <vaadin-menu-bar
                                 .items="${items}"
                                 @item-selected="${container.itemSelected}"
@@ -126,12 +126,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div>
                     <div>
                         <vaadin-horizontal-layout style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" theme="spacing">
+                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                             <vaadin-horizontal-layout style="align-items: center;">
-                                <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                                 ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                                 ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
-                                </a>
                             </vaadin-horizontal-layout>
+                            </a>
                             <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
                                          style="box-shadow: unset;"
                                          class="${container.component?.cssClasses}">
