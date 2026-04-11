@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.SneakyThrows;
-
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import lombok.SneakyThrows;
 
 public final class JsonSerializer {
 

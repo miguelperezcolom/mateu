@@ -1,5 +1,8 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Status;
@@ -7,24 +10,20 @@ import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.StatusType;
-import lombok.SneakyThrows;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import lombok.SneakyThrows;
 
 public class DataComponentToDtoMapper {
 
   public static UIFragmentDto mapDataToDto(
       Data data, String targetComponentId, Object componentSupplier) {
-    return new UIFragmentDto(targetComponentId, null, mapItem(data.newState()), transformData(data.data()), null);
+    return new UIFragmentDto(
+        targetComponentId, null, mapItem(data.newState()), transformData(data.data()), null);
   }
 
   private static Object transformData(Object data) {
@@ -48,6 +47,7 @@ public class DataComponentToDtoMapper {
     }
     return data;
   }
+
   public static Object mapItem(Object item) {
     return mapItem(item, 0);
   }
@@ -82,7 +82,9 @@ public class DataComponentToDtoMapper {
         }
         StatusType defaultType = ann.defaultStatus();
         var value = "" + getValue(field, item);
-        map.put(field.getName(), new io.mateu.uidl.data.Status(mapping.getOrDefault(value, defaultType), value));
+        map.put(
+            field.getName(),
+            new io.mateu.uidl.data.Status(mapping.getOrDefault(value, defaultType), value));
       } else if (field.isAnnotationPresent(MappedValue.class)) {
         var ann = field.getAnnotation(MappedValue.class);
         Map<String, String> mapping = new HashMap<>();
@@ -90,7 +92,7 @@ public class DataComponentToDtoMapper {
           mapping.put(statusMapping.from(), statusMapping.to());
         }
         String defaultType = ann.defaultValue();
-        var value = "" +getValue(field, item);
+        var value = "" + getValue(field, item);
         map.put(field.getName(), mapping.getOrDefault(value, defaultType));
       } else {
         map.put(field.getName(), getValue(field, item));

@@ -68,7 +68,7 @@ public final class AppComponentToDtoMapper {
             .subtitle(app.subtitle())
             .logo(app.logo())
             .route(appRoute)
-                .rootRoute(appRoute)
+            .rootRoute(appRoute)
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(
                 getHomeRoute(
