@@ -78,13 +78,16 @@ export class MateuApp extends ComponentElement {
     }
 
     goHome = () => {
+        console.log('go home')
         const metadata = (this.component as ClientSideComponent).metadata as App;
         this.selectRoute(metadata.route, '', undefined, undefined, undefined)
     }
 
     selectRoute = (route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+        console.log('select route', route)
 
-        if (route) {
+        if (true || route) {
+            console.log('route', route)
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
             this.selectedAppServerSideType = appServerSideType
@@ -97,8 +100,8 @@ export class MateuApp extends ComponentElement {
                 }
                 baseUrl = window.location.origin + baseUrl
             }
-            if (baseUrl.endsWith('/') && route.startsWith('/')) {
-                route = route.substring(1)
+            if (baseUrl.endsWith('/') && (route??'').startsWith('/')) {
+                route = (route??'').substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
             if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
@@ -133,20 +136,26 @@ export class MateuApp extends ComponentElement {
                     composed: true
                 }))
             }
+        }
+        const metadata = (this.component as ClientSideComponent).metadata as App;
 
-            const metadata = (this.component as ClientSideComponent).metadata as App;
+        console.log('routes', {
+            metadata_route: metadata.route,
+            route
+        })
 
-            const finalRoute = (metadata.route == route || metadata.route == '/' + route)?'/_page':route
+        const finalRoute = (metadata.route == route || metadata.route == '/' + route)?'/_page':route
 
-            const uxElement = this.shadowRoot?.querySelector('mateu-ux');
-            if (uxElement) {
-                this.selectedRoute = finalRoute
-                uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
-                uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
-                uxElement.setAttribute("route", finalRoute)
-                uxElement.setAttribute("instant", nanoid())
-                //window.history.pushState({},"", this.baseUrl + app.homeRoute);
-            }
+        console.log('selected route', finalRoute)
+
+        const uxElement = this.shadowRoot?.querySelector('mateu-ux');
+        if (uxElement) {
+            this.selectedRoute = finalRoute
+            uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
+            uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
+            uxElement.setAttribute("route", finalRoute??'')
+            uxElement.setAttribute("instant", nanoid())
+            //window.history.pushState({},"", this.baseUrl + app.homeRoute);
         }
     }
 
