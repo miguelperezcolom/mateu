@@ -8,10 +8,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
+
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 public final class JsonSerializer {
 
@@ -20,11 +21,6 @@ public final class JsonSerializer {
   static {
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.registerModule(new JavaTimeModule());
-    /*
-    SimpleModule module = new SimpleModule();
-    module.addSerializer(IconChooser.class, new IconChooserSerializer());
-    mapper.registerModule(module);
-     */
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

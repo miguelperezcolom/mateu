@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.interfaces.BreadcrumbsSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,6 +18,7 @@ import java.net.URI;
 import java.util.List;
 
 @Route("/home")
+@Title("App")
 public class Home {
 
     @SneakyThrows

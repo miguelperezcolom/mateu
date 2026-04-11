@@ -47,7 +47,7 @@ public abstract class ActionSupplierLayer<
                   Action.builder()
                       .id("action-on-row-" + method.getName())
                       .confirmationRequired(
-                          method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
+                          method.getAnnotation(ListToolbarButton.class).confirmationRequired())
                       .rowsSelectedRequired(
                           method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
                       .build());

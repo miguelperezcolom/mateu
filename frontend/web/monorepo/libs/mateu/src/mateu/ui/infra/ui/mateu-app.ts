@@ -77,6 +77,11 @@ export class MateuApp extends ComponentElement {
         this.selectRoute(e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
     }
 
+    goHome = () => {
+        const metadata = (this.component as ClientSideComponent).metadata as App;
+        this.selectRoute(metadata.route, '', undefined, undefined, undefined)
+    }
+
     selectRoute = (route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
 
         if (route) {
@@ -131,11 +136,14 @@ export class MateuApp extends ComponentElement {
 
             const metadata = (this.component as ClientSideComponent).metadata as App;
 
+            const finalRoute = (metadata.route == route || metadata.route == '/' + route)?'/_page':route
+
             const uxElement = this.shadowRoot?.querySelector('mateu-ux');
             if (uxElement) {
+                this.selectedRoute = finalRoute
                 uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
                 uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
-                uxElement.setAttribute("route", route)
+                uxElement.setAttribute("route", finalRoute)
                 uxElement.setAttribute("instant", nanoid())
                 //window.history.pushState({},"", this.baseUrl + app.homeRoute);
             }

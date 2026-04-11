@@ -205,8 +205,6 @@ export class MateuGrid extends MetadataDrivenElement {
                     }}"
                     @item-toggle="${this.handleItemToggle}"
                     @active-item-changed="${ifDefined((this.field?.detailPath && !this.field?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
-
-                        console.log('item', event.detail.value, this.selectedItems)
             if (this.field?.detailPath) {
                 const row = event.detail.value
                 if (row) {

@@ -220,6 +220,7 @@ export class MateuUi extends LitElement {
 
     static styles = css`
         :host {
+            --lumo-clickable-cursor: pointer;
         }
   `
 }

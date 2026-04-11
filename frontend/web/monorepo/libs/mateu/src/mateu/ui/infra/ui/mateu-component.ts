@@ -62,6 +62,7 @@ import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
+import './mateu-bpmn'
 import {Notification} from "@vaadin/notification"
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";

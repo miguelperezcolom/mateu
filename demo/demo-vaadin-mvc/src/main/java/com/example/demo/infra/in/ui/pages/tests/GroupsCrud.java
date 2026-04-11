@@ -5,15 +5,23 @@ import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.ListToolbarButton;
+import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
+import io.mateu.uidl.annotations.Status;
+import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
+import io.mateu.uidl.annotations.ValueMapping;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +33,20 @@ record Miembro(@NotEmpty String id, @NotEmpty String nombre, @Hidden("!state['mi
 
 }
 
-record Grupo(@NotEmpty String id, @NotEmpty String nombre, @Colspan(2)@Hidden("!state.nombre") String email, @Colspan(2) List<Miembro> miembros) implements Identifiable {
+record Grupo(@NotEmpty String id,
+             @NotEmpty String nombre,
+             @Status(defaultStatus = StatusType.NONE, mappings = {
+                     @StatusMapping(from = "si", to = StatusType.SUCCESS),
+                     @StatusMapping(from = "no", to = StatusType.DANGER),
+             })
+             String status,
+             @MappedValue(defaultValue = "x", mappings = {
+                     @ValueMapping(from = "true", to = "si!!!"),
+                     @ValueMapping(from = "false", to = "no!!!!"),
+             })
+             boolean main,
+             @Colspan(2)@Hidden("!state.nombre") String email,
+             @Colspan(2) List<Miembro> miembros) implements Identifiable {
 
     @Override
     public String toString() {
@@ -35,7 +56,9 @@ record Grupo(@NotEmpty String id, @NotEmpty String nombre, @Colspan(2)@Hidden("!
 
 class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
 
-    static Map<String, Grupo> db = new HashMap<>();
+    static Map<String, Grupo> db = new HashMap<>(Map.of(
+            "1", new Grupo("1", "Test", "si", true, "miguel@test.com", List.of())
+    ));
 
     @Override
     public CrudRepository<Grupo> repository() {
@@ -61,15 +84,19 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
 }
 
 @Route(value = "/home/grupos")
-@Trigger(type = TriggerType.OnLoad, actionId = "search", timeoutMillis = 4000, times = -1)
+//@Trigger(type = TriggerType.OnLoad, actionId = "search", timeoutMillis = 4000, times = -1)
 public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
     @Override
     public AutoCrudAdapter<Grupo> simpleAdapter() {
         return new Adapter();
     }
 
-    public void refresh() {
-        System.out.println("refresh!");
+    @SneakyThrows
+    @ListToolbarButton(confirmationRequired = false)
+    public Object refresh(List<Grupo> seleccion) {
+        System.out.println("refresh!" + seleccion);
+        Thread.sleep(2000);
+        return Message.builder().text("Hola " + seleccion).build();
     }
 
 }

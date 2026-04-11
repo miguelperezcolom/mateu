@@ -6,7 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToCompone
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
-import static io.mateu.core.infra.declarative.FormViewModel.toMap;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapPojo;
 import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
@@ -740,7 +740,7 @@ public class RunActionUseCase {
             ? stateSupplier.state(httpRequest)
             : modelView;
     if (!(state instanceof Map<?, ?>)) {
-      var newState = toMap(state);
+      var newState = mapPojo(state);
       getAllFields(getViewModelClass(modelView, httpRequest)).stream()
           .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
           .forEach(

@@ -59,6 +59,7 @@ import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -103,6 +104,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
 
         component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
 
+        if (type == ComponentMetadataType.Bpmn) {
+            return renderBpmn(component)
+        }
         if (type == ComponentMetadataType.Page) {
             return renderPage(container, component, baseUrl, state, data, appState, appData)
         }

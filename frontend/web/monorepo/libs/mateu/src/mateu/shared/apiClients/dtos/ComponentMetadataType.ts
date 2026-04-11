@@ -59,6 +59,7 @@ export enum ComponentMetadataType {
     GridGroupColumn = "GridGroupColumn",
     VirtualList = "VirtualList",
     FormSection="FormSection",
-    FormSubSection="FormSubSection"
+    FormSubSection="FormSubSection",
+    Bpmn="Bpmn"
 
 }

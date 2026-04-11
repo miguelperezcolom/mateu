@@ -29,7 +29,8 @@ public record AppDto(
     boolean drawerClosed,
     String style,
     String cssClasses,
-    ComponentDto home)
+    ComponentDto home,
+    String rootRoute)
     implements ComponentMetadataDto {
 
   public AppDto {

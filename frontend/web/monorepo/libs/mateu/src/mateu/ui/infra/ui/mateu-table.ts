@@ -108,6 +108,7 @@ export class MateuTable extends LitElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         this.grid?.clearCache()
+        this.grid?.recalculateColumnWidths()
         this.pagesRequested = []
     }
 
@@ -158,9 +159,12 @@ export class MateuTable extends LitElement {
         vaadinGridCellBackground: string
         vaadinGridCellPadding: string
 */
+        const selectedItems = this.state[this.id + '_selected_items'] || []
         return html`
             <vaadin-grid
                     .items="${page?.content}"
+                    item-id-path="_rowNumber"
+                    .selectedItems="${selectedItems}"
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"

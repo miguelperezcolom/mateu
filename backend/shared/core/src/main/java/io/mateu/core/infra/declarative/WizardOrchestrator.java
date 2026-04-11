@@ -111,11 +111,16 @@ public abstract class WizardOrchestrator
                 for (int i = 0; i < list.size(); i++) {
                   if (list.get(i) instanceof Map map) {
                     map.put("_rowNumber", i);
+                    changeRowData(rowType, map);
                     addRowNumber(rowType, prefix + field.getName() + "-", map, parentData);
                   }
                 }
               }
             });
+  }
+
+  public static void changeRowData(Class rowType, Map map) {
+    map.put("nombre", "xxxx");
   }
 
   @Override

@@ -493,6 +493,12 @@ public class ReflectionFormFieldMapper {
     if (Status.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.status;
     }
+    if (columnField.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
+      return FieldDataType.status;
+    }
+    if (columnField.isAnnotationPresent(MappedValue.class)) {
+      return FieldDataType.string;
+    }
     if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.component;
     }
@@ -665,6 +671,12 @@ public class ReflectionFormFieldMapper {
     /*
     money
            */
+    if (field.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
+      return FieldDataType.status;
+    }
+    if (field.isAnnotationPresent(MappedValue.class)) {
+      return FieldDataType.string;
+    }
     if (String.class.equals(field.getType())) {
       return FieldDataType.string;
     }

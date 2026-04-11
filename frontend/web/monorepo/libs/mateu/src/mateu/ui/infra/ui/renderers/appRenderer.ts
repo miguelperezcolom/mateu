@@ -9,7 +9,6 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
     }
 }
 
-
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: any, _data: any, appState: any, appData: any) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
@@ -53,8 +52,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
                         <vaadin-horizontal-layout style="align-items: center;">
+                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
+                            </a>
                         </vaadin-horizontal-layout>
                         <vaadin-menu-bar
                                 .items="${items}"
@@ -126,8 +127,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div>
                         <vaadin-horizontal-layout style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" theme="spacing">
                             <vaadin-horizontal-layout style="align-items: center;">
+                                <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                                 ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                                 ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
+                                </a>
                             </vaadin-horizontal-layout>
                             <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
                                          style="box-shadow: unset;"
