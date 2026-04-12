@@ -1,10 +1,3 @@
----
-title: "Navigation and menus"
-weight: 2
-aliases:
-  - /java-user-manual/navigation-and-menus/
----
+# Navigation And Menus
 
-# Navigation and menus
-
-This page explains how to use Mateu in real applications.
+Menus derived from UI definitions.

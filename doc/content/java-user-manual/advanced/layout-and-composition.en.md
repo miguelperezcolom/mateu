@@ -1,10 +1,3 @@
----
-title: "Layout and composition"
-weight: 3
-aliases:
-  - /java-user-manual/layout-and-composition/
----
+# Layout And Composition
 
-# Layout and composition
-
-Advanced Mateu topic.
+Layout control.

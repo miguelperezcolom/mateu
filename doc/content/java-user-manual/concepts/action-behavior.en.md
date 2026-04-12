@@ -1,10 +1,3 @@
----
-title: "Action behavior"
-weight: 5
-aliases:
-  - /java-user-manual/actions/
----
+# Action Behavior
 
-# Action behavior
-
-This page belongs to the core Mateu model.
+Actions define behavior and side effects.

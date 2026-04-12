@@ -1,10 +1,3 @@
----
-title: "Foreign keys and options"
-weight: 3
-aliases:
-  - /java-user-manual/foreign-keys-and-options/
----
+# Foreign Keys And Options
 
-# Foreign keys and options
-
-This page explains how to use Mateu in real applications.
+Handle relationships.

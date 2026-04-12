@@ -1,10 +1,3 @@
----
-title: "Domain models"
-weight: 4
-aliases:
-  - /java-user-manual/working-with-domain/
----
+# Domain Models
 
-# Domain models
-
-This page explains how to use Mateu in real applications.
+Map domain to UI.

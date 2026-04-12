@@ -1,10 +1,3 @@
----
-title: "UI effects"
-weight: 6
-aliases:
-  - /java-user-manual/ui-effects/
----
+# Ui Effects
 
-# UI effects
-
-This page belongs to the core Mateu model.
+UI reacts automatically to state changes.
