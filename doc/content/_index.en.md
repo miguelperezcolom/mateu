@@ -1,93 +1,141 @@
 ---
 title: "Mateu"
-description: "Build business UIs in Java. Generate CRUDs, compose distributed backoffices, or embed Mateu into your existing frontend."
+description: "Build business UIs in Java with one model: fast CRUDs, distributed backoffices, and embeddable modules."
 ---
 
-<div class="mateu-hero">
-  <div class="mateu-container">
-    <div class="mateu-grid mateu-grid-hero">
-      <div>
-        <p class="mateu-eyebrow">Model-driven UI for Java teams</p>
-        <h1>Build business UIs in Java.<br />No frontend required.</h1>
-        <p class="mateu-lead">
-          Mateu lets you define UI directly in Java and generate forms, CRUD, navigation and application shells from one model.
-        </p>
-        <div class="mateu-actions">
-          <a href="/java-user-manual/getting-started/quickstart" class="mateu-btn mateu-btn-primary">Start with quickstart</a>
-          <a href="/why-mateu" class="mateu-btn mateu-btn-secondary">Why Mateu</a>
-        </div>
-        <div class="mateu-checks">
-          <span>✔ Fast CRUDs</span>
-          <span>✔ Distributed backoffices</span>
-          <span>✔ Embeddable UI</span>
-        </div>
-      </div>
-      <div>
-        <img src="/images/docs/admin-panel/products-list.jpeg" alt="Mateu admin panel generated from Java" class="mateu-shot" />
-      </div>
-    </div>
-  </div>
-</div>
+# Build business UIs in Java
+
+Mateu is a model-driven UI framework for business applications.
+
+Define your UI once in Java.  
+Mateu generates forms, CRUD, navigation and application shells from that model.
+
+[Start with the quickstart →](/java-user-manual/start-here/quickstart/)
 
 ---
 
-<div class="mateu-container mateu-section">
-  <p class="mateu-eyebrow">Three ways teams use Mateu</p>
-  <h2>Pick the entry point that matches your reality</h2>
-  <div class="mateu-grid mateu-grid-3">
-    <div class="mateu-card">
-      <h3>Admin panel</h3>
-      <p>Generate CRUD-heavy business UIs directly from your Java model.</p>
-      <a class="mateu-link" href="/java-user-manual/use-cases/admin-panel">See admin panel →</a>
-    </div>
-    <div class="mateu-card">
-      <h3>Distributed backoffice</h3>
-      <p>Let each microservice own its own UI and compose everything in one shell.</p>
-      <a class="mateu-link" href="/java-user-manual/use-cases/distributed-backoffice">See distributed backoffice →</a>
-    </div>
-    <div class="mateu-card">
-      <h3>Embedded UI</h3>
-      <p>Embed Mateu into React, Vue, Angular or plain HTML using a web component.</p>
-      <a class="mateu-link" href="/java-user-manual/use-cases/embedded-ui">See embedded UI →</a>
-    </div>
-  </div>
-</div>
+## Why Mateu
+
+Traditional business apps often mean:
+
+- backend logic
+- frontend app
+- API layer
+- duplicated models
+- duplicated validation
+- duplicated routing
+- more glue code than expected
+
+Mateu takes a different approach:
+
+- one application model
+- one source of truth
+- less duplication
+- fewer moving parts
+
+For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mateu vs traditional stack →](/mateu-about/comparison).
 
 ---
 
-<div class="mateu-container mateu-section">
-  <div class="mateu-grid mateu-grid-2">
-    <div>
-      <p class="mateu-eyebrow">What makes it different</p>
-      <h2>One model, one source of truth</h2>
-      <p class="mateu-text">
-        In a traditional stack, teams maintain backend models, APIs, forms, state management and validation across multiple layers.
-        With Mateu, your Java model drives the UI directly.
-      </p>
-      <ul class="mateu-list">
-        <li>Define state with fields</li>
-        <li>Define behavior with methods</li>
-        <li>Define rendering and rules with annotations</li>
-      </ul>
-    </div>
-    <div>
-      <img src="/images/docs/embedded/embedded-counter.png" alt="Mateu embedded in another application" class="mateu-shot mateu-shot-stack" />
-      <img src="/images/docs/distributed/distributed-home.jpeg" alt="Distributed backoffice built with Mateu" class="mateu-shot" />
-    </div>
-  </div>
-</div>
+## The core idea
+
+In Mateu, you define:
+
+- state with fields
+- actions with methods or callables
+- rendering and behavior with annotations
+- routing and navigation in the same model
+
+Mateu turns that into a working UI.
+
+To understand the mental shift, see:
+
+- [How to think in Mateu →](/mateu-about/how-to-think-in-mateu)
+- [The Mateu model →](/mateu-about/mental-model)
+- [The basics →](/mateu-about/the-basics)
 
 ---
 
-<div class="mateu-container mateu-section">
-  <div class="mateu-cta">
-    <h2>Start with a real example</h2>
-    <p>
-      The fastest way to understand Mateu is to build the admin panel quickstart, then explore the distributed backoffice and embedded UI use cases.
-    </p>
-    <div class="mateu-actions mateu-actions-center">
-      <a href="/java-user-manual/getting-started/quickstart" class="mateu-btn mateu-btn-primary">Open quickstart</a>
-      <a href="/java-user-manual" class="mateu-btn mateu-btn-secondary">Open Java manual</a>
-    </div>
-  </div>
-</div>
+## Three strong use cases
+
+### 1. Admin panels
+
+Build CRUD-heavy backoffice screens directly from your Java model.
+
+This is the fastest way to understand the value of Mateu.
+
+- [Quickstart →](/java-user-manual/start-here/quickstart/)
+- [Admin panel use case →](/java-user-manual/use-cases/admin-panel/)
+
+### 2. Distributed backoffices
+
+Let each microservice define its own UI and compose everything in one shell.
+
+This is one of Mateu's most distinctive strengths.
+
+- [Distributed backoffice →](/java-user-manual/use-cases/distributed-backoffice/)
+- [UI federation →](/mateu-about/ui-federation)
+- [Shell and remote menus →](/mateu-about/shell-and-remote-menus)
+
+### 3. Embedded UI
+
+Use Mateu inside React, Vue, Angular or even plain HTML through a web component.
+
+This makes adoption gradual and low-risk.
+
+- [Embedded UI →](/java-user-manual/use-cases/embedded-ui/)
+- [Embed →](/mateu-about/embed)
+
+---
+
+## Architecture
+
+Mateu is intentionally simple at a high level:
+
+1. backend code defines the UI
+2. Mateu exposes that through a small API
+3. a renderer turns it into a real browser UI
+
+That separation makes Mateu a strong fit for:
+
+- microservices
+- stateless systems
+- distributed UIs
+- pluggable renderers
+
+Read more here:
+
+- [Architecture →](/mateu-about/architecture)
+- [Architecture diagram →](/mateu-about/diagram)
+- [API →](/mateu-about/api)
+
+---
+
+## Recommended path
+
+If you're new to Mateu, follow this order:
+
+1. [Quickstart](/java-user-manual/start-here/quickstart/)
+2. [Admin panel](/java-user-manual/use-cases/admin-panel/)
+3. [Distributed backoffice](/java-user-manual/use-cases/distributed-backoffice/) or [Embedded UI](/java-user-manual/use-cases/embedded-ui/)
+4. [Java manual](/java-user-manual/)
+
+---
+
+## Java manual
+
+The Java manual is already organized as a guided path:
+
+- [Start here](/java-user-manual/start-here/)
+- [Use cases](/java-user-manual/use-cases/)
+- [Concepts](/java-user-manual/concepts/)
+- [Build](/java-user-manual/build/)
+- [Advanced](/java-user-manual/advanced/)
+
+---
+
+## One-sentence summary
+
+Mateu turns backend objects into real business UIs through a simple model, a small API and a renderer.
+
+[Open the Java manual →](/java-user-manual/)
