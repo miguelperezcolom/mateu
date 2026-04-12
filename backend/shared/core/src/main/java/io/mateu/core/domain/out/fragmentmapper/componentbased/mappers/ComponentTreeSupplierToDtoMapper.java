@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.isForm;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
@@ -23,6 +24,7 @@ import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.annotations.Validation;
 import io.mateu.uidl.fluent.Action;
@@ -101,7 +103,7 @@ public class ComponentTreeSupplierToDtoMapper {
           .toList();
     }
     List<ValidationDto> fieldLevelValidations = new ArrayList<>();
-    if (isPage(serverSideObject, route)) {
+    if (isPage(serverSideObject, route) || isForm(serverSideObject)) {
       getAllFields(serverSideObject.getClass()).stream()
           .flatMap(field -> getValidations(field).stream())
           .filter(Objects::nonNull)
@@ -392,6 +394,20 @@ public class ComponentTreeSupplierToDtoMapper {
                 mapToAction(method.getAnnotation(io.mateu.uidl.annotations.Action.class))
                     .withId(method.getName()))
         .forEach(fieldActions::add);
+
+    getAllFields(serverSideObject.getClass()).stream()
+            .filter(field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
+            && field.isAnnotationPresent(Button.class))
+            .map(
+                    field -> ActionDto.builder().id(field.getName()).validationRequired(true).build())
+            .forEach(fieldActions::add);
+    getAllMethods(serverSideObject.getClass()).stream()
+            .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
+            && method.isAnnotationPresent(Button.class))
+            .map(
+                    method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
+            .forEach(fieldActions::add);
+
 
     return Stream.concat(
             fieldActions.stream(),

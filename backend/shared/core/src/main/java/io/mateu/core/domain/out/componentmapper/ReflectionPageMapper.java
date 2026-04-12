@@ -820,7 +820,7 @@ public class ReflectionPageMapper {
         || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
   }
 
-  private static boolean isForm(Object instance) {
+  public static boolean isForm(Object instance) {
     if (instance instanceof Form) {
       return true;
     }
