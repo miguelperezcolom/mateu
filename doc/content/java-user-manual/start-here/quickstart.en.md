@@ -2,6 +2,7 @@
 title: "Quickstart"
 weight: 1
 aliases:
+  - /java-user-manual/get-started/quickstart/
   - /java-user-manual/getting-started/quickstart/
 ---
 
@@ -12,8 +13,6 @@ Build a complete admin panel in minutes.
 No frontend required.
 
 ## What you'll build
-
-A fully functional product admin panel with:
 
 - product list
 - create / edit forms
@@ -55,12 +54,10 @@ record Product(
 
 ```java
 class ProductAdapter extends AutoCrudAdapter<Product> {
-
   @Override
   public CrudRepository<Product> repository() {
     return new ProductRepository();
   }
-
 }
 ```
 
@@ -69,12 +66,10 @@ class ProductAdapter extends AutoCrudAdapter<Product> {
 ```java
 @UI("/products")
 public class Products extends AutoCrudOrchestrator<Product> {
-
   @Override
   public AutoCrudAdapter<Product> simpleAdapter() {
     return new ProductAdapter();
   }
-
 }
 ```
 
@@ -84,35 +79,13 @@ public class Products extends AutoCrudOrchestrator<Product> {
 mvn spring-boot:run
 ```
 
-Open:
-
-```text
-http://localhost:8080/products
-```
+Open `http://localhost:8080/products`
 
 ## Result
 
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
 
-## What just happened?
-
-You defined:
-
-- a model
-- an adapter
-- a UI entry point
-
-Mateu generated:
-
-- forms
-- CRUD
-- validation
-- navigation
-- user interactions
-
-👉 model + adapter + orchestrator = complete business UI
-
 ## Next
 
 - [Admin panel](/java-user-manual/use-cases/admin-panel/)
-- [State, actions and fields](/java-user-manual/core-concepts/state-actions-and-fields/)
+- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)

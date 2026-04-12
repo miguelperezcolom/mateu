@@ -7,8 +7,6 @@ weight: 5
 
 These pages are useful once you already understand the main Mateu model.
 
-## Topics
-
 - [Rules](/java-user-manual/advanced/rules/)
 - [Breadcrumbs](/java-user-manual/advanced/breadcrumbs/)
 - [Layout and composition](/java-user-manual/advanced/layout-and-composition/)

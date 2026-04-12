@@ -7,15 +7,4 @@ aliases:
 
 # Testing
 
-Mateu ViewModels are plain Java objects.
-
-## Unit testing
-
-```java
-@Test
-void increment() {
-  Home h = new Home();
-  h.increment.run();
-  assertEquals(1, h.count);
-}
-```
+Advanced Mateu topic.

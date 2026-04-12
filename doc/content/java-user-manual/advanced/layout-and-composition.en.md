@@ -7,13 +7,4 @@ aliases:
 
 # Layout and composition
 
-Mateu organizes UI declaratively using layouts, regions and style.
-
-## Layouts
-
-- `@VerticalLayout` (default)
-- `@HorizontalLayout`
-- `@FormLayout`
-- `@SplitLayout`
-- `@Accordion`
-- `@Tab`
+Advanced Mateu topic.

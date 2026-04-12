@@ -7,7 +7,4 @@ aliases:
 
 # Breadcrumbs
 
-Mateu supports breadcrumbs in two ways:
-
-- declaratively with `@Breadcrumbs` and `@Breadcrumb`
-- imperatively by implementing `BreadcrumbsSupplier`
+Advanced Mateu topic.
