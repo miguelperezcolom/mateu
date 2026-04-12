@@ -14,6 +14,12 @@ _build:
 
 Mateu lets you define complete UIs in plain Java.
 
+## Start here
+
+- 👉 Quickstart
+- 👉 Admin panel
+- 👉 Real CRUD example
+
 ## Core concepts
 
 - Getting started
