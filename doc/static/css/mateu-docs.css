@@ -1,0 +1,28 @@
+.mateu-container{max-width:1100px;margin:0 auto;padding:0 1rem}
+.mateu-section{padding:2.5rem 1rem}
+.mateu-hero{padding:3rem 0 2rem}
+.mateu-grid{display:grid;gap:1rem}
+.mateu-grid-hero{grid-template-columns:1.1fr 1fr;gap:2rem;align-items:center}
+.mateu-grid-2{grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start}
+.mateu-grid-3{grid-template-columns:repeat(3,1fr)}
+.mateu-eyebrow{font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.65;margin:0 0 .75rem}
+.mateu-lead{font-size:1.15rem;line-height:1.6;opacity:.85;max-width:42rem;margin:0 0 1.5rem}
+.mateu-text{opacity:.85;line-height:1.7}
+.mateu-actions{display:flex;gap:1rem;flex-wrap:wrap;margin:0 0 1.25rem}
+.mateu-actions-center{justify-content:center}
+.mateu-btn{display:inline-block;padding:.85rem 1.2rem;border-radius:.75rem;text-decoration:none;font-weight:700}
+.mateu-btn-primary{background:#111;color:#fff}
+.mateu-btn-secondary{border:1px solid rgba(0,0,0,.15);color:inherit}
+.mateu-checks{display:flex;gap:1.25rem;flex-wrap:wrap;font-size:.98rem;opacity:.8}
+.mateu-card{padding:1.25rem;border:1px solid rgba(0,0,0,.08);border-radius:1rem;background:#fff}
+.mateu-card h3,.mateu-cta h2{margin-top:0}
+.mateu-shot{width:100%;border-radius:1rem;box-shadow:0 18px 45px rgba(0,0,0,.12)}
+.mateu-shot-stack{margin-bottom:1rem}
+.mateu-link{text-decoration:none;font-weight:700}
+.mateu-step{font-size:.9rem;font-weight:800;opacity:.5;margin-bottom:.5rem}
+.mateu-cta{padding:2rem;border-radius:1.25rem;background:rgba(0,0,0,.05);text-align:center}
+.mateu-list li{margin:.35rem 0}
+@media (max-width: 900px){
+  .mateu-grid-hero,.mateu-grid-2,.mateu-grid-3{grid-template-columns:1fr}
+  .mateu-hero h1{font-size:2.3rem}
+}
