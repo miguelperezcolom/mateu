@@ -1,215 +1,182 @@
 ---
-header_alt: true
-title: Stop building the same app twice
+title: "Mateu"
+description: "Build admin panels and business UIs in Java. No frontend required."
 ---
 
-<meta name="description" content="Build real web apps from a single Java model. No frontend, no duplication, no API glue. Mateu generates the UI automatically.">
-<meta property="og:title" content="Mateu – Stop building the same app twice">
-<meta property="og:description" content="Define your app once. Mateu builds UI, routing, interaction, security and more from a single model.">
-<meta property="og:image" content="https://mateu.io/og-image.png">
-
-## Build full web apps with minimal code
-
-Define your app once.  
-Mateu builds the UI, routing, interaction and security.
-
-**No HTML. No CSS. No JavaScript.**
-
-No duplicated models. No API glue. No sync issues.
-
----
-
-<div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-  <a href="https://vaadin.mateu.io/fluent/use-cases/rra"><strong>🚀 Try the live demo</strong></a>
-  <a href="/java-user-manual/build-a-real-app/"><strong>Build a real app →</strong></a>
-  <a href="https://github.com/miguelperezcolom/mateu">View GitHub</a>
+<div class="mateu-hero">
+  <div class="mateu-container">
+    <div class="mateu-grid mateu-grid-hero">
+      <div>
+        <p class="mateu-eyebrow">Java UI framework</p>
+        <h1>Build admin panels in minutes.<br />No frontend required.</h1>
+        <p class="mateu-lead">
+          Define your UI in Java. Mateu generates forms, CRUD, navigation, validation and the application shell from a single model.
+        </p>
+        <div class="mateu-actions">
+          <a href="/java-user-manual/getting-started/quickstart" class="mateu-btn mateu-btn-primary">Get started</a>
+          <a href="/java-user-manual/use-cases/admin-panel" class="mateu-btn mateu-btn-secondary">View example</a>
+        </div>
+        <div class="mateu-checks">
+          <span>✔ CRUD out of the box</span>
+          <span>✔ Validation from your model</span>
+          <span>✔ No duplicated logic</span>
+        </div>
+      </div>
+      <div>
+        <img src="/images/docs/admin-panel/products-list.jpeg" alt="Mateu admin panel product list" class="mateu-shot" />
+      </div>
+    </div>
+  </div>
 </div>
 
 ---
 
-## One model. Full app.
-
-With Mateu, your application is a single model:
-
-- fields → state
-- methods → actions
-- annotations → UI, routing, behavior, security
-
-Mateu generates:
-
-- UI
-- navigation
-- routing
-- interaction
-- validation
-- security
-
----
-
-## 🔐 Built-in security
-
-Secure your entire app declaratively.
-
-```java
-@UI("")
-@KeycloakSecured(
-  url = "https://your-auth-server",
-  realm = "your-realm",
-  clientId = "your-client"
-)
-public class App {}
-```
-
-No frontend auth.  
-No duplicated security logic.
+<div class="mateu-container">
+  <div class="mateu-grid mateu-grid-4">
+    <div class="mateu-card">
+      <h3>One model</h3>
+      <p>Define your UI once in Java.</p>
+    </div>
+    <div class="mateu-card">
+      <h3>Generated UI</h3>
+      <p>Forms, CRUD and navigation come for free.</p>
+    </div>
+    <div class="mateu-card">
+      <h3>Less code</h3>
+      <p>Fewer moving parts, less duplication, fewer bugs.</p>
+    </div>
+    <div class="mateu-card">
+      <h3>Fits backend teams</h3>
+      <p>Ideal for Java and Spring Boot teams.</p>
+    </div>
+  </div>
+</div>
 
 ---
 
-## From this
+<div class="mateu-container mateu-section">
+  <div class="mateu-grid mateu-grid-2">
+    <div>
+      <p class="mateu-eyebrow">Real example</p>
+      <h2>A complete admin panel from a Java model</h2>
+      <p class="mateu-text">
+        This is the kind of UI Mateu is built for: backoffice screens, internal tools and CRUD-heavy business interfaces.
+      </p>
 
 ```java
-@UI("")
-public class Home {
-
-  @ReadOnly
-  int count = 0;
-
-  @Button
-  Runnable increment = () -> count++;
-
+enum ProductStatus {
+    Available, OutOfStock
 }
+
+record Product(
+    @NotEmpty @EditableOnlyWhenCreating String id,
+    @NotEmpty String name,
+    @HiddenInList String description,
+    @NotNull ProductStatus status
+) implements Identifiable {}
 ```
 
-## To this
-
-<p align="center"><img src="../../../images/counter.png" width="700"/></p>
-
----
-
-## Real app. No frontend.
-
-<p align="center">
-  <img src="../../../images/processes.png" width="800"/>
-</p>
-
-<p align="center"><em>Built entirely from Java classes. No frontend code.</em></p>
-
----
-
-## Routing without a router
-
-Routing is part of your model.
-
-```java
-@Route("/users/:id")
-public class UserDetail {
-
-  String id;
-
-}
-```
-
-- automatic parameter binding
-- nested routes
-- implicit routes from menus
-
-No route config. No duplication.
+      <p class="mateu-text">
+        Add a repository and a UI class, and Mateu generates the rest.
+      </p>
+      <p>
+        <a href="/java-user-manual/use-cases/admin-panel" class="mateu-link">
+          See the full admin panel example →
+        </a>
+      </p>
+    </div>
+    <div>
+      <img src="/images/docs/admin-panel/new-product-form-empty.png" alt="Mateu generated product form" class="mateu-shot mateu-shot-stack" />
+      <img src="/images/docs/admin-panel/add-second-product-back-to-list.png" alt="Mateu product list after save" class="mateu-shot" />
+    </div>
+  </div>
+</div>
 
 ---
 
-## Why this matters
-
-Modern apps are split across:
-
-- backend
-- frontend
-- APIs
-- duplicated models
-- synchronization layers
-
-You build the same app twice — and maintain the gap forever.
-
----
-
-## Mateu removes that gap
-
-- one source of truth
-- no duplication
-- no glue code
-- no sync problems
-
----
-
-## Spec-driven
-
-Mateu is not backend-driven or frontend-driven.
-
-It is:
-
-> **spec-driven**
-
-Your app is defined once — not split across layers.
+<div class="mateu-container mateu-section">
+  <p class="mateu-eyebrow">How it works</p>
+  <h2>Three steps</h2>
+  <div class="mateu-grid mateu-grid-3">
+    <div class="mateu-card">
+      <div class="mateu-step">01</div>
+      <h3>Define your model</h3>
+      <p>Use Java classes, fields, methods and annotations to describe state and behavior.</p>
+    </div>
+    <div class="mateu-card">
+      <div class="mateu-step">02</div>
+      <h3>Connect data</h3>
+      <p>Attach a repository or adapter. Keep persistence and UI concerns cleanly separated.</p>
+    </div>
+    <div class="mateu-card">
+      <div class="mateu-step">03</div>
+      <h3>Run</h3>
+      <p>Mateu generates forms, CRUD, validation, navigation and shell behavior automatically.</p>
+    </div>
+  </div>
+</div>
 
 ---
 
-## What Mateu gives you
-
-- ⚡ Build apps **10x faster**
-- 🧠 One language, one mental model
-- 🔥 No frontend bugs
-- 🧩 High-level building blocks
-- 🌐 Stateless, microservice-friendly
-- 🔐 Built-in security
-- 🧭 Routing without configuration
-- 🔌 Bring your own web components
-- 🏗 Decoupled backend and renderer
-- 🛠 Override built-in behavior with your own beans
-
----
-
-## More examples
-
-<p align="center">
-  <img src="../../../images/workflow-list.png" width="800"/>
-</p>
-
-<p align="center">
-  <img src="../../../images/workflow-edit.png" width="800"/>
-</p>
+<div class="mateu-container mateu-section">
+  <p class="mateu-eyebrow">Best fit</p>
+  <h2>Where Mateu shines</h2>
+  <div class="mateu-grid mateu-grid-3">
+    <div class="mateu-card">
+      <h3>Admin panels</h3>
+      <p>Build backoffice screens, management consoles and CRUD-heavy business UIs with maximum speed.</p>
+    </div>
+    <div class="mateu-card">
+      <h3>Distributed UIs</h3>
+      <p>Let each microservice define its own UI and compose everything into one shell.</p>
+    </div>
+    <div class="mateu-card">
+      <h3>Embedded business UIs</h3>
+      <p>Generate business interfaces that can be embedded inside apps built with React, Vue or other frameworks.</p>
+    </div>
+  </div>
+</div>
 
 ---
 
-## Built for real architectures
-
-Mateu fits naturally with:
-
-- Spring Boot
-- DDD
-- Hexagonal architecture
-
-It does not replace your backend.  
-It sits on top of it.
-
-It is also extensible by design:
-
-- backend and renderer are decoupled
-- many behaviors can be overridden with Spring beans
-- custom web components can be integrated directly into your ViewModels
-
----
-
-## Learn by building
-
-👉 [Build a full backoffice in 10 minutes →](/java-user-manual/build-a-real-app/)  
-👉 [Explore the documentation →](/java-user-manual/)  
-👉 [View GitHub →](https://github.com/miguelperezcolom/mateu)
-
----
-
-## Stop building the same app twice
-
-Define it once.
+<div class="mateu-container mateu-section">
+  <div class="mateu-grid mateu-grid-2">
+    <div class="mateu-panel mateu-panel-muted">
+      <h2>Traditional stack</h2>
+      <ul>
+        <li>Backend model</li>
+        <li>API layer</li>
+        <li>Frontend views</li>
+        <li>State management</li>
+        <li>Validation in two places</li>
+        <li>Repeated wiring between layers</li>
+      </ul>
+    </div>
+    <div class="mateu-panel mateu-panel-strong">
+      <h2>Mateu</h2>
+      <ul>
+        <li>Java model</li>
+        <li>Declarative annotations</li>
+        <li>Generated forms and CRUD</li>
+        <li>Validation from the backend model</li>
+        <li>One source of truth</li>
+        <li>Less code to build and maintain</li>
+      </ul>
+    </div>
+  </div>
+</div>
 
 ---
 
-_Built by developers who got tired of writing useless code._
+<div class="mateu-container mateu-section">
+  <div class="mateu-cta">
+    <h2>Try Mateu with a real example</h2>
+    <p>
+      Start with the quickstart, then walk through the admin panel example and see how a complete business UI can come from a single Java model.
+    </p>
+    <div class="mateu-actions mateu-actions-center">
+      <a href="/java-user-manual/getting-started/quickstart" class="mateu-btn mateu-btn-primary">Open quickstart</a>
+      <a href="/java-user-manual/use-cases/admin-panel" class="mateu-btn mateu-btn-secondary">See admin panel</a>
+    </div>
+  </div>
+</div>
