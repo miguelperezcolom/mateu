@@ -21,10 +21,6 @@ By the end, you will have:
 
 ## The complete code
 
-This is the full example.
-
-### UI and model
-
 ```java
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
@@ -43,346 +39,57 @@ import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-enum ProductStatus {
-    Available, OutOfStock
-}
+enum ProductStatus { Available, OutOfStock }
 
 record Product(
-        @NotEmpty @EditableOnlyWhenCreating String id,
-        @NotEmpty String name,
-        @Stereotype(FieldStereotype.textarea)
-        @HiddenInList String description,
-        @NotNull
-        @Status(
-                defaultStatus = StatusType.NONE,
-                mappings = {
-                        @StatusMapping(from = "Available", to = StatusType.SUCCESS),
-                        @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
-                }
-        )
-        ProductStatus status) implements Identifiable {
-
-    @Override
-    public String toString() {
-        return name != null ? "Product " + name : "New product";
-    }
-}
+  @NotEmpty @EditableOnlyWhenCreating String id,
+  @NotEmpty String name,
+  @Stereotype(FieldStereotype.textarea) @HiddenInList String description,
+  @NotNull @Status(defaultStatus = StatusType.NONE, mappings = {
+    @StatusMapping(from = "Available", to = StatusType.SUCCESS),
+    @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
+  }) ProductStatus status
+) implements Identifiable {}
 
 class ProductRepository implements CrudRepository<Product> {
-
-    private static final Map<String, Product> db = new HashMap<>();
-
-    @Override
-    public Optional<Product> findById(String id) {
-        return db.containsKey(id) ? Optional.of(db.get(id)) : Optional.empty();
-    }
-
-    @Override
-    public String save(Product entity) {
-        db.put(entity.id(), entity);
-        return entity.id();
-    }
-
-    @Override
-    public List<Product> findAll() {
-        return db.values().stream().toList();
-    }
-
-    @Override
-    public void deleteAllById(List<String> selectedIds) {
-        selectedIds.forEach(db::remove);
-    }
+  private static final Map<String, Product> db = new HashMap<>();
+  public Optional<Product> findById(String id) { return Optional.ofNullable(db.get(id)); }
+  public String save(Product entity) { db.put(entity.id(), entity); return entity.id(); }
+  public List<Product> findAll() { return db.values().stream().toList(); }
+  public void deleteAllById(List<String> selectedIds) { selectedIds.forEach(db::remove); }
 }
 
 class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return new ProductRepository();
-    }
+  public CrudRepository<Product> repository() { return new ProductRepository(); }
 }
 
 @UI("/products")
 public class Products extends AutoCrudOrchestrator<Product> {
-
-    @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return new ProductAdapter();
-    }
+  public AutoCrudAdapter<Product> simpleAdapter() { return new ProductAdapter(); }
 }
 ```
-
-### `pom.xml`
-
-This example assumes a Spring Boot MVC project with Mateu dependencies.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
-        <relativePath/>
-    </parent>
-    <groupId>io.mateu.mdd</groupId>
-    <artifactId>demo-admin-panel</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>demo-admin-panel</name>
-    <description>demo-admin-panel</description>
-
-    <properties>
-        <java.version>21</java.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-mvc</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <annotationProcessorPaths>
-                                <path>
-                                    <groupId>org.projectlombok</groupId>
-                                    <artifactId>lombok</artifactId>
-                                </path>
-                                <path>
-                                    <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
-                                </path>
-                            </annotationProcessorPaths>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <annotationProcessorPaths>
-                                <path>
-                                    <groupId>org.projectlombok</groupId>
-                                    <artifactId>lombok</artifactId>
-                                </path>
-                                <path>
-                                    <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
-                                </path>
-                            </annotationProcessorPaths>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-```
-
----
-
-## How to run it
-
-```bash
-mvn spring-boot:run
-```
-
-Open:
-
-```text
-http://localhost:8080/products
-```
-
----
-
-## What this generates
-
-With those classes, Mateu gives you:
-
-- a list page
-- create and edit forms
-- validation from Bean Validation annotations
-- visual status rendering
-- delete confirmation
-- standard CRUD actions
 
 ---
 
 ## Walkthrough
 
-### 1. Product list
-
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
-
-The list is generated automatically from your model and repository.
-
-Notice how:
-
-- `status` is rendered visually
-- `description` is hidden from the list
-- standard actions are already available
-
----
-
-### 2. New product form
 
 ![Empty new product form](/images/docs/admin-panel/new-product-form-empty.png)
 
-Mateu generates the form from the `Product` record.
-
-Here you can already see several conventions at work:
-
-- `id` is editable when creating
-- `name` is required
-- `description` uses a textarea because of `@Stereotype(FieldStereotype.textarea)`
-- `status` becomes a selector from the enum
-
----
-
-### 3. Filled form
-
 ![Filled product form](/images/docs/admin-panel/add-second-product-filled-form.png)
-
-The developer did not build this form manually.
-
-The model drives:
-
-- which fields appear
-- their order
-- their validation
-- their rendering type
-
----
-
-### 4. Save feedback
 
 ![Saved message](/images/docs/admin-panel/add-second-product-saved.png)
 
-After saving, the UI shows feedback automatically.
-
----
-
-### 5. Back to the list
-
 ![Back to list after save](/images/docs/admin-panel/add-second-product-back-to-list.png)
-
-The new product is now available in the list.
-
----
-
-### 6. Select a row to delete
 
 ![Select product in list](/images/docs/admin-panel/select-second-product-on-list.png)
 
-Selection and batch actions are already integrated into the CRUD flow.
-
----
-
-### 7. Confirm deletion
-
 ![Delete confirmation](/images/docs/admin-panel/confirm-deletion.png)
 
-Delete confirmation is part of the generated experience, so you do not need to handcraft this common interaction.
-
----
-
-### 8. Product deleted
-
 ![Product deleted](/images/docs/admin-panel/second-product-has-been-deleted.png)
-
-The list updates after deletion.
-
-You end up with a complete CRUD cycle:
-
-- list
-- create
-- edit
-- delete
-
----
-
-## Why this matters
-
-In a traditional stack, this usually means building and maintaining:
-
-- backend
-- API
-- frontend views
-- state management
-- forms
-- validation
-- repeated wiring between layers
-
-With Mateu:
-
-👉 everything comes from the model plus a thin adapter layer
 
 ---
 
@@ -393,20 +100,3 @@ With Mateu:
 - repository → persistence
 - adapter → connection point
 - orchestrator → full CRUD flow
-
----
-
-## When to use this pattern
-
-This pattern is a strong fit for:
-
-- admin panels
-- internal tools
-- backoffice UIs
-- systems where speed and maintainability matter more than pixel-perfect custom frontend work
-
----
-
-## Next
-
-👉 [Build a real CRUD with relationships →](/java-user-manual/build-a-real-crud-with-relationships)

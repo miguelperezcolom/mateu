@@ -1,4 +1,3 @@
-/* Mateu landing */
 .mateu-container{max-width:1100px;margin:0 auto;padding:0 1rem}
 .mateu-section{padding:2.5rem 1rem}
 .mateu-hero{padding:3rem 0 2rem}
@@ -27,7 +26,4 @@
 .mateu-panel-muted{background:rgba(0,0,0,.03)}
 .mateu-panel-strong{background:rgba(0,0,0,.06)}
 .mateu-cta{padding:2rem;border-radius:1.25rem;background:rgba(0,0,0,.05);text-align:center}
-@media (max-width: 900px){
-  .mateu-grid-hero,.mateu-grid-2,.mateu-grid-3,.mateu-grid-4{grid-template-columns:1fr}
-  .mateu-hero h1{font-size:2.3rem}
-}
+@media (max-width: 900px){.mateu-grid-hero,.mateu-grid-2,.mateu-grid-3,.mateu-grid-4{grid-template-columns:1fr}.mateu-hero h1{font-size:2.3rem}}

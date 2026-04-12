@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/use-cases/rra", parentRoute="^$")
+@Route(value="/use-cases/rra", parentRoute="/fluent")
 public class RRA implements AppSupplier {
 
     @Override
