@@ -1,3 +1,10 @@
+---
+title: "Rules"
+weight: 1
+aliases:
+  - /java-user-manual/rules/
+---
+
 # Rules
 
-Dynamic UI behavior.
+Advanced Mateu topic.
