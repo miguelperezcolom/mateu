@@ -4,6 +4,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
@@ -63,7 +64,7 @@ public abstract class StateSupplierLayer<
 
   protected Map<String, Object> toMap(Object instance) {
     var map = fromJson(toJson(instance));
-    getAllFields(instance.getClass()).stream()
+    getAllEditableFields(instance.getClass()).stream()
         .filter(
             field ->
                 !isBasic(field.getType())

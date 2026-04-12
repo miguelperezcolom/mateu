@@ -12,6 +12,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.StatusType;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -74,6 +75,9 @@ public class DataComponentToDtoMapper {
   public static Map<String, Object> mapPojo(Object item) {
     Map<String, Object> map = new HashMap<>();
     for (Field field : item.getClass().getDeclaredFields()) {
+      if (!item.getClass().isRecord() && Modifier.isFinal(field.getModifiers())) {
+        continue;
+      }
       if (field.isAnnotationPresent(Status.class)) {
         var ann = field.getAnnotation(Status.class);
         Map<String, StatusType> mapping = new HashMap<>();
