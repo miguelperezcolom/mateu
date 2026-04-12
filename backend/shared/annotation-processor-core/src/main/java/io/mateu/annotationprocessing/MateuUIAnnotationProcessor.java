@@ -1,6 +1,7 @@
 package io.mateu.annotationprocessing;
 
 import static io.mateu.annotationprocessing.RouteAnnotationProcessor.createRouteHandler;
+import static io.mateu.annotationprocessing.RouteAnnotationProcessor.toRegex;
 
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
@@ -70,7 +71,17 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               caption,
               path);
           List<io.mateu.uidl.interfaces.RouteValue> routes =
-              List.of(new io.mateu.uidl.interfaces.RouteValue("", "", "^$", "_empty"));
+              Arrays.stream(e.getAnnotationsByType(UI.class))
+                  .map(
+                      routeAnnotation ->
+                          new io.mateu.uidl.interfaces.RouteValue(
+                              routeAnnotation.value(),
+                              "_empty",
+                              toRegex(routeAnnotation.value()),
+                              toRegex("_empty")))
+                  .toList();
+          //          List<io.mateu.uidl.interfaces.RouteValue> routes =
+          //              List.of(new io.mateu.uidl.interfaces.RouteValue("", "", "^$", "_empty"));
 
           createRouteHandler(
               className + "UIRouteResolver",

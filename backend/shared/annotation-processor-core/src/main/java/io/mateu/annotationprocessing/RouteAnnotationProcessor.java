@@ -74,7 +74,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
     return true;
   }
 
-  private String toRegex(String route) {
+  public static String toRegex(String route) {
     return Arrays.stream(route.split("/"))
         .map(token -> token.startsWith(":") ? ".*" : token)
         .collect(Collectors.joining("/"));

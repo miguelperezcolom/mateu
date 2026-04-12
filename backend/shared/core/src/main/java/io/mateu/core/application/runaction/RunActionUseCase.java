@@ -351,6 +351,9 @@ public class RunActionUseCase {
 
   @SneakyThrows
   private Mono<?> resolveAbsoluteRoute(String rawRoute, RunActionCommand command) {
+    if ("".equals(rawRoute)) {
+      rawRoute = command.baseUrl();
+    }
     var route = removeQueryParamsFromRoute(rawRoute);
     for (RouteResolver resolver :
         beanProvider.getBeans(RouteResolver.class).stream()
