@@ -5,8 +5,9 @@ weight: 1
 
 # Getting started
 
-> ⚠️ This is a minimal example.
->
-> For a real application, start with the [Quickstart →](/java-user-manual/getting-started/quickstart)
+There are two good ways to start with Mateu:
 
-Mateu lets you define UIs using plain Java.
+- [Quickstart](/java-user-manual/getting-started/quickstart) if you want to build something real immediately
+- [Your first Mateu app with Spring Boot](/java-user-manual/your-first-mateu-app) if you want a slower conceptual introduction
+
+For most developers, the best entry point is the quickstart.

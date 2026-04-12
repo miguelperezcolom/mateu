@@ -9,17 +9,31 @@ This example shows how to build a complete CRUD UI from a Java model.
 
 It is a real example, not a toy snippet.
 
-By the end, you will have:
+---
 
-- a product list
-- create and edit forms
-- validation
-- visual status badges
-- delete confirmation
+## What this case teaches
+
+- how a model becomes a form and a list
+- how validation propagates to the UI
+- how Mateu handles standard CRUD flow
+- how little code is needed for a useful backoffice screen
 
 ---
 
-## The complete code
+## Quick read
+
+The example has four pieces:
+
+- a `Product` model
+- a `ProductRepository`
+- a `ProductAdapter`
+- a `Products` UI class
+
+Together, they generate a complete CRUD UI.
+
+---
+
+## Full code
 
 ```java
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
@@ -39,35 +53,77 @@ import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-enum ProductStatus { Available, OutOfStock }
+enum ProductStatus {
+    Available, OutOfStock
+}
 
 record Product(
-  @NotEmpty @EditableOnlyWhenCreating String id,
-  @NotEmpty String name,
-  @Stereotype(FieldStereotype.textarea) @HiddenInList String description,
-  @NotNull @Status(defaultStatus = StatusType.NONE, mappings = {
-    @StatusMapping(from = "Available", to = StatusType.SUCCESS),
-    @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
-  }) ProductStatus status
-) implements Identifiable {}
+        @NotEmpty @EditableOnlyWhenCreating String id,
+        @NotEmpty String name,
+        @Stereotype(FieldStereotype.textarea)
+        @HiddenInList String description,
+        @NotNull
+        @Status(
+                defaultStatus = StatusType.NONE,
+                mappings = {
+                        @StatusMapping(from = "Available", to = StatusType.SUCCESS),
+                        @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
+                }
+        )
+        ProductStatus status) implements Identifiable {
+
+    @Override
+    public String toString() {
+        return name != null ? "Product " + name : "New product";
+    }
+}
 
 class ProductRepository implements CrudRepository<Product> {
-  private static final Map<String, Product> db = new HashMap<>();
-  public Optional<Product> findById(String id) { return Optional.ofNullable(db.get(id)); }
-  public String save(Product entity) { db.put(entity.id(), entity); return entity.id(); }
-  public List<Product> findAll() { return db.values().stream().toList(); }
-  public void deleteAllById(List<String> selectedIds) { selectedIds.forEach(db::remove); }
+
+    private static final Map<String, Product> db = new HashMap<>();
+
+    @Override
+    public Optional<Product> findById(String id) {
+        return db.containsKey(id) ? Optional.of(db.get(id)) : Optional.empty();
+    }
+
+    @Override
+    public String save(Product entity) {
+        db.put(entity.id(), entity);
+        return entity.id();
+    }
+
+    @Override
+    public List<Product> findAll() {
+        return db.values().stream().toList();
+    }
+
+    @Override
+    public void deleteAllById(List<String> selectedIds) {
+        selectedIds.forEach(db::remove);
+    }
 }
 
 class ProductAdapter extends AutoCrudAdapter<Product> {
-  public CrudRepository<Product> repository() { return new ProductRepository(); }
+
+    @Override
+    public CrudRepository<Product> repository() {
+        return new ProductRepository();
+    }
 }
 
 @UI("/products")
 public class Products extends AutoCrudOrchestrator<Product> {
-  public AutoCrudAdapter<Product> simpleAdapter() { return new ProductAdapter(); }
+
+    @Override
+    public AutoCrudAdapter<Product> simpleAdapter() {
+        return new ProductAdapter();
+    }
 }
 ```
 
@@ -75,15 +131,29 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ## Walkthrough
 
+### Product list
+
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
+
+The list is generated automatically from the model and repository.
+
+### New product form
 
 ![Empty new product form](/images/docs/admin-panel/new-product-form-empty.png)
 
+### Filled form
+
 ![Filled product form](/images/docs/admin-panel/add-second-product-filled-form.png)
+
+### Save feedback
 
 ![Saved message](/images/docs/admin-panel/add-second-product-saved.png)
 
+### Back to list
+
 ![Back to list after save](/images/docs/admin-panel/add-second-product-back-to-list.png)
+
+### Delete flow
 
 ![Select product in list](/images/docs/admin-panel/select-second-product-on-list.png)
 
@@ -100,3 +170,10 @@ public class Products extends AutoCrudOrchestrator<Product> {
 - repository → persistence
 - adapter → connection point
 - orchestrator → full CRUD flow
+
+---
+
+## Next
+
+- 👉 [State, actions and fields](/java-user-manual/state-actions-and-fields)
+- 👉 [Validation](/java-user-manual/validation)

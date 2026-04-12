@@ -1,34 +1,17 @@
 ---
 title: "Your first Mateu app with Spring Boot"
-weight: 1
+weight: 2
 ---
 
 # Your first Mateu app with Spring Boot
 
-In this tutorial, you'll build your first Mateu UI using Spring Boot.
+This tutorial is a slower introduction than the quickstart.
 
-By the end, you'll have:
-
-- a running application
-- a working UI
-- a form with validation
-- a button with behavior
-- user feedback in the browser
+If you want to build something real first, go to the [Quickstart](/java-user-manual/getting-started/quickstart).
 
 ---
 
-## 1. Create a Spring Boot project
-
-Create a standard Spring Boot project.
-
-Minimal dependencies:
-
-- Spring Web
-- Mateu dependencies
-
----
-
-## 2. Create your first UI
+## 1. Create a UI class
 
 ```java
 @UI("")
@@ -39,11 +22,13 @@ public class Home {
 
 Run your app and open:
 
+```text
 http://localhost:8080
+```
 
 ---
 
-## 3. Add state
+## 2. Add state
 
 ```java
 String name;
@@ -53,28 +38,16 @@ Mateu renders a form field automatically.
 
 ---
 
-## 4. Add validation
+## 3. Add validation
 
 ```java
 @NotEmpty
 String name;
 ```
 
-Validation runs in the browser.
-
 ---
 
-## 5. Add an action
-
-```java
-@Button
-public void greet() {
-}
-```
-
----
-
-## 6. Return feedback
+## 4. Add an action
 
 ```java
 @Button
@@ -85,46 +58,20 @@ public Message greet() {
 
 ---
 
-## 7. Layout
-
-```java
-@FormLayout(columns = 2)
-public class Home {
-  @NotEmpty
-  String name;
-}
-```
-
----
-
-## 8. Toolbar action
-
-```java
-@Toolbar
-public Message reset() {
-  name = null;
-  return new Message("Reset");
-}
-```
-
----
-
-## 9. What happened
+## 5. What happened?
 
 You defined:
 
 - UI
 - state
 - validation
-- actions
-- feedback
+- behavior
 
-Mateu handled everything else.
+Mateu handled rendering and browser interaction.
 
 ---
 
-## 10. Next
+## Next
 
-Continue with:
-
-Build a real CRUD
+- 👉 [Quickstart](/java-user-manual/getting-started/quickstart)
+- 👉 [State, actions and fields](/java-user-manual/state-actions-and-fields)

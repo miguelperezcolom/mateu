@@ -25,7 +25,7 @@ A fully functional product admin panel with:
 
 ## 1. Add Mateu to your project
 
-Add dependencies:
+Add Mateu dependencies to your Spring Boot MVC project:
 
 ```xml
 <dependency>
@@ -59,7 +59,22 @@ record Product(
 
 ---
 
-## 3. Create the UI
+## 3. Connect Mateu to your data
+
+```java
+class ProductAdapter extends AutoCrudAdapter<Product> {
+
+  @Override
+  public CrudRepository<Product> repository() {
+    return new ProductRepository();
+  }
+
+}
+```
+
+---
+
+## 4. Create the UI
 
 ```java
 @UI("/products")
@@ -75,7 +90,7 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ---
 
-## 4. Run
+## 5. Run
 
 ```bash
 mvn spring-boot:run
@@ -89,14 +104,33 @@ http://localhost:8080/products
 
 ---
 
-## 🎉 Result
+## Result
 
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
 
-You now have:
+---
 
-- a working admin panel
+## What just happened?
+
+You defined:
+
+- a model
+- an adapter
+- a UI entry point
+
+Mateu generated:
+
 - forms
-- validation
 - CRUD
+- validation
 - navigation
+- user interactions
+
+👉 model + adapter + orchestrator = complete business UI
+
+---
+
+## Next
+
+- 👉 [See the full admin panel example →](/java-user-manual/use-cases/admin-panel)
+- 👉 [Learn the core model →](/java-user-manual/state-actions-and-fields)
