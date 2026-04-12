@@ -1,3 +1,3 @@
 # Domain Models
 
-Domain → UI.
+Content.

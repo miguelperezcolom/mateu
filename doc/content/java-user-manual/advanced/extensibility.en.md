@@ -1,3 +1,3 @@
 # Extensibility
 
-Customize.
+Content.

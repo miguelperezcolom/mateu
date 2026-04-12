@@ -1,3 +1,3 @@
 # Security
 
-Auth.
+Content.

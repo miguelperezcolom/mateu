@@ -1,3 +1,3 @@
 # Breadcrumbs
 
-Navigation.
+Content.

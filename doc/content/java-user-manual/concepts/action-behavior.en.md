@@ -1,3 +1,3 @@
 # Action Behavior
 
-Actions define behavior.
+Content.

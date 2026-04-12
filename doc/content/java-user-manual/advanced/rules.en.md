@@ -1,3 +1,3 @@
 # Rules
 
-Conditional behavior.
+Content.
