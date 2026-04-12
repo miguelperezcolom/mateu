@@ -25,6 +25,7 @@
     <module>demo-vaadin-micronaut</module>
     <module>demo-vaadin-helidon-mp</module>
     <module>demo-vaadin-kotlin-mvc</module>
+    <module>demo-admin-panel</module>
   </modules>
 
 </project>

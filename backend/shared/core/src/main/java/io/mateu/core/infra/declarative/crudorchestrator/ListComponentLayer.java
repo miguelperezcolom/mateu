@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 
+import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
@@ -31,7 +32,7 @@ public abstract class ListComponentLayer<
     addButtons(toolbar);
     if (!readOnly()) {
       toolbar.add(new Button("New", "new"));
-      if (Deleteable.class.isAssignableFrom(viewClass())) {
+      if (this instanceof AutoCrudOrchestrator || Deleteable.class.isAssignableFrom(viewClass())) {
         toolbar.add(
             Button.builder()
                 .label("Delete")

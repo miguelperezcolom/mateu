@@ -276,8 +276,8 @@ public class ReflectionPageMapper {
     return GridColumn.builder()
         .id(field.getName())
         .label(getLabel(field))
-        .dataType(getDataType(field))
-        .stereotype(getStereotype(field))
+        .dataType(getDataTypeForColumn(field))
+        .stereotype(getStereotypeForColumn(field))
         .style(getColumnStyle(field))
         .build();
   }

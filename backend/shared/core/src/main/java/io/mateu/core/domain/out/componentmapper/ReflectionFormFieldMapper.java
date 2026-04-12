@@ -489,7 +489,7 @@ public class ReflectionFormFieldMapper {
     return null;
   }
 
-  private static FieldDataType getDataTypeForColumn(Field columnField) {
+  public static FieldDataType getDataTypeForColumn(Field columnField) {
     if (Status.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.status;
     }
@@ -512,7 +512,7 @@ public class ReflectionFormFieldMapper {
     return FieldDataType.string;
   }
 
-  private static FieldStereotype getStereotypeForColumn(Field columnField) {
+  public static FieldStereotype getStereotypeForColumn(Field columnField) {
     if (columnField.isAnnotationPresent(Stereotype.class)) {
       return columnField.getAnnotation(Stereotype.class).value();
     }
@@ -671,12 +671,7 @@ public class ReflectionFormFieldMapper {
     /*
     money
            */
-    if (field.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
-      return FieldDataType.status;
-    }
-    if (field.isAnnotationPresent(MappedValue.class)) {
-      return FieldDataType.string;
-    }
+
     if (String.class.equals(field.getType())) {
       return FieldDataType.string;
     }
