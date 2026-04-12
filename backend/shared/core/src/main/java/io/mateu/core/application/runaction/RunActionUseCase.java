@@ -424,7 +424,7 @@ public class RunActionUseCase {
           isApp = true;
         }
         if (!isApp) {
-            command.httpRequest().setAttribute("resolvedRoute", route);
+          command.httpRequest().setAttribute("resolvedRoute", route);
           var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
           return createInstance(
                   instanceTypeName,

@@ -142,7 +142,7 @@ public class ReflectionObjectToComponentMapper {
         || instance instanceof ListingBackend<?, ?>
         || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
-            || instance.getClass().isRecord()
+        || instance.getClass().isRecord()
         || (!isBasic(instance) && (hasSomething(instance)));
   }
 
