@@ -156,3 +156,12 @@ The Java manual is already organized as a guided path:
 Mateu turns backend objects into real business UIs through a simple model, a small API and a renderer.
 
 [Open the Java manual →](/java-user-manual/)
+
+
+---
+
+## Community
+
+Mateu is evolving. Join the community:
+
+👉 **[Join our Discord](https://discord.gg/2E34heWF)**
