@@ -372,7 +372,7 @@ public class RunActionUseCase {
                     field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class))) {
           isApp = true;
         }
-        if (!isApp) {
+        if (true || !isApp) {
           command.httpRequest().setAttribute("resolvedRoute", route);
           var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
           return createInstance(
@@ -407,7 +407,11 @@ public class RunActionUseCase {
             .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
             .toList()
             .reversed()) {
-      if (resolver.supportsRoute(route, command.consumedRoute())) {
+      var consumedRoute = command.consumedRoute();
+      if (command.baseUrl().equals(command.consumedRoute())) {
+        consumedRoute = "";
+      }
+      if (resolver.supportsRoute(route, consumedRoute)) {
         var instanceTypeName =
             resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();
         var type = Class.forName(instanceTypeName);
@@ -534,8 +538,12 @@ public class RunActionUseCase {
     for (String token : command.route().split("/")) {
       var nextRoute = currentRoute + token;
       if ("_empty".equals(command.consumedRoute())
-          || (!nextRoute.isEmpty() && nextRoute.length() >= command.consumedRoute().length()))
-        routes.add(nextRoute);
+          || command.baseUrl().equals(command.consumedRoute())
+          || (!nextRoute.isEmpty() && nextRoute.length() >= command.consumedRoute().length())) {
+        if (!command.baseUrl().equals(command.consumedRoute()) || !"".equals(nextRoute)) {
+          routes.add(nextRoute);
+        }
+      }
       currentRoute.append(token).append("/");
     }
     return routes;

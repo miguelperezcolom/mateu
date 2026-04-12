@@ -71,17 +71,25 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               caption,
               path);
           List<io.mateu.uidl.interfaces.RouteValue> routes =
-              Arrays.stream(e.getAnnotationsByType(UI.class))
-                  .map(
-                      routeAnnotation ->
-                          new io.mateu.uidl.interfaces.RouteValue(
-                              routeAnnotation.value(),
-                              "_empty",
-                              toRegex(routeAnnotation.value()),
-                              toRegex("_empty")))
-                  .toList();
-          //          List<io.mateu.uidl.interfaces.RouteValue> routes =
-          //              List.of(new io.mateu.uidl.interfaces.RouteValue("", "", "^$", "_empty"));
+              new ArrayList<>(
+                  Arrays.stream(e.getAnnotationsByType(UI.class))
+                      .map(
+                          routeAnnotation ->
+                              new io.mateu.uidl.interfaces.RouteValue(
+                                  routeAnnotation.value(),
+                                  "_empty",
+                                  toRegex(routeAnnotation.value()),
+                                  toRegex("_empty")))
+                      .toList());
+          Arrays.stream(e.getAnnotationsByType(UI.class))
+              .map(
+                  routeAnnotation ->
+                      new io.mateu.uidl.interfaces.RouteValue(
+                          routeAnnotation.value(),
+                          "_empty",
+                          toRegex(routeAnnotation.value() + ".*"),
+                          toRegex("_empty")))
+              .forEach(routes::add);
 
           createRouteHandler(
               className + "UIRouteResolver",
