@@ -31,13 +31,13 @@ Add Mateu dependencies to your Spring Boot MVC project:
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>mvc-core</artifactId>
-  <version>0.0.1-MATEU</version>
+  <version>{{< java-artifact-version >}}</version>
 </dependency>
 
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>annotation-processor-mvc</artifactId>
-  <version>0.0.1-MATEU</version>
+  <version>{{< java-artifact-version >}}</version>
 </dependency>
 ```
 
