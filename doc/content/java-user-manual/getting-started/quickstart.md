@@ -3,49 +3,25 @@ title: "Quickstart"
 weight: 1
 ---
 
-# Quickstart
+# Build an admin panel in minutes
 
-Build a complete admin panel in minutes.
+This guide shows how to create a real UI using Mateu.
 
-No frontend required.
+No frontend. No API layer. Just Java.
 
 ---
 
-## What you'll build
-
-A fully functional product admin panel with:
+## What you get
 
 - product list
-- create / edit forms
+- forms
 - validation
-- status badges
-- delete confirmation
+- CRUD
+- navigation
 
 ---
 
-## 1. Add Mateu to your project
-
-Add dependencies:
-
-```xml
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>mvc-core</artifactId>
-  <version>0.0.1-MATEU</version>
-</dependency>
-
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>annotation-processor-mvc</artifactId>
-  <version>0.0.1-MATEU</version>
-</dependency>
-```
-
-If you use Spring Boot MVC, your `pom.xml` will also include Spring Boot and configure the Mateu annotation processor during compilation.
-
----
-
-## 2. Define your model
+## 1. Model
 
 ```java
 enum ProductStatus {
@@ -61,7 +37,7 @@ record Product(
 
 ---
 
-## 3. Create the UI
+## 2. UI
 
 ```java
 @UI("/products")
@@ -77,7 +53,7 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ---
 
-## 4. Run
+## 3. Run
 
 ```bash
 mvn spring-boot:run
@@ -85,42 +61,26 @@ mvn spring-boot:run
 
 Open:
 
-```text
 http://localhost:8080/products
-```
 
 ---
 
-## 🎉 Result
+## Result
 
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
 
-You now have:
-
-- a working admin panel
-- forms
-- validation
-- CRUD
-- navigation
+👉 You just built a full admin panel.
 
 ---
 
-## 🧠 What just happened?
+## Why this is different
 
 You defined a model.
 
-Mateu generated:
-
-- UI
-- layout
-- forms
-- validation
-- interactions
-
-👉 One model → full UI
+Mateu generated everything else.
 
 ---
 
 ## Next
 
-👉 [See full example → Admin panel](/java-user-manual/use-cases/admin-panel)
+👉 Admin panel deep dive
