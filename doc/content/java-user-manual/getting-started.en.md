@@ -27,3 +27,13 @@ public class Counter {
 ```
 
 This defines a working UI.
+
+## Actions
+
+Actions can be defined in multiple ways:
+
+- as `Runnable` fields
+- as methods annotated with `@Toolbar`
+- as methods annotated with `@Button`
+
+This gives you flexibility in how actions are rendered and positioned.

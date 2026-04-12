@@ -41,6 +41,8 @@ Add dependencies:
 </dependency>
 ```
 
+If you use Spring Boot MVC, your `pom.xml` will also include Spring Boot and configure the Mateu annotation processor during compilation.
+
 ---
 
 ## 2. Define your model
@@ -83,11 +85,15 @@ mvn spring-boot:run
 
 Open:
 
+```text
 http://localhost:8080/products
+```
 
 ---
 
 ## 🎉 Result
+
+![Products list](/images/docs/admin-panel/products-list.jpeg)
 
 You now have:
 

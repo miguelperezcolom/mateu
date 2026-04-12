@@ -16,9 +16,9 @@ Mateu lets you define complete UIs in plain Java.
 
 ## Start here
 
-- 👉 Quickstart
-- 👉 Admin panel
-- 👉 Real CRUD example
+- 👉 [Quickstart](/java-user-manual/getting-started/quickstart)
+- 👉 [Admin panel](/java-user-manual/use-cases/admin-panel)
+- 👉 [Build a real CRUD with relationships](/java-user-manual/build-a-real-crud-with-relationships)
 
 ## Core concepts
 
