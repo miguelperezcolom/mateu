@@ -1,3 +1,17 @@
-# Application Shell
+# Application shell
 
-Define global navigation and layout.
+
+The shell defines navigation and composition.
+
+```java
+@UI("")
+public class Home {
+}
+```
+
+Use it to:
+
+- define menus
+- compose modules
+- create entry points
+

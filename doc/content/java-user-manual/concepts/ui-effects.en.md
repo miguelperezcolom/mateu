@@ -1,3 +1,3 @@
 # Ui Effects
 
-UI reacts automatically to state changes.
+UI reacts to state.

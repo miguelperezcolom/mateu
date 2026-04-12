@@ -1,3 +1,3 @@
 # Navigation And Menus
 
-Menus derived from UI definitions.
+Menus from UI.

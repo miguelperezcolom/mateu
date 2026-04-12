@@ -1,3 +1,3 @@
 # Testing
 
-Test UI logic.
+Test logic.

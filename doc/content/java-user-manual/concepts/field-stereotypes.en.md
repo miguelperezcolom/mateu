@@ -1,5 +1,3 @@
 # Field Stereotypes
 
-Control rendering using stereotypes.
-
-Example: textarea, date, etc.
+Control rendering of fields.

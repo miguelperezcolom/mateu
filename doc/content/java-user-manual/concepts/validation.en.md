@@ -1,5 +1,13 @@
 # Validation
 
-Validation annotations directly impact UI.
 
-Example: @NotEmpty makes field required.
+Validation annotations directly affect UI behavior.
+
+```java
+@NotEmpty
+String name;
+```
+
+→ field becomes required  
+→ validation errors are shown automatically
+

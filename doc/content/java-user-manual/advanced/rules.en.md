@@ -1,3 +1,3 @@
 # Rules
 
-Dynamic conditions.
+Conditional behavior.

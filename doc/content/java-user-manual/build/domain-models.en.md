@@ -1,3 +1,3 @@
 # Domain Models
 
-Map domain to UI.
+Domain → UI.

@@ -1,3 +1,3 @@
 # Security
 
-Auth and access.
+Auth.

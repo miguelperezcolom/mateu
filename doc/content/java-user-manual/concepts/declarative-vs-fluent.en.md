@@ -1,3 +1,3 @@
 # Declarative Vs Fluent
 
-Declarative (annotations) vs fluent APIs.
+Prefer declarative annotations.

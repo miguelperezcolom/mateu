@@ -1,7 +1,30 @@
-# State Actions And Fields
+# State, actions and fields
 
-Explain how Mateu models UI using state, actions and fields.
 
-- state = fields
-- actions = methods
-- UI derived automatically
+Mateu models UI using three core concepts:
+
+## State
+Fields define UI state.
+
+```java
+String name;
+```
+
+→ becomes an input field.
+
+## Actions
+Methods define behavior.
+
+```java
+@Button
+public Message greet() {
+  return new Message("Hello " + name);
+}
+```
+
+## Result
+
+State + actions = full UI.
+
+Mateu generates forms, buttons and interactions automatically.
+

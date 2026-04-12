@@ -1,3 +1,3 @@
 # Foreign Keys And Options
 
-Handle relationships.
+Handle relations.
