@@ -23,30 +23,75 @@ Instead of:
 You get:
 
 👉 each microservice owns its UI  
-👉 the shell composes them into one app  
+👉 the shell composes them into one app
 
 ---
 
-## 🧱 Architecture
+## Login and shell
 
-```
-+----------------------+
-|      Shell UI        |
-|----------------------|
-| Users | Orders | ... |
-+----------+-----------+
-           |
-   ---------------------
-   |         |         |
-Users UI  Orders UI  Products UI
-(service) (service)   (service)
-```
+Authentication can be handled centrally in the shell.
+
+![Login](/images/docs/distributed/distributed-login.jpeg)
+
+After login, users enter a single unified backoffice.
+
+![Home](/images/docs/distributed/distributed-home.jpeg)
 
 ---
 
-## 🖥️ 1. The shell
+## Composed navigation
 
-The shell defines navigation and integrates remote UIs.
+The shell exposes a single navigation bar, but each section can come from a different service.
+
+### Users menu
+
+![Users menu](/images/docs/distributed/distributed-users-menu.jpeg)
+
+### Content menu
+
+![Content menu](/images/docs/distributed/distributed-content-menu.jpeg)
+
+### Control plane menu
+
+![Control plane menu](/images/docs/distributed/distributed-control-plane-menu.jpeg)
+
+### Workflow menu
+
+![Workflow menu](/images/docs/distributed/distributed-workflow-menu.jpeg)
+
+### Forms menu
+
+![Forms menu](/images/docs/distributed/distributed-forms-menu.jpeg)
+
+---
+
+## Example modules
+
+Each module is owned by a different service but rendered inside the same shell.
+
+### Users module
+
+![Users CRUD](/images/docs/distributed/distributed-users-crud.jpeg)
+
+### Content module
+
+![Content CRUD](/images/docs/distributed/distributed-content-sample-crud.jpeg)
+
+### Control plane module
+
+![Control plane view](/images/docs/distributed/distributed-control-plane-sample-view.jpeg)
+
+### Forms module
+
+![Forms CRUD](/images/docs/distributed/distributed-forms-sample-crud.jpeg)
+
+### Workflow module
+
+![Workflow CRUD](/images/docs/distributed/distributed-workflow-sample-crud.jpeg)
+
+---
+
+## Minimal shell example
 
 ```java
 @UI("")
@@ -59,10 +104,10 @@ public class ShellHome {
     "/users"
   );
 
-  RemoteMenu products = new RemoteMenu(
-    "Products",
+  RemoteMenu content = new RemoteMenu(
+    "Content",
     "http://localhost:8082",
-    "/products"
+    "/content"
   );
 
 }
@@ -70,21 +115,7 @@ public class ShellHome {
 
 ---
 
-## 🧠 What this does
-
-- creates a navigation menu
-- each entry points to a remote UI
-- Mateu loads and integrates them automatically
-
-👉 No frontend composition needed
-
----
-
-## 🧩 2. A microservice UI
-
-Each service defines its own UI.
-
-Example: `users-service`
+## Minimal service example
 
 ```java
 @UI("/users")
@@ -100,104 +131,48 @@ public class Users extends AutoCrudOrchestrator<User> {
 
 ---
 
-## 🚀 3. Run everything
-
-Start:
-
-- shell → `localhost:8080`
-- users-service → `localhost:8081`
-- products-service → `localhost:8082`
-
-Open:
-
-```
-http://localhost:8080
-```
-
----
-
-## ⚡ Result
-
-You get:
-
-- one unified UI
-- navigation across services
-- independent deployment per service
-
----
-
-## 🔥 Why this matters
+## Why this matters
 
 In a traditional architecture:
 
-- frontend must integrate all services
-- teams must coordinate UI changes
-- models are duplicated across layers
+- the frontend must integrate all services
+- teams must coordinate UI changes centrally
+- models get duplicated across layers
 
 With Mateu:
 
-👉 each service defines its own UI  
-👉 no frontend integration layer  
-👉 no duplicated models  
+- each service defines its own UI
+- the shell composes them into one experience
+- there is no separate frontend integration layer
 
 ---
 
-## 🧠 Ownership model
+## Ownership model
 
-| Concern        | Owner              |
-|----------------|-------------------|
-| UI of users    | users-service     |
-| UI of products | products-service  |
-| navigation     | shell             |
-| security       | shell             |
-
----
-
-## 🏢 Real-world version
-
-In a real setup, the shell can also define:
-
-```java
-@KeycloakSecured
-@Logo("/logo.png")
-@FavIcon("/favicon.ico")
-```
-
-And services can still define their own UI independently.
+| Concern | Owner |
+|---|---|
+| Users UI | users-service |
+| Content UI | content-service |
+| Workflow UI | workflow-service |
+| Forms UI | forms-service |
+| Navigation | shell |
+| Security | shell |
 
 ---
 
-## 🔌 Advanced: embedded UIs
+## When to use this
 
-You can also embed parts of UIs:
-
-```java
-MicroFrontend dashboard = new MicroFrontend(
-  "http://localhost:8081/dashboard"
-);
-```
-
----
-
-## 🎯 When to use this
-
-This pattern is ideal for:
+This pattern is a strong fit for:
 
 - microservices architectures
 - large teams
-- domain-driven design (bounded contexts)
-- backoffice platforms
+- domain-driven design
+- distributed backoffice platforms
 
 ---
 
-## 🧠 Mental model
+## Mental model
 
 - each service = UI + logic
 - shell = composition + navigation
-- no frontend layer needed
-
----
-
-## Next
-
-👉 Embedded UI example
+- one application experience, multiple service owners
