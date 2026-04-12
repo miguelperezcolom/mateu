@@ -24,7 +24,7 @@ public class Home {
 }
 ```
 
-This defines a screen at the root path (`/`) with a title.
+This defines a screen at the root path (`/`) with a title and a container-style layout.
 
 ---
 
@@ -36,7 +36,7 @@ String name;
 
 Mateu uses fields as UI state.
 
-This automatically creates an input field in the UI.
+This automatically creates a text input field in the UI.
 
 ---
 
