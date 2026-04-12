@@ -64,6 +64,8 @@ Build CRUD-heavy backoffice screens directly from your Java model.
 
 This is the fastest way to understand the value of Mateu.
 
+![Admin panel list](/images/docs/admin-panel/products-list.jpeg)
+
 - [Quickstart →](/java-user-manual/start-here/quickstart/)
 - [Admin panel use case →](/java-user-manual/use-cases/admin-panel/)
 
@@ -72,6 +74,8 @@ This is the fastest way to understand the value of Mateu.
 Let each microservice define its own UI and compose everything in one shell.
 
 This is one of Mateu's most distinctive strengths.
+
+![Distributed backoffice](/images/docs/distributed/distributed-home.jpeg)
 
 - [Distributed backoffice →](/java-user-manual/use-cases/distributed-backoffice/)
 - [UI federation →](/mateu-about/ui-federation)
@@ -82,6 +86,8 @@ This is one of Mateu's most distinctive strengths.
 Use Mateu inside React, Vue, Angular or even plain HTML through a web component.
 
 This makes adoption gradual and low-risk.
+
+![Embedded UI](/images/docs/embedded/embedded-counter.png)
 
 - [Embedded UI →](/java-user-manual/use-cases/embedded-ui/)
 - [Embed →](/mateu-about/embed)
