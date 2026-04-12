@@ -37,6 +37,17 @@ For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mate
 
 ---
 
+## When to use Mateu
+
+Mateu is designed for business applications.
+
+- best for → admin panels, internal tools, distributed backoffices
+- not ideal for → marketing sites or highly custom UIs
+
+👉 [Read when to use Mateu →](/when-to-use-mateu/)
+
+---
+
 ## The core idea
 
 In Mateu, you define:
