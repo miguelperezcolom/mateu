@@ -30,6 +30,7 @@ import io.mateu.uidl.interfaces.Page;
 import jakarta.inject.Named;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.UUID;
 
@@ -141,6 +142,7 @@ public class ReflectionObjectToComponentMapper {
         || instance instanceof ListingBackend<?, ?>
         || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
+            || instance.getClass().isRecord()
         || (!isBasic(instance) && (hasSomething(instance)));
   }
 
@@ -161,6 +163,9 @@ public class ReflectionObjectToComponentMapper {
         return true;
       }
       if (field.isAnnotationPresent(KPI.class)) {
+        return true;
+      }
+      if (!Modifier.isFinal(field.getModifiers())) {
         return true;
       }
     }
