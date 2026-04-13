@@ -360,12 +360,12 @@ public class RunActionUseCase {
             .sorted(Comparator.comparingInt(a -> a.weight(route, command.consumedRoute())))
             .toList()
             .reversed()) {
-        var resolvesTo = resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
-        if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
-            if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
-                continue;
-            }
+      var resolvesTo = resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
+      if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
+        if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
+          continue;
         }
+      }
       if (resolver.supportsRoute(route, "_exact_route")) {
         var instanceTypeName =
             resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();
@@ -419,12 +419,13 @@ public class RunActionUseCase {
       }
       if (resolver.supportsRoute(route, consumedRoute)) {
 
-          var resolvesTo = resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
-          if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
-              if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
-                  continue;
-              }
+        var resolvesTo =
+            resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
+        if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
+          if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
+            continue;
           }
+        }
 
         var instanceTypeName =
             resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();
@@ -505,12 +506,13 @@ public class RunActionUseCase {
             .toList()) {
       if (resolver.supportsRoute(route, command.consumedRoute())) {
 
-          var resolvesTo = resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
-          if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
-              if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
-                  continue;
-              }
+        var resolvesTo =
+            resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest());
+        if (resolvesTo != null && resolvesTo.isAnnotationPresent(UI.class)) {
+          if (!command.baseUrl().equals(resolvesTo.getAnnotation(UI.class).value())) {
+            continue;
           }
+        }
 
         var instanceTypeName =
             resolver.resolveRoute(route, command.consumedRoute(), command.httpRequest()).getName();

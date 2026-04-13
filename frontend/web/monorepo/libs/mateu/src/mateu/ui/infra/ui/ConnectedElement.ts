@@ -31,14 +31,14 @@ export default abstract class ConnectedElement extends LitElement {
         super.connectedCallback()
         this.upstreamSubscription = upstream.subscribe((message: Message) => {
             let applies = false;
-            if (message.callbackToken === this.callbackToken) {
-                if (message.command) {
-                    const command = message.command
-                    if (this.id == command.targetComponentId) {
-                        applies = true
-                        this.applyCommand(command)
-                    }
+            if (message.command) {
+                const command = message.command
+                if (this.id == command.targetComponentId) {
+                    applies = true
+                    this.applyCommand(command)
                 }
+            }
+            if (message.callbackToken === this.callbackToken) {
                 if (message.fragment) {
                     const fragment = message.fragment
                     if (this.id == fragment.targetComponentId) {

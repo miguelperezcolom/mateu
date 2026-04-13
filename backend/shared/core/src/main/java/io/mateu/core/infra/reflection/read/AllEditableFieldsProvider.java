@@ -34,16 +34,16 @@ public final class AllEditableFieldsProvider {
         .filter(AllEditableFieldsProvider::isAccessible)
         .filter(AllEditableFieldsProvider::isNotMenu)
         .filter(AllEditableFieldsProvider::isNotInjected)
-            .filter(AllEditableFieldsProvider::isNotColumnAction)
+        .filter(AllEditableFieldsProvider::isNotColumnAction)
         .toList();
   }
 
-    private static boolean isNotColumnAction(Field field) {
-        return !ColumnAction.class.equals(field.getType())
-                && !ColumnActionGroup.class.equals(field.getType());
-    }
+  private static boolean isNotColumnAction(Field field) {
+    return !ColumnAction.class.equals(field.getType())
+        && !ColumnActionGroup.class.equals(field.getType());
+  }
 
-    private static boolean isNotMenu(Field field) {
+  private static boolean isNotMenu(Field field) {
     return !field.isAnnotationPresent(Menu.class);
   }
 

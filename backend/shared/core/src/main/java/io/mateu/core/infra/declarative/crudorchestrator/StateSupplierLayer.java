@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class StateSupplierLayer<
         View,
@@ -81,21 +80,21 @@ public abstract class StateSupplierLayer<
                 if (value instanceof Class || isBasic(value)) {
                   map.put(field.getName(), value);
                 } else {
-                    if (value instanceof Collection collection) {
-                        map.put(field.getName(), collection.stream().map(this::toMap).toList());
-                    } else if (value.getClass().isArray()) {
-                        Object[] array = (Object[]) value;
-                        map.put(field.getName(), Arrays.stream(array).map(this::toMap).toList());
-                    } else {
-                        var nestedMap =
-                                toMap(value).entrySet().stream()
-                                        .filter(entry -> entry.getValue() != null)
-                                        .collect(
-                                                Collectors.toMap(
-                                                        entry -> field.getName() + "-" + entry.getKey(),
-                                                        Map.Entry::getValue));
-                        map.putAll(nestedMap);
-                    }
+                  if (value instanceof Collection collection) {
+                    map.put(field.getName(), collection.stream().map(this::toMap).toList());
+                  } else if (value.getClass().isArray()) {
+                    Object[] array = (Object[]) value;
+                    map.put(field.getName(), Arrays.stream(array).map(this::toMap).toList());
+                  } else {
+                    var nestedMap =
+                        toMap(value).entrySet().stream()
+                            .filter(entry -> entry.getValue() != null)
+                            .collect(
+                                Collectors.toMap(
+                                    entry -> field.getName() + "-" + entry.getKey(),
+                                    Map.Entry::getValue));
+                    map.putAll(nestedMap);
+                  }
                 }
               }
             });
