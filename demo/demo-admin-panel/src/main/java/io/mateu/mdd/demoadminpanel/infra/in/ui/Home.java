@@ -1,10 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.uidl.StyleConstants;
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
 import jakarta.validation.constraints.NotEmpty;
 
