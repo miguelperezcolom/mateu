@@ -314,7 +314,7 @@ public class ReflectionAppMapper {
       }
     }
     return new FieldLink(
-        appRoute + "/" + field.getName(), getLabel(field), instance.getClass(), field.getName());
+        "/" + field.getName(), getLabel(field), instance.getClass(), field.getName());
   }
 
   private static List<Actionable> completeActionables(String appRoute, List<Actionable> menu) {
