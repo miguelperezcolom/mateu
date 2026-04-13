@@ -396,18 +396,19 @@ public class ComponentTreeSupplierToDtoMapper {
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-            .filter(field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-            && field.isAnnotationPresent(Button.class))
-            .map(
-                    field -> ActionDto.builder().id(field.getName()).validationRequired(true).build())
-            .forEach(fieldActions::add);
+        .filter(
+            field ->
+                !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
+                    && field.isAnnotationPresent(Button.class))
+        .map(field -> ActionDto.builder().id(field.getName()).validationRequired(true).build())
+        .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
-            .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-            && method.isAnnotationPresent(Button.class))
-            .map(
-                    method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
-            .forEach(fieldActions::add);
-
+        .filter(
+            method ->
+                !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
+                    && method.isAnnotationPresent(Button.class))
+        .map(method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
+        .forEach(fieldActions::add);
 
     return Stream.concat(
             fieldActions.stream(),

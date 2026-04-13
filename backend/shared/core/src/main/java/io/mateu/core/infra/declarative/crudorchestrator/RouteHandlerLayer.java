@@ -22,7 +22,7 @@ public abstract class RouteHandlerLayer<
     if (httpRequest.runActionRq().actionId() == null
         || "".equals(httpRequest.runActionRq().actionId())) {
       var crudRoute = getCrudRoute(httpRequest);
-      var actionId = route.substring(crudRoute.length());
+      var actionId = (route.length() > crudRoute.length())?route.substring(crudRoute.length()):route;
       if (actionId.startsWith("/")) {
         actionId = actionId.substring(1);
       }

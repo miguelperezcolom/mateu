@@ -8,6 +8,8 @@ import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.CrudRepository;
@@ -40,7 +42,15 @@ record Product(
                                @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
                        }
                )
-               ProductStatus status) implements Identifiable {
+               ProductStatus status,
+        ColumnActionGroup action) implements Identifiable {
+
+    Product {
+        action = new ColumnActionGroup(new ColumnAction[]{
+                        new ColumnAction("action-on-row-setAsBlue", "Set as blue"),
+                        new ColumnAction("action-on-row-setAsGreen", "Set as green")
+                });
+    }
 
     @Override
     public String toString() {

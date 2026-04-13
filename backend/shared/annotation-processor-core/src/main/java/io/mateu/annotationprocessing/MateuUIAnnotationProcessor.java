@@ -85,10 +85,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               .map(
                   routeAnnotation ->
                       new io.mateu.uidl.interfaces.RouteValue(
-                          routeAnnotation.value(),
-                          "_empty",
-                          toRegex(routeAnnotation.value() + ".*"),
-                          toRegex("_empty")))
+                          "", "_empty", toRegex(".*"), toRegex("_empty")))
               .forEach(routes::add);
 
           createRouteHandler(
