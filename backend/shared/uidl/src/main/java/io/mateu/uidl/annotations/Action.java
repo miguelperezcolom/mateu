@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Action {
 
-  String id();
+  String id() default "";
 
   boolean background() default false;
 
