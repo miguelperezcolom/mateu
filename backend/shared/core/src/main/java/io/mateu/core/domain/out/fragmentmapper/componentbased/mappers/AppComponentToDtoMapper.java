@@ -279,7 +279,7 @@ public final class AppComponentToDtoMapper {
   private static String prepend(String appRoute, String path) {
     var prefix = appRoute.endsWith("/") ? appRoute.substring(0, appRoute.length() - 1) : appRoute;
     var suffix = path.startsWith("/") ? path.substring(1) : path;
-    //return prefix + "/" + suffix;
+    // return prefix + "/" + suffix;
     return "/" + suffix;
   }
 }

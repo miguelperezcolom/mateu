@@ -307,11 +307,12 @@ public class RunActionUseCase {
     }
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-        var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
+      var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
       if (command.route().startsWith("/_page")) {
         return mono;
       }
-      return mono.map(app -> resolveMenuIfApp(command, app, command.httpRequest())).switchIfEmpty((Mono) resolveRoute(command));
+      return mono.map(app -> resolveMenuIfApp(command, app, command.httpRequest()))
+          .switchIfEmpty((Mono) resolveRoute(command));
     }
 
     // si hay una ruta --> esa clase
