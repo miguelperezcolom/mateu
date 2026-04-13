@@ -4,7 +4,6 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { changed, checkboxChanged } from "@/SapUi5ComponentRenderer.ts";
 
 const renderStars = (component: ClientSideComponent, _metadata = component.metadata as FormField, value: any, fieldId: string) => {
-    console.log('xxxxx value', value)
     let renderValue = value;
     if (isNaN(renderValue)) {
         renderValue = 0

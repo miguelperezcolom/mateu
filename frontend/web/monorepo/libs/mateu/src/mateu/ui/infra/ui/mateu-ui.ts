@@ -90,6 +90,8 @@ export class MateuUi extends LitElement {
         e.preventDefault()
         e.stopPropagation()
 
+        console.log('navigate to requested', e)
+
         if (e instanceof CustomEvent) {
             let route = e.detail.route
             const uxElement = this.shadowRoot?.querySelector('mateu-ux');

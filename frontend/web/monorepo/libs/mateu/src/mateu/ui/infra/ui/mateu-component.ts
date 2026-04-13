@@ -491,7 +491,6 @@ export class MateuComponent extends ComponentElement {
                         e.preventDefault()
                         e.stopPropagation()
                         if (trigger.timeoutMillis > 0) {
-                            console.log('xxx', this.callbackToken)
                             const callbackToken = this.callbackToken
                             setTimeout(() => {
                                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {

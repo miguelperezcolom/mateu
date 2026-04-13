@@ -185,7 +185,10 @@ public class RunActionUseCase {
   }
 
   private static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
-    if ("".equals(command.actionId()) && !"/_page".equals(command.route())) {
+    if (instance instanceof Mono<?> mono) {
+      return mono.map(i -> routeIfNeeded(command, i));
+    }
+    if (true || ("".equals(command.actionId()) && !"/_page".equals(command.route()))) {
       if (instance instanceof RouteHandler handlesRoute) {
         return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
       }
