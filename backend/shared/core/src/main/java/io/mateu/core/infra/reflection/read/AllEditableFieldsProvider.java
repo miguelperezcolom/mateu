@@ -5,6 +5,8 @@ import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 
 import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
 import jakarta.inject.Inject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -32,10 +34,16 @@ public final class AllEditableFieldsProvider {
         .filter(AllEditableFieldsProvider::isAccessible)
         .filter(AllEditableFieldsProvider::isNotMenu)
         .filter(AllEditableFieldsProvider::isNotInjected)
+            .filter(AllEditableFieldsProvider::isNotColumnAction)
         .toList();
   }
 
-  private static boolean isNotMenu(Field field) {
+    private static boolean isNotColumnAction(Field field) {
+        return !ColumnAction.class.equals(field.getType())
+                && !ColumnActionGroup.class.equals(field.getType());
+    }
+
+    private static boolean isNotMenu(Field field) {
     return !field.isAnnotationPresent(Menu.class);
   }
 

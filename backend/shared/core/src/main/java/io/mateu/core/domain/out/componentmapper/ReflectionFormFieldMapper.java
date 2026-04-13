@@ -490,7 +490,13 @@ public class ReflectionFormFieldMapper {
   }
 
   public static FieldDataType getDataTypeForColumn(Field columnField) {
-    if (Status.class.isAssignableFrom(columnField.getType())) {
+      if (ColumnAction.class.equals(columnField.getType())) {
+          return FieldDataType.action;
+      }
+      if (ColumnActionGroup.class.equals(columnField.getType())) {
+          return FieldDataType.actionGroup;
+      }
+    if (Status.class.equals(columnField.getType())) {
       return FieldDataType.status;
     }
     if (columnField.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
