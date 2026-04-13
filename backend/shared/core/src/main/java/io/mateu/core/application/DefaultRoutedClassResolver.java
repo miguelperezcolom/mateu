@@ -73,11 +73,17 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   }
 
   private boolean matches(String route, Class<?> aClass, RunActionCommand command) {
+    var cleanRoute = route;
+    if (cleanRoute.startsWith(command.baseUrl())) {
+      cleanRoute = cleanRoute.substring(command.baseUrl().length());
+    }
     if (aClass.isAnnotationPresent(UI.class)) {
-      return route.equals(aClass.getAnnotation(UI.class).value());
+      return route.equals(aClass.getAnnotation(UI.class).value())
+          || cleanRoute.equals(aClass.getAnnotation(UI.class).value());
     }
     if (aClass.isAnnotationPresent(Route.class)) {
-      return route.equals(aClass.getAnnotation(Route.class).value());
+      return route.equals(aClass.getAnnotation(Route.class).value())
+          || cleanRoute.equals(aClass.getAnnotation(Route.class).value());
     }
     return false;
   }

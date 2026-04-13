@@ -7,7 +7,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/validations/row-selected-required", parentRoute="^$")
+@Route(value="/validations/row-selected-required", parentRoute="")
 public class RowSelectedRequiredValidationPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

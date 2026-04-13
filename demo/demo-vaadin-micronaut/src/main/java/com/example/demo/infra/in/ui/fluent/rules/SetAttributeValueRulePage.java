@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route(value="/rules/set-attribute-value", parentRoute="^$")
+@Route(value="/rules/set-attribute-value", parentRoute="")
 public class SetAttributeValueRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     @Override

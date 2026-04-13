@@ -7,7 +7,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/rules/set-metadata-value", parentRoute="^$")
+@Route(value="/rules/set-metadata-value", parentRoute="")
 public class SetMetadataValueRulePage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

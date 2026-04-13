@@ -28,7 +28,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/forms/data-sourced-fields-2", parentRoute="^$")
+@Route(value="/forms/data-sourced-fields-2", parentRoute="")
 public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplier, ActionHandler, DataSupplier {
 
     private final CustomerRepository customerRepository;

@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/actions/foreground", parentRoute="^$")
+@Route(value="/actions/foreground", parentRoute="")
 public class ForegroundActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

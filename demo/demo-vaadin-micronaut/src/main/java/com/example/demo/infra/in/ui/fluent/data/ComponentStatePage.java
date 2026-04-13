@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Route(value="/data/component-state", parentRoute="^$")
+@Route(value="/data/component-state", parentRoute="")
 public class ComponentStatePage implements ComponentTreeSupplier, ActionHandler {
 
     String name = "Mateu";

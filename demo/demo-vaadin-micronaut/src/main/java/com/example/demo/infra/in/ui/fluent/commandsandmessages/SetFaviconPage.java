@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route(value="/commands-and-messages/set-favicon", parentRoute="^$")
+@Route(value="/commands-and-messages/set-favicon", parentRoute="")
 @Schema
 public class SetFaviconPage implements ComponentTreeSupplier, ActionHandler {
 

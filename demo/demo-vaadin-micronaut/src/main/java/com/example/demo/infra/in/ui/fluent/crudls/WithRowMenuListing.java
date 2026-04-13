@@ -54,7 +54,7 @@ record Params(String name, int age) {
 
 }
 
-@Route(value="/crudls/with-row-menu", parentRoute="^$")
+@Route(value="/crudls/with-row-menu", parentRoute="")
 @Slf4j
 public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend<Filters3, Row3>, TriggersSupplier {
 

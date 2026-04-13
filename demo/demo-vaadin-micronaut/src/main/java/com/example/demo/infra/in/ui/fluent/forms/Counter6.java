@@ -13,7 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.micronaut.serde.annotation.Serdeable;
 
 @UI("/counter6")
-@Route(value="/forms/counter6", parentRoute="^$")
+@Route(value="/forms/counter6", parentRoute="")
 @Serdeable
 public class Counter6 implements ComponentTreeSupplier {
 

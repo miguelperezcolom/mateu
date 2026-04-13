@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Route(value="/data/component-state-and-data", parentRoute="^$")
+@Route(value="/data/component-state-and-data", parentRoute="")
 public class ComponentStateAndDataPage implements ComponentTreeSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {
