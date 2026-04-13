@@ -1,7 +1,6 @@
 package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.RouteConstants;
-
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -27,7 +27,9 @@ public abstract class RouteHandlerLayer<
         cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
       }
       var actionId =
-          (cleanRoute.length() >= crudRoute.length()) ? cleanRoute.substring(crudRoute.length()) : cleanRoute;
+          (cleanRoute.length() >= crudRoute.length())
+              ? cleanRoute.substring(crudRoute.length())
+              : cleanRoute;
       if (actionId.startsWith("/")) {
         actionId = actionId.substring(1);
       }

@@ -53,7 +53,9 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
     }
     if (aClass.isAnnotationPresent(Route.class)) {
       var annotation = aClass.getAnnotation(Route.class);
-      return route.equals(annotation.value()) && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE) || annotation.parentRoute().equals(command.consumedRoute()));
+      return route.equals(annotation.value())
+          && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
+              || annotation.parentRoute().equals(command.consumedRoute()));
     }
     return false;
   }

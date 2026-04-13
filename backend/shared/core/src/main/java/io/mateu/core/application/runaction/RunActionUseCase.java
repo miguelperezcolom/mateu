@@ -278,7 +278,8 @@ public class RunActionUseCase {
     return Mono.empty();
   }
 
-  public static Actionable resolveMenu(List<Actionable> actionables, String route, String completeRoute) {
+  public static Actionable resolveMenu(
+      List<Actionable> actionables, String route, String completeRoute) {
     if (route.endsWith("/_page") || "".equals(route)) {
       return null;
     }
@@ -340,20 +341,30 @@ public class RunActionUseCase {
   private Mono<?> resolveRoute(RunActionCommand command) {
     List<String> routes = createRoutes(command).reversed();
     log.info("resolving {}", routes);
-    log.info("route: {}, consumedRoute: {}, app {}", command.route(), command.consumedRoute(), command.appServerSideType());
-    return Mono.defer(() ->
-            Flux.fromIterable(routes)
+    log.info(
+        "route: {}, consumedRoute: {}, app {}",
+        command.route(),
+        command.consumedRoute(),
+        command.appServerSideType());
+    return Mono.defer(
+            () ->
+                Flux.fromIterable(routes)
                     .flatMap(route -> resolveAbsoluteRoute(route, command))
-                    .next()
-    ).switchIfEmpty((Mono) Mono.defer(() ->
-            Flux.fromIterable(routes)
-                    .flatMap(route -> resolveAppRoute(route, command))
-                    .next()
-    )).switchIfEmpty((Mono) Mono.defer(() ->
-            Flux.fromIterable(routes)
-                    .flatMap(route -> resolveNonAppRoute(route, command))
-                    .next()
-    ));
+                    .next())
+        .switchIfEmpty(
+            (Mono)
+                Mono.defer(
+                    () ->
+                        Flux.fromIterable(routes)
+                            .flatMap(route -> resolveAppRoute(route, command))
+                            .next()))
+        .switchIfEmpty(
+            (Mono)
+                Mono.defer(
+                    () ->
+                        Flux.fromIterable(routes)
+                            .flatMap(route -> resolveNonAppRoute(route, command))
+                            .next()));
   }
 
   @SneakyThrows
@@ -406,7 +417,8 @@ public class RunActionUseCase {
       if (!isApp(type, route)) {
         command.httpRequest().setAttribute("resolvedRoute", route);
         var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-        var instance = createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
+        var instance =
+            createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
         log.info("non app {} resolved to {}", route, instance);
         return instance;
       }
@@ -454,7 +466,8 @@ public class RunActionUseCase {
       if (isApp(type, route)) {
         command.httpRequest().setAttribute("resolvedRoute", route);
         var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-        var instance = createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
+        var instance =
+            createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
         log.info("app {} resolved to {}", route, instance);
         return instance;
       }
@@ -466,7 +479,10 @@ public class RunActionUseCase {
   private List<String> createRoutes(RunActionCommand command) {
     List<String> routes = new ArrayList<>();
     StringBuilder currentRoute = new StringBuilder();
-    var completeRoute = command.route().startsWith(command.baseUrl())?command.route():prepend(command.baseUrl(), command.route());
+    var completeRoute =
+        command.route().startsWith(command.baseUrl())
+            ? command.route()
+            : prepend(command.baseUrl(), command.route());
     if ("/".equals(completeRoute)) {
       return List.of("");
     }
