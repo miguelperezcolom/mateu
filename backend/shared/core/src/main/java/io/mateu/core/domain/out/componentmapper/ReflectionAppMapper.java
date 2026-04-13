@@ -97,6 +97,7 @@ public class ReflectionAppMapper {
           if (actionable instanceof RemoteMenu remoteMenu) {
             return Optional.of(remoteMenu);
           }
+          return Optional.of(actionable);
         }
       }
     }
@@ -145,7 +146,7 @@ public class ReflectionAppMapper {
     if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
       return instance.getClass().getAnnotation(HomeRoute.class).value().substring(prefix.length());
     }
-    return "xxx";
+    return "_no_home_route";
   }
 
   private static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {

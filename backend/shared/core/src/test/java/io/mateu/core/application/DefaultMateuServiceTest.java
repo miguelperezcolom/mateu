@@ -13,6 +13,7 @@ import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.dtos.RunActionRqDto;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,7 @@ class DefaultMateuServiceTest {
       new DefaultInstanceFactoryProvider(new FakeBeanProvider());
   final UiIncrementMapperProvider uiIncrementMapperProvider =
       new DefaultUiIncrementMapperProvider(new FakeBeanProvider());
+  final RoutedClassResolver routedClassResolver = new DefaultRoutedClassResolver(List.of());
 
   final DefaultMateuService defaultMateuService =
       new DefaultMateuService(
@@ -31,7 +33,8 @@ class DefaultMateuServiceTest {
               new DefaultActionRunnerProvider(
                   new FakeBeanProvider(),
                   (InstanceFactoryProvider) new ReflectionInstanceFactory(new FakeBeanProvider())),
-              uiIncrementMapperProvider));
+              uiIncrementMapperProvider,
+              routedClassResolver));
 
   @Test
   void runStepAndReturn() throws Throwable {

@@ -1,5 +1,7 @@
 package io.mateu.uidl.annotations;
 
+import io.mateu.uidl.RouteConstants;
+
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,5 +14,5 @@ public @interface Route {
 
   String[] uis() default {};
 
-  String parentRoute() default ".*";
+  String parentRoute() default RouteConstants.NO_PARENT_ROUTE;
 }

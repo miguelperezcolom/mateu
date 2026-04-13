@@ -73,7 +73,7 @@ public class ReflectionAppMapper {
     if (pattern == null && instance != null) {
       if (instance.getClass().isAnnotationPresent(UI.class)) {
         for (UI routeAnnotation : instance.getClass().getAnnotationsByType(UI.class)) {
-          String patternString = "";
+          String patternString = routeAnnotation.value();
           pattern = returnPatternIfMatches(patternString, route);
         }
       }

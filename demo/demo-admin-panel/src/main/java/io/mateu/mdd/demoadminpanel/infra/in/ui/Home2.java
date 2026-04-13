@@ -13,6 +13,12 @@ public class Home2 {
     @Menu
     Products products;
 
+    @Menu
+    NestedApp nestedApp;
+
+    @Menu
+    String xxx;
+
     @NotEmpty
     String name;
 

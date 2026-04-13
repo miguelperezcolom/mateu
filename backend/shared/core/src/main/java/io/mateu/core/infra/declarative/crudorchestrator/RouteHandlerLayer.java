@@ -22,8 +22,12 @@ public abstract class RouteHandlerLayer<
     if (httpRequest.runActionRq().actionId() == null
         || "".equals(httpRequest.runActionRq().actionId())) {
       var crudRoute = getCrudRoute(httpRequest);
+      var cleanRoute = route;
+      if (cleanRoute.startsWith(httpRequest.runActionRq().consumedRoute())) {
+        cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
+      }
       var actionId =
-          (route.length() >= crudRoute.length()) ? route.substring(crudRoute.length()) : route;
+          (cleanRoute.length() >= crudRoute.length()) ? cleanRoute.substring(crudRoute.length()) : cleanRoute;
       if (actionId.startsWith("/")) {
         actionId = actionId.substring(1);
       }
@@ -45,9 +49,13 @@ public abstract class RouteHandlerLayer<
     if (registeredRoute != null) {
       return registeredRoute;
     }
-    if (httpRequest.runActionRq().route().contains("/")) {
-      return "/" + httpRequest.runActionRq().route().split("/")[1];
+    var route = httpRequest.runActionRq().route();
+    if (route.startsWith(httpRequest.runActionRq().consumedRoute())) {
+      route = route.substring(httpRequest.runActionRq().consumedRoute().length());
     }
-    return httpRequest.runActionRq().route();
+    if (route.contains("/")) {
+      return "/" + route.split("/")[1];
+    }
+    return route;
   }
 }

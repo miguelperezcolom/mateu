@@ -52,7 +52,7 @@ public class ReflectionObjectToComponentMapper {
           getData(httpRequest),
           UIFragmentActionDto.Replace);
     }
-    if (isApp(instance, route)) {
+    if (isApp(instance.getClass(), route)) {
       return mapToAppComponent(
           instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
@@ -92,25 +92,30 @@ public class ReflectionObjectToComponentMapper {
     return instance;
   }
 
-  public static boolean isApp(Object instance, String route) {
+  public static boolean isApp(Class<?> instanceType, String route) {
     // no implementa componenttreesupplier
     // no implementa appsupplier
     // tiene anotaciones con @MenuOption o @Submenu?
     // implementa App
-    if ("/_page".equals(route)) {
+
+    if (route.endsWith("/_page")) {
       return false;
     }
-    if (instance instanceof ComponentTreeSupplier) {
-      return false;
-    }
-    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
+
+    if (instanceType.isAnnotationPresent(HomeRoute.class)) {
       return true;
     }
-    if (getAllFields(instance.getClass()).stream()
+
+    if (App.class.isAssignableFrom(instanceType)) {
+      return true;
+    }
+
+    if (getAllFields(instanceType).stream()
         .anyMatch(field -> field.isAnnotationPresent(Menu.class))) {
       return true;
     }
-    return instance instanceof App;
+
+    return false;
   }
 
   public static boolean isPage(Object instance, String route) {
@@ -130,7 +135,7 @@ public class ReflectionObjectToComponentMapper {
     if (instance instanceof AppState) {
       return false;
     }
-    if ("/_page".equals(route)) {
+    if (route.endsWith("/_page")) {
       return true;
     }
     if (instance instanceof ComponentTreeSupplier

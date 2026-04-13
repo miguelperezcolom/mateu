@@ -43,7 +43,6 @@ public final class AppComponentToDtoMapper {
       app = app.withServerSideType(componentSupplier.getClass().getName());
     }
     String appRoute = (String) httpRequest.getAttribute("resolvedRoute");
-    System.out.println("" + app.serverSideType() + " --> appRoute: " + appRoute);
     if (appRoute == null) {
       appRoute = route;
     }
@@ -55,6 +54,7 @@ public final class AppComponentToDtoMapper {
         appRouteForMenu = "";
         if (route.equals(appType.getAnnotation(Route.class).value())
             || route.equals(appType.getAnnotation(Route.class).value() + "/")) {
+          appRouteForMenu = route;
           route = "/_page";
         }
       }
@@ -135,12 +135,14 @@ public final class AppComponentToDtoMapper {
     if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
       if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
         return route.substring(remoteMenu.path().length());
+      } else if (!route.equals("/_page") && !route.startsWith(appRoute)) {
+        route = appRoute + route;
       }
       return addQueryParams(route, httpRequest);
     }
     String homeRoute = getHomeRouteInternal(instance, route);
     if (instance instanceof App app) {
-      if ("xxx".equals(app.homeRoute())) {
+      if ("_no_home_route".equals(app.homeRoute())) {
         if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
           return homeRoute.substring(remoteMenu.path().length());
         }
@@ -179,7 +181,7 @@ public final class AppComponentToDtoMapper {
       return instance.getClass().getAnnotation(HomeRoute.class).value();
     }
     if (instance instanceof App app) {
-      if (app.homeRoute() != null && !"xxx".equals(app.homeRoute())) {
+      if (app.homeRoute() != null && !"_no_home_route".equals(app.homeRoute())) {
         return app.homeRoute();
       }
       if (app.serverSideType() != null && !app.serverSideType().isEmpty()) {
@@ -276,10 +278,9 @@ public final class AppComponentToDtoMapper {
     return option.path();
   }
 
-  private static String prepend(String appRoute, String path) {
+  public static String prepend(String appRoute, String path) {
     var prefix = appRoute.endsWith("/") ? appRoute.substring(0, appRoute.length() - 1) : appRoute;
     var suffix = path.startsWith("/") ? path.substring(1) : path;
-    // return prefix + "/" + suffix;
-    return "/" + suffix;
+    return prefix + "/" + suffix;
   }
 }

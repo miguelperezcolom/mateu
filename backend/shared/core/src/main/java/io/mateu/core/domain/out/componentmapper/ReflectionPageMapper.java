@@ -126,7 +126,7 @@ public class ReflectionPageMapper {
         || instance instanceof ReactiveListingBackend<?, ?>) {
       return getCrud(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
-    if (isApp(instance, route)) {
+    if (isApp(instance.getClass(), route)) {
       return List.of(
           mapToAppComponent(
               instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
