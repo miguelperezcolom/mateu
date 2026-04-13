@@ -147,6 +147,7 @@ export class MateuApiCaller extends LitElement {
         .loader {
             max-width: 50px;
             width: 50%;
+            height: 50%;
             --b: 8px;
             aspect-ratio: 1;
             border-radius: 50%;
