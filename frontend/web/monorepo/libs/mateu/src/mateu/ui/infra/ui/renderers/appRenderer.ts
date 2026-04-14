@@ -70,12 +70,23 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
+                        ${container.selectedRoute??'no selected route'}
+                        <br/>
+                        ${container.selectedRoute??metadata.homeRoute}
+                        <br/>
+                        ${metadata.homeRoute}
+                        <br/>
+                        ${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}
+                        <br/>
+                        ${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}
+                        <br/>
+                        ${container.selectedUriPrefix??metadata.homeUriPrefix}
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${container.selectedRoute??metadata.homeRoute}"
+                                route="${metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}"
-                                consumedRoute="${container.selectedConsumedRoute??metadata.route}"
+                                consumedRoute="${container.selectedConsumedRoute??metadata.homeConsumedRoute??metadata.route}"
                                 appServerSideType="${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}"
                                 uriPrefix="${container.selectedUriPrefix??metadata.homeUriPrefix}"
                                 style="width: 100%;"

@@ -333,7 +333,7 @@ public class RunActionUseCase {
     }
 
     // si hay una ruta --> esa clase
-    return resolveRoute(command);
+    return resolveRoute(command).flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()));
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
@@ -547,9 +547,6 @@ public class RunActionUseCase {
       String initialComponentId,
       String actionId,
       RunActionCommand command) {
-    if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
-      return Mono.just(potentialApp);
-    }
     App app = null;
     if (potentialApp instanceof App) {
       app = (App) potentialApp;
@@ -569,7 +566,29 @@ public class RunActionUseCase {
       if (route.startsWith(consumedRoute)) {
         cleanRoute = route.substring(consumedRoute.length());
       }
-      var actionable = resolveMenu(app.menu(), cleanRoute, route);
+      var actionable = resolveMenu(app.menu(), cleanRoute, ("_empty".equals(consumedRoute)?app.route():"") + route);
+
+      if (actionable instanceof RemoteMenu remoteMenu) {
+        App finalApp = app;
+        return resolveRemoteMenu(remoteMenu, httpRequest, command).map(remoteActionable -> {
+                  return remoteActionable;
+                }).map(result -> {
+                  if (result instanceof MicroFrontend microFrontend) {
+                    return finalApp
+                            .withHomeRoute(microFrontend.route())
+                            .withHomeBaseUrl(microFrontend.baseUrl())
+                            .withHomeAppServerSideType(microFrontend.appServerSideType())
+                            .withHomeConsumedRoute(microFrontend.consumedRoute());
+                  }
+                  return result;
+                })
+                .switchIfEmpty((Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
+      }
+
+      if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
+        return Mono.just(potentialApp);
+      }
+
       if (actionable == null) {
         return Mono.empty();
       }
@@ -638,11 +657,6 @@ public class RunActionUseCase {
                   return object;
                 });
       }
-      if (actionable instanceof RemoteMenu remoteMenu) {
-        return resolveRemoteMenu(remoteMenu, httpRequest, command).map(remoteActionable -> {
-          return remoteActionable;
-        }).switchIfEmpty((Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
-      }
       if (actionable instanceof Menu menu) {
         return Mono.just(new Text("Es un menu"));
       }
@@ -687,7 +701,7 @@ public class RunActionUseCase {
                                     .findFirst()
                     ).map(app ->
                             MicroFrontend.builder()
-                                    .route(finalRemoteBaseUrl + remoteMenu.route() + command.route().substring(remoteMenu.path().length()))
+                                    .route(finalRemoteBaseUrl + remoteMenu.route() + command.route().substring(remoteMenu.path().length() - command.baseUrl().length()))
                                     .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
                                     .actionId("")
                                     .baseUrl(remoteMenu.baseUrl())

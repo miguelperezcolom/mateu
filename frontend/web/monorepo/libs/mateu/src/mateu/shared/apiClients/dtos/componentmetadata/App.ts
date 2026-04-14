@@ -16,6 +16,7 @@ export default interface App extends ComponentMetadata {
     homeBaseUrl: string
     homeAppServerSideType: string
     homeUriPrefix: string
+    homeConsumedRoute: string
     style: string | undefined
     cssClasses: string | undefined
     drawerClosed: boolean
