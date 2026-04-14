@@ -14,22 +14,22 @@ import java.util.List;
 @Slf4j
 public class PersonsCrudAdapter implements CrudAdapter<PersonDetailView, PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> {
     @Override
-    public ListingData<PersonRow> search(String searchText, NoFilters noFilters, Pageable pageable) {
+    public ListingData<PersonRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         return ListingData.of(List.of(new PersonRow("1", "Mateu", 17)));
     }
 
     @Override
-    public void deleteAllById(List<String> selectedIds) {
+    public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
         log.info("deleting " + selectedIds);
     }
 
     @Override
-    public PersonDetailView getView(String id) {
+    public PersonDetailView getView(String id, HttpRequest httpRequest) {
         return new PersonDetailView(id, "Mateu", 17);
     }
 
     @Override
-    public PersonEditorView getEditor(String id) {
+    public PersonEditorView getEditor(String id, HttpRequest httpRequest) {
         return new PersonEditorView(id, "Mateu", 17, List.of());
     }
 

@@ -24,7 +24,7 @@ public abstract class EditComponentLayer<
 
   @Override
   public Object edit(IdType id, HttpRequest httpRequest) {
-    var editor = adapter().getEditor(id);
+    var editor = adapter().getEditor(id, httpRequest);
     //    var found = adapter().findById(id);
     //    if (found.isEmpty()) {
     //      throw new RuntimeException("No item found with id " + id);

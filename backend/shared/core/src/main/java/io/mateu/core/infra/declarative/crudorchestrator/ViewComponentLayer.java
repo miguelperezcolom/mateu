@@ -34,7 +34,7 @@ public abstract class ViewComponentLayer<
 
   @Override
   public Object view(IdType id, HttpRequest httpRequest) {
-    var view = adapter().getView(id);
+    var view = adapter().getView(id, httpRequest);
     //    if (found.isEmpty()) {
     //      throw new RuntimeException("No item found with id " + id);
     //    }

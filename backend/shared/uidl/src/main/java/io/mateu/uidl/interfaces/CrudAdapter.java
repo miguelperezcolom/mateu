@@ -6,13 +6,14 @@ import java.util.List;
 
 public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
 
-  ListingData<Row> search(String searchText, Filters filters, Pageable pageable);
+  ListingData<Row> search(
+      String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
 
-  void deleteAllById(List<IdType> selectedIds);
+  void deleteAllById(List<IdType> selectedIds, HttpRequest httpRequest);
 
-  View getView(IdType id);
+  View getView(IdType id, HttpRequest httpRequest);
 
-  Editor getEditor(IdType id);
+  Editor getEditor(IdType id, HttpRequest httpRequest);
 
   CreationForm getCreationForm(HttpRequest httpRequest);
 }

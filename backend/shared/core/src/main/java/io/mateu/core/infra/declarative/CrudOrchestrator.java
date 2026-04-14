@@ -93,7 +93,7 @@ public abstract class CrudOrchestrator<
     if ("cancel-edit".equals(actionId)) {
       var idField = getIdFieldForRow();
       savedId = httpRequest.getComponentState(Map.class).get(idField);
-      var view = adapter().getEditor((IdType) savedId);
+      var view = adapter().getEditor((IdType) savedId, httpRequest);
       actionId = "view";
     }
     if ("cancel-view".equals(actionId)) {
@@ -113,7 +113,7 @@ public abstract class CrudOrchestrator<
           selection.stream()
               .map(map -> (IdType) ((Map<String, Object>) map).get(getIdFieldForRow()))
               .toList();
-      adapter().deleteAllById(selectedIds);
+      adapter().deleteAllById(selectedIds, httpRequest);
     }
     if ("view".equals(actionId)) {
       return Stream.concat(handleView(httpRequest, savedId).stream(), messages.stream()).toList();
@@ -185,7 +185,7 @@ public abstract class CrudOrchestrator<
     if (searchText == null) {
       searchText = "";
     }
-    return new Data(Map.of("crud", search(searchText, null, pageable)));
+    return new Data(Map.of("crud", search(searchText, null, pageable, httpRequest)));
   }
 
   private List<?> handleNew(HttpRequest httpRequest) {
@@ -276,8 +276,9 @@ public abstract class CrudOrchestrator<
     throw new RuntimeException("Item with row number " + rowNumber + " not found");
   }
 
-  public ListingData<Row> search(String searchText, Filters filters, Pageable pageable) {
-    return adapter().search(searchText, filters, pageable);
+  public ListingData<Row> search(
+      String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    return adapter().search(searchText, filters, pageable, httpRequest);
   }
 
   @Override

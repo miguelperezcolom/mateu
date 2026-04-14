@@ -13,22 +13,23 @@ public abstract class AutoListOrchestrator<T extends Identifiable> extends AutoC
   public CrudAdapter<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String> adapter() {
     return new CrudAdapter<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String>() {
       @Override
-      public ListingData<T> search(String searchText, T t, Pageable pageable) {
+      public ListingData<T> search(
+          String searchText, T t, Pageable pageable, HttpRequest httpRequest) {
         return simpleListAdapter().search(searchText, t, pageable);
       }
 
       @Override
-      public void deleteAllById(List<String> selectedIds) {
+      public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
         throw new UnsupportedOperationException();
       }
 
       @Override
-      public SimpleView<T> getView(String id) {
+      public SimpleView<T> getView(String id, HttpRequest httpRequest) {
         throw new UnsupportedOperationException();
       }
 
       @Override
-      public SimpleView<T> getEditor(String id) {
+      public SimpleView<T> getEditor(String id, HttpRequest httpRequest) {
         throw new UnsupportedOperationException();
       }
 
