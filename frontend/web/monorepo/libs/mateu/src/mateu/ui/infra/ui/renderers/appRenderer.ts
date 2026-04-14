@@ -69,13 +69,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <slot name="widgets"></slot>
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
-                    <div class="app-content">   
+                    <div class="app-content">
                     <mateu-api-caller>
                         <mateu-ux
                                 route="${container.selectedRoute??metadata.homeRoute}"
                                 id="ux_${container.id}"
                                 baseUrl="${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}"
-                                consumedRoute="${metadata.route}"
+                                consumedRoute="${container.selectedConsumedRoute??metadata.route}"
                                 appServerSideType="${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}"
                                 uriPrefix="${container.selectedUriPrefix??metadata.homeUriPrefix}"
                                 style="width: 100%;"
@@ -138,7 +138,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${metadata.menu.map(option => {
                                     return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
+                                        @click="${() => container.selectRoute(option.consumedRoute, option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
                                 >${option.label}</vaadin-tab>
                             `
                                 })}

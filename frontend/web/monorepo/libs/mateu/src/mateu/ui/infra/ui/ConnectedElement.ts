@@ -111,7 +111,8 @@ export default abstract class ConnectedElement extends LitElement {
                         if (clientSideComponent.metadata?.type == ComponentMetadataType.App) {
                             const app = clientSideComponent.metadata as App
                             const effectiveAppServerSideType = option.appServerSideType && !('' == option.appServerSideType)?option.appServerSideType:app.appServerSideType
-                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.destination.route)
+                            console.log('xx', option)
+                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.destination.route, app.route)
                             replaced.push(...app.menu)
                         }
                     }
@@ -123,12 +124,14 @@ export default abstract class ConnectedElement extends LitElement {
         return replaced
     }
 
-    private changeBaseUrl(menu: MenuOption[], baseUrl: string, appServerSideType: string | undefined, uriPrefix: string | undefined): void {
+    private changeBaseUrl(menu: MenuOption[], baseUrl: string, appServerSideType: string | undefined, uriPrefix: string | undefined, consumedRoute: string | undefined): void {
+        console.log('changeBaseUrl', menu, baseUrl, appServerSideType, uriPrefix, consumedRoute)
         menu.forEach(option => {
             if (!option.baseUrl) {
                 if (option.submenus && option.submenus.length > 0) {
-                    this.changeBaseUrl(option.submenus, baseUrl, appServerSideType, uriPrefix)
+                    this.changeBaseUrl(option.submenus, baseUrl, appServerSideType, uriPrefix, consumedRoute)
                 } else {
+                    option.consumedRoute = consumedRoute??''
                     option.baseUrl = baseUrl
                     option.appServerSideType = appServerSideType
                     option.destination.baseUrl = baseUrl
@@ -167,10 +170,8 @@ export default abstract class ConnectedElement extends LitElement {
         }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
-            console.log('navigate to (command)', command)
             if (destination) {
                 if (true || destination.startsWith('http:') || destination.startsWith('https:')) {
-                    console.log('navigate to', destination)
                     window.location.href = command.data as string
                 } else {
                     this.dispatchEvent(new CustomEvent('navigate-to-requested', {

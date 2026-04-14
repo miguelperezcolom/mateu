@@ -33,7 +33,7 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
     repository().deleteAllById(selectedIds);
   }
 
-  public NamedView<T> getView(String id) {
+  public NamedView<T> getView(String id, HttpRequest httpRequest) {
     var entity = repository().findById(id).orElseThrow();
     return new AutoNamedView<>(entityClass(), entity, repository());
   }
@@ -42,7 +42,7 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
     return getGenericClass(getClass(), AutoCrudAdapter.class, "T");
   }
 
-  public NamedView<T> getEditor(String id) {
+  public NamedView<T> getEditor(String id, HttpRequest httpRequest) {
     var entity = repository().findById(id).orElseThrow();
     return new AutoNamedView<>(entityClass(), entity, repository());
   }

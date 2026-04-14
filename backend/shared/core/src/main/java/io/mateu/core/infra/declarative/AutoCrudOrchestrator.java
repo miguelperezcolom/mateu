@@ -46,7 +46,7 @@ public abstract class AutoCrudOrchestrator<T extends Identifiable>
   @Override
   public Object save(HttpRequest httpRequest) {
     var entity = simpleAdapter().toEntity(httpRequest);
-    simpleAdapter().getEditor(entity.id()).save(httpRequest);
+    simpleAdapter().getEditor(entity.id(), httpRequest).save(httpRequest);
     return entity.id();
   }
 
