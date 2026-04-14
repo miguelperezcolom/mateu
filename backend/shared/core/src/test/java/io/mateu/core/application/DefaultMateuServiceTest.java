@@ -34,7 +34,8 @@ class DefaultMateuServiceTest {
                   new FakeBeanProvider(),
                   (InstanceFactoryProvider) new ReflectionInstanceFactory(new FakeBeanProvider())),
               uiIncrementMapperProvider,
-              routedClassResolver));
+              routedClassResolver,
+              null));
 
   @Test
   void runStepAndReturn() throws Throwable {

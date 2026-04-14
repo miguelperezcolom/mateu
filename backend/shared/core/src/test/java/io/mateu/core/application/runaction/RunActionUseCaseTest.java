@@ -32,5 +32,6 @@ abstract class RunActionUseCaseTest {
           new DefaultInstanceFactoryProvider(beanProvider),
           new DefaultActionRunnerProvider(beanProvider, instanceFactoryProvider),
           new DefaultUiIncrementMapperProvider(beanProvider),
-          routedClassResolver);
+          routedClassResolver,
+          null);
 }

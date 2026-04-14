@@ -19,12 +19,17 @@ import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.mateu.core.application.ResolvedRoute;
 import io.mateu.core.application.RoutedClassResolver;
+import io.mateu.core.application.out.MateuHttpClient;
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
+import io.mateu.dtos.AppDto;
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.BaseRoute;
 import io.mateu.uidl.annotations.GeneratedValue;
@@ -71,6 +76,7 @@ public class RunActionUseCase {
   private final ActionRunnerProvider actionRunnerProvider;
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
   private final RoutedClassResolver routedClassResolver;
+  private final MateuHttpClient mateuHttpClient;
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {}", command.actionId());
@@ -286,7 +292,11 @@ public class RunActionUseCase {
     String searchableRoute = route;
     while (!searchableRoute.isEmpty()) {
       for (Actionable actionable : actionables) {
-        if (searchableRoute.equals(actionable.path()) || completeRoute.equals(actionable.path())) {
+        if (searchableRoute.equals(actionable.path())
+            || completeRoute.equals(actionable.path())
+            || (actionable instanceof RemoteMenu remoteMenu
+                && (searchableRoute.startsWith(remoteMenu.path())
+                    || completeRoute.startsWith(remoteMenu.path())))) {
           return actionable;
         }
         if (actionable instanceof Menu menu) {
@@ -559,24 +569,12 @@ public class RunActionUseCase {
       if (route.startsWith(consumedRoute)) {
         cleanRoute = route.substring(consumedRoute.length());
       }
-      var actionable =
-          resolveMenu(
-              app.menu(), cleanRoute, route
-              // miguel route.startsWith(consumedRoute) ? route.substring(consumedRoute.length()) :
-              // route
-              );
+      var actionable = resolveMenu(app.menu(), cleanRoute, route);
       if (actionable == null) {
         return Mono.empty();
       }
       if (actionable instanceof RouteLink routeLink) {
         return Mono.empty();
-        /*
-        if (route.equals(consumedRoute)) {
-          return Mono.empty();
-        }
-        return Mono.just(app.withRoute(route).withHomeRoute(routeLink.route()));
-
-         */
       }
       if (actionable instanceof ContentLink contentLink) {
         return Mono.just(contentLink.componentSupplier().component(httpRequest));
@@ -640,11 +638,63 @@ public class RunActionUseCase {
                   return object;
                 });
       }
+      if (actionable instanceof RemoteMenu remoteMenu) {
+        return resolveRemoteMenu(remoteMenu, httpRequest, command).map(remoteActionable -> {
+          return remoteActionable;
+        }).switchIfEmpty((Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
+      }
       if (actionable instanceof Menu menu) {
         return Mono.just(new Text("Es un menu"));
       }
     }
     return Mono.empty();
+  }
+
+  private Mono<?> resolveRemoteMenu(RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
+    RunActionRqDto request =
+            RunActionRqDto.builder()
+                    .actionId("")
+                    .consumedRoute(remoteMenu.consumedRoute())
+                    .route(remoteMenu.route())
+                    .appServerSideType(remoteMenu.appServerSideType())
+                    .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
+                    .build();
+
+    var baseUrl = remoteMenu.baseUrl();
+    if (!baseUrl.startsWith("http")) {
+      baseUrl = httpRequest.getHeaderValue("origin") + baseUrl;
+    }
+
+    var remoteBaseUrl = remoteMenu.baseUrl();
+    if (remoteBaseUrl.startsWith("http")) {
+      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/") + 1);
+      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/") + 1);
+      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/"));
+    }
+
+    String finalRemoteBaseUrl = remoteBaseUrl;
+    return Mono.fromFuture(mateuHttpClient.send(baseUrl, request))
+            .flatMap(uiIncrementDto ->
+                    Mono.justOrEmpty(
+                            uiIncrementDto.fragments().stream()
+                                    .filter(fragment -> fragment.component() != null)
+                                    .map(UIFragmentDto::component)
+                                    .filter(componentDto -> componentDto instanceof ClientSideComponentDto)
+                                    .map(componentDto -> (ClientSideComponentDto) componentDto)
+                                    .map(ClientSideComponentDto::metadata)
+                                    .filter(metadata -> metadata instanceof AppDto)
+                                    .map(metadata -> (AppDto) metadata)
+                                    .findFirst()
+                    ).map(app ->
+                            MicroFrontend.builder()
+                                    .route(finalRemoteBaseUrl + remoteMenu.route() + command.route().substring(remoteMenu.path().length()))
+                                    .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
+                                    .actionId("")
+                                    .baseUrl(remoteMenu.baseUrl())
+                                    .appServerSideType(app.appServerSideType())
+                                    .build()
+                    )
+            );
   }
 
   public static Object wrap(
