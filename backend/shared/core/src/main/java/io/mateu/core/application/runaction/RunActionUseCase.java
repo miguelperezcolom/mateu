@@ -281,7 +281,7 @@ public class RunActionUseCase {
           command);
     }
 
-    return Mono.empty();
+    return Mono.just(instance);
   }
 
   public static Actionable resolveMenu(
@@ -440,7 +440,7 @@ public class RunActionUseCase {
 
   private Object setParameterValues(
       Object instance, String route, ResolvedRoute matchingRoute, HttpRequest httpRequest) {
-    var tokens = matchingRoute.route().split("/");
+    var tokens = matchingRoute.pattern().split("/");
     var slugs = route.split("/");
     for (int i = 0; i < tokens.length && i < slugs.length; i++) {
       var token = tokens[i];

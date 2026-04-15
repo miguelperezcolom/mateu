@@ -81,6 +81,11 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
         return db.values().stream().toList();
     }
 
+    @Override
+    public void deleteAllById(List<String> selectedIds) {
+        selectedIds.forEach(id -> db.remove(id));
+    }
+
 }
 
 @Route(value = "/home/grupos")
