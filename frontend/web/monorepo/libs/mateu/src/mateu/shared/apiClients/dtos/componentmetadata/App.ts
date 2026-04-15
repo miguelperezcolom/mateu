@@ -22,5 +22,7 @@ export default interface App extends ComponentMetadata {
     drawerClosed: boolean
     initialRoute: string
     appServerSideType: string
+    uriPrefix: string
+    baseUrl: string
 
 }

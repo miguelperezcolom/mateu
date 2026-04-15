@@ -77,9 +77,16 @@ public final class AppComponentToDtoMapper {
                     appRoute,
                     httpRequest,
                     selectedOption)) // getHomeRoute(menu, route, appRoute))
-            .homeBaseUrl(app.homeBaseUrl())
-            .homeAppServerSideType(app.homeAppServerSideType())
-            .homeUriPrefix(app.homeUriPrefix())
+                .homeConsumedRoute(getHomeConsumedRoute(
+                        app,
+                        route,
+                        appRoute,
+                        httpRequest,
+                        selectedOption))
+            .homeBaseUrl(getHomeBaseUrl(app, route, appRoute, httpRequest, selectedOption))
+            .homeAppServerSideType(
+                getHomeAppServerSideType(app, route, appRoute, httpRequest, selectedOption))
+            .homeUriPrefix(getHomeUriPrefix(app, route, appRoute, httpRequest, selectedOption))
             .appServerSideType(
                 componentSupplier != null
                     ? componentSupplier.getClass().getName()
@@ -127,11 +134,12 @@ public final class AppComponentToDtoMapper {
 
   @SneakyThrows
   private static String getHomeRoute(
-      Object instance,
-      String route,
-      String appRoute,
-      HttpRequest httpRequest,
-      Optional<Actionable> selectedOption) {
+          App app,
+          String route,
+          String appRoute,
+          HttpRequest httpRequest,
+          Optional<Actionable> selectedOption) {
+      /*
     if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
       if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
         return route.substring(remoteMenu.path().length());
@@ -158,6 +166,66 @@ public final class AppComponentToDtoMapper {
       return route;
     }
     return homeRoute;
+
+       */
+
+      var effectiveRoute = route;
+      if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+          effectiveRoute = app.homeRoute();
+      } else {
+          if ("".equals(effectiveRoute) || "/".equals(effectiveRoute)) {
+              effectiveRoute = app.homeRoute();
+          } else {
+              effectiveRoute = appRoute + effectiveRoute;
+          }
+      }
+      if (effectiveRoute == null) {
+          effectiveRoute = appRoute;
+      }
+      if ("_no_home_route".equals(effectiveRoute)) {
+          effectiveRoute = "_page";
+      }
+      return addQueryParams(effectiveRoute, httpRequest);
+  }
+
+    private static String getHomeConsumedRoute(
+            App app,
+            String route,
+            String appRoute,
+            HttpRequest httpRequest,
+            Optional<Actionable> selectedOption) {
+        return app.homeConsumedRoute() != null
+                ? app.homeConsumedRoute()
+                : appRoute;
+    }
+
+  private static String getHomeBaseUrl(
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    return app.homeBaseUrl() != null
+        ? app.homeBaseUrl()
+        : (String) httpRequest.getAttribute("baseUrl");
+  }
+
+  private static String getHomeAppServerSideType(
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    return app.homeAppServerSideType() != null ? app.homeAppServerSideType() : app.serverSideType();
+  }
+
+  private static String getHomeUriPrefix(
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    return app.homeUriPrefix();
   }
 
   public static String addQueryParams(String route, HttpRequest httpRequest) {
@@ -169,32 +237,6 @@ public final class AppComponentToDtoMapper {
         + httpRequest.getParameterNames().stream()
             .map(name -> name + "=" + httpRequest.getParameterValue(name))
             .collect(Collectors.joining("&"));
-  }
-
-  @SneakyThrows
-  private static String getHomeRouteInternal(Object instance, String route) {
-
-    if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
-      return homeRouteSupplier.homeRoute();
-    }
-    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
-      return instance.getClass().getAnnotation(HomeRoute.class).value();
-    }
-    if (instance instanceof App app) {
-      if (app.homeRoute() != null && !"_no_home_route".equals(app.homeRoute())) {
-        return app.homeRoute();
-      }
-      if (app.serverSideType() != null && !app.serverSideType().isEmpty()) {
-        Class<?> appClass = Class.forName(app.serverSideType());
-        if (HomeRouteSupplier.class.isAssignableFrom(appClass)) {
-          return app.homeRoute();
-        }
-        if (appClass.isAnnotationPresent(HomeRoute.class)) {
-          return appClass.getAnnotation(HomeRoute.class).value();
-        }
-      }
-    }
-    return "".equals(route) ? "_page" : route;
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {

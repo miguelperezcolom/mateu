@@ -82,7 +82,7 @@ export class MateuApp extends ComponentElement {
 
     goHome = () => {
         const metadata = (this.component as ClientSideComponent).metadata as App;
-        this.selectRoute('', metadata.route, '', undefined, undefined, undefined)
+        this.selectRoute(metadata.route, '_page', '', undefined, undefined, undefined)
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
@@ -131,6 +131,9 @@ export class MateuApp extends ComponentElement {
                         effectiveRoute = this.selectedUriPrefix + effectiveRoute
                     }
                 }
+                if (effectiveRoute == '_page') {
+                    effectiveRoute = ''
+                }
 
                 this.dispatchEvent(new CustomEvent('route-changed', {
                     detail: {
@@ -147,7 +150,7 @@ export class MateuApp extends ComponentElement {
 
         const uxElement = this.shadowRoot?.querySelector('mateu-ux');
         if (uxElement) {
-            this.selectedRoute = finalRoute
+            this.selectedRoute = route
             uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
             uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
             uxElement.setAttribute("route", finalRoute??'')

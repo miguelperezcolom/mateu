@@ -43,8 +43,10 @@ public class ${simpleClassName}MateuController implements MateuController {
     public Mono<UIIncrementDto> runStep(
         @RequestBody RunActionRqDto rq,
         HttpServletRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, rq, baseUrl,
-        new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).next();
+    var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
+    httpRequest.setAttribute("uiId", uiId);
+    httpRequest.setAttribute("baseUrl", baseUrl);
+    return service.runAction(uiId, rq, baseUrl, httpRequest).next();
     }
 
 }

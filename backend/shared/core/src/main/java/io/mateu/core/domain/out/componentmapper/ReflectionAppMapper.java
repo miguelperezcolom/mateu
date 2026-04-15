@@ -72,16 +72,12 @@ public class ReflectionAppMapper {
 
   public static Optional<Actionable> getSelectedOption(
       String appRoute, String route, Collection<? extends Actionable> menu) {
-    if (!appRoute.equals(route) && route.startsWith(appRoute)) {
-      var effectiveRoute = route.substring(appRoute.length()); // /masterData/countries
-      return getSelectedOption(effectiveRoute, menu);
-    }
-    return Optional.empty();
+    return getSelectedOption(route, menu);
   }
 
   public static Optional<Actionable> getSelectedOption(
       String route, Collection<? extends Actionable> actionables) {
-    if (route.startsWith("/")) {
+        if (route.startsWith("/")) {
       route = route.substring(1);
     }
     var token = route.split("/")[0];
@@ -280,16 +276,16 @@ public class ReflectionAppMapper {
     if (String.class.equals(field.getType())) {
       var uri = (String) getValue(field, instance);
       if (uri != null) {
-        return new RouteLink(uri, getLabel(field));
+        return new RouteLink(uri, getLabel(field)).withPath("/" + field.getName());
       }
-      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field));
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field)).withPath("/" + field.getName());
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);
       if (uri != null) {
-        return new RouteLink(uri.toString(), getLabel(field));
+        return new RouteLink(uri.toString(), getLabel(field)).withPath("/" + field.getName());
       }
-      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field));
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field)).withPath("/" + field.getName());
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
@@ -355,17 +351,20 @@ public class ReflectionAppMapper {
       }
     }
     if (actionable.path() == null || actionable.path().isEmpty()) {
+        if (actionable instanceof RouteLink routeLink) {
+            actionable = routeLink.withPath("/" + field.getName());
+        }
       if (actionable instanceof ContentLink contentLink) {
-        actionable = contentLink.withPath(appRoute + "/" + field.getName());
+        actionable = contentLink.withPath("/" + field.getName());
       }
       if (actionable instanceof FieldLink fieldLink) {
-        actionable = fieldLink.withPath(appRoute + "/" + field.getName());
+        actionable = fieldLink.withPath("/" + field.getName());
       }
       if (actionable instanceof MethodLink methodLink) {
-        actionable = methodLink.withPath(appRoute + "/" + field.getName());
+        actionable = methodLink.withPath("/" + field.getName());
       }
       if (actionable instanceof RemoteMenu remoteMenu) {
-        actionable = remoteMenu.withPath(appRoute + "/" + field.getName());
+        actionable = remoteMenu.withPath("/" + field.getName());
       }
     }
     return actionable;

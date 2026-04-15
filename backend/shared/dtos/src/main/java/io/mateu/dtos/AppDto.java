@@ -18,6 +18,7 @@ public record AppDto(
     List<MenuOptionDto> menu,
     int totalMenuOptions,
     String homeRoute,
+    String homeConsumedRoute,
     String homeBaseUrl,
     String homeAppServerSideType,
     String homeUriPrefix,

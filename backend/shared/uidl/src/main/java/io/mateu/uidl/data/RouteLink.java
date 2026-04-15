@@ -8,6 +8,7 @@ import lombok.With;
 @Builder
 @With
 public record RouteLink(
+        String path,
     String route,
     String label,
     RouteTarget target,
@@ -20,19 +21,14 @@ public record RouteLink(
     implements Actionable {
 
   public RouteLink(String route) {
-    this(route, null, null, false, null, null, false, false, null);
+    this(null, route, null, null, false, null, null, false, false, null);
   }
 
   public RouteLink(String route, String label) {
-    this(route, label, null, false, null, null, false, false, null);
+    this(null, route, label, null, false, null, null, false, false, null);
   }
 
   public RouteLink(String route, String label, boolean selected) {
-    this(route, label, null, selected, null, null, false, false, null);
-  }
-
-  @Override
-  public String path() {
-    return route;
+    this(null, route, label, null, selected, null, null, false, false, null);
   }
 }

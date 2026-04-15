@@ -5,8 +5,6 @@ import io.mateu.core.application.out.MateuHttpClient;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Named;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import lombok.extern.slf4j.Slf4j;
 
 @Named
 @Slf4j
@@ -47,7 +46,7 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
 
       log.info("POST {} {}", uri, body);
 
-          return httpClient
+      return httpClient
           .sendAsync(request, HttpResponse.BodyHandlers.ofString())
           .thenApply(
               response -> {

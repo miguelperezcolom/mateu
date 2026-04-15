@@ -333,7 +333,8 @@ public class RunActionUseCase {
     }
 
     // si hay una ruta --> esa clase
-    return resolveRoute(command).flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()));
+    return resolveRoute(command)
+        .flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()));
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
@@ -566,23 +567,30 @@ public class RunActionUseCase {
       if (route.startsWith(consumedRoute)) {
         cleanRoute = route.substring(consumedRoute.length());
       }
-      var actionable = resolveMenu(app.menu(), cleanRoute, ("_empty".equals(consumedRoute)?app.route():"") + route);
+      var actionable =
+          resolveMenu(
+              app.menu(), cleanRoute, ("_empty".equals(consumedRoute) ? app.route() : "") + route);
 
       if (actionable instanceof RemoteMenu remoteMenu) {
         App finalApp = app;
-        return resolveRemoteMenu(remoteMenu, httpRequest, command).map(remoteActionable -> {
+        return resolveRemoteMenu(remoteMenu, httpRequest, command)
+            .map(
+                remoteActionable -> {
                   return remoteActionable;
-                }).map(result -> {
+                })
+            .map(
+                result -> {
                   if (result instanceof MicroFrontend microFrontend) {
                     return finalApp
-                            .withHomeRoute(microFrontend.route())
-                            .withHomeBaseUrl(microFrontend.baseUrl())
-                            .withHomeAppServerSideType(microFrontend.appServerSideType())
-                            .withHomeConsumedRoute(microFrontend.consumedRoute());
+                        .withHomeRoute(microFrontend.route())
+                        .withHomeBaseUrl(microFrontend.baseUrl())
+                        .withHomeAppServerSideType(microFrontend.appServerSideType())
+                        .withHomeConsumedRoute(microFrontend.consumedRoute());
                   }
                   return result;
                 })
-                .switchIfEmpty((Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
+            .switchIfEmpty(
+                (Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
       }
 
       if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
@@ -664,15 +672,16 @@ public class RunActionUseCase {
     return Mono.empty();
   }
 
-  private Mono<?> resolveRemoteMenu(RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
+  private Mono<?> resolveRemoteMenu(
+      RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
     RunActionRqDto request =
-            RunActionRqDto.builder()
-                    .actionId("")
-                    .consumedRoute(remoteMenu.consumedRoute())
-                    .route(remoteMenu.route())
-                    .appServerSideType(remoteMenu.appServerSideType())
-                    .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
-                    .build();
+        RunActionRqDto.builder()
+            .actionId("")
+            .consumedRoute(remoteMenu.consumedRoute())
+            .route(remoteMenu.route())
+            .appServerSideType(remoteMenu.appServerSideType())
+            .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
+            .build();
 
     var baseUrl = remoteMenu.baseUrl();
     if (!baseUrl.startsWith("http")) {
@@ -688,27 +697,33 @@ public class RunActionUseCase {
 
     String finalRemoteBaseUrl = remoteBaseUrl;
     return Mono.fromFuture(mateuHttpClient.send(baseUrl, request))
-            .flatMap(uiIncrementDto ->
-                    Mono.justOrEmpty(
-                            uiIncrementDto.fragments().stream()
-                                    .filter(fragment -> fragment.component() != null)
-                                    .map(UIFragmentDto::component)
-                                    .filter(componentDto -> componentDto instanceof ClientSideComponentDto)
-                                    .map(componentDto -> (ClientSideComponentDto) componentDto)
-                                    .map(ClientSideComponentDto::metadata)
-                                    .filter(metadata -> metadata instanceof AppDto)
-                                    .map(metadata -> (AppDto) metadata)
-                                    .findFirst()
-                    ).map(app ->
+        .flatMap(
+            uiIncrementDto ->
+                Mono.justOrEmpty(
+                        uiIncrementDto.fragments().stream()
+                            .filter(fragment -> fragment.component() != null)
+                            .map(UIFragmentDto::component)
+                            .filter(componentDto -> componentDto instanceof ClientSideComponentDto)
+                            .map(componentDto -> (ClientSideComponentDto) componentDto)
+                            .map(ClientSideComponentDto::metadata)
+                            .filter(metadata -> metadata instanceof AppDto)
+                            .map(metadata -> (AppDto) metadata)
+                            .findFirst())
+                    .map(
+                        app ->
                             MicroFrontend.builder()
-                                    .route(finalRemoteBaseUrl + remoteMenu.route() + command.route().substring(remoteMenu.path().length() - command.baseUrl().length()))
-                                    .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
-                                    .actionId("")
-                                    .baseUrl(remoteMenu.baseUrl())
-                                    .appServerSideType(app.appServerSideType())
-                                    .build()
-                    )
-            );
+                                .route(
+                                    finalRemoteBaseUrl
+                                        + remoteMenu.route()
+                                        + command
+                                            .route()
+                                            .substring(
+                                                remoteMenu.path().length()))
+                                .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
+                                .actionId("")
+                                .baseUrl(remoteMenu.baseUrl())
+                                .appServerSideType(app.appServerSideType())
+                                .build()));
   }
 
   public static Object wrap(

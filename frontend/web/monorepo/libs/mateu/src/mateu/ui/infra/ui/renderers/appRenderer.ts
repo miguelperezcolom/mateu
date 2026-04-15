@@ -9,6 +9,37 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
     }
 }
 
+const chooseRoute = (container: MateuApp, metadata: App) => {
+    if (container.selectedRoute) {
+        return container.selectedRoute
+    }
+    return metadata.homeRoute
+}
+const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
+    if (container.selectedRoute) {
+        return container.selectedConsumedRoute??metadata.route // la ruta consumida es la de la app
+    }
+    return metadata.homeConsumedRoute
+}
+const chooseBaseUrl = (container: MateuApp, metadata: App) => {
+    if (container.selectedRoute) {
+        return container.selectedBaseUrl??container.baseUrl
+    }
+    return metadata.homeBaseUrl
+}
+const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
+    if (container.selectedRoute) {
+        return container.selectedAppServerSideType??metadata.appServerSideType
+    }
+    return metadata.homeAppServerSideType
+}
+const chooseUriPrefix = (container: MateuApp, metadata: App) => {
+    if (container.selectedRoute) {
+        return container.selectedUriPrefix
+    }
+    return metadata.homeUriPrefix
+}
+
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: any, _data: any, appState: any, appData: any) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
@@ -70,25 +101,54 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
-                        ${container.selectedRoute??'no selected route'}
+                            container.selectedBaseUrl:${container.selectedBaseUrl}
                         <br/>
-                        ${container.selectedRoute??metadata.homeRoute}
+                            container.selectedRoute:${container.selectedRoute}
                         <br/>
-                        ${metadata.homeRoute}
+                            container.selectedConsumedRoute:${container.selectedConsumedRoute}
                         <br/>
-                        ${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}
+                            container.selectedAppServerSideType:${container.selectedAppServerSideType}
                         <br/>
-                        ${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}
+                            container.selectedUriPrefix:${container.selectedUriPrefix}
+                        <hr>
+                            metadata.baseUrl:${metadata.baseUrl}
                         <br/>
-                        ${container.selectedUriPrefix??metadata.homeUriPrefix}
+                            metadata.route:${metadata.route}
+                        <br/>
+                            metadata.consumedRoute:${metadata.consumedRoute}
+                        <br/>
+                            metadata.appServerSideType:${metadata.appServerSideType}
+                        <br/>
+                            metadata.uriPrefix:${metadata.uriPrefix}
+                        <hr>
+                            metadata.homeBaseUrl:${metadata.homeBaseUrl}
+                        <br/>
+                            metadata.homeRoute:${metadata.homeRoute}
+                        <br/>
+                            metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
+                        <br/>
+                            metadata.homeAppServerSideType:${metadata.homeAppServerSideType}
+                        <br/>
+                            metadata.homeUriPrefix:${metadata.homeUriPrefix}
+                        <hr>
+                            chosen.baseUrl:${chooseBaseUrl(container, metadata)}
+                        <br/>
+                            chosen.route:${chooseRoute(container, metadata)}
+                        <br/>
+                            chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
+                        <br/>
+                            chosen.appServerSideType:${chooseAppServerSideType(container, metadata)}
+                        <br/>
+                            chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
+                        <hr>
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${metadata.homeRoute}"
+                                route="${chooseRoute(container, metadata)}"
                                 id="ux_${container.id}"
-                                baseUrl="${container.selectedBaseUrl??metadata.homeBaseUrl??container.baseUrl}"
-                                consumedRoute="${container.selectedConsumedRoute??metadata.homeConsumedRoute??metadata.route}"
-                                appServerSideType="${container.selectedAppServerSideType??metadata.homeAppServerSideType??metadata.appServerSideType}"
-                                uriPrefix="${container.selectedUriPrefix??metadata.homeUriPrefix}"
+                                baseUrl="${chooseBaseUrl(container, metadata)}"
+                                consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                appServerSideType="${chooseAppServerSideType(container, metadata)}"
+                                uriPrefix="${chooseUriPrefix(container, metadata)}"
                                 style="width: 100%;"
                                 .appState="${appState}"
                                 .appData="${appData}"
