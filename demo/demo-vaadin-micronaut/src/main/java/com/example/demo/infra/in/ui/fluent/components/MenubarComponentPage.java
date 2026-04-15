@@ -22,7 +22,7 @@ public class MenubarComponentPage implements ComponentTreeSupplier {
                                 .options(List.of(
                                         new RouteLink("/nested-apps/left/home", "Home"),
                                         new RouteLink("/nested-apps/left/page1", "Page 1"),
-                                        (Actionable) new Menu("Submenu", List.of(
+                                        (Actionable) new Menu("/submenu", "Submenu", List.of(
                                                 new RouteLink("/nested-apps/left/home", "Home"),
                                                 new RouteLink("/nested-apps/left/page1", "Page 1")
                                         ))

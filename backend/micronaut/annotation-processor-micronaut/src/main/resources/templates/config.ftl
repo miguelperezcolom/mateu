@@ -13,9 +13,11 @@ import io.micronaut.serde.annotation.SerdeImport;
         "io.mateu.core.application.getui",
         "io.mateu.core.application.createjourney",
         "io.mateu.core.application.runaction",
+        "io.mateu.core.application.out",
         "io.mateu.core.domain",
         "io.mateu.core.domain.fragmentmapper",
-        "io.mateu.core.domain.reflection"
+        "io.mateu.core.domain.reflection",
+        "io.mateu.core.infra.out"
     },
     annotated = "*")
 */

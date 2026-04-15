@@ -5,6 +5,7 @@ import io.mateu.core.application.out.MateuHttpClient;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Named
 @Slf4j
+@Singleton
 public class DefaultMateuHttpClient implements MateuHttpClient {
 
   private final HttpClient httpClient =

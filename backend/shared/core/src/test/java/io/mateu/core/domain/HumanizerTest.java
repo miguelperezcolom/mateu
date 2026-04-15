@@ -2,6 +2,7 @@ package io.mateu.core.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.mateu.uidl.Humanizer;
 import org.junit.jupiter.api.Test;
 
 class HumanizerTest {

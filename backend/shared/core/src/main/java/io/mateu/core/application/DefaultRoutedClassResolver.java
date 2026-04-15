@@ -136,8 +136,7 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
     if (aClass.isAnnotationPresent(Routes.class)) {
       var routes = aClass.getAnnotation(Routes.class);
       for (Route annotation : routes.value()) {
-        if (matches(route, annotation.value())
-            || cleanRoute.equals(aClass.getAnnotation(Route.class).value())) {
+        if (matches(route, annotation.value()) || cleanRoute.equals(annotation.value())) {
           return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
         }
         ;

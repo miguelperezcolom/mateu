@@ -25,7 +25,7 @@ public class NestedAppMenuOnLeft implements AppSupplier {
                 .menu(List.of(
                         new RouteLink("/nested-apps/left/home", "Home"),
                         new RouteLink("/nested-apps/left/page1", "Page 1"),
-                        new Menu("Submenu", List.of(
+                        new Menu("/submenu","Submenu", List.of(
                                 new RouteLink("/nested-apps/left/home", "Home"),
                                 new RouteLink("/nested-apps/left/page1", "Page 1")
                                 ))

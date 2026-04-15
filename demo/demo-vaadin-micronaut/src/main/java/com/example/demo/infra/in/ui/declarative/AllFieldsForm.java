@@ -98,7 +98,7 @@ public class AllFieldsForm {
     Component component = new Text("Hola!");
 
 
-    Menu menu = new Menu("Hola!", List.of(new RouteLink("/app/page1", "Page 1"), new RouteLink("/app/page2", "Page 2")));
+    Menu menu = new Menu("/app", "Hola!", List.of(new RouteLink("/app/page1", "Page 1"), new RouteLink("/app/page2", "Page 2")));
 
     Range range = new Range(20, 30);
 

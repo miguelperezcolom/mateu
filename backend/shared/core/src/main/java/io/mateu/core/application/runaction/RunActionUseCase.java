@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
+import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
@@ -285,32 +286,20 @@ public class RunActionUseCase {
   }
 
   public static Actionable resolveMenu(
-      List<Actionable> actionables, String route, String completeRoute) {
+      String appRoute,
+      List<Actionable> actionables,
+      String route,
+      String completeRoute,
+      HttpRequest httpRequest) {
     if (route.endsWith("_page") || "".equals(route)) {
       return null;
     }
-    String searchableRoute = route;
-    while (!searchableRoute.isEmpty()) {
-      for (Actionable actionable : actionables) {
-        if (searchableRoute.equals(actionable.path())
-            || completeRoute.equals(actionable.path())
-            || (actionable instanceof RemoteMenu remoteMenu
-                && (searchableRoute.startsWith(remoteMenu.path())
-                    || completeRoute.startsWith(remoteMenu.path())))) {
-          return actionable;
-        }
-        if (actionable instanceof Menu menu) {
-          var found = resolveMenu(menu.submenu(), searchableRoute, completeRoute);
-          if (found != null) {
-            return found;
-          }
-        }
-      }
-      searchableRoute =
-          searchableRoute.contains("/")
-              ? searchableRoute.substring(0, searchableRoute.lastIndexOf("/"))
-              : "";
+
+    var selectedOption = getSelectedOption(appRoute, route, actionables, httpRequest);
+    if (selectedOption != null && selectedOption.isPresent()) {
+      return selectedOption.get();
     }
+
     return null;
   }
 
@@ -569,7 +558,11 @@ public class RunActionUseCase {
       }
       var actionable =
           resolveMenu(
-              app.menu(), cleanRoute, ("_empty".equals(consumedRoute) ? app.route() : "") + route);
+              app.route(),
+              app.menu(),
+              cleanRoute,
+              ("_empty".equals(consumedRoute) ? app.route() : "") + route,
+              httpRequest);
 
       if (actionable instanceof RemoteMenu remoteMenu) {
         App finalApp = app;

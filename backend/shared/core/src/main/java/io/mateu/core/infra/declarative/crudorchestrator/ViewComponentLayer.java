@@ -1,12 +1,12 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ReadOnly;

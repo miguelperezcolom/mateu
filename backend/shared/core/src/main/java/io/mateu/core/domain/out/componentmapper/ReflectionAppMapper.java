@@ -2,15 +2,15 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.Authorizer.isAuthorized;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.Humanizer.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.getRoute;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
+import static io.mateu.uidl.Humanizer.*;
 
-import io.mateu.core.domain.Humanizer;
+import io.mateu.uidl.Humanizer;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Menu;
@@ -47,7 +47,7 @@ public class ReflectionAppMapper {
       HttpRequest httpRequest) {
     var appRoute = getRoute(instance, instance, httpRequest, route, consumedRoute);
     var menu = getMenu(appRoute, instance, route, httpRequest);
-    var selectedOption = getSelectedOption(appRoute, route, menu);
+    var selectedOption = getSelectedOption(appRoute, route, menu, httpRequest);
     return App.builder()
         .route(appRoute)
         .homeRoute(getHomeRoute(instance, selectedOption))
@@ -71,12 +71,18 @@ public class ReflectionAppMapper {
   }
 
   public static Optional<Actionable> getSelectedOption(
-      String appRoute, String route, Collection<? extends Actionable> menu) {
-    return getSelectedOption(route, menu);
+      String appRoute,
+      String route,
+      Collection<? extends Actionable> menu,
+      HttpRequest httpRequest) {
+    return getSelectedOption(route, menu, httpRequest, appRoute);
   }
 
   public static Optional<Actionable> getSelectedOption(
-      String route, Collection<? extends Actionable> actionables) {
+      String route,
+      Collection<? extends Actionable> actionables,
+      HttpRequest httpRequest,
+      String prefix) {
     if (route.startsWith("/")) {
       route = route.substring(1);
     }
@@ -85,11 +91,17 @@ public class ReflectionAppMapper {
       token = "/" + token;
       for (Actionable actionable : actionables) {
         if (token.equals(actionable.path())) {
+          String cleanPrefix = !"".equals(prefix) && !"/".equals(prefix) ? prefix : "";
           if (actionable instanceof Menu menu) {
             return getSelectedOption(
                 Arrays.stream(route.split("/")).skip(1).collect(Collectors.joining("/")),
-                menu.submenu());
+                menu.submenu(),
+                httpRequest,
+                cleanPrefix + token);
           }
+
+          httpRequest.setAttribute("resolvedRoute", cleanPrefix + token);
+
           if (actionable instanceof RemoteMenu remoteMenu) {
             return Optional.of(remoteMenu);
           }
@@ -291,6 +303,7 @@ public class ReflectionAppMapper {
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
+          "/" + field.getName(),
           getLabel(field),
           getActionables(
               appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));
@@ -298,7 +311,9 @@ public class ReflectionAppMapper {
     if (MenuSupplier.class.isAssignableFrom(field.getType())) {
       var menuSupplier = (MenuSupplier) getValue(field, instance);
       return new Menu(
-          getLabel(field), completeActionables(appRoute, menuSupplier.menu(httpRequest)));
+          "/" + field.getName(),
+          getLabel(field),
+          completeActionables(appRoute, menuSupplier.menu(httpRequest)));
     }
     if (!isBasic(field.getType())) {
       if (getAllFields(field.getType()).stream()
@@ -307,6 +322,7 @@ public class ReflectionAppMapper {
                   childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
                       && isAuthorized(childField.getAnnotation(EyesOnly.class), httpRequest))) {
         return new Menu(
+            "/" + field.getName(),
             getLabel(field),
             getActionables(
                 appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));

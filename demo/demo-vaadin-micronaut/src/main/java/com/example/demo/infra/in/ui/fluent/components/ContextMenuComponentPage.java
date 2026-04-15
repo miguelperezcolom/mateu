@@ -71,7 +71,7 @@ public class ContextMenuComponentPage implements ComponentTreeSupplier {
                                                         .text("Hola hola")
                                                         .build())
                                                 .build(),
-                                        new Menu("Submenu", List.of(
+                                        new Menu("/submenu", "Submenu", List.of(
                                                 RouteLink.builder()
                                                         .route("/nested-apps/left/home")
                                                         .label("Home again")

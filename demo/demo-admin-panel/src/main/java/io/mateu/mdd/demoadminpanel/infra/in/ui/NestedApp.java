@@ -3,7 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Route;
 
-@Route(value = "/home2/xxx", parentRoute = "/home2")
+@Route(value = "/xxx", parentRoute = "/home2")
 public class NestedApp {
 
     @Menu

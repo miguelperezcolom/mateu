@@ -1,10 +1,10 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import static io.mateu.core.domain.Humanizer.toCamelCase;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
+import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.Route;
@@ -58,7 +58,7 @@ public final class AppComponentToDtoMapper {
       }
     }
     var menu = getMenu(app, route, appRouteForMenu);
-    var selectedOption = getSelectedOption(appRoute, route, app.menu());
+    var selectedOption = getSelectedOption(appRoute, route, app.menu(), httpRequest);
     var appDto =
         AppDto.builder()
             .favicon(app.favicon())
@@ -167,7 +167,10 @@ public final class AppComponentToDtoMapper {
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
       effectiveRoute = app.homeRoute();
     } else {
-      if ("".equals(effectiveRoute) || "/".equals(effectiveRoute)) {
+      if ("".equals(effectiveRoute)
+          || "/".equals(effectiveRoute)
+          || effectiveRoute.endsWith("_page")
+          || selectedOption.isEmpty()) {
         effectiveRoute = app.homeRoute();
       } else {
         if (!effectiveRoute.startsWith(appRoute)) {
@@ -234,51 +237,50 @@ public final class AppComponentToDtoMapper {
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {
-    return buildMenu(app.menu(), route, appRoute);
+    return buildMenu(app.menu(), route, appRoute, "");
   }
 
   private static List<MenuOptionDto> buildMenu(
-      List<Actionable> menu, String route, String appRoute) {
+      List<Actionable> menu, String route, String appRoute, String prefix) {
     return menu.stream()
         .map(
-            option ->
-                MenuOptionDto.builder()
-                    .label(option.label())
-                    .destination(
-                        option instanceof RouteLink
-                                || option instanceof ContentLink
-                                || option instanceof FieldLink
-                                || option instanceof MethodLink
-                                || option instanceof RemoteMenu
-                            ? new GoToRouteDto("", getPath(appRoute, option), null)
-                            : null)
-                    .actionId(getActionId(option))
-                    .selected(isSelected(option, appRoute, route))
-                    .visible(true)
-                    .itemData(option.itemData())
-                    .submenus(
-                        option instanceof Menu asMenu
-                            ? buildMenu(asMenu.submenu(), route, appRoute)
-                            : List.of())
-                    .separator(option instanceof MenuSeparator)
-                    .remote(option instanceof RemoteMenu)
-                    .baseUrl(
-                        (option instanceof RemoteMenu remoteMenu) ? remoteMenu.baseUrl() : null)
-                    .route((option instanceof RemoteMenu remoteMenu) ? remoteMenu.route() : null)
-                    .consumedRoute(
-                        (option instanceof RemoteMenu remoteMenu)
-                            ? remoteMenu.consumedRoute()
-                            : null)
-                    .appServerSideType(
-                        (option instanceof RemoteMenu remoteMenu)
-                            ? remoteMenu.appServerSideType()
-                            : null)
-                    .serverSideType(
-                        (option instanceof RemoteMenu remoteMenu)
-                            ? remoteMenu.serverSideType()
-                            : null)
-                    .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
-                    .build())
+            option -> {
+              var path = getPath(prefix, option);
+              return MenuOptionDto.builder()
+                  .label(option.label())
+                  .destination(
+                      option instanceof RouteLink
+                              || option instanceof ContentLink
+                              || option instanceof FieldLink
+                              || option instanceof MethodLink
+                              || option instanceof RemoteMenu
+                          ? new GoToRouteDto("", path, null)
+                          : null)
+                  .actionId(getActionId(option))
+                  .selected(isSelected(option, appRoute, route))
+                  .visible(true)
+                  .itemData(option.itemData())
+                  .submenus(
+                      option instanceof Menu asMenu
+                          ? buildMenu(asMenu.submenu(), route, appRoute, prefix + asMenu.path())
+                          : List.of())
+                  .separator(option instanceof MenuSeparator)
+                  .remote(option instanceof RemoteMenu)
+                  .baseUrl((option instanceof RemoteMenu remoteMenu) ? remoteMenu.baseUrl() : null)
+                  .route((option instanceof RemoteMenu remoteMenu) ? remoteMenu.route() : null)
+                  .consumedRoute(
+                      (option instanceof RemoteMenu remoteMenu) ? remoteMenu.consumedRoute() : null)
+                  .appServerSideType(
+                      (option instanceof RemoteMenu remoteMenu)
+                          ? remoteMenu.appServerSideType()
+                          : null)
+                  .serverSideType(
+                      (option instanceof RemoteMenu remoteMenu)
+                          ? remoteMenu.serverSideType()
+                          : null)
+                  .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
+                  .build();
+            })
         .toList();
   }
 
@@ -300,7 +302,7 @@ public final class AppComponentToDtoMapper {
       return prepend(appRoute, toCamelCase(option.label()));
     }
     if (option instanceof RouteLink routeLink) {
-      return routeLink.route();
+      option = routeLink.withPath(prepend(appRoute, routeLink.path()));
     }
     if (option instanceof ContentLink contentLink) {
       option = contentLink.withPath(prepend(appRoute, contentLink.path()));

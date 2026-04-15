@@ -1,6 +1,6 @@
 package io.mateu;
 
-import static io.mateu.core.domain.Humanizer.toCamelCase;
+import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import java.io.File;
 import java.io.IOException;

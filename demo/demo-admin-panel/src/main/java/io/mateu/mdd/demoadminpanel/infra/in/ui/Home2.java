@@ -27,6 +27,12 @@ public class Home2 implements WidgetSupplier {
     String xxx;
 
     @Menu
+    String page3 = "/home2/page3";
+
+    @Menu
+    RouteLink page4 = new RouteLink("/page4", "Page 4");
+
+    @Menu
     RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow")
             .withAppServerSideType("io.mateu.workflow.infra.in.ui.WorkflowHome");
 

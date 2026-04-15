@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import static io.mateu.core.domain.Humanizer.toCamelCase;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ContextMenuDto;

@@ -1,8 +1,5 @@
-package io.mateu.core.domain;
+package io.mateu.uidl;
 
-import jakarta.inject.Named;
-
-@Named
 public class Humanizer {
 
   public static String toKebabCase(String s) {

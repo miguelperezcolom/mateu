@@ -22,6 +22,8 @@ public class RRA implements AppSupplier {
                 .variant(AppVariant.TABS)
                 .cssClasses("tabs-at-bottom")
                 .homeRoute("/use-cases/rra/home")
+                .homeBaseUrl("/fluent")
+                .homeUriPrefix("/use-cases/rra")
                 .menu(List.of(
                         RouteLink.builder()
                                 .route("/use-cases/rra/home")

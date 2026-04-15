@@ -2,7 +2,7 @@ package com.example.demo;
 
 import com.example.demo.jsonschemabased.Scanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mateu.core.domain.Humanizer;
+import io.mateu.uidl.Humanizer;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.FormField;

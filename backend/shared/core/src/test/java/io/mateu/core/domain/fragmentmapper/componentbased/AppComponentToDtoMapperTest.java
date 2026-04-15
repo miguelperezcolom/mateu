@@ -53,6 +53,7 @@ class AppComponentToDtoMapperTest {
                         new RouteLink("/page2", "Page 2", true),
                         new ContentLink("/content0", "Content 0", (rq) -> new Text("Hola 0")),
                         new Menu(
+                            "/page3",
                             "Page 3",
                             List.of(
                                 new ContentLink(
@@ -60,6 +61,7 @@ class AppComponentToDtoMapperTest {
                                 new ContentLink(
                                     "/content2", "Content 2", (rq) -> new Text("Hola 2")),
                                 new Menu(
+                                    "/page4",
                                     "Page 4",
                                     List.of(
                                         new ContentLink(

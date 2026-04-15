@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.reflectionbased;
 
-import io.mateu.core.domain.Humanizer;
+import io.mateu.uidl.Humanizer;
 import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
 

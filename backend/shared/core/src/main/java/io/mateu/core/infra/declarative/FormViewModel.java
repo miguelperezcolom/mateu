@@ -1,7 +1,6 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getLabel;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getView;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
@@ -10,6 +9,7 @@ import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getA
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Hidden;

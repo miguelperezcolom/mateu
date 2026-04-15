@@ -95,10 +95,10 @@ public class DeclarativeApp implements App {
     MenuSupplier menuSupplier = httpRequest -> List.of(
             new ContentLink("Hola 1", rq -> new Text("Hola 1")),
             new ContentLink("Hola 2",rq -> new Text("Hola 2")),
-            new io.mateu.uidl.data.Menu("Page 3", List.of(
+            new io.mateu.uidl.data.Menu("/submenu", "Page 3", List.of(
                     new ContentLink("/content1", "Content 1", (rq) -> new Text("Hola 1")),
                     new ContentLink("/content2", "Content 2", (rq) -> new Text("Hola 2")),
-                    new io.mateu.uidl.data.Menu("Page 4", List.of(
+                    new io.mateu.uidl.data.Menu("/submenu", "Page 4", List.of(
                             new ContentLink("/content3", "Content 3", (rq) -> new Text("Hola 3")),
                             new ContentLink("/content4", "Content 4", (rq) -> new Text("Hola 4"))
                     ))

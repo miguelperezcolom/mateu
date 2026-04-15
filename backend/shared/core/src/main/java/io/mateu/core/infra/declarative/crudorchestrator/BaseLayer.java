@@ -1,6 +1,6 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
-import static io.mateu.core.domain.Humanizer.toUpperCaseFirst;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
