@@ -54,8 +54,10 @@ public class ${simpleClassName}MateuController {
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,
         HttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, rq, baseUrl,
-        new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
+        var httpRequest = new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
+        httpRequest.setAttribute("uiId", uiId);
+        httpRequest.setAttribute("baseUrl", baseUrl);
+        return service.runAction(uiId, rq, baseUrl, httpRequest);
     }
 
 }

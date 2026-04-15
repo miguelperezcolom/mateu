@@ -32,8 +32,10 @@ public class ${simpleClassName}MateuController {
         String ignored,
         RunActionRqDto rq,
         HttpServerRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, rq, baseUrl,
-        new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq)).blockFirst();
+var httpRequest = new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
+httpRequest.setAttribute("uiId", uiId);
+httpRequest.setAttribute("baseUrl", baseUrl);
+return service.runAction(uiId, rq, baseUrl, httpRequest).blockFirst();
     }
 
 }

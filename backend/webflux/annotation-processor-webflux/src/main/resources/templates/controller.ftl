@@ -34,8 +34,10 @@ public class ${simpleClassName}MateuController {
         @PathVariable("ignored") String ignored,
         @RequestBody RunActionRqDto rq,
         ServerHttpRequest serverHttpRequest) throws Throwable {
-      return service.runAction(uiId, rq, baseUrl,
-        new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq));
+    var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
+    httpRequest.setAttribute("uiId", uiId);
+    httpRequest.setAttribute("baseUrl", baseUrl);
+    return service.runAction(uiId, rq, baseUrl, httpRequest);
     }
 
 }

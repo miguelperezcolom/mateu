@@ -1,7 +1,6 @@
 package io.mateu.core.application;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
-import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.RouteConstants;
@@ -26,8 +25,8 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   public Optional<ResolvedRoute> resolveAbsolute(String route, RunActionCommand command) {
     return providers.stream()
         .map(provider -> matchesAbsolute(route, provider.routedClass(), command))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .findFirst();
   }
 
@@ -35,80 +34,87 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   public Optional<ResolvedRoute> resolveApp(String route, RunActionCommand command) {
     return providers.stream()
         .map(provider -> matchesApp(route, provider.routedClass(), command))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst();
   }
 
   @Override
   public Optional<ResolvedRoute> resolve(String route, RunActionCommand command) {
     return providers.stream()
         .map(provider -> matches(route, provider.routedClass(), command))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst();
   }
 
-  private Optional<ResolvedRoute> matchesAbsolute(String route, Class<?> aClass, RunActionCommand command) {
+  private Optional<ResolvedRoute> matchesAbsolute(
+      String route, Class<?> aClass, RunActionCommand command) {
     if (aClass.isAnnotationPresent(UI.class)) {
       if (matches(route, aClass.getAnnotation(UI.class).value())) {
-          return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+        return Optional.of(
+            new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
       }
     }
-      if (aClass.isAnnotationPresent(Routes.class)) {
-          var routes = aClass.getAnnotation(Routes.class);
-          for (Route annotation : routes.value()) {
-              if (matches(route, annotation.value())
-                      && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
-                      || annotation.parentRoute().equals(command.consumedRoute()))) {
-                  return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
-              };
-          }
+    if (aClass.isAnnotationPresent(Routes.class)) {
+      var routes = aClass.getAnnotation(Routes.class);
+      for (Route annotation : routes.value()) {
+        if (matches(route, annotation.value())
+            && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
+                || annotation.parentRoute().equals(command.consumedRoute()))) {
+          return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
+        }
+        ;
       }
+    }
     if (aClass.isAnnotationPresent(Route.class)) {
       var annotation = aClass.getAnnotation(Route.class);
       if (matches(route, annotation.value())
           && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
               || annotation.parentRoute().equals(command.consumedRoute()))) {
-            return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
-        }
+        return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
+      }
     }
     return Optional.empty();
   }
 
-    private boolean matches(String route, String pattern) {
-        var regex = new StringBuilder();
-        var tokens = pattern.split("/");
-        for (var token : tokens) {
-            if (token.startsWith(":")) {
-                regex.append("([^/]+)");
-            } else {
-                regex.append(token);
-            }
-            regex.append("/");
-        }
-        regex.deleteCharAt(regex.length() - 1);
-        return route.matches(regex.toString());
+  private boolean matches(String route, String pattern) {
+    var regex = new StringBuilder();
+    var tokens = pattern.split("/");
+    for (var token : tokens) {
+      if (token.startsWith(":")) {
+        regex.append("([^/]+)");
+      } else {
+        regex.append(token);
+      }
+      regex.append("/");
     }
+    regex.deleteCharAt(regex.length() - 1);
+    return route.matches(regex.toString());
+  }
 
-    private Optional<ResolvedRoute> matchesApp(String route, Class<?> aClass, RunActionCommand command) {
+  private Optional<ResolvedRoute> matchesApp(
+      String route, Class<?> aClass, RunActionCommand command) {
     if (isApp(aClass, route)) {
       if (aClass.isAnnotationPresent(UI.class)) {
         if (matches(route, aClass.getAnnotation(UI.class).value())) {
-            return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+          return Optional.of(
+              new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
         }
       }
-        if (aClass.isAnnotationPresent(Routes.class)) {
-            var routes = aClass.getAnnotation(Routes.class);
-            for (Route annotation : routes.value()) {
-                if (matches(route, annotation.value())) {
-                    return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
-                };
-            }
+      if (aClass.isAnnotationPresent(Routes.class)) {
+        var routes = aClass.getAnnotation(Routes.class);
+        for (Route annotation : routes.value()) {
+          if (matches(route, annotation.value())) {
+            return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
+          }
+          ;
         }
+      }
       if (aClass.isAnnotationPresent(Route.class)) {
         if (matches(route, aClass.getAnnotation(Route.class).value())) {
-            return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
+          return Optional.of(
+              new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
         }
       }
     }
@@ -123,22 +129,25 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
     if (aClass.isAnnotationPresent(UI.class)) {
       if (matches(route, aClass.getAnnotation(UI.class).value())
           || cleanRoute.equals(aClass.getAnnotation(UI.class).value())) {
-          return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+        return Optional.of(
+            new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
       }
     }
-      if (aClass.isAnnotationPresent(Routes.class)) {
-          var routes = aClass.getAnnotation(Routes.class);
-          for (Route annotation : routes.value()) {
-              if (matches(route, annotation.value())
-                      || cleanRoute.equals(aClass.getAnnotation(Route.class).value())) {
-                  return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
-              };
-          }
+    if (aClass.isAnnotationPresent(Routes.class)) {
+      var routes = aClass.getAnnotation(Routes.class);
+      for (Route annotation : routes.value()) {
+        if (matches(route, annotation.value())
+            || cleanRoute.equals(aClass.getAnnotation(Route.class).value())) {
+          return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
+        }
+        ;
       }
+    }
     if (aClass.isAnnotationPresent(Route.class)) {
       if (matches(route, aClass.getAnnotation(Route.class).value())
           || cleanRoute.equals(aClass.getAnnotation(Route.class).value())) {
-          return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
+        return Optional.of(
+            new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
       }
     }
     return Optional.empty();
