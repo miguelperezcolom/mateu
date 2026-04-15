@@ -197,7 +197,7 @@ public class RunActionUseCase {
     if (instance instanceof Mono<?> mono) {
       return mono.map(i -> routeIfNeeded(command, i));
     }
-    if (true || ("".equals(command.actionId()) && !command.route().endsWith("/_page"))) {
+    if (true || ("".equals(command.actionId()) && !command.route().endsWith("_page"))) {
       if (instance instanceof RouteHandler handlesRoute) {
         return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
       }
@@ -286,7 +286,7 @@ public class RunActionUseCase {
 
   public static Actionable resolveMenu(
       List<Actionable> actionables, String route, String completeRoute) {
-    if (route.endsWith("/_page") || "".equals(route)) {
+    if (route.endsWith("_page") || "".equals(route)) {
       return null;
     }
     String searchableRoute = route;
@@ -325,7 +325,7 @@ public class RunActionUseCase {
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
       var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
-      if (command.route().startsWith("/_page")) {
+      if (command.route().endsWith("_page")) {
         return mono;
       }
       return mono.flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()))
@@ -593,7 +593,7 @@ public class RunActionUseCase {
                 (Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
       }
 
-      if (("_empty".equals(consumedRoute) || "/_page".equals(route))) {
+      if (("_empty".equals(consumedRoute) || "/_page".equals(route) || "_page".equals(route))) {
         return Mono.just(potentialApp);
       }
 
@@ -715,10 +715,7 @@ public class RunActionUseCase {
                                 .route(
                                     finalRemoteBaseUrl
                                         + remoteMenu.route()
-                                        + command
-                                            .route()
-                                            .substring(
-                                                remoteMenu.path().length()))
+                                        + command.route().substring(remoteMenu.path().length()))
                                 .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
                                 .actionId("")
                                 .baseUrl(remoteMenu.baseUrl())

@@ -77,7 +77,7 @@ public class ReflectionAppMapper {
 
   public static Optional<Actionable> getSelectedOption(
       String route, Collection<? extends Actionable> actionables) {
-        if (route.startsWith("/")) {
+    if (route.startsWith("/")) {
       route = route.substring(1);
     }
     var token = route.split("/")[0];
@@ -278,14 +278,16 @@ public class ReflectionAppMapper {
       if (uri != null) {
         return new RouteLink(uri, getLabel(field)).withPath("/" + field.getName());
       }
-      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field)).withPath("/" + field.getName());
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
+          .withPath("/" + field.getName());
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);
       if (uri != null) {
         return new RouteLink(uri.toString(), getLabel(field)).withPath("/" + field.getName());
       }
-      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field)).withPath("/" + field.getName());
+      return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
+          .withPath("/" + field.getName());
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
@@ -351,9 +353,9 @@ public class ReflectionAppMapper {
       }
     }
     if (actionable.path() == null || actionable.path().isEmpty()) {
-        if (actionable instanceof RouteLink routeLink) {
-            actionable = routeLink.withPath("/" + field.getName());
-        }
+      if (actionable instanceof RouteLink routeLink) {
+        actionable = routeLink.withPath("/" + field.getName());
+      }
       if (actionable instanceof ContentLink contentLink) {
         actionable = contentLink.withPath("/" + field.getName());
       }

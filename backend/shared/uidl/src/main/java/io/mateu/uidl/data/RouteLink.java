@@ -8,7 +8,7 @@ import lombok.With;
 @Builder
 @With
 public record RouteLink(
-        String path,
+    String path,
     String route,
     String label,
     RouteTarget target,

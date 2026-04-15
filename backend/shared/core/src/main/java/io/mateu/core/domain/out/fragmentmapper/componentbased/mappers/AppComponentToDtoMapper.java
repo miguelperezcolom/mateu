@@ -7,7 +7,6 @@ import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.Reflection
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;
 
 import io.mateu.dtos.*;
-import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
@@ -20,7 +19,6 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.HomeRouteSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Optional;
@@ -77,12 +75,8 @@ public final class AppComponentToDtoMapper {
                     appRoute,
                     httpRequest,
                     selectedOption)) // getHomeRoute(menu, route, appRoute))
-                .homeConsumedRoute(getHomeConsumedRoute(
-                        app,
-                        route,
-                        appRoute,
-                        httpRequest,
-                        selectedOption))
+            .homeConsumedRoute(
+                getHomeConsumedRoute(app, route, appRoute, httpRequest, selectedOption))
             .homeBaseUrl(getHomeBaseUrl(app, route, appRoute, httpRequest, selectedOption))
             .homeAppServerSideType(
                 getHomeAppServerSideType(app, route, appRoute, httpRequest, selectedOption))
@@ -134,12 +128,12 @@ public final class AppComponentToDtoMapper {
 
   @SneakyThrows
   private static String getHomeRoute(
-          App app,
-          String route,
-          String appRoute,
-          HttpRequest httpRequest,
-          Optional<Actionable> selectedOption) {
-      /*
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    /*
     if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
       if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
         return route.substring(remoteMenu.path().length());
@@ -169,35 +163,35 @@ public final class AppComponentToDtoMapper {
 
        */
 
-      var effectiveRoute = route;
-      if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
-          effectiveRoute = app.homeRoute();
+    var effectiveRoute = route;
+    if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
+      effectiveRoute = app.homeRoute();
+    } else {
+      if ("".equals(effectiveRoute) || "/".equals(effectiveRoute)) {
+        effectiveRoute = app.homeRoute();
       } else {
-          if ("".equals(effectiveRoute) || "/".equals(effectiveRoute)) {
-              effectiveRoute = app.homeRoute();
-          } else {
-              effectiveRoute = appRoute + effectiveRoute;
-          }
+        if (!effectiveRoute.startsWith(appRoute)) {
+          effectiveRoute = appRoute + effectiveRoute;
+        }
       }
-      if (effectiveRoute == null) {
-          effectiveRoute = appRoute;
-      }
-      if ("_no_home_route".equals(effectiveRoute)) {
-          effectiveRoute = "_page";
-      }
-      return addQueryParams(effectiveRoute, httpRequest);
+    }
+    if (effectiveRoute == null) {
+      effectiveRoute = appRoute;
+    }
+    if ("_no_home_route".equals(effectiveRoute)) {
+      effectiveRoute = "_page";
+    }
+    return addQueryParams(effectiveRoute, httpRequest);
   }
 
-    private static String getHomeConsumedRoute(
-            App app,
-            String route,
-            String appRoute,
-            HttpRequest httpRequest,
-            Optional<Actionable> selectedOption) {
-        return app.homeConsumedRoute() != null
-                ? app.homeConsumedRoute()
-                : appRoute;
-    }
+  private static String getHomeConsumedRoute(
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    return app.homeConsumedRoute() != null ? app.homeConsumedRoute() : appRoute;
+  }
 
   private static String getHomeBaseUrl(
       App app,
@@ -304,6 +298,9 @@ public final class AppComponentToDtoMapper {
   private static String getPath(String appRoute, Actionable option) {
     if (option.path() == null) {
       return prepend(appRoute, toCamelCase(option.label()));
+    }
+    if (option instanceof RouteLink routeLink) {
+      return routeLink.route();
     }
     if (option instanceof ContentLink contentLink) {
       option = contentLink.withPath(prepend(appRoute, contentLink.path()));

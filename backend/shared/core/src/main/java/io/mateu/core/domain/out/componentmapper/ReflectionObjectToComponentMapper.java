@@ -98,7 +98,7 @@ public class ReflectionObjectToComponentMapper {
     // tiene anotaciones con @MenuOption o @Submenu?
     // implementa App
 
-    if (route.endsWith("/_page")) {
+    if (route.endsWith("_page")) {
       return false;
     }
 
@@ -135,7 +135,7 @@ public class ReflectionObjectToComponentMapper {
     if (instance instanceof AppState) {
       return false;
     }
-    if (route.endsWith("/_page")) {
+    if (route.endsWith("_page")) {
       return true;
     }
     if (instance instanceof ComponentTreeSupplier

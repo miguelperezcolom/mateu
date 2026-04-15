@@ -86,7 +86,6 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
-        console.log('selectRoute', consumedRoute, route, _actionId, _baseUrl, appServerSideType, uriPrefix)
         if (true || route) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
