@@ -19,20 +19,33 @@ public record RouteLink(
     String className,
     boolean disabled,
     boolean disabledOnClick,
-    Object itemData)
+    Object itemData,
+    String appServerSideType,
+    String consumedRoute)
     implements Actionable {
 
   public RouteLink(String label) {
     this(
-        toCamelCase(label), toCamelCase(label), label, null, false, null, null, false, false, null);
+        toCamelCase(label),
+        toCamelCase(label),
+        label,
+        null,
+        false,
+        null,
+        null,
+        false,
+        false,
+        null,
+        null,
+        null);
   }
 
   public RouteLink(String path, String label) {
-    this(path, path, label, null, false, null, null, false, false, null);
+    this(path, path, label, null, false, null, null, false, false, null, null, null);
   }
 
   public RouteLink(String path, String label, boolean selected) {
-    this(path, path, label, null, selected, null, null, false, false, null);
+    this(path, path, label, null, selected, null, null, false, false, null, null, null);
   }
 
   public RouteLink(String label, boolean selected) {
@@ -46,6 +59,8 @@ public record RouteLink(
         null,
         false,
         false,
+        null,
+        null,
         null);
   }
 }

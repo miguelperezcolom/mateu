@@ -10,7 +10,6 @@ import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.AppVariantDto;
 import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -90,69 +89,63 @@ class AppComponentToDtoMapperTest {
                             List.of(
                                 MenuOptionDto.builder()
                                     .label("Home")
-                                    .destination(new GoToRouteDto("", "/home", null))
+                                    .path("/home")
                                     .visible(true)
                                     .selected(false)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Page 1")
-                                    .destination(new GoToRouteDto("", "/page1", null))
+                                    .path("/page1")
                                     .visible(true)
                                     .selected(false)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Page 2")
-                                    .destination(new GoToRouteDto("", "/page2", null))
+                                    .path("/page2")
                                     .visible(true)
                                     .selected(true)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Content 0")
-                                    .destination(new GoToRouteDto("", "/content0", null))
+                                    .path("/content0")
                                     .visible(true)
                                     .selected(false)
                                     .build(),
                                 MenuOptionDto.builder()
                                     .label("Page 3")
-                                    .destination(null)
+                                    .path("/page3")
                                     .visible(true)
                                     .selected(false)
                                     .submenus(
                                         List.of(
                                             MenuOptionDto.builder()
                                                 .label("Content 1")
-                                                .destination(
-                                                    new GoToRouteDto("", "/content1", null))
+                                                .path("/content1")
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
                                             MenuOptionDto.builder()
                                                 .label("Content 2")
-                                                .destination(
-                                                    new GoToRouteDto("", "/content2", null))
+                                                .path("/content2")
                                                 .visible(true)
                                                 .selected(false)
                                                 .build(),
                                             MenuOptionDto.builder()
                                                 .label("Page 4")
-                                                .destination(null)
+                                                .path("/page4")
                                                 .visible(true)
                                                 .selected(false)
                                                 .submenus(
                                                     List.of(
                                                         MenuOptionDto.builder()
                                                             .label("Content 3")
-                                                            .destination(
-                                                                new GoToRouteDto(
-                                                                    "", "/content3", null))
+                                                            .path("/content3")
                                                             .visible(true)
                                                             .selected(false)
                                                             .build(),
                                                         MenuOptionDto.builder()
                                                             .label("Content 4")
-                                                            .destination(
-                                                                new GoToRouteDto(
-                                                                    "", "/content4", null))
+                                                            .path("/content4")
                                                             .visible(true)
                                                             .selected(false)
                                                             .build()))

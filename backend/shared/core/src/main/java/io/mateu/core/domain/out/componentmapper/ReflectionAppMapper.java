@@ -288,10 +288,15 @@ public class ReflectionAppMapper {
     if (String.class.equals(field.getType())) {
       var uri = (String) getValue(field, instance);
       if (uri != null) {
-        return new RouteLink(uri, getLabel(field)).withPath("/" + field.getName());
+        return new RouteLink(uri, getLabel(field))
+            .withPath("/" + field.getName())
+            .withAppServerSideType(instance.getClass().getName())
+            .withConsumedRoute(appRoute);
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
-          .withPath("/" + field.getName());
+          .withPath("/" + field.getName())
+          .withAppServerSideType(instance.getClass().getName())
+          .withConsumedRoute(appRoute);
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);

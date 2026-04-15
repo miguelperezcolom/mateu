@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSe
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AppComponentToDtoMapper.prepend;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapPojo;
@@ -317,8 +316,10 @@ public class RunActionUseCase {
       if (command.route().endsWith("_page")) {
         return mono;
       }
-      return mono.flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()))
-          .switchIfEmpty((Mono) resolveRoute(command));
+      return mono.flatMap(
+          app ->
+              resolveMenuIfApp(command, app, command.httpRequest())
+                  .switchIfEmpty((Mono) resolveRoute(command)));
     }
 
     // si hay una ruta --> esa clase
@@ -479,10 +480,7 @@ public class RunActionUseCase {
   private List<String> createRoutes(RunActionCommand command) {
     List<String> routes = new ArrayList<>();
     StringBuilder currentRoute = new StringBuilder();
-    var completeRoute =
-        command.route().startsWith(command.baseUrl())
-            ? command.route()
-            : prepend(command.baseUrl(), command.route());
+    var completeRoute = command.route();
     if ("/".equals(completeRoute)) {
       return List.of("");
     }

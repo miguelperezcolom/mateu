@@ -62,6 +62,7 @@ export default abstract class ConnectedElement extends LitElement {
                 const app = metadata as App
                 const remoteMenus = this.getRemoteMenus(app.menu)
                 if (remoteMenus.length > 0) {
+                    console.log('has remote menus')
                     const requests = remoteMenus
                         .map(option => mateuApiClient.runAction(
                             option.baseUrl,
@@ -78,6 +79,7 @@ export default abstract class ConnectedElement extends LitElement {
                             true
                         ))
                     Promise.all(requests).then(increments => {
+                        console.log('incre', increments)
                         app.menu = this.updateMenu(app.menu, increments
                             .map(increment => increment.fragments)
                             .filter(fragment => fragment)
@@ -102,8 +104,10 @@ export default abstract class ConnectedElement extends LitElement {
 
     private updateMenu(menu: MenuOption[], increments: UIFragment[]) {
         const replaced: MenuOption[] = []
+        console.log('increxxx', menu, increments)
         menu.forEach(option => {
             if (option.remote) {
+                console.log('option.remote', option, increments)
                 const replacement = increments.find(increment => increment.targetComponentId == option.baseUrl + '#' + option.route)
                 if (replacement) {
                     if (replacement.component?.type == ComponentType.ClientSide) {
@@ -111,7 +115,7 @@ export default abstract class ConnectedElement extends LitElement {
                         if (clientSideComponent.metadata?.type == ComponentMetadataType.App) {
                             const app = clientSideComponent.metadata as App
                             const effectiveAppServerSideType = option.appServerSideType && !('' == option.appServerSideType)?option.appServerSideType:app.appServerSideType
-                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.destination.route, app.route)
+                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.route, app.route)
                             replaced.push(...app.menu)
                         }
                     }
@@ -132,7 +136,6 @@ export default abstract class ConnectedElement extends LitElement {
                     option.consumedRoute = consumedRoute??''
                     option.baseUrl = baseUrl
                     option.appServerSideType = appServerSideType
-                    option.destination.baseUrl = baseUrl
                     option.uriPrefix = uriPrefix
                 }
             }

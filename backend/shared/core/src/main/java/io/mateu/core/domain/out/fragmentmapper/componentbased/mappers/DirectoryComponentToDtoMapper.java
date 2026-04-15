@@ -5,13 +5,10 @@ import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DirectoryDto;
-import io.mateu.dtos.GoToRouteDto;
 import io.mateu.dtos.MenuOptionDto;
-import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Directory;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
-import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -64,10 +61,7 @@ public class DirectoryComponentToDtoMapper {
                                 initiatorComponentId,
                                 httpRequest)
                             : null)
-                    .destination(
-                        option instanceof RouteLink || option instanceof ContentLink
-                            ? new GoToRouteDto("", getPath(option), null)
-                            : null)
+                    .path(getPath(option))
                     .visible(true)
                     .selected(option.selected())
                     .disabled(option.disabled())

@@ -12,7 +12,7 @@ public record MenuOptionDto(
     String icon,
     String label,
     ComponentDto component,
-    GoToRouteDto destination,
+    String path,
     String actionId,
     List<MenuOptionDto> submenus,
     @JsonIgnore int order,
@@ -30,7 +30,8 @@ public record MenuOptionDto(
     String appServerSideType,
     String serverSideType,
     Map<String, Object> params,
-    boolean explode) {
+    boolean explode,
+    String uriPrefix) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

@@ -59,7 +59,7 @@ export class MateuApp extends ComponentElement {
     @state()
     selectedParams: any | undefined = undefined
 
-    getSelectedOption = (options: MenuOption[]): MenuOption | null => {
+        getSelectedOption = (options: MenuOption[]): MenuOption | null => {
         if (options) {
             for (let i = 0; i < options.length; i++) {
                 const option = options[i]
@@ -76,6 +76,7 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
+        console.log('itemSelected', e)
         // @ts-ignore
         this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
     }
@@ -86,6 +87,7 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+        console.log('selectRoute', _baseUrl, consumedRoute, route, appServerSideType)
         if (true || route) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
@@ -169,7 +171,7 @@ export class MateuApp extends ComponentElement {
                     return {
                         consumedRoute: option.consumedRoute,
                         text: option.label,
-                        route: option.destination?.route,
+                        route: option.route,
                         baseUrl: option.baseUrl,
                         appServerSideType: option.appServerSideType,
                         uriPrefix: option.uriPrefix,
@@ -189,7 +191,7 @@ export class MateuApp extends ComponentElement {
                 return {
                     consumedRoute: option.consumedRoute,
                     text: option.label,
-                    route: option.destination?.route,
+                    route: option.route,
                     baseUrl: option.baseUrl,
                     appServerSideType: option.appServerSideType,
                     uriPrefix: option.uriPrefix,
@@ -221,7 +223,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectRoute(option.consumedRoute, option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
+                @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
         >${option.label}</vaadin-button>`
     }
 

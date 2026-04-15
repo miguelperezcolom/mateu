@@ -102,7 +102,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
-                        ${false?html`
+                        ${true?html`
                             container.selectedBaseUrl:${container.selectedBaseUrl}
                             <br/>
                             container.selectedRoute:${container.selectedRoute}
@@ -212,7 +212,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${metadata.menu.map(option => {
                                     return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.consumedRoute, option.destination.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
+                                        @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
                                 >${option.label}</vaadin-tab>
                             `
                                 })}
@@ -223,6 +223,47 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </div>
                     <div class="app-content">
+                        ${true?html`
+                            container.selectedBaseUrl:${container.selectedBaseUrl}
+                            <br/>
+                            container.selectedRoute:${container.selectedRoute}
+                            <br/>
+                            container.selectedConsumedRoute:${container.selectedConsumedRoute}
+                            <br/>
+                            container.selectedAppServerSideType:${container.selectedAppServerSideType}
+                            <br/>
+                            container.selectedUriPrefix:${container.selectedUriPrefix}
+                            <hr>
+                            metadata.baseUrl:${metadata.baseUrl}
+                            <br/>
+                            metadata.route:${metadata.route}
+                            <br/>
+                            metadata.consumedRoute: no field metadata.consumedRoute
+                            <br/>
+                            metadata.appServerSideType:${metadata.appServerSideType}
+                            <br/>
+                            metadata.uriPrefix:${metadata.uriPrefix}
+                            <hr>
+                            metadata.homeBaseUrl:${metadata.homeBaseUrl}
+                            <br/>
+                            metadata.homeRoute:${metadata.homeRoute}
+                            <br/>
+                            metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
+                            <br/>
+                            metadata.homeAppServerSideType:${metadata.homeAppServerSideType}
+                            <br/>
+                            metadata.homeUriPrefix:${metadata.homeUriPrefix}
+                            <hr>
+                            chosen.baseUrl:${chooseBaseUrl(container, metadata)}
+                            <br/>
+                            chosen.route:${chooseRoute(container, metadata)}
+                            <br/>
+                            chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
+                            <br/>
+                            chosen.appServerSideType:${chooseAppServerSideType(container, metadata)}
+                            <br/>
+                            chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
+                            <hr>                              `:nothing}
                         <vaadin-scroller>
                             <mateu-api-caller>
                                 <mateu-ux

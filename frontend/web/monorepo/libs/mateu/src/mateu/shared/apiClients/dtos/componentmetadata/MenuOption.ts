@@ -1,9 +1,7 @@
-import { GoToRoute } from "@mateu/shared/apiClients/dtos/componentmetadata/GoToRoute";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 
 export default interface MenuOption {
     label: string
-    destination: GoToRoute
     actionId: string | undefined
     selected: boolean
     submenus: MenuOption[]
@@ -16,6 +14,8 @@ export default interface MenuOption {
     icon: string,
 
     remote: boolean
+
+    path: string
 
     baseUrl: string
     route: string

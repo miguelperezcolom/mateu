@@ -27,7 +27,7 @@ public class Home2 implements WidgetSupplier {
     String xxx;
 
     @Menu
-    String page3 = "/home2/page3";
+    String page3 = "/page3";
 
     @Menu
     RouteLink page4 = new RouteLink("/page4", "Page 4");

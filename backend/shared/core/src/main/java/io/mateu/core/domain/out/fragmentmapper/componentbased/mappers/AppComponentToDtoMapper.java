@@ -41,8 +41,8 @@ public final class AppComponentToDtoMapper {
       app = app.withServerSideType(componentSupplier.getClass().getName());
     }
     String appRoute = (String) httpRequest.getAttribute("resolvedRoute");
-    if (appRoute == null) {
-      appRoute = route;
+    if (appRoute.startsWith(baseUrl)) {
+      appRoute = appRoute.substring(baseUrl.length());
     }
     var appRouteForMenu = appRoute;
     if (app.serverSideType() != null) {
@@ -65,7 +65,7 @@ public final class AppComponentToDtoMapper {
             .title(app.title())
             .subtitle(app.subtitle())
             .logo(app.logo())
-            .route(appRoute)
+            .route(app.route())
             .rootRoute(appRoute)
             .variant(AppVariantDto.valueOf(app.variant().name()))
             .homeRoute(
@@ -133,35 +133,6 @@ public final class AppComponentToDtoMapper {
       String appRoute,
       HttpRequest httpRequest,
       Optional<Actionable> selectedOption) {
-    /*
-    if (route != null && !route.isEmpty() && !route.equals(appRoute)) {
-      if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
-        return route.substring(remoteMenu.path().length());
-      } else if (!route.equals("/_page") && !route.startsWith(appRoute)) {
-        route = appRoute + route;
-      }
-      return addQueryParams(route, httpRequest);
-    }
-    String homeRoute = getHomeRouteInternal(instance, route);
-    if (instance instanceof App app) {
-      if ("_no_home_route".equals(app.homeRoute())) {
-        if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
-          return homeRoute.substring(remoteMenu.path().length());
-        }
-        return homeRoute;
-      }
-    }
-    if (("".equals(httpRequest.runActionRq().consumedRoute())
-            || "/".equals(httpRequest.runActionRq().consumedRoute())
-            || httpRequest.runActionRq().appServerSideType() != null)
-        && route != null
-        && !route.isEmpty()
-        && !homeRoute.startsWith(route)) {
-      return route;
-    }
-    return homeRoute;
-
-       */
 
     var effectiveRoute = route;
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
@@ -173,8 +144,8 @@ public final class AppComponentToDtoMapper {
           || selectedOption.isEmpty()) {
         effectiveRoute = app.homeRoute();
       } else {
-        if (!effectiveRoute.startsWith(appRoute)) {
-          effectiveRoute = appRoute + effectiveRoute;
+        if (!effectiveRoute.startsWith(app.route())) {
+          effectiveRoute = app.route() + effectiveRoute;
         }
       }
     }
@@ -237,48 +208,43 @@ public final class AppComponentToDtoMapper {
   }
 
   private static List<MenuOptionDto> getMenu(App app, String route, String appRoute) {
-    return buildMenu(app.menu(), route, appRoute, "");
+    return buildMenu(app, app.menu(), route, appRoute, "");
   }
 
   private static List<MenuOptionDto> buildMenu(
-      List<Actionable> menu, String route, String appRoute, String prefix) {
+      App app, List<Actionable> menu, String route, String appRoute, String prefix) {
     return menu.stream()
         .map(
             option -> {
               var path = getPath(prefix, option);
               return MenuOptionDto.builder()
                   .label(option.label())
-                  .destination(
-                      option instanceof RouteLink
-                              || option instanceof ContentLink
-                              || option instanceof FieldLink
-                              || option instanceof MethodLink
-                              || option instanceof RemoteMenu
-                          ? new GoToRouteDto("", path, null)
-                          : null)
-                  .actionId(getActionId(option))
+                  .path(path)
                   .selected(isSelected(option, appRoute, route))
                   .visible(true)
                   .itemData(option.itemData())
                   .submenus(
                       option instanceof Menu asMenu
-                          ? buildMenu(asMenu.submenu(), route, appRoute, prefix + asMenu.path())
+                          ? buildMenu(
+                              app, asMenu.submenu(), route, appRoute, prefix + asMenu.path())
                           : List.of())
                   .separator(option instanceof MenuSeparator)
                   .remote(option instanceof RemoteMenu)
                   .baseUrl((option instanceof RemoteMenu remoteMenu) ? remoteMenu.baseUrl() : null)
-                  .route((option instanceof RemoteMenu remoteMenu) ? remoteMenu.route() : null)
+                  .route(
+                      (option instanceof RemoteMenu remoteMenu)
+                          ? remoteMenu.route()
+                          : appRoute + path)
                   .consumedRoute(
-                      (option instanceof RemoteMenu remoteMenu) ? remoteMenu.consumedRoute() : null)
+                      (option instanceof RemoteMenu remoteMenu)
+                          ? remoteMenu.consumedRoute()
+                          : appRoute)
                   .appServerSideType(
                       (option instanceof RemoteMenu remoteMenu)
-                          ? remoteMenu.appServerSideType()
-                          : null)
-                  .serverSideType(
-                      (option instanceof RemoteMenu remoteMenu)
                           ? remoteMenu.serverSideType()
-                          : null)
+                          : app.serverSideType())
                   .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
+                  .uriPrefix(appRoute)
                   .build();
             })
         .toList();
