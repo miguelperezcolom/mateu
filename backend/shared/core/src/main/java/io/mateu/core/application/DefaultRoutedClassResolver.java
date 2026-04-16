@@ -51,7 +51,9 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   private Optional<ResolvedRoute> matchesAbsolute(
       String route, Class<?> aClass, RunActionCommand command) {
     if (aClass.isAnnotationPresent(UI.class)) {
-      if (matches(route, aClass.getAnnotation(UI.class).value())) {
+      if (matches(
+          command.httpRequest().getAttribute("baseUrl") + route,
+          aClass.getAnnotation(UI.class).value())) {
         return Optional.of(
             new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
       }
@@ -127,8 +129,11 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
       cleanRoute = cleanRoute.substring(command.baseUrl().length());
     }
     if (aClass.isAnnotationPresent(UI.class)) {
-      if (matches(route, aClass.getAnnotation(UI.class).value())
-          || cleanRoute.equals(aClass.getAnnotation(UI.class).value())) {
+      if (matches(
+              command.httpRequest().getAttribute("baseUrl") + route,
+              aClass.getAnnotation(UI.class).value())
+          || (command.httpRequest().getAttribute("baseUrl") + cleanRoute)
+              .equals(aClass.getAnnotation(UI.class).value())) {
         return Optional.of(
             new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
       }

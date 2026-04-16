@@ -146,6 +146,9 @@ public class RunActionUseCase {
   }
 
   private void updateResolvedRoute(RunActionCommand command, Object instance) {
+    if (true) {
+      return;
+    }
     if (instance instanceof RouteSupplier routeSupplier) {
       command.httpRequest().setAttribute("resolvedRoute", routeSupplier.route());
       System.out.println(
@@ -308,10 +311,12 @@ public class RunActionUseCase {
     log.info("createInstance {}", command);
 
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
+      command.httpRequest().setAttribute("resolvedRoute", command.route());
       return createInstanceAndPostHydrate(command.serverSiteType(), command);
     }
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
+      command.httpRequest().setAttribute("resolvedRoute", command.consumedRoute());
       var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
       if (command.route().endsWith("_page")) {
         return mono;
@@ -356,7 +361,7 @@ public class RunActionUseCase {
             (Mono)
                 Mono.defer(
                     () ->
-                        Flux.fromIterable(routes)
+                        Flux.fromIterable(routes.reversed())
                             .flatMap(route -> resolveAppRoute(route, command))
                             .next()))
         .switchIfEmpty(
@@ -598,6 +603,7 @@ public class RunActionUseCase {
         return Mono.just(contentLink.componentSupplier().component(httpRequest));
       }
       if (actionable instanceof FieldLink fieldLink) {
+        command.httpRequest().setAttribute("resolvedRoute", route);
         return instanceFactoryProvider
             .get(fieldLink.serverSideType())
             .createInstance(fieldLink.serverSideType(), data, httpRequest)
@@ -640,6 +646,7 @@ public class RunActionUseCase {
                 });
       }
       if (actionable instanceof MethodLink methodLink) {
+        command.httpRequest().setAttribute("resolvedRoute", route);
         return instanceFactoryProvider
             .get(methodLink.serverSideType())
             .createInstance(methodLink.serverSideType(), data, httpRequest)

@@ -83,6 +83,9 @@ public class ReflectionAppMapper {
       Collection<? extends Actionable> actionables,
       HttpRequest httpRequest,
       String prefix) {
+    if (route.startsWith(prefix)) {
+      route = route.substring(prefix.length());
+    }
     if (route.startsWith("/")) {
       route = route.substring(1);
     }
@@ -100,7 +103,7 @@ public class ReflectionAppMapper {
                 cleanPrefix + token);
           }
 
-          httpRequest.setAttribute("resolvedRoute", cleanPrefix + token);
+          // httpRequest.setAttribute("resolvedRoute", cleanPrefix + token);
 
           if (actionable instanceof RemoteMenu remoteMenu) {
             return Optional.of(remoteMenu);
