@@ -155,7 +155,7 @@ public final class AppComponentToDtoMapper {
     if ("_no_home_route".equals(effectiveRoute)) {
       effectiveRoute = "_page";
     }
-    return addQueryParams(effectiveRoute, httpRequest);
+    return effectiveRoute; //(effectiveRoute, httpRequest);
   }
 
   private static String getHomeConsumedRoute(

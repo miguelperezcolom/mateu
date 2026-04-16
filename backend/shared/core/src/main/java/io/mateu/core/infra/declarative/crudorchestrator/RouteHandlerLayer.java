@@ -33,6 +33,9 @@ public abstract class RouteHandlerLayer<
       if (actionId.startsWith("/")) {
         actionId = actionId.substring(1);
       }
+      if (actionId.contains("?")) {
+        actionId = actionId.substring(0, actionId.indexOf("?"));
+      }
       if (!"".equals(actionId)) {
         if ("new".equals(actionId)) {
           return create(httpRequest);
