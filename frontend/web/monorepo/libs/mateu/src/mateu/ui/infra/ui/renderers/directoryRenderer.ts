@@ -24,7 +24,7 @@ const renderItem = (item: MenuOption):TemplateResult => {
                     </vaadin-vertical-layout>
                 </vaadin-details>
             `:html`
-                <a href="${item.destination.route}">${item.label}</a>
+                <a href="${item.path}">${item.label}</a>
         `}
         `
 }

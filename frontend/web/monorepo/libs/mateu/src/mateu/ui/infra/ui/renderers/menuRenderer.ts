@@ -43,7 +43,7 @@ const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string 
         if (option.submenus) {
             return {
                 text: option.component?undefined:option.label,
-                route: option.destination?.route,
+                route: option.path,
                 checked: option.selected,
                 disabled: option.disabled,
                 className: option.className,
@@ -58,7 +58,7 @@ const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string 
         }
         return {
             text: option.component?undefined:option.label,
-            route: option.destination?.route,
+            route: option.path,
             checked: option.selected,
             disabled: option.disabled,
             className: option.className,

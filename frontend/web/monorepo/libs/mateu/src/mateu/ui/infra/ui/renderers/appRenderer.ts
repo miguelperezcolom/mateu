@@ -102,7 +102,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
-                        ${true?html`
+                        ${false?html`
                             container.selectedBaseUrl:${container.selectedBaseUrl}
                             <br/>
                             container.selectedRoute:${container.selectedRoute}
@@ -223,7 +223,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </div>
                     <div class="app-content">
-                        ${true?html`
+                        ${false?html`
                             container.selectedBaseUrl:${container.selectedBaseUrl}
                             <br/>
                             container.selectedRoute:${container.selectedRoute}

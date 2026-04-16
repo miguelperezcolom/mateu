@@ -582,7 +582,7 @@ public class RunActionUseCase {
                         .withHomeBaseUrl(microFrontend.baseUrl())
                         .withHomeAppServerSideType(microFrontend.appServerSideType())
                         .withHomeConsumedRoute(microFrontend.consumedRoute())
-                            .withHomeUriPrefix("");
+                        .withHomeUriPrefix("");
                   }
                   return result;
                 })
@@ -708,7 +708,7 @@ public class RunActionUseCase {
                             .filter(metadata -> metadata instanceof AppDto)
                             .map(metadata -> (AppDto) metadata)
                             .findFirst())
-                        .map(app -> (AppDto) app)
+                    .map(app -> (AppDto) app)
                     .map(
                         app ->
                             MicroFrontend.builder()
