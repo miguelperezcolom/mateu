@@ -52,7 +52,7 @@ export class SSEService implements Service {
                 }))
             }
             fetch(baseUrl + '/mateu/v3/sse/' +
-                route + (actionId?'/' + actionId:''), {
+                route, {
                 method: 'POST',
                 headers: {
                     'Accept': 'text/event-stream',
