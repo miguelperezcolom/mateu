@@ -16,7 +16,6 @@ const chooseRoute = (container: MateuApp, metadata: App) => {
     return metadata.homeRoute
 }
 const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
-    console.log('chooseConsumedRoute', container.selectedRoute, metadata.route)
     if (container.selectedRoute) {
         return container.selectedConsumedRoute??metadata.route // la ruta consumida es la de la app
     }
