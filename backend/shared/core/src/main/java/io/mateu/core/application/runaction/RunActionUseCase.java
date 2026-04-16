@@ -150,7 +150,7 @@ public class RunActionUseCase {
       return;
     }
     if (instance instanceof RouteSupplier routeSupplier) {
-      command.httpRequest().setAttribute("resolvedRoute", routeSupplier.route());
+      setResolvedRoute(command.httpRequest(), routeSupplier.route());
       System.out.println(
           ""
               + instance.getClass().getSimpleName()
@@ -187,6 +187,20 @@ public class RunActionUseCase {
               + " --> rq.resolvedRoute: "
               + command.httpRequest().getAttribute("resolvedRoute"));
     }
+  }
+
+  public static void setResolvedRoute(HttpRequest httpRequest, String route) {
+    setResolvedRoute(httpRequest, route, true);
+  }
+
+  public static void setResolvedRoute(HttpRequest httpRequest, String route, boolean force) {
+    if (force || httpRequest.getAttribute("resolvedRoute") == null) {
+      httpRequest.setAttribute("resolvedRoute", route);
+    }
+  }
+
+  public static void setResolvedPath(HttpRequest httpRequest, String path) {
+    httpRequest.setAttribute("resolvedPath", path);
   }
 
   private String getLongestMatcher(Pattern patten, String route) {
@@ -311,12 +325,12 @@ public class RunActionUseCase {
     log.info("createInstance {}", command);
 
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
-      command.httpRequest().setAttribute("resolvedRoute", command.route());
+      setResolvedRoute(command.httpRequest(), command.route());
       return createInstanceAndPostHydrate(command.serverSiteType(), command);
     }
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-      command.httpRequest().setAttribute("resolvedRoute", command.consumedRoute());
+      setResolvedRoute(command.httpRequest(), command.consumedRoute());
       var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
       if (command.route().endsWith("_page")) {
         return mono;
@@ -381,7 +395,7 @@ public class RunActionUseCase {
     var route = removeQueryParamsFromRoute(rawRoute);
     var routedClass = routedClassResolver.resolveAbsolute(route, command);
     if (routedClass.isPresent()) {
-      command.httpRequest().setAttribute("resolvedRoute", route);
+      setResolvedRoute(command.httpRequest(), route);
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
       var instance = createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
@@ -421,7 +435,7 @@ public class RunActionUseCase {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       var type = Class.forName(instanceTypeName);
       if (!isApp(type, route)) {
-        command.httpRequest().setAttribute("resolvedRoute", route);
+        setResolvedRoute(command.httpRequest(), route);
         var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
         var instance =
             createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
@@ -470,7 +484,7 @@ public class RunActionUseCase {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       var type = Class.forName(instanceTypeName);
       if (isApp(type, route)) {
-        command.httpRequest().setAttribute("resolvedRoute", route);
+        setResolvedRoute(command.httpRequest(), route);
         var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
         var instance =
             createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
@@ -604,7 +618,7 @@ public class RunActionUseCase {
         return Mono.just(contentLink.componentSupplier().component(httpRequest));
       }
       if (actionable instanceof FieldLink fieldLink) {
-        command.httpRequest().setAttribute("resolvedRoute", route);
+        setResolvedRoute(command.httpRequest(), route);
         return instanceFactoryProvider
             .get(fieldLink.serverSideType())
             .createInstance(fieldLink.serverSideType(), data, httpRequest)
@@ -647,7 +661,7 @@ public class RunActionUseCase {
                 });
       }
       if (actionable instanceof MethodLink methodLink) {
-        command.httpRequest().setAttribute("resolvedRoute", route);
+        setResolvedRoute(command.httpRequest(), route);
         return instanceFactoryProvider
             .get(methodLink.serverSideType())
             .createInstance(methodLink.serverSideType(), data, httpRequest)

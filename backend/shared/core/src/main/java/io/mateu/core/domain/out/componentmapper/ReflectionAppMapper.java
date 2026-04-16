@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 import static io.mateu.core.domain.Authorizer.isAuthorized;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
@@ -108,6 +109,7 @@ public class ReflectionAppMapper {
           if (actionable instanceof RemoteMenu remoteMenu) {
             return Optional.of(remoteMenu);
           }
+          setResolvedPath(httpRequest, cleanPrefix + token);
           return Optional.of(actionable);
         }
       }
