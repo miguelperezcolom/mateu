@@ -37,7 +37,11 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
     try {
       String body = objectMapper.writeValueAsString(requestDto);
 
-      var uri = baseUrl + "/mateu/v3/sync" + requestDto.route();
+      var path = requestDto.route();
+      if (path == null || path.isEmpty()) path = "/_no_route";
+      if (!path.startsWith("/")) path = "/" + path;
+
+      var uri = baseUrl + "/mateu/v3/sync" + path;
 
       HttpRequest request =
           HttpRequest.newBuilder()

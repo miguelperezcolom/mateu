@@ -21,19 +21,19 @@ public record RemoteMenu(
     implements Actionable {
 
   public RemoteMenu(String baseUrl) {
-    this(baseUrl, "", "", "", "", Map.of(), false, null, null);
+    this(baseUrl, "", "_empty", "", "", Map.of(), false, null, null);
   }
 
   public RemoteMenu(String baseUrl, boolean explode) {
-    this(baseUrl, "", "", "", "", Map.of(), explode, null, null);
+    this(baseUrl, "", "_empty", "", "", Map.of(), explode, null, null);
   }
 
   public RemoteMenu(String baseUrl, String route, boolean explode) {
-    this(baseUrl, route, "", "", "", Map.of(), explode, null, null);
+    this(baseUrl, route, "_empty", "", "", Map.of(), explode, null, null);
   }
 
   public RemoteMenu(String baseUrl, String route) {
-    this(baseUrl, route, "", "", "", Map.of(), false, null, null);
+    this(baseUrl, route, "_empty", "", "", Map.of(), false, null, null);
   }
 
   @Override

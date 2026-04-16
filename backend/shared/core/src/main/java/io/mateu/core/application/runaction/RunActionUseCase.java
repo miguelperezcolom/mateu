@@ -581,7 +581,8 @@ public class RunActionUseCase {
                         .withHomeRoute(microFrontend.route())
                         .withHomeBaseUrl(microFrontend.baseUrl())
                         .withHomeAppServerSideType(microFrontend.appServerSideType())
-                        .withHomeConsumedRoute(microFrontend.consumedRoute());
+                        .withHomeConsumedRoute(microFrontend.consumedRoute())
+                            .withHomeUriPrefix("");
                   }
                   return result;
                 })
@@ -707,17 +708,15 @@ public class RunActionUseCase {
                             .filter(metadata -> metadata instanceof AppDto)
                             .map(metadata -> (AppDto) metadata)
                             .findFirst())
+                        .map(app -> (AppDto) app)
                     .map(
                         app ->
                             MicroFrontend.builder()
-                                .route(
-                                    finalRemoteBaseUrl
-                                        + remoteMenu.route()
-                                        + command.route().substring(remoteMenu.path().length()))
-                                .consumedRoute(finalRemoteBaseUrl + remoteMenu.consumedRoute())
+                                .route(command.route())
+                                .consumedRoute(app.homeConsumedRoute())
                                 .actionId("")
                                 .baseUrl(remoteMenu.baseUrl())
-                                .appServerSideType(app.appServerSideType())
+                                .appServerSideType(app.homeAppServerSideType())
                                 .build()));
   }
 
