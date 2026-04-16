@@ -97,15 +97,15 @@ export class MateuSapUI5App extends MetadataDrivenElement {
  ${metadata.menu.map(menu => html`
      <ui5-tab ?icon="${menu.icon}" 
               text="${menu.label}" 
-              data-route="${menu.destination?.route}"
-              ?selected="${this.route == menu.destination?.route || (this.route == this.consumedRoute && this.route == metadata.homeRoute)}"
+              data-route="${menu.path}"
+              ?selected="${this.route == menu.path || (this.route == this.consumedRoute && this.route == metadata.homeRoute)}"
      >
          
-         ${this.route == menu.destination?.route || (this.route == this.consumedRoute && menu.destination?.route == metadata.homeRoute)?html`
+         ${this.route == menu.path || (this.route == this.consumedRoute && menu.path == metadata.homeRoute)?html`
              <div class="content" style="flex-grow: 1; width: 100%; height: 100%;">
                  <mateu-api-caller style="width: 100%;">
                      <mateu-ux
-                             route="${menu.destination?.route}"
+                             route="${menu.path}"
                              id="${this.id}_ux"
                              baseUrl="${this.baseUrl}"
                              consumedRoute="${metadata.route}"
@@ -126,15 +126,15 @@ export class MateuSapUI5App extends MetadataDrivenElement {
                 ${metadata.menu.map(menu => html`
                 ${menu.submenus?html`
 
-                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
+                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.path}">
                             ${menu.submenus.map(sub => html `
-                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
+                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.path}"></ui5-side-navigation-sub-item>
                             `)}
                         </ui5-side-navigation-item>
 
                     `:html`
 
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}" icon="home"></ui5-side-navigation-item>
+                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.path}" icon="home"></ui5-side-navigation-item>
 
                     `}
             `)}

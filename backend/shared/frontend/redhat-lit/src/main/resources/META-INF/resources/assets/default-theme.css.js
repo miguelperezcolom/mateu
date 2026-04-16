@@ -1,8 +1,4 @@
-import{i as r}from"./mateu-redhat.js";/**
- * Do not edit directly, this file was auto-generated.
- *
- * @license Copyright (c) 2022 Red Hat UX MIT License
- */const a=r`
+import{i as r}from"./mateu-redhat.js";const a=r`
 :root {
   --rh-color-accent-base:
     light-dark(
