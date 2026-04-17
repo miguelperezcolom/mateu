@@ -575,7 +575,9 @@ public class RunActionUseCase {
       }
       var actionable =
           resolveMenu(
-              app.route() != null?app.route(): (String) httpRequest.getAttribute("resolvedRoute"),
+              app.route() != null
+                  ? app.route()
+                  : (String) httpRequest.getAttribute("resolvedRoute"),
               app.menu(),
               cleanRoute,
               ("_empty".equals(consumedRoute) ? app.route() : "") + route,
