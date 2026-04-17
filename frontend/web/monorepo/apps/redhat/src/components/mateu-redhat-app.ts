@@ -102,7 +102,7 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                                 <li>
                                     <a 
                                             href="javascript: void(0);"
-                                            @click="${(e: any) => this.selected(e, this, sub.destination?.route, this.baseUrl??'')}"
+                                            @click="${(e: any) => this.selected(e, this, sub.path, this.baseUrl??'')}"
                                     >${sub.label}</a>
                                 </li>
                             `)}
@@ -113,7 +113,7 @@ export class MateuRedhatApp extends MetadataDrivenElement {
         `:html`
                 <a
                         href="javascript: void(0);"
-                        @click="${(e: any) => this.selected(e, this, menu.destination?.route, this.baseUrl??'')}"
+                        @click="${(e: any) => this.selected(e, this, menu.path, this.baseUrl??'')}"
                         style="margin-right: 2rem;">${menu.label}</a>
         `}
     `
@@ -135,7 +135,7 @@ export class MateuRedhatApp extends MetadataDrivenElement {
                                         <li>
                                 <a
                                         href="javascript: void(0);"
-                                        @click="${(e: any) => this.selected(e, this, menu.destination?.route, this.baseUrl??'')}"
+                                        @click="${(e: any) => this.selected(e, this, menu.path, this.baseUrl??'')}"
                                 >${menu.label}</a>
                                         </li>
                                     </ul>
@@ -295,15 +295,15 @@ export class MateuRedhatApp extends MetadataDrivenElement {
  ${metadata.menu.map(menu => html`
      <ui5-tab ?icon="${menu.icon}" 
               text="${menu.label}" 
-              data-route="${menu.destination?.route}"
-              ?selected="${this.route == menu.destination?.route || (this.route == this.consumedRoute && this.route == metadata.homeRoute)}"
+              data-route="${menu.path}"
+              ?selected="${this.route == menu.path || (this.route == this.consumedRoute && this.route == metadata.homeRoute)}"
      >
          
-         ${this.route == menu.destination?.route || (this.route == this.consumedRoute && menu.destination?.route == metadata.homeRoute)?html`
+         ${this.route == menu.path || (this.route == this.consumedRoute && menu.path == metadata.homeRoute)?html`
              <div class="content" style="flex-grow: 1; width: 100%; height: 100%;">
                  <mateu-api-caller style="width: 100%;">
                      <mateu-ux
-                             route="${menu.destination?.route}"
+                             route="${menu.path}"
                              id="${this.id}_ux"
                              baseUrl="${this.baseUrl}"
                              consumedRoute="${metadata.route}"

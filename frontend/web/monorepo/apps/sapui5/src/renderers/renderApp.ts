@@ -47,14 +47,14 @@ const selected = (event: CustomEvent, container: LitElement, _baseUrl: string, m
 const renderSubmenu = (menu: MenuOption): TemplateResult => {
     return html`
                     ${menu.submenus && menu.submenus.length > 0?html`
-                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.destination?.route}">
+                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.path}">
                             ${menu.submenus.filter(sub => !sub.separator).map(sub => html`
-                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.destination?.route}"></ui5-side-navigation-sub-item>
+                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.path}"></ui5-side-navigation-sub-item>
                             `)}
                         </ui5-side-navigation-item>
                     `:html`
 
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}"></ui5-side-navigation-item>
+                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.path}"></ui5-side-navigation-item>
 
                     `}
                 `
@@ -69,7 +69,7 @@ const renderMenu = (menu: MenuOption): TemplateResult => {
 
                     `:html`
 
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.destination?.route}" icon="home"></ui5-side-navigation-item>
+                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.path}" icon="home"></ui5-side-navigation-item>
 
                     `}
                 `
