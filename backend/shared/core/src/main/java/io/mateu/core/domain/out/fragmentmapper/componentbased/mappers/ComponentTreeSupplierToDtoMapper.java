@@ -345,6 +345,7 @@ public class ComponentTreeSupplierToDtoMapper {
               .actionId(annotation.actionId())
               .calledActionId(annotation.calledActionId())
               .condition(annotation.condition())
+              .timeoutMillis(annotation.timeoutMillis())
               .build();
       case OnError ->
           OnErrorTriggerDto.builder()
