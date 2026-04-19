@@ -29,11 +29,11 @@ public class Home2 implements WidgetSupplier {
     @Menu
     String page3 = "/page3";
 
-    @Menu
-    RouteLink page4 = new RouteLink("/page4", "Page 4");
-
-    @Menu
-    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
+//    @Menu
+//    RouteLink page4 = new RouteLink("/page4", "Page 4");
+//
+//    @Menu
+//    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 
 
 
@@ -48,12 +48,12 @@ public class Home2 implements WidgetSupplier {
     @Override
     public List<Component> widgets(HttpRequest httpRequest) {
         return List.of(
-                io.mateu.uidl.data.HorizontalLayout.builder().content(List.of(MicroFrontend.builder()
-                                .baseUrl("/_forms")
-                                .route("/my-tasks")
-                                .build(), io.mateu.uidl.data.Text.builder().text("Hola").build()))
-                        .style("align-items: flex-end;")
-                        .build()
+//                io.mateu.uidl.data.HorizontalLayout.builder().content(List.of(MicroFrontend.builder()
+//                                .baseUrl("/_forms")
+//                                .route("/my-tasks")
+//                                .build(), io.mateu.uidl.data.Text.builder().text("Hola").build()))
+//                        .style("align-items: flex-end;")
+//                        .build()
         );
     }
 }

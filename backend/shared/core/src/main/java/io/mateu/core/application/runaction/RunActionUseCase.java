@@ -312,7 +312,7 @@ public class RunActionUseCase {
       String route,
       String completeRoute,
       HttpRequest httpRequest) {
-    if (route.endsWith("_page") || "".equals(route)) {
+    if (route.endsWith("_page") || "".equals(route) || route.endsWith("_no_home_route")) {
       return null;
     }
 
@@ -339,7 +339,7 @@ public class RunActionUseCase {
       var mono =
           createInstanceAndPostHydrate(command.appServerSideType(), command)
               .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-      if (command.route().endsWith("_page")) {
+      if (command.route().endsWith("_page") || command.route().endsWith("_no_home_route")) {
         return mono;
       }
       return mono.flatMap(

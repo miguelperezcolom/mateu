@@ -141,12 +141,13 @@ public final class AppComponentToDtoMapper {
       if ("".equals(effectiveRoute)
           || "/".equals(effectiveRoute)
           || effectiveRoute.endsWith("_page")
+          || effectiveRoute.endsWith("_no_home_route")
           || effectiveRoute.equals(appRoute)
       // || selectedOption.isEmpty()
       ) {
         effectiveRoute = app.homeRoute();
         if (effectiveRoute == null
-            || "_no_home_route".equals(effectiveRoute)
+            || effectiveRoute.endsWith("_no_home_route")
             || effectiveRoute.equals(appRoute)) {
           if (app.serverSideType() != null) {
             Class<?> appClass = Class.forName(app.serverSideType());
@@ -167,7 +168,7 @@ public final class AppComponentToDtoMapper {
     if (effectiveRoute == null) {
       effectiveRoute = appRoute;
     }
-    if ("_no_home_route".equals(effectiveRoute)) {
+    if (effectiveRoute.endsWith("_no_home_route")) {
       effectiveRoute = "_page";
     }
     return effectiveRoute; // (effectiveRoute, httpRequest);
