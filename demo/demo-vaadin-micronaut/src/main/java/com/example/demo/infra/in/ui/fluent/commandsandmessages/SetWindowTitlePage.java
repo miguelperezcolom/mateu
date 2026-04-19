@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route(value="/commands-and-messages/set-window-title", parentRoute="")
+@Route(value="/logic/commands-and-messages/set-window-title", parentRoute="")
 @Schema
 public class SetWindowTitlePage implements ComponentTreeSupplier, ActionHandler {
 

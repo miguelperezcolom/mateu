@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 
 import java.util.List;
 
-@Route(value="/triggers/on-error", parentRoute="")
+@Route(value="/logic/triggers/on-error", parentRoute="")
 public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

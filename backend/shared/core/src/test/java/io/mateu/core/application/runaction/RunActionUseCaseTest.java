@@ -33,5 +33,6 @@ abstract class RunActionUseCaseTest {
           new DefaultActionRunnerProvider(beanProvider, instanceFactoryProvider),
           new DefaultUiIncrementMapperProvider(beanProvider),
           routedClassResolver,
-          null);
+          null,
+          List.of());
 }

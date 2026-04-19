@@ -30,7 +30,7 @@ record Person(String name, int age) {
 
 }
 
-@Route(value="/forms/with-grid1", parentRoute="")
+@Route(value="/components/high-level/forms/with-grid1", parentRoute="")
 public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";

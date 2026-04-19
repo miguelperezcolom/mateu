@@ -11,8 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value = "/nested-apps/left", parentRoute = "/fluent")
-@HomeRoute("/nested-apps/left/home")
+@Route(value="/components/high-level/nested-apps/left", parentRoute = "")
 public class NestedAppMenuOnLeft implements AppSupplier {
 
     @Override
@@ -22,12 +21,13 @@ public class NestedAppMenuOnLeft implements AppSupplier {
                 .title("Nested")
                 .subtitle("This is the subtitle bla, bla, bla")
                 .variant(AppVariant.MENU_ON_LEFT)
+                .homeRoute("/components/high-level/nested-apps/left/home")
                 .menu(List.of(
-                        new RouteLink("/nested-apps/left/home", "Home"),
-                        new RouteLink("/nested-apps/left/page1", "Page 1"),
+                        new RouteLink("/home", "Home"),
+                        new RouteLink("/page1", "Page 1"),
                         new Menu("/submenu","Submenu", List.of(
-                                new RouteLink("/nested-apps/left/home", "Home"),
-                                new RouteLink("/nested-apps/left/page1", "Page 1")
+                                new RouteLink("/home", "Home"),
+                                new RouteLink("/page1", "Page 1")
                                 ))
                 ))
                 .build();

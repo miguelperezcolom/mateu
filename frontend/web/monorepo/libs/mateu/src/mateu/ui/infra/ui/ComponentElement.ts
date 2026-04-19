@@ -40,7 +40,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         const c0 = this.component as ServerSideComponent
                         const c1 = fragment.component as ServerSideComponent
 
-                        if (c0.serverSideType != c1.serverSideType) {
+                        if (c0.serverSideType != c1.serverSideType
+                        || c0.id != c1.id) {
                             setTimeout(() => this.triggerOnLoad())
                         }
 
@@ -108,6 +109,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
 
     triggerOnLoad = () => {
+        console.log('triggerOnLoad')
         const state = this.state
         const data = this.data
         if (state === data) console.log(state, data)

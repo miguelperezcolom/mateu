@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/number-field", parentRoute="")
+@Route(value="/components/building-blocks/number-field", parentRoute="")
 public class NumberFieldComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

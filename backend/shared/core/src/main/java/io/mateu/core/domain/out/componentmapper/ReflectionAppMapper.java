@@ -16,6 +16,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
@@ -51,7 +52,7 @@ public class ReflectionAppMapper {
     var selectedOption = getSelectedOption(appRoute, route, menu, httpRequest);
     return App.builder()
         .route(appRoute)
-        .homeRoute(getHomeRoute(instance, selectedOption))
+        .homeRoute(getHomeRoute(instance, selectedOption, httpRequest))
         .homeBaseUrl(getHomeBaseUrl(baseUrl, selectedOption))
         .homeAppServerSideType(getHomeAppServerSideType(instance, selectedOption))
         .homeConsumedRoute(getHomeConsumedRoute(appRoute, selectedOption))
@@ -148,7 +149,8 @@ public class ReflectionAppMapper {
     return null;
   }
 
-  private static String getHomeRoute(Object instance, Optional<Actionable> selectedOption) {
+  private static String getHomeRoute(
+      Object instance, Optional<Actionable> selectedOption, HttpRequest httpRequest) {
     var prefix = "";
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
       prefix = remoteMenu.path();
@@ -158,6 +160,12 @@ public class ReflectionAppMapper {
     }
     if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
       return instance.getClass().getAnnotation(HomeRoute.class).value().substring(prefix.length());
+    }
+    if (instance instanceof App app) {
+      return app.homeRoute();
+    }
+    if (instance instanceof AppSupplier appSupplier) {
+      return appSupplier.getApp(httpRequest).homeRoute();
     }
     return "_no_home_route";
   }
@@ -255,6 +263,9 @@ public class ReflectionAppMapper {
 
   private static List<Actionable> getActionables(
       String appRoute, Object instance, String route, HttpRequest httpRequest) {
+    if (instance instanceof AppSupplier appSupplier) {
+      return appSupplier.getApp(httpRequest).menu();
+    }
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
                 .filter(

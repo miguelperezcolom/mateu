@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/breadcrumbs", parentRoute="")
+@Route(value="/components/building-blocks/breadcrumbs", parentRoute="")
 public class BreadcrumbsComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

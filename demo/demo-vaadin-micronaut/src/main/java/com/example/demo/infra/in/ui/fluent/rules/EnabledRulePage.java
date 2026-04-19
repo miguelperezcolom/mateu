@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route(value="/rules/enabled", parentRoute="")
+@Route(value="/logic/rules/enabled", parentRoute="")
 public class EnabledRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     boolean buttonDisabled = false;

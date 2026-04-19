@@ -16,7 +16,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/forms/counter5", parentRoute="")
+@Route(value="/components/high-level/forms/counter5", parentRoute="")
 public class Counter5 implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
 
     int count = 0;

@@ -3,7 +3,9 @@ package io.mateu.core.application.runaction;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Collections;
 import java.util.Map;
+import lombok.With;
 
+@With
 public record RunActionCommand(
     String baseUrl,
     String uiId,

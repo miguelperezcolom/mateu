@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.Reflection
 import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.*;
+import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
@@ -82,9 +83,8 @@ public final class AppComponentToDtoMapper {
                 getHomeAppServerSideType(app, route, appRoute, httpRequest, selectedOption))
             .homeUriPrefix(getHomeUriPrefix(app, route, appRoute, httpRequest, selectedOption))
             .appServerSideType(
-                componentSupplier != null
-                    ? componentSupplier.getClass().getName()
-                    : app.serverSideType())
+                getAppServerSideType(
+                    componentSupplier, app, route, appRoute, httpRequest, selectedOption))
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())
@@ -141,8 +141,23 @@ public final class AppComponentToDtoMapper {
       if ("".equals(effectiveRoute)
           || "/".equals(effectiveRoute)
           || effectiveRoute.endsWith("_page")
-          || selectedOption.isEmpty()) {
+          || effectiveRoute.equals(appRoute)
+      // || selectedOption.isEmpty()
+      ) {
         effectiveRoute = app.homeRoute();
+        if (effectiveRoute == null
+            || "_no_home_route".equals(effectiveRoute)
+            || effectiveRoute.equals(appRoute)) {
+          if (app.serverSideType() != null) {
+            Class<?> appClass = Class.forName(app.serverSideType());
+            if (appClass.isAnnotationPresent(HomeRoute.class)) {
+              return appClass.getAnnotation(HomeRoute.class).value();
+            }
+          }
+          if (app.homeRoute() != null) {
+            return app.homeRoute();
+          }
+        }
       } else {
         if (!effectiveRoute.startsWith(app.route())) {
           effectiveRoute = app.route() + effectiveRoute;
@@ -178,13 +193,41 @@ public final class AppComponentToDtoMapper {
         : (String) httpRequest.getAttribute("baseUrl");
   }
 
+  private static String getAppServerSideType(
+      ComponentTreeSupplier componentSupplier,
+      App app,
+      String route,
+      String appRoute,
+      HttpRequest httpRequest,
+      Optional<Actionable> selectedOption) {
+    if (componentSupplier != null) {
+      return componentSupplier.getClass().getName();
+    }
+    var provided = app.serverSideType();
+    if (provided == null) {
+      var resolvedApp = httpRequest.getAttribute("resolvedApp");
+      if (resolvedApp != null) {
+        return resolvedApp.getClass().getName();
+      }
+    }
+    return provided;
+  }
+
   private static String getHomeAppServerSideType(
       App app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
       Optional<Actionable> selectedOption) {
-    return app.homeAppServerSideType() != null ? app.homeAppServerSideType() : app.serverSideType();
+    var provided =
+        app.homeAppServerSideType() != null ? app.homeAppServerSideType() : app.serverSideType();
+    if (provided == null) {
+      var resolvedApp = httpRequest.getAttribute("resolvedApp");
+      if (resolvedApp != null) {
+        return resolvedApp.getClass().getName();
+      }
+    }
+    return provided;
   }
 
   private static String getHomeUriPrefix(

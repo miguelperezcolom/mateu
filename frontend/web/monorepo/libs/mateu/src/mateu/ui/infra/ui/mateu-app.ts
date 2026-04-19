@@ -87,8 +87,7 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
-        console.log('selectRoute', _baseUrl, consumedRoute, route, appServerSideType)
-        if (true || route) {
+        if (true) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
@@ -144,19 +143,6 @@ export class MateuApp extends ComponentElement {
                     composed: true
                 }))
             }
-        }
-        const metadata = (this.component as ClientSideComponent).metadata as App;
-
-        const finalRoute = (metadata.route == route || metadata.route == '/' + route)?'/_page':route
-
-        const uxElement = this.shadowRoot?.querySelector('mateu-ux');
-        if (uxElement) {
-            this.selectedRoute = route
-            uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
-            uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)
-            uxElement.setAttribute("route", finalRoute??'')
-            uxElement.setAttribute("instant", nanoid())
-            //window.history.pushState({},"", this.baseUrl + app.homeRoute);
         }
     }
 
@@ -238,7 +224,15 @@ export class MateuApp extends ComponentElement {
         appServerSideType: string | undefined
         uriPrefix: string | undefined
     }) => {
-        this.selectRoute(e.consumedRoute, e.path, e.actionId, e.baseUrl, e.appServerSideType, e.uriPrefix)
+        if (e.path == this.selectedRoute && e.consumedRoute == this.selectedConsumedRoute && e.baseUrl == this.selectedBaseUrl &&  e.appServerSideType == this.selectedAppServerSideType) {
+            const uxElement = this.shadowRoot?.querySelector('mateu-ux');
+            if (uxElement) {
+                console.log('force update')
+                uxElement.setAttribute("instant", nanoid())
+            }
+        } else {
+            this.selectRoute(e.consumedRoute, e.path, e.actionId, e.baseUrl, e.appServerSideType, e.uriPrefix)
+        }
         if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
             if (this.vaadinAppLayout) {
                 this.vaadinAppLayout.drawerOpened = false
@@ -256,7 +250,7 @@ export class MateuApp extends ComponentElement {
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
                                 <vaadin-side-nav-item 
-                                .path="${item.route?item.route:undefined}"
+                                .path="${(item.route && !item.children)?item.route:undefined}"
                                 .pathAliases="${[this.baseUrl + (item.route?item.route:'')]}"
                                 slot="${slot}"             
                                 ?expanded="${item.selected}"
@@ -296,6 +290,13 @@ export class MateuApp extends ComponentElement {
                     }
                     // @ts-ignore
                     link.href = app.favicon
+                }
+                if (_changedProperties.has('component')) {
+                    this.selectedRoute = app.homeRoute
+                    this.selectedConsumedRoute = app.homeConsumedRoute
+                    this.selectedAppServerSideType = app.homeAppServerSideType
+                    this.selectedBaseUrl = app.homeBaseUrl
+                    this.selectedUriPrefix = app.homeUriPrefix
                 }
             }
         }

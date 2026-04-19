@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/progress-bar", parentRoute="")
+@Route(value="/components/building-blocks/progress-bar", parentRoute="")
 public class ProgressBarComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

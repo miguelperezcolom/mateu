@@ -21,6 +21,7 @@ import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -103,6 +104,10 @@ public class ReflectionObjectToComponentMapper {
     }
 
     if (instanceType.isAnnotationPresent(HomeRoute.class)) {
+      return true;
+    }
+
+    if (AppSupplier.class.isAssignableFrom(instanceType)) {
       return true;
     }
 

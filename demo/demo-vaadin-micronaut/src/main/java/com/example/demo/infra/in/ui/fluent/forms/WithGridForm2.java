@@ -25,7 +25,7 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route(value="/forms/with-grid2", parentRoute="")
+@Route(value="/components/high-level/forms/with-grid2", parentRoute="")
 @Slf4j
 public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 

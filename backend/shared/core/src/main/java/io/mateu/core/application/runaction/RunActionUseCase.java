@@ -31,6 +31,7 @@ import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.annotations.BaseRoute;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
@@ -45,6 +46,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
+import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RouteSupplier;
 import io.mateu.uidl.interfaces.StateSupplier;
 import jakarta.inject.Named;
@@ -77,6 +79,7 @@ public class RunActionUseCase {
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
   private final RoutedClassResolver routedClassResolver;
   private final MateuHttpClient mateuHttpClient;
+  private final List<RouteResolver> routeResolvers;
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {}", command.actionId());
@@ -274,7 +277,8 @@ public class RunActionUseCase {
           command.baseUrl(),
           command.initiatorComponentId(),
           command.actionId(),
-          command);
+          command,
+          false);
     }
     if (isApp(instance.getClass(), route)) {
       var app =
@@ -295,7 +299,8 @@ public class RunActionUseCase {
           command.baseUrl(),
           command.initiatorComponentId(),
           command.actionId(),
-          command);
+          command,
+          false);
     }
 
     return Mono.just(instance);
@@ -331,7 +336,9 @@ public class RunActionUseCase {
 
     if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
       setResolvedRoute(command.httpRequest(), command.consumedRoute());
-      var mono = createInstanceAndPostHydrate(command.appServerSideType(), command);
+      var mono =
+          createInstanceAndPostHydrate(command.appServerSideType(), command)
+              .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
       if (command.route().endsWith("_page")) {
         return mono;
       }
@@ -393,6 +400,7 @@ public class RunActionUseCase {
       rawRoute = command.baseUrl();
     }
     var route = removeQueryParamsFromRoute(rawRoute);
+
     var routedClass = routedClassResolver.resolveAbsolute(route, command);
     if (routedClass.isPresent()) {
       setResolvedRoute(command.httpRequest(), route);
@@ -401,6 +409,39 @@ public class RunActionUseCase {
       var instance = createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
       log.info("absolute {} resolved to {}", route, instance);
       return instance;
+    }
+    if (routeResolvers != null) {
+      var found =
+          routeResolvers.stream()
+              .filter(resolver -> resolver.supportsRoute(route, RouteConstants.NO_PARENT_ROUTE))
+              .findFirst();
+      if (found.isPresent()) {
+        var resolvedClass =
+            found.get().resolveRoute(route, RouteConstants.NO_PARENT_ROUTE, command.httpRequest());
+        if (resolvedClass != null) {
+          setResolvedRoute(command.httpRequest(), route);
+          var instanceTypeName = resolvedClass.getName();
+          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+          var instance =
+              createInstance(
+                  command,
+                  instanceTypeName,
+                  instanceFactory,
+                  route,
+                  Optional.of(
+                      new ResolvedRoute(
+                          route,
+                          found
+                              .get()
+                              .matchingPattern(route, RouteConstants.NO_PARENT_ROUTE)
+                              .get()
+                              .routeRegex()
+                              .pattern(),
+                          resolvedClass)));
+          log.info("absolute {} resolved to {}", route, instance);
+          return instance;
+        }
+      }
     }
     log.info("no absolute matching for {}", route);
     return Mono.empty();
@@ -441,6 +482,39 @@ public class RunActionUseCase {
             createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
         log.info("non app {} resolved to {}", route, instance);
         return instance;
+      }
+    }
+    if (routeResolvers != null) {
+      var found =
+          routeResolvers.stream()
+              .filter(resolver -> resolver.supportsRoute(route, command.consumedRoute()))
+              .findFirst();
+      if (found.isPresent()) {
+        var resolvedClass =
+            found.get().resolveRoute(route, command.consumedRoute(), command.httpRequest());
+        if (resolvedClass != null) {
+          setResolvedRoute(command.httpRequest(), route);
+          var instanceTypeName = resolvedClass.getName();
+          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+          var instance =
+              createInstance(
+                  command,
+                  instanceTypeName,
+                  instanceFactory,
+                  route,
+                  Optional.of(
+                      new ResolvedRoute(
+                          route,
+                          found
+                              .get()
+                              .matchingPattern(route, command.consumedRoute())
+                              .get()
+                              .routeRegex()
+                              .pattern(),
+                          resolvedClass)));
+          log.info("absolute {} resolved to {}", route, instance);
+          return instance;
+        }
       }
     }
     log.info("no non-app matched {}", route);
@@ -487,7 +561,13 @@ public class RunActionUseCase {
         setResolvedRoute(command.httpRequest(), route);
         var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
         var instance =
-            createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
+            createInstance(command, instanceTypeName, instanceFactory, route, routedClass)
+                .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app))
+                .map(
+                    app ->
+                        (app instanceof AppSupplier appSupplier)
+                            ? appSupplier.getApp(command.httpRequest())
+                            : app);
         log.info("app {} resolved to {}", route, instance);
         return instance;
       }
@@ -554,6 +634,32 @@ public class RunActionUseCase {
       String initialComponentId,
       String actionId,
       RunActionCommand command) {
+    return resolveInApp(
+        route,
+        consumedRoute,
+        data,
+        httpRequest,
+        potentialApp,
+        instance,
+        baseUrl,
+        initialComponentId,
+        actionId,
+        command,
+        true);
+  }
+
+  public Mono<?> resolveInApp(
+      String route,
+      String consumedRoute,
+      Map<String, Object> data,
+      HttpRequest httpRequest,
+      Object potentialApp,
+      Object instance,
+      String baseUrl,
+      String initialComponentId,
+      String actionId,
+      RunActionCommand command,
+      boolean emptyIfRoute) {
     App app = null;
     if (potentialApp instanceof App) {
       app = (App) potentialApp;
@@ -569,15 +675,19 @@ public class RunActionUseCase {
     }
 
     if (app != null) {
+
+      var resolvedRoute =
+          httpRequest.getAttribute("resolvedRoute") != null
+              ? (String) httpRequest.getAttribute("resolvedRoute")
+              : app.route();
+
       var cleanRoute = route;
       if (route.startsWith(consumedRoute)) {
         cleanRoute = route.substring(consumedRoute.length());
       }
       var actionable =
           resolveMenu(
-              app.route() != null
-                  ? app.route()
-                  : (String) httpRequest.getAttribute("resolvedRoute"),
+              resolvedRoute,
               app.menu(),
               cleanRoute,
               ("_empty".equals(consumedRoute) ? app.route() : "") + route,
@@ -610,11 +720,47 @@ public class RunActionUseCase {
         return Mono.just(potentialApp);
       }
 
+      if (routeResolvers != null) {
+        var found =
+            routeResolvers.stream()
+                .filter(resolver -> resolver.supportsRoute(route, resolvedRoute))
+                .findFirst();
+        if (found.isPresent()) {
+          var resolvedClass = found.get().resolveRoute(route, resolvedRoute, command.httpRequest());
+          if (resolvedClass != null) {
+            setResolvedRoute(command.httpRequest(), route);
+            var instanceTypeName = resolvedClass.getName();
+            var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
+            var instancex =
+                createInstance(
+                    command,
+                    instanceTypeName,
+                    instanceFactory,
+                    route,
+                    Optional.of(
+                        new ResolvedRoute(
+                            route,
+                            found
+                                .get()
+                                .matchingPattern(route, resolvedRoute)
+                                .get()
+                                .routeRegex()
+                                .pattern(),
+                            resolvedClass)));
+            log.info("absolute {} resolved to {}", route, instance);
+            return instancex;
+          }
+        }
+      }
+
       if (actionable == null) {
         return Mono.empty();
       }
       if (actionable instanceof RouteLink routeLink) {
-        return Mono.empty();
+        if (emptyIfRoute) {
+          return Mono.empty();
+        }
+        return resolveRoute(command.withConsumedRoute(route));
       }
       if (actionable instanceof ContentLink contentLink) {
         return Mono.just(contentLink.componentSupplier().component(httpRequest));

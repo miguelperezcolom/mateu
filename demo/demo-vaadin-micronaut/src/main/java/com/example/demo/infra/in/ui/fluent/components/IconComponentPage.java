@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.IconKey;
 
 import java.util.List;
 
-@Route(value="/components/icon", parentRoute="")
+@Route(value="/components/building-blocks/icon", parentRoute="")
 public class IconComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

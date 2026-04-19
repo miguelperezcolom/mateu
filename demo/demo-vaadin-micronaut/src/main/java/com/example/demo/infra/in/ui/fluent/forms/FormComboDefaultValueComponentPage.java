@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/forms/combobox-default-value", parentRoute="")
+@Route(value="/components/high-level/forms/combobox-default-value", parentRoute="")
 @Singleton
 public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier, ActionHandler, PostHydrationHandler {
 

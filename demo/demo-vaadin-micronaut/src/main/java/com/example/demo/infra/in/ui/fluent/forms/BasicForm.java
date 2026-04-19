@@ -5,6 +5,7 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
@@ -17,11 +18,12 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/forms/basic", parentRoute="")
+@Route(value="/components/high-level/forms/basic", parentRoute="")
 public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 
     String name = "Mateu";
     int age = 17;
+    String calculated;
 
     @Override
     public Form component(HttpRequest httpRequest) {
@@ -66,6 +68,14 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
                                                                 .dataType(FieldDataType.integer)
                                                                 .required(false)
                                                                 .initialValue(age)
+                                                                .build(),
+                                                        FormField.builder()
+                                                                .id("calculated")
+                                                                .label("Calculated")
+                                                                .dataType(FieldDataType.string)
+                                                                .required(false)
+                                                                .readOnly(true)
+                                                                .initialValue(calculated)
                                                                 .build()))
                                         .build()))
                 .footer(List.of()) // will be placed in footer, between left and right side buttons
@@ -82,7 +92,9 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
 
         System.out.println("received action: " + actionId);
 
-        return this;
+        calculated = "Hello " + name + ", " + age;
+
+        return new State(this);
     }
 
     @Override

@@ -8,7 +8,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/message-input", parentRoute="")
+@Route(value="/components/building-blocks/message-input", parentRoute="")
 public class MessageInputComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

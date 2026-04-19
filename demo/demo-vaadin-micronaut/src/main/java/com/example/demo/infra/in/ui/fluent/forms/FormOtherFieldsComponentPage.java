@@ -15,7 +15,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/forms/other-fields", parentRoute="")
+@Route(value="/components/high-level/forms/other-fields", parentRoute="")
 public class FormOtherFieldsComponentPage implements ComponentTreeSupplier {
 
     Status status = new Status(StatusType.SUCCESS, "It works!");

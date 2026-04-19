@@ -7,7 +7,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/choice", parentRoute="")
+@Route(value="/components/building-blocks/choice", parentRoute="")
 public class ChoiceComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

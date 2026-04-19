@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/actions/background", parentRoute="")
+@Route(value="/logic/actions/background", parentRoute="")
 public class BackgroundActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

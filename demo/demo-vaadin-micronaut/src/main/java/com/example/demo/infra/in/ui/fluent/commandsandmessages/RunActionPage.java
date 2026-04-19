@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route(value="/commands-and-messages/run-action", parentRoute="")
+@Route(value="/logic/commands-and-messages/run-action", parentRoute="")
 @Schema
 public class RunActionPage implements ComponentTreeSupplier, ActionHandler {
 

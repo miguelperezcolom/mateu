@@ -32,5 +32,6 @@ public record App(
   public App {
     variant = variant != null ? variant : AppVariant.TABS;
     menu = menu != null ? menu : List.of();
+    route = route != null ? route : "";
   }
 }
