@@ -133,6 +133,29 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ---
 
+## What Mateu generates by default
+
+With `AutoCrudOrchestrator`, Mateu generates more than a listing.
+
+The default CRUD flow is:
+
+- `/products` → list
+- `/products/:id` → readonly detail view
+- `/products/:id/edit` → edit view
+- `/products/new` → create view
+
+The default action in the listing is usually **View**, not **Edit**.
+
+That means the normal navigation is:
+
+1. open the list
+2. open the readonly detail view
+3. continue to edit if needed
+
+👉 See [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)
+
+---
+
 ## Walkthrough
 
 ### Product list
@@ -181,3 +204,4 @@ The list is generated automatically from the model and repository.
 
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Validation](/java-user-manual/concepts/validation/)
+- [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)

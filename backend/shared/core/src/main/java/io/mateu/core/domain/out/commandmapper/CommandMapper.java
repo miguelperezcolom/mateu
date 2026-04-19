@@ -23,6 +23,14 @@ public class CommandMapper {
 
     List<UICommandDto> result = new ArrayList<>();
 
+    if (httpRequest.getAttribute("updateUrl") != null && !"_no_update".equals(httpRequest.getAttribute("updateUrl"))) {
+      result.add(
+          new UICommandDto(
+              targetComponentId,
+              UICommandTypeDto.PushStateToHistory,
+              httpRequest.getAttribute("updateUrl")));
+    }
+
     if (httpRequest.getAttribute("windowTitle") != null) {
       result.add(
           new UICommandDto(

@@ -25,6 +25,7 @@ import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
+import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.dtos.AppDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.RunActionRqDto;
@@ -327,33 +328,110 @@ public class RunActionUseCase {
     return null;
   }
 
+  @SneakyThrows
   private Mono<?> createInstance(RunActionCommand command) {
     // si className --> ok
 
     log.info("createInstance {}", command);
 
+    var routeFirst = false;
+
     if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
-      setResolvedRoute(command.httpRequest(), command.route());
-      return createInstanceAndPostHydrate(command.serverSiteType(), command);
-    }
-
-    if (command.appServerSideType() != null && !command.appServerSideType().isEmpty()) {
-      setResolvedRoute(command.httpRequest(), command.consumedRoute());
-      var mono =
-          createInstanceAndPostHydrate(command.appServerSideType(), command)
-              .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-      if (command.route().endsWith("_page") || command.route().endsWith("_no_home_route")) {
-        return mono;
+      var type = Class.forName(command.serverSiteType());
+      if (CrudOrchestrator.class.isAssignableFrom(type)) {
+        if ("view".equals(command.actionId())) {
+          var idField = command.componentState().get("idFieldForRow");
+          if (idField != null) {
+            var id = command.httpRequest().runActionRq().parameters().get(idField);
+            if (id != null) {
+              command.httpRequest().setAttribute("oldRoute", command.route());
+              command = command.withRoute(command.route() + "/" + id);
+              command.httpRequest().setAttribute("updateUrl", command.route());
+              routeFirst = true;
+            }
+          }
+        }
+        if ("edit".equals(command.actionId())) {
+          var idField = command.componentState().get("idFieldForRow");
+          if (idField != null) {
+            var id = command.httpRequest().runActionRq().componentState().get(idField);
+            if (id != null) {
+              command.httpRequest().setAttribute("oldRoute", command.route());
+              command = command.withRoute(command.route() + "/" + id + "/edit");
+              command.httpRequest().setAttribute("updateUrl", command.route());
+              routeFirst = true;
+            }
+          }
+        }
       }
-      return mono.flatMap(
-          app ->
-              resolveMenuIfApp(command, app, command.httpRequest())
-                  .switchIfEmpty((Mono) resolveRoute(command)));
     }
 
-    // si hay una ruta --> esa clase
-    return resolveRoute(command)
-        .flatMap(app -> resolveMenuIfApp(command, app, command.httpRequest()));
+    RunActionCommand finalCommand = command;
+    if (routeFirst) {
+
+      // si hay una ruta --> esa clase
+      return resolveRoute(command)
+          .switchIfEmpty(
+              Mono.defer(
+                  (Supplier)
+                      () -> {
+                        finalCommand.httpRequest().setAttribute("updateUrl", "_no_update");
+                        var finalCommand2 = finalCommand.withRoute((String) finalCommand.httpRequest().getAttribute("oldRoute"));
+                        if (finalCommand2.serverSiteType() != null
+                            && !finalCommand2.serverSiteType().isEmpty()) {
+                          setResolvedRoute(finalCommand2.httpRequest(), finalCommand2.route());
+                          return createInstanceAndPostHydrate(
+                                  finalCommand2.serverSiteType(), finalCommand2);
+                        }
+
+                        if (finalCommand2.appServerSideType() != null
+                            && !finalCommand2.appServerSideType().isEmpty()) {
+                          setResolvedRoute(
+                                  finalCommand2.httpRequest(), finalCommand2.consumedRoute());
+                          var mono =
+                              createInstanceAndPostHydrate(
+                                      finalCommand2.appServerSideType(), finalCommand2)
+                                  .doOnNext(
+                                      app ->
+                                              finalCommand2
+                                              .httpRequest()
+                                              .setAttribute("resolvedApp", app));
+                          if (finalCommand2.route().endsWith("_page")
+                              || finalCommand2.route().endsWith("_no_home_route")) {
+                            return mono;
+                          }
+                          return mono.flatMap(
+                              app ->
+                                  resolveMenuIfApp(finalCommand2, app, finalCommand2.httpRequest())
+                                      .switchIfEmpty((Mono) resolveRoute(finalCommand2)));
+                        }
+
+                        return Mono.empty();
+                      }))
+          .flatMap(app -> resolveMenuIfApp(finalCommand, app, finalCommand.httpRequest()));
+    } else {
+      if (finalCommand.serverSiteType() != null && !finalCommand.serverSiteType().isEmpty()) {
+        setResolvedRoute(finalCommand.httpRequest(), finalCommand.route());
+        return createInstanceAndPostHydrate(finalCommand.serverSiteType(), finalCommand);
+      }
+
+      if (finalCommand.appServerSideType() != null && !finalCommand.appServerSideType().isEmpty()) {
+        setResolvedRoute(finalCommand.httpRequest(), finalCommand.consumedRoute());
+        var mono =
+            createInstanceAndPostHydrate(finalCommand.appServerSideType(), finalCommand)
+                .doOnNext(app -> finalCommand.httpRequest().setAttribute("resolvedApp", app));
+        if (finalCommand.route().endsWith("_page")
+            || finalCommand.route().endsWith("_no_home_route")) {
+          return mono;
+        }
+        return mono.flatMap(
+            app ->
+                resolveMenuIfApp(finalCommand, app, finalCommand.httpRequest())
+                    .switchIfEmpty((Mono) resolveRoute(finalCommand)));
+      }
+
+      return resolveRoute(command);
+    }
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

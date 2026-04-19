@@ -1,4 +1,4 @@
-package io.mateu.mdd.demoadminpanel.infra.in.ui;
+package io.mateu.mdd.demoadminpanel.infra.in.ui.users;
 
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Button;
@@ -12,13 +12,21 @@ import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.State;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Route("/users/:id/edit")
+@Service
+@Route("/:id/edit")
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {
+
+    final UserRepository userRepository;
+
+    public UserEditorPage(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     String id;
 
@@ -35,10 +43,10 @@ public class UserEditorPage {
 
     @Button
     Object save() {
+        userRepository.save(new User(id, name, email, roles));
         return List.of(
                 new Message("User saved"),
                 new State(this)
         );
     }
-
 }

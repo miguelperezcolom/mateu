@@ -23,6 +23,16 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
 
   @Override
   public Optional<ResolvedRoute> resolveAbsolute(String route, RunActionCommand command) {
+    var ui =
+        providers.stream()
+            .filter(provider -> provider.routedClass().isAnnotationPresent(UI.class))
+            .map(provider -> matchesAbsolute(route, provider.routedClass(), command))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst();
+    if (ui.isPresent()) {
+      return ui;
+    }
     return providers.stream()
         .map(provider -> matchesAbsolute(route, provider.routedClass(), command))
         .filter(Optional::isPresent)
@@ -50,10 +60,9 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
 
   private Optional<ResolvedRoute> matchesAbsolute(
       String route, Class<?> aClass, RunActionCommand command) {
+
     if (aClass.isAnnotationPresent(UI.class)) {
-      if (matches(
-          command.httpRequest().getAttribute("baseUrl") + route,
-          aClass.getAnnotation(UI.class).value())) {
+      if (matches(command.baseUrl() + command.route(), aClass.getAnnotation(UI.class).value())) {
         return Optional.of(
             new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
       }
@@ -69,6 +78,7 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
         ;
       }
     }
+
     if (aClass.isAnnotationPresent(Route.class)) {
       var annotation = aClass.getAnnotation(Route.class);
       if (matches(route, annotation.value())
