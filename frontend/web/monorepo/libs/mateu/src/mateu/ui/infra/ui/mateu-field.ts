@@ -45,6 +45,7 @@ import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {Notification, NotificationPosition} from "@vaadin/notification";
+import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
 
 interface FileLike {
     id: string
@@ -328,23 +329,6 @@ export class MateuField extends LitElement {
         return 'bottom-end'
     }
 
-    // @ts-ignore
-    evalIfNecessary = (value: string, _state: any, _data: any) => {
-        if (value && value.includes && value.includes('${')) {
-            // @ts-ignore
-            const state = _state
-            // @ts-ignore
-            const data = _data
-            try {
-                return eval('`' + value + '`')
-            } catch (e) {
-                console.error('Error evaluating template string:', e, value, state, data)
-                return value
-            }
-        }
-        return value
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback()
         this.rendered = false
@@ -356,7 +340,7 @@ export class MateuField extends LitElement {
         return html`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.field?.description?html`
-                <div>${this.evalIfNecessary(this.field?.description, this.state, this.data)}</div>
+                <div>${evalIfNecessary(this.field?.description, this.state, this.data)}</div>
             `:nothing}
             ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
                 <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
@@ -464,7 +448,7 @@ export class MateuField extends LitElement {
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
-            const valueToDisplay = this.evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
+            const valueToDisplay = evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
             if ('image' == this.field.stereotype) {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"

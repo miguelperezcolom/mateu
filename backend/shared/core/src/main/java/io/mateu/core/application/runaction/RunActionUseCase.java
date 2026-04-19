@@ -53,6 +53,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -231,19 +232,20 @@ public class RunActionUseCase {
   private Mono<?> resolveMenuIfApp(
       RunActionCommand command, Object instance, HttpRequest httpRequest) {
     return resolveMenuIfAppBeforeParameters(command, instance)
-        .map(
-            object -> {
-              httpRequest
-                  .getParameterNames()
-                  .forEach(
-                      paramName -> {
-                        try {
-                          setValue(paramName, object, httpRequest.getParameterValue(paramName));
-                        } catch (Exception ignored) {
-                        }
-                      });
-              return object;
-            });
+//        .map(
+//            object -> {
+//              httpRequest
+//                  .getParameterNames()
+//                  .forEach(
+//                      paramName -> {
+//                        try {
+//                          setValue(paramName, object, httpRequest.getParameterValue(paramName));
+//                        } catch (Exception ignored) {
+//                        }
+//                      });
+//              return object;
+//            })
+            ;
   }
 
   private Mono<?> resolveMenuIfAppBeforeParameters(RunActionCommand command, Object instance) {
@@ -454,18 +456,19 @@ public class RunActionUseCase {
       InstanceFactory instanceFactory,
       String route,
       Optional<ResolvedRoute> routedClass) {
-    return createInstance(
+    return (Mono<Object>) createInstance(
             instanceTypeName,
             instanceFactory,
             command.baseUrl(),
             route,
             command.initiatorComponentId(),
             command.consumedRoute(),
-            command.componentState(),
+            addParameterValues(command.componentState(), route, routedClass.get(), command.httpRequest()),
             command.httpRequest())
-        .map(
-            instance ->
-                setParameterValues(instance, route, routedClass.get(), command.httpRequest()));
+//        .map(
+//            instance ->
+//                setParameterValues(instance, route, routedClass.get(), command.httpRequest()))
+            ;
   }
 
   @SneakyThrows
@@ -548,6 +551,40 @@ public class RunActionUseCase {
               });
     }
     return instance;
+  }
+
+  private Map<String, Object> addParameterValues(
+          Map<String, Object> data, String route, ResolvedRoute matchingRoute, HttpRequest httpRequest) {
+    var newData = new HashMap<>(data != null?data:Map.of());
+    var tokens = matchingRoute.pattern().split("/");
+    var slugs = route.split("/");
+    for (int i = 0; i < tokens.length && i < slugs.length; i++) {
+      var token = tokens[i];
+      var slug = slugs[i];
+      if (token.startsWith(":")) {
+        var fieldName = token.substring(1);
+        try {
+          if (!newData.containsKey(fieldName)) {
+            newData.put(fieldName, slug);
+          }
+        } catch (Exception ignored) {
+        }
+      }
+    }
+    if (httpRequest != null) {
+      httpRequest
+              .getParameterNames()
+              .forEach(
+                      fieldName -> {
+                        try {
+                          if (!newData.containsKey(fieldName)) {
+                            newData.put(fieldName, httpRequest.getParameterValue(fieldName));
+                          }
+                        } catch (Exception ignored) {
+                        }
+                      });
+    }
+    return newData;
   }
 
   @SneakyThrows

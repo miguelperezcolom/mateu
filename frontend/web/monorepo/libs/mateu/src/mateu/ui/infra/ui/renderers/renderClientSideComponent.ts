@@ -257,13 +257,13 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderText(component, state, data, appState, appData)
         }
         if (type == ComponentMetadataType.Avatar) {
-            return renderAvatar(component)
+            return renderAvatar(component, state, data)
         }
         if (type == ComponentMetadataType.AvatarGroup) {
             return renderAvatarGroup(component)
         }
         if (type == ComponentMetadataType.Badge) {
-            return renderBadge(component)
+            return renderBadge(component, state, data)
         }
         if (type == ComponentMetadataType.Breadcrumbs) {
             return renderBreadcrumbs(component)

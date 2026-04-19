@@ -5,14 +5,13 @@ weight: 3
 
 # Concepts
 
-These pages explain how to think in Mateu.
+These are the core building blocks of Mateu.
 
-## Read in this order
+## Concepts
 
-1. [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
-2. [Validation](/java-user-manual/concepts/validation/)
-3. [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
-4. [Declarative vs fluent](/java-user-manual/concepts/declarative-vs-fluent/)
-5. [Action behavior](/java-user-manual/concepts/action-behavior/)
-6. [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)
-7. [UI effects](/java-user-manual/concepts/ui-effects/)
+- State, actions and fields  
+- Routing  
+- Fluent components  
+- UI effects  
+
+These concepts define how Mateu turns Java into a UI.

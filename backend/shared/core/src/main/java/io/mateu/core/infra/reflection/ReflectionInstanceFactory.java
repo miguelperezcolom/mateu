@@ -2,6 +2,7 @@ package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
+import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import static java.lang.Thread.currentThread;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
@@ -44,8 +45,21 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   public Mono<? extends Object> createInstance(
       String className, Map<String, Object> data, HttpRequest httpRequest) {
 
-    return Mono.just(loadClass(className))
-        .map(uiClass -> newInstance(uiClass, data, httpRequest))
+    var newData = new HashMap<>(data != null?data:Map.of());
+              httpRequest
+                      .getParameterNames()
+                      .forEach(
+                              paramName -> {
+                                try {
+                                  if (!data.containsKey(paramName)) {
+                                    newData.put(paramName, httpRequest.getParameterValue(paramName));
+                                  }
+                                } catch (Exception ignored) {
+                                }
+                              });
+
+      return Mono.just(loadClass(className))
+        .map(uiClass -> newInstance(uiClass, newData, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
         .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }

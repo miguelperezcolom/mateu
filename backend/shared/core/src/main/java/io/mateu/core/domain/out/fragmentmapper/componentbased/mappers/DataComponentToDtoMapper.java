@@ -11,6 +11,7 @@ import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.StatusType;
+import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -99,7 +100,10 @@ public class DataComponentToDtoMapper {
         var value = "" + getValue(field, item);
         map.put(field.getName(), mapping.getOrDefault(value, defaultType));
       } else {
-        map.put(field.getName(), getValue(field, item));
+        var value = getValue(field, item);
+        if (!(value instanceof Component)) {
+          map.put(field.getName(), value);
+        }
       }
     }
     return map;

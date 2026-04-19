@@ -12,6 +12,7 @@ import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import java.lang.reflect.Array;
@@ -25,6 +26,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -129,6 +132,15 @@ public class ActualValueExtractor {
       return targetValue;
     }
     if (entry.getValue() != null) {
+      if (entry.getValue() instanceof Component) {
+        return null;
+      }
+      if (Component.class.isAssignableFrom(f.getType())) {
+        return null;
+      }
+      if (Callable.class.isAssignableFrom(f.getType())) {
+        return null;
+      }
       if (List.class.isAssignableFrom(f.getType())) {
         if (isFile(f)) {
           List t = new ArrayList();
