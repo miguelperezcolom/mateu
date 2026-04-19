@@ -8,7 +8,7 @@ public record Avatar(
     String name, String abbreviation, String image, String style, String cssClasses)
     implements Component {
 
-    public Avatar(String name) {
-        this(name, "", "", "", "");
-    }
+  public Avatar(String name) {
+    this(name, "", "", "", "");
+  }
 }

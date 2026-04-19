@@ -16,11 +16,11 @@ public record Badge(
     String cssClasses)
     implements Component {
 
-    public Badge(String text) {
-        this(text, "", "", null, false, false, false, "", "");
-    }
+  public Badge(String text) {
+    this(text, "", "", null, false, false, false, "", "");
+  }
 
-    @Override
+  @Override
   public BadgeColor color() {
     return color != null ? color : BadgeColor.normal;
   }
