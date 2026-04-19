@@ -65,7 +65,15 @@ export class MateuTable extends LitElement {
 
     pagesRequested: number[] = []
 
-
+    emptyArray = (array: any[]) => {
+        if (!array) {
+            return true
+        }
+        if (array.length == 0) {
+            return true
+        }
+        return false
+    }
 
     // @ts-ignore
     dataProvider:GridDataProvider<unknown> = (params, callback) => {
@@ -172,6 +180,9 @@ export class MateuTable extends LitElement {
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
+                        if (this.emptyArray(this.state[this.id + '_selected_items']) && this.emptyArray(e.detail.value)) {
+                            return
+                        }
                         this.state[this.id + '_selected_items'] = e.detail.value;
                         if (this.metadata?.onRowSelectionChangedActionId) {
                             this.dispatchEvent(new CustomEvent('action-requested', {

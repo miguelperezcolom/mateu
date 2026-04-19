@@ -239,12 +239,22 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     } else if (data instanceof Map map) {
       if (Amount.class.equals(type)) {
         return new Amount(
-            (String) map.get("currency"), (Double) map.get("value"), (String) map.get("locale"));
+            (String) map.get("currency"), toDouble(map.get("value")), (String) map.get("locale"));
       }
       return newInstance(type, map, httpRequest);
     } else {
       return data;
     }
+  }
+
+  private Double toDouble(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Double doubleValue) {
+      return doubleValue;
+    }
+    return Double.parseDouble(value.toString());
   }
 
   private Constructor getConstructor(Class type) {

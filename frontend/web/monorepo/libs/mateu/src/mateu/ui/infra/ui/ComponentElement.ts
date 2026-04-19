@@ -109,7 +109,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
 
     triggerOnLoad = () => {
-        console.log('triggerOnLoad')
         const state = this.state
         const data = this.data
         if (state === data) console.log(state, data)
