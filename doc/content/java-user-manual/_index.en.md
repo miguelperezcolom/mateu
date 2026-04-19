@@ -28,9 +28,14 @@ Use this manual as a guided path.
 ## 3. Learn the model
 
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
+- [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)
+- [UI vs Route](/java-user-manual/concepts/ui-vs-route/)
+- [ViewModel lifecycle](/java-user-manual/concepts/viewmodel-lifecycle/)
+- [Execution model](/java-user-manual/concepts/execution-model/)
 - [Validation](/java-user-manual/concepts/validation/)
 - [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
 - [Declarative vs fluent](/java-user-manual/concepts/declarative-vs-fluent/)
+- [Fluent components](/java-user-manual/concepts/fluent-components/)
 - [Action behavior](/java-user-manual/concepts/action-behavior/)
 - [UI effects](/java-user-manual/concepts/ui-effects/)
 
