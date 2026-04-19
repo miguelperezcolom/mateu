@@ -1,67 +1,38 @@
 ---
 title: "Supported components"
-weight: 30
+weight: 3
 ---
 
 # Supported components
 
-Mateu provides a rich set of UI components through its declarative and fluent models.
+Mateu provides a rich set of UI components.
 
-## Layouts
-
-- VerticalLayout
-- HorizontalLayout
-- FormLayout
-- SplitLayout
-- TabLayout
-- Accordion
-- Board (planned / evolving)
-- Master-detail
-
-## Form elements
-
-- text fields
-- numbers
-- dates
-- checkboxes
-- selects / comboboxes
-- textareas
-- rich text
-- sliders
-- toggles
-
-These are usually inferred from field types and `@Stereotype`.
-
-## Advanced components
-
-From the component model, Mateu also supports:
-
-- master-detail layouts
-- scrollers
-- containers
-- grid/table representations
-- composite layouts
-
-## Fluent components
-
-When using the fluent API, you can explicitly build:
+All components implement:
 
 ```java
-new VerticalLayout(
-  new Text("Hello"),
-  new Button("Click", () -> {})
-);
+io.mateu.uidl.fluent.Component
 ```
 
-## Mental model
+---
 
-- declarative → inferred components
-- fluent → explicit component tree
-- both → same rendering engine
+## Key idea
 
-## Why this matters
+You don’t manually build UI in most cases.
 
-You get:
+Mateu infers it.
 
-- high-level abstraction by default
-- low-level control when needed
+But when needed, you can drop down to fluent components.
+
+---
+
+## Summary
+
+- declarative → fast, inferred UI
+- fluent → explicit control
+- both → fully compatible
+
+---
+
+## See also
+
+- [Fluent components](/java-ui-definition/fluent-components/)
