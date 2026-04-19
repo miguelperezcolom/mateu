@@ -50,3 +50,11 @@ Use this manual as a guided path.
 - [Extensibility](/java-user-manual/advanced/extensibility/)
 - [Testing](/java-user-manual/advanced/testing/)
 - [Security](/java-user-manual/advanced/security/)
+
+## 6. Reference
+
+- [Reference](/reference/)
+- [Key annotations](/reference/key-annotations/)
+- [Key interfaces](/reference/key-interfaces/)
+- [Fluent model](/reference/fluent-model/)
+- [Useful types](/reference/useful-types/)
