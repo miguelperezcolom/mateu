@@ -14,4 +14,5 @@ These pages explain how to think in Mateu.
 3. [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
 4. [Declarative vs fluent](/java-user-manual/concepts/declarative-vs-fluent/)
 5. [Action behavior](/java-user-manual/concepts/action-behavior/)
-6. [UI effects](/java-user-manual/concepts/ui-effects/)
+6. [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)
+7. [UI effects](/java-user-manual/concepts/ui-effects/)

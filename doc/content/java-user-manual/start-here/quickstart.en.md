@@ -89,3 +89,4 @@ Open `http://localhost:8080/products`
 
 - [Admin panel](/java-user-manual/use-cases/admin-panel/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
+- [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)

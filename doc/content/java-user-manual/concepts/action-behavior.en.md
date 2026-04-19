@@ -37,11 +37,20 @@ URI adminUser() {
 }
 ```
 
+## Routing and parameters
+
+Mateu can also hydrate a ViewModel directly from the URL.
+
+That includes:
+
+- path parameters
+- query parameters
+
+👉 See [Routing and parameters →](/java-user-manual/concepts/routing-and-parameters/)
+
 ## Mental model
 
 - methods define what an action does
 - `@Button` / `@Toolbar` define where it appears
 - `@Action` defines how it behaves
 - returning `URI` can trigger navigation
-
-👉 For the bigger picture, see [Routing and parameters →](/java-user-manual/routing-and-parameters)
