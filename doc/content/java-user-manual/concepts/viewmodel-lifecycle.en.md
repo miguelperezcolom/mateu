@@ -24,6 +24,8 @@ Route parameters and query parameters are injected before any UI logic is evalua
 
 Fields of type `Component` are evaluated against the already hydrated ViewModel.
 
+Fields of type `Callable<?>` are also evaluated after hydration, which makes them suitable for dynamic UI.
+
 ### Actions
 
 Actions can:
@@ -32,3 +34,5 @@ Actions can:
 - return UI effects such as `Message` or `UICommand`
 
 Both things happen in the same request.
+
+👉 See [Execution model →](/java-user-manual/concepts/execution-model/)
