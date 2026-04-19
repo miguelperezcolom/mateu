@@ -14,11 +14,9 @@ Instead of hardcoding options in the UI, Mateu delegates option search and label
 ## A field with a foreign key
 
 ```java
-@Lookup(search = PermissionIdOptionsSupplier.class, label = PermissionIdLabelSupplier.class)
-@Colspan(2)
-@Style("width: 100%;")
+@Lookup(search = RoleOptionsSupplier.class, label = RoleLabelSupplier.class)
 @Stereotype(FieldStereotype.checkbox)
-List<String> permissions;
+List<String> roles;
 ```
 
 This tells Mateu:
@@ -27,52 +25,122 @@ This tells Mateu:
 - how to resolve labels for selected values
 - how to render the relationship in the UI
 
-## Options supplier
+## Using Spring beans
+
+In real applications, your ViewModel, `LookupOptionsSupplier`, and `LabelSupplier` will often be Spring beans.
+
+This allows you to:
+
+- inject repositories
+- call external APIs
+- reuse business logic
+- keep your UI layer thin
+
+### Rule of thumb
+
+If a class contains logic, make it a Spring bean.
+
+## ViewModel as a bean
+
+```java
+@Service
+@Route("/users/:id/edit")
+@Style(StyleConstants.CONTAINER)
+@FormLayout(columns = 1)
+public class UserEditorPage {
+
+    final UserRepository userRepository;
+
+    String id;
+
+    @NotEmpty
+    String name;
+
+    @NotEmpty
+    @Email
+    String email;
+
+    @Lookup(search = RoleOptionsSupplier.class, label = RoleLabelSupplier.class)
+    @Stereotype(FieldStereotype.checkbox)
+    List<String> roles;
+
+    public UserEditorPage(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Button
+    Object save() {
+        return List.of(
+                new Message("User saved"),
+                new State(this)
+        );
+    }
+}
+```
+
+## Options supplier as a bean
 
 The `LookupOptionsSupplier` provides searchable and pageable options:
 
 ```java
 @Service
-@RequiredArgsConstructor
-public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
+public class RoleOptionsSupplier implements LookupOptionsSupplier {
 
-    final PermissionQueryService queryService;
+    final RoleRepository roleRepository;
+
+    public RoleOptionsSupplier(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     @Override
-    public ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest) {
-        var found = queryService.findAll(searchText, null, pageable);
-        return new ListingData<>(new Page<>(
-                searchText,
-                found.page().pageSize(),
-                found.page().pageNumber(),
-                found.page().totalElements(),
-                found.page().content().stream().map(permission ->
-                        new Option(permission.id(), permission.name())).toList()));
+    public ListingData<Option> search(
+            String fieldName,
+            String searchText,
+            Pageable pageable,
+            HttpRequest httpRequest) {
+
+        return ListingData.of(
+                roleRepository.findAll().stream()
+                        .map(r -> new Option(r.getId(), r.getName()))
+                        .toList()
+        );
     }
 }
 ```
 
-## Label supplier
+### Notes
+
+- `fieldName`: which field is requesting the lookup
+- `searchText`: user input for filtering
+- `pageable`: pagination info
+- `httpRequest`: request context
+
+## Label supplier as a bean
 
 The `LabelSupplier` resolves a human-readable label for a selected id:
 
 ```java
 @Service
-@RequiredArgsConstructor
-public class PermissionIdLabelSupplier implements LabelSupplier {
+public class RoleLabelSupplier implements LabelSupplier {
 
-    final PermissionQueryService queryService;
+    final RoleRepository roleRepository;
+
+    public RoleLabelSupplier(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     @Override
-    public String label(Object id, HttpRequest httpRequest) {
-        return queryService.getLabel((String) id);
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+        return roleRepository.findById((String) id)
+                .map(Role::getName)
+                .orElse("?");
     }
 }
 ```
 
 ## Why this matters
 
-This keeps the UI declarative while still allowing relationships to be resolved dynamically from backend query services.
+This keeps the UI declarative while still allowing relationships to be resolved dynamically from repositories, services, or external APIs.
 
 It also means:
 
@@ -80,6 +148,7 @@ It also means:
 - no frontend-side relationship logic
 - support for search and pagination
 - better fit for large datasets
+- clean integration with Spring and enterprise backends
 
 ## Rendering
 
@@ -98,6 +167,6 @@ This means data resolution and visual rendering stay separate but composable.
 Use:
 
 - `@Lookup` to define a relationship
-- an `OptionsSupplier` to search candidates
-- a `LabelSupplier` to render labels
+- an `OptionsSupplier` bean to search candidates
+- a `LabelSupplier` bean to render labels
 - a `@Stereotype` to choose how the field is presented

@@ -113,6 +113,8 @@ Defines how a lookup field searches available options.
 
 Use it with `@Lookup`.
 
+In real applications, this is usually a Spring bean so it can inject repositories, services, or API clients.
+
 Typical use cases:
 
 - remote relationships
@@ -127,6 +129,8 @@ Typical use cases:
 Defines how Mateu resolves the display label for a selected id/value.
 
 Use it with `@Lookup` when the raw value is not enough for UI rendering.
+
+In real applications, this is usually a Spring bean.
 
 ---
 

@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 
 public class DataLayer {
 
@@ -107,6 +108,7 @@ public class DataLayer {
     return data;
   }
 
+  @SneakyThrows
   public static LabelSupplier getLabelSupplier(Object instance, Field field) {
     var lookup = field.getAnnotation(Lookup.class);
     if (LabelSupplier.class.equals(lookup.label())) {
@@ -115,9 +117,14 @@ public class DataLayer {
       }
       return null;
     }
-    return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
+    var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
+    if (supplier == null) {
+      return field.getAnnotation(Lookup.class).label().getConstructor().newInstance();
+    }
+    return supplier;
   }
 
+  @SneakyThrows
   public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
     var lookup = field.getAnnotation(Lookup.class);
     if (LookupOptionsSupplier.class.equals(lookup.search())) {
@@ -126,6 +133,10 @@ public class DataLayer {
       }
       return null;
     }
-    return MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+    var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+    if (supplier == null) {
+      return field.getAnnotation(Lookup.class).search().getConstructor().newInstance();
+    }
+    return supplier;
   }
 }

@@ -22,6 +22,8 @@ By default, Mateu infers the rendered control from the field type.
 
 Use `@Stereotype` when you want to override that default rendering type.
 
+In real applications, ViewModels often become Spring beans so they can inject repositories, services, or API clients.
+
 ## Actions
 
 Actions represent behavior triggered by the user.
