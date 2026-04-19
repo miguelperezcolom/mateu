@@ -16,7 +16,11 @@ public record Badge(
     String cssClasses)
     implements Component {
 
-  @Override
+    public Badge(String text) {
+        this(text, "", "", null, false, false, false, "", "");
+    }
+
+    @Override
   public BadgeColor color() {
     return color != null ? color : BadgeColor.normal;
   }

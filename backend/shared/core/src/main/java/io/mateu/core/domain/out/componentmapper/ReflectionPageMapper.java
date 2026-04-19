@@ -558,8 +558,9 @@ public class ReflectionPageMapper {
   }
 
   private static boolean hiddenInEditor(Field field, boolean forCreationForm) {
-    if (Component.class.isAssignableFrom(field.getType())
-        || Callable.class.isAssignableFrom(field.getType())) {
+    if (
+            //Component.class.isAssignableFrom(field.getType()) ||
+                    Callable.class.isAssignableFrom(field.getType())) {
       return true;
     }
     if (forCreationForm) {

@@ -6,4 +6,9 @@ import lombok.Builder;
 @Builder
 public record Avatar(
     String name, String abbreviation, String image, String style, String cssClasses)
-    implements Component {}
+    implements Component {
+
+    public Avatar(String name) {
+        this(name, "", "", "", "");
+    }
+}

@@ -5,4 +5,9 @@ import lombok.Builder;
 
 @Builder
 public record KPI(String title, String text, String style, String cssClasses)
-    implements Component {}
+    implements Component {
+
+    public KPI(String title, String text) {
+        this(title, text, "", "");
+    }
+}

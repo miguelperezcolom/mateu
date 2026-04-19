@@ -25,4 +25,12 @@ public record HorizontalLayout(
   public HorizontalLayout(List<Component> content) {
     this(null, content, false, false, false, null, null, null, false, List.of(), false, null, null);
   }
+
+  public HorizontalLayout(Component... components) {
+    this(
+            null,
+            List.of(components),
+            false, false, false, null, null, null, false, List.of(), false, null, null);
+  }
+
 }

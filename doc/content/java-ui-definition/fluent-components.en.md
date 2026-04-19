@@ -19,24 +19,105 @@ io.mateu.uidl.fluent.Component
 
 ## Mixing declarative and fluent
 
+A page does not have to be fully declarative or fully fluent.
+
+You can keep the simplicity of declarative UI for state and actions, and introduce fluent components only where you need more control.
+
+---
+
+## Example: declarative only
+
 ```java
-@UI("/example")
-public class ExamplePage {
+package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-  String name;
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.UI;
 
-  Component stats = new VerticalLayout(
-      new KPI("Users", "128"),
-      new Badge("Active")
-  );
+@UI("/simple")
+@Style(StyleConstants.CONTAINER)
+public class SimplePage {
 
-  @Button
-  void save() {}
+    String name;
+
+    @Button
+    void greet() {}
 
 }
 ```
 
-This page is still declarative, but embeds fluent components directly.
+![Declarative example](/images/docs/components/simple.png)
+
+This is a fully declarative page:
+
+- `name` becomes a text input
+- `greet()` becomes a button
+- layout and rendering are inferred automatically
+
+---
+
+## Example: declarative + fluent
+
+```java
+package io.mateu.mdd.demoadminpanel.infra.in.ui;
+
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.FormLayout;
+import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.Avatar;
+import io.mateu.uidl.data.Chart;
+import io.mateu.uidl.data.ChartData;
+import io.mateu.uidl.data.ChartDataset;
+import io.mateu.uidl.data.ChartOptions;
+import io.mateu.uidl.data.ChartType;
+import io.mateu.uidl.data.HorizontalLayout;
+import io.mateu.uidl.fluent.Component;
+
+import java.util.List;
+
+@UI("/mixed")
+@Style(StyleConstants.CONTAINER)
+@FormLayout(columns = 1)
+public class MixedPage {
+
+    String name;
+
+    Component stats = new HorizontalLayout(
+            Chart.builder()
+                    .chartType(ChartType.doughnut)
+                    .chartData(ChartData.builder()
+                            .labels(List.of("Scrap", "Create release", "Deploy"))
+                            .datasets(List.of(ChartDataset.builder()
+                                    .label("label 1")
+                                    .data(List.of(1d, 2d, 3d))
+                                    .build()))
+                            .build())
+                    .chartOptions(ChartOptions.builder()
+                            .maintainAspectRatio(false)
+                            .build())
+                    .build(),
+            new Avatar("Mateu")
+    );
+
+    @Button
+    void save() {}
+
+}
+```
+
+![Mixed example](/images/docs/components/mixed.png)
+
+This page is still declarative, but it embeds fluent components directly.
+
+The `stats` field is a fluent `Component`, so Mateu renders that custom UI block inside the page.
+
+This is the key idea:
+
+- declarative → state, actions, standard structure
+- fluent → custom composition where needed
 
 ---
 
@@ -55,6 +136,13 @@ Use fluent components when:
 - you need custom layouts
 - you want reusable UI blocks
 - you need more control than annotations provide
+- you want to introduce charts, cards, avatars, or other richer components inside a standard page
+
+Stay fully declarative when:
+
+- forms are simple
+- CRUD is standard
+- inferred rendering is enough
 
 ---
 
@@ -138,3 +226,9 @@ Use fluent components when:
 - Data
 - AppData
 - FutureComponent
+
+---
+
+## See also
+
+- [Supported components](/java-ui-definition/supported-components/)
