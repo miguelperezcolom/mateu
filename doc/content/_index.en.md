@@ -37,6 +37,27 @@ For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mate
 
 ---
 
+## Stateless by design
+
+Mateu does not keep UI state on the server.
+
+Each request:
+
+1. instantiates the viewmodel  
+2. hydrates it  
+3. executes the action  
+4. returns the result  
+
+This means:
+
+- no server-side UI sessions
+- no sticky sessions
+- no per-user memory footprint
+
+Unlike stateful frameworks (such as Vaadin), Mateu keeps your backend truly stateless.
+
+---
+
 ## When to use Mateu
 
 Mateu is designed for business applications.
@@ -120,12 +141,6 @@ That separation makes Mateu a strong fit for:
 - distributed UIs
 - pluggable renderers
 
-Read more here:
-
-- [Architecture →](/mateu-about/architecture)
-- [Architecture diagram →](/mateu-about/diagram)
-- [API →](/mateu-about/api)
-
 ---
 
 ## Recommended path
@@ -156,7 +171,6 @@ The Java manual is already organized as a guided path:
 Mateu turns backend objects into real business UIs through a simple model, a small API and a renderer.
 
 [Open the Java manual →](/java-user-manual/)
-
 
 ---
 

@@ -15,4 +15,5 @@ public @interface Lookup {
   Class<? extends LookupOptionsSupplier> search() default LookupOptionsSupplier.class;
 
   Class<? extends LabelSupplier> label() default LabelSupplier.class;
+
 }
