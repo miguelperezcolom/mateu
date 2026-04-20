@@ -37,8 +37,7 @@ For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mate
 
 ---
 
-{{< notice note >}}
-### Stateless by design
+## Stateless by design
 
 Mateu does not keep UI state on the server.
 
@@ -56,7 +55,6 @@ This means:
 - no per-user memory footprint
 
 Unlike stateful frameworks (such as Vaadin), Mateu keeps your backend truly stateless.
-{{< /notice >}}
 
 ---
 
