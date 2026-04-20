@@ -73,6 +73,24 @@ This makes adoption gradual and low-risk.
 
 ---
 
+## Bring your own frontend
+
+Mateu separates UI definition from rendering.
+
+Your UI is defined in Java, but it is rendered by a frontend.
+
+This means you are free to use:
+
+- different design systems
+- different frontend implementations
+- different rendering strategies
+
+Mateu already provides a default renderer, but you are not tied to it.
+
+You can evolve or replace the frontend without changing your backend model.
+
+---
+
 ## When to use Mateu
 
 Mateu is designed for business applications.
