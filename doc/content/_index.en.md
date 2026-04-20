@@ -37,24 +37,15 @@ For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mate
 
 ---
 
-## Stateless by design
-
-Mateu does not keep UI state on the server.
-
-Each request:
-
-1. instantiates the viewmodel  
-2. hydrates it  
-3. executes the action  
-4. returns the result  
-
-This means:
-
-- no server-side UI sessions
-- no sticky sessions
-- no per-user memory footprint
-
-Unlike stateful frameworks (such as Vaadin), Mateu keeps your backend truly stateless.
+> **Stateless by design**  
+> Mateu does not keep UI state on the server. Each request instantiates the viewmodel, hydrates it, executes the action, and returns the result.  
+>  
+> This means:
+> - no server-side UI sessions
+> - no sticky sessions
+> - no per-user memory footprint
+>  
+> Unlike stateful frameworks such as Vaadin, Mateu keeps your backend truly stateless, which makes it a strong fit for microservices, ephemeral pods, and horizontal scaling.
 
 ---
 
@@ -140,6 +131,12 @@ That separation makes Mateu a strong fit for:
 - stateless systems
 - distributed UIs
 - pluggable renderers
+
+Read more here:
+
+- [Architecture →](/mateu-about/architecture)
+- [Architecture diagram →](/mateu-about/diagram)
+- [API →](/mateu-about/api)
 
 ---
 
