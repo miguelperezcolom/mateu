@@ -49,6 +49,30 @@ For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mate
 
 ---
 
+## Works with your stack
+
+Mateu does not require a specific backend framework.
+
+If you are using Java, you can integrate Mateu with:
+
+- Spring Boot MVC
+- Spring WebFlux
+- Micronaut
+- Quarkus
+- or any HTTP-based backend
+
+Mateu sits on top of your existing application.
+
+There is no need to:
+
+- rewrite your backend
+- change your architecture
+- adopt a new runtime
+
+This makes adoption gradual and low-risk.
+
+---
+
 ## When to use Mateu
 
 Mateu is designed for business applications.
