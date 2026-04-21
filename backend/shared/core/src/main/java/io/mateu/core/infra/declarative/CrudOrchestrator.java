@@ -71,6 +71,12 @@ public abstract class CrudOrchestrator<
 
     Object savedId = null;
     List<Message> messages = new ArrayList<>();
+    if ("view".equals(httpRequest.runActionRq().componentState().get("_state"))
+        || "edit".equals(httpRequest.runActionRq().componentState().get("_state"))) {
+      var idField = getIdFieldForRow();
+      savedId = httpRequest.getComponentState(Map.class).get(idField);
+    }
+
     if ("create".equals(actionId)) {
       savedId = saveNew(httpRequest);
       messages.add(
@@ -97,6 +103,8 @@ public abstract class CrudOrchestrator<
       actionId = "view";
     }
     if ("cancel-view".equals(actionId)) {
+      var idField = getIdFieldForRow();
+      savedId = httpRequest.getComponentState(Map.class).get(idField);
       actionId = "";
     }
     if ("cancel-create".equals(actionId)) {
@@ -115,6 +123,9 @@ public abstract class CrudOrchestrator<
               .toList();
       adapter().deleteAllById(selectedIds, httpRequest);
     }
+
+    updateRegisteredRoute(savedId, httpRequest);
+
     if ("view".equals(actionId)) {
       return Stream.concat(handleView(httpRequest, savedId).stream(), messages.stream()).toList();
     }
@@ -153,7 +164,7 @@ public abstract class CrudOrchestrator<
         }
         return List.of(
             view,
-            pushStateToHistory(getCrudRoute(httpRequest) + "/" + id),
+            pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id),
             setWindowTitle(httpRequest));
       }
     } else {
@@ -171,7 +182,22 @@ public abstract class CrudOrchestrator<
         return listDto;
       }
       return List.of(
-          listDto, pushStateToHistory(getCrudRoute(httpRequest)), setWindowTitle(httpRequest));
+          listDto,
+          pushStateToHistory(getCrudRoute(httpRequest, savedId)),
+          setWindowTitle(httpRequest));
+    }
+  }
+
+  private void updateRegisteredRoute(Object id, HttpRequest httpRequest) {
+    var registeredRoute = (String) httpRequest.getAttribute("resolvedRoute");
+    if (registeredRoute != null) {
+      if (id != null && registeredRoute.endsWith(id.toString() + "/edit")) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
+      if (id != null && registeredRoute.endsWith(id.toString())) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
+      httpRequest.setAttribute("registeredRoute", registeredRoute);
     }
   }
 
@@ -197,7 +223,7 @@ public abstract class CrudOrchestrator<
     }
     return List.of(
         create,
-        pushStateToHistory(getCrudRoute(httpRequest) + "/new"),
+        pushStateToHistory(getCrudRoute(httpRequest, null) + "/new"),
         setWindowTitle(httpRequest));
   }
 
@@ -217,7 +243,7 @@ public abstract class CrudOrchestrator<
     }
     return List.of(
         edit,
-        pushStateToHistory(getCrudRoute(httpRequest) + "/" + id + "/edit"),
+        pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id + "/edit"),
         setWindowTitle(httpRequest));
   }
 
@@ -232,7 +258,7 @@ public abstract class CrudOrchestrator<
     }
     return List.of(
         view,
-        pushStateToHistory(getCrudRoute(httpRequest) + "/" + id),
+        pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id),
         setWindowTitle(httpRequest));
   }
 

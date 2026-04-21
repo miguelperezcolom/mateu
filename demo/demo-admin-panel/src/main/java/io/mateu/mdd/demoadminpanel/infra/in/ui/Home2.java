@@ -29,11 +29,11 @@ public class Home2 implements WidgetSupplier {
     @Menu
     String page3 = "/page3";
 
-//    @Menu
-//    RouteLink page4 = new RouteLink("/page4", "Page 4");
-//
-//    @Menu
-//    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
+    @Menu
+    RouteLink page4 = new RouteLink("/page4", "Page 4");
+
+    @Menu
+    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 
 
 

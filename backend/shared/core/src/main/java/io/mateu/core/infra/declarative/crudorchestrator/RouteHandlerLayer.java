@@ -21,7 +21,7 @@ public abstract class RouteHandlerLayer<
     log.info("route is {}", route);
     if (httpRequest.runActionRq().actionId() == null
         || "".equals(httpRequest.runActionRq().actionId())) {
-      var crudRoute = getCrudRoute(httpRequest);
+      var crudRoute = getCrudRoute(httpRequest, null);
       var cleanRoute = route;
       if (cleanRoute.startsWith(httpRequest.runActionRq().consumedRoute())) {
         cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
@@ -49,13 +49,19 @@ public abstract class RouteHandlerLayer<
     return this;
   }
 
-  public String getCrudRoute(HttpRequest httpRequest) {
+  public String getCrudRoute(HttpRequest httpRequest, Object id) {
     var registeredRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (registeredRoute != null) {
       return registeredRoute;
     }
     registeredRoute = (String) httpRequest.getAttribute("resolvedRoute");
     if (registeredRoute != null) {
+      if (id != null && registeredRoute.endsWith(id.toString() + "/edit")) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
+      if (id != null && registeredRoute.endsWith(id.toString())) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
       return registeredRoute;
     }
     var route = httpRequest.runActionRq().route();

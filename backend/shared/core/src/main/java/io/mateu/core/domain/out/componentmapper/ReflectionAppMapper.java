@@ -154,6 +154,7 @@ public class ReflectionAppMapper {
     var prefix = "";
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
       prefix = remoteMenu.path();
+      return httpRequest.runActionRq().route();
     }
     if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
       return homeRouteSupplier.homeRoute().substring(prefix.length());
