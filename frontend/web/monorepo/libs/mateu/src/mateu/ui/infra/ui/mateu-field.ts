@@ -952,6 +952,7 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
+                            style="width: 100%;"
                             
                     ></vaadin-text-area>`
             }

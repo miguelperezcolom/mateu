@@ -59,6 +59,10 @@ public class SearchFieldActionRunner implements ActionRunner {
                 instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
       }
 
+      if (optionsSupplier == null) {
+        throw new RuntimeException("no lookup options supplier found for field " + fieldName);
+      }
+
       Pageable pageable = httpRequest.getParameters(Pageable.class);
       String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
       if (searchText == null) {
