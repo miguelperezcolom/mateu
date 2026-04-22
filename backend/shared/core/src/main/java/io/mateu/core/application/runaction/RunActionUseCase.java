@@ -341,7 +341,7 @@ public class RunActionUseCase {
       if (CrudOrchestrator.class.isAssignableFrom(type)) {
         if ("view".equals(command.actionId())) {
           var idField = command.componentState().get("idFieldForRow");
-          if (idField != null) {
+          if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
             var id = command.httpRequest().runActionRq().parameters().get(idField);
             if (id != null) {
               command.httpRequest().setAttribute("oldRoute", command.route());
@@ -353,7 +353,7 @@ public class RunActionUseCase {
         }
         if ("edit".equals(command.actionId())) {
           var idField = command.componentState().get("idFieldForRow");
-          if (idField != null) {
+          if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
             var id = command.httpRequest().runActionRq().componentState().get(idField);
             if (id != null) {
               command.httpRequest().setAttribute("oldRoute", command.route());

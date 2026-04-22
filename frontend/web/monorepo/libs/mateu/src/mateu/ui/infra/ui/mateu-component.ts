@@ -280,9 +280,8 @@ export class MateuComponent extends ComponentElement {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
-            console.log('changed properties', _changedProperties)
-            if (_changedProperties.get('component')) {
-                console.log('yyyy', this.component, _changedProperties.get('component'))
+            if (this.component?.id != _changedProperties.get('component')?.id) {
+                console.log('component changed', this.component, _changedProperties.get('component'))
                 setTimeout(() => this.triggerOnLoad())
             }
         }
@@ -495,10 +494,8 @@ export class MateuComponent extends ComponentElement {
                         e.preventDefault()
                         e.stopPropagation()
                         if (trigger.timeoutMillis > 0) {
-                            console.log('scheduling onsuccess for ', trigger, e)
                             const callbackToken = this.callbackToken
                             setTimeout(() => {
-                                console.log('creating event for onsuccess for ', trigger)
                                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                     detail: {
                                         actionId: trigger.actionId,
@@ -509,7 +506,6 @@ export class MateuComponent extends ComponentElement {
                                 }))
                             }, trigger.timeoutMillis)
                         } else {
-                            console.log('triggering onsuccess for ', trigger)
                             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                 detail: {
                                     actionId: trigger.actionId
