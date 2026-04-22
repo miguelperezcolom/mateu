@@ -40,11 +40,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         const c0 = this.component as ServerSideComponent
                         const c1 = fragment.component as ServerSideComponent
 
-                        if (c0.serverSideType != c1.serverSideType
-                        || c0.id != c1.id) {
-                            setTimeout(() => this.triggerOnLoad())
-                        }
-
                         c0.actions = c1.actions
                         c0.type = c1.type
                         c0.rules = c1.rules
@@ -56,6 +51,12 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         c0.slot = c1.slot
                         c0.style = c1.style
                         c0.children = c1.children
+
+                        if (c0.serverSideType != c1.serverSideType
+                            || c0.id != c1.id) {
+                            console.log('xxxxx')
+                            setTimeout(() => this.triggerOnLoad())
+                        }
 
                     } else {
                         const children = [fragment.component]
@@ -126,6 +127,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     const onloadTrigger = trigger as OnLoadTrigger
                     onloadTrigger.triggered = true
                     var times = onloadTrigger.times - 1;
+                    console.log('triggering onload for ', trigger)
                     if (onloadTrigger.timeoutMillis > 0) {
                         this.scheduleOnload(onloadTrigger, times, this.id);
                     } else {
@@ -142,7 +144,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     }
 
-    scheduleOnload = (onloadTrigger: OnLoadTrigger, times: number, componentId: string) => {
+    scheduleOnload = (onloadTrigger: OnLoadTrigger, _times: number, componentId: string) => {
         if (componentId != this.component?.id) {
             return
         }
@@ -156,15 +158,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 bubbles: true,
                 composed: true
             }))
-            if (onloadTrigger.times != 0) {
-                if (onloadTrigger.times < 0 || times > 0) {
-                    if (onloadTrigger.times != 0) {
-                        if (onloadTrigger.times < 0 || times > 0) {
-                            this.scheduleOnload(onloadTrigger, times - 1, componentId);
-                        }
-                    }
-                }
-            }
         }, onloadTrigger.timeoutMillis);
     }
 

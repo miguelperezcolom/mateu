@@ -6,6 +6,7 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {Service} from "@application/service.ts";
 import {Notification, NotificationPosition} from '@vaadin/notification';
 import {LitElement} from "lit";
+import {nanoid} from "nanoid";
 
 export class HttpService implements Service {
 
@@ -123,7 +124,8 @@ export class HttpService implements Service {
 
             initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-succeeded', {
                 detail: {
-                    actionId
+                    actionId,
+                    evevntId: nanoid()
                 },
                 bubbles: true,
                 composed: true
