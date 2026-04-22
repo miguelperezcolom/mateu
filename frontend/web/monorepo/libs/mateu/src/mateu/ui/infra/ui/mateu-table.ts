@@ -86,6 +86,9 @@ export class MateuTable extends LitElement {
                             .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
                         page.totalElements)
                     satisfied = true
+                    if (this.grid) {
+                        this.grid.recalculateColumnWidths()
+                    }
                 }
             }
             if (!satisfied) {
@@ -99,6 +102,9 @@ export class MateuTable extends LitElement {
                                     callback(this.data[this.id].page.content
                                             .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
                                         this.data[this.id].page.totalElements)
+                                    if (this.grid) {
+                                        this.grid.recalculateColumnWidths()
+                                    }
                                 }
                             }
                         },
@@ -110,6 +116,9 @@ export class MateuTable extends LitElement {
         } else {
             const totalElements = this.metadata?.infiniteScrolling?page?.totalElements:page?.content?.length??0
             callback(page?.content??[], totalElements);
+            if (this.grid) {
+                this.grid.recalculateColumnWidths()
+            }
         }
     }
 

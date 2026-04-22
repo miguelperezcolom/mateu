@@ -169,9 +169,12 @@ export default abstract class ConnectedElement extends LitElement {
             const destination = command.data as string
             if (destination) {
                 console.log('navigate to', destination)
-                if (true || destination.startsWith('http:') || destination.startsWith('https:')) {
-                    window.location.href = command.data as string
-                    //window.open(command.data as string, '_blank');
+                if (true) {
+                    if (destination.startsWith('http:') || destination.startsWith('https:')) {
+                        window.open(command.data as string, '_blank');
+                    } else {
+                        window.location.href = command.data as string
+                    }
                 } else {
                     this.dispatchEvent(new CustomEvent('navigate-to-requested', {
                         detail: {

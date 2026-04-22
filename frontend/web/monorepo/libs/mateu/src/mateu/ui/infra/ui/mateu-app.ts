@@ -76,7 +76,6 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
-        console.log('itemSelected', e)
         // @ts-ignore
         this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
     }
@@ -87,6 +86,7 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+        console.log('selectRoute', consumedRoute, route, _actionId, _baseUrl, appServerSideType, uriPrefix)
         if (true) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl

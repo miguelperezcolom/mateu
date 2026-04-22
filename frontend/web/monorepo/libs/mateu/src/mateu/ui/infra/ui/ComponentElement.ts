@@ -127,7 +127,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     const onloadTrigger = trigger as OnLoadTrigger
                     onloadTrigger.triggered = true
                     var times = onloadTrigger.times - 1;
-                    console.log('triggering onload for ', trigger)
                     if (onloadTrigger.timeoutMillis > 0) {
                         this.scheduleOnload(onloadTrigger, times, this.id);
                     } else {

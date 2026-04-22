@@ -281,7 +281,6 @@ export class MateuComponent extends ComponentElement {
         }
         if (_changedProperties.has('component')) {
             if (this.component?.id != _changedProperties.get('component')?.id) {
-                console.log('component changed', this.component, _changedProperties.get('component'))
                 setTimeout(() => this.triggerOnLoad())
             }
         }

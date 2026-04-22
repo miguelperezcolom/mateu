@@ -72,6 +72,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     style="width: 100%;"
                                     .appState="${appState}"
                                     .appData="${appData}"
+                                    instant="${container.instant}"
                             ></mateu-ux>
                         </mateu-api-caller>
                     </div>
@@ -154,6 +155,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="width: 100%;"
                                 .appState="${appState}"
                                 .appData="${appData}"
+                                instant="${container.instant}"
                         ></mateu-ux>
                     </mateu-api-caller>
                     </div>
@@ -181,6 +183,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="width: 100%; padding: 1em;"
                                 .appState="${appState}"
                                 .appData="${appData}"
+                                instant="${container.instant}"
                         ></mateu-ux>
                     </mateu-api-caller>
                     </div>
@@ -275,6 +278,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         style="width: 100%;"
                                         .appState="${appState}"
                                         .appData="${appData}"
+                                        instant="${container.instant}"
                                 ></mateu-ux>
                             </mateu-api-caller>
                         </vaadin-scroller>
