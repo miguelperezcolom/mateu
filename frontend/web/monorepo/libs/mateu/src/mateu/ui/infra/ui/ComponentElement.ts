@@ -54,7 +54,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
                         if (c0.serverSideType != c1.serverSideType
                             || c0.id != c1.id) {
-                            console.log('xxxxx')
                             setTimeout(() => this.triggerOnLoad())
                         }
 
