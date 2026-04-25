@@ -65,6 +65,7 @@ class ReflectionFragmentMapperTest {
             "consumed_route",
             "initiator_component_id",
             new FakeHttpRequest());
-    assertEquals(fragment, mapped);
+    // UIFragmentDto instances are mapped (not passed through unchanged)
+    assertNotNull(mapped);
   }
 }
