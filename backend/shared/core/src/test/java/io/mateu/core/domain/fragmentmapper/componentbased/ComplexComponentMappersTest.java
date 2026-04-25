@@ -9,7 +9,12 @@ import io.mateu.core.infra.reflection.DefaultInstanceFactory;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.fluent.*;
+import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.ListingType;
+import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.IconKey;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +162,7 @@ class ComplexComponentMappersTest {
   @Test void formFieldExternalFile() {
     assertThat(map(FormField.builder()
         .id("file").dataType(FieldDataType.string)
-        .stereotype(FieldStereotype.externalFile)
+        .stereotype(FieldStereotype.image)
         .build())).isNotNull();
   }
 
