@@ -1,11 +1,11 @@
 ---
 title: "Mateu"
-description: "Build business UIs in Java with one model: fast CRUDs, distributed backoffices, and embeddable modules."
+description: "Build distributed business UIs in Java with one model: fast CRUDs, distributed backoffices, and embeddable modules."
 ---
 
-# Build business UIs in Java
+# Build backoffice UIs without building a frontend
 
-Mateu is a model-driven UI framework for business applications.
+Mateu is a **model-driven UI framework** for Java teams building real business applications.
 
 Define your UI once in Java.  
 Mateu generates forms, CRUD, navigation and application shells from that model.
@@ -14,7 +14,7 @@ Mateu generates forms, CRUD, navigation and application shells from that model.
 
 ---
 
-## Why Mateu
+## What makes Mateu different
 
 Traditional business apps often mean:
 
@@ -28,24 +28,30 @@ Traditional business apps often mean:
 
 Mateu takes a different approach:
 
-- one application model
-- one source of truth
-- less duplication
-- fewer moving parts
+> Backend owns the UI.  
+> The UI is generated from the model.
 
 For the full positioning, see [Why Mateu →](/mateu-about/advantages) and [Mateu vs traditional stack →](/mateu-about/comparison).
 
 ---
 
-> **Stateless by design**  
-> Mateu does not keep UI state on the server. Each request instantiates the viewmodel, hydrates it, executes the action, and returns the result.  
->  
-> This means:
-> - no server-side UI sessions
-> - no sticky sessions
-> - no per-user memory footprint
->  
-> Unlike stateful frameworks such as Vaadin, Mateu keeps your backend truly stateless, which makes it a strong fit for microservices, ephemeral pods, and horizontal scaling.
+## Built for real architectures
+
+Mateu is designed for systems like:
+
+```text
+[ UI ] → [ Mateu API ] → [ Microservices ]
+                          ├── Content Service
+                          ├── Orders Service
+                          ├── Workflow Engine
+                          └── External APIs
+```
+
+- stateless by design
+- no server-side UI sessions
+- no sticky sessions
+- DTO-based UI
+- works with REST, gRPC, databases, services and APIs
 
 ---
 
@@ -61,15 +67,7 @@ If you are using Java, you can integrate Mateu with:
 - Quarkus
 - or any HTTP-based backend
 
-Mateu sits on top of your existing application.
-
-There is no need to:
-
-- rewrite your backend
-- change your architecture
-- adopt a new runtime
-
-This makes adoption gradual and low-risk.
+There is no need to rewrite your backend, change your architecture or adopt a new runtime.
 
 ---
 
@@ -77,47 +75,30 @@ This makes adoption gradual and low-risk.
 
 Mateu separates UI definition from rendering.
 
-Your UI is defined in Java, but it is rendered by a frontend.
+Your UI is defined in Java, but rendered by a frontend.
 
-This means you are free to use:
+This means you can use:
 
 - different design systems
 - different frontend implementations
 - different rendering strategies
 
-Mateu already provides a default renderer, but you are not tied to it.
-
-You can evolve or replace the frontend without changing your backend model.
+Mateu defines **what** the UI is, not **how** it must look.
 
 ---
 
-## When to use Mateu
+## Mental model
 
-Mateu is designed for business applications.
+In Mateu:
 
-- best for → admin panels, internal tools, distributed backoffices
-- not ideal for → marketing sites or highly custom UIs
+```text
+State → Actions → Routes → UI
+```
 
-👉 [Read when to use Mateu →](/when-to-use-mateu/)
-
----
-
-## The core idea
-
-In Mateu, you define:
-
-- state with fields
-- actions with methods or callables
-- rendering and behavior with annotations
-- routing and navigation in the same model
-
-Mateu turns that into a working UI.
-
-To understand the mental shift, see:
-
-- [How to think in Mateu →](/mateu-about/how-to-think-in-mateu)
-- [The Mateu model →](/mateu-about/mental-model)
-- [The basics →](/mateu-about/the-basics)
+- **State** → fields in your model
+- **Actions** → methods, buttons or callables
+- **Routes** → navigation and URL structure
+- **UI** → generated and rendered automatically
 
 ---
 
@@ -134,6 +115,8 @@ This is the fastest way to understand the value of Mateu.
 - [Quickstart →](/java-user-manual/start-here/quickstart/)
 - [Admin panel use case →](/java-user-manual/use-cases/admin-panel/)
 
+---
+
 ### 2. Distributed backoffices
 
 Let each microservice define its own UI and compose everything in one shell.
@@ -146,6 +129,8 @@ This is one of Mateu's most distinctive strengths.
 - [UI federation →](/mateu-about/ui-federation)
 - [Shell and remote menus →](/mateu-about/shell-and-remote-menus)
 
+---
+
 ### 3. Embedded UI
 
 Use Mateu inside React, Vue, Angular or even plain HTML through a web component.
@@ -156,6 +141,31 @@ This makes adoption gradual and low-risk.
 
 - [Embedded UI →](/java-user-manual/use-cases/embedded-ui/)
 - [Embed →](/mateu-about/embed)
+
+---
+
+## Real-world usage
+
+Mateu can act as a UI orchestration layer for distributed systems:
+
+- each service owns its UI
+- DTOs become UI rows
+- row actions trigger backend use cases
+- workflows and forms can be launched from the UI
+- everything remains stateless
+
+👉 [Read the distributed control plane case study →](/java-user-manual/real-world/distributed-control-plane/)
+
+---
+
+## Comparison
+
+| Approach | Characteristics |
+|---|---|
+| React / SPA | frontend-heavy, duplicated models |
+| Vaadin | server-side UI session, stateful |
+| CRUD generators | fast start, limited flexibility |
+| Mateu | stateless, backend-driven, distributed UI |
 
 ---
 
@@ -195,7 +205,7 @@ If you're new to Mateu, follow this order:
 
 ## Java manual
 
-The Java manual is already organized as a guided path:
+The Java manual is organized as a guided path:
 
 - [Start here](/java-user-manual/start-here/)
 - [Use cases](/java-user-manual/use-cases/)
@@ -207,7 +217,7 @@ The Java manual is already organized as a guided path:
 
 ## One-sentence summary
 
-Mateu turns backend objects into real business UIs through a simple model, a small API and a renderer.
+Mateu turns backend models into **real distributed business UIs**, without requiring a frontend stack.
 
 [Open the Java manual →](/java-user-manual/)
 
