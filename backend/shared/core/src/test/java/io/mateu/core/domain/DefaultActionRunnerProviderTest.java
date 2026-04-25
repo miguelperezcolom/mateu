@@ -21,14 +21,20 @@ class DefaultActionRunnerProviderTest {
   }
 
   @Test
-  void failsIfNoRunnerFound() {
+  void returnsFallbackRunnerIfNoRunnerFound() {
     var provider =
         new DefaultActionRunnerProvider(
             new FakeBeanProvider(), new DefaultInstanceFactoryProvider(new FakeBeanProvider()));
-    assertThrows(
-        NoSuchMethodException.class,
+    // No longer throws - returns a fallback runner instead
+    assertDoesNotThrow(
         () ->
             provider.get(
                 "an_object", "action_id", "consumed_route", "route", new FakeHttpRequest()));
+    var runner =
+        assertDoesNotThrow(
+            () ->
+                provider.get(
+                    "an_object", "action_id", "consumed_route", "route", new FakeHttpRequest()));
+    assertNotNull(runner);
   }
 }
