@@ -42,6 +42,9 @@ public final class AppComponentToDtoMapper {
       app = app.withServerSideType(componentSupplier.getClass().getName());
     }
     String appRoute = (String) httpRequest.getAttribute("resolvedRoute");
+    if (appRoute == null) {
+      appRoute = "";
+    }
     if (appRoute.startsWith(baseUrl)) {
       appRoute = appRoute.substring(baseUrl.length());
     }
