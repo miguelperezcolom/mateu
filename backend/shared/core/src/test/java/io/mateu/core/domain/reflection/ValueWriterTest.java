@@ -63,7 +63,8 @@ class ValueWriterTest {
   @Test
   void setListField() throws Exception {
     var t = new Target();
-    ValueWriter.setValue(Target.class.getDeclaredField("items"), t, new ArrayList<>(List.of("a", "b")));
+    ValueWriter.setValue(
+        Target.class.getDeclaredField("items"), t, new ArrayList<>(List.of("a", "b")));
     assertThat(t.items).containsExactly("a", "b");
   }
 

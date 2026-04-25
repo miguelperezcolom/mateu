@@ -9,7 +9,6 @@ import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.interfaces.Page;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,8 +26,7 @@ class ActionRunnersTest {
 
   private RunActionCommand command(Object instance, String actionId) {
     return new RunActionCommand(
-        "base", "ui", "route", "consumed", actionId,
-        Map.of(), Map.of(), "init", http, null, null);
+        "base", "ui", "route", "consumed", actionId, Map.of(), Map.of(), "init", http, null, null);
   }
 
   // --- ComponentTreeActionRunner ---
@@ -106,19 +104,24 @@ class ActionRunnersTest {
 
   @Test
   void defaultProviderThrowsForNullInstance() {
-    var provider = new DefaultActionRunnerProvider(
-        new FakeBeanProvider(),
-        className -> new io.mateu.core.infra.reflection.ReflectionInstanceFactory(new FakeBeanProvider()));
+    var provider =
+        new DefaultActionRunnerProvider(
+            new FakeBeanProvider(),
+            className ->
+                new io.mateu.core.infra.reflection.ReflectionInstanceFactory(
+                    new FakeBeanProvider()));
     org.junit.jupiter.api.Assertions.assertThrows(
-        NoSuchMethodException.class,
-        () -> provider.get(null, "action", "consumed", "route", http));
+        NoSuchMethodException.class, () -> provider.get(null, "action", "consumed", "route", http));
   }
 
   @Test
   void defaultProviderReturnsFallbackForUnknownAction() throws Exception {
-    var provider = new DefaultActionRunnerProvider(
-        new FakeBeanProvider(),
-        className -> new io.mateu.core.infra.reflection.ReflectionInstanceFactory(new FakeBeanProvider()));
+    var provider =
+        new DefaultActionRunnerProvider(
+            new FakeBeanProvider(),
+            className ->
+                new io.mateu.core.infra.reflection.ReflectionInstanceFactory(
+                    new FakeBeanProvider()));
     var runner = provider.get("instance", "unknown_action", "consumed", "route", http);
     assertThat(runner).isNotNull();
   }

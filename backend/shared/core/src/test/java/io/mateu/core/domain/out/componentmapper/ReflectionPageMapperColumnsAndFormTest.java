@@ -4,7 +4,6 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.uis.forms.SimpleForm;
-import com.example.uis.travel.BookingsCrud;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.core.infra.reflection.DefaultInstanceFactory;
@@ -16,7 +15,6 @@ import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.Page;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +32,9 @@ class ReflectionPageMapperColumnsAndFormTest {
     public Status status = new Status(StatusType.SUCCESS, "Active");
     public Amount amount = new Amount("USD", 100.0);
 
-    @Hidden
-    public String hidden = "hidden";
+    @Hidden public String hidden = "hidden";
 
-    @HiddenInList
-    public String hiddenInList = "hiddenInList";
+    @HiddenInList public String hiddenInList = "hiddenInList";
   }
 
   static class SampleFilters {
@@ -85,30 +81,33 @@ class ReflectionPageMapperColumnsAndFormTest {
   @Test
   void getColumnsExcludesHiddenFields() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream()
-        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
-        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
-        .toList();
+    var names =
+        cols.stream()
+            .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+            .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+            .toList();
     assertThat(names).doesNotContain("hidden");
   }
 
   @Test
   void getColumnsExcludesHiddenInListFields() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream()
-        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
-        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
-        .toList();
+    var names =
+        cols.stream()
+            .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+            .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+            .toList();
     assertThat(names).doesNotContain("hiddenInList");
   }
 
   @Test
   void getColumnsIncludesStatus() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream()
-        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
-        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
-        .toList();
+    var names =
+        cols.stream()
+            .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+            .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+            .toList();
     assertThat(names).contains("status");
   }
 
@@ -118,7 +117,8 @@ class ReflectionPageMapperColumnsAndFormTest {
   void getFiltersReturnsListForAnyClass() {
     // getFilters may return empty list if no filter annotations - just verify no NPE
     var filters =
-        getFilters(SampleFilters.class, new SampleFilters(), "base", "route", "consumed", "init", http);
+        getFilters(
+            SampleFilters.class, new SampleFilters(), "base", "route", "consumed", "init", http);
     assertThat(filters).isNotNull();
   }
 
@@ -134,15 +134,13 @@ class ReflectionPageMapperColumnsAndFormTest {
 
   @Test
   void getFormReadOnly() {
-    var form =
-        getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, true, 2);
+    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, true, 2);
     assertThat(form).isNotNull();
   }
 
   @Test
   void getFormForCreationForm() {
-    var form =
-        getForm(new SimpleForm(), "base", "route", "consumed", "init", http, true, false, 2);
+    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, true, false, 2);
     assertThat(form).isNotNull();
   }
 
@@ -158,13 +156,15 @@ class ReflectionPageMapperColumnsAndFormTest {
 
   @Test
   void getFormForPageOneColumn() {
-    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 1);
+    var form =
+        getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 1);
     assertThat(form).isNotNull();
   }
 
   @Test
   void getFormForPageFourColumns() {
-    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 4);
+    var form =
+        getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 4);
     assertThat(form).isNotNull();
   }
 

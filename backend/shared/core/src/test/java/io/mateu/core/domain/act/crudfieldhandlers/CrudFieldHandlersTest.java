@@ -59,7 +59,8 @@ class CrudFieldHandlersTest {
 
   @Test
   void addHandlerShowsDetail() {
-    var result = handleAdd(new Object(), "items_add", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleAdd(new Object(), "items_add", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(true);
     assertThat(editing.get(fieldId)).isEqualTo(false);
@@ -68,7 +69,8 @@ class CrudFieldHandlersTest {
   @Test
   void cancelHandlerHidesDetail() {
     showDetail.put(fieldId, true);
-    var result = handleCancel(new Object(), "items_cancel", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleCancel(new Object(), "items_cancel", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(false);
     assertThat(editing.get(fieldId)).isEqualTo(false);
@@ -81,11 +83,9 @@ class CrudFieldHandlersTest {
     var state = new HashMap<String, Object>();
     state.put("items", new ArrayList<>(List.of(row1)));
     http.storeRunActionRqDto(
-        RunActionRqDto.builder()
-            .componentState(state)
-            .parameters(Map.of("_rowNumber", 0))
-            .build());
-    var result = handleSelect(new Object(), "items_select", http, "", showDetail, editing, field, fieldId);
+        RunActionRqDto.builder().componentState(state).parameters(Map.of("_rowNumber", 0)).build());
+    var result =
+        handleSelect(new Object(), "items_select", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(true);
   }
@@ -99,7 +99,9 @@ class CrudFieldHandlersTest {
     state.put("items_selected_items", new ArrayList<>(List.of(row1)));
     state.put("items", new ArrayList<>(List.of(row1)));
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
-    var result = handleSelected(new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleSelected(
+            new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     // selectedHandler puts _show_detail into the returned State, not the local map
     var newState = ((State) result).state();
@@ -108,14 +110,16 @@ class CrudFieldHandlersTest {
 
   @Test
   void removeHandlerRemovesRow() {
-    var result = handleRemove(new Object(), "items_remove", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleRemove(new Object(), "items_remove", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(false);
   }
 
   @Test
   void saveHandlerHidesDetail() {
-    var result = handleSave(new Object(), "items_save", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleSave(new Object(), "items_save", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(false);
     assertThat(editing.get(fieldId)).isEqualTo(false);
@@ -123,7 +127,8 @@ class CrudFieldHandlersTest {
 
   @Test
   void nextHandlerAdvancesRow() {
-    var result = handleNext(new Object(), "items_next", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleNext(new Object(), "items_next", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
   }
 
@@ -137,13 +142,16 @@ class CrudFieldHandlersTest {
     state.put("items", new ArrayList<>(List.of(row1, row2)));
     state.put("items-_rowNumber", 1);
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
-    var result = handlePrev(new Object(), "items_prev", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handlePrev(new Object(), "items_prev", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
   }
 
   @Test
   void moveDownHandlerMovesRow() {
-    var result = handleMoveDown(new Object(), "items_move-down", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleMoveDown(
+            new Object(), "items_move-down", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
   }
 
@@ -157,7 +165,8 @@ class CrudFieldHandlersTest {
     state.put("items", new ArrayList<>(List.of(row1, row2)));
     state.put("items-_rowNumber", 1);
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
-    var result = handleMoveUp(new Object(), "items_move-up", http, "", showDetail, editing, field, fieldId);
+    var result =
+        handleMoveUp(new Object(), "items_move-up", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
   }
 }

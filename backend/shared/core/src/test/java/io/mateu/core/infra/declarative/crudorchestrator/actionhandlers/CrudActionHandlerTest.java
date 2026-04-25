@@ -137,8 +137,7 @@ class CrudActionHandlerTest {
 
     @Test
     void handlesEmptySelection() {
-      httpRequest.storeRunActionRqDto(
-          RunActionRqDto.builder().componentState(Map.of()).build());
+      httpRequest.storeRunActionRqDto(RunActionRqDto.builder().componentState(Map.of()).build());
 
       var handler = new DeleteActionHandler();
       handler.handle(orchestrator, CrudActionResult.of("delete"), httpRequest);
@@ -164,8 +163,7 @@ class CrudActionHandlerTest {
           RunActionRqDto.builder().componentState(Map.of("id", "entity-1")).build());
 
       var handler = new CancelEditActionHandler();
-      var result =
-          handler.handle(orchestrator, CrudActionResult.of("cancel-edit"), httpRequest);
+      var result = handler.handle(orchestrator, CrudActionResult.of("cancel-edit"), httpRequest);
 
       assertThat(result.savedId()).isEqualTo("entity-1");
     }
@@ -176,8 +174,7 @@ class CrudActionHandlerTest {
           RunActionRqDto.builder().componentState(Map.of("id", "entity-1")).build());
 
       var handler = new CancelEditActionHandler();
-      var result =
-          handler.handle(orchestrator, CrudActionResult.of("cancel-edit"), httpRequest);
+      var result = handler.handle(orchestrator, CrudActionResult.of("cancel-edit"), httpRequest);
 
       assertThat(result.actionId()).isEqualTo("view");
     }
@@ -201,8 +198,7 @@ class CrudActionHandlerTest {
           RunActionRqDto.builder().componentState(Map.of("id", "entity-1")).build());
 
       var handler = new CancelViewActionHandler();
-      var result =
-          handler.handle(orchestrator, CrudActionResult.of("cancel-view"), httpRequest);
+      var result = handler.handle(orchestrator, CrudActionResult.of("cancel-view"), httpRequest);
 
       assertThat(result.savedId()).isEqualTo("entity-1");
     }
@@ -213,8 +209,7 @@ class CrudActionHandlerTest {
           RunActionRqDto.builder().componentState(Map.of("id", "entity-1")).build());
 
       var handler = new CancelViewActionHandler();
-      var result =
-          handler.handle(orchestrator, CrudActionResult.of("cancel-view"), httpRequest);
+      var result = handler.handle(orchestrator, CrudActionResult.of("cancel-view"), httpRequest);
 
       assertThat(result.actionId()).isEqualTo("");
     }
@@ -234,8 +229,7 @@ class CrudActionHandlerTest {
     @Test
     void redirectsToListBySettingEmptyActionId() {
       var handler = new CancelCreateActionHandler();
-      var result =
-          handler.handle(orchestrator, CrudActionResult.of("cancel-create"), httpRequest);
+      var result = handler.handle(orchestrator, CrudActionResult.of("cancel-create"), httpRequest);
 
       assertThat(result.actionId()).isEqualTo("");
     }

@@ -22,7 +22,11 @@ class ReflectionReadTest {
 
   public static class Parent {
     public String parentField = "parent";
-    public String getParentField() { return parentField; }
+
+    public String getParentField() {
+      return parentField;
+    }
+
     public void parentMethod() {}
   }
 
@@ -31,7 +35,11 @@ class ReflectionReadTest {
     public int intField = 42;
     public boolean boolField = true;
     @ReadOnly public String readOnlyField = "ro";
-    public String getChildField() { return childField; }
+
+    public String getChildField() {
+      return childField;
+    }
+
     public void childMethod() {}
   }
 
@@ -116,7 +124,8 @@ class ReflectionReadTest {
   void getValueOrNewInstanceReturnsExistingValue() {
     var child = new Child();
     var field = getFieldByName(Child.class, "childField");
-    assertEquals("child", ValueProvider.getValueOrNewInstance(new FakeBeanProvider(), field, child));
+    assertEquals(
+        "child", ValueProvider.getValueOrNewInstance(new FakeBeanProvider(), field, child));
   }
 
   // --- AllEditableFieldsProvider ---
@@ -146,7 +155,9 @@ class ReflectionReadTest {
 
   @Test
   void isFileReturnsTrueForFileField() throws NoSuchFieldException {
-    class WithFileField { java.io.File file; }
+    class WithFileField {
+      java.io.File file;
+    }
     var field = WithFileField.class.getDeclaredField("file");
     assertThat(FileChecker.isFile(field)).isTrue();
   }

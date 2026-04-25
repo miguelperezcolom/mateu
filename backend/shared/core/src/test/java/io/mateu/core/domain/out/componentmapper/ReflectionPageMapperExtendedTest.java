@@ -6,13 +6,11 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.uis.forms.SimpleForm;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.Page;
 import java.math.BigDecimal;
@@ -44,7 +42,8 @@ class ReflectionPageMapperExtendedTest {
     public Long longVal = 100L;
     public List<String> items = List.of("a", "b");
 
-    @Button void myAction() {}
+    @Button
+    void myAction() {}
   }
 
   static class SimplePage implements Page {
@@ -61,7 +60,8 @@ class ReflectionPageMapperExtendedTest {
 
   // --- mapToPageComponent ---
 
-  @Test void mapFullPageReturnsPage() {
+  @Test
+  void mapFullPageReturnsPage() {
     var page = mapToPageComponent(new FullPage(), "base", "route", "consumed", "init", http);
     assertNotNull(page);
     assertEquals("Extended", page.pageTitle());
@@ -70,18 +70,21 @@ class ReflectionPageMapperExtendedTest {
     assertEquals("fav.ico", page.favicon());
   }
 
-  @Test void mapSimplePageReturnsPage() {
+  @Test
+  void mapSimplePageReturnsPage() {
     var page = mapToPageComponent(new SimplePage(), "base", "route", "consumed", "init", http);
     assertNotNull(page);
     assertNotNull(page.pageTitle()); // defaults to humanized class name
   }
 
-  @Test void mapPageHasContent() {
+  @Test
+  void mapPageHasContent() {
     var page = mapToPageComponent(new FullPage(), "base", "route", "consumed", "init", http);
     assertNotNull(page.content());
   }
 
-  @Test void mapPageHasButtons() {
+  @Test
+  void mapPageHasButtons() {
     var page = mapToPageComponent(new FullPage(), "base", "route", "consumed", "init", http);
     assertNotNull(page.buttons());
     assertThat(page.buttons()).isNotEmpty();
@@ -89,7 +92,8 @@ class ReflectionPageMapperExtendedTest {
 
   // --- getContent ---
 
-  @Test void getContentForPage() {
+  @Test
+  void getContentForPage() {
     var content = getContent(new FullPage(), "base", "route", "consumed", "init", http);
     assertNotNull(content);
     assertThat(content).isNotEmpty();
@@ -97,117 +101,174 @@ class ReflectionPageMapperExtendedTest {
 
   // --- isApp / isPage ---
 
-  @Test void isAppForAppClass() { assertTrue(isApp(FakeApp.class, "route")); }
-  @Test void isAppForPageClass() { assertFalse(isApp(SimplePage.class, "route")); }
-  @Test void isPageForPageInstance() { assertTrue(isPage(new SimplePage(), "route")); }
-  @Test void isPageForAppInstance() { assertFalse(isPage(new FakeApp(), "route")); }
-  @Test void isPageForPageRoute() { assertTrue(isPage(new Object(), "my_page")); }
+  @Test
+  void isAppForAppClass() {
+    assertTrue(isApp(FakeApp.class, "route"));
+  }
+
+  @Test
+  void isAppForPageClass() {
+    assertFalse(isApp(SimplePage.class, "route"));
+  }
+
+  @Test
+  void isPageForPageInstance() {
+    assertTrue(isPage(new SimplePage(), "route"));
+  }
+
+  @Test
+  void isPageForAppInstance() {
+    assertFalse(isPage(new FakeApp(), "route"));
+  }
+
+  @Test
+  void isPageForPageRoute() {
+    assertTrue(isPage(new Object(), "my_page"));
+  }
 
   // --- getFormColumns ---
 
-  @Test void getFormColumnsDefault() {
+  @Test
+  void getFormColumnsDefault() {
     assertThat(getFormColumns(SimplePage.class)).isGreaterThan(0);
   }
 
   // --- getTitle / getView ---
 
-  @Test void getTitleFromAnnotation() {
+  @Test
+  void getTitleFromAnnotation() {
     assertEquals("My Page", getTitle(new FullPage()));
   }
 
-  @Test void getTitleFromClassName() {
+  @Test
+  void getTitleFromClassName() {
     assertNotNull(getTitle(new SimplePage()));
   }
 
-  @Test void isReadOnlyDefault() throws NoSuchFieldException {
+  @Test
+  void isReadOnlyDefault() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
     assertFalse(isReadOnly(field, new FullPage(), false));
   }
 
-  @Test void isFormTrue() { assertTrue(isForm(new FullPage())); } // has @Button method
-  @Test void isFormFalseForAppInstance() { assertFalse(isForm(new FakeApp())); }
-  @Test void isFormFalseForPlainObject() { assertFalse(isForm("string")); }
+  @Test
+  void isFormTrue() {
+    assertTrue(isForm(new FullPage()));
+  } // has @Button method
+
+  @Test
+  void isFormFalseForAppInstance() {
+    assertFalse(isForm(new FakeApp()));
+  }
+
+  @Test
+  void isFormFalseForPlainObject() {
+    assertFalse(isForm("string"));
+  }
 
   // --- ReflectionFormFieldMapper ---
 
-  @Test void getFormFieldForString() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForString() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldForInt() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForInt() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("count");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldForBoolean() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForBoolean() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("active");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldForDate() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForDate() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("date");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldForDecimal() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForDecimal() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("amount");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldForList() throws NoSuchFieldException {
+  @Test
+  void getFormFieldForList() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("items");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
+    var component =
+        getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getFormFieldReadOnly() throws NoSuchFieldException {
+  @Test
+  void getFormFieldReadOnly() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
-    var component = getFormField(field, new FullPage(), "base", "route", "consumed", "init", http, true, false, 1);
+    var component =
+        getFormField(
+            field, new FullPage(), "base", "route", "consumed", "init", http, true, false, 1);
     assertNotNull(component);
   }
 
-  @Test void getLabelForField() throws NoSuchFieldException {
+  @Test
+  void getLabelForField() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
     assertNotNull(getLabel(field));
   }
 
-  @Test void getDataTypeForString() throws NoSuchFieldException {
+  @Test
+  void getDataTypeForString() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
     assertThat(getDataType(field)).isNotNull();
   }
 
-  @Test void getDataTypeForInt() throws NoSuchFieldException {
+  @Test
+  void getDataTypeForInt() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("count");
     assertThat(getDataType(field)).isEqualTo(FieldDataType.integer);
   }
 
-  @Test void getDataTypeForBoolean() throws NoSuchFieldException {
+  @Test
+  void getDataTypeForBoolean() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("active");
     assertThat(getDataType(field)).isEqualTo(FieldDataType.bool);
   }
 
-  @Test void getDataTypeForDate() throws NoSuchFieldException {
+  @Test
+  void getDataTypeForDate() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("date");
     assertThat(getDataType(field)).isEqualTo(FieldDataType.date);
   }
 
-  @Test void getStereotypeForString() throws NoSuchFieldException {
+  @Test
+  void getStereotypeForString() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
     assertThat(getStereotype(field)).isNotNull();
   }
 
-  @Test void getDataTypeForColumnDouble() throws NoSuchFieldException {
+  @Test
+  void getDataTypeForColumnDouble() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("price");
     assertThat(getDataTypeForColumn(field)).isNotNull();
   }
 
-  @Test void getStereotypeForColumnString() throws NoSuchFieldException {
+  @Test
+  void getStereotypeForColumnString() throws NoSuchFieldException {
     var field = FullPage.class.getDeclaredField("name");
     assertThat(getStereotypeForColumn(field)).isNotNull();
   }

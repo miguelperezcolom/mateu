@@ -49,29 +49,55 @@ class RunActionUseCaseWrapTest extends RunActionUseCaseTest {
   @Test
   void wrapPreservesModelClassName() {
     var model = new SimpleForm();
-    var result = (ServerSideComponentDto) wrap(new Text("x"), model, "base", "route", "consumed", "init", http);
+    var result =
+        (ServerSideComponentDto)
+            wrap(new Text("x"), model, "base", "route", "consumed", "init", http);
     assertThat(result.serverSideType()).isEqualTo(SimpleForm.class.getName());
   }
 
   @Test
   void handleWithEmptyActionReturnsResult() {
-    var increment = useCase.handle(new RunActionCommand(
-        "base", "ui", "route", "consumed", "",
-        Map.of(), Map.of(), "init",
-        new FakeHttpRequest().storeRunActionRqDto(
-            RunActionRqDto.builder().componentState(Map.of()).build()),
-        SimpleForm.class.getName(), null)).blockLast();
+    var increment =
+        useCase
+            .handle(
+                new RunActionCommand(
+                    "base",
+                    "ui",
+                    "route",
+                    "consumed",
+                    "",
+                    Map.of(),
+                    Map.of(),
+                    "init",
+                    new FakeHttpRequest()
+                        .storeRunActionRqDto(
+                            RunActionRqDto.builder().componentState(Map.of()).build()),
+                    SimpleForm.class.getName(),
+                    null))
+            .blockLast();
     assertThat(increment).isNotNull();
   }
 
   @Test
   void handlePageRouteReturnsResult() {
-    var increment = useCase.handle(new RunActionCommand(
-        "base", "ui", "route_page", "consumed", "",
-        Map.of(), Map.of(), "init",
-        new FakeHttpRequest().storeRunActionRqDto(
-            RunActionRqDto.builder().componentState(Map.of()).build()),
-        SimpleForm.class.getName(), null)).blockLast();
+    var increment =
+        useCase
+            .handle(
+                new RunActionCommand(
+                    "base",
+                    "ui",
+                    "route_page",
+                    "consumed",
+                    "",
+                    Map.of(),
+                    Map.of(),
+                    "init",
+                    new FakeHttpRequest()
+                        .storeRunActionRqDto(
+                            RunActionRqDto.builder().componentState(Map.of()).build()),
+                    SimpleForm.class.getName(),
+                    null))
+            .blockLast();
     assertThat(increment).isNotNull();
   }
 }

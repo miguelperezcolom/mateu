@@ -8,7 +8,6 @@ import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.RoutedClassProvider;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

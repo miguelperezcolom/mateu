@@ -25,23 +25,64 @@ class CrudOrchestratorLayersTest {
     new DefaultInstanceFactory(new ReflectionInstanceFactory(new FakeBeanProvider()));
   }
 
-  @Test void getIdFieldForRowIsId() { assertThat(orchestrator.getIdFieldForRow()).isEqualTo("id"); }
-  @Test void viewClassIsNotNull() { assertThat(orchestrator.viewClass()).isNotNull(); }
-  @Test void editorClassIsNotNull() { assertThat(orchestrator.editorClass()).isNotNull(); }
-  @Test void filtersClassIsNotNull() { assertThat(orchestrator.filtersClass()).isNotNull(); }
-  @Test void rowClassIsNotNull() { assertThat(orchestrator.rowClass()).isNotNull(); }
-  @Test void adapterIsNotNull() { assertThat(orchestrator.adapter()).isNotNull(); }
-  @Test void oneToOneIsFalseByDefault() { assertThat(orchestrator.oneToOne()).isFalse(); }
-  @Test void parentIdIsNullByDefault() { assertThat(orchestrator.parentId()).isNull(); }
-  @Test void readOnlyIsFalseByDefault() { assertThat(orchestrator.readOnly()).isFalse(); }
-  @Test void childCrudIsFalseByDefault() { assertThat(orchestrator.childCrud()).isFalse(); }
+  @Test
+  void getIdFieldForRowIsId() {
+    assertThat(orchestrator.getIdFieldForRow()).isEqualTo("id");
+  }
 
-  @Test void saveNewCallsDelegate() {
+  @Test
+  void viewClassIsNotNull() {
+    assertThat(orchestrator.viewClass()).isNotNull();
+  }
+
+  @Test
+  void editorClassIsNotNull() {
+    assertThat(orchestrator.editorClass()).isNotNull();
+  }
+
+  @Test
+  void filtersClassIsNotNull() {
+    assertThat(orchestrator.filtersClass()).isNotNull();
+  }
+
+  @Test
+  void rowClassIsNotNull() {
+    assertThat(orchestrator.rowClass()).isNotNull();
+  }
+
+  @Test
+  void adapterIsNotNull() {
+    assertThat(orchestrator.adapter()).isNotNull();
+  }
+
+  @Test
+  void oneToOneIsFalseByDefault() {
+    assertThat(orchestrator.oneToOne()).isFalse();
+  }
+
+  @Test
+  void parentIdIsNullByDefault() {
+    assertThat(orchestrator.parentId()).isNull();
+  }
+
+  @Test
+  void readOnlyIsFalseByDefault() {
+    assertThat(orchestrator.readOnly()).isFalse();
+  }
+
+  @Test
+  void childCrudIsFalseByDefault() {
+    assertThat(orchestrator.childCrud()).isFalse();
+  }
+
+  @Test
+  void saveNewCallsDelegate() {
     orchestrator.saveNew(http);
     assertThat(orchestrator.saveNewCalled).isTrue();
   }
 
-  @Test void saveCallsDelegate() {
+  @Test
+  void saveCallsDelegate() {
     orchestrator.save(http);
     assertThat(orchestrator.saveCalled).isTrue();
   }
@@ -71,10 +112,14 @@ class CrudOrchestratorLayersTest {
         RunActionRqDto.builder()
             .componentState(
                 java.util.Map.of(
-                    "page", 0,
-                    "size", 10,
-                    "sort", java.util.List.of(),
-                    "crud_selected_items", java.util.List.of()))
+                    "page",
+                    0,
+                    "size",
+                    10,
+                    "sort",
+                    java.util.List.of(),
+                    "crud_selected_items",
+                    java.util.List.of()))
             .route("/items")
             .initiatorComponentId("init")
             .consumedRoute("")
@@ -82,8 +127,27 @@ class CrudOrchestratorLayersTest {
     assertThat(orchestrator.handleAction("delete", h)).isNotNull();
   }
 
-  @Test void viewModelClassInListState() { orchestrator.setStateTo("list"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
-  @Test void viewModelClassInEditState() { orchestrator.setStateTo("edit"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
-  @Test void viewModelClassInCreateState() { orchestrator.setStateTo("create"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
-  @Test void viewModelClassInViewState() { orchestrator.setStateTo("view"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
+  @Test
+  void viewModelClassInListState() {
+    orchestrator.setStateTo("list");
+    assertThat(orchestrator.viewModelClass()).isNotNull();
+  }
+
+  @Test
+  void viewModelClassInEditState() {
+    orchestrator.setStateTo("edit");
+    assertThat(orchestrator.viewModelClass()).isNotNull();
+  }
+
+  @Test
+  void viewModelClassInCreateState() {
+    orchestrator.setStateTo("create");
+    assertThat(orchestrator.viewModelClass()).isNotNull();
+  }
+
+  @Test
+  void viewModelClassInViewState() {
+    orchestrator.setStateTo("view");
+    assertThat(orchestrator.viewModelClass()).isNotNull();
+  }
 }

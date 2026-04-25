@@ -47,7 +47,6 @@ import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.RouteResolver;
-import io.mateu.uidl.interfaces.RouteSupplier;
 import io.mateu.uidl.interfaces.StateSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;

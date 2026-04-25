@@ -41,8 +41,7 @@ class DeclarativeUtilitiesTest {
   // --- CrudAdapterHelper.getIdField ---
 
   static class EntityWithId {
-    @PrimaryKey
-    public String id;
+    @PrimaryKey public String id;
     public String name;
   }
 
@@ -66,8 +65,7 @@ class DeclarativeUtilitiesTest {
   // --- CrudAdapterHelper.getEntityName ---
 
   static class NamedEntity {
-    @PrimaryKey
-    public String id = "entity-1";
+    @PrimaryKey public String id = "entity-1";
     public String name = "My Entity";
   }
 
@@ -120,7 +118,6 @@ class DeclarativeUtilitiesTest {
     items.add(row1);
     // getIndex throws RuntimeException when item not found
     org.junit.jupiter.api.Assertions.assertThrows(
-        RuntimeException.class,
-        () -> CrudOrchestrator.getIndex(items, 99));
+        RuntimeException.class, () -> CrudOrchestrator.getIndex(items, 99));
   }
 }
