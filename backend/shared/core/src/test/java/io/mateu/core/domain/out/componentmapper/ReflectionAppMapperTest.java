@@ -4,6 +4,8 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapTo
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.core.infra.FakeBeanProvider;
+import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;
 import io.mateu.uidl.annotations.FavIcon;
@@ -14,9 +16,16 @@ import io.mateu.uidl.annotations.Subtitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Widget;
 import io.mateu.uidl.interfaces.App;
+import io.mateu.uidl.interfaces.MateuInstanceFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ReflectionAppMapperTest {
+
+  @BeforeEach
+  void setUp() {
+    MateuInstanceFactory.setInstanceFactory(new ReflectionInstanceFactory(new FakeBeanProvider()));
+  }
 
   class FakeSimpleApp implements App {}
 

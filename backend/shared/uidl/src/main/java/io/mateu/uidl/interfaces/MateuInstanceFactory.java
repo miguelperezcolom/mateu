@@ -15,6 +15,10 @@ public class MateuInstanceFactory {
     if (Map.class.isAssignableFrom(type)) {
       return (T) data;
     }
+    if (_instanceFactory == null) {
+      throw new IllegalStateException(
+          "MateuInstanceFactory has not been initialized. Call setInstanceFactory() first.");
+    }
     return _instanceFactory.newInstance(type, data, httpRequest);
   }
 }

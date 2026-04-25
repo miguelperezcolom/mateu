@@ -31,8 +31,7 @@ class DefaultMateuServiceTest {
               new FakeBeanProvider(),
               instanceFactoryProvider,
               new DefaultActionRunnerProvider(
-                  new FakeBeanProvider(),
-                  (InstanceFactoryProvider) new ReflectionInstanceFactory(new FakeBeanProvider())),
+                  new FakeBeanProvider(), instanceFactoryProvider),
               uiIncrementMapperProvider,
               routedClassResolver,
               null,
