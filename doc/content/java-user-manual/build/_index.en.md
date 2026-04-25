@@ -15,3 +15,5 @@ These topics help you move from examples to real applications.
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/)
 - [Master-detail](/java-user-manual/build/master-detail/)
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/)
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/)
