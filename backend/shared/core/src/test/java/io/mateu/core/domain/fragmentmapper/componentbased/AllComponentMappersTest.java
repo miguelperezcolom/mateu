@@ -37,7 +37,7 @@ class AllComponentMappersTest {
         .size(ButtonSize.small).disabled(true).build())).isNotNull();
   }
   @Test void badge() { assertThat(map(Badge.builder().text("badge").build())).isNotNull(); }
-  @Test void badgeWithColor() { assertThat(map(Badge.builder().text("x").badgeColor(BadgeColor.contrast).build())).isNotNull(); }
+  @Test void badgeWithColor() { assertThat(map(Badge.builder().text("x").color(BadgeColor.contrast).build())).isNotNull(); }
   @Test void avatar() { assertThat(map(Avatar.builder().name("John").build())).isNotNull(); }
   @Test void avatarGroup() { assertThat(map(AvatarGroup.builder().avatars(List.of(Avatar.builder().name("A").build())).build())).isNotNull(); }
   @Test void bpmn() { assertThat(map(Bpmn.builder().xml("<xml/>").build())).isNotNull(); }
@@ -49,9 +49,9 @@ class AllComponentMappersTest {
   @Test void verticalLayout() { assertThat(map(VerticalLayout.builder().content(List.of(new Text("a"))).build())).isNotNull(); }
   @Test void formLayout() { assertThat(map(FormLayout.builder().content(List.of(new Text("f"))).build())).isNotNull(); }
   @Test void formRow() { assertThat(map(FormRow.builder().content(List.of(new Text("c"))).build())).isNotNull(); }
-  @Test void formItem() { assertThat(map(FormItem.builder().label("Name").content(new Text("val")).build())).isNotNull(); }
-  @Test void formSection() { assertThat(map(FormSection.builder().caption("S").content(List.of(new Text("x"))).build())).isNotNull(); }
-  @Test void formSubSection() { assertThat(map(FormSubSection.builder().caption("S").content(List.of(new Text("x"))).build())).isNotNull(); }
+  @Test void formItem() { assertThat(map(FormItem.builder().content(List.of(new Text("val"))).build())).isNotNull(); }
+  @Test void formSection() { assertThat(map(FormSection.builder().title("S").content(List.of(new Text("x"))).build())).isNotNull(); }
+  @Test void formSubSection() { assertThat(map(FormSubSection.builder().title("S").content(List.of(new Text("x"))).build())).isNotNull(); }
   @Test void splitLayout() { assertThat(map(SplitLayout.builder().master(new Text("m")).detail(new Text("d")).build())).isNotNull(); }
   @Test void splitLayoutVariant() {
     assertThat(map(SplitLayout.builder().master(new Text("m")).detail(new Text("d"))
@@ -78,10 +78,10 @@ class AllComponentMappersTest {
   @Test void fullWidth() { assertThat(map(new FullWidth(new Text("f")))).isNotNull(); }
   @Test void container() { assertThat(map(new Container(new Text("i")))).isNotNull(); }
   @Test void breadcrumbs() { assertThat(map(Breadcrumbs.builder().breadcrumbs(List.of(new Breadcrumb("Home", "/"))).build())).isNotNull(); }
-  @Test void confirmDialog() { assertThat(map(ConfirmDialog.builder().title("Confirm").text("Sure?").build())).isNotNull(); }
+  @Test void confirmDialog() { assertThat(map(ConfirmDialog.builder().header("Confirm").build())).isNotNull(); }
   @Test void contextMenu() { assertThat(map(ContextMenu.builder().wrapped(new Text("i")).build())).isNotNull(); }
   @Test void cookieConsent() { assertThat(map(CookieConsent.builder().message("Cookies").build())).isNotNull(); }
-  @Test void cookieConsentWithPosition() { assertThat(map(CookieConsent.builder().message("C").position(CookieConsentPosition.top).build())).isNotNull(); }
+  @Test void cookieConsentWithPosition() { assertThat(map(CookieConsent.builder().message("C").position(CookieConsentPosition.Top).build())).isNotNull(); }
   @Test void details() { assertThat(map(Details.builder().summary(new Text("S")).content(new Text("d")).build())).isNotNull(); }
   @Test void dialog() { assertThat(map(Dialog.builder().headerTitle("D").content(new Text("b")).build())).isNotNull(); }
   @Test void image() { assertThat(map(new Image("https://example.com/img.png"))).isNotNull(); }

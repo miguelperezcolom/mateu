@@ -22,14 +22,11 @@ class DefaultRoutedClassResolverTest {
   @Route("/items")
   static class ItemsPage {}
 
-  RoutedClassProvider appProvider = () -> AppClass.class;
-  RoutedClassProvider itemsProvider = () -> ItemsPage.class;
-
   DefaultRoutedClassResolver resolver;
 
   @BeforeEach
   void setUp() {
-    resolver = new DefaultRoutedClassResolver(List.of(appProvider, itemsProvider));
+    resolver = new DefaultRoutedClassResolver(List.of(() -> AppClass.class, () -> ItemsPage.class));
   }
 
   private RunActionCommand command(String route) {
@@ -41,22 +38,21 @@ class DefaultRoutedClassResolverTest {
 
   @Test
   void resolveReturnsEmptyWhenNoMatch() {
-    var result = resolver.resolve("/unknown", command("/unknown"));
-    assertThat(result).isEmpty();
+    assertThat(resolver.resolve("/unknown", command("/unknown"))).isEmpty();
   }
 
   @Test
   void resolveAppFindsUIAnnotatedClass() {
     var result = resolver.resolveApp("/app", command("/app"));
     assertThat(result).isPresent();
-    assertThat(result.get().routedClass()).isEqualTo(AppClass.class);
+    assertThat(result.get().resolvedClass()).isEqualTo(AppClass.class);
   }
 
   @Test
   void resolveAbsoluteFindsRouteAnnotatedClass() {
     var result = resolver.resolveAbsolute("/items", command("/items"));
     assertThat(result).isPresent();
-    assertThat(result.get().routedClass()).isEqualTo(ItemsPage.class);
+    assertThat(result.get().resolvedClass()).isEqualTo(ItemsPage.class);
   }
 
   @Test
@@ -69,7 +65,7 @@ class DefaultRoutedClassResolverTest {
 
   @Test
   void resolveWithUsingInterfacesUI() {
-    var uiResolver = new DefaultRoutedClassResolver(List.of(() -> UsingInterfacesUI.class));
-    assertThat(uiResolver.resolve("/", command("/"))).isNotNull();
+    var r = new DefaultRoutedClassResolver(List.of(() -> UsingInterfacesUI.class));
+    assertThat(r.resolve("/", command("/"))).isNotNull();
   }
 }
