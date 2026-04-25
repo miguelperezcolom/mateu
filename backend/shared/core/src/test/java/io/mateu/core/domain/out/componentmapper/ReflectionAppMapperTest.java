@@ -3,8 +3,8 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.core.infra.FakeBeanProvider;
+import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.uidl.annotations.CssClasses;
 import io.mateu.uidl.annotations.DrawerClosed;

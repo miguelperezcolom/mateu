@@ -73,8 +73,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
           List<io.mateu.uidl.interfaces.RouteValue> routes =
               new ArrayList<>(
                   Arrays.stream(
-                          Optional.ofNullable(e.getAnnotationsByType(UI.class))
-                              .orElse(new UI[0]))
+                          Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
                       .map(
                           routeAnnotation ->
                               new io.mateu.uidl.interfaces.RouteValue(
@@ -83,8 +82,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                   toRegex(routeAnnotation.value()),
                                   toRegex("_empty")))
                       .toList());
-          Arrays.stream(
-                  Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
+          Arrays.stream(Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
               .map(
                   routeAnnotation ->
                       new io.mateu.uidl.interfaces.RouteValue(

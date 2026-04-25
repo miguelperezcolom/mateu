@@ -34,8 +34,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
         String simpleClassName = e.getSimpleName().toString();
         List<io.mateu.uidl.interfaces.RouteValue> routes =
             Arrays.stream(
-                    Optional.ofNullable(e.getAnnotationsByType(Route.class))
-                        .orElse(new Route[0]))
+                    Optional.ofNullable(e.getAnnotationsByType(Route.class)).orElse(new Route[0]))
                 .map(
                     routeAnnotation ->
                         new io.mateu.uidl.interfaces.RouteValue(

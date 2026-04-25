@@ -11,7 +11,6 @@ import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
-import io.mateu.core.infra.reflection.ReflectionInstanceFactory;
 import io.mateu.dtos.RunActionRqDto;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +29,7 @@ class DefaultMateuServiceTest {
           new RunActionUseCase(
               new FakeBeanProvider(),
               instanceFactoryProvider,
-              new DefaultActionRunnerProvider(
-                  new FakeBeanProvider(), instanceFactoryProvider),
+              new DefaultActionRunnerProvider(new FakeBeanProvider(), instanceFactoryProvider),
               uiIncrementMapperProvider,
               routedClassResolver,
               null,
