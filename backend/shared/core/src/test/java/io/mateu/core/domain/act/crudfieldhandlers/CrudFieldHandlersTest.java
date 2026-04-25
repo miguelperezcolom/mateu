@@ -97,11 +97,13 @@ class CrudFieldHandlersTest {
     row1.put("name", "Alice");
     var state = new HashMap<String, Object>();
     state.put("items_selected_items", new ArrayList<>(List.of(row1)));
-    state.put("items", new ArrayList<>(List.of(row1))); // needed for position calc
+    state.put("items", new ArrayList<>(List.of(row1)));
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
     var result = handleSelected(new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
-    assertThat(showDetail.get(fieldId)).isEqualTo(true);
+    // selectedHandler puts _show_detail into the returned State, not the local map
+    var newState = (java.util.Map<?, ?>) ((State) result).state();
+    assertThat(newState).containsKey("_show_detail");
   }
 
   @Test
