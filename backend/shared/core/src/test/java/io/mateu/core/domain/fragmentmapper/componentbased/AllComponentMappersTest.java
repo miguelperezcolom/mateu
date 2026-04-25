@@ -33,8 +33,8 @@ class AllComponentMappersTest {
   @Test void button() { assertThat(map(Button.builder().label("click me").actionId("doIt").build())).isNotNull(); }
   @Test void buttonAllFields() {
     assertThat(map(Button.builder().label("b").actionId("a").color(ButtonColor.error)
-        .variant(ButtonVariant.PRIMARY).buttonStyle(ButtonStyle.FILLED)
-        .size(ButtonSize.SMALL).disabled(true).build())).isNotNull();
+        .variant(ButtonVariant.danger).buttonStyle(ButtonStyle.primary)
+        .size(ButtonSize.small).disabled(true).build())).isNotNull();
   }
   @Test void badge() { assertThat(map(Badge.builder().text("badge").build())).isNotNull(); }
   @Test void badgeWithColor() { assertThat(map(Badge.builder().text("x").badgeColor(BadgeColor.contrast).build())).isNotNull(); }
@@ -64,26 +64,26 @@ class AllComponentMappersTest {
         .panels(List.of(AccordionPanel.builder().label("P1").content(new Text("c")).build()))
         .build())).isNotNull();
   }
-  @Test void accordionLayoutVariant() { assertThat(map(AccordionLayout.builder().panels(List.of()).variant(AccordionLayoutVariant.Filled).build())).isNotNull(); }
+  @Test void accordionLayoutVariant() { assertThat(map(AccordionLayout.builder().panels(List.of()).variant(AccordionLayoutVariant.filled).build())).isNotNull(); }
   @Test void accordionPanel() { assertThat(map(AccordionPanel.builder().label("P").content(new Text("b")).build())).isNotNull(); }
   @Test void tabLayout() { assertThat(map(TabLayout.builder().tabs(List.of(new Tab("Tab 1", new Text("c")))).build())).isNotNull(); }
   @Test void tabLayoutVariant() { assertThat(map(TabLayout.builder().tabs(List.of(new Tab("T", new Text("c")))).variant(TabLayoutVariant.centered).build())).isNotNull(); }
   @Test void boardLayout() {
     assertThat(map(BoardLayout.builder().rows(List.of(BoardLayoutRow.builder()
-        .items(List.of(BoardLayoutItem.builder().content(new Text("i")).build())).build())).build())).isNotNull();
+        .content(List.of(new Text("i"))).build())).build())).isNotNull();
   }
-  @Test void boardLayoutRow() { assertThat(map(BoardLayoutRow.builder().items(List.of()).build())).isNotNull(); }
-  @Test void boardLayoutItem() { assertThat(map(BoardLayoutItem.builder().content(new Text("c")).build())).isNotNull(); }
+  @Test void boardLayoutRow() { assertThat(map(BoardLayoutRow.builder().content(List.of()).build())).isNotNull(); }
+  @Test void boardLayoutItem() { assertThat(map(new BoardLayoutItem(new Text("c"), 1))).isNotNull(); }
   @Test void scroller() { assertThat(map(Scroller.builder().content(new Text("s")).build())).isNotNull(); }
   @Test void fullWidth() { assertThat(map(new FullWidth(new Text("f")))).isNotNull(); }
   @Test void container() { assertThat(map(new Container(new Text("i")))).isNotNull(); }
   @Test void breadcrumbs() { assertThat(map(Breadcrumbs.builder().breadcrumbs(List.of(new Breadcrumb("Home", "/"))).build())).isNotNull(); }
   @Test void confirmDialog() { assertThat(map(ConfirmDialog.builder().title("Confirm").text("Sure?").build())).isNotNull(); }
-  @Test void contextMenu() { assertThat(map(ContextMenu.builder().content(new Text("i")).build())).isNotNull(); }
+  @Test void contextMenu() { assertThat(map(ContextMenu.builder().wrapped(new Text("i")).build())).isNotNull(); }
   @Test void cookieConsent() { assertThat(map(CookieConsent.builder().message("Cookies").build())).isNotNull(); }
   @Test void cookieConsentWithPosition() { assertThat(map(CookieConsent.builder().message("C").position(CookieConsentPosition.top).build())).isNotNull(); }
-  @Test void details() { assertThat(map(Details.builder().summary("S").content(new Text("d")).build())).isNotNull(); }
-  @Test void dialog() { assertThat(map(Dialog.builder().title("D").content(new Text("b")).build())).isNotNull(); }
+  @Test void details() { assertThat(map(Details.builder().summary(new Text("S")).content(new Text("d")).build())).isNotNull(); }
+  @Test void dialog() { assertThat(map(Dialog.builder().headerTitle("D").content(new Text("b")).build())).isNotNull(); }
   @Test void image() { assertThat(map(new Image("https://example.com/img.png"))).isNotNull(); }
   @Test void mapComponent() { assertThat(map(io.mateu.uidl.data.Map.builder().build())).isNotNull(); }
   @Test void microFrontend() { assertThat(map(MicroFrontend.builder().route("r").baseUrl("http://localhost").build())).isNotNull(); }
@@ -91,14 +91,13 @@ class AllComponentMappersTest {
   @Test void tooltip() { assertThat(map(Tooltip.builder().text("tip").wrapped(new Text("t")).build())).isNotNull(); }
   @Test void messageInput() { assertThat(map(MessageInput.builder().build())).isNotNull(); }
   @Test void messageList() { assertThat(map(MessageList.builder().build())).isNotNull(); }
-  @Test void customField() { assertThat(map(CustomField.builder().tag("my-el").build())).isNotNull(); }
+  @Test void customField() { assertThat(map(CustomField.builder().label("lbl").content(new Text("c")).build())).isNotNull(); }
   @Test void menuBar() { assertThat(map(MenuBar.builder().build())).isNotNull(); }
   @Test void virtualList() {
     var page = Page.<Component>builder().content(List.of(new Text("item"))).build();
     assertThat(map(VirtualList.builder().page(page).build())).isNotNull();
   }
   @Test void state() {
-    // State is handled before component dispatch - just verify no exception
     mapComponentToDto(null, new State(Map.of("key", "value")), BASE, ROUTE, CONSUMED, INITIATOR, HTTP);
   }
 }

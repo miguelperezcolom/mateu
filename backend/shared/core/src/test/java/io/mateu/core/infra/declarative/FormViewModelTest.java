@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.example.uis.forms.SimpleForm;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
@@ -25,73 +24,57 @@ class FormViewModelTest {
 
   @Test
   void actionsAreReturned() {
-    var form = new PlainForm();
-    assertThat(form.actions()).isNotNull();
+    assertThat(new PlainForm().actions()).isNotNull();
   }
 
   @Test
   void rulesAreReturned() {
-    var form = new PlainForm();
-    assertThat(form.rules()).isNotNull();
+    assertThat(new PlainForm().rules()).isNotNull();
   }
 
   @Test
   void validationDtosAreReturned() {
-    var form = new PlainForm();
-    assertThat(form.validationDtos()).isNotNull();
+    assertThat(new PlainForm().validationDtos()).isNotNull();
   }
 
   @Test
   void titleFromAnnotation() {
-    var form = new AnnotatedForm();
-    assertThat(form.title()).isEqualTo("My Form");
+    assertThat(new AnnotatedForm().title()).isEqualTo("My Form");
   }
 
   @Test
   void titleFromClassName() {
-    var form = new PlainForm();
-    // Falls back to class name humanized
-    assertThat(form.title()).isNotNull();
+    assertThat(new PlainForm().title()).isNotNull();
   }
 
   @Test
   void entityClassReturnsFormClass() {
-    var form = new PlainForm();
-    assertThat(form.entityClass()).isEqualTo(PlainForm.class);
+    assertThat(new PlainForm().entityClass()).isEqualTo(PlainForm.class);
   }
 
   @Test
   void componentReturnsNonNull() {
-    var form = new PlainForm();
-    var http = new FakeHttpRequest();
-    var component = form.component(http);
-    assertThat(component).isNotNull();
+    assertThat(new PlainForm().component(new FakeHttpRequest())).isNotNull();
   }
 
   @Test
   void triggersReturnsNonNull() {
-    var form = new PlainForm();
-    var http = new FakeHttpRequest();
-    assertThat(form.triggers(http)).isNotNull();
+    assertThat(new PlainForm().triggers(new FakeHttpRequest())).isNotNull();
   }
 
   @Test
   void createKpisForObject() {
-    var form = new PlainForm();
-    var kpis = FormViewModel.createKpis(form);
-    assertThat(kpis).isNotNull();
+    assertThat(FormViewModel.createKpis(new PlainForm())).isNotNull();
   }
 
   @Test
   void createBadgesForObject() {
-    var form = new PlainForm();
-    var badges = FormViewModel.createBadges(form);
-    assertThat(badges).isNotNull();
+    assertThat(FormViewModel.createBadges(new PlainForm())).isNotNull();
   }
 
   @Test
   void mapStatusToBadge() {
-    var status = new Status("Active", StatusType.success);
+    var status = new Status(StatusType.SUCCESS, "Active");
     Badge badge = FormViewModel.mapStatusToBadge(status);
     assertThat(badge).isNotNull();
     assertThat(badge.text()).isEqualTo("Active");
