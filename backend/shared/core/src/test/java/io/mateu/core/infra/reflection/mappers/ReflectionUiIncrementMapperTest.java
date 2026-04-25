@@ -3,7 +3,8 @@ package io.mateu.core.infra.reflection.mappers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.uis.forms.SimpleForm;
-import io.mateu.core.domain.out.DefaultUiIncrementMapperProvider;
+import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
+import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.core.infra.reflection.DefaultInstanceFactory;
@@ -28,7 +29,9 @@ class ReflectionUiIncrementMapperTest {
   void setUp() {
     var beanProvider = new FakeBeanProvider();
     new DefaultInstanceFactory(new ReflectionInstanceFactory(beanProvider));
-    mapper = new ReflectionUiIncrementMapper(new DefaultUiIncrementMapperProvider(beanProvider));
+    mapper =
+        new ReflectionUiIncrementMapper(
+            new ComponentFragmentMapper(), new ReflectionObjectToComponentMapper());
     http = new FakeHttpRequest();
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(Map.of()).build());
   }
@@ -74,7 +77,8 @@ class ReflectionUiIncrementMapperTest {
             .initiatorComponentId("init")
             .consumedRoute("")
             .build());
-    var result = mapper.map(new SimplePageImpl(), "base", "/page", "consumed", "init", http).block();
+    var result =
+        mapper.map(new SimplePageImpl(), "base", "/page", "consumed", "init", http).block();
     assertThat(result).isNotNull();
   }
 }
