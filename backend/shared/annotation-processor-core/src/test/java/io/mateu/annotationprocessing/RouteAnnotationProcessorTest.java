@@ -33,6 +33,7 @@ public class RouteAnnotationProcessorTest {
     when(processor.getFiler()).thenReturn(filer);
     var routeAnnotation = mock(Route.class);
     when(routeAnnotation.value()).thenReturn("/");
+    when(routeAnnotation.parentRoute()).thenReturn("");
     var annotatedType = mock(TypeElement.class);
     Set<? extends TypeElement> annotations = Set.of(annotatedType);
     RoundEnvironment roundEnv = mock(RoundEnvironment.class);
@@ -53,5 +54,23 @@ public class RouteAnnotationProcessorTest {
         .then(invocation -> annotatedTypes);
     var worked = processor.process(annotations, roundEnv);
     assertThat(worked).isTrue();
+  }
+
+  @Test
+  public void toRegexHandlesNull() {
+    assertThat(RouteAnnotationProcessor.toRegex(null)).isEqualTo("");
+  }
+
+  @Test
+  public void toRegexConvertsPathParams() {
+    assertThat(RouteAnnotationProcessor.toRegex("/users/:id")).isEqualTo("/users/.*");
+    assertThat(RouteAnnotationProcessor.toRegex("/users/:id/orders/:orderId"))
+        .isEqualTo("/users/.*/orders/.*");
+  }
+
+  @Test
+  public void toRegexKeepsStaticSegments() {
+    assertThat(RouteAnnotationProcessor.toRegex("/users/list")).isEqualTo("/users/list");
+    assertThat(RouteAnnotationProcessor.toRegex("")).isEqualTo("");
   }
 }

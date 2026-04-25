@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
@@ -32,7 +33,9 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
         String className = ((TypeElement) e).getQualifiedName().toString();
         String simpleClassName = e.getSimpleName().toString();
         List<io.mateu.uidl.interfaces.RouteValue> routes =
-            Arrays.stream(e.getAnnotationsByType(Route.class))
+            Arrays.stream(
+                    Optional.ofNullable(e.getAnnotationsByType(Route.class))
+                        .orElse(new Route[0]))
                 .map(
                     routeAnnotation ->
                         new io.mateu.uidl.interfaces.RouteValue(
@@ -75,6 +78,7 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
   }
 
   public static String toRegex(String route) {
+    if (route == null) return "";
     return Arrays.stream(route.split("/"))
         .map(token -> token.startsWith(":") ? ".*" : token)
         .collect(Collectors.joining("/"));
